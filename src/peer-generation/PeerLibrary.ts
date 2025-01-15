@@ -30,7 +30,7 @@ import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropCo
 
 export class PeerLibrary implements LibraryInterface {
     private _syntheticEntries: idl.IDLEntry[] = []
-    /** @deprecated PeerLibrary should contains only SDK entries */
+    /** @deprecated PeerLibrary should contain only SDK entries */
     public get syntheticEntries(): idl.IDLEntry[] {
         return this._syntheticEntries!
     }

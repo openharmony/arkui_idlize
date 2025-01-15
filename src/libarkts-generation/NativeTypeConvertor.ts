@@ -14,34 +14,71 @@
  */
 
 import { TypeConvertor } from "../peer-generation/LanguageWriters/nameConvertor"
-import * as idl from "@idlize/core/idl"
-import { throwException } from "@idlize/core"
+import { PeerLibrary } from "../peer-generation/PeerLibrary"
+import {
+    IDLBooleanType,
+    IDLContainerType,
+    IDLContainerUtils,
+    IDLI32Type,
+    IDLOptionalType,
+    IDLPrimitiveType,
+    IDLReferenceType,
+    IDLStringType,
+    IDLTypeParameterType,
+    IDLUnionType,
+    IDLVoidType,
+    isEnum,
+    throwException
+} from "@idlize/core"
 
 export class NativeTypeConvertor implements TypeConvertor<string> {
-    convertOptional(type: idl.IDLOptionalType): string {
-        throw new Error("Method not implemented.");
+    constructor(private library: PeerLibrary) {}
+
+    private usagesWithoutDeclaration = new Set<string>()
+
+    convertOptional(type: IDLOptionalType): string {
+        throw new Error("Method not implemented.")
     }
-    convertUnion(type: idl.IDLUnionType): string {
-        throw new Error("Method not implemented.");
+
+    convertUnion(type: IDLUnionType): string {
+        throw new Error("Method not implemented.")
     }
-    convertContainer(type: idl.IDLContainerType): string {
-        return `KNativePointer`
+
+    convertContainer(type: IDLContainerType): string {
+        if (IDLContainerUtils.isSequence(type)) return `KNativePointerArray`
+        throwException(`Unexpected container`)
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): string {
-        throw new Error("Method not implemented.");
+
+    convertImport(type: IDLReferenceType, importClause: string): string {
+        throw new Error("Method not implemented.")
     }
-    convertTypeReference(type: idl.IDLReferenceType): string {
-        return `KNativePointer`
-    }
-    convertTypeParameter(type: idl.IDLTypeParameterType): string {
-        throw new Error("Method not implemented.");
-    }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLI32Type: return `KInt`
-            case idl.IDLBooleanType: return `KBoolean`
-            case idl.IDLStringType: return `KStringPtr&`
+
+    convertTypeReference(type: IDLReferenceType): string {
+        const declaration = this.library.resolveTypeReference(type)
+        if (declaration === undefined) this.complain(type.name)
+        if (declaration !== undefined && isEnum(declaration)) {
+            return `KInt`
         }
-        throwException(`Unsupported primitive type: ${type}`)
+        return `KNativePointer`
+    }
+
+    convertTypeParameter(type: IDLTypeParameterType): string {
+        throw new Error("Method not implemented.")
+    }
+
+    convertPrimitiveType(type: IDLPrimitiveType): string {
+        switch (type) {
+            case IDLI32Type: return `KInt`
+            case IDLBooleanType: return `KBoolean`
+            case IDLStringType: return `KStringPtr&`
+            case IDLVoidType: return `KNativePointer`
+        }
+        throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)
+    }
+
+    private complain(name: string): void {
+        if (this.usagesWithoutDeclaration.has(name)) return
+        this.usagesWithoutDeclaration.add(name)
+        console.warn(`Warning: type reference with no declaration: ${name}`)
     }
 }

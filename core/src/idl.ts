@@ -179,7 +179,7 @@ export interface IDLVariable extends IDLEntry {
 }
 
 export interface IDLTypedEntry extends IDLEntry {
-    type?: IDLType;
+    type: IDLType;
 }
 
 export interface IDLEnum extends IDLEntry {
@@ -213,6 +213,7 @@ export interface IDLParameter extends IDLTypedEntry, IDLNamedNode {
     kind: IDLKind.Parameter
     isVariadic: boolean
     isOptional: boolean
+    type: IDLType
 }
 
 export interface IDLSignature extends IDLEntry {
@@ -702,7 +703,7 @@ export function createProperty(
 
 export function createParameter(
     name: string,
-    type: IDLType | undefined,
+    type: IDLType,
     isOptional: boolean = false,
     isVariadic: boolean = false,
     nodeInitializer: IDLNodeInitializer = {},

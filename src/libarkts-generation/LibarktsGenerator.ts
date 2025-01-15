@@ -1,6 +1,6 @@
 import * as path from "node:path"
 import { PeerLibrary } from "../peer-generation/PeerLibrary"
-import { LibPrinter } from "./LibPrinter"
+import { BridgesPrinter } from "./BridgesPrinter"
 import { forceWriteFile } from "@idlize/core"
 
 export class LibarktsGenerator {
@@ -9,8 +9,8 @@ export class LibarktsGenerator {
         private library: PeerLibrary
     ) {}
 
-    private libPrinter = new LibPrinter(this.library)
-    private libFile = 'native/src/es2panda.cc'
+    private libPrinter = new BridgesPrinter(this.library)
+    private libFile = 'native/src/bridges.cc'
 
     print(): void {
         forceWriteFile(

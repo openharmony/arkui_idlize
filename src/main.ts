@@ -88,6 +88,7 @@ const options = program
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
+    .option('--libarkts-transform', 'Invokes Es2PandaTransformer on input .idl')
     .parse()
     .opts()
 
@@ -277,10 +278,6 @@ if (options.idl2peer) {
     idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
     new IdlPeerProcessor(idlLibrary).process()
 
-    if (options.generatorTarget == "libarkts") {
-        (new Es2PandaTransformer(idlLibrary)).transform()
-    }
-
     generateTarget(idlLibrary, outDir, language)
 
     didJob = true
@@ -399,6 +396,9 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
         generateOhos(outDir, idlLibrary)
     }
     if (options.generatorTarget == "libarkts") {
+        if (options.libarktsTransform) {
+            new Es2PandaTransformer(idlLibrary).transform()
+        }
         new LibarktsGenerator(outDir, idlLibrary).print()
     }
     if (options.plugin) {

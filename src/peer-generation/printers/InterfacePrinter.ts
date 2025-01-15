@@ -39,12 +39,12 @@ import {
 } from '@idlize/core'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
-import { TargetFile } from '../printers/TargetFile'
-import { PrinterContext } from '../printers/PrinterContext'
+import { TargetFile } from './TargetFile'
+import { PrinterContext } from './PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/nameConvertor";
-import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from '../printers/lang/Java'
-import { printJavaImports } from '../printers/lang/JavaPrinters'
-import { collectJavaImports } from '../printers/lang/JavaIdlUtils'
+import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'
+import { printJavaImports } from './lang/JavaPrinters'
+import { collectJavaImports } from './lang/JavaIdlUtils'
 import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
 import { escapeKeyword, IDLType } from '@idlize/core/idl'
@@ -519,13 +519,16 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         this.writer.print('export ' + result)
     }
 
-    private iDLTypedEntryPrinter<T extends idl.IDLTypedEntry>(type: T,
-                                                              printer: (_: T) => stringOrNone[],
-                                                              seenNames: Set<string>) {
-        if (type?.name != undefined && !seenNames.has(type.name)) {
-            seenNames.add(type.name!)
-            return printer(type)
+    private printIfNotSeen<T extends idl.IDLNamedNode>(
+        type: T,
+        print: (_: T) => stringOrNone[],
+        seenNames: Set<string>
+    ): stringOrNone[] | undefined {
+        if (!seenNames.has(type.name)) {
+            seenNames.add(type.name)
+            return print(type)
         }
+        return undefined
     }
 
     private printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
@@ -543,13 +546,13 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         const seenFields = new Set<string>()
         return ([`interface ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
-                .map(it => this.iDLTypedEntryPrinter(it, it => this.printConstant(it), seenFields)).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
-                .map(it => this.iDLTypedEntryPrinter(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
             .concat(idlInterface.methods
-                .map(it => this.iDLTypedEntryPrinter(it, it => this.printMethod(it), seenFields) ).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields) ).flat())
             .concat(idlInterface.callables
-                .map(it => this.iDLTypedEntryPrinter(it, it => this.printFunction(it), seenFields) ).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printFunction(it), seenFields) ).flat())
             .concat(["}"])
     }
 
@@ -680,7 +683,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         const seenFields = new Set<string>()
         return ([`type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
             .concat(tuple.properties
-                .map((it, propIndex) => this.iDLTypedEntryPrinter(it, it => {
+                .map((it, propIndex) => this.printIfNotSeen(it, it => {
                     //TODO: use ETSConvertor.processTupleType
                     let types: IDLType[] = []
                     if (it.isOptional) {
