@@ -64,8 +64,7 @@ class OHOSVisitor {
         if (this.library.files.length == 0)
             throw new Error("No files in library")
 
-        this.libraryName = this.library.files.filter(f => !f.isPredefined)[0].packageName().toUpperCase()
-
+        this.libraryName = suggestLibraryName(this.library)
         this.library.name = this.libraryName
 
         this.peerWriter = createLanguageWriter(library.language, library)
@@ -802,4 +801,10 @@ function makePeerCallSignature(library: PeerLibrary, parameters: IDLParameter[],
         }
     }
     return NamedMethodSignature.make(adjustedSignature.returnType, args)
+}
+
+function suggestLibraryName(library: PeerLibrary) {
+    let libraryName = library.files.filter(f => !f.isPredefined)[0].packageName()
+    libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
+    return libraryName
 }
