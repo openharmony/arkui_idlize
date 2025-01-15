@@ -299,10 +299,12 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
     }
-    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression {
-        return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-            makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
-        ])
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression { //
+        return this.instanceOf(convertor, value);
+        // Or this ????????
+        // return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
+        //     makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
+        // ])
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         return `${value} as int32` // FIXME: is there int8 in ARKTS?

@@ -477,21 +477,7 @@ export class EnumConvertor extends BaseArgConvertor { //
         return writer.getNodeName(this.idlType) // this.enumTypeName(writer.language)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        switch (writer.language) {
-            case Language.TS:
-                const ordinal = this.isStringEnum
-                    ? writer.ordinalFromEnum(
-                        writer.makeCast(writer.makeString(writer.getObjectAccessor(this, value)), this.idlType),
-                        this.idlType)
-                    : writer.makeUnionVariantCast(writer.getObjectAccessor(this, value), writer.getNodeName(idl.IDLI32Type), this, index)
-                const {low, high} = this.extremumOfOrdinals()
-                return writer.discriminatorFromExpressions(value, this.runtimeTypes[0], [
-                    writer.makeNaryOp(">=", [ordinal, writer.makeString(low!.toString())]),
-                    writer.makeNaryOp("<=",  [ordinal, writer.makeString(high!.toString())])
-                ])
-            case Language.ARKTS: return writer.instanceOf(this, value);
-            default: return undefined
-        }
+        return writer.makeDiscriminatorConvertor(this, value, index)
     }
     extremumOfOrdinals(): {low: number, high: number} {
         let low: number = 0

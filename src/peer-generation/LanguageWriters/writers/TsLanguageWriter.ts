@@ -416,6 +416,20 @@ export class TSLanguageWriter extends LanguageWriter {
     override escapeKeyword(keyword: string): string {
         return TSKeywords.has(keyword) ? keyword + "_" : keyword
     }
+
+    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression | undefined {
+        const ordinal = convertor.isStringEnum
+            ? this.ordinalFromEnum(
+                this.makeCast(this.makeString(this.getObjectAccessor(convertor, value)), convertor.idlType),
+                idl.createReferenceType(convertor.enumEntry.name)
+            )
+            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.getNodeName(idl.IDLI32Type), convertor, index)
+        const {low, high} = convertor.extremumOfOrdinals()
+        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
+            this.makeNaryOp(">=", [ordinal, this.makeString(low!.toString())]),
+            this.makeNaryOp("<=",  [ordinal, this.makeString(high!.toString())])
+        ])
+    }
 }
 
 const TSKeywords = new Set([
