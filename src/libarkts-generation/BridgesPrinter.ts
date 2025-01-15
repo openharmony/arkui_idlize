@@ -38,6 +38,7 @@ import {
 } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { convertType } from "../peer-generation/LanguageWriters/nameConvertor"
+import { LibarktsConfig } from "./LibarktsGenerator"
 
 export class BridgesPrinter {
     constructor(
@@ -46,9 +47,6 @@ export class BridgesPrinter {
 
     private printer = new IndentedPrinter()
     private convertor = new NativeTypeConvertor(this.library)
-    private static implPrefix = `impl_`
-    private static constructorPrefix = `Create`
-    private static typePrefix = `es2panda_`
 
     print(): string {
         this.library.files
@@ -67,7 +65,7 @@ export class BridgesPrinter {
 
     private visitInterface(node: IDLInterface): void {
         node.constructors.forEach(it =>
-            this.printConstructor(this.constructorFunction(node.name), it)
+            this.printConstructor(LibarktsConfig.constructorFunction(node.name), it)
         )
         node.methods.forEach(it =>
             this.printMethod(node.name, it)
@@ -91,7 +89,7 @@ export class BridgesPrinter {
 
     private printInteropMacro(constructorName: string, returnType: string, parameters: IDLParameter[]): void {
         const types = [
-            this.constructorFunction(constructorName),
+            LibarktsConfig.constructorFunction(constructorName),
             returnType,
             ...parameters.map(it => this.mapType(it.type))
         ].join(`, `)
@@ -111,14 +109,6 @@ export class BridgesPrinter {
         this.printer.print(`)`)
     }
 
-    private constructorFunction(astNodeName: string): string {
-        return `${BridgesPrinter.constructorPrefix}${astNodeName}`
-    }
-
-    private implFunction(name: string): string {
-        return `${BridgesPrinter.implPrefix}${name}`
-    }
-
     private casted(node: IDLParameter): string {
         if (isPrimitiveType(node.type)) return node.name
         if (isReferenceType(node.type) || isContainerType(node.type)) {
@@ -132,11 +122,11 @@ export class BridgesPrinter {
 
     private castTo(node: IDLReferenceType | IDLContainerType): string | undefined {
         if (isPrimitiveType(node)) return undefined
-        if (isReferenceType(node)) return `${BridgesPrinter.typePrefix}${node.name}*`
+        if (isReferenceType(node)) return `${LibarktsConfig.typePrefix}${node.name}*`
         if (isContainerType(node)) {
             if (IDLContainerUtils.isSequence(node)) {
                 if (!isReferenceType(node.elementType[0])) throwException(`Sequence of non-reference type`)
-                return `${BridgesPrinter.typePrefix}${node.elementType[0].name}**`
+                return `${LibarktsConfig.typePrefix}${node.elementType[0].name}**`
             }
         }
 
@@ -148,7 +138,7 @@ export class BridgesPrinter {
     }
 
     private printMethod(astNodeName: string, node: IDLMethod): void {
-        this.printFunction(`${astNodeName}${node.name}`, node.parameters, node.returnType)
+        this.printFunction(`${LibarktsConfig.methodFunction(astNodeName, node.name)}`, node.parameters, node.returnType)
     }
 
     private printFunction(name: string, parameters: IDLParameter[], returnType?: IDLType): void {
@@ -156,7 +146,7 @@ export class BridgesPrinter {
             ? `KNativePointer`
             : this.mapType(returnType)
 
-        this.printer.print(`${translatedReturnType} ${this.implFunction(name)}(`)
+        this.printer.print(`${translatedReturnType} ${LibarktsConfig.implFunction(name)}(`)
         this.printer.withIndent(() =>
             this.printParameters(parameters)
         )
