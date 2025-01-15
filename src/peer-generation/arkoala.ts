@@ -65,6 +65,7 @@ import { printManagedCaller } from "./printers/CallbacksPrinter"
 import { NativeModuleType } from "./NativeModuleType"
 import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
 import { makeGetFunctionRuntimeType } from "./printers/lang/CJIdlUtils"
+import { printGlobal } from "./printers/GlobalScopePrinter"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -191,6 +192,7 @@ export function generateArkoalaFromIdl(config: {
         imports: undefined
     }
     const arkuiComponentsFiles: string[] = []
+    const globalScopeFiles: string[] = []
 
     const peers = printPeers(peerLibrary, context, config.dumpSerialized ?? false)
     for (const [targetFile, peer] of peers) {
@@ -211,6 +213,16 @@ export function generateArkoalaFromIdl(config: {
             message: "producing [idl]"
         })
         arkuiComponentsFiles.push(outComponentFile)
+    }
+    const globals = printGlobal(peerLibrary)
+    for (const [targetFile, content] of globals) {
+        const outGlobalFile = arkoala.globalFile(targetFile)
+        writeFile(outGlobalFile, content, {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true,
+            message: "producing [idl]"
+        })
+        globalScopeFiles.push(outGlobalFile)
     }
     const builderClasses = printBuilderClasses(peerLibrary, context, config.dumpSerialized)
     for (const [targetFile, builderClass] of builderClasses) {
@@ -309,7 +321,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles),
+            makeArkuiModule(arkuiComponentsFiles.concat(globalScopeFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated
             }
@@ -379,7 +391,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.arktsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles),
+            makeArkuiModule(arkuiComponentsFiles.concat(globalScopeFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true

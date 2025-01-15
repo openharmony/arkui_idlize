@@ -361,13 +361,13 @@ export class IdlPeerProcessor {
         return new Method(methodName, signature, modifiers/*, generics*/)
     }
 
-    private processMaterialized(decl: idl.IDLInterface) {
+    private processMaterialized(decl: idl.IDLInterface, isGlobalScope = false) {
         const name = decl.name
         if (this.library.materializedClasses.has(name)) {
             return
         }
 
-        const isDeclInterface = idl.isInterfaceSubkind(decl)
+        const isDeclInterface = idl.isInterfaceSubkind(decl) && !isGlobalScope
         const implemenationParentName = isDeclInterface ? getInternalClassName(name) : name
 
         const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
@@ -450,9 +450,12 @@ export class IdlPeerProcessor {
         )
     }
 
+    private processGlobal(decl: idl.IDLInterface) {
+        this.processMaterialized(decl, true)
+    }
+
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
-        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
-            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
+        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
             idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.CPPType) ||
             PeerGeneratorConfig.ignoreEntry(decl.name!, language)
     }
@@ -466,9 +469,15 @@ export class IdlPeerProcessor {
         for (const dep of allDeclarations) {
             if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
                 continue
+            if (idl.isInterface(dep) && idl.hasExtAttribute(dep, idl.IDLExtendedAttributes.GlobalScope)) {
+                this.library.globalScopeInterfaces.push(dep)
+            }
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
-                if (isBuilderClass(dep)) {
+                if (isGlobalScope(dep)) {
+                    this.processGlobal(dep)
+                    continue
+                } else if (isBuilderClass(dep)) {
                     this.processBuilder(dep)
                     continue
                 } else if (isMaterialized(dep, this.library)) {
@@ -501,6 +510,10 @@ export function createDependencyFilter(library: PeerLibrary): DependencyFilter {
     }
     // TODO: support other languages
     return new EmptyDependencyFilter()
+}
+
+export function isGlobalScope(declaration: idl.IDLEntry): boolean {
+    return idl.isInterface(declaration) && idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.GlobalScope)
 }
 
 export function isBuilderClass(declaration: idl.IDLInterface): boolean {/// stolen from BUilderClass

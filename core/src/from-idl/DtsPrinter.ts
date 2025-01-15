@@ -182,7 +182,7 @@ export class CustomPrintVisitor {
         const typeParams = (node.typeParameters && node.typeParameters.length > 0) ? `<${node.typeParameters.join(",")}>` : ""
         let preamble = ""
         if (!isCallable(node)) {
-            const isStatic = isMethod(node) && node.isStatic
+            const isStatic = isMethod(node) && node.isStatic && !isGlobal
             const isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
             const isOptional = isMethod(node) && node.isOptional
             preamble = `${isGlobal ? `${namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`

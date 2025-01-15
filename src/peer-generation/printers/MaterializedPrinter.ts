@@ -96,10 +96,12 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 includeTransformedCallbacks: true,
                 includeMaterializedInternals: true,
             })
-            imports.addFeature(
-                createInterfaceDeclName(this.clazz.className),
-                SyntheticModule,
-            )
+            if (!this.clazz.isGlobalScope()) {
+                imports.addFeature(
+                    createInterfaceDeclName(this.clazz.className),
+                    SyntheticModule,
+                )
+            }
         } else {
             collectDeclDependencies(this.library, decl, (it) => {
                 if (idl.isInterface(it) && isMaterialized(it, this.library))

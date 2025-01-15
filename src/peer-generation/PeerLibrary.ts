@@ -50,6 +50,8 @@ export class PeerLibrary implements LibraryInterface {
 
     public readonly predefinedDeclarations: idl.IDLInterface[] = []
 
+    public readonly globalScopeInterfaces: idl.IDLInterface[] = []
+
     constructor(
         public language: Language,
     ) {}

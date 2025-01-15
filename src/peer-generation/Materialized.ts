@@ -64,7 +64,15 @@ export class MaterializedMethod extends PeerMethod {
     override get dummyReturnValue(): string | undefined {
         if (this.method.name === "ctor") return `(${this.originalParentName}Peer*) 100`
         if (this.method.name === "getFinalizer") return `fnPtr<KNativePointer>(dummyClassFinalizer)`
-        if (this.method.modifiers?.includes(MethodModifier.STATIC)) return `(void*) 300`
+        if (this.method.modifiers?.includes(MethodModifier.STATIC)) {
+            if (this.method.signature.returnType === idl.IDLNumberType) {
+                return '100'
+            }
+            if (this.method.signature.returnType === idl.IDLBooleanType) {
+                return '0'
+            }
+            return `(void*) 300`
+        }
         return undefined;
     }
 
@@ -141,6 +149,10 @@ export class MaterializedClass implements PeerClassBase {
     generatedName(isCallSignature: boolean): string{
         return this.className
     }
+
+    isGlobalScope() {
+        return idl.hasExtAttribute(this.decl, idl.IDLExtendedAttributes.GlobalScope)
+    }
 }
 
 export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod {
@@ -165,8 +177,13 @@ export function getInternalClassName(name: string): string {
     return `${name}Internal`
 }
 
+export function getMaterializedFileName(name:string): string {
+     const pascalCase = name.split('_').map(x => capitalize(x)).join('')
+    return `Ark${pascalCase}Materialized`
+}
+
 export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
     for (const materialized of library.materializedClasses.values()) {
-        imports.addFeature(getInternalClassName(materialized.className), `./Ark${materialized.className}Materialized`)
+        imports.addFeature(getInternalClassName(materialized.className), `./${getMaterializedFileName(materialized.className)}`)
     }
 }

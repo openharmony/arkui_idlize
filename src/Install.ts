@@ -72,6 +72,9 @@ export class ArkoalaInstall extends Install {
     builderClass(targetFile: TargetFile): string {
         return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
+    globalFile(targetFile: TargetFile): string {
+        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+    }
     materialized(targetFile: TargetFile): string {
         return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
     }
