@@ -45,6 +45,15 @@ declare interface BlurStyleOptions {
     blurOptions?: BlurOptions;
 }
 
+declare enum ThemeColorMode {
+    SYSTEM = 0,
+    LIGHT = 1,
+    DARK = 2
+}
+
+declare enum AdaptiveColor {
+    DEFAULT = 0,
+}
 
 declare interface BackgroundBlurStyleOptions extends BlurStyleOptions {
     policy?: BlurStyleActivePolicy;

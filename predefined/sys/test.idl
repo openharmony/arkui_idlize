@@ -19,5 +19,5 @@ interface Test {
     pointer TestGetManagedReleaser();
     
     void TestReadAndMutateManagedBuffer(sequence<u8> arr, i32 len);
-    void TestCallbackSyncCall(sequence<u8> arr, i32 len);
+    // void TestCallbackSyncCall(sequence<u8> arr, i32 len);
 };

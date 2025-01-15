@@ -22,7 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@idlize/core": "1.0.0-devel",
-    "@koalaui/interop": "1.4.1-dev.2547",
+    "@koalaui/interop": "next",
     "@types/node": "^18.0.0",
     "@types/webidl2": "file:webidl2.js/types",
     "commander": "^10.0.0",

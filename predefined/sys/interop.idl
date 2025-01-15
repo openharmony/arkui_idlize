@@ -1,7 +1,6 @@
 package "org.openharmony.idlize.predefined";
 
 interface Interop {
-    i32 LoadVirtualMachine(i32 vmKind, string appClassPath, string appLibPath);
     pointer GetGroupedLog(i32 index);
     void StartGroupedLog(i32 index);
     void StopGroupedLog(i32 index);

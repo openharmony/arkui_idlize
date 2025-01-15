@@ -82,29 +82,29 @@ func peersTest(): Unit {
     let labelStyle = LabelStyle(Option.None, 5.0, Option.None, Option.None, Option.None, Option.None)
     checkResult("[Interface + Optional] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_UNDEFINED, .value={}}}) \n")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=5}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}}) \n")
     // union
     labelStyle.maxLines = Option.None
     labelStyle.font = Font(Option.None, Union_FontWeight_Number_String("param"), Option.None, Option.None)
     checkResult("[Union] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n");
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_OBJECT, .value={.size={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .weight={.tag=INTEROP_TAG_OBJECT, .value={.selector=2, .value2={.chars=\"param\", .length=5}}}, .family={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .style={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}}) \n");
     labelStyle.font = Font(Option.None, Union_FontWeight_Number_String(FontWeight.BOLD), Option.None, Option.None)
     checkResult("[Union + Enum] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=ARK_TAG_UNDEFINED, .value={}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_OBJECT, .value={.size={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .weight={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=Ark_FontWeight(4)}}, .family={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .style={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}}) \n")
     let resource = Resource("bundle_name", "module_name", 10.0, Option.None, 2000.0)   
     labelStyle.font = Font(Option.None, Option.None, Union_String_Resource(resource), Option.None)
     checkResult("[Union + Resource] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxLines={.tag=ARK_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=ARK_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=ARK_TAG_UNDEFINED, .value={}}, .font={.tag=ARK_TAG_OBJECT, .value={.size={.tag=ARK_TAG_UNDEFINED, .value={}}, .weight={.tag=ARK_TAG_UNDEFINED, .value={}}, .family={.tag=ARK_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=ARK_TAG_UNDEFINED, .value={}}, .type_={.tag=ARK_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=ARK_TAG_UNDEFINED, .value={}}}}}) \n"
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_OBJECT, .value={.size={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .weight={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .family={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .type_={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}}) \n"
         )
     // tuple
     let peer = ArkTestPeer.create(Option.None, 0)
     let options = BlurOptions(Tuple_Number_Number(1.0, 2.0))
     checkResult("[Tuple] TestPeer.backdropBlur",
         { => peer.backdropBlurAttribute(42.0, options) },
-        "backdropBlur({.tag=102, .i32=42}, {.tag=ARK_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}}) \n");
+        "backdropBlur({.tag=102, .i32=42}, {.tag=INTEROP_TAG_OBJECT, .value={.grayscale={.value0={.tag=102, .i32=1}, .value1={.tag=102, .i32=2}}}}) \n");
     let tuple1 = Tuple_Number_String_EnumDTS(5.5, "test", EnumDTS.ELEM_1)
     checkResult("[Tuple + Enum] TestPeer.testTupleNumberStringEnum",
         { => peer.testTupleNumberStringEnumAttribute(tuple1) },
@@ -114,7 +114,7 @@ func peersTest(): Unit {
     let listPeer = ArkListPeer.create(Option.None, 0);
     checkResult("[Optional] ListPeer.someOptional",
         { => listPeer.someOptionalAttribute(false) },
-        "someOptional({.tag=ARK_TAG_OBJECT, .value=false}) \n");
+        "someOptional({.tag=INTEROP_TAG_OBJECT, .value=false}) \n");
 
     // enum
     checkResult("[Enum] ButtonPeer.type", { => buttonPeer.typeAttribute(ButtonType.CAPSULE) }, "type(Ark_ButtonType(0)) \n");
@@ -132,7 +132,7 @@ func peersTest(): Unit {
                                     Option.None)
     checkResult("[Enum + Interface] ButtonPeer.bindSheet",
         { => buttonPeer.bindSheetAttribute(false, sheetOptions) },
-        "bindSheet(false, {.tag=ARK_TAG_OBJECT, .value={.backgroundColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .height={.tag=ARK_TAG_UNDEFINED, .value={}}, .dragBar={.tag=ARK_TAG_UNDEFINED, .value={}}, .maskColor={.tag=ARK_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .showClose={.tag=ARK_TAG_UNDEFINED, .value={}}, .preferType={.tag=ARK_TAG_UNDEFINED, .value={}}, .title={.tag=ARK_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=ARK_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=ARK_TAG_UNDEFINED, .value={}}, .mode={.tag=ARK_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=ARK_TAG_UNDEFINED, .value={}}}}) \n")
+        "bindSheet(false, {.tag=INTEROP_TAG_OBJECT, .value={.backgroundColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .height={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .dragBar={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maskColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .blurStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .showClose={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .preferType={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .title={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableOutsideInteractive={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .borderStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .mode={.tag=INTEROP_TAG_OBJECT, .value=Ark_SheetMode(1)}, .uiContext={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}) \n")
 }
 
 func createDefaultWriteCallback(kind: CallbackKind, callback: Any) {
