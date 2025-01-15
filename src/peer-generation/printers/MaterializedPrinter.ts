@@ -716,6 +716,12 @@ function getSuperName(clazz: MaterializedClass): string | undefined {
 
 function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
     writer.writeInterface(decl.name, writer => {
+        for (const p of decl.properties) {
+            const modifiers: FieldModifier[] = []
+            if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
+            if (p.isStatic) modifiers.push(FieldModifier.STATIC)
+            writer.writeFieldDeclaration(p.name, p.type, modifiers, p.isOptional)
+        }
         for (const m of decl.methods) {
             writer.writeMethodDeclaration(m.name,
                 new NamedMethodSignature(
