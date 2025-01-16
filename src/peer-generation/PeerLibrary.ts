@@ -123,7 +123,7 @@ export class PeerLibrary implements LibraryInterface {
             // This is a namespace or enum member. Try enum first
             const parent = entries.find(it => it.name === qualifier)
             if (parent && idl.isEnum(parent))
-                return parent.elements.find(it => it.name === type.name)
+                return parent.elements.find(it => it.name === typeName)
             // Else try namespaces
             return entries.find(it =>
                 it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)

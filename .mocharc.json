@@ -1,0 +1,6 @@
+{
+    "ui": "tdd",
+    "timeout": "10s",
+    "extension": ["ts"],
+    "import": "tsx"
+}

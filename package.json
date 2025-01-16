@@ -49,6 +49,7 @@
     "eslint": "^8.13.0",
     "eslint-plugin-unused-imports": "^2.0.0",
     "mocha": "^9.2.2",
+    "tsx": "^4.19.2",
     "rollup": "^4.24.4",
     "source-map-support": "^0.5.21"
   },
@@ -166,6 +167,9 @@
     "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-peers/generated/sig/arkoala/arkui-types/index-full.d.ts",
     "check:index-full:subset:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-subset/generated/sig/arkoala/arkui-types/index-full.d.ts",
     "check:index-full:arkts": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-peers/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts",
-    "check:index-full:arkts:subset": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-subset/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts"
+    "check:index-full:arkts:subset": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-subset/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts",
+    "test:core": "mocha core/test",
+    "test:root": "mocha test",
+    "test": "npm run test:core && npm run test:root"
   }
 }

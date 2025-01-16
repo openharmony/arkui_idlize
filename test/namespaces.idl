@@ -1,0 +1,12 @@
+dictionary Size {
+    number BIG = 0;
+    number LIL = 1;
+    number AVERAGE = 2;
+};
+
+[Namespace=Bubble]
+dictionary Size {
+    number BIG_BUBBLE = 0;
+    number LIL_BUBBLE = 1;
+    number AVERAGE_BUBBLE = 2;
+};
