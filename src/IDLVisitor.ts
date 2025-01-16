@@ -1131,7 +1131,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         this.computeDeprecatedExtendAttributes(property, extendedAttributes)
         if (ts.isMethodDeclaration(property) || ts.isMethodSignature(property)) {
             if (!this.isCommonMethodUsedAsProperty(property)) throw new Error("Wrong")
-            let type = IDLVisitorConfig.customSerializePropertyType(property, escapedName)
+            let [type, syntheticEntry] = IDLVisitorConfig.checkParameterTypeReplacement(property.parameters[0])
+            if (syntheticEntry) this.addSyntheticType(syntheticEntry)
             if (!isDefined(type)) {
                 type = this.serializeType(property.parameters[0].type, nameSuggestion?.extend(nameOrNull(property.parameters[0].name)!))
             }
@@ -1149,14 +1150,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
 
         if (ts.isPropertyDeclaration(property) || ts.isPropertySignature(property)) {
-            let type = this.serializeType(property.type, nameSuggestion)
-            if (escapedName == "params" && this.maybeClassName(property.parent) == "Resource" &&
-                idl.isContainerType(type) && type.elementType[0] == idl.IDLAnyType) {
-                // Ugly hack: Resource.params is any[] in the SDK, but it should be string[].
-                // TODO: remove, once SDK is fixed.
-                warn(`applying Resource.params workaround, type was ${generateSyntheticIdlNodeName(type)}`)
-                type = idl.createContainerType('sequence', [idl.IDLStringType])
-            }
+            let [type, syntheticEntry] = IDLVisitorConfig.checkPropertyTypeReplacement(property)
+            if (syntheticEntry) this.addSyntheticType(syntheticEntry)
+            if (!isDefined(type)) type = this.serializeType(property.type, nameSuggestion)
+
             return idl.createProperty(
                 escapedName,
                 type,
@@ -1168,13 +1165,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             })
         }
         throw new Error("Unknown")
-    }
-
-    private maybeClassName(node: ts.Node|ts.ClassLikeDeclaration): string | undefined {
-        if (ts.isInterfaceDeclaration(node) || ts.isClassDeclaration(node))
-            return identName(node.name)
-        else
-            return undefined
     }
 
     serializeTupleProperty(property: ts.NamedTupleMember | ts.TypeNode, index: number, isReadonly: boolean = false): idl.IDLProperty {
@@ -1224,9 +1214,13 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         const parameterName = nameOrNull(parameter.name)!
         nameSuggestion = nameSuggestion?.extend(parameterName)
+        let [type, syntheticEntry] = IDLVisitorConfig.checkParameterTypeReplacement(parameter)
+        if (syntheticEntry) {
+            this.addSyntheticType(syntheticEntry)
+        }
         return idl.createParameter(
             escapeIdl(parameterName),
-            this.serializeType(parameter.type, nameSuggestion),
+            type ?? this.serializeType(parameter.type, nameSuggestion),
             !!parameter.questionToken,
             !!parameter.dotDotDotToken,
         )

@@ -1,0 +1,6 @@
+// TODO: it must be in Namespace=common2D, but namespaces are not supported yet
+[Entity=Interface]
+interface Point {
+    attribute number x;
+    attribute number y;
+};
