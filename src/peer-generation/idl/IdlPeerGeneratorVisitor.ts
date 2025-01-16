@@ -604,6 +604,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     // Or a class or an interface derived from materialized class
     if (idl.hasSuperType(declaration)) {
         const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!) as idl.IDLInterface
+        if (!superType) {
+            console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
+            return false
+        }
         return isMaterialized(superType, resolver)
     }
     return false
