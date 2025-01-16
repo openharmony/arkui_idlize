@@ -1,7 +1,10 @@
 image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
 
 stages:
+  - build
   - test
+  - pre-deploy
+  - deploy
 
 workflow:
   rules:
@@ -11,14 +14,9 @@ workflow:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-.setup:
-    script:
-        - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-        - npm config set @koalaui:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set @panda:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set //nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
-        - npm i --no-audit --no-fund
-        - npm i --prefix external --no-audit --no-fund
+include:
+    - gitlab/setup.yml
+    - gitlab/npm.yml
 
 idlize sanity:
   stage: test
@@ -135,22 +133,109 @@ build arkoala-ts:
 #      paths:
 #          - arkoala.har
 
+# Build targets
+build idlize:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR
+  script:
+    - npm run compile
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - build
+      - lib
+      - out
+
+
+build idlize-core:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/core
+  script:
+    - npm run compile
+  needs: []
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - core/build
+
+build idlize-linter:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/linter
+  script:
+    - npm run compile
+  needs:
+    - build idlize-core
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - linter/build
+
+# Pack targets
+pack idlize:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: .
+  needs:
+    - build idlize
+
+pack idlize-core:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: core
+  needs:
+    - build idlize-core
+
+pack idlize-linter:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: linter
+  needs:
+    - build idlize-linter
+
+
+# Publish targets
 publish idlize:
-    stage: test
-    tags:
-      - idlize-ci
-      - koala-ci
-    rules:
-      - if: $CI_PIPELINE_SOURCE == "schedule"
-        when: never
-      - if: $CI_COMMIT_BRANCH == "master"
-        when: on_success
-    before_script:
-      - !reference [.setup, script]
-    script:
-        - cd $CI_PROJECT_DIR
-        - sed -i "s/+devel/-dev.$CI_PIPELINE_IID/" package.json
-        - KOALA_BZ=1 npm run upload
+  extends: 
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: .
+  dependencies:
+    - build idlize
+
+publish idlize-core:
+  extends: 
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: core
+  dependencies:
+    - build idlize-core
+
+publish idlize-linter:
+  extends: 
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: linter
+  dependencies:
+    - build idlize-linter
+
 
 check index-full:
     stage: test
