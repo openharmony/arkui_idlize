@@ -16,15 +16,14 @@
 import {
     IDLContainerType,
     IDLContainerUtils,
-    IDLEnum,
     IDLKind,
     IDLMethod,
     IDLReferenceType,
     IndentedPrinter,
+    isTypedef,
     throwException
 } from "@idlize/core"
 import {
-    IDLConstructor,
     IDLEntry,
     IDLInterface,
     IDLParameter,
@@ -37,12 +36,13 @@ import {
 } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { convertType } from "@idlize/core"
-import { LibarktsConfig } from "./LibarktsGenerator"
 import { IDLFile } from "./Es2PandaTransformer"
+import { Config } from "./Config"
 
 export class BridgesPrinter {
     constructor(
-        private idl: IDLFile
+        private idl: IDLFile,
+        private config: Config
     ) { }
 
     private printer = new IndentedPrinter()
@@ -56,26 +56,16 @@ export class BridgesPrinter {
     private visit(node: IDLEntry): void {
         console.log(node.name)
         if (isInterface(node)) return this.visitInterface(node)
-        if (isEnum(node)) return this.visitEnum(node)
+        if (isEnum(node)) return
+        if (isTypedef(node)) return
 
         throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
     }
 
     private visitInterface(node: IDLInterface): void {
-        node.constructors.forEach(it =>
-            this.printConstructor(LibarktsConfig.constructorFunction(node.name), it)
-        )
-        node.methods.forEach(it =>
-            this.printMethod(node.name, it)
-        )
-    }
-
-    private visitEnum(node: IDLEnum): void {
-        // do nothing
-    }
-
-    private printConstructor(constructorName: string, node: IDLConstructor): void {
-        this.printFunction(constructorName, node.parameters)
+        node.methods
+            .filter(it => !this.config.paramArray(`handwrittenMethods`).includes(it))
+            .forEach(it => this.printMethod(node.name, it))
     }
 
     private printParameters(parameters: IDLParameter[]): void {
@@ -87,7 +77,7 @@ export class BridgesPrinter {
 
     private printInteropMacro(constructorName: string, returnType: string, parameters: IDLParameter[]): void {
         const types = [
-            LibarktsConfig.constructorFunction(constructorName),
+            constructorName,
             returnType,
             ...parameters.map(it => this.mapType(it.type))
         ].join(`, `)
@@ -120,15 +110,22 @@ export class BridgesPrinter {
 
     private castTo(node: IDLReferenceType | IDLContainerType): string | undefined {
         if (isPrimitiveType(node)) return undefined
-        if (isReferenceType(node)) return `${LibarktsConfig.typePrefix}${node.name}*`
+        if (isReferenceType(node)) return `${this.config.typePrefix}${node.name}*`
         if (isContainerType(node)) {
             if (IDLContainerUtils.isSequence(node)) {
-                if (!isReferenceType(node.elementType[0])) throwException(`Sequence of non-reference type`)
-                return `${LibarktsConfig.typePrefix}${node.elementType[0].name}**`
+                const typeParam = node.elementType[0]
+                if (isContainerType(typeParam)) {
+                    console.warn(`Warning: doing nothing for sequence<sequence<T>>`)
+                    return undefined
+                }
+                if (!isReferenceType(typeParam)) throwException(
+                    `Sequence of non-reference type: ${JSON.stringify(typeParam)}`
+                )
+                return `${this.config.typePrefix}${typeParam.name}**`
             }
         }
 
-        throwException(`Unexpected type`)
+        throwException(`Unexpected type: ${IDLKind[node.kind]}`)
     }
 
     private mapType(node: IDLType): string {
@@ -136,7 +133,7 @@ export class BridgesPrinter {
     }
 
     private printMethod(astNodeName: string, node: IDLMethod): void {
-        this.printFunction(`${LibarktsConfig.methodFunction(astNodeName, node.name)}`, node.parameters, node.returnType)
+        this.printFunction(`${this.config.methodFunction(astNodeName, node.name)}`, node.parameters, node.returnType)
     }
 
     private printFunction(name: string, parameters: IDLParameter[], returnType?: IDLType): void {
@@ -144,7 +141,7 @@ export class BridgesPrinter {
             ? `KNativePointer`
             : this.mapType(returnType)
 
-        this.printer.print(`${translatedReturnType} ${LibarktsConfig.implFunction(name)}(`)
+        this.printer.print(`${translatedReturnType} ${this.config.implFunction(name)}(`)
         this.printer.withIndent(() =>
             this.printParameters(parameters)
         )

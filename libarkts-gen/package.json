@@ -30,6 +30,6 @@
   "scripts": {
     "compile": "rollup -c",
     "libarkts:convert": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/libarkts/ --libarkts-transform",
-    "libarkts": "npm run compile && node . --input-file ./tests/subset.idl --output-dir ./out/libarkts/"
+    "subset": "npm run compile && node . --input-file ./input/subset.idl --output-dir ./out/"
   }
 }

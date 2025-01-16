@@ -4,26 +4,7 @@ import { IDLEntry, forceWriteFile } from "@idlize/core"
 import { NativeModulePrinter } from "./NativeModulePrinter"
 import * as fs from "fs"
 import { IDLFile } from "./Es2PandaTransformer"
-
-export class LibarktsConfig {
-    static implPrefix = `impl_`
-    static nativeModulePrefix = `_`
-    static constructorPrefix = `Create`
-    static typePrefix = `es2panda_`
-    static nativeModuleName = "Es2pandaNativeModule"
-    static constructorFunction(interfaceName: string): string {
-        return `${LibarktsConfig.constructorPrefix}${interfaceName}`
-    }
-    static methodFunction(interfaceName: string, methodName: string): string {
-        return `${interfaceName}${methodName}`
-    }
-    static implFunction(name: string): string {
-        return `${LibarktsConfig.implPrefix}${name}`
-    }
-    static nativeModuleFunction(name: string): string {
-        return `${LibarktsConfig.nativeModulePrefix}${name}`
-    }
-}
+import { Config } from "./Config"
 
 export function readTemplate(name: string): string {
     console.log(__dirname)
@@ -33,12 +14,13 @@ export function readTemplate(name: string): string {
 export class LibarktsGenerator {
     constructor(
         private outDir: string,
-        private idl: IDLFile
+        private idl: IDLFile,
+        private config = new Config()
     ) {}
 
-    private libPrinter = new BridgesPrinter(this.idl)
+    private libPrinter = new BridgesPrinter(this.idl, this.config)
     private libFile = 'native/src/bridges.cc'
-    private nativeModulePrinter = new NativeModulePrinter(this.idl)
+    private nativeModulePrinter = new NativeModulePrinter(this.idl, this.config)
     private nativeModuleFile = 'native/src/ts/LibarktsNativeModule.ts'
 
     print(): void {

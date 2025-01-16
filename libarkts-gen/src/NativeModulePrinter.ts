@@ -17,7 +17,6 @@ import {
     IDLContainerUtils,
     IDLKind,
     IDLMethod,
-    Language,
     throwException
 } from "@idlize/core"
 import {
@@ -31,8 +30,8 @@ import {
 } from "@idlize/core/idl"
 // TODO: need language writers extracted to @idl/core :-()
 // import { MethodSignature, createLanguageWriter } from "../../src/peer-generation/LanguageWriters"
-import { LibarktsConfig } from "./LibarktsGenerator"
-import { IDLParameter, IndentedPrinter } from "@idlize/core"
+import { Config } from "./Config"
+import { IndentedPrinter } from "@idlize/core"
 import { convertType } from "@idlize/core"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { IDLFile } from "./Es2PandaTransformer"
@@ -40,7 +39,8 @@ import { IDLFile } from "./Es2PandaTransformer"
 
 export class NativeModulePrinter {
     constructor(
-        private idl: IDLFile
+        private idl: IDLFile,
+        private config: Config
     ) { }
 
     // private writer = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
@@ -56,7 +56,7 @@ export class NativeModulePrinter {
         // )
         // return this.writer.printer.getOutput().join('\n')
 
-        this.printer.print(`export interface ${LibarktsConfig.nativeModuleName} {`)
+        this.printer.print(`export interface ${this.config.nativeModuleName} {`)
         this.printer.withIndent(() => {
             this.idl.entries.forEach(it => this.visit(it))
         })
@@ -123,7 +123,7 @@ export class NativeModulePrinter {
     }
 
     printFunction(ifaceName: string, methodName: string, parameterTypes: IDLType[], returnType: IDLType) {
-        const name = LibarktsConfig.nativeModuleFunction(LibarktsConfig.methodFunction(ifaceName, methodName))
+        const name = this.config.nativeModuleFunction(this.config.methodFunction(ifaceName, methodName))
         const parameters = parameterTypes.map((it, index) => this.printParameter(it, index)).join(", ")
         const retType = this.mapType(returnType)
         return `${name}(${parameters}): ${retType}`

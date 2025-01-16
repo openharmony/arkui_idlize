@@ -19,13 +19,18 @@ import {
     IDLContainerType,
     IDLContainerUtils,
     IDLEntry,
+    IDLI16Type,
     IDLI32Type,
+    IDLI64Type,
+    IDLI8Type,
     IDLOptionalType,
     IDLPrimitiveType,
     IDLPointerType,
     IDLReferenceType,
     IDLStringType,
     IDLTypeParameterType,
+    IDLU32Type,
+    IDLU64Type,
     IDLUnionType,
     IDLVoidType,
     isEnum,
@@ -69,7 +74,12 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
 
     convertPrimitiveType(type: IDLPrimitiveType): string {
         switch (type) {
+            case IDLI8Type: return `KBoolean`
+            case IDLI16Type: return `KShort`
             case IDLI32Type: return `KInt`
+            case IDLU32Type: return `KUInt`
+            case IDLI64Type: return `KLong`
+            case IDLU64Type: return `KULong`
             case IDLBooleanType: return `KBoolean`
             case IDLStringType: return `KStringPtr&`
             case IDLVoidType: return `KNativePointer`
