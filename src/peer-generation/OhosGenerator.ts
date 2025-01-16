@@ -15,6 +15,8 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as idl from '@idlize/core/idl'
+
 import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
 import { IndentedPrinter, Language, capitalize, qualifiedName } from '@idlize/core'
 import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
@@ -84,7 +86,9 @@ class OHOSVisitor {
             ? type.name
             : isContainerType(type) || isUnionType(type)
                 ? ''
-                : forceAsNamedNode(type).name
+                : idl.isOptionalType(type)
+                    ? `Opt_${this.mapType(type.type)}`
+                    : idl.forceAsNamedNode(type).name
         if (OHOSVisitor.knownBasicTypes.has(typeName))
             return `${PrimitiveType.Prefix}${typeName}`
 
