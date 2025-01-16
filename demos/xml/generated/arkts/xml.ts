@@ -14,74 +14,18 @@ export interface ParseOptions {
     attributeValueCallbackFunction?: ((name: string,value: string) => boolean)
     tokenValueCallbackFunction?: ((eventType: xml_EventType,value: ParseInfo) => boolean)
 }
-export class xml_EventType {
-    static readonly START_DOCUMENT: xml_EventType = new xml_EventType(0,0)
-    static readonly END_DOCUMENT: xml_EventType = new xml_EventType(1,1)
-    static readonly START_TAG: xml_EventType = new xml_EventType(2,2)
-    static readonly END_TAG: xml_EventType = new xml_EventType(3,3)
-    static readonly TEXT: xml_EventType = new xml_EventType(4,4)
-    static readonly CDSECT: xml_EventType = new xml_EventType(5,5)
-    static readonly COMMENT: xml_EventType = new xml_EventType(6,6)
-    static readonly DOCDECL: xml_EventType = new xml_EventType(7,7)
-    static readonly INSTRUCTION: xml_EventType = new xml_EventType(8,8)
-    static readonly ENTITY_REFERENCE: xml_EventType = new xml_EventType(9,9)
-    static readonly WHITESPACE: xml_EventType = new xml_EventType(10,10)
-     constructor(value: int32, ordinal: int32) {
-        this.value = value
-        this.ordinal = ordinal
-    }
-    public readonly value: int32
-    public readonly ordinal: int32
-    public static of(arg0: int32): xml_EventType {
-        if ((arg0) == (xml_EventType.START_DOCUMENT.value))
-            return xml_EventType.START_DOCUMENT
-        if ((arg0) == (xml_EventType.END_DOCUMENT.value))
-            return xml_EventType.END_DOCUMENT
-        if ((arg0) == (xml_EventType.START_TAG.value))
-            return xml_EventType.START_TAG
-        if ((arg0) == (xml_EventType.END_TAG.value))
-            return xml_EventType.END_TAG
-        if ((arg0) == (xml_EventType.TEXT.value))
-            return xml_EventType.TEXT
-        if ((arg0) == (xml_EventType.CDSECT.value))
-            return xml_EventType.CDSECT
-        if ((arg0) == (xml_EventType.COMMENT.value))
-            return xml_EventType.COMMENT
-        if ((arg0) == (xml_EventType.DOCDECL.value))
-            return xml_EventType.DOCDECL
-        if ((arg0) == (xml_EventType.INSTRUCTION.value))
-            return xml_EventType.INSTRUCTION
-        if ((arg0) == (xml_EventType.ENTITY_REFERENCE.value))
-            return xml_EventType.ENTITY_REFERENCE
-        if ((arg0) == (xml_EventType.WHITESPACE.value))
-            return xml_EventType.WHITESPACE
-        throw new Error(`Enum member '${arg0}' not found`)
-    }
-    public static ofOrdinal(arg0: int32): xml_EventType {
-        if ((arg0) == (xml_EventType.START_DOCUMENT.ordinal))
-            return xml_EventType.START_DOCUMENT
-        if ((arg0) == (xml_EventType.END_DOCUMENT.ordinal))
-            return xml_EventType.END_DOCUMENT
-        if ((arg0) == (xml_EventType.START_TAG.ordinal))
-            return xml_EventType.START_TAG
-        if ((arg0) == (xml_EventType.END_TAG.ordinal))
-            return xml_EventType.END_TAG
-        if ((arg0) == (xml_EventType.TEXT.ordinal))
-            return xml_EventType.TEXT
-        if ((arg0) == (xml_EventType.CDSECT.ordinal))
-            return xml_EventType.CDSECT
-        if ((arg0) == (xml_EventType.COMMENT.ordinal))
-            return xml_EventType.COMMENT
-        if ((arg0) == (xml_EventType.DOCDECL.ordinal))
-            return xml_EventType.DOCDECL
-        if ((arg0) == (xml_EventType.INSTRUCTION.ordinal))
-            return xml_EventType.INSTRUCTION
-        if ((arg0) == (xml_EventType.ENTITY_REFERENCE.ordinal))
-            return xml_EventType.ENTITY_REFERENCE
-        if ((arg0) == (xml_EventType.WHITESPACE.ordinal))
-            return xml_EventType.WHITESPACE
-        throw new Error(`Enum member '${arg0}' not found`)
-    }
+export enum xml_EventType {
+    START_DOCUMENT = 0,
+    END_DOCUMENT = 1,
+    START_TAG = 2,
+    END_TAG = 3,
+    TEXT = 4,
+    CDSECT = 5,
+    COMMENT = 6,
+    DOCDECL = 7,
+    INSTRUCTION = 8,
+    ENTITY_REFERENCE = 9,
+    WHITESPACE = 10
 }
 export interface XmlSerializerInterface {
     setAttributes(name: string, value: string): void 

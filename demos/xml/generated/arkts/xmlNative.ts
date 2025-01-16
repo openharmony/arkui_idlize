@@ -1,34 +1,10 @@
 import { int32 } from "@koalaui/common"
 import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr } from "@koalaui/interop"
 
-export class CallbackKind {
-    static readonly Kind_Callback_Boolean_Void: CallbackKind = new CallbackKind(313269291,0)
-    static readonly Kind_Callback_EventType_ParseInfo_Boolean: CallbackKind = new CallbackKind(240036623,1)
-    static readonly Kind_Callback_String_String_Boolean: CallbackKind = new CallbackKind(923368928,2)
-     constructor(value: int32, ordinal: int32) {
-        this.value = value
-        this.ordinal = ordinal
-    }
-    public readonly value: int32
-    public readonly ordinal: int32
-    public static of(arg0: int32): CallbackKind {
-        if ((arg0) == (CallbackKind.Kind_Callback_Boolean_Void.value))
-            return CallbackKind.Kind_Callback_Boolean_Void
-        if ((arg0) == (CallbackKind.Kind_Callback_EventType_ParseInfo_Boolean.value))
-            return CallbackKind.Kind_Callback_EventType_ParseInfo_Boolean
-        if ((arg0) == (CallbackKind.Kind_Callback_String_String_Boolean.value))
-            return CallbackKind.Kind_Callback_String_String_Boolean
-        throw new Error(`Enum member '${arg0}' not found`)
-    }
-    public static ofOrdinal(arg0: int32): CallbackKind {
-        if ((arg0) == (CallbackKind.Kind_Callback_Boolean_Void.ordinal))
-            return CallbackKind.Kind_Callback_Boolean_Void
-        if ((arg0) == (CallbackKind.Kind_Callback_EventType_ParseInfo_Boolean.ordinal))
-            return CallbackKind.Kind_Callback_EventType_ParseInfo_Boolean
-        if ((arg0) == (CallbackKind.Kind_Callback_String_String_Boolean.ordinal))
-            return CallbackKind.Kind_Callback_String_String_Boolean
-        throw new Error(`Enum member '${arg0}' not found`)
-    }
+export enum CallbackKind {
+    Kind_Callback_Boolean_Void = 313269291,
+    Kind_Callback_EventType_ParseInfo_Boolean = 240036623,
+    Kind_Callback_String_String_Boolean = 923368928
 }
 
 export class XMLNativeModule {

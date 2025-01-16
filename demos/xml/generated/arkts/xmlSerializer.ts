@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -121,7 +121,7 @@ export class Deserializer extends DeserializerBase {
         const _resource : CallbackResource = this.readCallbackResource()
         const _call : KPointer = this.readPointer()
         const _callSync : KPointer = this.readPointer()
-        return (eventType: xml_EventType, value: ParseInfo):boolean => { const _argsSerializer : Serializer = Serializer.hold(); _argsSerializer.writeInt32(_resource.resourceId); _argsSerializer.writePointer(_call); _argsSerializer.writePointer(_callSync); _argsSerializer.writeInt32(eventType.ordinal); _argsSerializer.writeParseInfo(value); let _continuationValue : boolean | undefined; const _continuationCallback : ((value: boolean) => void) = (value: boolean):void => { _continuationValue = value; }; _argsSerializer.holdAndWriteCallback(_continuationCallback); (isSync) ? (InteropNativeModule._CallCallbackSync(240036623, _argsSerializer.asArray(), _argsSerializer.length())) : (InteropNativeModule._CallCallback(240036623, _argsSerializer.asArray(), _argsSerializer.length())); _argsSerializer.release(); return (_continuationValue as boolean); }
+        return (eventType: xml_EventType, value: ParseInfo):boolean => { const _argsSerializer : Serializer = Serializer.hold(); _argsSerializer.writeInt32(_resource.resourceId); _argsSerializer.writePointer(_call); _argsSerializer.writePointer(_callSync); _argsSerializer.writeInt32((eventType.valueOf() as int32)); _argsSerializer.writeParseInfo(value); let _continuationValue : boolean | undefined; const _continuationCallback : ((value: boolean) => void) = (value: boolean):void => { _continuationValue = value; }; _argsSerializer.holdAndWriteCallback(_continuationCallback); (isSync) ? (InteropNativeModule._CallCallbackSync(240036623, _argsSerializer.asArray(), _argsSerializer.length())) : (InteropNativeModule._CallCallback(240036623, _argsSerializer.asArray(), _argsSerializer.length())); _argsSerializer.release(); return (_continuationValue as boolean); }
     }
     readCallback_String_String_Boolean(isSync: boolean = false): ((name: string,value: string) => boolean) {
         const _resource : CallbackResource = this.readCallbackResource()
@@ -190,7 +190,7 @@ export function deserializeAndCallCallback_Boolean_Void(thisDeserializer: Deseri
 export function deserializeAndCallCallback_EventType_ParseInfo_Boolean(thisDeserializer: Deserializer) {
     const _resourceId : int32 = thisDeserializer.readInt32()
     const _call  = (ResourceHolder.instance().get(_resourceId) as ((eventType: xml_EventType,value: ParseInfo) => boolean))
-    let eventType : xml_EventType = xml_EventType.ofOrdinal(thisDeserializer.readInt32())
+    let eventType : xml_EventType = (thisDeserializer.readInt32() as xml_EventType)
     let value : ParseInfo = (thisDeserializer.readParseInfo() as ParseInfo)
     let _continuation : ((value: boolean) => void) = thisDeserializer.readCallback_Boolean_Void(true)
     const _callResult  = _call(eventType, value)
