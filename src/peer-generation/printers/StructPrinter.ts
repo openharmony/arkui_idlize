@@ -88,7 +88,10 @@ export class StructPrinter {
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
-            if (idl.isEnum(target) || idl.isEnumMember(target)) {
+            if (idl.isOptionalType(target)) {
+                forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
+                this.printOptionalIfNeeded(forwardDeclarations, enumsDeclarations, writeToString, target.type, seenNames, true)
+            } else if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
                 const stringEnum = isStringEnum(enumTarget)
                 enumsDeclarations.print(`typedef enum ${nameAssigned} {`)
@@ -175,16 +178,22 @@ export class StructPrinter {
         writeToString: LanguageWriter,
         target: idl.IDLNode,
         seenNames: Set<String>,
+        forceOptianal: boolean = false
     ) {
         const isPointer = this.isPointerDeclaration(target)
         const nameAssigned = concreteDeclarations.getNodeName(target)
         const nameOptional = idl.isType(target)
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
             : PrimitiveType.OptionalPrefix + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), PrimitiveType.Prefix)
-        if (seenNames.has(nameOptional)) {
-            return
+        
+        if (forceOptianal) {
+            if (seenNames.has(nameOptional)) {
+                return
+            }
         }
+        
         seenNames.add(nameOptional)
+
         if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
             forwardDeclarations?.print(`typedef struct ${nameOptional} ${nameOptional};`)
             this.printStructsCHead(nameOptional, target, concreteDeclarations)
