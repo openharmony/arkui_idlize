@@ -17,6 +17,7 @@ variables:
 include:
     - gitlab/setup.yml
     - gitlab/npm.yml
+    - libarkts-gen/.gitlab-ci.yml
 
 idlize sanity:
   stage: test

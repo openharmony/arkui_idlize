@@ -29,7 +29,8 @@
   },
   "scripts": {
     "compile": "rollup -c",
-    "libarkts:convert": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/libarkts/ --libarkts-transform",
-    "subset": "npm run compile && node . --input-file ./input/subset.idl --output-dir ./out/"
+    "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/ --libarkts-transform",
+    "subset": "npm run compile && node . --input-file ./input/subset.idl --output-dir ./out/subset",
+    "full": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/full"
   }
 }

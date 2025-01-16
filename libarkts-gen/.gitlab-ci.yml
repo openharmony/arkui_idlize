@@ -1,0 +1,11 @@
+libarkts-gen idl:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - npm run subset --prefix libarkts-gen
+    - npm run full --prefix libarkts-gen
+

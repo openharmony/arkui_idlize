@@ -27,6 +27,7 @@ import {
     isEnum,
     IDLPointerType,
     IDLI32Type,
+    isTypedef,
 } from "@idlize/core/idl"
 // TODO: need language writers extracted to @idl/core :-()
 // import { MethodSignature, createLanguageWriter } from "../../src/peer-generation/LanguageWriters"
@@ -72,14 +73,17 @@ export class NativeModulePrinter {
         console.log(node.name)
         if (isInterface(node)) return this.visitInterface(node)
         if (isEnum(node)) return
+        if (isTypedef(node)) return
 
         throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
     }
 
     private visitInterface(node: IDLInterface): void {
-        node.methods.forEach(it =>
-            this.printMethod(node, it)
-        )
+        node.methods
+            .filter(it => !this.config.paramArray(`handwrittenMethods`).includes(it.name))
+            .forEach(it =>
+                this.printMethod(node, it)
+            )
     }
 
     private convertType(type: IDLType): IDLType[] {
