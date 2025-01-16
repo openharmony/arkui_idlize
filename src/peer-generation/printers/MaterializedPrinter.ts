@@ -291,15 +291,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 })
 
             clazz.methods.forEach(method => {
-                let privateMethod = method
-                if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE))
-                    privateMethod = copyMaterializedMethod(method, {
-                        method: copyMethod(method.method, {
-                            modifiers: (method.method.modifiers ?? [])
-                                .filter(it => it !== MethodModifier.PUBLIC)
-                                .concat([MethodModifier.PRIVATE])
-                        })
-                    })
+                const privateMethod = method.getPrivateMethod()
                 const returnType = privateMethod.tsReturnType()
                 this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.overloadedName}`)
                 writePeerMethod(writer, privateMethod, true, this.printerContext, this.dumpSerialized, "_serialize", "this.peer!.ptr", returnType)

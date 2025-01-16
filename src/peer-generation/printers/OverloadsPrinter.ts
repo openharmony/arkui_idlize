@@ -24,13 +24,14 @@ import {
     StringExpression
 } from "../LanguageWriters";
 import { PeerClassBase } from "../PeerClass";
-import { isDefined, Language, typeOrUnion } from '@idlize/core'
+import { isDefined, Language, throwException, typeOrUnion } from '@idlize/core'
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
 import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
 import { ReferenceResolver } from "../ReferenceResolver";
 import { UnionRuntimeTypeChecker } from "../unions";
+import { zipMany } from '../../utils';
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
@@ -111,6 +112,63 @@ export function groupOverloads<T extends PeerMethod>(peerMethods: T[]): T[][] {
         groups.push(peerMethods.filter(it => it.method.name === method.method.name))
     }
     return groups
+}
+
+export function groupOverloadsIDL<T extends idl.IDLSignature>(methods:T[]): T[][] {
+    const groups = new Map<string, T[]>()
+    for (const method of methods) {
+        if (!groups.has(method.name)) {
+            groups.set(method.name, [])
+        }
+        const bucket = groups.get(method.name)
+        bucket?.push(method)
+    }
+    return Array.from(groups.values())
+}
+
+interface CollapsedMethod {
+    methods: idl.IDLMethod[]
+    name: string
+    parameters: idl.IDLParameter[]
+    returnType: idl.IDLType
+}
+
+export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod {
+    const parameters = zipMany(...methods.map(it => it.parameters))
+        .map(it => {
+            let defined: idl.IDLParameter | undefined = undefined
+            let isOptional = false
+            for (const param of it) {
+                if (param) {
+                    defined = param
+                } else {
+                    isOptional = true
+                }
+            }
+            if (!defined) {
+                throw new Error("Not found defined parameter")
+            }
+            return idl.createParameter(
+                defined.name,
+                idl.maybeOptional(
+                    typeOrUnion(
+                        it.filter(it => it !== undefined)
+                            .map(it => it as idl.IDLParameter /* rollup problems */)
+                            .map(it => it.type)
+                        ), 
+                        isOptional
+                    ),
+                isOptional,
+                false                               
+            )
+        })
+
+        return {
+            methods,
+            parameters,
+            name: methods[0]?.name ?? throwException('No method to collapse'),
+            returnType: methods[0]?.returnType ?? throwException('No method to collapse')            
+        }
 }
 
 export class OverloadsPrinter {

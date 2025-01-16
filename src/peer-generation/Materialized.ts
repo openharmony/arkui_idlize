@@ -22,6 +22,7 @@ import { createReferenceType, IDLType, IDLVoidType } from '@idlize/core/idl'
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"
+import { copyMethod } from './LanguageWriters/LanguageWriter'
 
 export class MaterializedField {
     constructor(
@@ -102,6 +103,20 @@ export class MaterializedMethod extends PeerMethod {
 
     tsReturnType(): IDLType | undefined {
         return this.method.signature.returnType
+    }
+
+    getPrivateMethod() {
+        let privateMethod: MaterializedMethod = this
+        if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE)) {
+            privateMethod = copyMaterializedMethod(this, {
+                method: copyMethod(this.method, {
+                    modifiers: (this.method.modifiers ?? [])
+                        .filter(it => it !== MethodModifier.PUBLIC)
+                        .concat([MethodModifier.PRIVATE])
+                })
+            })
+        }
+        return privateMethod
     }
 }
 

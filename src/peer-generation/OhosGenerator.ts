@@ -24,7 +24,7 @@ import { createOutArgConvertor } from './PromiseConvertors'
 import { PrimitiveType } from './ArkPrimitiveType'
 import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { PeerLibrary } from './PeerLibrary'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
@@ -32,6 +32,10 @@ import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter
 import { CppSourceFile } from './printers/SourceFile'
 import { StructPrinter } from './printers/StructPrinter'
 import { NativeModuleType } from './NativeModuleType'
+import { collapseSameMethodsIDL, groupOverloads, groupOverloadsIDL, OverloadsPrinter } from './printers/OverloadsPrinter'
+import { MaterializedClass, MaterializedMethod } from './Materialized'
+import { PeerMethod } from './PeerMethod'
+import { writePeerMethod } from './printers/PeersPrinter'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -300,9 +304,28 @@ class OHOSVisitor {
                 const getFinalizerSig = makePeerCallSignature(this.library, [], IDLPointerType)
                 writer.writeNativeMethodDeclaration(`_${it.name}_getFinalizer`, getFinalizerSig)
 
+                const overloads = new Map<string, number>()
+                for (const method of it.methods) {
+                    overloads.set(method.name, (overloads.get(method.name) ?? 0) + 1)
+                }
+
+                const overloadCounter = new Map<string, number>()
+                for (const [overloadName, count] of overloads) {
+                    if (count > 1) {
+                        overloadCounter.set(overloadName, 0)
+                    }
+                }
+
                 it.methods.forEach(method => {
-                    const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, "self")
-                    writer.writeNativeMethodDeclaration(`_${it.name}_${method.name}`, signature)  // TODO temporarily removed _${this.libraryName} prefix
+                    const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, method.isStatic ? undefined : "self")
+                    let postfix = ''
+                    if (overloadCounter.has(method.name)) {
+                        const count = overloadCounter.get(method.name)!
+                        postfix = count.toString()
+                        overloadCounter.set(method.name, count + 1)
+                    }
+                    const name = `_${it.name}_${method.name}${postfix}`
+                    writer.writeNativeMethodDeclaration(name, signature)  // TODO temporarily removed _${this.libraryName} prefix
                 })
             })
         })(this.nativeFunctionsWriter)
@@ -382,8 +405,14 @@ class OHOSVisitor {
             writer.writeStatement(writer.makeEnumEntity(e, true))
         })
         this.interfaces.forEach(int => {
+            if (hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
+                return
+            }
             this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
                 int.methods.forEach(method => {
+                    if (method.isStatic) {
+                        return
+                    }
                     const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
                     const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
                     writer.writeMethodDeclaration(method.name, signature)
@@ -391,6 +420,7 @@ class OHOSVisitor {
             })
         })
         this.interfaces.forEach(int => {
+            const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
             this.peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
                 if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
@@ -495,90 +525,110 @@ class OHOSVisitor {
                     })
                 }
 
-                int.methods.forEach(method => {
-                    const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
-                    const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
-                    writer.writeMethodImplementation(new Method(method.name, signature), writer => {
-                        // TODO remove duplicated code from writePeerMethod (PeersPrinter.ts)
-                        let scopes = adjustedSignature.convertors.filter(it => it.isScoped)
-                        scopes.forEach(it => {
-                            writer.pushIndent()
-                            writer.print(it.scopeStart?.(it.param, writer.language))
-                        })
-                        let serializerCreated = false
-                        adjustedSignature.convertors.forEach((it) => {
-                            if (it.useArray) {
-                                if (!serializerCreated) {
-                                    writer.writeStatement(
-                                        writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
-                                            writer.makeMethodCall('Serializer', 'hold', []), true)
-                                    )
-                                    serializerCreated = true
-                                }
-                                it.convertorSerialize(`this`, it.param, writer)
-                            }
-                        })
-                        let serializerPushed = false
-                        let params = [ writer.makeString('this.peer.ptr')]
-                        adjustedSignature.convertors.forEach(it => {
-                            if (it.useArray) {
-                                if (!serializerPushed) {
-                                    params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
-                                    params.push(writer.makeMethodCall(`thisSerializer`, 'length', []))
-                                    serializerPushed = true
-                                }
-                            } else {
-                                params.push(writer.makeString(writer.escapeKeyword(it.convertorArg(it.param, writer))))
-                            }
-                        })
-                        const callExpression = writer.makeNativeCall(
-                            NativeModuleType.Generated,
-                            `_${int.name}_${method.name}`, // TODO temporarily removed _${this.libraryName} prefix
-                            params
-                        )
-                        if (adjustedSignature.returnType === IDLVoidType) {
-                            writer.writeStatement(writer.makeStatement(callExpression))
-                        } else {
-                            writer.writeStatement(writer.makeAssign("result", undefined, callExpression, true, true))
-                        }
-                        if (serializerPushed) {
-                            writer.writeStatement(new ExpressionStatement(
-                                writer.makeMethodCall('thisSerializer', 'release', [])))
-                            scopes.reverse().forEach(it => {
-                                writer.popIndent()
-                                writer.print(it.scopeEnd!(it.param, writer.language))
-                            })
-                        }
-                        if (adjustedSignature.returnType !== IDLVoidType) {
-                            writer.writeStatement(writer.makeReturn(writer.makeString("result")))
-                        }
-                    })
+                const materializedMethods = int.methods.map(it => new MaterializedMethod(
+                    int.name,
+                    int.name,
+                    it.parameters.map(p => this.library.typeConvertor(writer.escapeKeyword(p.name), p.type, p.isOptional)),
+                    it.returnType,
+                    true,
+                    new Method(
+                        it.name,
+                        NamedMethodSignature.make(
+                            it.returnType,
+                            it.parameters.map(p => ({ name: writer.escapeKeyword(p.name), type: p.type }))
+                        ),
+                        it.isStatic ? [MethodModifier.STATIC] : []
+                    )
+                ))
+
+                PeerMethod.markAndGroupOverloads(materializedMethods)
+
+                const groupedMethods = groupOverloads(
+                    materializedMethods
+                )
+
+                groupedMethods.forEach(methods => {
+                    PeerMethod.markAndGroupOverloads(methods)
                 })
-            }, undefined, [`${int.name}Interface`])
+
+                const overloadsPrinter = new OverloadsPrinter(this.library, writer, this.library.language, false)
+                const clazz = new MaterializedClass(
+                    int,
+                    int.name,
+                    true,
+                    undefined,
+                    [],
+                    [],
+                    new MaterializedMethod(int.name, int.name, [], IDLVoidType, false, new Method('', NamedMethodSignature.make(IDLVoidType, []))),
+                    new MaterializedMethod(int.name, int.name, [], IDLVoidType, false, new Method('', NamedMethodSignature.make(IDLVoidType, []))),
+                    [],
+                    true,
+                    []
+                )
+                for (const group of groupedMethods) {
+                    overloadsPrinter.printGroupedComponentOverloads(clazz, group)
+                }
+
+                materializedMethods.forEach(method => {
+                    writePeerMethod(
+                        writer, 
+                        method.getPrivateMethod(),
+                        true,
+                        { language: this.library.language, imports: undefined, synthesizedTypes: undefined  },
+                        false,
+                        '_serialize',
+                        'this.peer!.ptr',
+                        method.returnType
+                    )
+                })
+
+            }, undefined, isGlobalScope ? undefined : [`${int.name}Interface`])
 
             // TODO Migrate to MaterializedPrinter
             if (int.constructors.length === 0) {
                 // Write MaterializedClass static
-                this.peerWriter.writeClass(`${int.name}Internal`, writer => {
-                    // write fromPtr(ptr: number):MaterializedClass method
-                    const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference))
-                    const fromPtrSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
-                    writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], int.typeParameters), writer => {
-                        const objVar = `obj`
-                        writer.writeStatement(writer.makeAssign(objVar,
-                            clazzRefType,
-                            //TODO: Need to pass IDLType instead of string to makeNewObject
-                            writer.makeNewObject(writer.getNodeName(clazzRefType)),
-                            true)
-                        )
-                        writer.writeStatement(
-                            writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
-                                writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
-                        )
-                        writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+                if (!hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
+                    this.peerWriter.writeClass(`${int.name}Internal`, writer => {
+                        // write fromPtr(ptr: number):MaterializedClass method
+                        const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference))
+                        const fromPtrSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
+                        writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], int.typeParameters), writer => {
+                            const objVar = `obj`
+                            writer.writeStatement(writer.makeAssign(objVar,
+                                clazzRefType,
+                                //TODO: Need to pass IDLType instead of string to makeNewObject
+                                writer.makeNewObject(writer.getNodeName(clazzRefType)),
+                                true)
+                            )
+                            writer.writeStatement(
+                                writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
+                                    writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
+                            )
+                            writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+                        })
                     })
-                })
+                }
             }
+        })
+
+        this.library.globalScopeInterfaces.forEach(entry => {
+            const groupedMethods = groupOverloadsIDL(entry.methods)
+            groupedMethods.forEach(methods => {
+                const method = collapseSameMethodsIDL(methods)
+                const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
+                this.peerWriter.writeFunctionImplementation(method.name, signature, w => {
+                    const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
+                    let statement: LanguageStatement
+                    if (method.returnType !== IDLVoidType) {
+                        statement = w.makeReturn(call)
+                    } else {
+                        statement = w.makeStatement(call)
+                    }
+                    w.writeStatement(
+                        statement
+                    )
+                })
+            })
         })
     }
 
@@ -739,12 +789,13 @@ class OHOSVisitor {
 }
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary): void {
-    const managedOutDir = path.join(outDir, peerLibrary.language.name.toLocaleLowerCase())
-    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir)
-    if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir)
+    const generatedSubDir = path.join(outDir, 'generated')
+    const managedOutDir = path.join(generatedSubDir, peerLibrary.language.name.toLocaleLowerCase())
+    if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
+    if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir, { recursive: true })
 
     const visitor = new OHOSVisitor(peerLibrary)
-    visitor.execute(outDir, managedOutDir)
+    visitor.execute(generatedSubDir, managedOutDir)
 }
 
 

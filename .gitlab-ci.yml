@@ -275,7 +275,7 @@ check generated XML demo:
       - npm run run:xml:arkts
       - cd demos/xml
       - rm -rf generated
-      - cp -r ../../out/xml generated
+      - cp -r ../../out/xml/generated generated
       - npm run compile:node
       - npm start
       - npm run compile:panda
