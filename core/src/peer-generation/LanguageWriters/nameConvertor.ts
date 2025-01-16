@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '../../idl'
 
 export interface IdlNameConvertor {
     convert(node: idl.IDLNode): string

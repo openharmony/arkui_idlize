@@ -6,7 +6,7 @@ import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { isMaterialized } from "./idl/IdlPeerGeneratorVisitor";
 import { createTypeNameConvertor } from "./LanguageWriters";
-import { IdlNameConvertor } from "./LanguageWriters/nameConvertor";
+import { IdlNameConvertor } from "@idlize/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { cleanPrefix } from "./PeerLibrary";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";

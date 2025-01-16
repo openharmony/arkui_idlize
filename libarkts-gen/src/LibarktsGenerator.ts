@@ -1,9 +1,9 @@
 import * as path from "node:path"
-import { PeerLibrary } from "../peer-generation/PeerLibrary"
 import { BridgesPrinter } from "./BridgesPrinter"
-import { forceWriteFile } from "@idlize/core"
+import { IDLEntry, forceWriteFile } from "@idlize/core"
 import { NativeModulePrinter } from "./NativeModulePrinter"
-
+import * as fs from "fs"
+import { IDLFile } from "./Es2PandaTransformer"
 
 export class LibarktsConfig {
     static implPrefix = `impl_`
@@ -24,15 +24,21 @@ export class LibarktsConfig {
         return `${LibarktsConfig.nativeModulePrefix}${name}`
     }
 }
+
+export function readTemplate(name: string): string {
+    console.log(__dirname)
+    return fs.readFileSync(path.join(__dirname, `./../templates/${name}`), 'utf8')
+}
+
 export class LibarktsGenerator {
     constructor(
         private outDir: string,
-        private library: PeerLibrary
+        private idl: IDLFile
     ) {}
 
-    private libPrinter = new BridgesPrinter(this.library)
+    private libPrinter = new BridgesPrinter(this.idl)
     private libFile = 'native/src/bridges.cc'
-    private nativeModulePrinter = new NativeModulePrinter(this.library)
+    private nativeModulePrinter = new NativeModulePrinter(this.idl)
     private nativeModuleFile = 'native/src/ts/LibarktsNativeModule.ts'
 
     print(): void {
@@ -42,7 +48,11 @@ export class LibarktsGenerator {
         )
         forceWriteFile(
             path.join(this.outDir, this.nativeModuleFile),
-            this.nativeModulePrinter.print()
+            readTemplate("Es2PandaNativeModule.ts")
+                .replaceAll(
+                    "%GENERATED_PART%",
+                    this.nativeModulePrinter.print()
+                )
         )
     }
 }

@@ -38,7 +38,8 @@ import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, IDLVoidType, isOptionalType } from '@idlize/core'
-import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
+import { createEmptyReferenceResolver } from "@idlize/core";
+import { getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { collectComponents, findComponentByType } from "../ComponentsCollector";

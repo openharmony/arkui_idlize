@@ -23,7 +23,7 @@ import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../../peer-generation/LanguageWriters";
 import { ArgConvertor, BaseArgConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, ExpressionAssigneer, InterfaceConvertor, NumberConvertor, RuntimeType, StringConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from "../../peer-generation/ArgConvertors";
-import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "../../peer-generation/LanguageWriters/nameConvertor";
+import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlize/core";
 import { LibraryFileInterface, LibraryInterface } from "../../LibraryInterface";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";

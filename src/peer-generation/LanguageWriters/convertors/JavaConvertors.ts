@@ -16,7 +16,7 @@
 import * as idl from '@idlize/core/idl'
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../../printers/lang/Java';
 import { ReferenceResolver } from '../../ReferenceResolver';
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "../nameConvertor";
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "@idlize/core";
 import { InteropArgConvertor } from './InteropConvertor';
 
 

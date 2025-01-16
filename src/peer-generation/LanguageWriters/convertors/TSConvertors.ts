@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
+import { convertNode, IdlNameConvertor, NodeConvertor } from '@idlize/core'
 import * as idl from '@idlize/core/idl'
 import { ReferenceResolver } from '../../ReferenceResolver'
 import { stringOrNone } from '@idlize/core'

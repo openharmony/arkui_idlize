@@ -14,7 +14,7 @@ import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
 import { Language } from "@idlize/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlize/core/idl"
 import { getReferenceResolver } from '../ReferenceResolver';
-import { convertDeclaration } from '../LanguageWriters/nameConvertor';
+import { convertDeclaration } from '@idlize/core';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';

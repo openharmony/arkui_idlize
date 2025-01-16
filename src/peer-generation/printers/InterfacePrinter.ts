@@ -41,7 +41,7 @@ import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
 import { TargetFile } from './TargetFile'
 import { PrinterContext } from './PrinterContext'
-import { convertDeclaration, DeclarationConvertor } from "../LanguageWriters/nameConvertor";
+import { convertDeclaration, DeclarationConvertor } from "@idlize/core";
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'
 import { printJavaImports } from './lang/JavaPrinters'
 import { collectJavaImports } from './lang/JavaIdlUtils'

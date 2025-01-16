@@ -16,7 +16,7 @@
 import * as idl from "@idlize/core/idl"
 import * as fs from "fs"
 import * as path from "path"
-import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "../../LanguageWriters/nameConvertor"
+import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "@idlize/core"
 import { ImportFeature } from "../../ImportsCollector"
 import { createLanguageWriter, Method, MethodModifier, MethodSignature } from "../../LanguageWriters"
 import { collectUniqueCallbacks } from "../CallbacksPrinter"
@@ -119,7 +119,7 @@ export function makeGetFunctionRuntimeType(library: PeerLibrary) {
         writer.writeMethodImplementation(method, () => {
             writer.makeCheckOptional(writer.makeString('arg0'), writer.makeReturn(writer.makeString('RuntimeType.FUNCTION'))).write(writer)
             writer.makeReturn(writer.makeString('RuntimeType.UNDEFINED')).write(writer)
-        })  
+        })
     }
     let Ark_Object = fs.readFileSync(path.join(__dirname, `../templates/cangjie/Ark_Object_template.cj`), 'utf8').replace('%GET_FUNCTION_RUNTIME%', writer.getOutput().join('\n'))
     return Ark_Object

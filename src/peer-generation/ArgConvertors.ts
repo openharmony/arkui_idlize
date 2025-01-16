@@ -20,7 +20,7 @@ import { PrimitiveType } from "./ArkPrimitiveType"
 import { BlockStatement, BranchStatement, createTypeNameConvertor, generateTypeCheckerName, LanguageExpression, LanguageStatement, LanguageWriter, StringExpression } from "./LanguageWriters"
 import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors"
 import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
-import { createEmptyReferenceResolver } from "./ReferenceResolver"
+import { createEmptyReferenceResolver } from "@idlize/core"
 import { UnionRuntimeTypeChecker } from "./unions"
 
 export enum RuntimeType {

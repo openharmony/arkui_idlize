@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { NodeConvertor, convertNode, convertType } from "../LanguageWriters/nameConvertor"
+import { NodeConvertor, convertNode, convertType } from "@idlize/core"
 import { LibraryInterface } from '../../LibraryInterface'
 import { PeerLibrary } from '../PeerLibrary'
 import { Language } from '@idlize/core'

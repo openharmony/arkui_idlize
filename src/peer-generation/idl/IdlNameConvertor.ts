@@ -15,7 +15,7 @@
 
 import * as idl from '@idlize/core/idl'
 import { Language } from '@idlize/core'
-import { DeclarationConvertor } from '../LanguageWriters/nameConvertor'
+import { DeclarationConvertor } from '@idlize/core'
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertInterface(decl: idl.IDLInterface): string {

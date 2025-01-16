@@ -18,7 +18,7 @@ import { ArgConvertor } from "./ArgConvertors"
 import { Method, MethodModifier } from "./LanguageWriters"
 import { PrimitiveType } from "./ArkPrimitiveType"
 import { mangleMethodName } from "./LanguageWriters/LanguageWriter"
-import { IdlNameConvertor } from "./LanguageWriters/nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 export class PeerMethod {
     private overloadIndex?: number
     constructor(

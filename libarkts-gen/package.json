@@ -1,0 +1,35 @@
+{
+  "name": "@idlize/libarkts-gen",
+  "version": "1.0.0+devel",
+  "description": "Linter",
+  "main": "lib/index.js",
+  "bin": "lib/index.js",
+  "files": [
+    "lib/*.js",
+    "stdlib.d.ts",
+    "whitelist.json"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [],
+  "dependencies": {
+    "@idlize/core": "1.0.0-devel",
+    "@types/node": "^18.0.0",
+    "commander": "^10.0.0",
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^18.0.0",
+    "source-map-support": "^0.5.21"
+  },
+  "scripts": {
+    "compile": "rollup -c",
+    "libarkts:convert": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/libarkts/ --libarkts-transform",
+    "libarkts": "npm run compile && node . --input-file ./tests/subset.idl --output-dir ./out/libarkts/"
+  }
+}

@@ -26,7 +26,8 @@ import { PeerLibrary } from "./PeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
 import * as idl from "@idlize/core/idl"
-import { createEmptyReferenceResolver, getReferenceResolver, ReferenceResolver } from "./ReferenceResolver"
+import { createEmptyReferenceResolver, ReferenceResolver } from "@idlize/core"
+import { getReferenceResolver } from "./ReferenceResolver"
 import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModuleType } from "./NativeModuleType"
@@ -493,7 +494,7 @@ export function makeAPI(
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%INTEROP_TYPES_HEADER`, 
+        .replaceAll(`%INTEROP_TYPES_HEADER`,
             fs.readFileSync(
                 path.resolve(__dirname, '..', 'node_modules', '@koalaui', 'interop', 'src', 'cpp', 'interop-types.h'),
                 'utf-8'

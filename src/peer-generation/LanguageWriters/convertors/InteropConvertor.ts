@@ -20,7 +20,7 @@ import { PrimitiveType } from '../../ArkPrimitiveType'
 import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { PeerMethod } from '../../PeerMethod'
 import { ReferenceResolver } from '../../ReferenceResolver'
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '@idlize/core'
 
 export interface ConvertResult {
     text: string,

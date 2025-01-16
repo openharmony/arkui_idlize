@@ -23,7 +23,6 @@ import {
     IndentedPrinter,
     throwException
 } from "@idlize/core"
-import { PeerLibrary } from "../peer-generation/PeerLibrary"
 import {
     IDLConstructor,
     IDLEntry,
@@ -37,21 +36,20 @@ import {
     isReferenceType,
 } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
-import { convertType } from "../peer-generation/LanguageWriters/nameConvertor"
+import { convertType } from "@idlize/core"
 import { LibarktsConfig } from "./LibarktsGenerator"
+import { IDLFile } from "./Es2PandaTransformer"
 
 export class BridgesPrinter {
     constructor(
-        private library: PeerLibrary
+        private idl: IDLFile
     ) { }
 
     private printer = new IndentedPrinter()
-    private convertor = new NativeTypeConvertor(this.library)
+    private convertor = new NativeTypeConvertor(this.idl.entries)
 
     print(): string {
-        this.library.files
-            .flatMap(it => it.entries)
-            .forEach(it => this.visit(it))
+        this.idl.entries.forEach(it => this.visit(it))
         return this.printer.getOutput().join('\n')
     }
 

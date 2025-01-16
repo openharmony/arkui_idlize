@@ -36,7 +36,7 @@ import {
     ReturnStatement,
     StringExpression
 } from "../LanguageWriter"
-import { IdlNameConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 import { CJIDLTypeToForeignStringConvertor, CJIDLNodeToStringConvertor } from "../convertors/CJConvertors"
 
 ////////////////////////////////////////////////////////////////

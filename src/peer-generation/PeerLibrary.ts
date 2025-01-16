@@ -24,7 +24,7 @@ import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
 import { StructPrinter } from './printers/StructPrinter';
 import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
-import { IdlNameConvertor } from './LanguageWriters/nameConvertor';
+import { IdlNameConvertor } from '@idlize/core';
 import { LibraryInterface } from '../LibraryInterface';
 import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropConvertor';
 

@@ -37,7 +37,7 @@ import * as idl from '@idlize/core/idl'
 import * as ts from 'typescript'
 import { ArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlNameConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 import { TsIDLNodeToStringConverter } from "../convertors/TSConvertors"
 
 ////////////////////////////////////////////////////////////////

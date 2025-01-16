@@ -14,36 +14,11 @@
  */
 
 import * as idl from '@idlize/core/idl'
+import { ReferenceResolver } from '@idlize/core'
 import { PeerLibrary } from "./PeerLibrary";
-
-export interface ReferenceResolver {
-    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined
-    toDeclaration(type: idl.IDLNode): idl.IDLNode
-}
-
-export function createEmptyReferenceResolver(): ReferenceResolver {
-    return {
-        resolveTypeReference() {
-            return undefined
-        },
-        toDeclaration(type) {
-            return type
-        }
-    }
-}
+export { ReferenceResolver }
 
 export function getReferenceResolver(library: PeerLibrary): ReferenceResolver {
     return library
 }
 
-/** Please do not store any global instances */
-export function createAlternativeReferenceResolver(mainResolver: ReferenceResolver, alternatives: Map<string, idl.IDLEntry>): ReferenceResolver {
-    return {
-        resolveTypeReference(type, entries) {
-            return mainResolver.resolveTypeReference(type, entries) ?? alternatives.get(type.name)
-        },
-        toDeclaration(type) {
-            return mainResolver.toDeclaration(type)
-        },
-    }
-}

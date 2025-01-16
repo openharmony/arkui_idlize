@@ -38,7 +38,7 @@ import {
 import * as idl from '@idlize/core/idl'
 import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlNameConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 import { JavaIDLNodeToStringConvertor } from "../convertors/JavaConvertors"
 
 ////////////////////////////////////////////////////////////////

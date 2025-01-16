@@ -15,7 +15,7 @@
 
 import * as idl from '@idlize/core/idl'
 import { PrimitiveType } from '../../ArkPrimitiveType'
-import { IdlNameConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 import { ConvertResult, InteropArgConvertor, InteropConverter } from './InteropConvertor'
 
 export class CppIDLNodeToStringConvertor extends InteropConverter implements IdlNameConvertor {

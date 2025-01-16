@@ -13,15 +13,16 @@
  * limitations under the License.
  */
 
-import { TypeConvertor } from "../peer-generation/LanguageWriters/nameConvertor"
-import { PeerLibrary } from "../peer-generation/PeerLibrary"
+// import { TypeConvertor } from "../../src/peer-generation/LanguageWriters/nameConvertor"
 import {
     IDLBooleanType,
     IDLContainerType,
     IDLContainerUtils,
+    IDLEntry,
     IDLI32Type,
     IDLOptionalType,
     IDLPrimitiveType,
+    IDLPointerType,
     IDLReferenceType,
     IDLStringType,
     IDLTypeParameterType,
@@ -31,8 +32,8 @@ import {
     throwException
 } from "@idlize/core"
 
-export class NativeTypeConvertor implements TypeConvertor<string> {
-    constructor(private library: PeerLibrary) {}
+export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
+    constructor(private idl: IDLEntry[]) {}
 
     private usagesWithoutDeclaration = new Set<string>()
 
@@ -54,7 +55,7 @@ export class NativeTypeConvertor implements TypeConvertor<string> {
     }
 
     convertTypeReference(type: IDLReferenceType): string {
-        const declaration = this.library.resolveTypeReference(type)
+        const declaration = this.idl.filter(it => type.name === it.name)[0]
         if (declaration === undefined) this.complain(type.name)
         if (declaration !== undefined && isEnum(declaration)) {
             return `KInt`
@@ -72,6 +73,7 @@ export class NativeTypeConvertor implements TypeConvertor<string> {
             case IDLBooleanType: return `KBoolean`
             case IDLStringType: return `KStringPtr&`
             case IDLVoidType: return `KNativePointer`
+            case IDLPointerType: return `KNativePointer`
         }
         throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)
     }

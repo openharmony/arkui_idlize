@@ -27,7 +27,7 @@ import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
 import { JavaIDLNodeToStringConvertor, JavaInteropArgConvertor } from "./convertors/JavaConvertors";
 import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
 import { CppIDLNodeToStringConvertor, CppInteropArgConvertor } from "./convertors/CppConvertors";
-import { IdlNameConvertor } from "./nameConvertor";
+import { IdlNameConvertor } from "@idlize/core";
 import { InteropArgConvertor } from "./convertors/InteropConvertor";
 
 //////////////////////////////////////////////////////////////////

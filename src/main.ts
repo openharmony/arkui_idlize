@@ -31,8 +31,6 @@ import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { initRNG } from "./rand_utils"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
-import { PeerLibrary } from "./peer-generation/PeerLibrary"
-import { PeerFile } from "./peer-generation/PeerFile"
 import {
     IDLInteropPredefinesVisitor,
     IdlPeerProcessor,
@@ -48,8 +46,8 @@ import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoa
 import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
 import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
-import { LibarktsGenerator } from "./libarkts-generation/LibarktsGenerator"
-import { Es2PandaTransformer } from "./libarkts-generation/Es2PandaTransformer"
+import { PeerLibrary } from "./peer-generation/PeerLibrary"
+import { PeerFile } from "./peer-generation/PeerFile"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -88,7 +86,6 @@ const options = program
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
-    .option('--libarkts-transform', 'Invokes Es2PandaTransformer on input .idl')
     .parse()
     .opts()
 
@@ -394,12 +391,6 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         generateOhos(outDir, idlLibrary)
-    }
-    if (options.generatorTarget == "libarkts") {
-        if (options.libarktsTransform) {
-            new Es2PandaTransformer(idlLibrary).transform()
-        }
-        new LibarktsGenerator(outDir, idlLibrary).print()
     }
     if (options.plugin) {
         loadPlugin(options.plugin)

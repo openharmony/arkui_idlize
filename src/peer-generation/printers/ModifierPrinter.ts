@@ -33,7 +33,8 @@ import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlize/core/idl'
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { createEmptyReferenceResolver, getReferenceResolver } from "../ReferenceResolver";
+import { createEmptyReferenceResolver } from "@idlize/core";
+import { getReferenceResolver } from "../ReferenceResolver";
 import { PeerLibrary } from "../PeerLibrary";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 

@@ -45,7 +45,7 @@ import { ReferenceResolver } from "../../ReferenceResolver"
 import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
 import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter"
 import * as idl from '@idlize/core/idl'
-import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
+import { convertDeclaration, IdlNameConvertor } from "@idlize/core"
 import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 

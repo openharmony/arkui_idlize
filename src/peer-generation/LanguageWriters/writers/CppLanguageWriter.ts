@@ -43,7 +43,7 @@ import {
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
 import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlNameConvertor } from "../nameConvertor"
+import { IdlNameConvertor } from "@idlize/core"
 import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
 
 ////////////////////////////////////////////////////////////////

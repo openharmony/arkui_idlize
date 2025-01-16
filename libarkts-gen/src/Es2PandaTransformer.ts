@@ -1,27 +1,29 @@
-import { isMethod, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLParameter, IDLType, createConstructor, createContainerType, createInterface, forEachChild, isConstructor, isContainerType, isInterface, isReferenceType, toIDLString } from "@idlize/core/idl"
-import { PeerFile } from "../peer-generation/PeerFile"
-import { PeerLibrary } from "../peer-generation/PeerLibrary"
+import { isMethod, IDLInterface, IDLInterfaceSubkind, IDLKind, IDLParameter, IDLType, createConstructor, createContainerType, createInterface, forEachChild, isConstructor, isContainerType, isInterface, isReferenceType, toIDLString, IDLEntry } from "@idlize/core/idl"
 
+
+// TODO: until we get an equivalent of it in @idlize/core
+export class IDLFile {
+    constructor(public entries: IDLEntry[]) {}
+}
 
 // TODO: unfortunately we don't have IDL transformers yet.
 // So we update IDL tree "in place".
 // This is no good.
 export class Es2PandaTransformer {
     private classes = new Map<string, IDLInterface>()
-    constructor(private idlLibrary: PeerLibrary) {}
+    constructor(private idl: IDLFile) {}
 
     detectClasses() {
-        this.idlLibrary.files.forEach(
-            file => file.entries.forEach(
-                entry => forEachChild(entry, node => {
-                    if (isMethod(node)) {
-                        if (node.name.startsWith("Create")) {
-                            this.lookupInterface(node.name.substring("Create".length))
-                        }
+        this.idl.entries.forEach(
+            entry => forEachChild(entry, node => {
+                if (isMethod(node)) {
+                    if (node.name.startsWith("Create")) {
+                        this.lookupInterface(node.name.substring("Create".length))
                     }
-                })
-            )
+                }
+            })
         )
+
     }
 
     sortClasses() {
@@ -52,51 +54,46 @@ export class Es2PandaTransformer {
     }
 
     transferMethods() {
-        this.idlLibrary.files.forEach(
-            file => file.entries.forEach(entry => {
-                forEachChild(entry, node => {
-                    if (isMethod(node)) {
-                        const clazzName = detectConstructor(node.name)
-                        if (clazzName) {
-                            this.lookupInterface(clazzName).constructors.push(
-                                createConstructor(
-                                    node.parameters,
-                                    undefined
-                                )
+        this.idl.entries.forEach(entry => {
+            forEachChild(entry, node => {
+                if (isMethod(node)) {
+                    const clazzName = detectConstructor(node.name)
+                    if (clazzName) {
+                        this.lookupInterface(clazzName).constructors.push(
+                            createConstructor(
+                                node.parameters,
+                                undefined
                             )
-                        }
-                        const clazzName2 = className(this.classes, node.name)
-                        if (clazzName2) {
-                            node.name = methodName(clazzName2, node.name)!
-                            this.lookupInterface(clazzName2).methods.push(
-                                node
-                            )
-                        }
+                        )
                     }
-                })
+                    const clazzName2 = className(this.classes, node.name)
+                    if (clazzName2) {
+                        node.name = methodName(clazzName2, node.name)!
+                        this.lookupInterface(clazzName2).methods.push(
+                            node
+                        )
+                    }
+                }
             })
-        )
+        })
     }
 
-    addClassesToFile(es2pandaFile: PeerFile) {
+    addClassesToFile(es2pandaFile: IDLFile) {
         es2pandaFile.entries.push(...Array.from(this.classes.values()).flat())
     }
 
     dropEs2pandaPrefix() {
-        this.idlLibrary.files.forEach(
-            file => file.entries.forEach(entry => {
+        this.idl.entries.forEach(entry => {
                 forEachChild(entry, node => {
                     if (isReferenceType(node) && node.name.startsWith("es2panda_")) {
                         node.name = node.name.substring("es2panda_".length)
                     }
                 })
             })
-        )
     }
 
     postProcess() {
-        this.idlLibrary.files.forEach(
-            file => file.entries.forEach(
+        this.idl.entries.forEach(
                 entry => forEachChild(entry, node => {
                     if (isMethod(node) || isConstructor(node)) {
                         const type = node.returnType
@@ -116,12 +113,10 @@ export class Es2PandaTransformer {
                     }
                 })
             )
-        )
     }
 
     transform() {
-        const es2pandaFile = this.idlLibrary.files[0]
-        const es2pandaInterface = es2pandaFile.entries[0]
+        const es2pandaInterface = this.idl.entries.filter(it => it.name == "es2panda_Impl")[0]
 
         if (!isInterface(es2pandaInterface)) {
             throw new Error(`Expected a single es2panda module, got ${IDLKind[es2pandaInterface.kind]} ${es2pandaInterface.name}`)
@@ -132,15 +127,13 @@ export class Es2PandaTransformer {
         this.transferMethods()
 
         // Drop the original interface
-        es2pandaFile.entries.shift()
-        this.addClassesToFile(es2pandaFile)
+        this.idl.entries = this.idl.entries.filter(it => it.name != "es2panda_Impl")
+        this.addClassesToFile(this.idl)
 
         this.postProcess()
         this.dropEs2pandaPrefix()
 
-        this.idlLibrary.files.forEach(
-            file => console.log(toIDLString(file.entries, {allowUnknownKinds: true}))
-        )
+        console.log(toIDLString(this.idl.entries, {allowUnknownKinds: true}))
     }
 }
 

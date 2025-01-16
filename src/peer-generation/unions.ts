@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { convertType, TypeConvertor } from "./LanguageWriters/nameConvertor";
+import { convertType, TypeConvertor } from "@idlize/core";
 import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '@idlize/core/idl'
 import { typeOrUnion } from "@idlize/core"
 import { ReferenceResolver } from "./ReferenceResolver";

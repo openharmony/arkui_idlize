@@ -30,7 +30,7 @@ import { collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '../LanguageWriters/LanguageWriter'
 import { createDeclarationNameConvertor } from '../idl/IdlNameConvertor'
 import { IDLEntry } from "@idlize/core/idl"
-import { convertDeclaration } from '../LanguageWriters/nameConvertor'
+import { convertDeclaration } from '@idlize/core'
 import { collectMaterializedImports, getInternalClassName } from '../Materialized'
 import { generateCallbackKindValue, maybeTransformManagedCallback } from '../ArgConvertors'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
