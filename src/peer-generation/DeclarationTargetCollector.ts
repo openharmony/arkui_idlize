@@ -51,6 +51,9 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                     }
                 }
             }
+            else if (idl.isEnum(entry)) {
+                orderer.addDep(library.toDeclaration(entry))
+            }
         }
     }
     for (const callback of callbacks) orderer.addDep(callback)
