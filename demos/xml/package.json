@@ -18,9 +18,7 @@
         "start:panda": "bash scripts/run-panda.sh"
     },
     "dependencies": {
-        "@koalaui/common": "file:../../external/incremental/common",
-        "@koalaui/compat": "file:../../external/incremental/compat",
-        "@koalaui/interop": "file:../../external/interop",
-        "@koalaui/runtime": "file:../../external/incremental/runtime"
+        "@koalaui/interop": "next",
+        "@koalaui/runtime": "next"
     }
 }
