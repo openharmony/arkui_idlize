@@ -25,7 +25,7 @@
 | Rect                      | Component | No        | HEL         | Dudkin Sergey       | done             |                   |           | High     |
 | `height, width`           | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
 | `height, radius, width`   | Options   |           | WON         | Dudkin Sergey       | done             |                   |           | High     |
-| `radius`                  | Function  |           | WON         | Dudkin Sergey       | blocked AceEngine|                   |           |          |
+| `radius`                  | Function  |           | WON         | Dudkin Sergey       | done             |                   |           |          |
 | Navigator                 | Component | No        | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `target`                  | Options   |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
 | `setNavigatorOptions`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | High     |
@@ -87,7 +87,7 @@
 | `animation`               | Function  |           | HEL, ENC    | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
 | `sharedTransition`        | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Medium   |
 | `backgroundColor($r)`     | Function  |           | HEL         | Skroba Gleb         | done             |                   |           | Low      |
-| `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | blocked IDL      |                   |           | Medium   |
+| `backgroundImage`         | Function  |           | WON         | Erokhin Ilya        | in progress      |                   |           | Medium   |
 | `backgroundImageSize`     | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `backgroundImagePosition` | Function  |           | WON         | Erokhin Ilya        | done             |                   |           | Medium   |
 | `clip`                    | Function  |           | HEL, WON    | Skroba Gleb         | blocked IDL      |                   |           | High     |
