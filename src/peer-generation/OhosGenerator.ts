@@ -157,7 +157,7 @@ class OHOSVisitor {
             this.impls.set(destructName, { params, returnType: 'void'})
         }
         let isGlobalScope = hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)
-        clazz.methods.forEach(method => {
+        generatePostfixForOverloads(clazz.methods).forEach(({method, overloadPostfix}) => {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()
             if (!method.isStatic && !isGlobalScope) {
@@ -166,8 +166,8 @@ class OHOSVisitor {
             params = params.concat(adjustedSignature.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!))))
             let returnType = this.mapType(adjustedSignature.returnType)
             const args = generateCParameters(method, adjustedSignature.convertors, _h)
-            _h.print(`${returnType} (*${method.name})(${args});`)
-            let implName = `${clazz.name}_${method.name}Impl`
+            _h.print(`${returnType} (*${method.name}${overloadPostfix})(${args});`)
+            let implName = `${clazz.name}_${method.name}${overloadPostfix}Impl`
             _c.print(`&${implName},`)
             this.impls.set(implName, { params, returnType, paramsCString: args })
         })
@@ -304,27 +304,11 @@ class OHOSVisitor {
                 const getFinalizerSig = makePeerCallSignature(this.library, [], IDLPointerType)
                 writer.writeNativeMethodDeclaration(`_${it.name}_getFinalizer`, getFinalizerSig)
 
-                const overloads = new Map<string, number>()
-                for (const method of it.methods) {
-                    overloads.set(method.name, (overloads.get(method.name) ?? 0) + 1)
-                }
+                const methodsWithPostfix = generatePostfixForOverloads(it.methods)
 
-                const overloadCounter = new Map<string, number>()
-                for (const [overloadName, count] of overloads) {
-                    if (count > 1) {
-                        overloadCounter.set(overloadName, 0)
-                    }
-                }
-
-                it.methods.forEach(method => {
+                methodsWithPostfix.forEach(({ method, overloadPostfix }) => {
                     const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, method.isStatic ? undefined : "self")
-                    let postfix = ''
-                    if (overloadCounter.has(method.name)) {
-                        const count = overloadCounter.get(method.name)!
-                        postfix = count.toString()
-                        overloadCounter.set(method.name, count + 1)
-                    }
-                    const name = `_${it.name}_${method.name}${postfix}`
+                    const name = `_${it.name}_${method.name}${overloadPostfix}`
                     writer.writeNativeMethodDeclaration(name, signature)  // TODO temporarily removed _${this.libraryName} prefix
                 })
             })
@@ -863,4 +847,36 @@ function suggestLibraryName(library: PeerLibrary) {
     let libraryName = library.files.filter(f => !f.isPredefined)[0].packageName()
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
+}
+
+interface MethodWithPostfix {
+    method: IDLMethod,
+    overloadPostfix: string
+}
+
+function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  {
+    const overloads = new Map<string, number>()
+    for (const method of methods) {
+        overloads.set(method.name, (overloads.get(method.name) ?? 0) + 1)
+    }
+
+    const overloadCounter = new Map<string, number>()
+    for (const [overloadName, count] of overloads) {
+        if (count > 1) {
+            overloadCounter.set(overloadName, 0)
+        }
+    }
+
+    return methods.map(method => {
+        let overloadPostfix = ''
+        if (overloadCounter.has(method.name)) {
+            const postfix = overloadCounter.get(method.name)!
+            overloadPostfix = postfix.toString()
+            overloadCounter.set(method.name, postfix + 1)
+        }
+        return {
+            method,
+            overloadPostfix
+        }
+    })
 }
