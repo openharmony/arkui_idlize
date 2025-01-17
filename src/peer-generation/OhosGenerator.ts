@@ -408,6 +408,7 @@ class OHOSVisitor {
             if (hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
                 return
             }
+            const superTypes = int.inheritance.filter(it => it !== idl.IDLTopType).map(superClass => `${superClass.name}Interface`)
             this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
                 int.methods.forEach(method => {
                     if (method.isStatic) {
@@ -417,7 +418,7 @@ class OHOSVisitor {
                     const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
                     writer.writeMethodDeclaration(method.name, signature)
                 })
-            })
+            }, superTypes.length > 0 ? superTypes : undefined)
         })
         this.interfaces.forEach(int => {
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
@@ -582,7 +583,7 @@ class OHOSVisitor {
                     )
                 })
 
-            }, undefined, isGlobalScope ? undefined : [`${int.name}Interface`])
+            }, idl.getSuperType(int)?.name, isGlobalScope ? undefined : [`${int.name}Interface`])
 
             // TODO Migrate to MaterializedPrinter
             if (int.constructors.length === 0) {
