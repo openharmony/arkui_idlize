@@ -37,7 +37,6 @@ import { convertType } from "@idlize/core"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { IDLFile } from "./Es2PandaTransformer"
 
-
 export class NativeModulePrinter {
     constructor(
         private idl: IDLFile,

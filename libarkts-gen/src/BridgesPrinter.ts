@@ -63,6 +63,7 @@ export class BridgesPrinter {
     }
 
     private visitInterface(node: IDLInterface): void {
+        if (!this.config.shouldEmit(node.name)) return
         node.methods
             .filter(it => !this.config.paramArray(`handwrittenMethods`).includes(it.name))
             .forEach(it => this.printMethod(node.name, it))

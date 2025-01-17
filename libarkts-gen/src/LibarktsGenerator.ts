@@ -1,15 +1,25 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as path from "node:path"
+import * as fs from "node:fs"
+import { forceWriteFile } from "@idlize/core"
 import { BridgesPrinter } from "./BridgesPrinter"
-import { IDLEntry, forceWriteFile } from "@idlize/core"
 import { NativeModulePrinter } from "./NativeModulePrinter"
-import * as fs from "fs"
 import { IDLFile } from "./Es2PandaTransformer"
 import { Config } from "./Config"
-
-export function readTemplate(name: string): string {
-    console.log(__dirname)
-    return fs.readFileSync(path.join(__dirname, `./../templates/${name}`), 'utf8')
-}
 
 export class LibarktsGenerator {
     constructor(
@@ -30,11 +40,15 @@ export class LibarktsGenerator {
         )
         forceWriteFile(
             path.join(this.outDir, this.nativeModuleFile),
-            readTemplate("Es2PandaNativeModule.ts")
+            this.readTemplate("Es2PandaNativeModule.ts")
                 .replaceAll(
                     "%GENERATED_PART%",
                     this.nativeModulePrinter.print()
                 )
         )
+    }
+
+    private readTemplate(name: string): string {
+        return fs.readFileSync(path.join(__dirname, `./../templates/${name}`), 'utf8')
     }
 }

@@ -16,6 +16,11 @@
 import { GeneratorConfiguration, throwException } from "@idlize/core"
 
 export class Config implements GeneratorConfiguration {
+    constructor(private generateFor?: string[]) {}
+
+    private implPrefix = `impl_`
+    private nativeModulePrefix = `_`
+
     param<T>(name: string): T {
         throw new Error("Method not implemented.")
     }
@@ -29,11 +34,13 @@ export class Config implements GeneratorConfiguration {
         throwException(`Unexpected name: ${name}`)
     }
 
-    private implPrefix = `impl_`
-    private nativeModulePrefix = `_`
+    get typePrefix() {
+        return `es2panda_`
+    }
 
-    typePrefix = `es2panda_`
-    nativeModuleName = "Es2pandaNativeModule"
+    get nativeModuleName() {
+        return `Es2pandaNativeModule`
+    }
 
     methodFunction(interfaceName: string, methodName: string): string {
         return `${interfaceName}${methodName}`
@@ -45,5 +52,9 @@ export class Config implements GeneratorConfiguration {
 
     nativeModuleFunction(name: string): string {
         return `${this.nativeModulePrefix}${name}`
+    }
+
+    shouldEmit(nodeName: string): boolean {
+        return this.generateFor?.includes(nodeName) ?? true
     }
 }

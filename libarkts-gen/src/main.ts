@@ -12,20 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import { program } from "commander"
-import * as fs from "fs"
-import * as path from "path"
-import * as ts from "typescript"
-import { findVersion, generate, GeneratorConfiguration, IDLEntry, Language, setDefaultConfiguration, toIDL } from "@idlize/core"
+import { Language, toIDL } from "@idlize/core"
 import { LibarktsGenerator } from "./LibarktsGenerator"
 import { IDLFile, Es2PandaTransformer } from "./Es2PandaTransformer"
+import { Config } from "./Config"
 
-
-const options = program
+const options: {
+    outputDir?: string,
+    inputFile?: string,
+    libarktsTransform?: boolean,
+    generateFor?: string
+} = program
     .option('--output-dir <path>', 'Path to output dir')
-    .option('--input-file <path>', 'Name of file to convert')
-    .option('--suppress-errors <suppress>', 'Error codes to suppress, comma separated, no space')
+    .option('--input-file <path>', 'Path to file to generate from')
     .option('--libarkts-transform', 'Invokes Es2PandaTransformer on input .idl')
+    .option('--generate-for <string>', 'Ignore all other nodes, comma separated, no space')
     .parse()
     .opts()
 
@@ -33,15 +36,18 @@ function generateTarget(idl: IDLFile, outDir: string, language: Language) {
     if (options.libarktsTransform) {
         new Es2PandaTransformer(idl).transform()
     }
-    new LibarktsGenerator(outDir, idl).print()
+    new LibarktsGenerator(
+        outDir,
+        idl,
+        new Config(options.generateFor?.split(`,`))
+    ).print()
 }
-
 
 function main() {
 
-    const outDir = options.outputDir ?? "./out"
-    const language = Language.fromString(options.language ?? "ts")
-    const idlFile = options.inputFile ?? "./tests/subset.idl"
+    const outDir = options.outputDir ?? `./out`
+    const language = Language.fromString(`ts`)
+    const idlFile = options.inputFile ?? `./tests/subset.idl`
     const idl = new IDLFile(toIDL(idlFile))
 
     generateTarget(idl, outDir, language)
