@@ -176,15 +176,8 @@ export class PeerLibrary implements LibraryInterface {
             }
         }
         if (idl.isReferenceType(type)) {
-            if (type == idl.IDLObjectType)
-                return new CustomTypeConvertor(param, "Object")
-            if (type.name === 'Date') {
-                return new DateConvertor(param)
-            }
             if (isImportAttr(type))
                 return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
-        }
-        if (idl.isReferenceType(type)) {
             const decl = this.resolveTypeReference(type)
             return this.declarationConvertor(param, type, decl)
         }
@@ -229,7 +222,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isInterface(declaration)) {
             if (isMaterialized(declaration, this)) {
-                return new MaterializedClassConvertor(this, declarationName, param, declaration)
+                return new MaterializedClassConvertor(param, declaration)
             }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
@@ -247,6 +240,7 @@ export class PeerLibrary implements LibraryInterface {
 
     private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
+            case `Object`: return new CustomTypeConvertor(param, "Object")
             case `Dimension`:
             case `Length`:
                 return new LengthConvertor(typeName, param, this.language)

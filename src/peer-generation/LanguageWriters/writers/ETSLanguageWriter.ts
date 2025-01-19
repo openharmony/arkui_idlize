@@ -35,7 +35,7 @@ import {
     CustomTypeConvertor,
     EnumConvertor,
     InterfaceConvertor,
-    makeInterfaceTypeCheckerCall,
+    MaterializedClassConvertor,
     OptionConvertor,
     RuntimeType,
     UnionConvertor
@@ -230,6 +230,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                 duplicates: Set<string>): LanguageExpression {
         if (convertor instanceof AggregateConvertor
             || convertor instanceof InterfaceConvertor
+            || convertor instanceof MaterializedClassConvertor
             || convertor instanceof CustomTypeConvertor) {
             return this.instanceOf(convertor, value, duplicates)
         }
@@ -319,10 +320,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 duplicateMembers!,
                 this)
         }
-        if (convertor instanceof InterfaceConvertor && convertor.declaration.properties.length >= 0) {
+        if (convertor instanceof InterfaceConvertor || convertor instanceof MaterializedClassConvertor) {
             return makeInterfaceTypeCheckerCall(value,
                 this.getNodeName(convertor.idlType),
-                convertor.declaration.properties.map(it => it.name),
+                convertor.declaration.properties.filter(it => !it.isStatic).map(it => it.name),
                 duplicateMembers!,
                 this)
         }
@@ -347,4 +348,34 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, `${this.getNodeName(type)}`, options?.unsafe ?? false)
     }
+}
+
+const builtInInterfaceTypes = new Map<string,
+    (writer: LanguageWriter, value: string) => LanguageExpression>([
+        ["Resource",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
+        ["Object",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
+        ["ArrayBuffer",
+            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)]
+    ],
+)
+
+export function makeInterfaceTypeCheckerCall(
+    valueAccessor: string,
+    interfaceName: string,
+    allFields: string[],
+    duplicates: Set<string>,
+    writer: LanguageWriter,
+): LanguageExpression {
+    if (builtInInterfaceTypes.has(interfaceName)) {
+        return builtInInterfaceTypes.get(interfaceName)!(writer, valueAccessor)
+    }
+    return writer.makeMethodCall(
+        "TypeChecker",
+        generateTypeCheckerName(interfaceName), [writer.makeString(valueAccessor),
+        ...allFields.map(it => {
+            return writer.makeString(duplicates.has(it) ? "true" : "false")
+        })
+    ])
 }
