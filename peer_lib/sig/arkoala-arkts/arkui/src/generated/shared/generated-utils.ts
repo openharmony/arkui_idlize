@@ -2,7 +2,7 @@
  * TODO: move to compat
  */
 
-import { int32 } from "@koalaui/common" 
+import { int32 } from "@koalaui/common"
 
 export class GestureName {
     static readonly Tap = 0
@@ -18,4 +18,8 @@ export class GestureComponent<T> {
     public type?: int32
     public value?: T
     public hasEvent?: Int32Array
+}
+
+export function unsafeCast<T>(value: Object): T {
+    return value as T
 }

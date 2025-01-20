@@ -106,7 +106,7 @@ class IdlSerializerPrinter {
             return
         }
         const baseType = idl.createReferenceType("MaterializedBase")
-        const unsafe = writer.language === Language.TS
+        const unsafe = true // writer.language === Language.TS
         writer.writeStatement(
             writer.makeAssign(
                 `base`,

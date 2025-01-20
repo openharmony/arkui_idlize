@@ -464,6 +464,8 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     std:: string className(viewClass.c_str());
     // TODO: hack, fix it!
     if (className == "ViewLoaderApp") className = "Page.App";
+    if (className == "Page.ViewShoppingApp") className = "@koalaui.shopping.build.unmemoized.src.Page.ViewShoppingApp";
+    if (className == "Page.ViewTrivialApp") className = "@koalaui.user.build.unmemoized.src.Page.ViewTrivialApp";
     std::replace(className.begin(), className.end(), '.', '/');
     ets_class viewClassClass = env->FindClass(className.c_str());
     if (!viewClassClass) {
