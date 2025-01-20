@@ -18,14 +18,18 @@ import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
-import { AggregateConvertor, ArrayConvertor, BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, EnumConvertor, FunctionConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, MaterializedClassConvertor, NumericConvertor, OptionConvertor,  PointerConvertor,  StringConvertor, TupleConvertor, TypeAliasConvertor, UnionConvertor } from './ArgConvertors';
-import { IndentedPrinter, Language, warn, isImportAttr, isStringEnum } from '@idlize/core'
-import { createTypeNameConvertor, LanguageWriter } from './LanguageWriters';
+import { BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, NumericConvertor,  PointerConvertor, TupleConvertor, TypeAliasConvertor } from './ArgConvertors';
+import { AggregateConvertor, StringConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor, CustomTypeConvertor, UnionConvertor } from "@idlize/core"
+import { MaterializedClassConvertor } from '@idlize/core'
+import { IndentedPrinter, Language, warn, isImportAttr, NumberConvertor } from '@idlize/core'
+import { createTypeNameConvertor } from './LanguageWriters';
+import { LanguageWriter } from '@idlize/core';
 import { StructPrinter } from './printers/StructPrinter';
-import { ArgConvertor, BooleanConvertor, CustomTypeConvertor, LengthConvertor, NumberConvertor, UndefinedConvertor, VoidConvertor } from './ArgConvertors';
+import { LengthConvertor } from './ArgConvertors';
+import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlize/core';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
 import { IdlNameConvertor } from '@idlize/core';
-import { LibraryInterface } from '../LibraryInterface';
+import { LibraryInterface } from '@idlize/core';
 import { IDLNodeToStringConvertor } from './LanguageWriters/convertors/InteropConvertor';
 
 export class PeerLibrary implements LibraryInterface {
@@ -129,6 +133,18 @@ export class PeerLibrary implements LibraryInterface {
                 it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
         }
 
+        // TODO: Workaround for namespace support in ArkTS. Remove after fixing namespaces
+        const firstUnderscore = qualifiedName.lastIndexOf("_")
+        if (firstUnderscore >= 0 && this.language === Language.ARKTS) {
+            const namespace = qualifiedName.slice(0, firstUnderscore)
+            const typeName = qualifiedName.slice(firstUnderscore + 1)
+            const entry = entries.find(it =>
+                it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === namespace)
+            if (entry !== undefined) {
+                return entry
+            }
+        }
+
         const candidates = entries.filter(it => type.name === it.name)
         if (candidates.length === 1)
             return candidates[0]
@@ -209,10 +225,10 @@ export class PeerLibrary implements LibraryInterface {
             return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isEnum(declaration)) {
-            return new EnumConvertor(param, declaration, isStringEnum(declaration))
+            return new EnumConvertor(param, declaration)
         }
         if (idl.isEnumMember(declaration)) {
-            return new EnumConvertor(param, declaration.parent, isStringEnum(declaration.parent))
+            return new EnumConvertor(param, declaration.parent)
         }
         if (idl.isCallback(declaration)) {
             return new CallbackConvertor(this, param, declaration)

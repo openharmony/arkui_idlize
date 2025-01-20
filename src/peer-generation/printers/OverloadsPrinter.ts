@@ -17,20 +17,20 @@ import * as idl from '@idlize/core/idl'
 import {
     ExpressionStatement,
     LanguageExpression,
-    LanguageWriter,
     Method,
     MethodModifier,
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { PeerClassBase } from "../PeerClass";
 import { isDefined, Language, throwException, typeOrUnion } from '@idlize/core'
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
-import { ArgConvertor, UndefinedConvertor } from '../ArgConvertors';
-import { ReferenceResolver } from "../ReferenceResolver";
-import { UnionRuntimeTypeChecker } from "../unions";
+import { ArgConvertor, UndefinedConvertor } from "@idlize/core"
+import { ReferenceResolver } from "@idlize/core"
+import { UnionRuntimeTypeChecker } from "@idlize/core";
 import { zipMany } from '../../utils';
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
@@ -155,11 +155,11 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod
                         it.filter(it => it !== undefined)
                             .map(it => it as idl.IDLParameter /* rollup problems */)
                             .map(it => it.type)
-                        ), 
+                        ),
                         isOptional
                     ),
                 isOptional,
-                false                               
+                false
             )
         })
 
@@ -167,7 +167,7 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod
             methods,
             parameters,
             name: methods[0]?.name ?? throwException('No method to collapse'),
-            returnType: methods[0]?.returnType ?? throwException('No method to collapse')            
+            returnType: methods[0]?.returnType ?? throwException('No method to collapse')
         }
 }
 

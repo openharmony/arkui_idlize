@@ -17,14 +17,27 @@ import * as idl from '@idlize/core/idl'
 import { posix as path } from "path"
 import { DeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
-import { capitalize, isDefined, throwException, Language, CustomPrintVisitor, addSyntheticType, resolveSyntheticType, isImport, isStringEnum } from '@idlize/core'
-import { PrimitiveType } from "../../peer-generation/ArkPrimitiveType";
+import {
+    capitalize,
+    isDefined,
+    throwException,
+    Language,
+    CustomPrintVisitor,
+    addSyntheticType,
+    resolveSyntheticType,
+    isImport,
+    CustomTypeConvertor,
+    generatorConfiguration
+} from '@idlize/core'
+import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
-import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature } from "../../peer-generation/LanguageWriters";
-import { ArgConvertor, BaseArgConvertor, BooleanConvertor, ClassConvertor, CustomTypeConvertor, EnumConvertor, ExpressionAssigneer, InterfaceConvertor, NumberConvertor, RuntimeType, StringConvertor, TypeAliasConvertor, UndefinedConvertor, UnionConvertor } from "../../peer-generation/ArgConvertors";
+import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlize/core";
+import { ClassConvertor, TypeAliasConvertor, InterfaceConvertor } from "../../peer-generation/ArgConvertors";
+import { StringConvertor, UnionConvertor } from "@idlize/core";
+import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlize/core";
 import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlize/core";
-import { LibraryFileInterface, LibraryInterface } from "../../LibraryInterface";
+import { LibraryFileInterface, LibraryInterface } from "@idlize/core";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
@@ -179,11 +192,11 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         const declarationName = declaration.name!
 
         if (idl.isEnum(declaration)) {
-            return new EnumConvertor(param, declaration, isStringEnum(declaration))
+            return new EnumConvertor(param, declaration)
         }
 
         if (idl.isEnumMember(declaration)) {
-            return new EnumConvertor(param, declaration.parent, isStringEnum(declaration.parent))
+            return new EnumConvertor(param, declaration.parent)
         }
 
         if (idl.isInterface(declaration)) {
@@ -259,8 +272,8 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeWrapper", [value])
     }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
-        const prefix = writer.language === Language.CPP ? PrimitiveType.Prefix : ""
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        const prefix = writer.language === Language.CPP ? generatorConfiguration().param("TypePrefix") : ""
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `readWrapper`, []),
             idl.createReferenceType(`${prefix}${this.type.name}`)
@@ -567,8 +580,8 @@ export class IdlWrapperProcessor {
 function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isPrimitiveType(type)) {
         switch (type) {
-            case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
-            case idl.IDLNumberType: return PrimitiveType.Int32.getText()
+            case idl.IDLBooleanType: return ArkPrimitiveTypesInstance.Boolean.getText()
+            case idl.IDLNumberType: return ArkPrimitiveTypesInstance.Int32.getText()
             case idl.IDLStringType:
             case idl.IDLAnyType:
                 /* HACK, fix */
@@ -580,20 +593,20 @@ function mapCInteropRetType(type: idl.IDLType): string {
         }
     }
     if (idl.isReferenceType(type)) {
-        return PrimitiveType.NativePointer.getText()
+        return ArkPrimitiveTypesInstance.NativePointer.getText()
     }
     if (idl.isTypeParameterType(type))
         /* ANOTHER HACK, fix */
         return "void"
     if (idl.isUnionType(type))
-        return PrimitiveType.NativePointer.getText()
+        return ArkPrimitiveTypesInstance.NativePointer.getText()
     if (idl.isContainerType(type)) {
         if (idl.IDLContainerUtils.isSequence(type)) {
             /* HACK, fix */
             // return array by some way
             return "void"
         } else
-            return PrimitiveType.NativePointer.getText()
+            return ArkPrimitiveTypesInstance.NativePointer.getText()
     }
     throw new Error(`mapCInteropType failed for ${idl.IDLKind[type.kind]}`)
 }

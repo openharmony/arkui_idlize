@@ -1,5 +1,5 @@
 import * as idl from "@idlize/core/idl"
-import { LibraryInterface } from "../LibraryInterface"
+import { LibraryInterface } from "@idlize/core"
 import { isDefined } from "@idlize/core"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 

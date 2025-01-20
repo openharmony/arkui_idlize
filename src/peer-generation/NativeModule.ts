@@ -1,6 +1,7 @@
 // Seems like we need to have some Facade to define different names for different libraries
-export class NativeModuleType {
-    protected constructor(public name: string) {}
+import { NativeModuleType } from "@idlize/core"
+
+export class NativeModule {
     static Interop = new NativeModuleType("InteropNativeModule")
     static ArkUI = new NativeModuleType("ArkUINativeModule")
     static Generated = new NativeModuleType("ArkUIGeneratedNativeModule")

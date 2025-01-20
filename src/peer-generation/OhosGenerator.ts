@@ -18,24 +18,27 @@ import * as path from 'path'
 import * as idl from '@idlize/core/idl'
 
 import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
-import { IndentedPrinter, Language, capitalize, qualifiedName } from '@idlize/core'
-import { ArgConvertor, generateCallbackAPIArguments } from './ArgConvertors'
+import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration } from '@idlize/core'
+import { ArgConvertor } from '@idlize/core'
+import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
-import { PrimitiveType } from './ArkPrimitiveType'
+import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
 import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
-import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
+import { LanguageWriter, LanguageStatement } from '@idlize/core'
 import { PeerLibrary } from './PeerLibrary'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
 import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
 import { CppSourceFile } from './printers/SourceFile'
 import { StructPrinter } from './printers/StructPrinter'
-import { NativeModuleType } from './NativeModuleType'
+import { NativeModule } from './NativeModule'
 import { collapseSameMethodsIDL, groupOverloads, groupOverloadsIDL, OverloadsPrinter } from './printers/OverloadsPrinter'
 import { MaterializedClass, MaterializedMethod } from './Materialized'
 import { PeerMethod } from './PeerMethod'
 import { writePeerMethod } from './printers/PeersPrinter'
+import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors";
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -50,8 +53,8 @@ interface SignatureDescriptor {
 class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
-    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
-    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
+    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
+    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
 
     peerWriter: LanguageWriter
     nativeWriter: LanguageWriter
@@ -94,10 +97,10 @@ class OHOSVisitor {
                     ? `Opt_${this.mapType(type.type)}`
                     : idl.forceAsNamedNode(type).name
         if (OHOSVisitor.knownBasicTypes.has(typeName))
-            return `${PrimitiveType.Prefix}${typeName}`
+            return `${generatorConfiguration().param("TypePrefix")}${typeName}`
 
         if (isReferenceType(type) || isEnum(type)) {
-            return `${PrimitiveType.Prefix}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
+            return `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
         }
         return this.hWriter.getNodeName(type)
     }
@@ -109,12 +112,12 @@ class OHOSVisitor {
 
     private writeCallback(callback: IDLCallback) {
         // TODO commonize with StructPrinter.ts
-        const callbackTypeName = `${PrimitiveType.Prefix}${this.libraryName}_${callback.name}`;
+        const callbackTypeName = `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${callback.name}`;
         const args = generateCallbackAPIArguments(this.library, callback)
         let _ = this.hWriter
         _.print(`typedef struct ${callbackTypeName} {`)
         _.pushIndent()
-        _.print(`${PrimitiveType.Prefix}CallbackResource resource;`)
+        _.print(`${generatorConfiguration().param("TypePrefix")}CallbackResource resource;`)
         _.print(`void (*call)(${args.join(', ')});`)
         _.popIndent()
         _.print(`} ${callbackTypeName};`)
@@ -196,12 +199,12 @@ class OHOSVisitor {
 
     private modifierName(clazz: IDLInterface): string {
         if (hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)) {
-            return `${PrimitiveType.Prefix}${this.libraryName}_Modifier`
+            return `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_Modifier`
         }
-        return `${PrimitiveType.Prefix}${this.libraryName}_${clazz.name}Modifier`
+        return `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${clazz.name}Modifier`
     }
     private handleType(name: string): string {
-        return `${PrimitiveType.Prefix}${this.libraryName}_${name}Handle`
+        return `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${name}Handle`
     }
 
     private writeImpls() {
@@ -230,9 +233,9 @@ class OHOSVisitor {
         // Create API.
         let api = this.libraryName
         let _c = writer
-        _c.print(`const ${PrimitiveType.Prefix}${api}_API* Get${api}APIImpl(int version) {`)
+        _c.print(`const ${generatorConfiguration().param("TypePrefix")}${api}_API* Get${api}APIImpl(int version) {`)
         _c.pushIndent()
-        _c.print(`const static ${PrimitiveType.Prefix}${api}_API api = {`)
+        _c.print(`const static ${generatorConfiguration().param("TypePrefix")}${api}_API api = {`)
         _c.pushIndent()
         _c.print(`1, // version`)
         this.interfaces.forEach(it => {
@@ -244,11 +247,11 @@ class OHOSVisitor {
         _c.print(`return &api;`)
         _c.popIndent()
         _c.print(`}`)
-        let name = `${PrimitiveType.Prefix}${api}_API`
+        let name = `${generatorConfiguration().param("TypePrefix")}${api}_API`
         let _h = this.hWriter
         _h.print(`typedef struct ${name} {`)
         _h.pushIndent()
-        _h.print(`${PrimitiveType.Prefix}Int32 version;`)
+        _h.print(`${generatorConfiguration().param("TypePrefix")}Int32 version;`)
         this.interfaces.forEach(it => {
             _h.print(`const ${this.modifierName(it)}* (*${this.apiName(it)})();`)
         })
@@ -268,7 +271,7 @@ class OHOSVisitor {
 
     private printNative() {
         const className = `${this.libraryName}NativeModule`
-        NativeModuleType.Generated.name = className
+        NativeModule.Generated.name = className
         this.callbacks.forEach(callback => {
             if (this.library.language === Language.TS) {
                 const params = callback.parameters.map(it => `${it.name}:${this.nativeWriter.getNodeName(it.type!)}`).join(', ')
@@ -424,7 +427,6 @@ class OHOSVisitor {
                     let scopes = argConvertors.filter(it => it.isScoped)
                     scopes.forEach(it => {
                         writer.pushIndent()
-                        writer.print(it.scopeStart?.(it.param, writer.language))
                     })
 
                     let serializerPushed = false
@@ -455,7 +457,7 @@ class OHOSVisitor {
                         })
 
                         const createPeerExpression = writer.makeNewObject("Finalizable", [
-                            writer.makeNativeCall(NativeModuleType.Generated, `_${int.name}_ctor`, params),
+                            writer.makeNativeCall(NativeModule.Generated, `_${int.name}_ctor`, params),
                             writer.makeString(`${int.name}.getFinalizer()`)
                         ])
                         writer.writeStatement(
@@ -467,7 +469,6 @@ class OHOSVisitor {
                                 writer.makeMethodCall('thisSerializer', 'release', [])))
                             scopes.reverse().forEach(it => {
                                 writer.popIndent()
-                                writer.print(it.scopeEnd!(it.param, writer.language))
                             })
                         }
                     })
@@ -480,7 +481,7 @@ class OHOSVisitor {
                 const getFinalizerSig = new MethodSignature(IDLPointerType, [])
                 writer.writeMethodImplementation(new Method("getFinalizer", getFinalizerSig, [MethodModifier.STATIC]), writer => {
                     const callExpression = writer.makeNativeCall(
-                        NativeModuleType.Generated,
+                        NativeModule.Generated,
                         `_${int.name}_getFinalizer`, // TODO temporarily removed _${this.libraryName} prefix
                         []
                     );
@@ -556,7 +557,7 @@ class OHOSVisitor {
 
                 materializedMethods.forEach(method => {
                     writePeerMethod(
-                        writer, 
+                        writer,
                         method.getPrivateMethod(),
                         true,
                         { language: this.library.language, imports: undefined, synthesizedTypes: undefined  },
@@ -640,11 +641,11 @@ class OHOSVisitor {
         let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
-        const prefix = PrimitiveType.Prefix + this.library.libraryPrefix
+        const prefix = generatorConfiguration().param("TypePrefix") + this.library.libraryPrefix
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
 
-        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library)
+        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
@@ -750,7 +751,7 @@ class OHOSVisitor {
         fs.writeFileSync(path.join(outDir, this.implementationStubsFile.name),
             this.implementationStubsFile.printToString()
         )
-        
+
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
@@ -812,7 +813,7 @@ function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgCon
 
 // TODO drop this method
 function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
-    let args = isConstructor(method) ? [] : [`${PrimitiveType.NativePointer} thisPtr`]
+    let args = isConstructor(method) ? [] : [`${ArkPrimitiveTypesInstance.NativePointer} thisPtr`]
     for (let i = 0; i < argConvertors.length; ++i) {
         const typeName = writer.getNodeName(argConvertors[i].nativeType())
         const argName = writer.escapeKeyword(argConvertors[i].param)

@@ -16,7 +16,7 @@
 import * as idl from "@idlize/core/idl"
 import { TsIDLNodeToStringConverter } from "./TSConvertors"
 import { createReferenceType, IDLEntry, IDLReferenceType } from "@idlize/core/idl"
-import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
+import { createDeclarationNameConvertor } from "@idlize/core"
 import { convertDeclaration } from "@idlize/core"
 import { Language, stringOrNone } from "@idlize/core"
 

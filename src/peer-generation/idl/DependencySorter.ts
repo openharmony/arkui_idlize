@@ -14,10 +14,10 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { LibraryInterface } from "../../LibraryInterface";
+import { LibraryInterface } from "@idlize/core";
 import { maybeTransformManagedCallback } from "../ArgConvertors";
 import { collectProperties } from "../printers/StructPrinter";
-import { flattenUnionType } from "../unions";
+import { flattenUnionType } from "@idlize/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 
 class SorterDependenciesCollector extends DependenciesCollector {

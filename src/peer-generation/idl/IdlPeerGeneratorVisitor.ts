@@ -28,7 +28,7 @@ import {
     Language,
     isRoot
 } from '@idlize/core'
-import { ArgConvertor } from "../ArgConvertors"
+import { ArgConvertor } from "@idlize/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { PeerClass } from "../PeerClass"
@@ -42,7 +42,7 @@ import { ImportFeature } from "../ImportsCollector";
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
-import { ReferenceResolver } from '../ReferenceResolver'
+import { ReferenceResolver } from "@idlize/core"
 
 /**
  * Theory of operations.

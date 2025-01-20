@@ -13,11 +13,22 @@
  * limitations under the License.
  */
 
-import { IDLType } from '@idlize/core/idl'
-import { IndentedPrinter, Language } from "@idlize/core"
-import { PrimitiveType } from "../../ArkPrimitiveType"
-import { ReferenceResolver } from "../../ReferenceResolver"
-import { ExpressionStatement, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodArgPrintHint, MethodModifier, MethodSignature, ReturnStatement } from "../LanguageWriter"
+import { Language } from "../../Language"
+import { IndentedPrinter } from "../../IndentedPrinter"
+import { PrimitiveTypeList } from "../../peer-generation/PrimitiveType"
+import * as idl from "../../idl"
+import {
+    ExpressionStatement,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
+    Method,
+    PrintHint,
+    MethodModifier,
+    MethodSignature,
+    ReturnStatement
+} from "../LanguageWriter"
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -33,7 +44,7 @@ export class CLikeReturnStatement extends ReturnStatement {
 export class CDefinedExpression implements LanguageExpression {
     constructor(private value: string) { }
     asString(): string {
-        return `${this.value} != ${PrimitiveType.UndefinedTag}`
+        return `${this.value} != ${PrimitiveTypeList.UndefinedTag}`
     }
 }
 
@@ -111,10 +122,10 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
         prefix = prefix ? prefix + " " : ""
         this.print(`${prefix}${this.stringifyMethodReturnType(signature.returnType, signature.retHint())} ${name}(${signature.args.map((it, index) => `${this.stringifyMethodArgType(it, signature.argHint(index))} ${signature.argName(index)}`).join(", ")})${postfix ?? ""}`)
     }
-    protected stringifyMethodReturnType(type:IDLType, _?:MethodArgPrintHint): string {
+    protected stringifyMethodReturnType(type: idl.IDLType, _?:PrintHint): string {
         return this.getNodeName(type)
     }
-    protected stringifyMethodArgType(type:IDLType, _?:MethodArgPrintHint): string {
+    protected stringifyMethodArgType(type: idl.IDLType, _?:PrintHint): string {
         return this.getNodeName(type)
     }
 }

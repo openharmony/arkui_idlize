@@ -16,12 +16,10 @@
 import { tsCopyrightAndWarning } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils"
-import { createLanguageWriter, LanguageStatement, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters"
-import { getInternalClassName, getMaterializedFileName } from "../Materialized"
-import { NativeModuleType } from "../NativeModuleType"
+import { createLanguageWriter } from "../LanguageWriters"
+import { LanguageStatement, LanguageWriter, Method, NamedMethodSignature } from "@idlize/core"
+import { getMaterializedFileName } from "../Materialized"
 import { PeerLibrary } from "../PeerLibrary"
-import { PeerMethod } from "../PeerMethod"
-import { writePeerMethod } from "./PeersPrinter"
 import { TargetFile } from "./TargetFile"
 import * as idl from '@idlize/core'
 

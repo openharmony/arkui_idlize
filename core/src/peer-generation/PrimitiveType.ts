@@ -13,22 +13,33 @@
  * limitations under the License.
  */
 
-import { ReferenceResolver } from '@idlize/core'
-import { PeerLibrary } from "./PeerLibrary";
-export { ReferenceResolver }
+export class PrimitiveType {
+    constructor(protected name: string,
+                protected isPointer: boolean = false) {
+    }
 
-export function createEmptyReferenceResolver(): ReferenceResolver {
-    return {
-        resolveTypeReference() {
-            return undefined
-        },
-        toDeclaration(type) {
-            return type
-        }
+    getText(): string {
+        return this.name
+    }
+
+    toString(): string {
+        return this.getText()
     }
 }
 
-export function getReferenceResolver(library: PeerLibrary): ReferenceResolver {
-    return library
-}
+export abstract class PrimitiveTypeList {
+    public static get UndefinedTag() {
+        return "INTEROP_TAG_UNDEFINED"
+    }
 
+    public static get UndefinedRuntime() {
+        return "INTEROP_RUNTIME_UNDEFINED"
+    }
+
+    public static get ObjectTag() {
+        return "INTEROP_TAG_OBJECT"
+    }
+
+    abstract Undefined: PrimitiveType
+    abstract Void: PrimitiveType
+}

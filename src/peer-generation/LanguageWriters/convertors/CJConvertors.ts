@@ -14,8 +14,8 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping, convertCJOptional } from '../../printers/lang/Cangjie'
-import { ReferenceResolver } from '../../ReferenceResolver'
+import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping } from '../../printers/lang/Cangjie'
+import { ReferenceResolver } from "@idlize/core"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "@idlize/core"
 import { InteropArgConvertor } from './InteropConvertor'
 

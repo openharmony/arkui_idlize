@@ -16,7 +16,17 @@
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
-import { fromIDL, toIDL, generate, defaultCompilerOptions, idlToDtsString, Language, findVersion, GeneratorConfiguration, setDefaultConfiguration } from "@idlize/core"
+import {
+    fromIDL,
+    toIDL,
+    generate,
+    defaultCompilerOptions,
+    idlToDtsString,
+    Language,
+    findVersion,
+    GeneratorConfiguration,
+    setDefaultConfiguration
+} from "@idlize/core"
 import {
     forEachChild,
     IDLEntry,
@@ -40,7 +50,7 @@ import { generateOhos } from "./peer-generation/OhosGenerator"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
-import { PrimitiveType } from "./peer-generation/ArkPrimitiveType"
+import { ArkPrimitiveType } from "./peer-generation/ArkPrimitiveType"
 
 import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
@@ -99,7 +109,16 @@ if (process.env.npm_package_version) {
 let didJob = false
 
 class DefaultConfig implements GeneratorConfiguration {
+    protected params: Record<string, any> = {
+        TypePrefix: "Ark_",
+        LibraryPrefix: "",
+        OptionalPrefix: "Opt_"
+    }
+
     param<T>(name: string): T {
+        if (name in this.params) {
+            return this.params[name] as T;
+        }
         throw new Error(`${name} is unknown`)
     }
     paramArray<T>(name: string): T[] {
@@ -108,6 +127,22 @@ class DefaultConfig implements GeneratorConfiguration {
             case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
         }
         throw new Error(`array ${name} is unknown`)
+    }
+}
+
+class SkoalaConfiguration extends DefaultConfig {
+    protected params: Record<string, any> = {
+        TypePrefix: "",
+        LibraryPrefix: "",
+        OptionalPrefix: "Opt_"
+    }
+}
+
+class OhosConfiguration extends DefaultConfig {
+    protected params: Record<string, any> = {
+        TypePrefix: "OH_",
+        LibraryPrefix: "",
+        OptionalPrefix: "Opt_"
     }
 }
 
@@ -146,7 +181,7 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    PrimitiveType.Prefix = ""
+    setDefaultConfiguration(new SkoalaConfiguration())
 
     const outputDir: string = options.outputDir ?? "./out/skoala"
 
@@ -346,7 +381,7 @@ if (options.dts2peer) {
                 if (options.generatorTarget == "ohos") {
                     // This setup code placed here because wrong prefix may be cached during library creation
                     // TODO find better place for setup?
-                    PrimitiveType.Prefix = "OH_"
+                    setDefaultConfiguration(new OhosConfiguration())
                 }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)

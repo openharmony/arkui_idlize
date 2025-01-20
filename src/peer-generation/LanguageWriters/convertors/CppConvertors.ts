@@ -14,8 +14,8 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { PrimitiveType } from '../../ArkPrimitiveType'
-import { IdlNameConvertor } from "@idlize/core"
+import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
+import { generatorConfiguration, IdlNameConvertor } from "@idlize/core"
 import { ConvertResult, InteropArgConvertor, InteropConverter } from './InteropConvertor'
 
 export class CppIDLNodeToStringConvertor extends InteropConverter implements IdlNameConvertor {
@@ -26,7 +26,7 @@ export class CppIDLNodeToStringConvertor extends InteropConverter implements Idl
         if (result.noPrefix) {
             return result.text
         }
-        return `${PrimitiveType.Prefix}${result.text}`
+        return `${generatorConfiguration().param("TypePrefix")}${result.text}`
     }
 
     convert(node: idl.IDLNode): string {
@@ -39,18 +39,18 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
     static INSTANCE = new CppInteropArgConvertor()
 
     convertOptional(type: idl.IDLOptionalType): string {
-        return PrimitiveType.NativePointer.getText()
+        return ArkPrimitiveTypesInstance.NativePointer.getText()
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLBooleanType: return PrimitiveType.Boolean.getText()
-            case idl.IDLI32Type: return PrimitiveType.Int32.getText()
+            case idl.IDLBooleanType: return ArkPrimitiveTypesInstance.Boolean.getText()
+            case idl.IDLI32Type: return ArkPrimitiveTypesInstance.Int32.getText()
             case idl.IDLNumberType: return "KInteropNumber"
             case idl.IDLBufferType: return "Ark_Buffer"
             case idl.IDLLengthType: return "KLength"
-            case idl.IDLFunctionType: return PrimitiveType.Int32.getText()
-            case idl.IDLDate: return PrimitiveType.Int64.getText()
-            case idl.IDLPointerType: return PrimitiveType.NativePointer.getText()
+            case idl.IDLFunctionType: return ArkPrimitiveTypesInstance.Int32.getText()
+            case idl.IDLDate: return ArkPrimitiveTypesInstance.Int64.getText()
+            case idl.IDLPointerType: return ArkPrimitiveTypesInstance.NativePointer.getText()
         }
         return super.convertPrimitiveType(type)
     }

@@ -14,7 +14,8 @@
  */
 
 import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName } from '@idlize/core'
-import { LanguageWriter, MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
+import { MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "../BuilderClass";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TargetFile } from "./TargetFile";

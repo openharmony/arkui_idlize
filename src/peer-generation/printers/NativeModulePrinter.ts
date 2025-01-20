@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
-import { FunctionCallExpression, LanguageWriter, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
+import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { createConstructPeerMethod } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
@@ -21,9 +22,10 @@ import { PeerMethod } from "../PeerMethod";
 import { Language } from  '@idlize/core'
 import * as idl from  '@idlize/core/idl'
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
-import { NativeModuleType } from "../NativeModuleType";
+import { NativeModule } from "../NativeModule";
+import { NativeModuleType } from "@idlize/core"
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { CJLanguageWriter } from "../LanguageWriters/writers/CJLanguageWriter";
+import { CJLanguageWriter } from "@idlize/core";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library)
@@ -290,7 +292,7 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile) 
         if (file.language === Language.ARKTS) {
             tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
             tsFile.imports.addFeature('NativeModuleLoader', './NativeModuleLoader')
-            if (module === NativeModuleType.Generated)
+            if (module === NativeModule.Generated)
                 tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
         }
     }
@@ -407,11 +409,11 @@ export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, modul
 
 export function collectPredefinedNativeModuleEntries(library: PeerLibrary, module: NativeModuleType): idl.IDLInterface[] {
     switch (module) {
-        case NativeModuleType.Interop:
+        case NativeModule.Interop:
             return library.predefinedDeclarations.filter(it => it.name === "Interop" || it.name === "Loader")
-        case NativeModuleType.Test:
+        case NativeModule.Test:
             return library.predefinedDeclarations.filter(it => it.name === "Test")
-        case NativeModuleType.ArkUI:
+        case NativeModule.ArkUI:
             return library.predefinedDeclarations.filter(it => it.name === "Node")
         default:
             throw new Error(`NativeModuleType.${module} is not predefined`)

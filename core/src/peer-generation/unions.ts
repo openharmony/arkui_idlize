@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
-import { convertType, TypeConvertor } from "@idlize/core";
-import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '@idlize/core/idl'
-import { typeOrUnion } from "@idlize/core"
-import { ReferenceResolver } from "./ReferenceResolver";
-import { ArgConvertor, RuntimeType } from "./ArgConvertors";
-import { LanguageExpression, LanguageWriter } from "./LanguageWriters";
+import { convertType, TypeConvertor } from "../LanguageWriters";
+import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
+import { typeOrUnion } from "./idl/common"
+import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
+import { ArgConvertor } from "../LanguageWriters/ArgConvertors";
+import { RuntimeType } from "../LanguageWriters/common";
 import { LibraryInterface } from "../LibraryInterface";
+import { ReferenceResolver } from "./ReferenceResolver";
 
 export class UnionFlattener implements TypeConvertor<IDLType[]> {
     constructor(private resolver: ReferenceResolver) {}

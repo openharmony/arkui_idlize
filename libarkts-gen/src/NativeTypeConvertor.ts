@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-// import { TypeConvertor } from "../../src/peer-generation/LanguageWriters/nameConvertor"
 import {
     IDLBooleanType,
     IDLContainerType,

@@ -20,12 +20,12 @@ import {
     createLanguageWriter,
     createTypeNameConvertor,
     FieldModifier,
-    LanguageWriter,
     Method,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
 } from '../LanguageWriters'
+import { LanguageWriter } from "@idlize/core"
 import {
     indentedBy,
     isDefined,
@@ -45,9 +45,8 @@ import { convertDeclaration, DeclarationConvertor } from "@idlize/core";
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'
 import { printJavaImports } from './lang/JavaPrinters'
 import { collectJavaImports } from './lang/JavaIdlUtils'
-import { ETSLanguageWriter } from '../LanguageWriters/writers/ETSLanguageWriter'
 import { collectProperties } from './StructPrinter'
-import { escapeKeyword, IDLType } from '@idlize/core/idl'
+import { escapeIDLKeyword, IDLType } from '@idlize/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
@@ -484,7 +483,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
 }
 
 export class ArkTSDeclConvertor extends TSDeclConvertor {
-    private typeNameConvertor = new ETSLanguageWriter(new IndentedPrinter(), this.peerLibrary)
+    private typeNameConvertor = createLanguageWriter(Language.ARKTS, this.peerLibrary)
     private seenInterfaceNames = new Set<string>()
 
     convertTypedef(node: idl.IDLTypedef) {
@@ -645,7 +644,7 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
         isOptional: boolean = false): string {
         const type = idl.type ? this.convertType(idl.type) : ""
         const optional = isOptional ? "optional " : ""
-        return `${escapeKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
+        return `${escapeIDLKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
     }
 
     private printTypeParameters(typeParameters: string[] | undefined): string {

@@ -21,19 +21,12 @@ import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
-    snakeCaseToCamelCase, IDLKeywords, GenericVisitor,
+    snakeCaseToCamelCase, escapeIDLKeyword, GenericVisitor,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, typeOrUnion, isCommonMethodOrSubclass
 } from "@idlize/core"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
-import { ReferenceResolver } from "./peer-generation/ReferenceResolver"
+import { ReferenceResolver } from "@idlize/core"
 import { IDLVisitorConfig } from "./IDLVisitorConfig"
-
-function escapeIdl(name: string): string {
-    if (IDLKeywords.has(name))
-        return `${name}_`
-    else
-        return name
-}
 
 const MaxSyntheticTypeLength = 60
 
@@ -426,7 +419,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 throw new Error(`Unsupported heritage: ${it.expression.getText()}: ${it.expression.kind}`)
             }
             name = mangleConflictingName(name, heritage.getSourceFile())
-            return idl.createReferenceType(escapeIdl(name), this.mapTypeArgs(it.typeArguments, name))
+            return idl.createReferenceType(escapeIDLKeyword(name), this.mapTypeArgs(it.typeArguments, name))
         })
     }
 
@@ -1219,7 +1212,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             this.addSyntheticType(syntheticEntry)
         }
         return idl.createParameter(
-            escapeIdl(parameterName),
+            escapeIDLKeyword(parameterName),
             type ?? this.serializeType(parameter.type, nameSuggestion),
             !!parameter.questionToken,
             !!parameter.dotDotDotToken,
@@ -1438,7 +1431,7 @@ function sanitize(type: stringOrNone): stringOrNone {
 function escapeName(name: string): [string, string] {
     if (name.startsWith("$")) return [name, name.replace("$", "dollar_")]
     if (name.startsWith("_")) return [name, name.replace("_", "bottom_")]
-    return [name, escapeIdl(name)]
+    return [name, escapeIDLKeyword(name)]
 }
 
 function escapeAmbientModuleContent(sourceFile: ts.SourceFile, node: ts.Node): string {

@@ -15,7 +15,7 @@
 
 import { convertNode, IdlNameConvertor, NodeConvertor } from '@idlize/core'
 import * as idl from '@idlize/core/idl'
-import { ReferenceResolver } from '../../ReferenceResolver'
+import { ReferenceResolver } from "@idlize/core"
 import { stringOrNone } from '@idlize/core'
 
 export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {

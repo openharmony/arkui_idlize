@@ -14,10 +14,11 @@
  */
 
 import { capitalize, dropSuffix, isDefined, Language } from '@idlize/core'
-import { ArgConvertor } from "../ArgConvertors";
-import { PrimitiveType } from "../ArkPrimitiveType"
+import { ArgConvertor } from "@idlize/core";
+import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createInteropArgConvertor, createLanguageWriter, createTypeNameConvertor, ExpressionStatement, LanguageWriter } from "../LanguageWriters";
+import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlize/core/idl'
@@ -140,7 +141,7 @@ class BridgeCcVisitor {
 
         this.generatedApi.print(`_logData.append("  ${api}->${modifier}->${this.getPeerMethodName(method)}(");`)
         if (method.hasReceiver()) {
-            this.generatedApi.print(`_logData.append("(${PrimitiveType.NativePointer})");`)
+            this.generatedApi.print(`_logData.append("(${ArkPrimitiveTypesInstance.NativePointer})");`)
             this.generatedApi.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
             if (method.argAndOutConvertors.length > 0)
                 this.generatedApi.print(`_logData.append(", ");`)
@@ -181,7 +182,7 @@ class BridgeCcVisitor {
 
     private generateCParameters(method: PeerMethod): [string, string][] {
         const maybeReceiver: [string, string][] = method.hasReceiver()
-            ? [[PrimitiveType.NativePointer.getText(), "thisPtr"]] : []
+            ? [[ArkPrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []
         let ptrCreated = false;
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
@@ -314,7 +315,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
             const modifier = this.generateApiCall(method, modifierName)
             const peerMethod = this.getPeerMethodName(method)
             const apiCall = this.getApiCall(method)
-            const call = `return (${PrimitiveType.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
+            const call = `return (${ArkPrimitiveTypesInstance.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
             this.generatedApi.print(call)
         } else {
             super.printAPICall(method, modifierName)

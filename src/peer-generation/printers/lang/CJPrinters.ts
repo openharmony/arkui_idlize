@@ -18,8 +18,8 @@ import { MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { PeerLibrary } from "../../PeerLibrary"
 import {
     createLanguageWriter,
-    LanguageWriter,
 } from "../../LanguageWriters"
+import { LanguageWriter } from "@idlize/core"
 import { getReferenceResolver } from "../../ReferenceResolver"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"

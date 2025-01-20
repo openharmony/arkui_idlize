@@ -13,34 +13,26 @@
  * limitations under the License.
  */
 
-export class PrimitiveType {
-    constructor(protected name: string, public isPointer = false) { }
-    getText(): string { return PrimitiveType.Prefix + this.name }
-    toString(): string { return this.getText() }
+import { generatorConfiguration, PrimitiveType, PrimitiveTypeList } from "@idlize/core"
 
-    static Prefix = "Ark_"
-    static LibraryPrefix = ""
-    static OptionalPrefix = "Opt_"
-    
-    static get UndefinedTag() { return "INTEROP_TAG_UNDEFINED" }
-    static get UndefinedRuntime() { return "INTEROP_RUNTIME_UNDEFINED" }
-    static get ObjectTag() { return "INTEROP_TAG_OBJECT" }
-
-    static String = new PrimitiveType(`String`, true)
-    static Number = new PrimitiveType(`Number`, true)
-    static Int32 = new PrimitiveType(`Int32`)
-    static Int64 = new PrimitiveType(`Int64`)
-    static Date = new PrimitiveType(`Date`) 
-    static RuntimeType = new PrimitiveType(`RuntimeType`)
-    static Boolean = new PrimitiveType(`Boolean`)
-    static Function = new PrimitiveType(`Function`, false)
-    static Undefined = new PrimitiveType(`Undefined`)
-    static Void = new PrimitiveType(`Void`)
-    static NativePointer = new PrimitiveType(`NativePointer`)
-
-    static Tag = new PrimitiveType(`Tag`)
-    static Materialized = new PrimitiveType(`Materialized`, true)
-    static ObjectHandle = new PrimitiveType(`ObjectHandle`)
-    static Length = new PrimitiveType(`Length`, true)
-    static CustomObject = new PrimitiveType(`CustomObject`, true)
+export class ArkPrimitiveTypeList extends PrimitiveTypeList {
+    readonly Int32 = new ArkPrimitiveType(`Int32`)
+    readonly Int64 = new ArkPrimitiveType(`Int64`)
+    readonly Boolean = new ArkPrimitiveType(`Boolean`)
+    readonly Function = new ArkPrimitiveType(`Function`, false)
+    readonly Undefined = new ArkPrimitiveType(`Undefined`)
+    readonly Void = new ArkPrimitiveType(`Void`)
+    readonly NativePointer = new ArkPrimitiveType(`NativePointer`)
+    readonly Tag = new ArkPrimitiveType(`Tag`)
+    readonly Materialized = new ArkPrimitiveType(`Materialized`, true)
+    readonly Length = new ArkPrimitiveType(`Length`, true)
+    readonly CustomObject = new ArkPrimitiveType(`CustomObject`, true)
 }
+
+export class ArkPrimitiveType extends PrimitiveType {
+    getText(): string {
+        return generatorConfiguration().param("TypePrefix") + this.name
+    }
+}
+
+export const ArkPrimitiveTypesInstance = new ArkPrimitiveTypeList()

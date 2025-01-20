@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { ArgConvertor } from "./ArgConvertors"
+import { ArgConvertor } from "@idlize/core"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from '@idlize/core'
 import { ImportsCollector } from "./ImportsCollector"
@@ -22,7 +22,7 @@ import { createReferenceType, IDLType, IDLVoidType } from '@idlize/core/idl'
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"
-import { copyMethod } from './LanguageWriters/LanguageWriter'
+import { copyMethod } from '@idlize/core'
 
 export class MaterializedField {
     constructor(

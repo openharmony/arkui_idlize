@@ -13,14 +13,15 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlize/core/idl"
-import { IndentedPrinter, Language } from "@idlize/core"
-import { stringOrNone } from "@idlize/core"
-import {ArgConvertor, BaseArgConvertor, RuntimeType} from "../ArgConvertors"
+import { Language } from "../Language"
+import { IndentedPrinter } from "../IndentedPrinter"
+
+import * as idl from "../idl"
+import { stringOrNone } from "../util";
 import * as fs from "fs"
-import { EnumConvertor } from "../ArgConvertors"
-import { ReferenceResolver } from "../ReferenceResolver"
-import { NativeModuleType } from "../NativeModuleType"
+import { NativeModuleType, RuntimeType } from "./common"
+import { ArgConvertor } from "./ArgConvertors";
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -32,8 +33,8 @@ export interface LanguageExpression {
 
 export class TernaryExpression implements LanguageExpression {
     constructor(public condition: LanguageExpression,
-        public trueExpression: LanguageExpression,
-        public falseExpression: LanguageExpression) {}
+                public trueExpression: LanguageExpression,
+                public falseExpression: LanguageExpression) {}
     asString(): string {
         return `(${this.condition.asString()}) ? (${this.trueExpression.asString()}) : (${this.falseExpression.asString()})`
     }
@@ -171,10 +172,10 @@ export class BlockStatement implements LanguageStatement {
 
 export class IfStatement implements LanguageStatement {
     constructor(public condition: LanguageExpression,
-        public thenStatement: LanguageStatement,
-        public elseStatement: LanguageStatement | undefined,
-        public insideIfOp: (() => void) | undefined,
-        public insideElseOp: (() => void) | undefined
+                public thenStatement: LanguageStatement,
+                public elseStatement: LanguageStatement | undefined,
+                public insideIfOp: (() => void) | undefined,
+                public insideElseOp: (() => void) | undefined
     ) { }
     write(writer: LanguageWriter): void {
         writer.print(`if (${this.condition.asString()})`)
@@ -278,7 +279,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         else
             return `${value}`
     }
- }
+}
 
 export class ReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -357,18 +358,18 @@ export class Method {
     ) {}
 }
 
-export class MethodArgPrintHint {
+export class PrintHint {
     private constructor(
         public hint: string
     ) {}
 
-    static AsPointer = new MethodArgPrintHint('AsPointer')
-    static AsConstPointer = new MethodArgPrintHint('AsConstPointer')
-    static AsValue = new MethodArgPrintHint('AsValue')
-    static AsConstReference = new MethodArgPrintHint('AsConstReference')
+    static AsPointer = new PrintHint('AsPointer')
+    static AsConstPointer = new PrintHint('AsConstPointer')
+    static AsValue = new PrintHint('AsValue')
+    static AsConstReference = new PrintHint('AsConstReference')
 }
 
-type MethodArgPrintHintOrNone = MethodArgPrintHint | undefined
+type MethodArgPrintHintOrNone = PrintHint | undefined
 
 export class MethodSignature {
     constructor(
@@ -384,10 +385,10 @@ export class MethodSignature {
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]
     }
-    retHint(): MethodArgPrintHint | undefined {
+    retHint(): PrintHint | undefined {
         return this.printHints?.[0]
     }
-    argHint(index: number): MethodArgPrintHint | undefined {
+    argHint(index: number): PrintHint | undefined {
         return this.printHints?.[index + 1]
     }
 
@@ -479,7 +480,7 @@ export abstract class LanguageWriter {
     abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
-    abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: EnumConvertor | undefined): string
+    abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: ArgConvertor | undefined): string
     abstract getNodeName(type: idl.IDLNode): string
     abstract fork(options?: { resolver?: ReferenceResolver }): LanguageWriter
 
@@ -511,13 +512,8 @@ export abstract class LanguageWriter {
     writeExpressionStatement(smth: LanguageExpression) {
         this.writeStatement(new ExpressionStatement(smth))
     }
-    makeTag(tag: string): string {
-        return "Tag." + tag
-    }
-    makeRef(type: idl.IDLType | string, _options?:MakeRefOptions): idl.IDLType {
-        if (typeof type === 'string') {
-            return idl.createReferenceType(type)
-        }
+
+    makeRef(type: idl.IDLType, _options?: MakeRefOptions): idl.IDLType {
         return type
     }
     makeThis(): LanguageExpression {
@@ -627,7 +623,7 @@ export abstract class LanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
+    writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
         this.writeMethodDeclaration(name, signature)
     }
     writeUnsafeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
@@ -670,8 +666,14 @@ export abstract class LanguageWriter {
     mapMethodModifier(modifier: MethodModifier): string {
         return `${MethodModifier[modifier].toLowerCase()}`
     }
+    /**
+     * TODO: replace me with {@link makeUnsafeCast_}
+     */
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
         return `unsafeCast<int32>(${param})`
+    }
+    makeUnsafeCast_(value: LanguageExpression, type: idl.IDLType, typeOptions?: PrintHint) {
+        return `(${value.asString()} as ${this.getNodeName(type)})`
     }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         this.writeStatement(this.makeAssign(valueType, idl.IDLI32Type,
@@ -721,7 +723,7 @@ export abstract class LanguageWriter {
             ...exprs
         ])
     }
-    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression | undefined {
+    makeDiscriminatorConvertor(_convertor: ArgConvertor, _value: string, _index: number): LanguageExpression | undefined {
         return undefined
     }
     makeNot(expr: LanguageExpression): LanguageExpression {
@@ -738,7 +740,7 @@ export abstract class LanguageWriter {
     makeCallIsArrayBuffer(value: string): LanguageExpression {
         return this.makeString(`${value} instanceof ArrayBuffer`)
     }
-    instanceOf(convertor: BaseArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
+    instanceOf(convertor: ArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)
     }
 
@@ -782,14 +784,14 @@ export abstract class LanguageWriter {
                     expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER),
                     stmt: this.makeReturn(this.makeString(`${deserializer}.readFloat32() as number`))
                 },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
-                    stmt: this.makeReturn(this.makeMethodCall(deserializer, "readString", []))
-                },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
-                    stmt: this.makeReturn(this.makeString(`({id: ${deserializer}.readInt32(), bundleName: "", moduleName: ""}) as Resource`))
-                }],
+                    {
+                        expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
+                        stmt: this.makeReturn(this.makeMethodCall(deserializer, "readString", []))
+                    },
+                    {
+                        expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
+                        stmt: this.makeReturn(this.makeString(`({id: ${deserializer}.readInt32(), bundleName: "", moduleName: ""}) as Resource`))
+                    }],
                 this.makeReturn(this.makeUndefined())
             ),
         ], false)
@@ -868,3 +870,5 @@ export type MakeAssignOptions = {
 }
 
 /////////////////////////////////////////////////////////////////////////////////
+
+export type ExpressionAssigner = (expression: LanguageExpression) => LanguageStatement

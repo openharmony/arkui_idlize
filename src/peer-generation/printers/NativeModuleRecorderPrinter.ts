@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { createInteropArgConvertor, createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { createInteropArgConvertor, createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";

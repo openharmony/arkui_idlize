@@ -60,9 +60,10 @@ import { Language, IndentedPrinter } from '@idlize/core'
 import { PeerLibrary } from "./PeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations, printEnumsImpl } from "./printers/DeclarationPrinter"
-import { createLanguageWriter, LanguageWriter } from "./LanguageWriters"
+import { createLanguageWriter } from "./LanguageWriters"
+import { LanguageWriter } from "@idlize/core"
 import { printManagedCaller } from "./printers/CallbacksPrinter"
-import { NativeModuleType } from "./NativeModuleType"
+import { NativeModule } from "./NativeModule"
 import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
 import { makeGetFunctionRuntimeType } from "./printers/lang/CJIdlUtils"
 import { printGlobal } from "./printers/GlobalScopePrinter"
@@ -275,31 +276,31 @@ export function generateArkoalaFromIdl(config: {
         index.printTo(path.join(arkoala.indexDir(), "index-full.d.ts"))
     }
     if (peerLibrary.language == Language.TS) {
-        const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI)
+        const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
         writeIntegratedFile(
-            arkoala.tsArkoalaLib(new TargetFile(NativeModuleType.ArkUI.name)),
+            arkoala.tsArkoalaLib(new TargetFile(NativeModule.ArkUI.name)),
             arkuiNativeModuleFile.printToString(),
         )
         writeIntegratedFile(
-            arkoala.tsArkoalaLib(new TargetFile(`${NativeModuleType.ArkUI.name}Empty`)),
-            printTSPredefinedEmptyNativeModule(peerLibrary, NativeModuleType.ArkUI).printToString(),
+            arkoala.tsArkoalaLib(new TargetFile(`${NativeModule.ArkUI.name}Empty`)),
+            printTSPredefinedEmptyNativeModule(peerLibrary, NativeModule.ArkUI).printToString(),
         )
         writeIntegratedFile(
-            arkoala.tsArkoalaLib(new TargetFile(NativeModuleType.Test.name)),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).printToString(),
+            arkoala.tsArkoalaLib(new TargetFile(NativeModule.Test.name)),
+            printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
         writeIntegratedFile(
-            arkoala.tsArkoalaLib(new TargetFile(`${NativeModuleType.Test.name}Empty`)),
-            printTSPredefinedEmptyNativeModule(peerLibrary, NativeModuleType.Test).printToString(),
+            arkoala.tsArkoalaLib(new TargetFile(`${NativeModule.Test.name}Empty`)),
+            printTSPredefinedEmptyNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
         writeIntegratedFile(
-            arkoala.tsLib(new TargetFile(NativeModuleType.Generated.name)),
-            printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).printToString()
+            arkoala.tsLib(new TargetFile(NativeModule.Generated.name)),
+            printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
         writeIntegratedFile(
-            arkoala.tsLib(new TargetFile(`${NativeModuleType.Generated.name}Empty`)),
-            printTSArkUIGeneratedEmptyNativeModule(peerLibrary, NativeModuleType.Generated).printToString()
+            arkoala.tsLib(new TargetFile(`${NativeModule.Generated.name}Empty`)),
+            printTSArkUIGeneratedEmptyNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
         // TODO restore me
         // writeFile(
@@ -363,23 +364,23 @@ export function generateArkoalaFromIdl(config: {
             }
         )
     } else if (peerLibrary.language === Language.ARKTS) {
-        const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI)
+        const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
         writeIntegratedFile(
-            arkoala.arktsLib(new TargetFile(NativeModuleType.ArkUI.name, 'arkts')),
+            arkoala.arktsLib(new TargetFile(NativeModule.ArkUI.name, 'arkts')),
             arkuiNativeModuleFile.printToString(),
         )
         writeIntegratedFile(
-            arkoala.arktsLib(new TargetFile(NativeModuleType.Test.name, 'arkts')),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).printToString(),
+            arkoala.arktsLib(new TargetFile(NativeModule.Test.name, 'arkts')),
+            printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
         // writeIntegratedFile(
         //     arkoala.arktsLib(new TargetFile(NativeModuleType.Interop.name, 'arkts')),
         //     printPredefinedNativeModule(peerLibrary, NativeModuleType.Interop).printToString(),
         // )
         writeIntegratedFile(
-            arkoala.arktsLib(new TargetFile(NativeModuleType.Generated.name, 'arkts')),
-            printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).printToString()
+            arkoala.arktsLib(new TargetFile(NativeModule.Generated.name, 'arkts')),
+            printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
         writeFile(
             arkoala.peer(new TargetFile('ArkUINodeType')),
@@ -457,16 +458,16 @@ export function generateArkoalaFromIdl(config: {
         )
     } else if (peerLibrary.language == Language.JAVA) {
         writeIntegratedFile(
-            arkoala.javaLib(new TargetFile(NativeModuleType.ArkUI.name, ARKOALA_PACKAGE_PATH)),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI).printToString(),
+            arkoala.javaLib(new TargetFile(NativeModule.ArkUI.name, ARKOALA_PACKAGE_PATH)),
+            printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).printToString(),
         )
         writeIntegratedFile(
-            arkoala.javaLib(new TargetFile(NativeModuleType.Test.name, ARKOALA_PACKAGE_PATH)),
-            printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).printToString(),
+            arkoala.javaLib(new TargetFile(NativeModule.Test.name, ARKOALA_PACKAGE_PATH)),
+            printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
         )
         writeIntegratedFile(
-            arkoala.javaLib(new TargetFile(NativeModuleType.Generated.name, ARKOALA_PACKAGE_PATH)),
-            printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).printToString()
+            arkoala.javaLib(new TargetFile(NativeModule.Generated.name, ARKOALA_PACKAGE_PATH)),
+            printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
 
         const nodeTypes = makeJavaNodeTypes(peerLibrary)
@@ -481,27 +482,27 @@ export function generateArkoalaFromIdl(config: {
 
     if (peerLibrary.language == Language.CJ) {
         writeIntegratedFile( 
-            arkoala.cjLib(new TargetFile(NativeModuleType.ArkUI.name)),
-            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.ArkUI).printToString().concat(
-                printPredefinedNativeModule(peerLibrary, NativeModuleType.ArkUI).content.getOutput().join('\n')
+            arkoala.cjLib(new TargetFile(NativeModule.ArkUI.name)),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModule.ArkUI).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).content.getOutput().join('\n')
             )
         )
         writeIntegratedFile(
-            arkoala.cjLib(new TargetFile(NativeModuleType.Test.name)),
-            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.Test).printToString().concat(
-                printPredefinedNativeModule(peerLibrary, NativeModuleType.Test).content.getOutput().join('\n')
+            arkoala.cjLib(new TargetFile(NativeModule.Test.name)),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Test).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModule.Test).content.getOutput().join('\n')
             )
         )
         writeIntegratedFile(
-            arkoala.cjLib(new TargetFile(NativeModuleType.Generated.name)),
-            printCJArkUIGeneratedNativeFunctions(peerLibrary, NativeModuleType.Generated).printToString().concat(
-                printArkUIGeneratedNativeModule(peerLibrary, NativeModuleType.Generated).content.getOutput().join('\n')
+            arkoala.cjLib(new TargetFile(NativeModule.Generated.name)),
+            printCJArkUIGeneratedNativeFunctions(peerLibrary, NativeModule.Generated).printToString().concat(
+                printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).content.getOutput().join('\n')
             )
         )
         writeIntegratedFile(
-            arkoala.cjLib(new TargetFile(NativeModuleType.Interop.name)),
-            printCJPredefinedNativeFunctions(peerLibrary, NativeModuleType.Interop).printToString().concat(
-                printPredefinedNativeModule(peerLibrary, NativeModuleType.Interop).content.getOutput().join('\n')
+            arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
+            printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
+                printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
             )
         )
         writeIntegratedFile( 

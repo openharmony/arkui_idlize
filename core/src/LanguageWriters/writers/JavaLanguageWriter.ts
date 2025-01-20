@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, Language } from '@idlize/core'
+import { Language } from '../../Language'
+import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
     CheckOptionalStatement,
@@ -35,11 +36,11 @@ import {
     CLikeLoopStatement,
     CLikeReturnStatement
 } from "./CLikeLanguageWriter"
-import * as idl from '@idlize/core/idl'
-import { ArgConvertor, BaseArgConvertor, EnumConvertor, RuntimeType } from "../../ArgConvertors"
-import { ReferenceResolver } from "../../ReferenceResolver"
-import { IdlNameConvertor } from "@idlize/core"
-import { JavaIDLNodeToStringConvertor } from "../convertors/JavaConvertors"
+import * as idl from '../../idl'
+import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors"
+import { IdlNameConvertor } from "../nameConvertor"
+import { RuntimeType } from "../common";
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -118,9 +119,11 @@ class JavaMapForEachStatement implements LanguageStatement {
 
 export class JavaLanguageWriter extends CLikeLanguageWriter {
     protected typeConvertor: IdlNameConvertor
-    constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
+    constructor(printer: IndentedPrinter,
+                resolver: ReferenceResolver,
+                typeConvertor: IdlNameConvertor) {
         super(printer, resolver, Language.JAVA)
-        this.typeConvertor = new JavaIDLNodeToStringConvertor(this.resolver)
+        this.typeConvertor = typeConvertor
     }
 
     getNodeName(type: idl.IDLNode): string {
@@ -128,7 +131,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
+        return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
     writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
@@ -289,7 +292,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
     }
-    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: EnumConvertor | undefined): string {
+    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {
         return `${enumName}.getIntValue()`
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }

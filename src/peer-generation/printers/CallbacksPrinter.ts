@@ -15,16 +15,17 @@
 
 import * as idl from '@idlize/core/idl'
 import { PeerLibrary } from "../PeerLibrary";
-import { CppLanguageWriter, LanguageWriter, NamedMethodSignature } from "../LanguageWriters";
+import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
+import { generatorConfiguration, LanguageWriter } from "@idlize/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from  '@idlize/core'
 import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue, maybeTransformManagedCallback } from "../ArgConvertors";
-import { MethodArgPrintHint } from "../LanguageWriters/LanguageWriter";
+import { PrintHint } from "@idlize/core";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { PrimitiveType } from "../ArkPrimitiveType";
+import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
-import { LibraryInterface } from "../../LibraryInterface";
+import { LibraryInterface } from "@idlize/core";
 
 function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -264,7 +265,7 @@ class DeserializeCallbacksVisitor {
                 const callReadExpr = writer.makeCast(
                     writer.makeMethodCall(`thisDeserializer`, `readPointer`, []),
                     idl.IDLUndefinedType,
-                    { unsafe: true, overrideTypeName: `void(*)(${[`${PrimitiveType.Prefix}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, callback)).join(", ")})` }
+                    { unsafe: true, overrideTypeName: `void(*)(${[`${generatorConfiguration().param("TypePrefix")}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, callback)).join(", ")})` }
                 )
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
@@ -471,13 +472,13 @@ class ManagedCallCallbackVisitor {
             [idl.createReferenceType(`CallbackKind`)],
             [`kind`],
             undefined,
-            [undefined, MethodArgPrintHint.AsValue]
+            [undefined, PrintHint.AsValue]
         )
         this.writer.writeFunctionImplementation(`getManagedCallbackCaller`, signature, writer => {
             writer.print(`switch (kind) {`)
             writer.pushIndent()
             for (const callback of callbacks) {
-                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveType.NativePointer}>(callManaged${callback.name});`)
+                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
             }
             writer.popIndent()
             writer.print(`}`)
@@ -487,7 +488,7 @@ class ManagedCallCallbackVisitor {
             writer.print(`switch (kind) {`)
             writer.pushIndent()
             for (const callback of callbacks) {
-                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveType.NativePointer}>(callManaged${callback.name}Sync);`)
+                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
             }
             writer.popIndent()
             writer.print(`}`)

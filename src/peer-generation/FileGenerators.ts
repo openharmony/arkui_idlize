@@ -15,8 +15,9 @@
 import * as fs from "fs"
 import * as path from "path"
 import { IndentedPrinter, camelCaseToUpperSnakeCase, Language } from "@idlize/core"
-import { PrimitiveType } from "./ArkPrimitiveType"
-import { CppLanguageWriter, createLanguageWriter, LanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike, TSLanguageWriter } from "./LanguageWriters"
+import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
+import { createLanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
+import { CppLanguageWriter, LanguageWriter } from "@idlize/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
@@ -28,9 +29,10 @@ import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCal
 import * as idl from "@idlize/core/idl"
 import { createEmptyReferenceResolver, ReferenceResolver } from "@idlize/core"
 import { getReferenceResolver } from "./ReferenceResolver"
-import { MethodArgPrintHint } from "./LanguageWriters/LanguageWriter"
+import { PrintHint } from "@idlize/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
-import { NativeModuleType } from "./NativeModuleType"
+import { NativeModule } from "./NativeModule"
+import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -324,7 +326,8 @@ export function makeTypeChecker(library: PeerLibrary): { arkts: string, ts: stri
 }
 
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
-    const converter = new CppLanguageWriter(new IndentedPrinter(), library)
+    const converter = new CppLanguageWriter(new IndentedPrinter(), library,
+        new CppIDLNodeToStringConvertor(library), ArkPrimitiveTypesInstance)
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}
@@ -390,7 +393,7 @@ import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 import { CallbackKind } from "./CallbackKind"
 import { Serializer } from "./Serializer"
-import { KPointer, ${NativeModuleType.Interop.name} } from "@koalaui/interop"
+import { KPointer, ${NativeModule.Interop.name} } from "@koalaui/interop"
 
 ${deserializer.getOutput().join("\n")}
 
@@ -407,7 +410,7 @@ export function makeArkTSDeserializer(library: PeerLibrary): string {
     imports.addFeature("DeserializerBase", "./DeserializerBase")
     imports.addFeatures(["int32", "int64"], "@koalaui/common")
     imports.addFeature("Serializer", "./Serializer")
-    imports.addFeatures([NativeModuleType.Generated.name], "#components")
+    imports.addFeatures([NativeModule.Generated.name], "#components")
     imports.addFeatures(["CallbackKind"], "CallbackKind")
     imports.addFeatures(['KPointer'], '@koalaui/interop')
     imports.print(printer, '')
@@ -437,7 +440,7 @@ ${accessors.join("\n")}
 } ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
-    ${PrimitiveType.Int32.getText()} version;
+    ${ArkPrimitiveTypesInstance.Int32.getText()} version;
 } ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
 
 typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
@@ -592,7 +595,7 @@ export function makeDeserializeAndCall(library: PeerLibrary, language: Language,
 }
 
 export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: LanguageWriter, receiversList: LanguageWriter): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver, new CppIDLNodeToStringConvertor(resolver), ArkPrimitiveTypesInstance)
     writer.print(cStyleCopyright)
     writer.writeInclude("arkoala_api_generated.h")
     writer.writeInclude("events.h")
@@ -603,7 +606,7 @@ export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: La
     writer.concat(implData)
     writer.writeMethodImplementation(new Method(
         `GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [MethodArgPrintHint.AsConstPointer]),
+        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
@@ -617,7 +620,7 @@ export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: La
 }
 
 export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string, resolver: ReferenceResolver): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver, new CppIDLNodeToStringConvertor(resolver), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.print("")
     writer.writeInclude(`arkoala_api_generated.h`)
@@ -632,14 +635,14 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
         new NamedMethodSignature(idl.IDLVoidType, [
             idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)],
             [`api`], undefined,
-            [undefined, MethodArgPrintHint.AsConstPointer]),
+            [undefined, PrintHint.AsConstPointer]),
     ), (writer) => {
         writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
     })
 
     writer.writeMethodImplementation(new Method(
         `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [MethodArgPrintHint.AsConstPointer]),
+        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
     ), (writer) => {
         writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()

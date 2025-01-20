@@ -13,22 +13,21 @@
  * limitations under the License.
  */
 
-import { ReferenceResolver } from '@idlize/core'
-import { PeerLibrary } from "./PeerLibrary";
-export { ReferenceResolver }
+export enum RuntimeType {
+    UNEXPECTED = -1,
+    NUMBER = 1,
+    STRING = 2,
+    OBJECT = 3,
+    BOOLEAN = 4,
+    UNDEFINED = 5,
+    BIGINT = 6,
+    FUNCTION = 7,
+    SYMBOL = 8,
+    MATERIALIZED = 9,
+}
 
-export function createEmptyReferenceResolver(): ReferenceResolver {
-    return {
-        resolveTypeReference() {
-            return undefined
-        },
-        toDeclaration(type) {
-            return type
-        }
+export class NativeModuleType {
+    constructor(public name: string) {
+
     }
 }
-
-export function getReferenceResolver(library: PeerLibrary): ReferenceResolver {
-    return library
-}
-

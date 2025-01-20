@@ -21,12 +21,12 @@ import { componentToPeerClass } from "./PeersPrinter";
 import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import {
     createLanguageWriter,
-    LanguageWriter,
     Method,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile";

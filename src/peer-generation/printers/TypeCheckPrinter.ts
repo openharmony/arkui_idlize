@@ -4,13 +4,13 @@ import {
     createLanguageWriter,
     generateTypeCheckerName,
     LanguageExpression,
-    LanguageWriter,
     Method,
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { PeerLibrary } from "../PeerLibrary";
-import { createDeclarationNameConvertor } from "../idl/IdlNameConvertor";
+import { createDeclarationNameConvertor } from "@idlize/core";
 import { Language } from "@idlize/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlize/core/idl"
 import { getReferenceResolver } from '../ReferenceResolver';
@@ -20,26 +20,8 @@ import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorU
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
 import { isPredefined } from '../idl/IdlPeerGeneratorVisitor';
 
-const builtInInterfaceTypes = new Map<string,
-    (writer: LanguageWriter, value: string) => LanguageExpression>([
-        ["Object",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
-        ["ArrayBuffer",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)],
-        ["Resource",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
-    ])
-
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#components")
-}
-
-export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(enumName),
-        [writer.makeString(valueAccessor)]
-    )
 }
 
 class FieldRecord {

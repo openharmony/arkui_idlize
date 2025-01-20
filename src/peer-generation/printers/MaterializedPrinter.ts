@@ -20,12 +20,12 @@ import {
     createLanguageWriter,
     FieldModifier,
     LanguageStatement,
-    LanguageWriter,
     Method,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core"
 import { copyMaterializedMethod, getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
@@ -41,7 +41,7 @@ import {
 import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
 import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { copyMethod } from "../LanguageWriters/LanguageWriter";
+import { copyMethod } from "@idlize/core";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlize/core/idl'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";

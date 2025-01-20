@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ArgConvertor } from "../peer-generation/ArgConvertors";
+import { ArgConvertor } from "@idlize/core";
 import { Field, Method, MethodModifier } from "../peer-generation/LanguageWriters"
 import { capitalize } from "@idlize/core"
 import { Skoala } from './utils';

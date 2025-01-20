@@ -13,12 +13,40 @@
  * limitations under the License.
  */
 import { indentedBy, stringOrNone } from "../util"
-import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface, IDLKind, IDLMethod, IDLModule, IDLParameter, IDLProperty, IDLType, IDLTypedef, getExtAttribute,
+import {
+    IDLCallback,
+    IDLConstructor,
+    IDLEntity,
+    IDLEntry,
+    IDLEnum,
+    IDLInterface,
+    IDLKind,
+    IDLMethod,
+    IDLModule,
+    IDLParameter,
+    IDLProperty,
+    IDLType,
+    IDLTypedef,
+    getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
     isCallback,
-    isConstructor, isContainerType, isEnum, isInterface, isMethod, isModuleType, isPrimitiveType, isProperty, isReferenceType, isSyntheticEntry, isTypeParameterType, isTypedef, isUnionType,
-    isPackage, isImport, isVersion,
+    isConstructor,
+    isContainerType,
+    isEnum,
+    isInterface,
+    isMethod,
+    isModuleType,
+    isPrimitiveType,
+    isProperty,
+    isReferenceType,
+    isSyntheticEntry,
+    isTypeParameterType,
+    isTypedef,
+    isUnionType,
+    isPackage,
+    isImport,
+    isVersion,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
     IDLImport,
@@ -61,7 +89,9 @@ import { IDLCallback, IDLConstructor, IDLEntity, IDLEntry, IDLEnum, IDLInterface
     IDLBooleanType,
     IDLNumberType,
     IDLPointerType,
-    IDLInterfaceSubkind} from "../idl"
+    IDLInterfaceSubkind,
+    escapeIDLKeyword
+} from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
@@ -424,5 +454,5 @@ function mapContainerType(idlType: IDLContainerType): string {///belongs to LW?
 }
 
 function getName(node: IDLEntry): stringOrNone {
-    return getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? node.name
+    return escapeIDLKeyword(getExtAttribute(node, IDLExtendedAttributes.DtsName) ?? node.name)
 }

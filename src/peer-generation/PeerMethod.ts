@@ -14,10 +14,10 @@
  */
 
 import { capitalize, IDLType, isDefined } from '@idlize/core'
-import { ArgConvertor } from "./ArgConvertors"
+import { ArgConvertor } from "@idlize/core"
 import { Method, MethodModifier } from "./LanguageWriters"
-import { PrimitiveType } from "./ArkPrimitiveType"
-import { mangleMethodName } from "./LanguageWriters/LanguageWriter"
+import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
+import { mangleMethodName } from "@idlize/core"
 import { IdlNameConvertor } from "@idlize/core"
 export class PeerMethod {
     private overloadIndex?: number
@@ -87,7 +87,7 @@ export class PeerMethod {
         if (!this.hasReceiver()) return undefined
         return {
             argName: "node",
-            argType: PrimitiveType.NativePointer.getText()
+            argType: ArkPrimitiveTypesInstance.NativePointer.getText()
         }
     }
 

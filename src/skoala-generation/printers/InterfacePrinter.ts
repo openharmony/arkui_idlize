@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { LanguageWriter } from "../../peer-generation/LanguageWriters"
+import { LanguageWriter } from "@idlize/core"
 import { IldSkoalaFile, TSDeclConvertor, IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
 import * as idl from "@idlize/core/idl"
 import { convertDeclaration } from "@idlize/core"

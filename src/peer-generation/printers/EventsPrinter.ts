@@ -19,26 +19,30 @@ import { IndentedPrinter, Language, isImportAttr } from '@idlize/core'
 import {
     BlockStatement,
     CppLanguageWriter,
+    createLanguageWriter,
     ExpressionStatement,
     FieldModifier,
-    LanguageWriter,
     printMethodDeclaration,
     StringExpression,
     TSLanguageWriter
 } from "../LanguageWriters"
+import { LanguageWriter } from "@idlize/core"
 import { PeerClassBase } from "../PeerClass"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { PeerMethod } from "../PeerMethod"
 import { PeerLibrary } from "../PeerLibrary"
-import { ArgConvertor } from "../ArgConvertors"
+import { ArgConvertor } from "@idlize/core"
 import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
-import { getReferenceResolver, ReferenceResolver } from "../ReferenceResolver"
-import { ETSLanguageWriter } from "../LanguageWriters/writers/ETSLanguageWriter";
+import { getReferenceResolver } from "../ReferenceResolver"
+import { ReferenceResolver } from "@idlize/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
+import { CppIDLNodeToStringConvertor } from "../LanguageWriters/convertors/CppConvertors";
+import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
+import { TsIDLNodeToStringConverter } from "../LanguageWriters/convertors/TSConvertors";
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -199,8 +203,8 @@ export function collapseIdlEventsOverloads(library: PeerLibrary, peer: PeerClass
 }
 
 abstract class CEventsVisitorBase {
-    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
-    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library)
+    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
+    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -310,7 +314,9 @@ class IdlCEventsVisitor extends CEventsVisitorBase {
 }
 
 abstract class TSEventsVisitorBase {
-    readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(), getReferenceResolver(this.library))
+    readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(),
+        getReferenceResolver(this.library),
+        new TsIDLNodeToStringConverter(getReferenceResolver(this.library)))
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -530,7 +536,7 @@ class IdlTSEventsVisitor extends TSEventsVisitorBase {
 }
 
 class IdlArkTSEventVisitor extends IdlTSEventsVisitor {
-    readonly printer: LanguageWriter = new ETSLanguageWriter(new IndentedPrinter(), getReferenceResolver(this.library))
+    readonly printer: LanguageWriter = createLanguageWriter(Language.ARKTS, this.library)
 
     protected printParseFunction(infos: IdlCallbackInfo[]) {
         // Disable event functions printing until deserializer is ready

@@ -15,7 +15,7 @@
 
 import * as idl from '@idlize/core/idl'
 import { NodeConvertor, convertNode, convertType } from "@idlize/core"
-import { LibraryInterface } from '../../LibraryInterface'
+import { LibraryInterface } from '@idlize/core'
 import { PeerLibrary } from '../PeerLibrary'
 import { Language } from '@idlize/core'
 import { isMaterialized } from './IdlPeerGeneratorVisitor'

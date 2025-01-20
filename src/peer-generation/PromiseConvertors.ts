@@ -14,9 +14,10 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { LibraryInterface } from "../LibraryInterface"
-import { ArgConvertor, BaseArgConvertor, CallbackConvertor, RuntimeType, ExpressionAssigneer } from "./ArgConvertors"
-import { LanguageStatement, LanguageWriter } from "./LanguageWriters"
+import { LibraryInterface } from "@idlize/core"
+import { CallbackConvertor } from "./ArgConvertors"
+import { ArgConvertor, BaseArgConvertor, RuntimeType, ExpressionAssigner } from "@idlize/core"
+import { LanguageStatement, LanguageWriter } from "@idlize/core"
 import { Language } from '@idlize/core'
 
 class PromiseOutArgConvertor extends BaseArgConvertor {
@@ -51,7 +52,7 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
         writer.writeStatement(writer.makeAssign(value, undefined, writer.makeTupleAccess(serializeCallback.asString(), 0), true))
     }
 
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigneer, writer: LanguageWriter): LanguageStatement {
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         return this.callbackConvertor.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
     }
     nativeType(): idl.IDLType {

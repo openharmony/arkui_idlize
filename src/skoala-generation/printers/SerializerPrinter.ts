@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { createLanguageWriter, LanguageWriter, Method, NamedMethodSignature } from "../../peer-generation/LanguageWriters"
+import { LanguageWriter, Method, NamedMethodSignature } from "@idlize/core"
+import { createLanguageWriter } from "../../peer-generation/LanguageWriters"
 import { Language } from "@idlize/core"
 import * as idl from '@idlize/core/idl'
 import { IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
@@ -42,7 +43,7 @@ class IdlSerializerPrinter {
                 const properties = collectProperties(target, this.library)
                 if (properties.length > 0) {
                     writer.writeStatement(
-                        writer.makeAssign("valueSerializer", writer.makeRef("Serializer"), writer.makeThis(), true, false))
+                        writer.makeAssign("valueSerializer", writer.makeRef(idl.createReferenceType("Serializer")), writer.makeThis(), true, false))
                 }
                 properties.forEach(it => {
                     let field = `value_${it.name}`

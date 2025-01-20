@@ -14,26 +14,31 @@
  */
 
 import { IndentedPrinter, Language } from "@idlize/core"
-import { LanguageWriter } from "./LanguageWriter";
-import { TSLanguageWriter } from "./writers/TsLanguageWriter";
-import { ETSLanguageWriter } from "./writers/ETSLanguageWriter";
-import { JavaLanguageWriter } from "./writers/JavaLanguageWriter";
-import { CppLanguageWriter } from "./writers/CppLanguageWriter";
-import { CJLanguageWriter } from "./writers/CJLanguageWriter";
-import { ReferenceResolver } from "../ReferenceResolver";
+import { LanguageWriter } from "@idlize/core";
+import { TSLanguageWriter } from "@idlize/core";
+import { ETSLanguageWriter } from "@idlize/core";
+import { JavaLanguageWriter } from "@idlize/core";
+import { CppLanguageWriter } from "@idlize/core";
+import { CJLanguageWriter } from "@idlize/core";
+import { ReferenceResolver } from "@idlize/core";
 
-import { CJIDLNodeToStringConvertor, CJInteropArgConvertor } from "./convertors/CJConvertors";
+import {
+    CJIDLNodeToStringConvertor,
+    CJIDLTypeToForeignStringConvertor,
+    CJInteropArgConvertor
+} from "./convertors/CJConvertors";
 import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
 import { JavaIDLNodeToStringConvertor, JavaInteropArgConvertor } from "./convertors/JavaConvertors";
 import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
 import { CppIDLNodeToStringConvertor, CppInteropArgConvertor } from "./convertors/CppConvertors";
 import { IdlNameConvertor } from "@idlize/core";
 import { InteropArgConvertor } from "./convertors/InteropConvertor";
+import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
 
-export { generateTypeCheckerName, makeArrayTypeCheckCall } from './writers/ETSLanguageWriter'
+export { generateTypeCheckerName, makeArrayTypeCheckCall } from '@idlize/core'
 export {
     Field,
     FieldModifier,
@@ -47,20 +52,24 @@ export {
     LanguageExpression,
     FunctionCallExpression,
     LanguageStatement,
-    LanguageWriter,
     StringExpression,
     PrinterLike,
     printMethodDeclaration
-} from './LanguageWriter'
+} from '@idlize/core'
 export { CppLanguageWriter, TSLanguageWriter }
 
 export function createLanguageWriter(language: Language, resolver:ReferenceResolver): LanguageWriter {
     switch (language) {
-        case Language.TS: return new TSLanguageWriter(new IndentedPrinter(), resolver, Language.TS)
-        case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter(), resolver)
-        case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter(), resolver)
-        case Language.CPP: return new CppLanguageWriter(new IndentedPrinter(), resolver)
-        case Language.CJ: return new CJLanguageWriter(new IndentedPrinter(), resolver)
+        case Language.TS: return new TSLanguageWriter(new IndentedPrinter(), resolver,
+            new TsIDLNodeToStringConverter(resolver))
+        case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter(), resolver,
+            new EtsIDLNodeToStringConvertor(resolver), new CppIDLNodeToStringConvertor(resolver))
+        case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter(), resolver,
+            new JavaIDLNodeToStringConvertor(resolver))
+        case Language.CPP: return new CppLanguageWriter(new IndentedPrinter(), resolver,
+            new CppIDLNodeToStringConvertor(resolver), ArkPrimitiveTypesInstance)
+        case Language.CJ: return new CJLanguageWriter(new IndentedPrinter(), resolver,
+            new CJIDLNodeToStringConvertor(resolver), new CJIDLTypeToForeignStringConvertor(resolver))
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

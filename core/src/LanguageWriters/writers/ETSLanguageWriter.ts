@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from '@idlize/core'
+import { IndentedPrinter } from "../../IndentedPrinter"
 import {
     LambdaExpression,
     LanguageExpression,
@@ -26,28 +26,24 @@ import {
     ObjectArgs
 } from "../LanguageWriter"
 import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '@idlize/core/idl'
+import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '../../idl'
 import {
-    AggregateConvertor,
     ArgConvertor,
+    AggregateConvertor,
     ArrayConvertor,
-    BaseArgConvertor,
     CustomTypeConvertor,
-    EnumConvertor,
-    InterfaceConvertor,
+    InterfaceConvertorCore,
     MaterializedClassConvertor,
     OptionConvertor,
-    RuntimeType,
     UnionConvertor
-} from "../../ArgConvertors"
-import { Language } from  '@idlize/core'
-import { ReferenceResolver } from "../../ReferenceResolver"
-import { EtsIDLNodeToStringConvertor } from "../convertors/ETSConvertors"
-import {makeEnumTypeCheckerCall} from "../../printers/TypeCheckPrinter"
-import * as idl from '@idlize/core/idl'
-import { convertDeclaration, IdlNameConvertor } from "@idlize/core"
-import { createDeclarationNameConvertor } from "../../idl/IdlNameConvertor"
-import { CppIDLNodeToStringConvertor } from "../convertors/CppConvertors"
+} from "../ArgConvertors"
+import * as idl from '../../idl'
+import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
+import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor";
+import { Language } from "../../Language";
+import { RuntimeType } from "../common";
+import { throwException } from "../../util";
+import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
@@ -177,12 +173,14 @@ export function makeArrayTypeCheckCall(
 ////////////////////////////////////////////////////////////////
 
 export class ETSLanguageWriter extends TSLanguageWriter {
-    constructor(printer: IndentedPrinter, resolver:ReferenceResolver) {
-        super(printer, resolver, Language.ARKTS)
-        this.typeConvertor = new EtsIDLNodeToStringConvertor(this.resolver)
+    constructor(printer: IndentedPrinter,
+                resolver: ReferenceResolver,
+                typeConvertor: IdlNameConvertor,
+                private arrayConvertor: IdlNameConvertor) {
+        super(printer, resolver, typeConvertor, Language.ARKTS)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver)
+        return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         if (signature.returnType === IDLThisType) {
@@ -206,8 +204,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
     }
     makeUnsafeCast(convertor: ArgConvertor, param: string): string {
-        if ((convertor instanceof EnumConvertor) && !param.endsWith(".value")) {
-            return `(${param} as ${this.typeConvertor.convert(convertor.enumEntry)}).${convertor.isStringEnum ? 'ordinal' : 'value'}`
+        if (idl.isEnum(convertor.idlType) && !param.endsWith(".value")) {
+            const isStringEnum = idl.isStringEnum(convertor.idlType)
+            return `(${param} as ${this.typeConvertor.convert(convertor.idlType)}).${isStringEnum ? 'ordinal' : 'value'}`
         }
         return super.makeUnsafeCast(convertor, param)
     }
@@ -229,7 +228,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                 accessors: string[],
                                 duplicates: Set<string>): LanguageExpression {
         if (convertor instanceof AggregateConvertor
-            || convertor instanceof InterfaceConvertor
+            || convertor instanceof InterfaceConvertorCore
             || convertor instanceof MaterializedClassConvertor
             || convertor instanceof CustomTypeConvertor) {
             return this.instanceOf(convertor, value, duplicates)
@@ -237,7 +236,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
-        if (destinationConvertor instanceof EnumConvertor) {
+        if (idl.isEnum(this.resolver.toDeclaration(destinationConvertor.nativeType()))) {
             return this.makeCast(this.makeString(value), destinationConvertor.idlType)
         }
         return super.makeValueFromOption(value, destinationConvertor)
@@ -258,14 +257,21 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
-    override makeEnumCast(value: string, _unsafe: boolean, convertor: EnumConvertor | undefined): string {
-        return this.makeCast(this.makeString(`${value}${convertor?.isStringEnum ? "" : ".valueOf()"}`),
+    override makeEnumCast(value: string, _unsafe: boolean, convertor: ArgConvertor | undefined): string {
+        if (convertor === undefined) {
+            throwException(`The makeEnumCast function required EnumConvertor`)
+        }
+        const decl = this.resolver.toDeclaration(convertor.nativeType())
+        if (!idl.isEnum(decl)) {
+            throwException(`Declaration type must be Enum`)
+        }
+        return this.makeCast(this.makeString(`${value}${idl.isStringEnum(decl) ? "" : ".valueOf()"}`),
             IDLI32Type).asString()
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
                               convertorIndex: number,
                               runtimeTypeIndex: number): LanguageExpression {
-        if (convertor instanceof EnumConvertor) {
+        if (idl.isEnum(this.resolver.toDeclaration(convertor.nativeType()))) {
             return this.instanceOf(convertor, valueName)
         }
         // TODO: in ArkTS SerializerBase.runtimeType returns RuntimeType.OBJECT for enum type and not RuntimeType.NUMBER as in TS
@@ -300,7 +306,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
     }
-    makeDiscriminatorConvertor(convertor: EnumConvertor, value: string, index: number): LanguageExpression { //
+    override makeDiscriminatorConvertor(convertor: ArgConvertor, value: string, index: number): LanguageExpression { //
         return this.instanceOf(convertor, value);
         // Or this ????????
         // return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
@@ -312,7 +318,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
 
-    override instanceOf(convertor: BaseArgConvertor, value: string, duplicateMembers?: Set<string>): LanguageExpression {
+    override instanceOf(convertor: ArgConvertor, value: string, duplicateMembers?: Set<string>): LanguageExpression {
         if (convertor instanceof CustomTypeConvertor) {
             return makeInterfaceTypeCheckerCall(value,
                 this.getNodeName(convertor.idlType),
@@ -320,7 +326,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 duplicateMembers!,
                 this)
         }
-        if (convertor instanceof InterfaceConvertor || convertor instanceof MaterializedClassConvertor) {
+        if (convertor instanceof InterfaceConvertorCore || convertor instanceof MaterializedClassConvertor) {
             return makeInterfaceTypeCheckerCall(value,
                 this.getNodeName(convertor.idlType),
                 convertor.declaration.properties.filter(it => !it.isStatic).map(it => it.name),
@@ -333,11 +339,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 convertor.members.map(it => it[0]), duplicateMembers!, this)
         }
         if (convertor instanceof ArrayConvertor) {
-            const cppConvertor = new CppIDLNodeToStringConvertor(this.resolver)
-            return makeArrayTypeCheckCall(value,
-                cppConvertor.convert(convertor.idlType), this)
+            return makeArrayTypeCheckCall(value, this.arrayConvertor.convert(convertor.idlType), this)
         }
-        if (convertor instanceof EnumConvertor) {
+        if (idl.isEnum(this.resolver.toDeclaration(convertor.nativeType()))) {
             return makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
         }
         return super.instanceOf(convertor, value, duplicateMembers)
@@ -361,7 +365,7 @@ const builtInInterfaceTypes = new Map<string,
     ],
 )
 
-export function makeInterfaceTypeCheckerCall(
+function makeInterfaceTypeCheckerCall(
     valueAccessor: string,
     interfaceName: string,
     allFields: string[],
@@ -378,4 +382,12 @@ export function makeInterfaceTypeCheckerCall(
             return writer.makeString(duplicates.has(it) ? "true" : "false")
         })
     ])
+}
+
+export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {
+    return writer.makeMethodCall(
+        "TypeChecker",
+        generateTypeCheckerName(enumName),
+        [writer.makeString(valueAccessor)]
+    )
 }

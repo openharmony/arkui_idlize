@@ -14,7 +14,7 @@
  */
 
 import { IDLType } from '@idlize/core/idl'
-import { LanguageWriter } from "../LanguageWriters";
+import { LanguageWriter } from "@idlize/core";
 
 export interface ImportTable {
     getImportsForTypes(types: IDLType[]): string[]

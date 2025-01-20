@@ -15,7 +15,7 @@
 
 import * as idl from '@idlize/core/idl'
 import { PeerClass } from "./PeerClass"
-import { LibraryFileInterface } from "../LibraryInterface"
+import { LibraryFileInterface } from "@idlize/core"
 
 export class PeerFile implements LibraryFileInterface {
     readonly peers: Map<string, PeerClass> = new Map()
