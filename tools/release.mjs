@@ -15,7 +15,13 @@
 
 import fs from "fs"
 import path from "path"
-import { Version, Git, writeToPackageJson, IDLIZE_HOME, publishToOpenlab } from "./utils.mjs"
+import { Version, Git, writeToPackageJson, IDLIZE_HOME, IDLIZE_CORE, IDLIZE_LINTER, publishToOpenlab, replaceInJson } from "./utils.mjs"
+
+const files = [
+    path.join(IDLIZE_HOME, "package.json"),
+    path.join(IDLIZE_CORE, "package.json"),
+    path.join(IDLIZE_LINTER, "package.json")
+]
 
 const CURRENT_VERSION = readVersion()
 const git = new Git
@@ -43,16 +49,29 @@ function run() {
 
     console.log(`> Updating idlize version from ${old.toString()} to ${next.toString()}`)
     writeVersion(next)
-    writeToPackageJson("version", next.toString())
-    writeToPackageJson("description", `idlize hash of head: ${git.hash()}`)
+
+    files.forEach(file => {
+        replaceInJson(file, new RegExp(`${old.toString()}\\+devel`, 'g'), next.toString())
+        writeToPackageJson(file, "description", `idlize hash of head: ${git.hash()}`)
+    })
 
     if (git.checkBranch(newBranch)) git.deleteBranch(newBranch)
 
     try {
+        console.log("Publish idlize")
         publishToOpenlab("next")
+        process.chdir("./core")
+        console.log("Publish idlize-core")
+        publishToOpenlab("next")
+        process.chdir("../linter")
+        console.log("Publish idlize-linter")
+        publishToOpenlab("next")
+        process.chdir("..")
 
-        writeToPackageJson("version", `${next.toString()}+devel`)
-        writeToPackageJson("description", "")
+        files.forEach(file => {
+            replaceInJson(file, new RegExp(`${next.toString()}`, 'g'), `${next.toString()}+devel`)
+            writeToPackageJson(file, "description", "")
+        })
 
         console.log(`> Checkout to ${newBranch}`)
         git.checkout(`release-${next.toString()}`)
@@ -62,8 +81,10 @@ function run() {
     
     } catch(e) {
         writeVersion(old)
-        writeToPackageJson("version", `${old.toString()}+devel`)
-        writeToPackageJson("description", "")
+        files.forEach(file => {
+            replaceInJson(file, new RegExp(`${next.toString()}`, 'g'), `${old.toString()}+devel`)
+            writeToPackageJson(file, "description", "")
+        })
         throw new Error("Failed to publish idlize package")
     }
 
