@@ -1,6 +1,6 @@
 {
   "name": "@idlize/core",
-  "version": "1.3.28+devel",
+  "version": "2.0.1+devel",
   "description": "",
   "types": "build/lib/src/index.d.ts",
   "exports": {
@@ -22,11 +22,12 @@
     }
   },
   "files": [
-    "build/src/**/*.js",
-    "build/src/**/*.d.ts",
-    "./webidl2.js/dist/**/*",
-    "./webidl2.js/package.json"
+    "build/lib/**/*.js",
+    "build/lib/**/*.d.ts",
+    "webidl2.js/dist/**/*.js",
+    "webidl2.js/package.json"
   ],
+  "type": "module",
   "engines": {
     "npm": ">= 8",
     "node": ">= 18"
@@ -35,15 +36,13 @@
   "dependencies": {
     "typescript": "4.9.5",
     "@types/node": "^18.0.0",
-    "webidl2": "file:./webidl2.js",
-    "@types/webidl2": "file:./webidl2.js/types",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",
     "cross-env": "^7.0.3",
     "minimist": "^1.2.8"
   },
   "scripts": {
-    "clean": "rimraf -g build dist lib",
+    "clean": "rimraf -g build",
     "compile": "tsc -b ."
   }
 }

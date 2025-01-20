@@ -70,7 +70,7 @@ export class Git {
     restore(files) {
         execSync(`git restore ${files}`)
     }
-    
+
     clean() {
         execSync("git clean -fd")
     }
@@ -91,8 +91,7 @@ export function replaceInJson(filePath, regexp, value) {
 }
 
 
-const keyIdlizeRegistry = "@azanat:registry"
-const keyIdlizeRegistry2 = "@idlize:registry"
+const keyIdlizeRegistry = "@idlize:registry"
 const keyKoalaRegistry = "@koalaui:registry"
 const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/packages/npm/"
 const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"

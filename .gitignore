@@ -25,3 +25,4 @@ NativeBridge.node
 /libarkts-gen/.rollup.cache/
 /libarkts-gen/lib/
 /libarkts-gen/out/
+*.rej

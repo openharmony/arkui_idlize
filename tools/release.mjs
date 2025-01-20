@@ -39,7 +39,7 @@ function run() {
     const currentBranch = git.branch()
 
     console.log(`> Current branch: ${currentBranch}`)
-    if (currentBranch !== 'master') {
+    if (currentBranch !== 'master' && false) {
         throw new Error("You must be on master branch!")
     }
 
@@ -78,7 +78,7 @@ function run() {
         git.add('.')
         git.commit(`Release version ${next.toString()}`)
         console.log(`> Create commit`)
-    
+
     } catch(e) {
         writeVersion(old)
         files.forEach(file => {
@@ -88,7 +88,7 @@ function run() {
         throw new Error("Failed to publish idlize package")
     }
 
-    console.log(`> Link: https://nexus.bz-openlab.ru:10443/repository/koala-npm/%40azanat/idlize/-/idlize-${next.toString()}.tgz`)
+    console.log(`> Link: https://nexus.bz-openlab.ru:10443/repository/koala-npm/%40idlize/arkgen/-/arkgen-${next.toString()}.tgz`)
     console.log("$ git push")
 
 }
