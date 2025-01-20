@@ -26,3 +26,4 @@ NativeBridge.node
 /libarkts-gen/lib/
 /libarkts-gen/out/
 *.rej
+*.orig

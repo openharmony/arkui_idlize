@@ -47,7 +47,7 @@ export default {
           // process.exit(-1);
         }
     },
-    external: ["commander", "typescript", "webidl2"],
+    external: ["commander", "typescript"],
     plugins: [
         typescript({
             outputToFilesystem: false,
