@@ -16,36 +16,59 @@
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile } from "@idlize/core"
-import { BridgesPrinter } from "./BridgesPrinter"
-import { NativeModulePrinter } from "./NativeModulePrinter"
+import { BridgesPrinter } from "./printers/BridgesPrinter"
+import { NativeModulePrinter } from "./printers/NativeModulePrinter"
 import { IDLFile } from "./Es2PandaTransformer"
 import { Config } from "./Config"
+
+class FilePrinter {
+    constructor(
+        public printer: { print(): string },
+        public path: string,
+        public template: string,
+        public enabled: boolean
+    ) {}
+}
 
 export class LibarktsGenerator {
     constructor(
         private outDir: string,
         private idl: IDLFile,
-        private config = new Config()
+        private config: Config,
+        private files?: string[]
     ) {}
 
-    private libPrinter = new BridgesPrinter(this.idl, this.config)
-    private libFile = 'native/src/bridges.cc'
-    private nativeModulePrinter = new NativeModulePrinter(this.idl, this.config)
-    private nativeModuleFile = 'native/src/ts/LibarktsNativeModule.ts'
+    private bridgesPrinter = new FilePrinter(
+        new BridgesPrinter(this.idl, this.config),
+        `libarkts/native/src/generated/bridges.cc`,
+        `bridges.cc`,
+        this.files?.includes(`bridges`) ?? true,
+    )
+
+    private nativeModulePrinter = new FilePrinter(
+        new NativeModulePrinter(this.idl, this.config),
+        `libarkts/src/Es2pandaNativeModule.ts`,
+        `Es2pandaNativeModule.ts`,
+        this.files?.includes(`nativeModule`) ?? true,
+    )
 
     print(): void {
-        forceWriteFile(
-            path.join(this.outDir, this.libFile),
-            this.libPrinter.print()
-        )
-        forceWriteFile(
-            path.join(this.outDir, this.nativeModuleFile),
-            this.readTemplate("Es2PandaNativeModule.ts")
-                .replaceAll(
-                    "%GENERATED_PART%",
-                    this.nativeModulePrinter.print()
-                )
-        )
+        this.printFile(this.bridgesPrinter)
+        this.printFile(this.nativeModulePrinter)
+    }
+
+    private printFile(filePrinter: FilePrinter): void {
+        if (filePrinter.enabled) {
+            console.log(`emit to ${filePrinter.path}`)
+            forceWriteFile(
+                path.join(this.outDir, filePrinter.path),
+                this.readTemplate(filePrinter.template)
+                    .replaceAll(
+                        `%GENERATED_PART%`,
+                        this.bridgesPrinter.printer.print()
+                    )
+            )
+        }
     }
 
     private readTemplate(name: string): string {

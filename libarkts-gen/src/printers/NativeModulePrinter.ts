@@ -31,11 +31,11 @@ import {
 } from "@idlize/core/idl"
 // TODO: need language writers extracted to @idl/core :-()
 // import { MethodSignature, createLanguageWriter } from "../../src/peer-generation/LanguageWriters"
-import { Config } from "./Config"
+import { Config } from "../Config"
 import { IndentedPrinter } from "@idlize/core"
 import { convertType } from "@idlize/core"
-import { NativeTypeConvertor } from "./NativeTypeConvertor"
-import { IDLFile } from "./Es2PandaTransformer"
+import { NativeTypeConvertor } from "../NativeTypeConvertor"
+import { IDLFile } from "../Es2PandaTransformer"
 
 export class NativeModulePrinter {
     constructor(
@@ -69,7 +69,6 @@ export class NativeModulePrinter {
     }
 
     private visit(node: IDLEntry): void {
-        console.log(node.name)
         if (isInterface(node)) return this.visitInterface(node)
         if (isEnum(node)) return
         if (isTypedef(node)) return

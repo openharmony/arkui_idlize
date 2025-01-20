@@ -16,7 +16,10 @@
 import { GeneratorConfiguration, throwException } from "@idlize/core"
 
 export class Config implements GeneratorConfiguration {
-    constructor(private generateFor?: string[]) {}
+    constructor(
+        private interfacesGenerateFor?: string[],
+        private methodsGenerateFor?: string[]
+    ) {}
 
     private implPrefix = `impl_`
     private nativeModulePrefix = `_`
@@ -42,6 +45,10 @@ export class Config implements GeneratorConfiguration {
         return `Es2pandaNativeModule`
     }
 
+    interopMacroPrefix(isVoid: boolean): string {
+        return `KOALA_INTEROP_${isVoid ? `V` : ``}`
+    }
+
     methodFunction(interfaceName: string, methodName: string): string {
         return `${interfaceName}${methodName}`
     }
@@ -54,7 +61,11 @@ export class Config implements GeneratorConfiguration {
         return `${this.nativeModulePrefix}${name}`
     }
 
-    shouldEmit(nodeName: string): boolean {
-        return this.generateFor?.includes(nodeName) ?? true
+    shouldEmitInterface(name: string): boolean {
+        return this.interfacesGenerateFor?.includes(name) ?? true
+    }
+
+    shouldEmitMethod(name: string): boolean {
+        return this.methodsGenerateFor?.includes(name) ?? true
     }
 }

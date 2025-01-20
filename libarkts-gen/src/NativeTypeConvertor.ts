@@ -33,13 +33,15 @@ import {
     IDLUnionType,
     IDLVoidType,
     isEnum,
-    throwException
+    throwException,
+    IDLF64Type,
+    IDLF32Type
 } from "@idlize/core"
 
 export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
     constructor(private idl: IDLEntry[]) {}
 
-    private usagesWithoutDeclaration = new Set<string>()
+    private incorrectDeclarations = new Set<string>()
 
     convertOptional(type: IDLOptionalType): string {
         throw new Error("Method not implemented.")
@@ -50,7 +52,7 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
     }
 
     convertContainer(type: IDLContainerType): string {
-        if (IDLContainerUtils.isSequence(type)) return `KNativePointerArray`
+        if (IDLContainerUtils.isSequence(type)) return `KNativePointer`
         throwException(`Unexpected container`)
     }
 
@@ -59,11 +61,10 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
     }
 
     convertTypeReference(type: IDLReferenceType): string {
-        const declaration = this.idl.filter(it => type.name === it.name)[0]
-        if (declaration === undefined) this.complain(type.name)
-        if (declaration !== undefined && isEnum(declaration)) {
-            return `KInt`
-        }
+        const declarations = this.idl.filter(it => type.name === it.name)
+        const real = this.findRealDeclaration(type.name, declarations)
+        if (real !== undefined && isEnum(real)) return `KInt`
+
         return `KNativePointer`
     }
 
@@ -79,6 +80,8 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
             case IDLU32Type: return `KUInt`
             case IDLI64Type: return `KLong`
             case IDLU64Type: return `KULong`
+            case IDLF32Type: return `KFloat`
+            case IDLF64Type: return `KDouble`
             case IDLBooleanType: return `KBoolean`
             case IDLStringType: return `KStringPtr&`
             case IDLVoidType: return `KNativePointer`
@@ -87,9 +90,11 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
         throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)
     }
 
-    private complain(name: string): void {
-        if (this.usagesWithoutDeclaration.has(name)) return
-        this.usagesWithoutDeclaration.add(name)
-        console.warn(`Warning: type reference with no declaration: ${name}`)
+    private findRealDeclaration(name: string, declarations: IDLEntry[]): IDLEntry | undefined {
+        if (declarations.length === 1) return declarations[0]
+        if (this.incorrectDeclarations.has(name)) return undefined
+        this.incorrectDeclarations.add(name)
+        console.warn(`Expected reference type "${name}" to have exactly one declaration, got: ${declarations.length}`)
+        return undefined
     }
 }
