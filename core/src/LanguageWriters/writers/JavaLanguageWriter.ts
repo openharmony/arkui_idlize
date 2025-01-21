@@ -134,7 +134,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
         let genericsClause = generics?.length ? `<${generics.join(', ')}> ` : ``
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
@@ -144,7 +144,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
         this.printer.print(`interface ${name}${extendsClause} {`)
         this.pushIndent()
@@ -166,7 +166,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.getNodeName(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {

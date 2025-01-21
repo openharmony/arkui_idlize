@@ -89,6 +89,15 @@ export class CppCastExpression implements LanguageExpression {
     }
 }
 
+export class CppPointerPropertyAccessExpression implements LanguageExpression {
+    constructor(public expression: string, public name: string) {
+    }
+
+    asString(): string {
+        return `${this.expression}->${this.name}`
+    }
+}
+
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
 ////////////////////////////////////////////////////////////////
@@ -184,7 +193,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.primitivesTypes)
     }
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[]): void {
+    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[]): void {
         const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])
         const extendsClause = superClasses.length > 0 ? ` : ${superClasses.map(c => `public ${c}`).join(", ")}` : ''
         this.printer.print(`class ${name}${extendsClause} {`)
@@ -193,7 +202,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`};`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
         throw new Error("Method not implemented.")
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
@@ -214,7 +223,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.print(`${forceAsNamedNode(type).name} ${name};`)
         this.printer.popIndent()
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
         const superInvocation = superCall
             ? ` : ${superCall.name}(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`
             : ""
@@ -326,6 +335,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     makeCast(expr: LanguageExpression, type: IDLType, options?:MakeCastOptions): LanguageExpression {
         return new CppCastExpression(this.typeConvertor, expr, type, options)
+    }
+    makePointerPropertyAccessExpression(expression: string, name: string): CppPointerPropertyAccessExpression {
+        return new CppPointerPropertyAccessExpression(expression, name)
     }
     writePrintLog(message: string): void {
         this.print(`printf("${message}\n")`)

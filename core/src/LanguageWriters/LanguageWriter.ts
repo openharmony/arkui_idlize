@@ -442,16 +442,16 @@ export abstract class LanguageWriter {
 
     maybeSemicolon() { return ";" }
 
-    abstract writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void
-    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], op?: (writer: LanguageWriter) => void): void
-    abstract writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void
+    abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void
+    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], op?: (writer: this) => void): void
+    abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
-    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void
+    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
-    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]): void
-    abstract writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void): void
-    abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void): void
+    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]): void
+    abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
+    abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: this) => void, setterLambda?: (writer: this) => void): void
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
     abstract makeThrowError(message: string): LanguageStatement
@@ -494,10 +494,10 @@ export abstract class LanguageWriter {
     writeLines(lines: string): void {
         lines.split("\n").forEach(it => this.print(it))
     }
-    writeGetterImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+    writeGetterImplementation(method: Method, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.GETTER].concat(method.modifiers ?? [])), op)
     }
-    writeSetterImplementation(method: Method, op: (writer: LanguageWriter) => void): void {
+    writeSetterImplementation(method: Method, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.SETTER].concat(method.modifiers ?? [])), op)
     }
     writeSuperCall(params: string[]): void {
@@ -535,8 +535,11 @@ export abstract class LanguageWriter {
     makeNewObject(objectName: string, params: LanguageExpression[] = []): LanguageExpression {
         return new NewObjectExpression(objectName, params)
     }
-    makeFunctionCall(name: string, params: LanguageExpression[]): LanguageExpression {
-        return new FunctionCallExpression(name, params)
+    makeFunctionCall(name: string | LanguageExpression, params: LanguageExpression[]): LanguageExpression {
+        if (typeof name === "string") {
+            return new FunctionCallExpression(name, params)
+        }
+        return new FunctionCallExpression(name.asString(), params)
     }
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)

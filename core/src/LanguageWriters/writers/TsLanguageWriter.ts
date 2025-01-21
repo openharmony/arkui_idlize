@@ -159,7 +159,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return this.typeConvertor.convert(type)
     }
 
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
+    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
         const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
@@ -169,7 +169,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[], isDeclared?: boolean): void {
+    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], isDeclared?: boolean): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
         this.printer.print(`export ${isDeclared ? "declare " : ""}interface ${name}${extendsClause} {`)
         this.pushIndent()
@@ -180,7 +180,7 @@ export class TSLanguageWriter extends LanguageWriter {
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
         this.printer.print(this.generateFunctionDeclaration(name, signature))
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
         this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
         this.printer.pushIndent()
         op(this)
@@ -221,7 +221,7 @@ export class TSLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
         this.writeDeclaration(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} constructor`, signature, false, true)
         this.pushIndent()
         if (superCall) {
@@ -232,7 +232,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
 
     }
-    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
+    writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics)
         this.pushIndent()
         op(this)

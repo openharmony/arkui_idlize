@@ -291,7 +291,13 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.typeConvertor.convert(type)
     }
 
-    writeClass(name: string, op: (writer: LanguageWriter) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+    writeClass(
+        name: string,
+        op: (writer: this) => void,
+        superClass?: string,
+        interfaces?: string[],
+        generics?: string[]
+    ): void {
         let extendsClause = superClass ? `${superClass}` : undefined
         let implementsClause = interfaces ? `${interfaces.join(' & ')}` : undefined
         let inheritancePart = [extendsClause, implementsClause]
@@ -314,7 +320,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: LanguageWriter) => void, superInterfaces?: string[]): void {
+    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` <: ${superInterfaces.join(" & ")}` : ''
         this.printer.print(`interface ${name}${extendsClause} {`)
         this.pushIndent()
@@ -325,7 +331,7 @@ export class CJLanguageWriter extends LanguageWriter {
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
         this.printer.print(this.generateFunctionDeclaration(name, signature))
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
         this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
         this.printer.pushIndent()
         op(this)
@@ -358,7 +364,7 @@ export class CJLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: LanguageWriter) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
@@ -368,7 +374,13 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: LanguageWriter) => void, setterLambda?: (writer: LanguageWriter) => void) {
+    writeProperty(
+        propName: string,
+        propType: idl.IDLType,
+        mutable?: boolean,
+        getterLambda?: (writer: this) => void,
+        setterLambda?: (writer: this) => void
+    ): void {
         let shortName = propName.concat("_container")
         if(!getterLambda) {
             this.print(`private var ${shortName}: ${this.getNodeName(propType)}`)
@@ -395,7 +407,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.print(`}`)
     }
-    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
+    writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
         this.pushIndent()
         op(this)
@@ -429,7 +441,7 @@ export class CJLanguageWriter extends LanguageWriter {
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
-    makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
+    makeClassInit(type: idl.IDLType, parameters: LanguageExpression[]): LanguageExpression {
         throw new Error(`makeClassInit`)
     }
     makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
@@ -553,7 +565,6 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumWithGetter(enumEntity, isExport)
-        return new CJEnumEntityStatement(enumEntity, isExport)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         return this.makeString(`refEq(${args.map(arg => `${arg.asString()}`).join(`, `)})`)

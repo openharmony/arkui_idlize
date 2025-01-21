@@ -89,7 +89,7 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
         this.writeMethodDeclaration(name, signature)
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: LanguageWriter) => void): void {
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(name, signature), op)
     }
     makeThrowError(message: string): LanguageStatement {
@@ -107,7 +107,7 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
         throw new Error("WriteEnum for C-family languages is not implemented")
     }
-    writeMethodImplementation(method: Method, op: (writer: LanguageWriter) => void) {
+    writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, method.modifiers)
         this.printer.print(`{`)
         this.pushIndent()
