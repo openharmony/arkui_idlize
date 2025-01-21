@@ -304,6 +304,23 @@ export class TSLanguageWriter extends LanguageWriter {
     makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, this.getNodeName(/* FIXME: */ idl.maybeUnwrapOptionalType(type)), options?.unsafe ?? false)
     }
+    override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
+
+        if (idl.isInterface(type)) {
+            if (idl.isInterfaceSubkind(type)) {
+                if (!members) {
+                    throw new Error("Members must be defined for interface type recognition!")
+                }
+                return this.makeString(
+                    members!.map(it => `${value}.hasOwnProperty("${it}")`).join("&&")
+                )
+            }
+            if (idl.isClassSubkind(type)) {
+                return super.typeInstanceOf(type, value, members)
+            }
+        }
+        throw new Error(`typeInstanceOf fails: not class or interface: ${this.getNodeName(type)}`)
+    }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
         if (convertor.useArray && args?.index != undefined) {
             return `${value}[${args.index}]`

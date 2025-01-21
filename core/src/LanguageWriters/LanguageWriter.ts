@@ -460,6 +460,11 @@ export abstract class LanguageWriter {
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
     abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression
+    // version of makeCast which uses TypeCheck.typeCast<T>(value) call for ETS language writer
+    // Use it only if TypeChecker class is added as import to the generated file
+    makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
+        return this.makeCast(value, type, options)
+    }
     abstract writePrintLog(message: string): void
     abstract makeUndefined(): LanguageExpression
     makeUnwrapOptional(expression: LanguageExpression): LanguageExpression {
@@ -745,6 +750,10 @@ export abstract class LanguageWriter {
     }
     instanceOf(convertor: ArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)
+    }
+    // The version of instanceOf() which does not use ArgConvertors
+    typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
+        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
     }
 
     makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {

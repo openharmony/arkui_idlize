@@ -106,32 +106,29 @@ class IdlSerializerPrinter {
             return
         }
         const baseType = idl.createReferenceType("MaterializedBase")
-        const unsafe = true // writer.language === Language.TS
-        writer.writeStatement(
+        const unsafe = writer.language === Language.TS
+        const writePtrStmts: LanguageStatement[] = [
             writer.makeAssign(
                 `base`,
                 baseType,
-                writer.makeCast(writer.makeString(`value`), baseType, { unsafe: unsafe }),
+                writer.makeTypeCast(writer.makeString(`value`), baseType, { unsafe: unsafe }),
                 true,
                 true
-            ))
-        writer.writeStatement(
-            writer.makeAssign(
+            ),
+        writer.makeAssign(
                 `peer`,
                 undefined,
                 writer.makeString(`base.getPeer()`),
                 true,
                 true
-            ))
-        writer.writeStatement(
+            ),
             writer.makeAssign(
                 `ptr`,
                 idl.IDLPointerType,
                 writer.makeString(`nullptr`),
                 true,
                 false
-            ))
-        writer.writeStatement(
+            ),
             writer.makeCheckOptional(
                 writer.makeString(`peer`),
                 writer.makeAssign(
@@ -141,14 +138,24 @@ class IdlSerializerPrinter {
                     false,
                     false,
                 )
-            )
-        )
-        writer.writeStatement(
+            ),
             writer.makeStatement(
                 writer.makeMethodCall(`valueSerializer`, `writePointer`, [
                     writer.makeString(`ptr`)
                 ])
-            ))
+            ),
+            writer.makeReturn(),
+        ]
+
+        writer.writeStatement(
+            writer.makeCondition(
+                writer.typeInstanceOf(
+                    MATERIALIZED_BASE,
+                    "value", [MATERIALIZED_BASE.properties[0].name]),
+                writer.makeBlock(writePtrStmts),
+                writer.makeThrowError("Value is not a MaterializedBase instance!")
+            )
+        )
     }
 
     private generateLengthSerializer() {
@@ -662,6 +669,12 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
             .forEach(it => collector.addFeature(it.feature, it.module))
     }
 }
+
+const MATERIALIZED_BASE = idl.createInterface(
+    "MaterializedBase",
+    idl.IDLInterfaceSubkind.Interface, [], [], [],
+    [idl.createProperty("peer", idl.IDLBooleanType)],
+)
 
 export function createSerializerDependencyFilter(language: Language): DependencyFilter {
     switch (language) {

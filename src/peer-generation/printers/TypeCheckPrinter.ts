@@ -134,6 +134,7 @@ abstract class TypeCheckerPrinter {
         imports.addFeature('KBoolean', '@koalaui/interop')
         imports.addFeature('KStringPtr', '@koalaui/interop')
         imports.addFeature('NativeBuffer', '@koalaui/interop')
+        imports.addFeature('MaterializedBase', './MaterializedBase')
         for (const feature of features) {
             imports.addFeature(feature.feature, feature.module)
         }
@@ -145,6 +146,10 @@ abstract class TypeCheckerPrinter {
         }
         imports.print(this.writer, 'arkts/type_check')
     }
+
+    protected abstract writeTypeInstanceOf(): void
+    protected abstract writeTypeCast(): void
+
     protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void
     protected abstract writeArrayChecker(typeName: string, type: idl.IDLContainerType): void
 
@@ -171,6 +176,8 @@ abstract class TypeCheckerPrinter {
         // To resolve this error need to use the patched panda sdk(npm run panda:sdk:build) or remove './' from paths in arktsconfig.json
         this.writeImports(importFeatures)
         this.writer.writeClass("TypeChecker", writer => {
+            this.writeTypeInstanceOf();
+            this.writeTypeCast();
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
             for (const array of arrays) {
@@ -208,6 +215,40 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         })
     }
 
+    protected writeTypeInstanceOf(): void {
+        this.writer.writeMethodImplementation(
+            new Method("typeInstanceOf",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType, idl.IDLStringType], ["value", "prop"]),
+                [MethodModifier.STATIC], ["T"]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value instanceof T`),
+                    )
+                )
+            }
+        )
+    }
+
+    protected writeTypeCast(): void {
+        this.writer.writeMethodImplementation(
+            new Method("typeCast",
+                new NamedMethodSignature(
+                    idl.createReferenceType("T"),
+                    [idl.IDLObjectType], ["value"]),
+                [MethodModifier.STATIC], ["T"]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value as T`),
+                    )
+                )
+            }
+        )
+    }
+
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
         this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length, [])
     }
@@ -226,6 +267,40 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         library: PeerLibrary
     ) {
         super(library, createLanguageWriter(Language.TS, getReferenceResolver(library)))
+    }
+
+    protected writeTypeInstanceOf(): void {
+        this.writer.writeMethodImplementation(
+            new Method("typeInstanceOf",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType, idl.IDLStringType], ["value", "prop"]),
+                [MethodModifier.STATIC], ["T"]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value.hasOwnProperty(prop)`),
+                    )
+                )
+            }
+        )
+    }
+
+    protected writeTypeCast(): void {
+        this.writer.writeMethodImplementation(
+            new Method("typeCast",
+                new NamedMethodSignature(
+                    idl.createReferenceType("T"),
+                    [idl.IDLObjectType], ["value"]),
+                [MethodModifier.STATIC], ["T"]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value as unknown as T`),
+                    )
+                )
+            }
+        )
     }
 
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor, type: idl.IDLType): void {

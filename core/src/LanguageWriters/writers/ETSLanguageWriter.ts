@@ -346,6 +346,18 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return super.instanceOf(convertor, value, duplicateMembers)
     }
+    override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
+        if (!members || members.length === 0) {
+            throw new Error("At least one member needs to provided to pass it to TypeChecker!")
+        }
+        const prop = members[0]
+        // Use the same typeInstanceOf<T>(...) method to compile the ETS code by two compilers ArkTS and TS
+        return this.makeString(`TypeChecker.typeInstanceOf<${this.getNodeName(type)}>(value, "${prop}")`)
+    }
+
+    makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
+        return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
+    }
     override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
         return new NamedMethodSignature(IDLVoidType, [], [])
     }
