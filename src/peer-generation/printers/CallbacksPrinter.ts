@@ -137,6 +137,10 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
     callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
         idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
     )
+    if (callbacksKindsEnum.elements.length === 0) {
+        // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
+        callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
+    }
     writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
 }
 
