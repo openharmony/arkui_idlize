@@ -295,7 +295,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {
         return `${enumName}.getIntValue()`
     }
-    override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override castToBoolean(value: string): string { return value }
     override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
         return new NamedMethodSignature(idl.IDLVoidType, [], [])
     }

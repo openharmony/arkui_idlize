@@ -45,6 +45,8 @@ declare class TextInputAttribute extends CommonMethod<TextInputAttribute> {
 
     contentType(value: ContentType): TextInputAttribute;
 
+    onCopy(callback: Callback<string>): TextInputAttribute;
+
     //~onEditChanged(callback: (isEditing: boolean) => void): TextInputAttribute;
 }
 

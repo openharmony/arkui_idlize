@@ -216,6 +216,7 @@ export class JavaInteropArgConvertor extends InteropArgConvertor {
         switch (type) {
             case idl.IDLNumberType: return "double"
             case idl.IDLLengthType: return "String"
+            case idl.IDLBooleanType: return "boolean"
         }
         return super.convertPrimitiveType(type)
     }

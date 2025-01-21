@@ -27,3 +27,7 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
 }
 
 declare const Navigation: NavigationInterface
+
+declare interface NavPathStack { 
+    (): NavigationAttribute
+}
