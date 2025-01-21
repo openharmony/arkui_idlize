@@ -486,6 +486,11 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
     return fs.readFileSync(file, 'utf8')
 }
 
+export function getInteropRootPath() {
+    const interopScriptPath = require.resolve('@koalaui/interop')
+    return path.resolve(interopScriptPath, '..', '..', '..', '..', '..')
+}
+
 export function makeAPI(
     apiVersion: string,
     headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
@@ -495,12 +500,13 @@ export function makeAPI(
     let prologue = readTemplate('arkoala_api_prologue.h')
     let epilogue = readTemplate('arkoala_api_epilogue.h')
 
+    const interopRootPath = getInteropRootPath()
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
         .replaceAll(`%INTEROP_TYPES_HEADER`,
             fs.readFileSync(
-                path.resolve(__dirname, '..', 'node_modules', '@koalaui', 'interop', 'src', 'cpp', 'interop-types.h'),
+                path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
                 'utf-8'
             )
         )

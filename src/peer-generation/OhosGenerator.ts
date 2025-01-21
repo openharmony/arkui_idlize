@@ -23,7 +23,7 @@ import { ArgConvertor } from '@idlize/core'
 import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
 import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
-import { makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
+import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { LanguageWriter, LanguageStatement } from '@idlize/core'
@@ -629,7 +629,8 @@ class OHOSVisitor {
                 .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
-        const interopTypesPath = path.resolve(__dirname, '..', 'node_modules', '@koalaui', 'interop', 'src', 'cpp', 'interop-types.h')
+        const interopRootPath = getInteropRootPath()
+        const interopTypesPath = path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h')
         const interopTypesContent = fs.readFileSync(interopTypesPath, 'utf-8')
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_prologue.h', Language.CPP)
