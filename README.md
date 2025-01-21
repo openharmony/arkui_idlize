@@ -1,4 +1,4 @@
-# IDLizer
+# <p> <img align="bottom" src="artwork/logo.svg" alt="logo" width="100"/> IDlize <p/>
 
 ## Description
 
