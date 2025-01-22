@@ -8,3 +8,5 @@ interface Materialized {};
 interface CallbackResource {};
 [CPPType=VMContext]
 interface VMContext {};
+[TSType=ESObject]
+interface ESObject {};
