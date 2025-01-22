@@ -524,7 +524,6 @@ function returnsThis(method: PeerMethod, returnType: IDLType) {
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,
     resultName: string, peerPtrName: string): LanguageStatement[] {
     const retType = signature.returnType
-    /*
     // TODO: Use "ClassNameInternal.fromPtr(ptr)"
     // once java is generated in the same way as typescript for materialized classes
     const internalClassName = getInternalClassName(forceAsNamedNode(retType).name)
@@ -535,11 +534,12 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
             writer.makeMethodCall(internalClassName, "fromPtr", [writer.makeString(peerPtrName)]),
             true),
     ]
-    */
+    /*
     return [
         writer.makeAssign(`${resultName}`, retType, writer.makeNewObject(forceAsNamedNode(retType).name), true),
-        writer.makeAssign(`${resultName}.peer`, createReferenceType("Finalizable"),
+-        writer.makeAssign(`${resultName}.peer`, createReferenceType("Finalizable"),
             writer.makeNewObject('Finalizable', [writer.makeString(peerPtrName), writer.makeString(`${forceAsNamedNode(retType).name}.getFinalizer()`)]),
             false),
     ]
+    */
 }

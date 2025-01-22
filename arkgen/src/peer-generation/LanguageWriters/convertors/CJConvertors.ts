@@ -47,7 +47,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertInterface(node: idl.IDLInterface): string {
-        throw new Error('Method not implemented.')
+        return node.name
     }
     convertEnum(node: idl.IDLEnum): string {
         return node.name

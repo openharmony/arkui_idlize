@@ -1,14 +1,13 @@
 /.idea/
-/.rollup.cache/
 /.vscode/
 /build/
 /core/build/
 /generated/
-/out/
+/out
+/arkgen/out/
 /.packages/
 /idl/
 /interface_sdk-js/
-/lib/
 /node_modules/
 /panda/node_modules/
 /sdk/

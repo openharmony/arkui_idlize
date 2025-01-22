@@ -18,6 +18,7 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
     CheckOptionalStatement,
+    ClassModifier,
     FieldModifier,
     LambdaExpression,
     LanguageExpression,
@@ -134,11 +135,11 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
-    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[]): void {
+    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport: boolean = true): void {
         let genericsClause = generics?.length ? `<${generics.join(', ')}> ` : ``
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        this.printer.print(`public class ${name}${genericsClause}${extendsClause}${implementsClause} {`) // TODO check for multiple classes in file
+        this.printer.print(`${isExport ? 'public ' : ''}class ${name}${genericsClause}${extendsClause}${implementsClause} {`) // TODO check for multiple classes in file
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -241,7 +242,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return value
     }
     makeUndefined(): LanguageExpression {
-        return this.makeString("undefined")
+        return this.makeString("null")
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)

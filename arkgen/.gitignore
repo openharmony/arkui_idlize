@@ -1,0 +1,6 @@
+/.rollup.cache/
+/interface_sdk-js/
+/lib/
+/sdk/
+/native/*.so
+/native/NativeBridgeNapi.node

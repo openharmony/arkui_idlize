@@ -204,13 +204,15 @@ export class OverloadsPrinter {
             if (orderedMethods.length > 1) {
                 const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                     const argName = collapsedMethod.signature.argName(argIndex)
+                    this.printer.language == Language.JAVA ?
+                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                     return new UnionRuntimeTypeChecker(
                         orderedMethods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
                 })
                 orderedMethods.forEach((peerMethod, methodIndex) =>
                     this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers))
-                writer.print(`throw new Error("Can not select appropriate overload")`)
+                writer.makeThrowError(`Can not select appropriate overload`).write(writer)
             } else {
                 this.printPeerCallAndReturn(peer, collapsedMethod, orderedMethods[0])
             }
@@ -251,7 +253,10 @@ export class OverloadsPrinter {
             const castedType = peerMethod.method.signature.args[index]
             if (this.printer.language == Language.CJ) {
                 this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
-            } else {
+            } else if (this.printer.language == Language.JAVA) {
+                this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
+            }
+            else {
                 this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.getNodeName(castedType)})`)
             }
             return castedArgName

@@ -322,7 +322,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
         let extendsClause = superInterfaces ? ` <: ${superInterfaces.join(" & ")}` : ''
-        this.printer.print(`interface ${name}${extendsClause} {`)
+        this.printer.print(`public interface ${name}${extendsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -503,6 +503,12 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression {
         return new CJCastExpression(value, this.getNodeName(type), options?.unsafe ?? false)
+    }
+    typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
+        if (idl.isInterface(type)) {
+            return this.makeString(`${value} is ${this.getNodeName(type)}`)
+        }
+        throw new Error(`typeInstanceOf fails: not class or interface: ${this.getNodeName(type)}`)
     }
     getObjectAccessor(convertor: BaseArgConvertor, value: string, args?: ObjectArgs): string {
         return `${value}`

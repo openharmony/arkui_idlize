@@ -153,7 +153,7 @@ class IdlSerializerPrinter {
                     MATERIALIZED_BASE,
                     "value", [MATERIALIZED_BASE.properties[0].name]),
                 writer.makeBlock(writePtrStmts),
-                writer.makeThrowError("Value is not a MaterializedBase instance!")
+                writer.makeBlock([writer.makeThrowError("Value is not a MaterializedBase instance!")])
             )
         )
     }
