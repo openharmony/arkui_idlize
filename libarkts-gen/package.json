@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlize/core": "2.0.0+devel",
+    "@idlize/core": "2.0.2+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
@@ -28,11 +28,12 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
-    "compile": "rollup -c",
+    "compile:core": "npm run --prefix ../core compile",
+    "compile": "npm run compile:core && rollup -c",
     "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/ --libarkts-transform",
     "subset": "npm run compile && node . --input-file ./input/subset.idl --output-dir ./out/subset",
     "full": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/full",
-    "integrate:some": "npm run compile && node . --input-file ./input/full.idl --output-dir ../external/arkoala-arkts/ --interfaces FunctionSignature --methods ParamsConst --files bridges && npm run external:test",
+    "integrate:some": "npm run compile && node . --input-file ./input/full.idl --output-dir ../external/arkoala-arkts/ --interfaces FunctionSignature,ClassElement --methods ParamsConst,ToPrivateFieldKindConst --files bridges && npm run external:test",
     "external:test": "npm run --prefix ../external/arkoala-arkts/libarkts test"
   }
 }

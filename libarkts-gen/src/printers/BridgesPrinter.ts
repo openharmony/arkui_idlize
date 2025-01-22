@@ -14,6 +14,9 @@
  */
 
 import {
+    convertType,
+    CppLanguageWriter,
+    createEmptyReferenceResolver,
     createMethod,
     createParameter,
     createReferenceType,
@@ -21,29 +24,22 @@ import {
     IDLContainerUtils,
     IDLKind,
     IDLMethod,
-    IDLPointerType,
     IDLReferenceType,
-    IDLU32Type,
     IndentedPrinter,
-    isTypedef,
-    isVoidType,
-    throwException
-} from "@idlize/core"
-import {
-    IDLEntry,
-    IDLInterface,
-    IDLParameter,
-    IDLType,
-    isInterface,
     isContainerType,
-    isEnum,
     isPrimitiveType,
     isReferenceType,
-} from "@idlize/core/idl"
+    isTypedef,
+    isVoidType,
+    MethodSignature,
+    throwException
+} from "@idlize/core"
+import { IDLEntry, IDLInterface, IDLParameter, IDLType, isEnum, isInterface, } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "../NativeTypeConvertor"
-import { convertType } from "@idlize/core"
 import { IDLFile } from "../Es2PandaTransformer"
 import { Config } from "../Config"
+import { PrimitiveTypes } from "./PrimitiveTypeList"
+import { bridgesConstructions } from "./BridgesConstructions"
 
 export class BridgesPrinter {
     constructor(
@@ -51,12 +47,20 @@ export class BridgesPrinter {
         private config: Config
     ) { }
 
-    private printer = new IndentedPrinter()
     private convertor = new NativeTypeConvertor(this.idl.entries)
+
+    private constructions = bridgesConstructions
+
+    private writer = new CppLanguageWriter(
+        new IndentedPrinter(),
+        createEmptyReferenceResolver(),
+        { convert : (node: IDLType) => this.mapType(node) },
+        new PrimitiveTypes()
+    )
 
     print(): string {
         this.idl.entries.forEach(it => this.visit(it))
-        return this.printer.getOutput().join('\n')
+        return this.writer.getOutput().join('\n')
     }
 
     private visit(node: IDLEntry): void {
@@ -70,65 +74,31 @@ export class BridgesPrinter {
     private visitInterface(node: IDLInterface): void {
         if (!this.config.shouldEmitInterface(node.name)) return
         node.methods
-            .filter(it => !this.config.paramArray(`handwrittenMethods`).includes(it.name))
-            .forEach(it => this.printMethod(it, node))
+            .filter(it => this.config.shouldEmitMethod(it.name))
+            .forEach(it => this.visitMethod(it, node))
     }
 
-    private printParameters(parameters: IDLParameter[]): void {
-        parameters.forEach((it, index, array) => {
-            const comma = index === array.length - 1 ? `` : `,`
-            this.printer.print(`${this.mapType(it.type)} ${it.name}${comma}`)
-        })
+    private printInteropMacro(node: IDLMethod): void {
+        const isVoid = isVoidType(node.returnType)
+        const macro = this.constructions.interopMacro(isVoid, node.parameters.length)
+        this.writer.writeExpressionStatement(
+            this.writer.makeFunctionCall(
+                macro,
+                [node.name]
+                    .concat(isVoid ? [] : this.mapType(node.returnType))
+                    .concat(node.parameters.map(it => this.mapType(it.type)))
+                    .map(it => this.writer.makeString(it))
+            )
+        )
     }
 
-    private printInteropMacro(constructorName: string, returnType: IDLType, parameters: IDLParameter[]): void {
-        if (isVoidType(returnType)) return this.printVoidInteropMacro(constructorName, parameters)
-
-        const args = [
-            constructorName,
-            this.mapType(returnType),
-            ...parameters.map(it => this.mapType(it.type))
-        ].join(`, `)
-        this.printer.print(`${this.config.interopMacroPrefix(false)}${parameters.length}(${args})`)
-    }
-
-    private printVoidInteropMacro(constructorName: string, parameters: IDLParameter[]): void {
-        const args = [
-            constructorName,
-            ...parameters.map(it => this.mapType(it.type))
-        ]
-        this.printer.print(`${this.config.interopMacroPrefix(true)}${parameters.length}(${args})`)
-    }
-
-    private printBody(constructorName: string, returnType: IDLType, parameters: IDLParameter[]): void {
-        this.printer.print(`return GetImpl()->${constructorName}(`)
-        this.printer.withIndent(() => {
-            const isSequence = IDLContainerUtils.isSequence(returnType)
-            parameters.forEach((it, index, array) => {
-                const comma = this.shouldPrintComma(index, array, isSequence)
-                    ? `,`
-                    : ``
-                this.printer.print(`${this.casted(it)}${comma}`)
-            })
-            if (isSequence) {
-                this.printer.print(`&ignoreReturnSequenceLen`)
-            }
-        })
-        this.printer.print(`);`)
-    }
-
-    private shouldPrintComma<T>(index: number, parameters: T[], extraParameter: boolean): boolean {
-        if (extraParameter) return true
-        return index !== parameters.length - 1;
-    }
-
-    private casted(node: IDLParameter): string {
-        if (isPrimitiveType(node.type)) return node.name
+    private cast(node: IDLParameter): string {
+        if (isPrimitiveType(node.type)) return this.constructions.primitiveTypeCast(this.mapType(node.type)) // TODO: check
         if (isReferenceType(node.type) || isContainerType(node.type)) {
             const castTo = this.castTo(node.type)
             return castTo === undefined
-                ? node.name
-                : `reinterpret_cast<${castTo}>(${node.name})`
+                ? ``
+                : this.constructions.referenceTypeCast(castTo)
         }
         throw new Error(`Unsupported type: ${node.type}`)
     }
@@ -138,7 +108,10 @@ export class BridgesPrinter {
         if (isReferenceType(node)) {
             /* Temporary workaround until .idl is fixed */
             if (node.name === `es2panda_Context`) return `${node.name}*`
-            return `${this.config.typePrefix}${node.name}*`
+            if (node.name === `es2panda_AstNode`) return `${node.name}*`
+            if (node.name === `es2panda_Impl`) return `${node.name}*`
+
+            return `${this.constructions.referenceType(node.name)}*`
         }
         if (isContainerType(node)) {
             if (IDLContainerUtils.isSequence(node)) {
@@ -151,7 +124,7 @@ export class BridgesPrinter {
                     console.warn(`Warning: doing nothing for sequence<${JSON.stringify(typeParam)}>`)
                     return undefined
                 }
-                return `${this.config.typePrefix}${typeParam.name}**`
+                return `${this.constructions.referenceType(typeParam.name)}**`
             }
         }
 
@@ -162,35 +135,29 @@ export class BridgesPrinter {
         return convertType(this.convertor, node)
     }
 
-    private printMethod(node: IDLMethod, parent: IDLInterface): void {
-        if (!this.config.shouldEmitMethod(node.name)) return
-
-        node = this.transform(node, parent)
-        this.printFunction(
-            `${this.config.methodFunction(parent.name, node.name)}`,
-            node.parameters,
-            node.returnType
-        )
+    private visitMethod(node: IDLMethod, parent: IDLInterface): void {
+        this.printFunction(this.transform(node, parent))
     }
 
-    private printFunction(name: string, parameters: IDLParameter[], returnType: IDLType): void {
-        this.printer.print(`${this.mapType(returnType)} ${this.config.implFunction(name)}(`)
-        this.printer.withIndent(() =>
-            this.printParameters(parameters)
+    private printFunction(node: IDLMethod): void {
+        this.writer.writeFunctionImplementation(
+            this.constructions.implFunction(node.name),
+            new MethodSignature(
+                node.returnType,
+                node.parameters.map(it => it.type),
+                undefined,
+                undefined,
+                node.parameters.map(it => it.name)
+            ),
+            (writer) => this.printBody(writer, node)
         )
-        this.printer.print(`) {`)
-        this.printer.withIndent(() =>
-            this.printBody(name, returnType, parameters)
-        )
-        this.printer.print(`}`)
-
-        this.printInteropMacro(name, returnType, parameters)
-        this.printer.print(``)
+        this.printInteropMacro(node)
     }
 
     private transform(node: IDLMethod, parent: IDLInterface): IDLMethod {
         node = this.withInsertedReceiver(node, parent)
         node = this.withSplitSequenceParameter(node)
+        node = this.withQualifiedName(node, parent)
         return node
     }
 
@@ -203,7 +170,10 @@ export class BridgesPrinter {
         copy.parameters.splice(
             1,
             0,
-            createParameter(`receiver`, createReferenceType(parent.name))
+            createParameter(
+                this.constructions.receiverName,
+                createReferenceType(parent.name)
+            )
         )
         return copy
     }
@@ -214,12 +184,12 @@ export class BridgesPrinter {
                 IDLContainerUtils.isSequence(it)
                     ? [
                         createParameter(
-                            `${it.name}ArrayPointer`,
-                            IDLPointerType
+                            this.constructions.sequenceParameterPointer(it.name),
+                            this.config.sequencePointerType
                         ),
                         createParameter(
-                            `${it.name}ArrayLength`,
-                            IDLU32Type
+                            this.constructions.sequenceParameterLength(it.name),
+                            this.config.sequenceLengthType
                         )
                     ]
                     : it
@@ -228,6 +198,61 @@ export class BridgesPrinter {
             node.name,
             parameters,
             node.returnType
+        )
+    }
+
+    private withQualifiedName(node: IDLMethod, parent: IDLInterface): IDLMethod {
+        return createMethod(
+            `${this.config.methodFunction(parent.name, node.name)}`,
+            node.parameters,
+            node.returnType
+        )
+    }
+
+    private printBody(writer: CppLanguageWriter, node: IDLMethod) {
+        const isSequence = IDLContainerUtils.isSequence(node.returnType)
+
+        node.parameters
+            .forEach(it => writer.writeStatement(
+                writer.makeAssign(
+                    this.constructions.castedParameterName(it.name),
+                    undefined,
+                    writer.makeFunctionCall(
+                        this.cast(it),
+                        [writer.makeString(it.name)]
+                    )
+                )
+            ))
+        if (isSequence) {
+            writer.writeExpressionStatement(
+                writer.makeString(this.constructions.sequenceLengthDeclaration)
+            )
+        }
+        writer.writeStatement(
+            writer.makeAssign(
+                this.constructions.resultName,
+                undefined,
+                writer.makeFunctionCall(
+                    this.constructions.callMethod(node.name),
+                    node.parameters
+                        .map(it => ({
+                            asString: () => this.constructions.castedParameterName(it.name),
+                        }))
+                        .concat(isSequence ? writer.makeString(this.constructions.sequenceLengthPass) : [])
+                )
+            )
+        )
+        writer.writeStatement(
+            writer.makeReturn(
+                writer.makeString(
+                    isSequence
+                        ? this.constructions.sequenceConstructor(
+                            this.constructions.resultName,
+                            this.constructions.sequenceLengthUsage
+                        )
+                        : this.constructions.resultName
+                )
+            )
         )
     }
 }

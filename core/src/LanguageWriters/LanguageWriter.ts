@@ -382,11 +382,12 @@ export class MethodSignature {
         public returnType: idl.IDLType,
         public args: idl.IDLType[],
         public defaults: stringOrNone[]|undefined = undefined,
-        public printHints?: MethodArgPrintHintOrNone[]
+        public printHints?: MethodArgPrintHintOrNone[],
+        public argNames?: string[]
     ) {}
 
     argName(index: number): string {
-        return `arg${index}`
+        return this?.argNames?.at(index) ?? `arg${index}`
     }
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]

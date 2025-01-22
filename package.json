@@ -8,7 +8,8 @@
     "demos/*",
     "arkgen",
     "core",
-    "linter"
+    "linter",
+    "libarkts-gen"
   ],
   "license": "Apache-2.0",
   "keywords": [],

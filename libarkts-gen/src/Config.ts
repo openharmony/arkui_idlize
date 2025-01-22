@@ -13,59 +13,56 @@
  * limitations under the License.
  */
 
-import { GeneratorConfiguration, throwException } from "@idlize/core"
+import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
 
-export class Config implements GeneratorConfiguration {
+export class Config {
     constructor(
         private interfacesGenerateFor?: string[],
         private methodsGenerateFor?: string[]
     ) {}
 
-    private implPrefix = `impl_`
     private nativeModulePrefix = `_`
 
-    param<T>(name: string): T {
-        throw new Error("Method not implemented.")
-    }
-    paramArray<T>(name: string): T[] {
-        if (name === `handwrittenMethods`) return [
-            `CreateConfig`, // sequence<String>
-            `ProgramExternalSources`, // sequence<sequence>
-            `ExternalSourcePrograms`, // sequence<sequence>
-            `ProtectionFlagConst` // u8
-        ] as T[]
-        throwException(`Unexpected name: ${name}`)
-    }
+    private handwrittenMethods =new Set([
+        `CreateConfig`, // sequence<String>
+        `ProgramExternalSources`, // sequence<sequence>
+        `ExternalSourcePrograms`, // sequence<sequence>
+        `ProtectionFlagConst` // u8
+    ])
 
-    get typePrefix() {
-        return `es2panda_`
-    }
+    private handwrittenInterfaces = new Set<string>([])
 
     get nativeModuleName() {
         return `Es2pandaNativeModule`
-    }
-
-    interopMacroPrefix(isVoid: boolean): string {
-        return `KOALA_INTEROP_${isVoid ? `V` : ``}`
     }
 
     methodFunction(interfaceName: string, methodName: string): string {
         return `${interfaceName}${methodName}`
     }
 
-    implFunction(name: string): string {
-        return `${this.implPrefix}${name}`
-    }
-
     nativeModuleFunction(name: string): string {
         return `${this.nativeModulePrefix}${name}`
     }
 
+    get sequencePointerType(): IDLPrimitiveType {
+        return IDLPointerType
+    }
+
+    get sequenceLengthType(): IDLPrimitiveType {
+        return IDLU32Type
+    }
+
     shouldEmitInterface(name: string): boolean {
-        return this.interfacesGenerateFor?.includes(name) ?? true
+        if (this.interfacesGenerateFor !== undefined) {
+            return this.interfacesGenerateFor.includes(name)
+        }
+        return !this.handwrittenInterfaces.has(name)
     }
 
     shouldEmitMethod(name: string): boolean {
-        return this.methodsGenerateFor?.includes(name) ?? true
+        if (this.methodsGenerateFor !== undefined) {
+            return this.methodsGenerateFor.includes(name)
+        }
+        return !this.handwrittenMethods.has(name)
     }
 }

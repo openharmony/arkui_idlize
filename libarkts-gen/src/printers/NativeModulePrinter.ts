@@ -78,7 +78,7 @@ export class NativeModulePrinter {
 
     private visitInterface(node: IDLInterface): void {
         node.methods
-            .filter(it => !this.config.paramArray(`handwrittenMethods`).includes(it.name))
+            .filter(it => this.config.shouldEmitMethod(it.name))
             .forEach(it =>
                 this.printMethod(node, it)
             )
