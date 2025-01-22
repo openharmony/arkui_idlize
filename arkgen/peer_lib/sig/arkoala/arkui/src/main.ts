@@ -548,7 +548,7 @@ function checkTabContent() {
 
     checkResult("new BottomTabBarStyle()",
         () => peer.tabBar1Attribute(bottomTabBarStyle),
-        `tabBar({.selector=0, .value0={._content={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._indicator={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._selectedMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._board={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="bottomId", .length=8}}}})`
+        `tabBar({.selector=1, .value1={._icon={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.selector=0, .value0={.chars="Icon", .length=4}}}}, ._text={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.chars="Text", .length=4}}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}, ._layoutMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._verticalAlign={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._symmetricExtensible={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="bottomId", .length=8}}, ._iconStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)

@@ -262,8 +262,6 @@ export class ClassConvertor extends InterfaceConvertor { //
                                 index: number,
                                 writer: LanguageWriter,
                                 duplicateMembers: Set<string>): LanguageExpression | undefined {
-        // SubTabBarStyle causes inscrutable "SubTabBarStyle is not defined" error
-        if (this.declaration.name === "SubTabBarStyle") return undefined
         return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
             [writer.instanceOf(this, value, duplicateMembers)])
     }
