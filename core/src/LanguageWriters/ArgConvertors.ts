@@ -639,6 +639,11 @@ export class UnionConvertor extends BaseArgConvertor { //
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         return language === Language.CPP && args?.index ? `${value}.value${args.index}` : value
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        const checker = new UnionRuntimeTypeChecker(this.memberConvertors)
+        return writer.makeNaryOp("||",
+            this.memberConvertors.map((_, n) => checker.makeDiscriminator(value, n, writer)))
+    }
 }
 
 export class FunctionConvertor extends BaseArgConvertor { //
