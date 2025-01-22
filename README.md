@@ -3,7 +3,7 @@
 ## Description
 
 This folder contains collection of tools for analyzing and transformation of
-.d.ts files, with aim of exposing ArkUI interfaces to more languages and runtimes.
+.d.ts and idl files, with aim of exposing native interfaces to managed languages and runtimes.
 
 ## Tools available
 
@@ -24,7 +24,7 @@ lockfile=false
 ```
 Using:
 ```
-npx @azanat/idlize@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
+npx @idlize/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
 ```
 
 Run:
@@ -33,6 +33,7 @@ cd idlize
 git submodule update --init
 git submodule update --remote
 npm i
+cd arkgen
 npm run compile
 ```
 
@@ -40,7 +41,7 @@ npm run compile
 
 Given interface definitions it will produce for libace
   * For libace interface
-    * arkoala_api.h header
+    * arkoala_api_generated.h header
     * api discovery code
     * component modifiers
     * etc
@@ -108,7 +109,7 @@ Linter support whitelist files in JSON:
     }
 }
 ```
-can be passed with `--linter-whitelist whitelist.json`.
+can be passed with `--whitelist whitelist.json`.
 
 ### IDL generator
 
@@ -118,21 +119,9 @@ can be passed with `--linter-whitelist whitelist.json`.
 ```bash
 cd idlize
 npm i
+cd arkgen
 npm run compile
 node . --dts2idl --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/component --output-dir ./idl
 ```
 
 Results are in `./idl/` folder.
-
-### Typescript declaration files generator
-
-Tool producing set of typescript declaration files from .idl interface definitions.
-
-```bash
-cd idlize
-npm i
-npm run compile
-node . --idl2dts --input-dir ./test/from-idl/idl --output-dir ./dts
-```
-
-Results are in `./dts` folder.

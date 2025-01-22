@@ -6,7 +6,7 @@ project('NativeBridge', 'c', 'cpp',
 is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
 
-external_interop_dir = '../../external/interop/src/cpp'
+external_interop_dir = '../../../external/interop/src/cpp'
 
 cflags = ['-DKOALA_INTEROP_MODULE=NativeModule']
 ldflags = []

@@ -29,8 +29,8 @@ if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cang
 else
 endif
 arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
-external_framework_dir = '../external/arkoala/framework/native/src'
-external_interop_dir = '../external/interop/src/cpp'
+external_framework_dir = '../../external/arkoala/framework/native/src'
+external_interop_dir = '../../external/interop/src/cpp'
 libace_dir = gen_dir / 'libace'
 
 cxx = meson.get_compiler('cpp')

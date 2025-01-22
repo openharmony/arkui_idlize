@@ -6,9 +6,9 @@
             "#components": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
             "@arkoala/arkui": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated"],
             "@koalaui/interop": ["./external/interop/src/arkts"],
-            "@koalaui/common": ["./external/incremental/common/src"],
-            "@koalaui/compat": ["./external/incremental/compat/src/arkts"],
-            "@koalaui/runtime": ["./external/incremental/runtime/src"]
+            "@koalaui/common": ["../external/incremental/common/src"],
+            "@koalaui/compat": ["../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../external/incremental/runtime/src"]
         }
     },
     "include": ["./out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/main.ts"]

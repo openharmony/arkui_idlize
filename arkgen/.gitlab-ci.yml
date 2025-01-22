@@ -1,0 +1,290 @@
+image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
+
+stages:
+  - build
+  - test
+  - pre-deploy
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+include:
+    - gitlab/setup.yml
+    - gitlab/npm.yml
+    - libarkts-gen/.gitlab-ci.yml
+
+idlize sanity:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+  script:
+    - npm run sanity
+
+pg java:run:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+  script:
+    - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64 npm run run:java
+
+run arkts subset:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+  script:
+    - npm run run:panda:subset
+
+compile arkts peers:
+  stage: test
+  when: manual
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+  script:
+    - npm run make:compile:arkts:peers
+
+arkts subset tsc:
+   allow_failure: true
+   stage: test
+   tags:
+     - idlize-ci
+     - koala-ci
+   before_script:
+     - !reference [.setup, script]
+     - cd $CI_PROJECT_DIR/arkgen
+   script:
+     - npm run check:arkts:subset:tsc
+
+arkts subset sig integration:
+  allow_failure: true
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+  script:
+    - npm run sig:arkts:subset:all
+
+build arkoala-ts:
+  allow_failure: true
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+  script:
+    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:ts
+
+#build arkoala-ts-native-arm64:
+#  stage: test
+#  allow_failure: true
+#  tags:
+#    - idlize-ci
+#    - koala-ci
+#  before_script:
+#    - !reference [.setup, script]
+#  script:
+#    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:ts:native:arm64
+#
+#build arkoala-ts-native-arm32:
+#  stage: test
+#  allow_failure: true
+#  tags:
+#    - idlize-ci
+#    - koala-ci
+#  before_script:
+#    - !reference [.setup, script]
+#  script:
+#    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:ts:native:arm32
+
+# todo: enable when meson is configured on CI
+#build arkoala.har:
+#  stage: test
+#  tags:
+#    - idlize-ci
+#    - koala-ci
+#  before_script:
+#    - !reference [.setup, script]
+#  script:
+#    - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:har-arm32
+#    - cp $CI_PROJECT_DIR/external/arkoala/har/app/arkoala/build/default/outputs/default/arkoala.har $CI_PROJECT_DIR/
+#  artifacts:
+#      expire_in: 1 week
+#      paths:
+#          - arkoala.har
+
+# Build targets
+build idlize-arkgen:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+  script:
+    - npm run compile
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - arkgen/build
+      - arkgen/lib
+      - arkgen/out
+
+
+build idlize-core:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/core
+  script:
+    - npm run compile
+  needs: []
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - core/build
+
+build idlize-linter:
+  stage: build
+  tags:
+  - idlize-ci
+  - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/linter
+  script:
+    - npm run compile
+  needs:
+    - build idlize-core
+  artifacts:
+    expire_in: 2 days
+    paths:
+      - linter/build
+
+# Pack targets
+pack idlize-arkgen:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: arkgen
+  needs:
+    - build idlize-arkgen
+
+pack idlize-core:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: core
+  needs:
+    - build idlize-core
+
+pack idlize-linter:
+  extends:
+    - .npm-pack
+  variables:
+    PACKAGE_DIR: linter
+  needs:
+    - build idlize-linter
+
+
+# Publish targets
+publish idlize-arkgen:
+  extends:
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: arkgen
+  dependencies:
+    - build idlize-arkgen
+
+publish idlize-core:
+  extends:
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: core
+  dependencies:
+    - build idlize-core
+
+publish idlize-linter:
+  extends:
+    - .npm-publish
+  variables:
+    PACKAGE_DIR: linter
+  dependencies:
+    - build idlize-linter
+
+
+check index-full:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    before_script:
+      - !reference [.setup, script]
+      - cd $CI_PROJECT_DIR/arkgen
+    script:
+        - npm run check:peers
+        - npm run check:index-full:ts
+        - npm run make:ts:subset
+        - npm run check:index-full:subset:ts
+        - npm run make:arkts
+        - npm run check:index-full:arkts:subset
+        - npm run make:arkts:peers
+        - npm run check:index-full:arkts
+
+check generated XML demo:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    before_script:
+      - !reference [.setup, script]
+      - cd $CI_PROJECT_DIR/arkgen
+      - PANDA_SDK_VERSION=next npm run panda:sdk:install
+      - chmod +x ../external/incremental/tools/panda/arkts/ark{,tsc,link,disasm}
+      - npm run compile --prefix ../external/interop
+      - npm run compile --prefix ../external/incremental/common
+      - npm run compile --prefix ../external/incremental/compat
+      - npm run compile --prefix ../external/incremental/runtime
+      - npm run build:interop:inc --prefix ../external/interop
+      - npm run build:incremental:inc --prefix ../external/incremental/runtime
+    script:
+      - npm run run:xml
+      - npm run run:xml:arkts
+      - cd demos/xml
+      - rm -rf generated
+      - cp -r ../../out/xml/generated generated
+      - npm run compile:node
+      - npm start
+      - npm run compile:panda
+      - npm run start:panda

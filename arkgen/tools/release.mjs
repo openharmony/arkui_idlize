@@ -15,10 +15,10 @@
 
 import fs from "fs"
 import path from "path"
-import { Version, Git, writeToPackageJson, IDLIZE_HOME, IDLIZE_CORE, IDLIZE_LINTER, publishToOpenlab, replaceInJson } from "./utils.mjs"
+import { Version, Git, writeToPackageJson, IDLIZE_ARKGEN, IDLIZE_CORE, IDLIZE_LINTER, publishToOpenlab, replaceInJson } from "./utils.mjs"
 
 const files = [
-    path.join(IDLIZE_HOME, "package.json"),
+    path.join(IDLIZE_ARKGEN, "package.json"),
     path.join(IDLIZE_CORE, "package.json"),
     path.join(IDLIZE_LINTER, "package.json")
 ]

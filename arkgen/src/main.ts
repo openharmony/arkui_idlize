@@ -201,10 +201,10 @@ if (options.dts2skoala) {
             compilerOptions: {
                 ...defaultCompilerOptions,
                 paths: {
-                    "@koalaui/common": ["/home/huawei/idlize/external/incremental/common/src"],
-                    "@koalaui/compat": ["/home/huawei/idlize/external/incremental/compat/src/typescript"],
-                    "@koalaui/interop": ["/home/huawei/idlize/external/interop/src/interop"],
-                    "@koalaui/arkoala": ["/home/huawei/idlize/external/arkoala/framework/src"],
+                    "@koalaui/common": ["../external/incremental/common/src"],
+                    "@koalaui/compat": ["../external/incremental/compat/src/typescript"],
+                    "@koalaui/interop": ["../external/interop/src/interop"],
+                    "@koalaui/arkoala": ["../external/arkoala/framework/src"],
                 },
             },
             onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {

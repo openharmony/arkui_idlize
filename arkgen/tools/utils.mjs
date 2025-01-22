@@ -7,6 +7,7 @@ import { execSync } from "child_process"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 export const IDLIZE_HOME = path.join(__dirname, "..")
+export const IDLIZE_ARKGEN = path.join(__dirname, "../arkgen")
 export const IDLIZE_CORE = path.join(__dirname, "../core")
 export const IDLIZE_LINTER = path.join(__dirname, "../linter")
 

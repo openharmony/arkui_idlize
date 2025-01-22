@@ -13,18 +13,18 @@
         "skipLibCheck": true,
         "removeComments": false,
         "outDir": "build/lib",
-        "rootDirs": ["external/arkoala-arkts/loader/src", "external/incremental", "external/interop"],
+        "rootDirs": ["../external/arkoala-arkts/loader/src", "../external/incremental", "../external/interop"],
         "module": "CommonJS",
         "baseUrl": ".",
         "paths": {
-            "@koalaui/interop": ["./external/interop/src/arkts"],
-            "@koalaui/common": ["./external/incremental/common/src"],
-            "@koalaui/compat": ["./external/incremental/compat/src/typescript"],
+            "@koalaui/interop": ["../external/interop/src/arkts"],
+            "@koalaui/common": ["../external/incremental/common/src"],
+            "@koalaui/compat": ["../external/incremental/compat/src/typescript"]
         }
     },
-    "include": ["./external/arkoala-arkts/loader/src/loader.ts"],
+    "include": ["../external/arkoala-arkts/loader/src/loader.ts"],
     "references": [
-        { "path": "./external/incremental/common" },
-        { "path": "./external/interop" },
-    ],
+        { "path": "../external/incremental/common" },
+        { "path": "../external/interop" }
+    ]
 }
