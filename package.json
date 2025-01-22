@@ -1,8 +1,8 @@
 {
   "name": "@idlize/workspace",
   "private": true,
-  "version": "2.0.2+devel",
-  "description": "",
+  "version": "2.0.5",
+  "description": "idlize hash of head: acf352e",
   "workspaces": [
     "core/webidl2.js",
     "demos/*",
@@ -13,7 +13,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
-    "release": "npm run -C arkgen release",
-    "sanity": "npm run -C arkgen check:subset:run && npm run -C arkgen check:peers:run && npm run -C arkgen run:all && npm run -C linter run && npm run -C arkgen make:arkts"
+    "release": "npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && node tools/release.mjs",
+    "sanity": "npm run -C arkgen sanity && npm run -C linter run"
   }
 }

@@ -157,6 +157,7 @@
     "check:index-full:arkts:subset": "tsc --target esnext --lib esnext --types chai --noEmit out/arkts-subset/generated/sig/arkoala-arkts/arkui/types/index-full.d.ts",
     "test:core": "mocha ../core/test",
     "test:root": "mocha test",
-    "test": "npm run test:core && npm run test:root"
+    "test": "npm run test:core && npm run test:root",
+    "sanity": "npm run check:subset:run && npm run check:peers:run && npm run run:all && npm run make:arkts"
   }
 }
