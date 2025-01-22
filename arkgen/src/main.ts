@@ -138,6 +138,8 @@ class SkoalaConfiguration extends DefaultConfig {
     }
 }
 
+// TBD: OhosConfiguration needs to include LibraryPrefix
+// from the library name
 class OhosConfiguration extends DefaultConfig {
     protected params: Record<string, any> = {
         TypePrefix: "OH_",

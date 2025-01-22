@@ -26,7 +26,9 @@ export class CppIDLNodeToStringConvertor extends InteropConverter implements Idl
         if (result.noPrefix) {
             return result.text
         }
-        return `${generatorConfiguration().param("TypePrefix")}${result.text}`
+        const conf = generatorConfiguration()
+        const prefix = `${conf.param("TypePrefix")}${conf.param("LibraryPrefix")}`
+        return `${prefix}${result.text}`
     }
 
     convert(node: idl.IDLNode): string {

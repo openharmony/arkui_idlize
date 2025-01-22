@@ -18,7 +18,7 @@ import * as path from 'path'
 import * as idl from '@idlize/core/idl'
 
 import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
-import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration } from '@idlize/core'
+import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration, GeneratorConfiguration, setDefaultConfiguration } from '@idlize/core'
 import { ArgConvertor } from '@idlize/core'
 import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
@@ -39,6 +39,7 @@ import { MaterializedClass, MaterializedMethod } from './Materialized'
 import { PeerMethod } from './PeerMethod'
 import { writePeerMethod } from './printers/PeersPrinter'
 import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors";
+import { PeerGeneratorConfig } from './PeerGeneratorConfig'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -100,8 +101,9 @@ class OHOSVisitor {
             return `${generatorConfiguration().param("TypePrefix")}${typeName}`
 
         if (isReferenceType(type) || isEnum(type)) {
-            const name = `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
-            return name.replaceAll(".","_")
+            let name = `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
+            name = name.replaceAll(".","_")
+            return name
         }
         return this.hWriter.getNodeName(type)
     }
@@ -668,7 +670,13 @@ class OHOSVisitor {
     }
 
     execute(outDir: string, managedOutDir: string) {
-        console.log(`GENERATE OHOS API for ${this.libraryName}`)
+
+        const params: Record<string, any> = {
+            TypePrefix: "OH_",
+            LibraryPrefix: `${this.libraryName}_`,
+            OptionalPrefix: "Opt_"
+        }
+        setDefaultConfiguration(new OhosConfiguration(params))
 
         this.library.files.forEach(file => {
             if (file.isPredefined) return
@@ -914,4 +922,25 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
             overloadPostfix
         }
     })
+}
+
+
+export class OhosConfiguration implements GeneratorConfiguration {
+
+    constructor(private params: Record<string, any>) {
+    }
+
+    param<T>(name: string): T {
+        if (name in this.params) {
+            return this.params[name] as T;
+        }
+        throw new Error(`${name} is unknown`)
+    }
+    paramArray<T>(name: string): T[] {
+        switch (name) {
+            case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
+            case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
+        }
+        throw new Error(`array ${name} is unknown`)
+    }
 }
