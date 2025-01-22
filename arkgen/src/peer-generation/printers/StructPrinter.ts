@@ -186,7 +186,7 @@ export class StructPrinter {
         writeToString: LanguageWriter,
         target: idl.IDLNode,
         seenNames: Set<String>,
-        forceOptianal: boolean = false
+        forceOptional: boolean = false
     ) {
         const isPointer = this.isPointerDeclaration(target)
         const nameAssigned = concreteDeclarations.getNodeName(target)
@@ -194,7 +194,7 @@ export class StructPrinter {
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
             : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorConfiguration().param("TypePrefix"))
 
-        if (forceOptianal) {
+        if (forceOptional || nameOptional.includes("Opt_CustomObject")) {
             if (seenNames.has(nameOptional)) {
                 return
             }
