@@ -100,7 +100,8 @@ class OHOSVisitor {
             return `${generatorConfiguration().param("TypePrefix")}${typeName}`
 
         if (isReferenceType(type) || isEnum(type)) {
-            return `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
+            const name = `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${qualifiedName(type, Language.CPP)}`
+            return name.replaceAll(".","_")
         }
         return this.hWriter.getNodeName(type)
     }
