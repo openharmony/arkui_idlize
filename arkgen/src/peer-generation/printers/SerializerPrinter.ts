@@ -605,6 +605,9 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
             collector.addFeature(`Finalizable`, `Finalizable`)
             collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             collectMaterializedImports(collector, library)
+        } else {
+            // Add TypeChecker import for OhosGenerator
+            collector.addFeature("TypeChecker", "./type_check")
         }
 
         if (declarationPath) { // This is used for OHOS library generation only
@@ -637,6 +640,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
             }
         } else { // This is used for OHOS library generation only
             collectOhosImports(collector, false)
+            collector.addFeature("TypeChecker", "./type_check")
         }
     }
 

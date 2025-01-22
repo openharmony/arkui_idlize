@@ -23,7 +23,7 @@ import { ArgConvertor } from '@idlize/core'
 import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
 import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
-import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
+import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, makeTypeChecker, readLangTemplate } from './FileGenerators'
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { LanguageWriter, LanguageStatement } from '@idlize/core'
@@ -367,6 +367,7 @@ class OHOSVisitor {
 
     private printPeer() {
         const nativeModuleVar = `${this.libraryName}NativeModule`
+        this.peerWriter.print('import { TypeChecker } from "./type_check"')
         if (this.library.language === Language.TS) {
             this.peerWriter.print('import {')
             this.peerWriter.pushIndent()
@@ -772,7 +773,38 @@ class OHOSVisitor {
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
                 .replaceAll("%SERIALIZER_PATH%", managedCodeModuleInfo.serializerPath)
         )
+
+        generateTypeCheckFile(managedOutDir, this.library.language)
     }
+}
+
+function generateTypeCheckFile(dir: string, lang: Language): void {
+    let code: string = ""
+    if (lang == Language.TS) {
+        code = `
+        export class TypeChecker {
+            static typeInstanceOf<T>(value: Object, prop: string): boolean {
+                return value.hasOwnProperty(prop)
+            }
+            static typeCast<T>(value: Object): T {
+                return value as unknown as T
+            }
+        }
+    `
+    }
+    if (lang == Language.ARKTS) {
+        code = `
+        export class TypeChecker {
+            static typeInstanceOf<T>(value: Object, prop: string): boolean {
+                return value instanceof T
+            }
+            static typeCast<T>(value: Object): T {
+                return value as T
+            }
+        }
+    `
+    }
+    fs.writeFileSync(path.join(dir, `type_check.ts`), code)
 }
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary): void {
