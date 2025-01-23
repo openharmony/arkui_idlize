@@ -18,11 +18,10 @@ import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
 export class Config {
     constructor(
         private enumsGenerateFor?: string[],
-        private interfacesGenerateFor?: string[],
-        private methodsGenerateFor?: string[]
+        private interfaces?: string[],
+        private methods?: string[],
+        private files?: string[]
     ) {}
-
-    private nativeModulePrefix = `_`
 
     private handwrittenEnums = new Set<string>([])
 
@@ -30,22 +29,11 @@ export class Config {
         `CreateConfig`, // sequence<String>
         `ProgramExternalSources`, // sequence<sequence>
         `ExternalSourcePrograms`, // sequence<sequence>
-        `ProtectionFlagConst` // u8
+        `ProtectionFlagConst`, // u8
+        `TypeIdConst`, // u64
     ])
 
     private handwrittenInterfaces = new Set<string>([])
-
-    get nativeModuleName() {
-        return `Es2pandaNativeModule`
-    }
-
-    methodFunction(interfaceName: string, methodName: string): string {
-        return `${interfaceName}${methodName}`
-    }
-
-    nativeModuleFunction(name: string): string {
-        return `${this.nativeModulePrefix}${name}`
-    }
 
     get sequencePointerType(): IDLPrimitiveType {
         return IDLPointerType
@@ -63,16 +51,23 @@ export class Config {
     }
 
     shouldEmitInterface(name: string): boolean {
-        if (this.interfacesGenerateFor !== undefined) {
-            return this.interfacesGenerateFor.includes(name)
+        if (this.interfaces !== undefined) {
+            return this.interfaces.includes(name)
         }
         return !this.handwrittenInterfaces.has(name)
     }
 
     shouldEmitMethod(name: string): boolean {
-        if (this.methodsGenerateFor !== undefined) {
-            return this.methodsGenerateFor.includes(name)
+        if (this.methods !== undefined) {
+            return this.methods.includes(name)
         }
         return !this.handwrittenMethods.has(name)
+    }
+
+    shouldEmitFile(name: string): boolean {
+        if (this.files !== undefined) {
+            return this.files.includes(name)
+        }
+        return true
     }
 }

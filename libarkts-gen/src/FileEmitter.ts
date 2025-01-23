@@ -16,10 +16,10 @@
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile } from "@idlize/core"
-import { BridgesPrinter } from "./printers/BridgesPrinter"
-import { NativeModulePrinter } from "./printers/NativeModulePrinter"
+import { BridgesPrinter } from "./printers/bridges/BridgesPrinter"
+import { NativeModulePrinter } from "./printers/native-module/NativeModulePrinter"
 import { EnumsPrinter } from "./printers/EnumsPrinter"
-import { IDLFile } from "./Es2PandaTransformer"
+import { IDLFile } from "./IdlFile"
 import { Config } from "./Config"
 
 class FilePrinter {
@@ -31,33 +31,32 @@ class FilePrinter {
     ) {}
 }
 
-export class LibarktsGenerator {
+export class FileEmitter {
     constructor(
         private outDir: string,
         private idl: IDLFile,
         private config: Config,
-        private files?: string[]
     ) {}
 
     private bridgesPrinter = new FilePrinter(
         new BridgesPrinter(this.idl, this.config),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
-        this.files?.includes(`bridges`) ?? true,
+        this.config.shouldEmitFile(`bridges`),
     )
 
     private nativeModulePrinter = new FilePrinter(
         new NativeModulePrinter(this.idl, this.config),
-        `libarkts/src/Es2pandaNativeModule.ts`,
+        `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
-        this.files?.includes(`nativeModule`) ?? true,
+        this.config.shouldEmitFile(`nativeModule`),
     )
 
     private enumsPrinter = new FilePrinter(
         new EnumsPrinter(this.idl, this.config),
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
-        this.files?.includes(`enums`) ?? true,
+        this.config?.shouldEmitFile(`enums`),
     )
 
     print(): void {

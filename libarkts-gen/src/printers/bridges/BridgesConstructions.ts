@@ -13,53 +13,56 @@
  * limitations under the License.
  */
 
-export const bridgesConstructions = {
-    castedParameterName(name: string): string {
+export class BridgesConstructions {
+    static castedParameter(name: string): string {
         return `_${name}`
-    },
-    interopMacro(isVoid: boolean, parametersCount: number): string {
+    }
+
+    static interopMacro(isVoid: boolean, parametersCount: number): string {
         return `KOALA_INTEROP_${isVoid ? `V` : ``}${parametersCount}`
-    },
-    implFunction(name: string): string {
+    }
+
+    static implFunction(name: string): string {
         return `impl_${name}`
-    },
-    referenceType(name: string): string {
+    }
+
+    static referenceType(name: string): string {
         return `es2panda_${name}`
-    },
-    get sequenceLengthDeclaration(): string {
+    }
+
+    static get sequenceLengthDeclaration(): string {
         return `std::size_t length`
-    },
-    get sequenceLengthPass(): string {
+    }
+
+    static get sequenceLengthPass(): string {
         return `&length`
-    },
-    get sequenceLengthUsage(): string {
+    }
+
+    static get sequenceLengthUsage(): string {
         return `length`
-    },
-    get resultName(): string {
+    }
+
+    static get result(): string {
         return `result`
-    },
-    get receiverName(): string {
-        return `receiver`
-    },
-    stringConstructor(name: string): string {
+    }
+
+    static stringConstructor(name: string): string {
         return `new std::string(${name})`
-    },
-    sequenceConstructor(first: string, length: string): string {
+    }
+
+    static sequenceConstructor(first: string, length: string): string {
         return `new std::vector<void*>(${first}, ${first} + ${length})`
-    },
-    referenceTypeCast(type: string): string {
+    }
+
+    static referenceTypeCast(type: string): string {
         return `reinterpret_cast<${type}>`
-    },
-    primitiveTypeCast(type: string): string {
+    }
+
+    static primitiveTypeCast(type: string): string {
         return `static_cast<${type}>`
-    },
-    sequenceParameterPointer(parameter: string): string {
-        return `${parameter}SequencePointer`
-    },
-    sequenceParameterLength(parameter: string): string {
-        return `${parameter}SequenceLength`
-    },
-    callMethod(name: string): string {
+    }
+
+    static callMethod(name: string): string {
         return `GetImpl()->${name}`
     }
 }

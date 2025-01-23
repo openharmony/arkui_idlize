@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,10 @@
  * limitations under the License.
  */
 
-import {
-    KNativePointer,
-    KStringPtr,
-    KUInt,
-    KDouble,
-    KFloat,
-    KLong,
-    KInt,
-    KBoolean,
-    registerNativeModule,
-    registerLoadedLibrary
-} from "@koalaui/interop"
+import { IDLEntry } from "@idlize/core/idl"
 
-// TODO: this type should be in interop
-export type KNativePointerArray = BigUint64Array
-
-export class Es2pandaNativeModule {
-%GENERATED_PART%
+export class IDLFile {
+    constructor(
+        public entries: IDLEntry[]
+    ) {}
 }

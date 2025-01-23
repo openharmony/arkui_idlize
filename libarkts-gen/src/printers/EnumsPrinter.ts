@@ -13,63 +13,30 @@
  * limitations under the License.
  */
 
-import {
-    IDLKind,
-    throwException,
-    createEmptyReferenceResolver,
-    TSLanguageWriter,
-} from "@idlize/core"
-import {
-    IDLEntry,
-    IDLType,
-    isInterface,
-    isEnum,
-    isTypedef,
-    IDLEnum,
-    IDLEnumMember,
-    isPrimitiveType,
-} from "@idlize/core/idl"
+import { createEmptyReferenceResolver, IndentedPrinter, TSLanguageWriter, } from "@idlize/core"
+import { IDLEnum, IDLType, isPrimitiveType, } from "@idlize/core/idl"
 import { Config } from "../Config"
-import { IndentedPrinter } from "@idlize/core"
-import { IDLFile } from "../Es2PandaTransformer"
+import { IDLFile } from "../IdlFile"
+import { InteropPrinter } from "./InteropPrinter"
 
-export class EnumsPrinter {
+export class EnumsPrinter extends InteropPrinter {
     constructor(
-        private idl: IDLFile,
-        private config: Config
-    ) { }
+        idl: IDLFile,
+        config: Config
+    ) {
+        super(idl, config)
+    }
 
     private writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => { throw new Error(`There is no type conversions in enums`) } },
+        { convert : (node: IDLType) => { throw new Error(`There is no type conversions for enums`) } },
     )
-    print(): string {
-        this.idl.entries.forEach(it => this.visit(it))
-        return this.writer.getOutput().join('\n')
-    }
 
-    printInterfaceContents() {
-        this.idl.entries.forEach(it => this.visit(it))
-    }
-
-    private visit(node: IDLEntry): void {
-        if (isInterface(node)) return
-        if (isEnum(node)) return this.visitEnum(node)
-        if (isTypedef(node)) return
-
-        throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
-    }
-
-    private visitEnum(node: IDLEnum): void {
-        if (!this.config.shouldEmitEnum(node.name)) return
-        this.printEnum(node.name, node.elements)
-    }
-
-    private printEnum(name: string, elements: IDLEnumMember[]): void {
+    override printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
-            name,
-            elements.map(
+            node.name,
+            node.elements.map(
                 element => {
                     if (!isPrimitiveType(element.type)) {
                         throw new Error(`Unexpected kind of enum element type: ${element.type}`)
@@ -85,5 +52,9 @@ export class EnumsPrinter {
                 }
             )
         )
+    }
+
+    override getOutput(): string[] {
+        return this.writer.getOutput()
     }
 }

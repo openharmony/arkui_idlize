@@ -13,9 +13,16 @@
  * limitations under the License.
  */
 
-import { PrimitiveType, PrimitiveTypeList } from "@idlize/core"
+export class NativeModuleConstructions {
+    static method(name: string): string {
+        return `_${name}`
+    }
 
-export class PrimitiveTypes extends PrimitiveTypeList {
-    Undefined = new PrimitiveType(`undefined`)
-    Void: PrimitiveType = new PrimitiveType(`void`)
+    static get unimplemented(): string {
+        return `throw new Error("This methods was not overloaded by native module initialization")`
+    }
+
+    static get class(): string {
+        return `Es2pandaNativeModule`
+    }
 }

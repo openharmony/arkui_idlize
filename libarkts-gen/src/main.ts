@@ -15,9 +15,10 @@
 
 import { program } from "commander"
 import { toIDL } from "@idlize/core"
-import { LibarktsGenerator } from "./LibarktsGenerator"
-import { IDLFile, Es2PandaTransformer } from "./Es2PandaTransformer"
+import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
+import { IDLFile } from "./IdlFile"
+import { Transformer } from "./transformers/transformer"
 
 const options: {
     outputDir?: string,
@@ -38,20 +39,22 @@ const options: {
 
 function main() {
     const outDir = options.outputDir ?? `./out`
-    const idlFile = options.inputFile ?? `./tests/subset.idl`
+    const idlFile = options.inputFile ?? `./input/full.idl`
     const idl = new IDLFile(toIDL(idlFile))
 
-    if (options.transform) {
-        new Es2PandaTransformer(idl).transform()
-    }
-    new LibarktsGenerator(
-        outDir,
-        idl,
-        new Config(
-            options.interfaces?.split(`,`),
-            options.methods?.split(`,`),
-        ),
+    const config = new Config(
+        options.interfaces?.split(`,`),
+        options.methods?.split(`,`),
         options.files?.split(`,`)
+    )
+
+    if (options.transform) {
+        // todo: fixer
+    }
+    new FileEmitter(
+        outDir,
+        new Transformer(config).transform(idl),
+        config,
     ).print()
 }
 
