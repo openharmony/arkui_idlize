@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlize/core/idl"
-import { Language, hashCodeFromString, warn, generatorConfiguration } from "@idlize/core"
+import { Language, hashCodeFromString, warn, generatorConfiguration, generatorTypePrefix } from "@idlize/core"
 import { RuntimeType, AggregateConvertor, ArgConvertor, BaseArgConvertor, ExpressionAssigner } from "@idlize/core"
 import { LibraryInterface } from "@idlize/core"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
@@ -310,7 +310,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                     idl.IDLUndefinedType /* not used */,
                     {
                         unsafe: true,
-                        overrideTypeName: `void(*)(${[`${generatorConfiguration().param("TypePrefix")}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, this.transformedDecl)).join(", ")})`
+                        overrideTypeName: `void(*)(${[`${generatorTypePrefix()}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, this.transformedDecl)).join(", ")})`
                     }
             )
             return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}, ${callSyncReadExpr.asString()}}`))

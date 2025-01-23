@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 typedef InteropTag OH_Tag;
-typedef InteropRuntimeType OH_RuntimeType;
+typedef InteropRuntimeType OH_%LIBRARY_NAME%_RuntimeType;
 
 typedef InteropFloat32 OH_Float32;
 typedef InteropFloat64 OH_Float64;
@@ -40,13 +40,13 @@ typedef InteropBoolean OH_Boolean;
 typedef InteropCharPtr OH_CharPtr;
 typedef InteropNativePointer OH_NativePointer;
 typedef InteropString OH_String;
-typedef InteropCallbackResource OH_CallbackResource;
+typedef InteropCallbackResource OH_%LIBRARY_NAME%_CallbackResource;
 typedef InteropNumber OH_Number;
 typedef InteropMaterialized OH_Materialized;
 typedef InteropCustomObject OH_CustomObject;
 typedef InteropUndefined OH_Undefined;
 // typedef InteropAPIKind OH_APIKind;
-typedef InteropVMContext OH_VMContext;
+typedef InteropVMContext OH_%LIBRARY_NAME%_VMContext;
 typedef InteropBuffer OH_Buffer;
 typedef InteropLength OH_Length;
 typedef InteropFunction OH_Function;

@@ -18,7 +18,7 @@ import * as path from 'path'
 import * as idl from '@idlize/core/idl'
 
 import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
-import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration, GeneratorConfiguration, setDefaultConfiguration } from '@idlize/core'
+import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration, GeneratorConfiguration, setDefaultConfiguration, generatorTypePrefix } from '@idlize/core'
 import { ArgConvertor } from '@idlize/core'
 import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
@@ -90,12 +90,13 @@ class OHOSVisitor {
     private static knownBasicTypes = new Set(['ArrayBuffer', 'DataView'])
 
     mapType(type: IDLType | IDLEnum): string {
+        const libName = this.libraryName
         const typeName = isEnum(type)
             ? type.name
             : isContainerType(type) || isUnionType(type)
                 ? ''
                 : idl.isOptionalType(type)
-                    ? `Opt_${this.mapType(type.type)}`
+                    ? `Opt_${libName}_${this.mapType(type.type)}`
                     : idl.forceAsNamedNode(type).name
         if (OHOSVisitor.knownBasicTypes.has(typeName))
             return `${generatorConfiguration().param("TypePrefix")}${typeName}`
@@ -112,7 +113,6 @@ class OHOSVisitor {
         return new MethodSignature(returnType, parameters.map(it => it.type!))
     }
 
-
     private writeCallback(callback: IDLCallback) {
         // TODO commonize with StructPrinter.ts
         const callbackTypeName = `${generatorConfiguration().param("TypePrefix")}${this.libraryName}_${callback.name}`;
@@ -120,7 +120,7 @@ class OHOSVisitor {
         let _ = this.hWriter
         _.print(`typedef struct ${callbackTypeName} {`)
         _.pushIndent()
-        _.print(`${generatorConfiguration().param("TypePrefix")}CallbackResource resource;`)
+        _.print(`${generatorTypePrefix()}CallbackResource resource;`)
         _.print(`void (*call)(${args.join(', ')});`)
         _.popIndent()
         _.print(`} ${callbackTypeName};`)
@@ -653,7 +653,7 @@ class OHOSVisitor {
         let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
-        const prefix = generatorConfiguration().param("TypePrefix") + this.library.libraryPrefix
+        const prefix = generatorTypePrefix()
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
 

@@ -20,7 +20,8 @@ import {
     camelCaseToUpperSnakeCase,
     isImportAttr,
     isStringEnum,
-    generatorConfiguration
+    generatorConfiguration,
+    generatorTypePrefix,
 } from "@idlize/core"
 import { RuntimeType } from "@idlize/core"
 import { ArkPrimitiveType, ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
@@ -151,10 +152,11 @@ export class StructPrinter {
                         concreteDeclarations.print(`${ArkPrimitiveTypesInstance.Int32.getText()} length;`)
                     }
                 } else if (idl.isCallback(target)) {
-                    concreteDeclarations.print(`${generatorConfiguration().param("TypePrefix")}CallbackResource resource;`)
+                    concreteDeclarations.print(`${generatorTypePrefix()}CallbackResource resource;`)
                     const args = generateCallbackAPIArguments(this.library, target)
                     concreteDeclarations.print(`void (*call)(${args.join(', ')});`)
-                    const syncArgs = [`${generatorConfiguration().param("TypePrefix")}VMContext context`].concat(args)
+                    const typePrefix = `${generatorConfiguration().param("TypePrefix")}${generatorConfiguration().param("LibraryPrefix")}`
+                    const syncArgs = [`${generatorTypePrefix()}VMContext context`].concat(args)
                     concreteDeclarations.print(`void (*callSync)(${syncArgs.join(', ')});`)
                 }
                 this.printStructsCTail(nameAssigned, concreteDeclarations)
@@ -192,12 +194,11 @@ export class StructPrinter {
         const nameAssigned = concreteDeclarations.getNodeName(target)
         const nameOptional = idl.isType(target)
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
-            : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorConfiguration().param("TypePrefix"))
-        
+            : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorTypePrefix())
         if (forceOptional || nameOptional.includes("Opt_CustomObject")) {
-        if (seenNames.has(nameOptional)) {
-            return
-        }
+            if (seenNames.has(nameOptional)) {
+                return
+            }
         }
         
         seenNames.add(nameOptional)

@@ -89,9 +89,9 @@ void XmlPullParser_destructImpl(OH_XML_XmlPullParserHandle thiz) {
 void temp_hold(int resId) {}
 void temp_release(int resId) {}
 void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
-void temp_call_sync(const OH_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
+void temp_call_sync(const OH_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
-void XmlPullParser_parseImpl(OH_NativePointer thisPtr, const OH_ParseOptions* option) {
+void XmlPullParser_parseImpl(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
     ExpatParser* parser = (ExpatParser*) thisPtr;
     if (option->tagValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setTagValueCallback([&](const char* name, const char* value) {
@@ -129,5 +129,5 @@ void XmlPullParser_parseImpl(OH_NativePointer thisPtr, const OH_ParseOptions* op
     parser->parse();
     parser->reset();
 }
-void XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_ParseOptions* option) {
+void XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
 }

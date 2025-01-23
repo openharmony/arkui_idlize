@@ -35,3 +35,8 @@ export function setDefaultConfiguration(config: GeneratorConfiguration): void {
 export function generatorConfiguration(): GeneratorConfiguration {
     return currentConfig
 }
+
+export function generatorTypePrefix() {
+    const conf = generatorConfiguration()
+    return `${conf.param("TypePrefix")}${conf.param("LibraryPrefix")}`
+}
