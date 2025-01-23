@@ -21,6 +21,7 @@ import { PeerGeneratorConfig } from '../../PeerGeneratorConfig'
 import { PeerMethod } from '../../PeerMethod'
 import { ReferenceResolver } from "@idlize/core"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '@idlize/core'
+import { qualifiedName } from '@idlize/core'
 
 export interface ConvertResult {
     text: string,
@@ -41,6 +42,10 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
         return convertNode<ConvertResult>(this, node)
     }
 
+    convertNamespace(node: idl.IDLNamespace): ConvertResult {
+        throw new Error("Internal error: namespaces are not allowed on the interop layer")
+    }
+
     convertInterface(node: idl.IDLInterface): ConvertResult {
         switch (node.subkind) {
             case idl.IDLInterfaceSubkind.AnonymousInterface:
@@ -49,7 +54,7 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
                     : this.make(this.computeTargetTypeLiteralName(node), true)
             case idl.IDLInterfaceSubkind.Interface:
             case idl.IDLInterfaceSubkind.Class:
-                if (node.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.Namespace && it.value === 'predefined')) {
+                if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Predefined)) {
                     return this.make(node.name, true)
                 }
                 return this.make(node.name)
@@ -68,6 +73,12 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
     }
     convertCallback(node: idl.IDLCallback): ConvertResult {
         return this.make(generatorConfiguration().param("LibraryPrefix") + node.name, true)
+    }
+    convertMethod(node: idl.IDLMethod): ConvertResult {
+        return this.make(node.name)
+    }
+    convertConstant(node: idl.IDLConstant): ConvertResult {
+        return this.make(node.name)
     }
     // convertImport
     //
@@ -171,8 +182,7 @@ export class InteropConverter implements NodeConvertor<ConvertResult> {
     }
 
     private enumName(target: idl.IDLEnum): string {
-        const namespace = idl.getExtAttribute(target, idl.IDLExtendedAttributes.Namespace)
-        return `${namespace ? namespace + "_" : ""}${target.name}`
+        return qualifiedName(target, "_")
     }
 
     private computeTargetTypeLiteralName(decl: idl.IDLInterface): string {

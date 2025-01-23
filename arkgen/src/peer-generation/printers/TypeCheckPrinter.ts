@@ -103,9 +103,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
         }
     })
     for (const file of library.files) {
-        for (const decl of file.entries) {
-            if (idl.isModuleType(decl) ||
-                idl.isPackage(decl) ||
+        for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
+            if (idl.isPackage(decl) ||
                 idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
                 isPredefined(decl))
                 continue
@@ -164,7 +163,7 @@ abstract class TypeCheckerPrinter {
             } else {
                 interfaces.push({
                     name: convertDeclaration(declNameConvertor, decl),
-                    type: idl.createReferenceType(decl.name),
+                    type: idl.createReferenceType(decl.name, undefined, decl),
                     descriptor: makeStructDescriptor(this.library, decl)
                 })
             }

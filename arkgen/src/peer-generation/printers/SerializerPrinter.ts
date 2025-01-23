@@ -27,7 +27,7 @@ import {
     isBuilderClass,
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectProperties } from '../printers/StructPrinter'
+import { collectFunctions, collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '@idlize/core'
 import { createDeclarationNameConvertor } from '@idlize/core'
 import { IDLEntry } from "@idlize/core/idl"
@@ -38,6 +38,7 @@ import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
+import { qualifiedName } from '@idlize/core'
 import { flattenUnionType } from '@idlize/core'
 import { NativeModule } from '../NativeModule'
 
@@ -58,7 +59,7 @@ class IdlSerializerPrinter {
         this.library.setCurrentContext(`write${methodName}()`)
         this.writer.writeMethodImplementation(
             new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name)], ["value"])),
+                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name, undefined, target)], ["value"])),
             writer => {
                 if (isMaterialized(target, this.library)) {
                     this.generateMaterializedBodySerializer(target, writer)
@@ -115,7 +116,7 @@ class IdlSerializerPrinter {
                 true,
                 true
             ),
-        writer.makeAssign(
+            writer.makeAssign(
                 `peer`,
                 undefined,
                 writer.makeString(`base.getPeer()`),
@@ -282,7 +283,7 @@ class IdlDeserializerPrinter {
 
     private generateInterfaceDeserializer(target: idl.IDLInterface, prefix: string = "") {
         const methodName = this.library.getInteropName(target)
-        const type = idl.createReferenceType(target.name)
+        const type = idl.createReferenceType(target.name, undefined, target)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(target)
@@ -338,12 +339,19 @@ class IdlDeserializerPrinter {
                 if (this.writer.language == Language.CJ) {
                     this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`${this.writer.getNodeName(valueType)}(${properties.map(it => it.name.concat('_result')).join(', ')})`), true, false))
                 } else {
+                    if (this.writer.language === Language.ARKTS) {
+                        if (collectFunctions(target, this.library).length > 0) {
+                            this.writer.writeStatement(this.writer.makeThrowError("Interface with functions is not supported"))
+                            return;
+                        }
+                    }
+
                     this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeCast(this.writer.makeString(`{${propsAssignees.join(',')}}`), type), true, false))
                 }
             }
         } else {
             if (this.writer.language === Language.CPP) {
-                let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name), target)
+                let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name, undefined, target), target)
                 this.declareDeserializer()
                 this.writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
                    return this.writer.makeAssign(`value`, undefined, expr, false)
@@ -379,7 +387,7 @@ class IdlDeserializerPrinter {
                         this.writer.makeMethodCall(
                             getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)]
                         ),
-                        idl.createReferenceType(target.name),
+                        idl.createReferenceType(target.name, undefined, target),
                         { unsafe: unsafe }
                     )
                 )
@@ -404,7 +412,7 @@ class IdlDeserializerPrinter {
             return
         target = maybeTransformManagedCallback(target) ?? target
         const methodName = this.library.getInteropName(target)
-        const type = idl.createReferenceType(target.name)
+        const type = idl.createReferenceType(target.name, undefined, target)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [idl.IDLBooleanType], ['isSync'], ['false'])), writer => {
             const resourceName = "_resource"
             const callName = "_call"
@@ -650,7 +658,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         const makeFeature = (node: idl.IDLEntry) => {
             let features = []
             // Enums of OHOS are accessed through namespaces, not directly
-            let ns = idl.getExtAttribute(node, idl.IDLExtendedAttributes.Namespace)
+            let ns = node.namespace ? qualifiedName(node.namespace, ".") : undefined
             if (supportsNs && ns) {
                 features.push({ feature: ns, module: `./${declarationPath}` }) // TODO resolve
             }

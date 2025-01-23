@@ -221,26 +221,29 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
     ///
 
-    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
-        // let wrapperClassEntries: idl.IDLEntry[] = this.files.map(it => it.wrapperClasses.get(type.name)?.[1] as idl.IDLEntry).filter(it => !!it)
-        let wrapperClassEntries = this.files.flatMap(f => f.wrapperClasses.get(type.name)?.[1]).filter(isDefined)
-        entries ??= [...this.files.flatMap(it => [...it.declarations]), ...wrapperClassEntries]
+    resolveTypeReference(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
+        throw new Error("not implemented yet")
 
-        const [qualifier, typeName] = idl.decomposeQualifiedName(type)
-        if (qualifier) {
-            // This is a namespace or enum member. Try enum first
-            const parent = entries.find(it => it.name === qualifier)
-            if (parent && idl.isEnum(parent))
-                return parent.elements.find(it => it.name === type.name)
-            // Else try namespaces
-            return entries.find(it =>
-                it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
-        }
+        // // let wrapperClassEntries: idl.IDLEntry[] = this.files.map(it => it.wrapperClasses.get(type.name)?.[1] as idl.IDLEntry).filter(it => !!it)
+        // let wrapperClassEntries = this.files.flatMap(f => f.wrapperClasses.get(type.name)?.[1]).filter(isDefined)
+        // entries ??= [...this.files.flatMap(it => [...it.declarations]), ...wrapperClassEntries]
+                
+        // const [qualifier, typeName] = idl.decomposeQualifiedName(type)
+        // if (qualifier) {
+        //     // This is a namespace or enum member. Try enum first
+        //     const parent = entries.find(it => it.name === qualifier)
+        //     if (parent && idl.isEnum(parent))
+        //         return parent.elements.find(it => it.name === type.name)
+        //     // Else try namespaces
+        //     return entries.find(it =>
+        //         it.name === typeName && it.namespace && qualifiedName(it.namespace, ".") === qualifier)
 
-        const candidates = entries.filter(it => type.name === it.name)
-        return candidates.length == 1
-            ? candidates[0]
-            : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
+        // }
+
+        // const candidates = entries.filter(it => type.name === it.name)
+        // return candidates.length == 1
+        //     ? candidates[0]
+        //     : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import))
     }
 
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType {
@@ -263,7 +266,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         protected table: IdlSkoalaLibrary,
         private type: idl.IDLInterface
     ) {
-        super(idl.createReferenceType(name), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(name, undefined, type), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -276,7 +279,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         const prefix = writer.language === Language.CPP ? generatorConfiguration().param("TypePrefix") : ""
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `readWrapper`, []),
-            idl.createReferenceType(`${prefix}${this.type.name}`)
+            idl.createReferenceType(`${prefix}${this.type.name}`, undefined, this.idlType)
         )
         return assigneer(readStatement)
     }
@@ -348,10 +351,7 @@ export class IdlWrapperProcessor {
         const deps: Set<idl.IDLEntry> = new Set(
             this.library.files
                 .flatMap(it => [...it.declarations])
-                .filter(it => !idl.isPackage(it)
-                    && !idl.isModuleType(it)
-                    && !idl.isImport(it)
-                )
+                .filter(it => !idl.isPackage(it) && !idl.isImport(it))
         )
         const depsCopy = Array.from(deps)
         for (const dep of depsCopy) {
@@ -621,6 +621,16 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         this.printer.printTypedef(node)
         this.writer.print(this.printer.output.join("\n"))
     }
+    convertMethod(node: idl.IDLMethod): void {
+        this.printer.output = []
+        this.printer.printMethod(node, true)
+        this.writer.print(this.printer.output.join("\n"))
+    }
+    convertConstant(node: idl.IDLConstant): void {
+        this.printer.output = []
+        this.printer.printConstant(node)
+        this.writer.print(this.printer.output.join("\n"))
+    }
     convertEnum(node: idl.IDLEnum): void {
         this.printer.output = []
         this.printer.printEnum(node)
@@ -630,6 +640,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         this.printer.output = []
         this.printer.printTypedef(node)
         this.writer.print(this.printer.output.join("\n"))
+    }
+    convertNamespace(node: idl.IDLNamespace): void {
+        this.writer.print(`${node.namespace ? "" : "declare " }namespace ${node.name} {`)
+        this.writer.pushIndent()
+        node.members.forEach(it => convertDeclaration(this, it))
+        this.writer.popIndent()
+        this.writer.print("}")
     }
     convertInterface(node: idl.IDLInterface): void {
         this.printer.output = []
@@ -641,7 +658,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
 export function isSourceDecl(node: idl.IDLEntry): boolean {
     // if (isSyntheticDeclaration(node))
     //     return true
-    // if (isModuleType(node.parent))
+    // if (isNamespace(node.parent))
     //     return this.isSourceDecl(node.parent.parent)
     // if (isTypeParameterType(node))
     //     return false

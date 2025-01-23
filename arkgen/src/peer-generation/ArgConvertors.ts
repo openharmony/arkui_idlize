@@ -26,6 +26,9 @@ import { InterfaceConvertorCore } from "@idlize/core";
 
 export class InterfaceConvertor extends InterfaceConvertorCore {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (writer.language === Language.ARKTS)
+            return writer.instanceOf(this, value, duplicates)
+
         // First, tricky special cases
         if (this.declaration.name.endsWith("GestureInterface")) {
             const gestureType = this.declaration.name.slice(0, -"GestureInterface".length)
@@ -49,7 +52,7 @@ export class InterfaceConvertor extends InterfaceConvertorCore {
 
 export class ProxyConvertor extends BaseArgConvertor {
     constructor(public convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ? idl.createReferenceType(suggestedName) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+        super(suggestedName ? idl.createReferenceType(suggestedName, undefined, convertor.idlType) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -273,7 +276,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         param: string,
         private readonly decl: idl.IDLCallback,
     ) {
-        super(idl.createReferenceType(decl.name), [RuntimeType.FUNCTION], false, true, param)
+        super(idl.createReferenceType(decl.name, undefined, decl), [RuntimeType.FUNCTION], false, true, param)
     }
 
     private get isTransformed(): boolean {
@@ -332,7 +335,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         return assigneer(result)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.transformedDecl.name)
+        return idl.createReferenceType(this.transformedDecl.name, undefined, this.decl)
     }
     isPointerType(): boolean {
         return true
@@ -357,7 +360,7 @@ export class TupleConvertor extends AggregateConvertor { //
         return writer.makeCast(writer.makeString(`[${fields.map(it => it[1].asString()).join(', ')}]`), this.idlType)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.decl.name)
+        return idl.createReferenceType(this.decl.name, undefined, this.decl)
     }
     interopType(): idl.IDLType {
         throw new Error("Must never be used")

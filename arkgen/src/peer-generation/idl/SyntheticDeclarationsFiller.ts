@@ -8,11 +8,11 @@ import { isMaterialized } from "./IdlPeerGeneratorVisitor";
 
 function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
     for (const file of library.files) {
-        for (const entry of file.entries) {
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isCallback(entry)) {
                 const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
                 if (transformedCallback &&
-                    !library.resolveTypeReference(idl.createReferenceType(transformedCallback.name)) &&
+                    !library.resolveTypeReference(idl.createReferenceType(transformedCallback.name, undefined, entry)) &&
                     !synthesizedEntries.has(transformedCallback.name)) {
                     synthesizedEntries.set(transformedCallback.name, transformedCallback)
                 }
@@ -27,7 +27,7 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
         continuationParameters,
         idl.IDLVoidType,
     )
-    const continuationReference = idl.createReferenceType(syntheticName)
+    const continuationReference = idl.createReferenceType(syntheticName, undefined, continuationType)
 
     if (!library.resolveTypeReference(continuationReference) && !synthesizedEntries.has(continuationReference.name)) {
         const callback = idl.createCallback(
@@ -47,7 +47,7 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
 }
 function createContinuationCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     for (const file of library.files) {
-        for (const entry of file.entries) {
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isCallback(entry)) {
                 const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
                 createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
@@ -93,8 +93,8 @@ class ImportsStubsGenerator extends DependenciesCollector {
 function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     const generator = new ImportsStubsGenerator(library, synthesizedEntries)
     for (const file of library.files) {
-        for (const entry of file.entries) {
-            if (idl.isPackage(entry) || idl.isModuleType(entry) || idl.isImport(entry))
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+            if (idl.isPackage(entry) || idl.isImport(entry))
                 continue
             generator.convert(entry)
         }

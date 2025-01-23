@@ -72,6 +72,9 @@ export function collectJavaImports(nodes: idl.IDLType[]): ImportFeature[] {
 class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeature[]> {
     private readonly typeDepsCollector = new CJImportsCollector()
 
+    convertNamespace(node: idl.IDLNamespace): ImportFeature[] {
+        throw new Error("Internal error: namespaces are not allowed on the CJ layer")
+    }
     convertInterface(decl: idl.IDLInterface): ImportFeature[] {
         return [
             ...decl.inheritance
@@ -98,6 +101,15 @@ class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeatur
             ...convertType(this.typeDepsCollector, decl.returnType),
         ]
     }
+    convertMethod(decl: idl.IDLMethod): ImportFeature[] {
+        return [
+            ...decl.parameters.flatMap(it => convertType(this.typeDepsCollector, it.type!)),
+            ...convertType(this.typeDepsCollector, decl.returnType),
+        ]
+    }
+    convertConstant(decl: idl.IDLConstant): ImportFeature[] {
+        return convertType(this.typeDepsCollector, decl.type)
+    }
     convert(node: idl.IDLEntry | undefined): ImportFeature[] {
         if (node === undefined)
             return []
@@ -119,7 +131,7 @@ export function makeGetFunctionRuntimeType(library: PeerLibrary) {
         writer.writeMethodImplementation(method, () => {
             writer.makeCheckOptional(writer.makeString('arg0'), writer.makeReturn(writer.makeString('RuntimeType.FUNCTION'))).write(writer)
             writer.makeReturn(writer.makeString('RuntimeType.UNDEFINED')).write(writer)
-        })
+        })  
     }
     let Ark_Object = fs.readFileSync(path.join(__dirname, `../templates/cangjie/Ark_Object_template.cj`), 'utf8').replace('%GET_FUNCTION_RUNTIME%', writer.getOutput().join('\n'))
     return Ark_Object

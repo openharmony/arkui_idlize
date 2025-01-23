@@ -22,11 +22,11 @@ import {
     IDLInterface,
     IDLKind,
     IDLMethod,
-    IDLModule,
     IDLParameter,
     IDLProperty,
     IDLType,
     IDLTypedef,
+    IDLNamespace,
     getExtAttribute,
     getVerbatimDts,
     hasExtAttribute,
@@ -36,7 +36,6 @@ import {
     isEnum,
     isInterface,
     isMethod,
-    isModuleType,
     isPrimitiveType,
     isProperty,
     isReferenceType,
@@ -47,6 +46,7 @@ import {
     isPackage,
     isImport,
     isVersion,
+    isNamespace,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
     IDLImport,
@@ -90,7 +90,8 @@ import {
     IDLNumberType,
     IDLPointerType,
     IDLInterfaceSubkind,
-    escapeIDLKeyword
+    escapeIDLKeyword,
+    getNamespacesPathFor
 } from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
@@ -102,7 +103,12 @@ export class CustomPrintVisitor {
 
     currentInterface?: IDLInterface
 
-    visit(node: IDLEntry) {
+    visit(node: IDLEntry, wrapNamespaces: boolean = false) {
+        const namespacesPath = wrapNamespaces ? getNamespacesPathFor(node) : []
+        for(const namespace of namespacesPath) {
+            this.print(`${namespace.namespace ? "" : "declare "}namespace ${namespace.name} {`);
+            this.pushIndent();
+        }
         if (hasExtAttribute(node, IDLExtendedAttributes.TSType) && this.language == Language.TS) return
         if (isInterface(node)) {
             this.printInterface(node)
@@ -120,12 +126,16 @@ export class CustomPrintVisitor {
             this.printEnum(node)
         } else if (isCallback(node)) {
             this.printTypedef(node)
-        } else if (isModuleType(node)) {
-            this.printModuleType(node)
         } else if (isVersion(node)) {
             this.printVersion(node)
+        } else if (isNamespace(node)) {
+            this.printNamespace(node)
         } else {
             throw new Error(`Unexpected node kind: ${IDLKind[node.kind!]}`)
+        }
+        for(const namespace of namespacesPath) {
+            this.popIndent();
+            this.print("}");
         }
     }
 
@@ -144,12 +154,10 @@ export class CustomPrintVisitor {
     }
 
     printConstant(node: IDLConstant) {
-        this.print(`export declare const ${node.name} : ${isPrimitiveType(node.type) ? "" : "typeof"} ${this.printTypeForTS(node.type)} = ${node.value}`)
+        this.print(`${node.namespace ? "" : "declare "}const ${node.name} : ${isPrimitiveType(node.type) ? "" : "typeof"} ${this.printTypeForTS(node.type)} = ${node.value}`)
     }
 
     printInterface(node: IDLInterface) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
-        this.openNamespace(namespace)
         let typeSpec = this.toTypeName(node)
 
         // Workaround for an SDK declaration clash between `WrappedBuilder` and `ContentModifier`
@@ -158,16 +166,16 @@ export class CustomPrintVisitor {
 
         const entity = getExtAttribute(node, IDLExtendedAttributes.Entity) ?? IDLEntity.Interface
         if (entity === IDLEntity.Literal) {
-            this.print(`${namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, false, true)}`)
+            this.print(`${node.namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, false, true)}`)
         } else if (entity === IDLEntity.Tuple) {
-            this.print(`${namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, false)}`)
+            this.print(`${node.namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, false)}`)
         } else if (entity === IDLEntity.NamedTuple) {
-            this.print(`${namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, true)}`)
+            this.print(`${node.namespace ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, true)}`)
         } else {
             // restore globalScope
             if (hasExtAttribute(node,IDLExtendedAttributes.GlobalScope)) {
-                node.methods.map(it => this.printMethod(it, true))
-                node.constants.map(it => this.printConstant(it))
+                node.methods.map(it => this.visit(it, true))
+                node.constants.map(it => this.visit(it, true))
                 return
             }
             let interfaces = node.inheritance
@@ -181,7 +189,7 @@ export class CustomPrintVisitor {
             }
             if (interfaces.length > 0)
                 typeSpec += ` ${keyword} ${interfaces.map(it => this.toTypeName(it)).join(", ")}`
-            this.print(`${namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)
+            this.print(`${node.namespace ? "" : "declare "}${entity!.toLowerCase()} ${typeSpec} {`)
             this.currentInterface = node
             this.pushIndent()
             node.constructors.map(it => this.visit(it))
@@ -198,12 +206,10 @@ export class CustomPrintVisitor {
             this.popIndent()
             this.print("}")
         }
-        this.closeNamespace(namespace)
     }
 
+    // TODO: namespace-related-to-rework: drop 'isGlobal'
     printMethod(node: IDLMethod | IDLConstructor | IDLCallable, isGlobal: boolean = false) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
-        this.openNamespace(namespace)
         const returnType = node.returnType && !(isConstructor(node) && this.currentInterface!.subkind === IDLInterfaceSubkind.Class)
             ? `: ${this.printTypeForTS(node.returnType, true)}` : ""
         const name = isConstructor(node)
@@ -212,13 +218,15 @@ export class CustomPrintVisitor {
         const typeParams = (node.typeParameters && node.typeParameters.length > 0) ? `<${node.typeParameters.join(",")}>` : ""
         let preamble = ""
         if (!isCallable(node)) {
-            const isStatic = isMethod(node) && node.isStatic && !isGlobal
+            const isStatic = isMethod(node) && node.isStatic && !node.isFree
             const isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
             const isOptional = isMethod(node) && node.isOptional
-            preamble = `${isGlobal ? `${namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
+            const isFree = isMethod(node) && node.isFree
+            if (isGlobal && !isFree) // TODO: namespace-related-to-rework
+                throw new Error("internal error")
+            preamble = `${isFree ? `${node.namespace ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
         }
         this.print(`${preamble}${typeParams}(${mixMethodParametersAndTags(node).map(p => this.paramText(p)).join(", ")})${returnType};`)
-        this.closeNamespace(namespace)
     }
     paramText(paramOrTag: IDLParameter | SignatureTag): string {
         const param = paramOrTag as IDLParameter
@@ -249,9 +257,7 @@ export class CustomPrintVisitor {
         }
     }
     printEnum(node: IDLEnum) {
-        const namespace = getExtAttribute(node, IDLExtendedAttributes.Namespace)?.split(",").reverse()
-        this.openNamespace(namespace)
-        this.print(`${namespace ? "" : "declare "}enum ${node.name} {`)
+        this.print(`${node.namespace ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
             const initializer = (it.type === IDLStringType ? `"${it.initializer}"` : `${it.initializer}`)
@@ -263,34 +269,43 @@ export class CustomPrintVisitor {
         })
         this.popIndent()
         this.print("}")
-        this.closeNamespace(namespace)
     }
     printTypedef(node: IDLTypedef | IDLCallback) {
         // Let's skip imported declarations
         if (isTypedef(node) &&
             hasExtAttribute(node, IDLExtendedAttributes.Import)) {
-            let definition = this.resolver(createReferenceType(node.name))
+            let definition = this.resolver(createReferenceType(node.name, undefined, node))
             // TODO: handle namespace case better!
-            if (definition && !isTypedef(definition) && !hasExtAttribute(definition, IDLExtendedAttributes.Namespace)) {
-                console.log(`Has better definition for ${node.name}: ${definition.fileName} ${definition.kind}`)
-                return
-            }
+            // TODO: namespace-related-to-rework
+            throw new Error("not implemented yet")
+            // if (definition && !isTypedef(definition) && !hasExtAttribute(definition, IDLExtendedAttributes.Namespace)) {
+            //     console.log(`Has better definition for ${node.name}: ${definition.fileName} ${definition.kind}`)
+            //     return
+            // }
         }
         const text = isCallback(node) ? this.callback(node)
             : hasExtAttribute(node, IDLExtendedAttributes.Import) ? IDLAnyType.name
             : this.printTypeForTS(node.type)
         const typeParams = node.typeParameters && node.typeParameters.length > 0 ? `<${node.typeParameters.join(",")}>` : ""
-        this.print(`declare type ${getName(node)}${typeParams} = ${text};`)
-    }
-
-    printModuleType(node: IDLModule) {
-        let text = getVerbatimDts(node) ?? ""
-        this.print(`${text}`)
+        this.print(`${node.namespace ? '' : 'declare '}type ${getName(node)}${typeParams} = ${text};`)
     }
 
     printVersion(node: IDLVersion) {
         let text = node.value.join(".")
         this.print(`// version ${text}`)
+    }
+
+    printNamespace(node: IDLNamespace) {
+        let verbatimDts = getVerbatimDts(node)
+        if (verbatimDts) {
+            this.print(verbatimDts)
+            return
+        }
+        this.print(`${node.namespace ? "" : "declare "} namespace ${node.name} {`);
+        this.pushIndent();
+        node.members.forEach(member => this.visit(member));
+        this.popIndent();
+        this.print("}");
     }
 
     printImport(node: IDLImport) {
@@ -299,29 +314,6 @@ export class CustomPrintVisitor {
 
     printPackage(node: IDLPackage) {
         this.print(`// package ${node.name}`)
-    }
-
-    openNamespace(names: string[] | undefined) {
-        names?.forEach((it, idx) => {
-            if (it) {
-                if (it.startsWith("Export ") && it.length > "Export ".length) {
-                    it = it.split(' ')[1]
-                    this.print(`export ${idx ? "" : "declare "}namespace ${it} {`)
-                    this.pushIndent()
-                } else {
-                    this.print(`${idx ? "" : "declare "}namespace ${it} {`)
-                    this.pushIndent()
-                }
-            }
-        })
-    }
-    closeNamespace(names: string[] | undefined) {
-        names?.forEach(it => {
-            if (it) {
-                this.popIndent()
-                this.print("}")
-            }
-        })
     }
 
     checkVerbatim(node: IDLEntry) {

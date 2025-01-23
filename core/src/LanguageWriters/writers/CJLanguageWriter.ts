@@ -198,7 +198,7 @@ export class CJEnumWithGetter implements LanguageStatement {
 
         let enumName = this.enumEntity.name
         writer.writeClass(enumName, () => {
-            const enumType = idl.createReferenceType(enumName)
+            const enumType = idl.createReferenceType(enumName, undefined, this.enumEntity)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`${enumName}(${it.numberId})`)

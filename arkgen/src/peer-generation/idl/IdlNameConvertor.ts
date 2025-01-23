@@ -16,13 +16,20 @@
 import * as idl from '@idlize/core/idl'
 import { Language } from '@idlize/core'
 import { DeclarationConvertor } from '@idlize/core'
+import { qualifiedName } from '@idlize/core'
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
+    convertNamespace(decl: idl.IDLNamespace): string {
+        return decl.name
+    }
     convertInterface(decl: idl.IDLInterface): string {
         return decl.name
     }
     convertEnum(decl: idl.IDLEnum): string {
-        return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? ""}${decl.name}`
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+        // strange logic here..
+        //return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? ""}${decl.name}`
     }
     convertTypedef(decl: idl.IDLTypedef): string {
         return decl.name
@@ -30,29 +37,36 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertCallback(decl: idl.IDLCallback): string {
         return decl.name ?? "MISSING CALLBACK NAME"
     }
+    convertMethod(decl: idl.IDLMethod): string {
+        return decl.name
+    }
+    convertConstant(decl: idl.IDLConstant): string {
+        return decl.name
+    }
 
     static readonly I = new DeclarationNameConvertor()
 }
 
 export class TSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? decl.name}`
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+        // strange logic here..
+        //return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? decl.name}`
     }
     static readonly I = new TSFeatureNameConvertor()
 }
 
 export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
-        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+        return qualifiedName(decl, "_");
     }
     static readonly I = new ETSDeclarationNameConvertor()
 }
 
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
-        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+        return qualifiedName(decl, "_");
     }
     static readonly I = new ETSFeatureNameConvertor()
 }

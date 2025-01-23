@@ -22,7 +22,7 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
         return decl.name
     }
     convertEnum(decl: idl.IDLEnum): string {
-        return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? ""}${decl.name}`
+        return `${idl.getNamespacesPathFor(decl).join('')}${decl.name}`
     }
     convertTypedef(decl: idl.IDLTypedef): string {
         return decl.name
@@ -30,20 +30,29 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertCallback(decl: idl.IDLCallback): string {
         return decl.name ?? "MISSING CALLBACK NAME"
     }
+    convertNamespace(node: idl.IDLNamespace): string {
+        return node.name
+    }
+    convertMethod(node: idl.IDLMethod): string {
+        return node.name
+    }
+    convertConstant(node: idl.IDLConstant): string {
+        return node.name
+    }
 
     static readonly I = new DeclarationNameConvertor()
 }
 
 export class TSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        return `${idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace) ?? decl.name}`
+        return `${idl.getNamespacesPathFor(decl).join('')}${decl.name}`
     }
     static readonly I = new TSFeatureNameConvertor()
 }
 
 export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name).join('_')
         return `${namespace ? `${namespace}_` : ``}${decl.name}`
     }
     static readonly I = new ETSDeclarationNameConvertor()
@@ -51,7 +60,7 @@ export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
 
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
+        const namespace = idl.getNamespacesPathFor(decl).join('')
         return `${namespace ? `${namespace}_` : ``}${decl.name}`
     }
     static readonly I = new ETSFeatureNameConvertor()

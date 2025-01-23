@@ -21,7 +21,7 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
         return components.some(it => it.attributeDeclaration === entry || it.interfaceDeclaration === entry)
     }
     for (const file of library.files) {
-        for (const entry of file.entries) {
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (!idl.isInterface(entry) || !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component))
                 continue
             const componentName = entry.name.replace("Attribute", "")

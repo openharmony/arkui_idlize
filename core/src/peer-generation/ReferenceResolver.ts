@@ -16,7 +16,7 @@
 import * as idl from '../idl'
 
 export interface ReferenceResolver {
-    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined
+    resolveTypeReference(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined
     toDeclaration(type: idl.IDLNode): idl.IDLNode
 }
 
@@ -34,8 +34,8 @@ export function createEmptyReferenceResolver(): ReferenceResolver {
 /** Please do not store any global instances */
 export function createAlternativeReferenceResolver(mainResolver: ReferenceResolver, alternatives: Map<string, idl.IDLEntry>): ReferenceResolver {
     return {
-        resolveTypeReference(type, entries) {
-            return mainResolver.resolveTypeReference(type, entries) ?? alternatives.get(type.name)
+        resolveTypeReference(type, pointOfView, rootEntries) {
+            return mainResolver.resolveTypeReference(type, pointOfView, rootEntries) ?? alternatives.get(type.name)
         },
         toDeclaration(type) {
             return mainResolver.toDeclaration(type)

@@ -315,15 +315,20 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
     }
 }
 
-export function makeTypeChecker(library: PeerLibrary): { arkts: string, ts: string } {
+export function makeTypeChecker(library: PeerLibrary, language: Language): string {
+    if (language === Language.ARKTS) {
     let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
     writeARKTSTypeCheckers(library, arktsPrinter)
+        return arktsPrinter.getOutput().join("\n")
+    }
+
+    if (language === Language.TS) {
     let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
     writeTSTypeCheckers(library, tsPrinter)
-    return {
-        arkts: arktsPrinter.getOutput().join("\n"),
-        ts: tsPrinter.getOutput().join("\n"),
+        return tsPrinter.getOutput().join("\n")
     }
+
+    throw new Error("Only TS/ARKTS are allowed here")
 }
 
 export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
@@ -504,7 +509,7 @@ export function makeAPI(
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%INTEROP_TYPES_HEADER`,
+        .replaceAll(`%INTEROP_TYPES_HEADER`, 
             fs.readFileSync(
                 path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
                 'utf-8'

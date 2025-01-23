@@ -132,9 +132,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     private context = new Context()
     imports: idl.IDLImport[] = []
     exports: string[] = []
-    namespaces: string[] = []
-    globalConstants: idl.IDLConstant[] = []
-    globalFunctions: idl.IDLMethod[] = []
+    private currentNamespace?: idl.IDLNamespace = undefined
     private defaultPackage: string
 
     constructor(
@@ -149,20 +147,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     visitWholeFile(): idl.IDLEntry[] {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         this.addMeta()
-        if (this.globalConstants.length > 0 || this.globalFunctions.length > 0) {
-            this.output.push(idl.createInterface(
-                `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`,
-                idl.IDLInterfaceSubkind.Interface,
-                [],
-                [],
-                this.globalConstants,
-                [],
-                this.globalFunctions,
-                [], [], {
-                extendedAttributes: [ {name: idl.IDLExtendedAttributes.GlobalScope } ],
-                fileName: this.sourceFile.fileName
-            }))
-        }
+
+        this.output.forEach(idl.linkNamespacesBack)
+        this.output.forEach(idl.transformMethodsReturnPromise2Async)
+
+        this.collectGlobalScope()
         return this.output
     }
 
@@ -228,6 +217,41 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         header.push(packageInfo)
         this.imports.forEach(it => header.push(it))
         this.output.splice(0, 0, ...header)
+    }
+
+    collectGlobalScope() {
+        const collectedConstants: idl.IDLConstant[] = []
+        const collectedMethods: idl.IDLMethod[] = []
+        function filter(entries: idl.IDLEntry[]) {
+            return entries.filter(entry => {
+                if (idl.isConstant(entry)) {
+                    collectedConstants.push(entry)
+                    return false;
+                } else if (idl.isMethod(entry)) {
+                    collectedMethods.push(entry)
+                    return false;
+                } else if (idl.isNamespace(entry)) {
+                    entry.members = filter(entry.members)
+                }
+                return true;
+            })
+        }
+        this.output = filter(this.output)
+
+        if (collectedConstants.length > 0 || collectedMethods.length > 0) {
+            this.output.push(idl.createInterface(
+                `GlobalScope_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`,
+                idl.IDLInterfaceSubkind.Interface,
+                [],
+                [],
+                collectedConstants,
+                [],
+                collectedMethods,
+                [], [], {
+                    extendedAttributes: [ { name: idl.IDLExtendedAttributes.GlobalScope } ],
+                    fileName: this.sourceFile.fileName
+                }))
+        }
     }
 
     detectPackageName(sourceFile: ts.SourceFile): string {
@@ -298,9 +322,14 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             } else {
                 // This is a namespace, visit its children
                 if (node.body) {
-                    this.namespaces.unshift(node.name.getText())
+                    const parentNamespace = this.currentNamespace
+                    this.currentNamespace = idl.createNamespace(node.name.getText(), [], node.getSourceFile().fileName)
+                    const parentOutput = this.output
+                    this.output = this.currentNamespace.members
                     ts.forEachChild(node.body, (node) => this.visit(node));
-                    this.namespaces.shift()
+                    this.output = parentOutput
+                    this.output.push(this.currentNamespace!)
+                    this.currentNamespace = parentNamespace
                 }
             }
         } else if (ts.isEnumDeclaration(node)) {
@@ -310,10 +339,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             if (typedef)
                 this.output.push(typedef)
         } else if (ts.isFunctionDeclaration(node)) {
-            const method = this.serializeMethod(node, undefined, true)
-            this.globalFunctions.push(method)
+            this.output.push(this.serializeMethod(node, undefined, true))
         } else if (ts.isVariableStatement(node)) {
-            this.globalConstants.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
+            this.output.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
             this.imports.push(this.serializeImport(node))
         } else if (ts.isExportDeclaration(node)) {
@@ -325,9 +353,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         } else {
             throw new Error(`Unknown node type: ${node.kind}`)
         }
-
-        this.output.forEach(idl.transformMethodsReturnPromise2Async)
-        this.globalFunctions.forEach(idl.transformMethodsReturnPromise2Async)
     }
 
     serializeImport(node: ts.ImportDeclaration): idl.IDLImport {
@@ -341,9 +366,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         return result
     }
 
-    serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): idl.IDLModule {
+    serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): idl.IDLNamespace {
         const name = nameOrNull(node.name) ?? "UNDEFINED_Module"
-        return idl.createModuleType(
+        return idl.createNamespace(
             name,
             [{ name: idl.IDLExtendedAttributes.VerbatimDts, value: `"${escapeAmbientModuleContent(this.sourceFile, node)}"` }]
         )
@@ -427,15 +452,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         return inheritance?.map(it => this.serializeHeritage(it)).flat() ?? []
     }
 
-    computeNamespaceAttribute(): idl.IDLExtendedAttribute[] {
-        const namespace = this.namespaces.join(',')
-        return namespace ? [{ name: idl.IDLExtendedAttributes.Namespace, value: namespace }] : []
-    }
-
     computeExtendedAttributes(
         node: ts.ClassDeclaration | ts.InterfaceDeclaration | ts.TypeLiteralNode | ts.TupleTypeNode | ts.IntersectionTypeNode
     ): idl.IDLExtendedAttribute[] {
-        const result = this.computeNamespaceAttribute()
         let entity: string = idl.IDLEntity.Interface
         if (ts.isClassDeclaration(node))
             entity = idl.IDLEntity.Class
@@ -447,7 +466,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             const isNamedTuple = node.elements.some(it => ts.isNamedTupleMember(it))
             entity = isNamedTuple ? idl.IDLEntity.NamedTuple : idl.IDLEntity.Tuple
         }
-        result.push({ name: idl.IDLExtendedAttributes.Entity, value: entity })
+        const result:idl.IDLExtendedAttribute[] = [{ name: idl.IDLExtendedAttributes.Entity, value: entity }]
         this.computeExportAttribute(node, result)
         return result
     }
@@ -686,7 +705,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     serializeEnum(node: ts.EnumDeclaration): idl.IDLEnum {
-        let extendedAttributes = this.computeNamespaceAttribute()
+        const extendedAttributes:idl.IDLExtendedAttribute[] = []
         this.computeDeprecatedExtendAttributes(node, extendedAttributes)
         this.computeExportAttribute(node, extendedAttributes)
         let names = nameEnumValues(node)
@@ -1237,8 +1256,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     }
 
     /** Serialize a signature (call or construct) */
-    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, nameSuggestion: NameSuggestion | undefined, isGlobal: boolean = false): idl.IDLMethod {
-        let extendedAttributes: idl.IDLExtendedAttribute[] = isGlobal ? this.computeNamespaceAttribute() : []
+    serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, nameSuggestion: NameSuggestion | undefined, isFree: boolean = false): idl.IDLMethod {
+        const extendedAttributes: idl.IDLExtendedAttribute[] = []
         this.computeDeprecatedExtendAttributes(method, extendedAttributes)
         this.computeExportAttribute(method, extendedAttributes)
         let [methodName, escapedMethodName] = escapeName(nameOrNull(method.name) ?? "_unknown")
@@ -1320,9 +1339,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                     isStatic: false,
                     isOptional: false,
                     isAsync: false,
+                    isFree,
                 }, {
                     extendedAttributes: extendedAttributes,
                     documentation: getDocumentation(this.sourceFile, method, this.options.docs),
+                    fileName: method.getSourceFile().fileName,
                 })
         }
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
@@ -1331,12 +1352,14 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             escapedMethodName,
             methodParameters.map(it => this.serializeParameter(it, nameSuggestion)),
             returnType, {
-            isStatic: isGlobal || isStatic(method.modifiers),
+            isStatic: isFree || isStatic(method.modifiers),
             isOptional: !!method.questionToken,
             isAsync: isAsync(method.modifiers),
+            isFree,
         }, {
             extendedAttributes: extendedAttributes,
             documentation: getDocumentation(this.sourceFile, method, this.options.docs),
+                fileName: method.getSourceFile().fileName,
         }, this.collectTypeParameters(method.typeParameters))
     }
 
@@ -1376,7 +1399,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                 const name = nameOrNull(decl.name)!
                 let [type, value] = this.guessTypeAndValue(decl)
                 return idl.createConstant(name, type, value, {
-                    documentation: getDocumentation(this.sourceFile, decl, this.options.docs)
+                    documentation: getDocumentation(this.sourceFile, decl, this.options.docs),
+                    fileName: stmt.getSourceFile().fileName,
                 })
             })
     }

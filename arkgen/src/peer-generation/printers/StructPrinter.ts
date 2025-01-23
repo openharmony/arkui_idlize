@@ -82,7 +82,7 @@ export class StructPrinter {
             if (target === idl.IDLVoidType) {
                 continue
             }
-            const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name)
+            const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name, undefined, target)
             let nameAssigned = structs.getNodeName(target)
             if (nameAssigned === 'Tag')
                 continue
@@ -193,13 +193,13 @@ export class StructPrinter {
         const nameOptional = idl.isType(target)
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
             : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorConfiguration().param("TypePrefix"))
-
+        
         if (forceOptional || nameOptional.includes("Opt_CustomObject")) {
-            if (seenNames.has(nameOptional)) {
-                return
-            }
+        if (seenNames.has(nameOptional)) {
+            return
         }
-
+        }
+        
         seenNames.add(nameOptional)
 
         if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {
@@ -209,7 +209,7 @@ export class StructPrinter {
             concreteDeclarations.print(`${nameAssigned} value;`)
             this.printStructsCTail(nameOptional, concreteDeclarations)
             this.writeOptional(nameOptional, writeToString, isPointer)
-            this.writeRuntimeType(target, idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name), true, writeToString)
+            this.writeRuntimeType(target, idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name, undefined, target), true, writeToString)
         }
     }
 
@@ -493,6 +493,16 @@ export function collectProperties(decl: idl.IDLInterface, library: LibraryInterf
         ...decl.properties,
         ...collectBuilderProperties(decl, library)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
+}
+
+export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLFunction[] {
+    const superType = idl.getSuperType(decl)
+    const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
+    return [
+        ...(superDecl ? collectFunctions(superDecl as idl.IDLInterface, library) : []),
+        ...decl.methods,
+        ...decl.callables,
+    ]
 }
 
 class NameWithType {

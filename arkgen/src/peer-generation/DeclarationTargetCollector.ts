@@ -20,7 +20,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
 
     let orderer = new DependencySorter(library)
     for (const file of library.files) {
-        for (const entry of file.entries) {
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (PeerGeneratorConfig.ignoreEntry(entry.name, library.language) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.CPPType ||

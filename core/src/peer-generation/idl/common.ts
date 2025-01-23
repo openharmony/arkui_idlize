@@ -35,12 +35,15 @@ export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
     throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
 }
 
-export function qualifiedName(decl: idl.IDLNode, language: Language): string {
-    const namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
-    const prefix = namespace
-        ? namespace + (language === Language.CPP ? '_' : '.')
-        : ""
-    return prefix + idl.forceAsNamedNode(decl).name
+export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|string): string {
+    if (!idl.isNamedNode(decl))
+        throw new Error("internal error, name required for no-named node")
+    const delimiter = typeof languageOrDelimiter === "string"
+        ? languageOrDelimiter
+        : (languageOrDelimiter === Language.CPP ? '_' : '.')
+    if (idl.isEntry(decl) && decl.namespace)
+        return qualifiedName(decl.namespace, delimiter) + delimiter + idl.forceAsNamedNode(decl).name
+    return idl.forceAsNamedNode(decl).name
 }
 
 export function typeOrUnion(types: idl.IDLType[], name?: string): idl.IDLType {

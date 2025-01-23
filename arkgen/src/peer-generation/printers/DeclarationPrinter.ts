@@ -21,6 +21,7 @@ import { LanguageWriter } from "@idlize/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
 import { collectComponents } from "../ComponentsCollector"
+import { qualifiedName } from '@idlize/core'
 
 class GeneratorSyntheticPrinter extends DependenciesCollector {
     constructor(
@@ -39,14 +40,11 @@ class GeneratorSyntheticPrinter extends DependenciesCollector {
 }
 
 function printDeclarationIfNeeded(library: PeerLibrary, entry: idl.IDLEntry, seenNames: Set<String>): string {
-    const maybeNamespace = idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Namespace)
-        ? `${idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Namespace)}.`
-        : ``
-    const scopedName = `${maybeNamespace}${entry.name}`
+    const scopedName = qualifiedName(entry, ".")
     if (seenNames.has(scopedName))
         return ""
     const visitor = new DtsPrintVisitor(type => library.resolveTypeReference(type), library.language)
-    visitor.visit(entry)
+    visitor.visit(entry, true)
     const text = visitor.output.join("\n")
     if (text)
         seenNames.add(scopedName)
@@ -62,8 +60,8 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
             result.push(text)
     })
     for (const file of peerLibrary.files) {
-        for (const entry of file.entries) {
-            if (idl.isPackage(entry) || idl.isModuleType(entry) || idl.isImport(entry) || isPredefined(entry))
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+            if (idl.isPackage(entry) || idl.isImport(entry) || isPredefined(entry))
                 continue
             syntheticsGenerator.convert(entry)
             const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)
@@ -87,7 +85,7 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
     imports.addFeature("int32", "@koalaui/common")
     imports.print(writer, "")
     for (const file of peerLibrary.files)
-        for (const decl of file.entries) {
+        for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isEnum(decl)) {
                 // An ugly hack to avoid double definition of ContentType enum.
                 if (seenNames.has(decl.name) && decl.name == "ContentType") continue

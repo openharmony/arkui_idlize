@@ -52,6 +52,9 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
         return []
     }
+    convertNamespace(decl: idl.IDLNamespace): idl.IDLNode[] {
+        return decl.members.flatMap(it => this.convert(it))
+    }
     convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
         return [
             ...decl.inheritance
@@ -69,7 +72,7 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     }
     protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
         if (idl.isInterface(type)) {
-            return this.convert(idl.createReferenceType(type.name))
+            return this.convert(idl.createReferenceType(type.name, undefined, type))
         }
         return this.convert(type)
     }
@@ -84,6 +87,15 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
             ...decl.parameters.flatMap(it => this.convert(it.type!)),
             ...this.convert(decl.returnType),
         ]
+    }
+    convertMethod(decl: idl.IDLMethod): idl.IDLNode[] {
+        return [
+            ...decl.parameters.flatMap(it => this.convert(it.type!)),
+            ...this.convert(decl.returnType),
+        ]
+    }
+    convertConstant(decl: idl.IDLConstant): idl.IDLNode[] {
+        return this.convert(decl.type)
     }
     convert(node: idl.IDLNode | undefined): idl.IDLNode[] {
         if (node === undefined)
@@ -107,10 +119,6 @@ class TSDependenciesCollector extends DependenciesCollector {
 
 class ArkTSDependenciesCollector extends DependenciesCollector {
     override convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
-        const types = type.name.split(".")
-        if (types.length > 1) {
-            return this.convertTypeReference(idl.createReferenceType(types.slice(-1).join()))
-        }
         const decl = this.library.resolveTypeReference(type)
         if (decl && idl.isSyntheticEntry(decl)) {
             return [

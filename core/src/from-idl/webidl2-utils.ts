@@ -50,11 +50,11 @@ export function isDictionary(node: webidl2.IDLRootType): node is webidl2.Diction
     return node.type === "dictionary"
 }
 
-export function isAttribute(node: webidl2.IDLInterfaceMemberType): node is webidl2.AttributeMemberType {
+export function isAttribute(node: webidl2.IDLInterfaceMemberType | webidl2.IDLNamespaceMemberType): node is webidl2.AttributeMemberType {
     return node.type === "attribute"
 }
 
-export function isOperation(node: webidl2.IDLInterfaceMemberType): node is webidl2.OperationMemberType {
+export function isOperation(node: webidl2.IDLInterfaceMemberType | webidl2.IDLNamespaceMemberType): node is webidl2.OperationMemberType {
     return node.type === "operation"
 }
 

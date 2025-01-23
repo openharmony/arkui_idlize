@@ -71,7 +71,7 @@ export class IDLInteropPredefinesVisitor implements GenericVisitor<void> {
     }
 
     visitWholeFile(): void {
-        this.peerFile.entries
+        idl.linearizeNamespaceMembers(this.peerFile.entries)
             .filter(idl.isInterface)
             .forEach(it => this.peerLibrary.predefinedDeclarations.push(it))
     }
@@ -86,7 +86,7 @@ export class IDLPredefinesVisitor implements GenericVisitor<void> {
     constructor(options: IdlPeerGeneratorVisitorOptions) {
         this.peerLibrary = options.peerLibrary
         this.peerFile = options.peerFile
-        const packageDeclarations = this.peerFile.entries.filter(entry => idl.isPackage(entry))
+        const packageDeclarations = idl.linearizeNamespaceMembers(this.peerFile.entries).filter(entry => idl.isPackage(entry))
         if (packageDeclarations.length === 1) {
             const [ pkg ] = packageDeclarations
             let pkgName = pkg.name ?? ''
@@ -99,16 +99,13 @@ export class IDLPredefinesVisitor implements GenericVisitor<void> {
 
     visitWholeFile(): void {
         if (this.isPredefinedTypesPackage()) {
-            this.peerFile.entries.forEach(predefinedEntry => {
+            idl.linearizeNamespaceMembers(this.peerFile.entries).forEach(predefinedEntry => {
                 if (!predefinedEntry.extendedAttributes) {
                     predefinedEntry.extendedAttributes = []
                 }
-                predefinedEntry.extendedAttributes!.push({
-                    name: idl.IDLExtendedAttributes.Namespace,
-                    value: 'predefined'
-                })
+                predefinedEntry.extendedAttributes!.push({ name: idl.IDLExtendedAttributes.Predefined })
                 this.peerLibrary.files.forEach(peerLibraryFile => {
-                    peerLibraryFile.entries.filter(libraryEntry => {
+                    idl.linearizeNamespaceMembers(peerLibraryFile.entries).filter(libraryEntry => {
                         if (libraryEntry.name !== predefinedEntry.name)
                             return true
                         if (!idl.isTypedef(libraryEntry))
@@ -127,8 +124,7 @@ export class IDLPredefinesVisitor implements GenericVisitor<void> {
 }
 
 export function isPredefined(entry: idl.IDLEntry) {
-    const maybeNamespace = idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Namespace)
-    return maybeNamespace === 'predefined'
+    return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Predefined)
 }
 
 function generateArgConvertor(library: PeerLibrary, param: idl.IDLParameter): ArgConvertor {
@@ -433,7 +429,7 @@ export class IdlPeerProcessor {
         }
         if (method === undefined) {
             // interface or class without constructors
-            const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl.name), [], []), [MethodModifier.STATIC])
+            const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl.name, undefined, decl), [], []), [MethodModifier.STATIC])
             return new MaterializedMethod(decl.name, implemenationParentName, [], returnType, false, ctor, outArgConvertor)
         }
 
@@ -455,7 +451,8 @@ export class IdlPeerProcessor {
     }
 
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
-        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
+        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
+            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
             idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.CPPType) ||
             PeerGeneratorConfig.ignoreEntry(decl.name!, language)
     }
@@ -465,7 +462,7 @@ export class IdlPeerProcessor {
         const peerGenerator = new PeersGenerator(this.library)
         for (const component of collectComponents(this.library))
             peerGenerator.generatePeer(component)
-        const allDeclarations = this.library.files.flatMap(file => file.entries)
+        const allDeclarations = this.library.files.flatMap(file => idl.linearizeNamespaceMembers(file.entries))
         for (const dep of allDeclarations) {
             if (PeerGeneratorConfig.ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
                 continue
@@ -566,7 +563,7 @@ export function isCommonMethodOrSubclass(library: PeerLibrary, decl?: idl.IDLEnt
 }
 
 export function isSourceDecl(node: idl.IDLEntry): boolean {
-    // if (isModuleType(node.parent))
+    // if (isNamespace(node.parent))
     //     return this.isSourceDecl(node.parent.parent)
     // if (isTypeParameterType(node))
     //     return false

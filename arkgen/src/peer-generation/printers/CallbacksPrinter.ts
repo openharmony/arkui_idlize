@@ -66,7 +66,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
         foundCallbacks.push(callback)
     }
     for (const file of library.files) {
-        for (const decl of file.entries) {
+        for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
             for (const callback of collectEntryCallbacks(library, decl)) {
                 addCallback(callback)
             }
@@ -215,7 +215,7 @@ class DeserializeCallbacksVisitor {
             } else {
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder.instance()`, `get`, [writer.makeString(resourceIdName)]),
-                    idl.createReferenceType(callback.name),
+                    idl.createReferenceType(callback.name, undefined, callback),
                 ), true))
             }
             const argsNames = []

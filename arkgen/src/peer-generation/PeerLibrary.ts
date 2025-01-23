@@ -91,7 +91,7 @@ export class PeerLibrary implements LibraryInterface {
             continuationParameters,
             idl.IDLVoidType,
         )
-        return idl.createReferenceType(syntheticName)
+        return idl.createReferenceType(syntheticName, undefined, continuationType)
     }
 
     private context: string | undefined
@@ -112,50 +112,76 @@ export class PeerLibrary implements LibraryInterface {
         )
     }
 
-    resolveTypeReference(type: idl.IDLReferenceType, entries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
+    resolveTypeReference(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
         const entry = this.syntheticEntries.find(it => it.name === type.name)
-        if (entry) {
+        if (entry)
             return entry
-        }
-        entries ??= this.files.flatMap(it => it.entries)
 
-        const qualifiedName = type.name
-        const lastDot = qualifiedName.lastIndexOf(".")
-        if (lastDot >= 0) {
-            const qualifier = qualifiedName.slice(0, lastDot)
-            const typeName = qualifiedName.slice(lastDot + 1)
-            // This is a namespace or enum member. Try enum first
-            const parent = entries.find(it => it.name === qualifier)
-            if (parent && idl.isEnum(parent))
-                return parent.elements.find(it => it.name === typeName)
-            // Else try namespaces
-            return entries.find(it =>
-                it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === qualifier)
+        const qualifiedName = type.name.split(".");
+
+        pointOfView ??= type.namespace
+        let pointOfViewNamespace = !pointOfView || idl.isNamespace(pointOfView)
+            ? pointOfView
+            : pointOfView.namespace
+
+        rootEntries ??= this.files.flatMap(it => it.entries)
+        if (1 === qualifiedName.length) {
+            const predefined = rootEntries.filter(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Predefined))
+            predefined.push(...this.predefinedDeclarations)
+            const found = predefined.find(it => it.name === qualifiedName[0])
+            if (found)
+                return found;
         }
 
-        // TODO: Workaround for namespace support in ArkTS. Remove after fixing namespaces
-        const firstUnderscore = qualifiedName.lastIndexOf("_")
-        if (firstUnderscore >= 0 && this.language === Language.ARKTS) {
-            const namespace = qualifiedName.slice(0, firstUnderscore)
-            const typeName = qualifiedName.slice(firstUnderscore + 1)
-            const entry = entries.find(it =>
-                it.name === typeName && idl.getExtAttribute(it, idl.IDLExtendedAttributes.Namespace) === namespace)
-            if (entry !== undefined) {
-                return entry
+        let doWork = true
+        while (doWork) {
+            doWork = !!pointOfViewNamespace
+            let entries = pointOfViewNamespace
+                ? [...pointOfViewNamespace.members]
+                : [...rootEntries]
+            for(let qualifiedNamePart = 0; qualifiedNamePart < qualifiedName.length; ++qualifiedNamePart) {
+                const candidates = entries.filter(it => it.name === qualifiedName[qualifiedNamePart])
+                if (!candidates.length)
+                    break
+                if (qualifiedNamePart === qualifiedName.length-1) {
+                    return candidates.length == 1
+                        ? candidates[0]
+                        : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import)) // probably the wrong logic here
+                }
+                entries = []
+                for(const candidate of candidates) {
+                    if (idl.isNamespace(candidate))
+                        entries.push(...candidate.members)
+                    else if (idl.isEnum(candidate))
+                        entries.push(...candidate.elements)
+                    else if (idl.isInterface(candidate))
+                        entries.push(...candidate.constants, ...candidate.properties, ...candidate.methods)
+                }
             }
+
+            pointOfViewNamespace = pointOfViewNamespace?.namespace
         }
 
-        const candidates = entries.filter(it => type.name === it.name)
-        if (candidates.length === 1)
-            return candidates[0]
-        const maybePredefined = candidates.find(isPredefined)
-        if (maybePredefined)
-            return maybePredefined
-        return candidates.length == 1
-            ? candidates[0]
-            : candidates.find(it => {
-                return !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import)
-            })
+        // TODO: remove the next block after namespaces out of quarantine
+        if (!pointOfView) {
+            const this_ = this
+            const resolveds: idl.IDLEntry[] = []
+            function traverseNamespaces(entry: idl.IDLEntry) {
+                if (entry && idl.isNamespace(entry) && entry.members.length) {
+                    //console.log(`Try alien namespace '${idl.getNamespacesPathFor(entry.members[0]).map(obj => obj.name).join(".")}' to resolve name '${type.name}'`)
+                    const resolved = this_.resolveTypeReference(type, entry, rootEntries)
+                    if (resolved)
+                        resolveds.push(resolved)
+                    entry.members.forEach(traverseNamespaces)
+                }
+            }
+            this.files.forEach(file => file.entries.forEach(traverseNamespaces))
+
+            if (resolveds.length)
+                console.log(`WARNING: Type reference '${type.name}' is not resolved without own namespace/pointOfView but resolved within some other namespace: '${idl.getNamespacesPathFor(resolveds[0]).map(obj => obj.name).join(".")}'`)
+        }// end of block to remove
+
+        return undefined // empty result
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {

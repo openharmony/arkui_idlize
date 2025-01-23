@@ -32,7 +32,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
         const types = type.name.split(".")
         if (types.length > 1) {
             // Takes only name without the namespace prefix
-            const decl = this.resolver.resolveTypeReference(createReferenceType(types.slice(-1).join()))
+            const decl = this.resolver.resolveTypeReference(createReferenceType(types.slice(-1).join(), undefined, type))
             if (decl !== undefined) {
                 return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
             }
@@ -114,10 +114,6 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             return `${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`
         })
         return `((${params.join(",")}) => ${this.convert(decl.returnType)})`
-    }
-
-    protected getNamespacePrefix(decl: IDLEntry): stringOrNone {
-        return idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace);
     }
 
     protected mapFunctionType(typeArgs: string[]): string {

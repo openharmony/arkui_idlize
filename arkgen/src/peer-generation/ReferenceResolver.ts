@@ -31,4 +31,3 @@ export function createEmptyReferenceResolver(): ReferenceResolver {
 export function getReferenceResolver(library: PeerLibrary): ReferenceResolver {
     return library
 }
-

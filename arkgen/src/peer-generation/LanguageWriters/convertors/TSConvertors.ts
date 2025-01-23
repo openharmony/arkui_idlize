@@ -30,6 +30,9 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
 
     /***** TypeConvertor<string> *****************************************/
 
+    convertNamespace(node: idl.IDLNamespace): string {
+        return node.name
+    }
     convertInterface(node: idl.IDLInterface): string {
         return node.name
     }
@@ -40,6 +43,12 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         return node.name
     }
     convertCallback(node: idl.IDLCallback): string {
+        return node.name
+    }
+    convertMethod(node: idl.IDLMethod): string {
+        return node.name
+    }
+    convertConstant(node: idl.IDLConstant): string {
         return node.name
     }
     convertOptional(type: idl.IDLOptionalType): string {
@@ -76,32 +85,17 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
         return type.name
     }
 
-    protected getNamespacePrefix(decl: idl.IDLEntry): stringOrNone {
-        let namespace = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Namespace)
-        if (namespace !== undefined) {
-            namespace += "."
-        }
-        return namespace
-    }
-
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const decl = this.resolver.resolveTypeReference(type)!
-        let namespacePrefix = ''
+        let decl = this.resolver.resolveTypeReference(type)
         if (decl) {
             if (idl.isSyntheticEntry(decl)) {
                 if (idl.isCallback(decl)) {
-                    return namespacePrefix + this.mapCallback(decl)
+                    return this.mapCallback(decl)
                 }
                 const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
                 if (entity) {
                     const isTuple = entity === idl.IDLEntity.Tuple
                     return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
-                }
-            }
-            if (idl.isEnum(decl)) {
-                const prefix = this.getNamespacePrefix(decl)
-                if (prefix !== undefined) {
-                    namespacePrefix = prefix;
                 }
             }
         }
@@ -111,7 +105,7 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
             // when `interface A { field?: MyEnum.Value1 }` is generated, it is not possible
             // to deserialize A, because there is no such type information in declaration target
             // (can not cast MyEnum to exact MyEnum.Value1)
-            return decl.parent?.name
+            decl = decl.parent
         }
 
         let typeSpec = type.name
@@ -122,15 +116,15 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
             typeArgs = [this.convert(idl.IDLAnyType)]
         if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
-        const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
-        // FIXME:
-        if (namespacePrefix !== '' && typeSpec.startsWith(namespacePrefix)) {
-            return `${typeSpec}${maybeTypeArguments}`
-        }
-        if (typeSpec === `Function`) {
+        if (typeSpec === `Function`)
             return this.mapFunctionType(typeArgs)
+        const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
+        if (decl) {
+            const path = idl.getNamespacesPathFor(decl).map(it => it.name)
+            path.push(decl.name)
+            return `${path.join(".")}${maybeTypeArguments}`
         }
-        return `${namespacePrefix}${typeSpec}${maybeTypeArguments}`
+        return `${type.name}${maybeTypeArguments}`
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
         return type.name

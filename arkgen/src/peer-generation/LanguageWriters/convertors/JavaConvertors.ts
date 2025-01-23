@@ -65,6 +65,9 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
         return this.mapTypeName(rowType)
     }
 
+    convertNamespace(node: idl.IDLNamespace): JavaTypeAlias {
+        throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
+    }
     convertInterface(node: idl.IDLInterface): JavaTypeAlias {
         if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             return this.productType(node, true, false)
@@ -102,6 +105,12 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
         }
         // TODO
         return JavaTypeAlias.fromTypeName(`Callback`, false)
+    }
+    convertMethod(type: idl.IDLMethod): JavaTypeAlias {
+        throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
+    }
+    convertConstant(type: idl.IDLConstant): JavaTypeAlias {
+        throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): JavaTypeAlias {
         return JavaTypeAlias.fromTypeName(type.name, false)

@@ -33,8 +33,8 @@ export interface LanguageExpression {
 
 export class TernaryExpression implements LanguageExpression {
     constructor(public condition: LanguageExpression,
-                public trueExpression: LanguageExpression,
-                public falseExpression: LanguageExpression) {}
+        public trueExpression: LanguageExpression,
+        public falseExpression: LanguageExpression) {}
     asString(): string {
         return `(${this.condition.asString()}) ? (${this.trueExpression.asString()}) : (${this.falseExpression.asString()})`
     }
@@ -172,10 +172,10 @@ export class BlockStatement implements LanguageStatement {
 
 export class IfStatement implements LanguageStatement {
     constructor(public condition: LanguageExpression,
-                public thenStatement: LanguageStatement,
-                public elseStatement: LanguageStatement | undefined,
-                public insideIfOp: (() => void) | undefined,
-                public insideElseOp: (() => void) | undefined
+        public thenStatement: LanguageStatement,
+        public elseStatement: LanguageStatement | undefined,
+        public insideIfOp: (() => void) | undefined,
+        public insideElseOp: (() => void) | undefined
     ) { }
     write(writer: LanguageWriter): void {
         writer.print(`if (${this.condition.asString()})`)
@@ -190,7 +190,7 @@ export class IfStatement implements LanguageStatement {
         }
     }
 
-    writeBody(writer: LanguageWriter, body: LanguageStatement, op: () => void) {
+    writeBody(writer: LanguageWriter, body:LanguageStatement, op: () => void) {
         if (!(body instanceof BlockStatement)) {
             writer.pushIndent()
         }
@@ -250,9 +250,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
     constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
     write(writer: LanguageWriter): void {
         // writer.print(this.enumEntity.comment)
-        const namespace = idl.getExtAttribute(this.enumEntity, idl.IDLExtendedAttributes.Namespace)
-        if (namespace) writer.pushNamespace(namespace)
-
+        idl.getNamespacesPathFor(this.enumEntity).forEach(it => writer.pushNamespace(it.name))
         writer.print(`${this.isExport ? "export " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
         this.enumEntity.elements.forEach((member, index) => {
@@ -269,8 +267,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         })
         writer.popIndent()
         writer.print(`}`)
-
-        if (namespace) writer.popNamespace()
+        idl.getNamespacesPathFor(this.enumEntity).forEach(it => writer.popNamespace())
     }
 
     private maybeQuoted(value: string|number): string {
@@ -279,7 +276,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         else
             return `${value}`
     }
-}
+ }
 
 export class ReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -338,7 +335,8 @@ export enum MethodModifier {
     INLINE,
     GETTER,
     SETTER,
-    PROTECTED
+    PROTECTED,
+    FREE, // not a member of interface/class
 }
 
 export enum ClassModifier {
@@ -549,8 +547,8 @@ export abstract class LanguageWriter {
     }
     makeFunctionCall(name: string | LanguageExpression, params: LanguageExpression[]): LanguageExpression {
         if (typeof name === "string") {
-            return new FunctionCallExpression(name, params)
-        }
+        return new FunctionCallExpression(name, params)
+    }
         return new FunctionCallExpression(name.asString(), params)
     }
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
@@ -803,14 +801,14 @@ export abstract class LanguageWriter {
                     expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER),
                     stmt: this.makeReturn(this.makeString(`${deserializer}.readFloat32() as number`))
                 },
-                    {
-                        expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
-                        stmt: this.makeReturn(this.makeMethodCall(deserializer, "readString", []))
-                    },
-                    {
-                        expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
-                        stmt: this.makeReturn(this.makeString(`({id: ${deserializer}.readInt32(), bundleName: "", moduleName: ""}) as Resource`))
-                    }],
+                {
+                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
+                    stmt: this.makeReturn(this.makeMethodCall(deserializer, "readString", []))
+                },
+                {
+                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
+                    stmt: this.makeReturn(this.makeString(`({id: ${deserializer}.readInt32(), bundleName: "", moduleName: ""}) as Resource`))
+                }],
                 this.makeReturn(this.makeUndefined())
             ),
         ], false)
@@ -824,7 +822,7 @@ export abstract class LanguageWriter {
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
      */
-    pushNamespace(namespace: string, ident: boolean = true) {
+    pushNamespace(namespace: string, ident: boolean = true) { // TODO: namespace-related-to-rework
         this.print(`namespace ${namespace} {`)
         if (ident) this.pushIndent()
     }
@@ -832,7 +830,7 @@ export abstract class LanguageWriter {
     /**
      * Writes closing brace of namespace block and removes one level of indent
      */
-    popNamespace(ident: boolean = true) {
+    popNamespace(ident: boolean = true) { // TODO: namespace-related-to-rework
         if (ident) this.popIndent()
         this.print(`}`)
     }

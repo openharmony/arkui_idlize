@@ -251,6 +251,8 @@ export class TSLanguageWriter extends LanguageWriter {
         } else if (modifiers?.includes(MethodModifier.SETTER)) {
             prefix = `set ${prefix}`
             needReturn = false
+        } else if (modifiers?.includes(MethodModifier.FREE)) {
+            prefix = `${needBracket ? "" : "declare "}function ${prefix}`
         }
         prefix = prefix ? prefix.trim() + " " : ""
         const typeParams = generics?.length ? `<${generics.join(", ")}>` : ""
@@ -397,7 +399,7 @@ export class TSLanguageWriter extends LanguageWriter {
 
     makeDiscriminatorConvertor(convertor: ArgConvertor, value: string, index: number): LanguageExpression | undefined {
         const decl = this.resolver.resolveTypeReference(
-            idl.createReferenceType(this.getNodeName(convertor.nativeType()))
+            idl.createReferenceType(this.getNodeName(convertor.nativeType()), undefined, convertor.idlType)
         )
         if (decl === undefined || !idl.isEnum(decl)) {
             throwException(`The type reference ${decl?.name} must be Enum`)
@@ -405,7 +407,7 @@ export class TSLanguageWriter extends LanguageWriter {
         const ordinal = idl.isStringEnum(decl)
             ? this.ordinalFromEnum(
                 this.makeCast(this.makeString(this.getObjectAccessor(convertor, value)), convertor.idlType),
-                idl.createReferenceType(this.getNodeName(convertor.nativeType()))
+                idl.createReferenceType(this.getNodeName(convertor.nativeType()), undefined, convertor.idlType)
             )
             : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.getNodeName(idl.IDLI32Type), convertor, index)
         const {low, high} = idl.extremumOfOrdinals(decl)

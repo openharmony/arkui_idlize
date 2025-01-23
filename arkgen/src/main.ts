@@ -34,7 +34,9 @@ import {
     isInterface,
     isSyntheticEntry,
     toIDLString,
-    transformMethodsAsync2ReturnPromise
+    transformMethodsAsync2ReturnPromise,
+    verifyIDLString,
+    linearizeNamespaceMembers
 } from "@idlize/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
@@ -168,7 +170,6 @@ if (options.dts2idl) {
                         it, (it) => it.documentation = undefined))
                 }
                 let generated = toIDLString(entries, {
-                    verifyIdl: options.verifyIdl ?? false,
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })
                 if (options.verbose) console.log(generated)
@@ -176,6 +177,8 @@ if (options.dts2idl) {
                     fs.mkdirSync(path.dirname(outFile), { recursive: true });
                 }
                 fs.writeFileSync(outFile, generated)
+                if (options.verifyIdl)
+                    verifyIDLString(generated)
             }
         }
     )
@@ -362,7 +365,7 @@ if (options.dts2peer) {
             onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
                 // Search for duplicate declarations
                 entries = entries.filter(newEntry =>
-                    !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
+                    !idlLibrary.files.find(peerFile => linearizeNamespaceMembers(peerFile.entries).find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isEnum)
                             || [newEntry, entry].every(isSyntheticEntry))) {

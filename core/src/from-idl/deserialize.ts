@@ -41,6 +41,12 @@ export function resolveSyntheticType(type: idl.IDLReferenceType): idl.IDLEntry |
 }
 
 export function toIDLNode(file: string, node: webidl2.IDLRootType): idl.IDLEntry {
+    const result = toIDLNodeForward(file, node)
+    idl.linkNamespacesBack(result)
+    return result
+}
+
+function toIDLNodeForward(file: string, node: webidl2.IDLRootType): idl.IDLEntry {
     if (isEnum(node)) {
         return toIDLEnum(file, node)
     }
@@ -71,9 +77,14 @@ export function toIDLNode(file: string, node: webidl2.IDLRootType): idl.IDLEntry
     if (isVersion(node)) {
         return toIDLVersion(file, node)
     }
+    if (isAttribute(node as webidl2.IDLNamespaceMemberType)) {
+        return toIDLProperty(file, node as webidl2.AttributeMemberType)
+    }
+    if (isOperation(node as webidl2.IDLNamespaceMemberType)) {
+        return toIDLMethod(file, node as webidl2.OperationMemberType)
+    }
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
-
 
 function isNamespace(node: webidl2.IDLRootType): node is webidl2.NamespaceType {
     return node.type === 'namespace'
@@ -267,6 +278,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): idl.IDLMe
             isStatic: node.special === "static",
             isAsync: node.async,
             isOptional: isOptional(node),
+            isFree: false, // TODO: namespace-related-to-rework
         }, {
             documentation: makeDocs(node),
             extendedAttributes: toExtendedAttributes(node.extAttrs),
@@ -329,12 +341,14 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): idl.IDLEnu
     return result
 }
 
-function toIDLNamespace(file: string, node: webidl2.NamespaceType): idl.IDLModule {
-    return idl.createModuleType(
+function toIDLNamespace(file: string, node: webidl2.NamespaceType): idl.IDLNamespace {
+    const namespace = idl.createNamespace(
         node.name,
         toExtendedAttributes(node.extAttrs),
         file
     )
+    namespace.members = node.members.map(it => toIDLNodeForward(file, it))
+    return namespace
 }
 
 function toIDLVersion(file: string, node: webidl2.VersionType): idl.IDLVersion {

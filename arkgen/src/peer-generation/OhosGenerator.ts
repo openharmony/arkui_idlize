@@ -385,11 +385,14 @@ class OHOSVisitor {
             this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
         }
         this.data.forEach(data => {
+            const namespaces = idl.getNamespacesPathFor(data);
+            namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             this.peerWriter.writeInterface(data.name, writer => {
                 data.properties.forEach(prop => {
                     writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                 })
             })
+            namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
         this.enums.forEach(e => {
             const writer = this.peerWriter
@@ -412,6 +415,8 @@ class OHOSVisitor {
             }, superTypes.length > 0 ? superTypes : undefined)
         })
         this.interfaces.forEach(int => {
+            const namespaces = idl.getNamespacesPathFor(int);
+            namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
             this.peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
@@ -502,7 +507,7 @@ class OHOSVisitor {
                 // write construct(ptr: number) method
                 if (ctors.length === 0) {
                     const typeArguments = int.typeParameters
-                    const clazzRefType = createReferenceType(int.name, typeArguments?.map(createTypeParameterReference))
+                    const clazzRefType = createReferenceType(int.name, typeArguments?.map(createTypeParameterReference), int)
                     const constructSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
                     writer.writeMethodImplementation(new Method("construct", constructSig, [MethodModifier.STATIC], typeArguments), writer => {
                         const objVar = `obj${int.name}`
@@ -528,18 +533,18 @@ class OHOSVisitor {
                             it.parameters.map(p => ({ name: writer.escapeKeyword(p.name), type: p.type }))
                         ),
                         it.isStatic ? [MethodModifier.STATIC] : []
-                    )
+                                    )
                 ))
 
                 PeerMethod.markAndGroupOverloads(materializedMethods)
 
                 const groupedMethods = groupOverloads(
                     materializedMethods
-                )
+                        )
 
                 groupedMethods.forEach(methods => {
                     PeerMethod.markAndGroupOverloads(methods)
-                })
+                            })
 
                 const overloadsPrinter = new OverloadsPrinter(this.library, writer, this.library.language, false)
                 const clazz = new MaterializedClass(
@@ -557,11 +562,11 @@ class OHOSVisitor {
                 )
                 for (const group of groupedMethods) {
                     overloadsPrinter.printGroupedComponentOverloads(clazz, group)
-                }
+                        }
 
                 materializedMethods.forEach(method => {
                     writePeerMethod(
-                        writer,
+                        writer, 
                         method.getPrivateMethod(),
                         true,
                         { language: this.library.language, imports: undefined, synthesizedTypes: undefined  },
@@ -570,7 +575,7 @@ class OHOSVisitor {
                         'this.peer!.ptr',
                         method.returnType
                     )
-                })
+                    })
 
             }, idl.getSuperType(int)?.name, isGlobalScope ? undefined : [`${int.name}Interface`])
 
@@ -580,7 +585,7 @@ class OHOSVisitor {
                 if (!hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
                     this.peerWriter.writeClass(`${int.name}Internal`, writer => {
                         // write fromPtr(ptr: number):MaterializedClass method
-                        const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference))
+                        const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference), int)
                         const fromPtrSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
                         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], int.typeParameters), writer => {
                             const objVar = `obj`
@@ -599,6 +604,7 @@ class OHOSVisitor {
                     })
                 }
             }
+            namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
 
         this.library.globalScopeInterfaces.forEach(entry => {
@@ -680,7 +686,7 @@ class OHOSVisitor {
 
         this.library.files.forEach(file => {
             if (file.isPredefined) return
-            file.entries.forEach(entry => {
+            idl.linearizeNamespaceMembers(file.entries).forEach(entry => {
                 if (isInterface(entry)) {
                     if (isMaterialized(entry, this.library)) {
                         this.interfaces.push(entry)
@@ -762,7 +768,7 @@ class OHOSVisitor {
         fs.writeFileSync(path.join(outDir, this.implementationStubsFile.name),
             this.implementationStubsFile.printToString()
         )
-
+        
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
@@ -891,7 +897,6 @@ function suggestLibraryName(library: PeerLibrary) {
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
 }
-
 interface MethodWithPostfix {
     method: IDLMethod,
     overloadPostfix: string
@@ -923,7 +928,6 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
         }
     })
 }
-
 
 export class OhosConfiguration implements GeneratorConfiguration {
 

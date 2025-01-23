@@ -436,14 +436,14 @@ export function generateArkoalaFromIdl(config: {
             }
         )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'arkts')),
-            makeTypeChecker(peerLibrary).arkts,
+            makeTypeChecker(peerLibrary, Language.ARKTS),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
             }
         )
         writeFile(arkoala.arktsLib(new TargetFile('type_check', 'ts')),
-            makeTypeChecker(peerLibrary).ts,
+            makeTypeChecker(peerLibrary, Language.TS),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true

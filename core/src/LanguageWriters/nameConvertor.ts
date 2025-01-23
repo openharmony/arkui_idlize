@@ -45,19 +45,25 @@ export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): 
 }
 
 export interface DeclarationConvertor<T> {
+    convertNamespace(node: idl.IDLNamespace): T
     convertInterface(node: idl.IDLInterface): T
     convertEnum(node: idl.IDLEnum): T
     convertTypedef(node: idl.IDLTypedef): T
     convertCallback(node: idl.IDLCallback): T
+    convertMethod(node: idl.IDLMethod): T
+    convertConstant(node: idl.IDLConstant): T
 }
 
 export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, decl: idl.IDLEntry): T {
+    if (idl.isNamespace(decl)) return convertor.convertNamespace(decl)
     if (idl.isInterface(decl))
         return convertor.convertInterface(decl)
     if (idl.isEnum(decl)) return convertor.convertEnum(decl)
     if (idl.isEnumMember(decl)) return convertor.convertEnum(decl.parent)
     if (idl.isTypedef(decl)) return convertor.convertTypedef(decl)
     if (idl.isCallback(decl)) return convertor.convertCallback(decl)
+    if (idl.isMethod(decl))  return convertor.convertMethod(decl)
+    if (idl.isConstant(decl))  return convertor.convertConstant(decl)
     throw new Error(`Unknown declaration type ${decl.kind ? idl.IDLKind[decl.kind] : "(undefined kind)"}`)
 }
 

@@ -24,6 +24,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    printMethodDeclaration,
 } from '../LanguageWriters'
 import { LanguageWriter } from "@idlize/core"
 import {
@@ -76,6 +77,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
     convertCallback(node: idl.IDLCallback): void {
     }
+    convertMethod(node: idl.IDLMethod): void {
+        this.writer.writeMethodDeclaration(node.name, this.writer.makeSignature(node.returnType, node.parameters), node.isFree ? [MethodModifier.FREE] : [])
+    }
+    convertConstant(node: idl.IDLConstant): void {
+        this.writer.print(`export declare const ${node.name} = ${node.value};`)
+    }
     convertEnum(node: idl.IDLEnum): void {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, true))
     }
@@ -95,6 +102,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
 
     //     let parent = node.heritageClauses[0]!.types[0]
     //     return `extends ${parent.getText()}`
+    }
+
+    convertNamespace(node: idl.IDLNamespace): void {
+        this.writer.pushNamespace(node.name);
+        node.members.forEach(it => convertDeclaration(this, it))
+        this.writer.popNamespace();
     }
 
     convertInterface(node: idl.IDLInterface): void {
@@ -142,12 +155,12 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
     }
 
     protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
-        const enums = peerFile.entries.filter(idl.isEnum)
+        const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
         if (enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
             for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name))
+                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name, undefined, e.namespace))
                 writer.print(`${e.name}: ${usageTypeName},`)
             }
             writer.popIndent()
@@ -160,8 +173,8 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
             this.printImports(writer, file)
             const typeConvertor = new TSDeclConvertor(writer, this.peerLibrary)
-            for (const entry of file.entries) {
-                if (idl.isModuleType(entry) || idl.isPackage(entry))
+            for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+                if (idl.isPackage(entry))
                     continue
                 if (PeerGeneratorConfig.ignoreEntry(entry.name, writer.language))
                     continue
@@ -220,6 +233,14 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     constructor(private readonly peerLibrary: PeerLibrary, private readonly onNewDeclaration: (declaration: JavaDeclaration) => void) {}
     convertCallback(node: idl.IDLCallback): void {
     }
+    convertMethod(node: idl.IDLMethod): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
+    convertConstant(node: idl.IDLConstant): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
     convertEnum(node: idl.IDLEnum): void {
         this.onNewDeclaration(this.makeEnum(node.name, node))
     }
@@ -247,7 +268,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             }
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type, undefined)
+            const target = this.peerLibrary.resolveTypeReference(type, undefined, undefined) // TODO: namespace-related-to-rework
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -260,6 +281,9 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             return
         }
         throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
+    }
+    convertNamespace(node: idl.IDLNamespace): void {
+        node.members.forEach(member => convertDeclaration(this, member))
     }
     convertInterface(node: idl.IDLInterface): void {
         const name = this.nameConvertor.convert(node)
@@ -387,7 +411,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         }
 
         writer.writeClass(alias, () => {
-            const enumType = idl.createReferenceType(alias)
+            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`new ${alias}(${it.numberId})`)
@@ -463,8 +487,8 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
             convertDeclaration(declarationConverter, entry)
         })
         for (const file of this.peerLibrary.files.values()) {
-            for (const entry of file.entries) {
-                if (idl.isPackage(entry) || idl.isModuleType(entry))
+            for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+                if (idl.isPackage(entry))
                     continue
                 if (isPredefined(entry))
                     continue;
@@ -790,12 +814,12 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
     }
 
     protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
-        const enums = peerFile.entries.filter(idl.isEnum)
+        const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
         if (enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
             for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name))
+                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name, undefined, e.namespace))
                 writer.print(`${e.name}: ${usageTypeName},`)
             }
             writer.popIndent()
@@ -809,7 +833,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             const module = convertDeclToFeature(this.peerLibrary, entry).module
             if (!moduleToEntries.has(module))
                 moduleToEntries.set(module, [])
-            if (moduleToEntries.get(module)!.some(it => it.name === entry.name))
+            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry)))
                 return
             moduleToEntries.get(module)!.push(entry)
         }
@@ -817,9 +841,8 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             registerEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
-            for (const entry of file.entries) {
-                if (idl.isModuleType(entry) ||
-                    idl.isPackage(entry) ||
+            for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+                if (idl.isPackage(entry) ||
                     isPredefined(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
@@ -872,11 +895,10 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
             onEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
-            for (const entry of file.entries) {
-                if (idl.isModuleType(entry) ||
-                    idl.isPackage(entry) ||
-                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
+            for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+                if (idl.isPackage(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     isPredefined(entry))
                     continue
                 if (PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
@@ -916,6 +938,14 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     constructor(private readonly peerLibrary: PeerLibrary, private readonly onNewDeclaration: (declaration: CJDeclaration) => void) {}
     convertCallback(node: idl.IDLCallback): void {
     }
+    convertMethod(node: idl.IDLMethod): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
+    convertConstant(node: idl.IDLConstant): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
     convertEnum(node: idl.IDLEnum): void {
         this.onNewDeclaration(this.makeEnum(node.name, node))
     }
@@ -943,7 +973,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             }
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type, undefined)
+            const target = this.peerLibrary.resolveTypeReference(type, undefined, undefined) // TODO: namespace-related-to-rework
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -956,6 +986,9 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             return
         }
         throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
+    }
+    convertNamespace(node: idl.IDLNamespace): void {
+        throw new Error("Internal error: namespaces are not allowed on the CJ layer")
     }
     convertInterface(node: idl.IDLInterface): void {
         const decl = node.subkind == idl.IDLInterfaceSubkind.Tuple
@@ -1081,7 +1114,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             memberValue += 1
         }
         writer.writeClass(alias, () => {
-            const enumType = idl.createReferenceType(alias)
+            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`${alias}(${it.numberId})`)

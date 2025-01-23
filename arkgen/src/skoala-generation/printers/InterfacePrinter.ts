@@ -25,7 +25,7 @@ export class TSInterfacesVisitor {
     printInterfaces(file: IldSkoalaFile, writer: LanguageWriter) {
         const typeConvertor = new TSDeclConvertor(writer, this.library)
         file.declarations.forEach(it => {
-            if (!idl.isPackage(it) && !idl.isImport(it) && !idl.isModuleType(it) && !idl.isSyntheticEntry(it)) {
+            if (!idl.isPackage(it) && !idl.isImport(it) && !idl.isSyntheticEntry(it)) {
                 convertDeclaration(typeConvertor, it)
             }
         })

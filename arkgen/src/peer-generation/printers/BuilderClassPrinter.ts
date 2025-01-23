@@ -242,7 +242,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
             .map(it => this.synthesizeField(it))
         const fields = [...clazz.fields, ...syntheticFields]
 
-        const returnType = createReferenceType(clazz.name)
+        const returnType = createReferenceType(clazz.name, undefined, clazz.declaration)
         const constructors = clazz.constructors.map(it => this.convertBuilderMethod(it, returnType, clazz.name))
         const methods = clazz.methods.map(it => this.convertBuilderMethod(it, returnType))
 

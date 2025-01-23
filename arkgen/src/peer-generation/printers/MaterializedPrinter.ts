@@ -118,7 +118,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const implementationClassName = clazz.getImplementationName()
         printer.writeClass(implementationClassName, writer => {
             if (writer.language == Language.TS || writer.language == Language.ARKTS || writer.language == Language.JAVA) {
-                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
+            writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
                 // write getPeer() method
                 const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
                 writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
@@ -175,54 +175,54 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 ctorSig.defaults)
 
             if (writer.language != Language.JAVA) {
-                writer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
-                    if (superClassName) {
-                        let params:string[] = []
-                        // workaround for MutableStyledString which does not have a constructor
-                        // the same as in the parent StyledString class
+            writer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
+                if (superClassName) {
+                    let params:string[] = []
+                    // workaround for MutableStyledString which does not have a constructor
+                    // the same as in the parent StyledString class
                         if (superClassName === "StyledString") params = [""]
-                        writer.writeSuperCall(params);
-                    }
+                    writer.writeSuperCall(params);
+                }
 
-                    const allOptional = ctorSig.args.every(it => isOptionalType(it))
-                    const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
-                    if (hasStaticMethods && allOptional) {
-                        if (ctorSig.args.length == 0) {
-                            writer.print(`// Constructor does not have parameters.`)
-                        } else {
-                            writer.print(`// All constructor parameters are optional.`)
-                        }
-                        writer.print(`// It means that the static method call invokes ctor method as well`)
-                        writer.print(`// when all arguments are undefined.`)
+                const allOptional = ctorSig.args.every(it => isOptionalType(it))
+                const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
+                if (hasStaticMethods && allOptional) {
+                    if (ctorSig.args.length == 0) {
+                        writer.print(`// Constructor does not have parameters.`)
+                    } else {
+                        writer.print(`// All constructor parameters are optional.`)
                     }
-                    let ctorStatements: LanguageStatement = writer.makeBlock([
-                        writer.makeAssign("ctorPtr", IDLPointerType,
-                            writer.makeMethodCall(implementationClassName, "ctor",
+                    writer.print(`// It means that the static method call invokes ctor method as well`)
+                    writer.print(`// when all arguments are undefined.`)
+                }
+                let ctorStatements: LanguageStatement = writer.makeBlock([
+                    writer.makeAssign("ctorPtr", IDLPointerType,
+                        writer.makeMethodCall(implementationClassName, "ctor",
                                 ctorSig.args.map((it, index) => writer.makeString(ctorSig.argsNames[index]))),
-                            true),
-                        writer.makeAssign(
-                            "this.peer",
-                            FinalizableType,
-                            writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
-                            false
-                        )
+                        true),
+                    writer.makeAssign(
+                        "this.peer",
+                        FinalizableType,
+                        writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
+                        false
+                    )
                     ], false)
-                    if (!allOptional) {
-                        ctorStatements =
-                            writer.makeCondition(
-                                ctorSig.args.length === 0 ? writer.makeString("true") :
-                                    writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
+                if (!allOptional) {
+                    ctorStatements =
+                        writer.makeCondition(
+                            ctorSig.args.length === 0 ? writer.makeString("true") :
+                                writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
                                         writer.language == Language.CJ ?
                                         writer.makeRuntimeTypeCondition('', true, RuntimeType.OBJECT, it) :
                                         writer.language == Language.JAVA ?
                                         writer.makeNaryOp('!=', [writer.makeString(it), writer.makeUndefined()]) :
-                                        writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
-                                    ),
+                                    writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
+                                ),
                                 writer.makeBlock([ctorStatements,])
-                            )
-                    }
-                    writer.writeStatement(ctorStatements)
-                })
+                        )
+                }
+                writer.writeStatement(ctorStatements)
+            })
             } else {
                 // constructor with a special parameter to use in static methods
                 const emptySignature = new MethodSignature(IDLVoidType, [emptyParameterType])
@@ -322,8 +322,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (printer.language == Language.CJ || printer.language == Language.JAVA) {
                 // TODO: fill interface fields
                 printer.writeInterface(clazz.className, writer => {}, undefined, undefined)
-            }
         }
+    }
     }
 }
 
@@ -541,9 +541,16 @@ function methodFromTagged(method: idl.IDLMethod): idl.IDLMethod {
         paramsFromTagged(method),
         method.returnType,
         {
-            isStatic: false,
-            isOptional: false,
-            isAsync: false,
-        }, {}
+            isStatic: method.isStatic,
+            isOptional: method.isOptional,
+            isAsync: method.isAsync,
+            isFree: method.isFree,
+        },
+        {
+            extendedAttributes: method.extendedAttributes,
+            fileName: method.fileName,
+            documentation: method.documentation,
+        },
+        method.typeParameters
     )
 }

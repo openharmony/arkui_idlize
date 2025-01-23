@@ -46,6 +46,9 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
+    convertNamespace(node: idl.IDLNamespace): string {
+        throw new Error('Method not implemented.')
+    }
     convertInterface(node: idl.IDLInterface): string {
         return node.name
     }
@@ -59,6 +62,12 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         const params = type.parameters.map(it =>
             `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
         return `\{(${params.join(", ")}) => ${this.convert(type.returnType)}\}`
+    }
+    convertMethod(node: idl.IDLMethod): string {
+        throw new Error('Method not implemented.')
+    }
+    convertConstant(node: idl.IDLConstant): string {
+        throw new Error('Method not implemented.')
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         return type.name
