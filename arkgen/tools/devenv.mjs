@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IDLIZE_PATH = resolve(__dirname, '..')
-const EXTERNAL_PATH = resolve(__dirname, '..', 'external')
+const EXTERNAL_PATH = resolve(__dirname, '..', '..', 'external')
 const INTEROP_PATH = join(EXTERNAL_PATH, 'interop')
 
 const PACKAGES = [
