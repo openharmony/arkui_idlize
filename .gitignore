@@ -1,11 +1,13 @@
 /.idea/
 /.vscode/
 /build/
+/lib/
 /core/build/
 /generated/
 /.packages/
 /idl/
 /node_modules/
+/.rollup.cache/
 
 /package-lock.json
 /.npmrc

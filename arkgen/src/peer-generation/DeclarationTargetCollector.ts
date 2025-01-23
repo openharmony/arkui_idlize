@@ -4,7 +4,7 @@ import { LibraryInterface } from "@idlize/core";
 import { ArkPrimitiveType } from "./ArkPrimitiveType";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
-import { isMaterialized } from "./idl/IdlPeerGeneratorVisitor";
+import { isMaterialized, isPredefined } from "./idl/IdlPeerGeneratorVisitor";
 import { createTypeNameConvertor } from "./LanguageWriters";
 import { IdlNameConvertor } from "@idlize/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
@@ -12,7 +12,7 @@ import { cleanPrefix } from "./PeerLibrary";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
-export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNode[] {
+export function collectDeclarationTargets(library: LibraryInterface, generateUnused = false): idl.IDLNode[] {
     if (collectDeclarationTargets_cache.has(library))
         return collectDeclarationTargets_cache.get(library)!
 
@@ -48,6 +48,13 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                     for (const callable of entry.callables) {
                         for (const parameter of callable.parameters)
                             orderer.addDep(library.toDeclaration(parameter.type!))
+                    }
+                } else if (generateUnused && !isPredefined(entry)) {
+                    orderer.addDep(library.toDeclaration(entry))
+                    for (const property of entry.properties) {
+                        if (PeerGeneratorConfig.ignorePeerMethod.includes(property.name))
+                            continue
+                        orderer.addDep(library.toDeclaration(property.type))
                     }
                 }
             }

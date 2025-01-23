@@ -72,14 +72,15 @@ export class StructPrinter {
         structs.print(`} ${name};`)
     }
 
-    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter, generateUnused = false) {
         const enumsDeclarations = createLanguageWriter(Language.CPP, this.library)
         const forwardDeclarations = createLanguageWriter(Language.CPP, this.library)
         const concreteDeclarations = createLanguageWriter(Language.CPP, this.library)
         const seenNames = new Set<string>()
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
-        for (const target of collectDeclarationTargets(this.library)) {
+        const declTargets = collectDeclarationTargets(this.library, generateUnused)
+        for (const target of declTargets) {
             if (target === idl.IDLVoidType) {
                 continue
             }
