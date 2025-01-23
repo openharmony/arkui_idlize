@@ -25,7 +25,8 @@ import {
     Language,
     findVersion,
     GeneratorConfiguration,
-    setDefaultConfiguration
+    setDefaultConfiguration,
+    initRNG
 } from "@idlize/core"
 import {
     forEachChild,
@@ -40,7 +41,6 @@ import {
 } from "@idlize/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { initRNG } from "./rand_utils"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
 import {

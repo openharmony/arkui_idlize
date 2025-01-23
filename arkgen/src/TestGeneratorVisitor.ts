@@ -14,7 +14,7 @@
  */
 import * as ts from "typescript"
 import { asString, getDeclarationsByNode, nameOrNull, GenericVisitor } from "@idlize/core"
-import {randInt, randString, pick, pickArray} from "./rand_utils";
+import {randInt, randString, pick, pickArray} from "@idlize/core"
 
 const LAMBDA = "LAMBDA"
 

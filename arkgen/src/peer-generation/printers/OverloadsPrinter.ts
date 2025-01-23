@@ -29,9 +29,7 @@ import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./Ev
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
 import { ArgConvertor, UndefinedConvertor } from "@idlize/core"
-import { ReferenceResolver } from "@idlize/core"
-import { UnionRuntimeTypeChecker } from "@idlize/core";
-import { zipMany } from '../../utils';
+import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlize/core";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))
