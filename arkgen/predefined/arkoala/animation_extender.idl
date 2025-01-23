@@ -1,5 +1,7 @@
 package "org.openharmony.idlize.predefined";
 
+callback Callback_Number_Void = void (i32 value);
+
 [Entity=Interface]
 interface DoubleAnimationParam {
     attribute String propertyName;

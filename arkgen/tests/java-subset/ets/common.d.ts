@@ -25,6 +25,10 @@ declare interface Callback<T> {}
 
 declare interface BaseEvent {}
 
+declare interface AnimateParam {
+    duration?: number;
+}
+
 declare interface ClickEvent extends BaseEvent {
 
     x: number;
@@ -43,10 +47,10 @@ declare interface CommonConfiguration<T> {
   contentModifier: ContentModifier<T>
 }
 
-// interface ICurve {
+declare interface ICurve {
 
-//   interpolate(fraction: number): number;
-// }
+  interpolate(fraction: number): number;
+}
 
 declare interface StateStyles {
 
