@@ -148,8 +148,7 @@ class BridgeCcVisitor {
         }
         method.argAndOutConvertors.forEach((it, index) => {
             const type = it.nativeType()
-            if ('name' in type && type.name === "Number"
-                && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
+            if (type === IDLNumberType && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
                 this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
                 this.generatedApi.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)

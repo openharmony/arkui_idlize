@@ -22,9 +22,9 @@ import { BlockStatement, LanguageExpression, LanguageStatement, LanguageWriter, 
 import { IDLNodeToStringConvertor } from "./LanguageWriters/convertors/InteropConvertor"
 import { createEmptyReferenceResolver } from "@idlize/core"
 import { createTypeNameConvertor } from "./LanguageWriters";
-import { InterfaceConvertorCore } from "@idlize/core";
+import { InterfaceConvertor } from "@idlize/core";
 
-export class InterfaceConvertor extends InterfaceConvertorCore {
+export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS)
             return writer.instanceOf(this, value, duplicates)
@@ -254,19 +254,6 @@ export class ImportTypeConvertor extends BaseArgConvertor { //
             ? writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
                 [writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)])
             : undefined
-    }
-}
-
-export class ClassConvertor extends InterfaceConvertor { //
-    constructor(library: LibraryInterface, name: string, param: string, declaration: idl.IDLInterface) {
-        super(library, name, param, declaration)
-    }
-    override unionDiscriminator(value: string,
-                                index: number,
-                                writer: LanguageWriter,
-                                duplicateMembers: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.instanceOf(this, value, duplicateMembers)])
     }
 }
 

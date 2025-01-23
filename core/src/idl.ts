@@ -639,14 +639,6 @@ export function entityToType(entity:IDLNode): IDLType {
 }
 
 export function createContainerType(container: IDLContainerKind, element: IDLType[]): IDLContainerType {
-    if (container == "Promise") {
-        // A bit ugly, but we cannot do that.
-        element.forEach(it => { it.extendedAttributes = []})
-    }
-    // TODO not used?
-    // if (element[0][idlTypeName] == "PropertyKey") {
-    //     element[0] = { ...element[0], [idlTypeName]: IDLStringType[idlTypeName] }
-    // }
     return {
         kind: IDLKind.ContainerType,
         containerKind: container,
@@ -877,7 +869,7 @@ export function createConstructor(
 export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType,
         nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback
 {
-    if (isNamedNode(returnType) && returnType.name === "this")
+    if (returnType === IDLThisType)
         returnType = IDLAnyType
     parameters = parameters.map(it => {
         if (it.type && isNamedNode(it.type) && (it.type.name === "T" || it.type.name === "this"))

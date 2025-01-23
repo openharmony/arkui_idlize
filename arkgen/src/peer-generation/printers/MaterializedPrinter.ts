@@ -26,7 +26,7 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import { LanguageWriter, RuntimeType } from "@idlize/core"
-import { copyMaterializedMethod, getInternalClassName, MaterializedClass, MaterializedField, MaterializedMethod } from "../Materialized"
+import { getInternalClassName, MaterializedClass, MaterializedField } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector";
@@ -38,11 +38,10 @@ import {
     ARKOALA_PACKAGE,
     ARKOALA_PACKAGE_PATH
 } from "./lang/Java";
-import { createInterfaceDeclName } from "../TypeNodeNameConvertor";
+import { createInterfaceDeclName } from './lang/CommonUtils';
 import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { copyMethod } from "@idlize/core";
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLThisType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlize/core/idl'
+import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlize/core/idl'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";

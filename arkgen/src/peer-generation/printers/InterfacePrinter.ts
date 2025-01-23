@@ -24,7 +24,6 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
-    printMethodDeclaration,
 } from '../LanguageWriters'
 import { LanguageWriter } from "@idlize/core"
 import {
@@ -51,7 +50,7 @@ import { escapeIDLKeyword, IDLType } from '@idlize/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
-import { createInterfaceDeclName } from '../TypeNodeNameConvertor'
+import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { maybeTransformManagedCallback } from '../ArgConvertors'
 import { isComponentDeclaration } from '../ComponentsCollector'

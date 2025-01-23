@@ -44,7 +44,7 @@ import { NativeModule } from '../NativeModule'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
-class IdlSerializerPrinter {
+class SerializerPrinter {
     constructor(
         private readonly library: PeerLibrary,
         private readonly destFile: SourceFile,
@@ -271,7 +271,7 @@ class IdlSerializerPrinter {
     }
 }
 
-class IdlDeserializerPrinter {
+class DeserializerPrinter {
     constructor(
         private readonly library: PeerLibrary,
         private readonly destFile: SourceFile,
@@ -365,42 +365,16 @@ class IdlDeserializerPrinter {
     private generateMaterializedBodyDeserializer(target: idl.IDLInterface) {
         this.declareDeserializer()
         this.writer.writeStatement(
-            this.writer.makeAssign(`ptr`, idl.IDLPointerType, this.writer.makeMethodCall(
-                `valueDeserializer`, `readPointer`, []), true, false),
-        )
-        if (this.writer.language === Language.CPP) {
+            this.writer.makeAssign(`ptr`, idl.IDLPointerType,
+                this.writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
+        if (this.writer.language === Language.CPP)
             this.writer.writeStatement(
-                this.writer.makeReturn(this.writer.makeString(`{ ptr }`))
-            )
-            return
-        }
-        // TBD: Use explicit cast for CanvasRenderingContext2D and UIExtensionProxy classes
-        // to avoid errors
-        // for CanvasRenderingContext2D "Types of property 'clip' are incompatible."
-        // for UIExtensionProxy "Types of property 'off' are incompatible."
-        if (["CanvasRenderingContext2D", "UIExtensionProxy"].includes(target.name)) {
-            this.writer.print(`// TBD: remove explicit for ${target.name} class`)
-            const unsafe = this.writer.language === Language.TS
+                this.writer.makeReturn(this.writer.makeString(`{ ptr }`)))
+        else
             this.writer.writeStatement(
                 this.writer.makeReturn(
-                    this.writer.makeCast(
-                        this.writer.makeMethodCall(
-                            getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)]
-                        ),
-                        idl.createReferenceType(target.name, undefined, target),
-                        { unsafe: unsafe }
-                    )
-                )
-            )
-            return
-        }
-        this.writer.writeStatement(
-            this.writer.makeReturn(
-                this.writer.makeMethodCall(
-                    getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)]
-                )
-            )
-        )
+                    this.writer.makeMethodCall(
+                        getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)])))
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
@@ -573,7 +547,7 @@ export function writeSerializer(library: PeerLibrary, writer: LanguageWriter, pr
 }
 
 export function writeSerializerFile(library: PeerLibrary, destFile: SourceFile, prefix: string, declarationPath?: string) {
-    new IdlSerializerPrinter(library, destFile).print(prefix, declarationPath)
+    new SerializerPrinter(library, destFile).print(prefix, declarationPath)
 }
 
 export function writeDeserializer(library: PeerLibrary, writer: LanguageWriter, prefix: string) {
@@ -584,7 +558,7 @@ export function writeDeserializer(library: PeerLibrary, writer: LanguageWriter, 
 }
 
 export function writeDeserializerFile(library: PeerLibrary, destFile: SourceFile, prefix: string, declarationPath?: string) {
-    const printer = new IdlDeserializerPrinter(library, destFile)
+    const printer = new DeserializerPrinter(library, destFile)
     printer.print(prefix, declarationPath)
 }
 

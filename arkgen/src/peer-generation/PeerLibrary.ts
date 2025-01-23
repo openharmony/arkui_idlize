@@ -18,8 +18,8 @@ import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { isMaterialized, isPredefined } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
-import { BufferConvertor, CallbackConvertor, ClassConvertor, DateConvertor, ImportTypeConvertor, InterfaceConvertor, MapConvertor, NumericConvertor,  PointerConvertor, TupleConvertor, TypeAliasConvertor } from './ArgConvertors';
-import { AggregateConvertor, StringConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor, CustomTypeConvertor, UnionConvertor } from "@idlize/core"
+import { BufferConvertor, CallbackConvertor, DateConvertor, ImportTypeConvertor, ArkoalaInterfaceConvertor, MapConvertor, NumericConvertor,  PointerConvertor, TupleConvertor, TypeAliasConvertor } from './ArgConvertors';
+import { AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor, CustomTypeConvertor, UnionConvertor } from "@idlize/core"
 import { MaterializedClassConvertor } from '@idlize/core'
 import { IndentedPrinter, Language, warn, isImportAttr, NumberConvertor } from '@idlize/core'
 import { createTypeNameConvertor } from './LanguageWriters';
@@ -268,7 +268,7 @@ export class PeerLibrary implements LibraryInterface {
             }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
-                    return new InterfaceConvertor(this, declarationName, param, declaration)
+                    return new ArkoalaInterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.Class:
                     return new ClassConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.AnonymousInterface:

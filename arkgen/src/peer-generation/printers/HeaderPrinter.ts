@@ -16,7 +16,7 @@
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language } from '@idlize/core'
 import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { collectCallbacks, groupCallbacks, IdlCallbackInfo } from "./EventsPrinter";
+import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
@@ -90,11 +90,11 @@ class HeaderVisitor {
         }
     }
 
-    private printEventsReceiver(componentName: string, callbacks: IdlCallbackInfo[]) {
-        return this.printEventsReceiverIdl(componentName, callbacks as IdlCallbackInfo[], this.library)
+    private printEventsReceiver(componentName: string, callbacks: CallbackInfo[]) {
+        return this.printEventsReceiverIdl(componentName, callbacks as CallbackInfo[], this.library)
     }
 
-    private printEventsReceiverIdl(componentName: string, callbacks: IdlCallbackInfo[], library: PeerLibrary) {
+    private printEventsReceiverIdl(componentName: string, callbacks: CallbackInfo[], library: PeerLibrary) {
         const receiver = generateEventReceiverName(componentName)
         this.api.print(`typedef struct ${receiver} {`)
         this.api.pushIndent()
@@ -102,7 +102,7 @@ class HeaderVisitor {
         const nameConvertor = createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
 
         for (const callback of callbacks) {
-            const args = ["Ark_Int32 nodeId",///same code in EventsPrinter
+            const args = ["Ark_Int32 nodeId",
                 ...callback.args.map(it =>
                     `const ${nameConvertor.convert(maybeOptional(library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
             printMethodDeclaration(this.api, "void", `(*${callback.methodName})`, args, `;`)

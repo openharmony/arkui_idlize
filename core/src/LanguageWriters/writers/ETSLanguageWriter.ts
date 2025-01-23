@@ -32,7 +32,7 @@ import {
     AggregateConvertor,
     ArrayConvertor,
     CustomTypeConvertor,
-    InterfaceConvertorCore,
+    InterfaceConvertor,
     MaterializedClassConvertor,
     OptionConvertor,
     UnionConvertor
@@ -228,7 +228,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                 accessors: string[],
                                 duplicates: Set<string>): LanguageExpression {
         if (convertor instanceof AggregateConvertor
-            || convertor instanceof InterfaceConvertorCore
+            || convertor instanceof InterfaceConvertor
             || convertor instanceof MaterializedClassConvertor
             || convertor instanceof CustomTypeConvertor) {
             return this.instanceOf(convertor, value, duplicates)
@@ -326,7 +326,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 duplicateMembers!,
                 this)
         }
-        if (convertor instanceof InterfaceConvertorCore || convertor instanceof MaterializedClassConvertor) {
+        if (convertor instanceof InterfaceConvertor || convertor instanceof MaterializedClassConvertor) {
             return makeInterfaceTypeCheckerCall(value,
                 this.getNodeName(convertor.idlType),
                 convertor.declaration.properties.filter(it => !it.isStatic).map(it => it.name),

@@ -363,7 +363,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     }
 }
 
-export class InterfaceConvertorCore extends BaseArgConvertor {
+export class InterfaceConvertor extends BaseArgConvertor {
     constructor(private library: LibraryInterface, name: string /* change to IDLReferenceType */, param: string, public declaration: idl.IDLInterface) {
         super(idl.createReferenceType(name, undefined, declaration), [RuntimeType.OBJECT], false, true, param)
     }
@@ -393,6 +393,19 @@ export class InterfaceConvertorCore extends BaseArgConvertor {
         // Try to figure out interface by examining field sets
         const uniqueFields = this.declaration?.properties.filter(it => !duplicates.has(it.name))
         return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+    }
+}
+
+export class ClassConvertor extends InterfaceConvertor {
+    constructor(library: LibraryInterface, name: string, param: string, declaration: idl.IDLInterface) {
+        super(library, name, param, declaration)
+    }
+    override unionDiscriminator(value: string,
+                                index: number,
+                                writer: LanguageWriter,
+                                duplicateMembers: Set<string>): LanguageExpression | undefined {
+        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
+            [writer.instanceOf(this, value, duplicateMembers)])
     }
 }
 

@@ -33,8 +33,8 @@ import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../../peer-generati
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlize/core";
-import { ClassConvertor, TypeAliasConvertor, InterfaceConvertor } from "../../peer-generation/ArgConvertors";
-import { StringConvertor, UnionConvertor } from "@idlize/core";
+import { TypeAliasConvertor, ArkoalaInterfaceConvertor } from "../../peer-generation/ArgConvertors";
+import { ClassConvertor, StringConvertor, UnionConvertor } from "@idlize/core";
 import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlize/core";
 import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlize/core";
 import { LibraryFileInterface, LibraryInterface } from "@idlize/core";
@@ -205,7 +205,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
             }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
-                    return new InterfaceConvertor(this, declarationName, param, declaration)
+                    return new ArkoalaInterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.Class:
                     return new ClassConvertor(this, declarationName, param, declaration)
             }
