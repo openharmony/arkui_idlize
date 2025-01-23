@@ -30,6 +30,10 @@ declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.Navi
 
 declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
 
+declare interface AnimateParam {
+    duration?: number;
+}
+
 declare type Margin = Padding;
 declare interface GeometryInfo extends SizeResult {
     borderWidth: EdgeWidth

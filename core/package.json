@@ -36,7 +36,7 @@
   "dependencies": {
     "typescript": "4.9.5",
     "@types/node": "^18.0.0",
-    "webidl": "file:./webidl2.js",
+    "webidl2": "file:./webidl2.js",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",
     "cross-env": "^7.0.3",

@@ -1,0 +1,25 @@
+package "org.openharmony.idlize.predefined";
+
+[Entity=Interface]
+interface DoubleAnimationParam {
+    attribute String propertyName;
+    attribute number startValue;
+    attribute number endValue;
+    attribute number duration;
+    attribute number delay;
+    attribute (Curve or String or ICurve) curve;
+    
+    [Optional]
+    attribute Callback_Number_Void onProgress;
+    
+    [Optional]
+    attribute Callback_Void onFinish;
+};
+
+[Entity=Class]
+interface AnimationExtender {
+  static void SetClipRect(pointer peer, number left, number top, number right, number bottom);
+  static void OpenImplicitAnimation(pointer peer, AnimateParam param);
+  static void CloseImplicitAnimation(pointer node);
+  static void StartDoubleAnimation(pointer peer, DoubleAnimationParam param);
+};
