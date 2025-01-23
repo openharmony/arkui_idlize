@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { ArgConvertor } from "@idlize/core"
+import { ArgConvertor, qualifiedName } from "@idlize/core"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 import { capitalize } from '@idlize/core'
 import { ImportsCollector } from "./ImportsCollector"
@@ -191,6 +191,10 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
 
 export function getInternalClassName(name: string): string {
     return `${name}Internal`
+}
+
+export function getInternalClassQualifiedName(target: idl.IDLEntry): string {
+    return getInternalClassName(qualifiedName(target, "."))
 }
 
 export function getMaterializedFileName(name:string): string {

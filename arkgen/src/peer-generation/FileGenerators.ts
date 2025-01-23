@@ -291,9 +291,6 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         if (lang === Language.TS) {
             destFile.imports.addFeature("unsafeCast", "./SerializerBase")
         }
-        if (lang === Language.ARKTS) {
-            destFile.imports.addFeatures(["InteropNativeModule"], nativeModule.path)
-        }
 
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
         printDeserializeAndCall(library, deserializeCallImpls)

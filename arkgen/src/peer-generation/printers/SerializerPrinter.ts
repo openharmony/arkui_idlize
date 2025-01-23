@@ -32,7 +32,7 @@ import { FieldModifier, MethodModifier, ProxyStatement } from '@idlize/core'
 import { createDeclarationNameConvertor } from '@idlize/core'
 import { IDLEntry } from "@idlize/core/idl"
 import { convertDeclaration } from '@idlize/core'
-import { collectMaterializedImports, getInternalClassName } from '../Materialized'
+import { collectMaterializedImports, getInternalClassName, getInternalClassQualifiedName } from '../Materialized'
 import { generateCallbackKindValue, maybeTransformManagedCallback } from '../ArgConvertors'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
@@ -374,7 +374,7 @@ class DeserializerPrinter {
             this.writer.writeStatement(
                 this.writer.makeReturn(
                     this.writer.makeMethodCall(
-                        getInternalClassName(target.name), "fromPtr", [this.writer.makeString(`ptr`)])))
+                        getInternalClassQualifiedName(target), "fromPtr", [this.writer.makeString(`ptr`)])))
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
@@ -621,7 +621,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 })
             }
         } else { // This is used for OHOS library generation only
-            collectOhosImports(collector, false)
+            collectOhosImports(collector, true)
             collector.addFeature("TypeChecker", "./type_check")
         }
     }
@@ -629,23 +629,27 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
     function collectOhosImports(collector: ImportsCollector, supportsNs: boolean) {
         // TODO Check for compatibility!
         const nameCovertor = createDeclarationNameConvertor(destFile.language)
+        // TODO remove this hack once enums will be namespace members too
+        const forceUseByName = destFile.language === Language.ARKTS ? (node: idl.IDLEntry) => idl.isEnum(node) : () => false
         const makeFeature = (node: idl.IDLEntry) => {
             let features = []
             // Enums of OHOS are accessed through namespaces, not directly
             let ns = node.namespace ? qualifiedName(node.namespace, ".") : undefined
-            if (supportsNs && ns) {
+            if (supportsNs && ns && !forceUseByName(node)) {
                 features.push({ feature: ns, module: `./${declarationPath}` }) // TODO resolve
-            }
-            features.push({
-                feature: convertDeclaration(nameCovertor, node),
-                module: `./${declarationPath}` // TODO resolve
-            })
-            // Add <class>Internal support class for materialized classes with no constructor
-            if (idl.isInterface(node) && isMaterialized(node, library) && node.constructors.length === 0) {
+            } else {
                 features.push({
-                    feature: getInternalClassName(convertDeclaration(nameCovertor, node)), // TODO check/refactor name generation
+                    feature: convertDeclaration(nameCovertor, node),
                     module: `./${declarationPath}` // TODO resolve
                 })
+                // Add <class>Internal support class for materialized classes with no constructor
+                // If class has a namespace, the corresponding Internal class is imported by the same namespace
+                if (idl.isInterface(node) && isMaterialized(node, library) && node.constructors.length === 0) {
+                    features.push({
+                        feature: getInternalClassName(convertDeclaration(nameCovertor, node)), // TODO check/refactor name generation
+                        module: `./${declarationPath}` // TODO resolve
+                    })
+                }
             }
             return features
         }
