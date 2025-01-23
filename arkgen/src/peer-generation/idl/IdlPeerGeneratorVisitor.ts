@@ -451,8 +451,7 @@ export class IdlPeerProcessor {
     }
 
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
-        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
-            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
+        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
             idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.CPPType) ||
             PeerGeneratorConfig.ignoreEntry(decl.name!, language)
     }
