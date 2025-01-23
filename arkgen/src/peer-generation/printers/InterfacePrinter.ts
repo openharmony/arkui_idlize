@@ -571,6 +571,8 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
             .concat(idlInterface.constants
                 .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
+                // TODO ArkTS does not support static fields in interfaces
+                .filter(it => !it.isStatic)
                 .map(it => this.printIfNotSeen(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
             .concat(idlInterface.methods
                 .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields) ).flat())
