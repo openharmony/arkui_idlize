@@ -14,7 +14,6 @@
  */
 
 import nodeResolve from "@rollup/plugin-node-resolve";
-import commonjs from "@rollup/plugin-commonjs";
 import os from 'os';
 import replace from '@rollup/plugin-replace';
 import typescript from "@rollup/plugin-typescript";
@@ -35,7 +34,7 @@ function crossPathRelative(from, to) {
 const mode = process.env.mode
 
 console.log(`rollup args: mode = ${mode}`)
-const arkoalaLoaderSrcDir = `external/arkoala-arkts/loader/src`
+const arkoalaLoaderSrcDir = `../external/arkoala-arkts/loader/src`
 const tsconfigFile = path.resolve(`tsconfig-loader.json`)
 const outDir = path.resolve('lib')
 
@@ -78,11 +77,10 @@ export default {
             declaration: false,
             composite: false,
             tsconfig: tsconfigFile,
-            filterRoot: '.'
+            filterRoot: '../external'
         }),
-        commonjs(),
         nodeResolve({
-            // extensions: [".js", ".mjs", ".cjs"]
+            extensions: [".js", ".mjs", ".cjs", ".ts"]
         }),
         replace({
             'LOAD_NATIVE': `require('${crossPathRelative(outDir, 'native/NativeBridgeNapi.node')}')`,

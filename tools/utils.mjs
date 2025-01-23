@@ -9,6 +9,7 @@ export const IDLIZE_HOME = path.resolve(path.join(__dirname, ".."))
 export const IDLIZE_ARKGEN = path.join(IDLIZE_HOME, "arkgen")
 export const IDLIZE_CORE = path.join(IDLIZE_HOME, "core")
 export const IDLIZE_LINTER = path.join(IDLIZE_HOME, "linter")
+export const IDLIZE_LIBARKTSGEN = path.join(IDLIZE_HOME, "libarkts-gen")
 
 export class Package {
     constructor(path) {
@@ -22,9 +23,10 @@ export class Package {
 }
 
 export const packages = [
-    new Package(path.join(IDLIZE_HOME, "arkgen")),
-    new Package(path.join(IDLIZE_HOME, "core")),
-    new Package(path.join(IDLIZE_HOME, "linter"))
+    new Package(IDLIZE_ARKGEN),
+    new Package(IDLIZE_CORE),
+    new Package(IDLIZE_LINTER),
+    new Package(IDLIZE_LIBARKTSGEN)
 ]
 
 export class Version {

@@ -17,6 +17,7 @@ interface Interop {
     void NativeLog(String str1);
     String Utf8ToString(sequence<u8> data, i32 offset, i32 length);
     String StdStringToString(pointer cstring);
+    sequence<i8> RawReturnData(i32 length, i32 filler);
     buffer MaterializeBuffer(pointer data, i32 length, i32 resourceId, pointer hold, pointer release);
     pointer GetNativeBufferPointer(buffer data);
     void CallCallback(i32 callbackKind, sequence<u8> args, i32 argsSize);

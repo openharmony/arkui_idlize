@@ -38,6 +38,8 @@ public class InteropNativeModule {
     static native void   _NativeLog(String str1);
     static native String _Utf8ToString(byte[] data, int offset, int length);
     static native String _StdStringToString(long ptr1);
+    static native byte[] _RawReturnData(int length, int filler);
+
     static native void   _CallCallback(int callbackKind, byte[] args, int argsSize);
     static native void   _CallCallbackSync(int callbackKind, byte[] args, int argsSize);
     static native void   _CallCallbackResourceHolder(long holder, int resourceId);

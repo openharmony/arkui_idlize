@@ -20,6 +20,7 @@ import {
     IDLEnum,
     IDLNode,
     IDLType,
+    IDLU32Type,
     IDLUint8ArrayType,
     IDLVoidType
 } from '../../idl'
@@ -486,11 +487,12 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return new NamedMethodSignature(
             IDLVoidType, [
                 IDLUint8ArrayType /*idl.createReferenceType("uint8_t*")*/ ,
+                IDLU32Type,
                 createReferenceType("CallbackResourceHolder" /* ast */)
             ],
-            ["data", "resourceHolder"],
-            [undefined, `nullptr`],
-            [undefined, undefined, PrintHint.AsPointer]
+            ["data", "dataLength", "resourceHolder"],
+            [undefined, `0`, `nullptr`],
+            [undefined, undefined, undefined, PrintHint.AsPointer]
         )
     }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {

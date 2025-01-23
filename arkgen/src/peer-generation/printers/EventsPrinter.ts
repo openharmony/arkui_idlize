@@ -237,7 +237,7 @@ abstract class CEventsVisitorBase {
             this.impl.print("// GENERATED EMPTY IMPLEMENTATION")
         } else {
             this.impl.print(`EventBuffer _eventBuffer;`)
-            this.impl.print(`Serializer _eventBufferSerializer(_eventBuffer.buffer);`)
+            this.impl.print(`Serializer _eventBufferSerializer(_eventBuffer.buffer, sizeof(_eventBuffer.buffer));`)
             this.impl.print(`_eventBufferSerializer.writeInt32(Kind${callbackIdByInfo(event)});`)
             this.impl.print(`_eventBufferSerializer.writeInt32(nodeId);`)
             this.printSerializers(event)

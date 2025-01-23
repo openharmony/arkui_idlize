@@ -215,7 +215,7 @@ class IdlSerializerPrinter {
                             writer.makeLoop("idx", "8", writer.makeAssign(
                                 `pool[idx]`,
                                 undefined,
-                                writer.makeString(`${writer.language == Language.CJ ? "" : "new "}Serializer()`),
+                                writer.makeNewObject('Serializer'),
                                 false
                             ))
                         ]

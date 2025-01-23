@@ -435,7 +435,7 @@ class ManagedCallCallbackVisitor {
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
             writer.writeExpressionStatement(writer.makeMethodCall(`__buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&__callbackResource`)]))
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(__buffer.buffer, &(__buffer.resourceHolder))`), true, false))
+                writer.makeString(`Serializer(__buffer.buffer, sizeof(__buffer.buffer), &(__buffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
@@ -460,7 +460,7 @@ class ManagedCallCallbackVisitor {
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
             writer.print('uint8_t __buffer[60 * 4];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(__buffer, nullptr)`), true, false))
+                writer.makeString(`Serializer(__buffer, sizeof(__buffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {

@@ -13,9 +13,6 @@
  * limitations under the License.
  */
 
-
-// WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
-
 package org.koalaui.arkoala;
 
 import java.time.Duration;
@@ -26,6 +23,10 @@ import java.util.TreeMap;
 public class Main {
     public static void main(String[] args) {
         Runtime.getRuntime().loadLibrary("NativeBridgeJni");
+
+        byte[] data = InteropNativeModule._RawReturnData(10, 42);
+        System.out.println("Raw data length " + data.length + " data[3]=" + data[3]);
+
         perfTests();
         peerTests();
         checkIncrementalTree();
