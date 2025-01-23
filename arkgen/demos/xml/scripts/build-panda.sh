@@ -2,7 +2,7 @@
 set -e
 shopt -s globstar # to make **/*.abc recursive
 
-external_dir=../../external
+external_dir=../../../external
 arkts_dir=$external_dir/incremental/tools/panda/arkts
 out_dir=build/panda
 

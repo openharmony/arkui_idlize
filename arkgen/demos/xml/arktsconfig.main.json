@@ -5,10 +5,10 @@
         "rootDir": "src/panda",
         "paths": {
             "#compat": ["./src/panda/compat"],
-            "@koalaui/interop": ["../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../external/incremental/common/src"],
-            "@koalaui/compat": ["../../external/incremental/compat/src/arkts"],
-            "@koalaui/runtime": ["../../external/incremental/runtime/src"]
+            "@koalaui/interop": ["../../../external/interop/src/arkts"],
+            "@koalaui/common": ["../../../external/incremental/common/src"],
+            "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../external/incremental/runtime/src"]
         }
     },
     "include": ["src/panda/main.ts"],
