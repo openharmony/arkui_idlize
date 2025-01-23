@@ -1,10 +1,10 @@
-import { EventType, eventTypeStr, ParseInfo, XmlPullParser, encodeText } from "#compat"
+import xml, { EventType, eventTypeStr, encodeText } from "#compat"
 
 export function run() {
     const sampleXml = `<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`
     console.log(`PARSING ${sampleXml}`)
     const buffer = encodeText(sampleXml)
-    const parser = new XmlPullParser(buffer)
+    const parser = new xml.XmlPullParser(buffer)
     parser.parse({
         ignoreNameSpace: true,
         supportDoctype: false,
@@ -16,7 +16,7 @@ export function run() {
             console.log(`ATTR ${name} VALUE ${value}`);
             return true
         },
-        tokenValueCallbackFunction: (eventType: EventType, value: ParseInfo) => {
+        tokenValueCallbackFunction: (eventType: EventType, value: xml.ParseInfo) => {
             const name = eventTypeStr(eventType)
             console.log(`TOKEN ${name} VALUE ${value}`);
             return true

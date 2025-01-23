@@ -1,11 +1,11 @@
 import { checkArkoalaCallbacks } from "../../generated/ts/CallbacksChecker";
-import { ParseInfo, XmlPullParser, xml } from "../../generated/ts/xml"
+import { xml } from "../../generated/ts/xml"
 
 export type EventType = xml.EventType
 export type OHBuffer = ArrayBuffer
 export const EventType = xml.EventType
 
-export { ParseInfo, XmlPullParser }
+export default xml
 
 export function encodeText(text:string): OHBuffer {
     const enc = new TextEncoder()
