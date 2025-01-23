@@ -15,14 +15,9 @@
 
 import fs from "fs"
 import path from "path"
-import { Version, Git, writeToPackageJson, IDLIZE_HOME, IDLIZE_ARKGEN, IDLIZE_LIBARKTSGEN, IDLIZE_CORE, IDLIZE_LINTER, packages } from "./utils.mjs"
+import { Version, Git, writeToPackageJson, IDLIZE_HOME, all_packages } from "./utils.mjs"
 
-const files = [
-    path.join(IDLIZE_ARKGEN, "package.json"),
-    path.join(IDLIZE_CORE, "package.json"),
-    path.join(IDLIZE_LINTER, "package.json"),
-    path.join(IDLIZE_LIBARKTSGEN, "package.json")
-]
+const files = all_packages.map(it => path.join(it.path, "package.json"))
 
 const CURRENT_VERSION = readVersion()
 const git = new Git
@@ -70,7 +65,7 @@ function run() {
 
     try {
 
-        packages.forEach(module => module.publish())
+        all_packages.forEach(module => module.publish())
 
         files.forEach(file => {
             //replaceInJson(file, new RegExp(`${next.toString()}`, 'g'), `${next.toString()}+devel`)

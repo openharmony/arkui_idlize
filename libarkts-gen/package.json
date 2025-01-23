@@ -1,13 +1,12 @@
 {
   "name": "@idlize/libarkts-gen",
   "version": "2.0.7+devel",
-  "description": "Linter",
+  "description": "es2panda bindings generator",
   "main": "lib/index.js",
   "bin": "lib/index.js",
   "files": [
     "lib/*.js",
-    "stdlib.d.ts",
-    "whitelist.json"
+    "stdlib.d.ts"
   ],
   "license": "Apache-2.0",
   "keywords": [],

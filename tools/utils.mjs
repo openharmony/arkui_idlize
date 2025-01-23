@@ -6,10 +6,6 @@ import { execSync } from "child_process"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 export const IDLIZE_HOME = path.resolve(path.join(__dirname, ".."))
-export const IDLIZE_ARKGEN = path.join(IDLIZE_HOME, "arkgen")
-export const IDLIZE_CORE = path.join(IDLIZE_HOME, "core")
-export const IDLIZE_LINTER = path.join(IDLIZE_HOME, "linter")
-export const IDLIZE_LIBARKTSGEN = path.join(IDLIZE_HOME, "libarkts-gen")
 
 export class Package {
     constructor(path) {
@@ -22,11 +18,12 @@ export class Package {
     }
 }
 
-export const packages = [
-    new Package(IDLIZE_ARKGEN),
-    new Package(IDLIZE_CORE),
-    new Package(IDLIZE_LINTER),
-    new Package(IDLIZE_LIBARKTSGEN)
+export const all_packages = [
+    new Package(path.join(IDLIZE_HOME, "arkgen")),
+    new Package(path.join(IDLIZE_HOME, "core")),
+    new Package(path.join(IDLIZE_HOME, "linter")),
+    new Package(path.join(IDLIZE_HOME, "libarkts-gen")),
+    new Package(path.join(IDLIZE_HOME, "ohosgen")),
 ]
 
 export class Version {

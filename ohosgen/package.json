@@ -1,0 +1,34 @@
+{
+  "name": "@idlize/ohosgen",
+  "version": "2.0.7+devel",
+  "description": "OHOS generator",
+  "main": "lib/index.js",
+  "bin": "lib/index.js",
+  "files": [
+    "lib/*.js",
+    "whitelist.json"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [],
+  "dependencies": {
+    "@idlize/core": "2.0.7+devel",
+    "@types/node": "^18.0.0",
+    "commander": "^10.0.0",
+    "typescript": "^4.9.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/chai": "^4.3.1",
+    "@types/mocha": "^9.1.0",
+    "@types/node": "^18.0.0",
+    "source-map-support": "^0.5.21"
+  },
+  "scripts": {
+    "compile:core": "npm run --prefix ../core compile",
+    "compile": "npm run compile:core && rollup -c",
+    "run:xml": "npm run compile && node . --idl2bridges --input-files ./@ohos.xml.idl --output-dir ./out/xml"
+  }
+}
