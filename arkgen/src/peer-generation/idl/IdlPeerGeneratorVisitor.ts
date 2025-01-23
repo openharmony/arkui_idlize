@@ -365,12 +365,23 @@ export class IdlPeerProcessor {
 
         const isDeclInterface = idl.isInterfaceSubkind(decl) && !isGlobalScope
         const implemenationParentName = isDeclInterface ? getInternalClassName(name) : name
+        let superType = idl.getSuperType(decl)
+        const interfaces: idl.IDLReferenceType[] = []
+        const propertiesFromInterface: idl.IDLProperty[] = []
+        if (superType) {
+            const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
+            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
+                interfaces.push(superType)
+                superType = undefined
+            }
+        }
 
         const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
         const mConstructor = this.makeMaterializedMethod(decl, constructor, implemenationParentName)
         const mFinalizer = new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
-        const mFields = decl.properties
+        const mFields = propertiesFromInterface.concat(decl.properties)
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
             .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
             .map(it => this.makeMaterializedField(it))
@@ -404,7 +415,7 @@ export class IdlPeerProcessor {
             }
         })
         this.library.materializedClasses.set(name,
-            new MaterializedClass(decl, name, isDeclInterface, idl.getSuperType(decl), decl.typeParameters,
+            new MaterializedClass(decl, name, isDeclInterface, superType, interfaces, decl.typeParameters,
                 mFields, mConstructor, mFinalizer, mMethods, true, taggedMethods))
     }
 
@@ -607,6 +618,29 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
         return isMaterialized(superType, resolver)
     }
     return false
+}
+
+export function forEachSuperType(declaration: idl.IDLInterface, resolver: ReferenceResolver, callback: (superType: idl.IDLInterface) => void) {
+    if (!idl.hasSuperType(declaration)) return
+    const resolvedType = resolver.resolveTypeReference(idl.getSuperType(declaration)!) as (idl.IDLInterface | undefined)
+    if (!resolvedType) return
+
+    callback(resolvedType as idl.IDLInterface)
+    forEachSuperType(resolvedType as idl.IDLInterface, resolver, callback)
+}
+
+function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLProperty[] {
+    const result: idl.IDLProperty[] = []
+    const seenProperties = new Set<string>()
+    forEachSuperType(declaration, resolver, (superInterface) => {
+        superInterface.properties.forEach((property) => {
+            if (seenProperties.has(property.name)) return
+            result.push(property)
+            seenProperties.add(property.name)
+        
+        })
+    })
+    return result
 }
 
 export function convertTypeToFeature(library: PeerLibrary, type: IDLType): ImportFeature | undefined {

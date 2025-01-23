@@ -78,6 +78,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         return this.printer.getOutput()
     }
 
+    protected get namespacePrefix(): string {
+        return ""
+    }
+
     protected printMaterializedClass(clazz: MaterializedClass) {
         const printer = this.printer
 
@@ -92,15 +96,17 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             }
         }
 
-
         const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
         const finalizableType = FinalizableType
         const superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz)) ?? (new Set([Language.JAVA]).has(printer.language) ? ARK_MATERIALIZEDBASE : undefined)
 
-        const interfaces: string[] = ['MaterializedBase']
+        const interfaces: string[] = ["MaterializedBase"]
+        if (clazz.interfaces) {
+            interfaces.push(...clazz.interfaces.map(it => `${this.namespacePrefix}${it.name}`))
+        }
 
         if (clazz.isInterface) {
-            interfaces.push(this.clazz.className)
+            interfaces.push(`${this.namespacePrefix}${this.clazz.className}`)
         }
 
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
@@ -363,6 +369,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         imports.print(this.printer, currentModule)
     }
 
+    override get namespacePrefix(): string {
+        return this.clazz.decl.namespace ? this.clazz.decl.namespace.name + "." : ""
+    }
+
     visit(): void {
         this.printMaterializedClass(this.clazz)
     }
@@ -417,6 +427,10 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
     protected collectImports(imports: ImportsCollector): void {
         super.collectImports(imports)
         imports.addFeature("TypeChecker", "#components")
+    }
+
+    override get namespacePrefix(): string {
+        return ""
     }
 
     convertToPropertyType(field: MaterializedField): IDLType {

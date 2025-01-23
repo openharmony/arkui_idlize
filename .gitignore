@@ -3,24 +3,13 @@
 /build/
 /core/build/
 /generated/
-/out
-/arkgen/out/
 /.packages/
 /idl/
-/interface_sdk-js/
 /node_modules/
-/panda/node_modules/
-/sdk/
 
 /package-lock.json
 /.npmrc
 
-/native/NativeBridgeNapi.node
-/native/*.so
-/native/*.dylib
-/native/*.dll
-/native/*.lib
-NativeBridge.node
 /libarkts-gen/.rollup.cache/
 /libarkts-gen/lib/
 /libarkts-gen/out/

@@ -552,6 +552,7 @@ class OHOSVisitor {
                     int.name,
                     true,
                     undefined,
+                    undefined,
                     [],
                     [],
                     new MaterializedMethod(int.name, int.name, [], IDLVoidType, false, new Method('', NamedMethodSignature.make(IDLVoidType, []))),

@@ -142,6 +142,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly className: string,
         public readonly isInterface: boolean,
         public readonly superClass: idl.IDLReferenceType | undefined,
+        public readonly interfaces: idl.IDLReferenceType[] | undefined,
         public readonly generics: string[] | undefined,
         public readonly fields: MaterializedField[],
         public readonly ctor: MaterializedMethod,
