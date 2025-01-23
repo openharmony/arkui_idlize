@@ -1,6 +1,6 @@
 {
   "name": "@idlize/core",
-  "version": "2.0.7+devel",
+  "version": "2.0.9+devel",
   "description": "",
   "types": "build/lib/src/index.d.ts",
   "exports": {
