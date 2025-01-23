@@ -25,6 +25,7 @@ import {
 } from "./webidl2-utils"
 import { toString } from "./toString"
 import * as idl from "../idl"
+import * as lib from "../library"
 import { isDefined, stringOrNone, warn } from "../util"
 import { generateSyntheticUnionName } from "../peer-generation/idl/common"
 
@@ -469,4 +470,15 @@ function findExtendedAttribute(extAttrs: webidl2.ExtendedAttribute[], name: idl.
 export function toIDL(file: string): idl.IDLEntry[] {
     const content = fs.readFileSync(file).toString()
     return webidl2.parse(content).map(it => toIDLNode(file, it))
+}
+
+export function toIDLFile(fileName: string): lib.IDLFile {
+    const content = fs.readFileSync(fileName).toString()
+    const entities = webidl2.parse(content).map(it => toIDLNode(fileName, it))
+    const pack = entities.find(idl.isPackage)
+    return {
+        fileName,
+        entities,
+        package: pack,
+    }
 }

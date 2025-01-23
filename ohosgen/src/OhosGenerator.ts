@@ -1,22 +1,31 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import * as idl from '@idlize/core/idl'
-
-import { GeneratorConfiguration, setDefaultConfiguration, toIDL } from '@idlize/core'
-
-class IDLFile {
-    constructor(public entries: idl.IDLEntry[]) {}
-}
+import { GeneratorConfiguration, setDefaultConfiguration, toIDLFile, IDLFile, lib, IDLLibrary, QueryType } from '@idlize/core'
 
 class OHOSVisitor {
-    idls: IDLFile[]
-    constructor(private files: string[]) {
-        this.idls = files.map(it => new IDLFile(toIDL(it)))
+
+    library: IDLLibrary
+    constructor(files: string[]) {
+       this.library = lib.createLibrary(files.map(toIDLFile))
+    }
+    query<T>(q:QueryType<T>): T {
+        return lib.query(this.library, q)
     }
     execute(outDir: string) {
-        this.idls.forEach(idl => {
-            console.log(`first ${idl.entries[0].name}`)
-        })
+        const forEachInterface =
+            lib.lens(lib.select.files())
+                .pipe(lib.select.entities(true))
+                .pipe(lib.select.interfaces())
+
+        const firstInterface = this.query(forEachInterface.pipe(lib.utils.fst()))
+        const lastInterface = this.query(forEachInterface.pipe(lib.utils.lst()))
+
+        if (firstInterface) {
+            console.log(firstInterface.name)
+        }
+        if (lastInterface) {
+            console.log(lastInterface.name)
+        }
     }
 }
 
