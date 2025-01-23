@@ -4,3 +4,4 @@
 /sdk/
 /native/*.so
 /native/NativeBridgeNapi.node
+/build/

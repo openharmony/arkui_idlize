@@ -168,9 +168,13 @@ class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisi
 }
 
 const cjArrayLikeTypes = new Set([
-    'Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer', 'ArrayList<UInt8>'])
+    'Uint8Array', 'Int8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer', 'ArrayList<UInt8>', 'ArrayList<Int8>'])
 const cjStringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
+const cjMethodsIgnoreList = new Set(['_RawReturnData'])
+
 function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter, nativeFunctions: LanguageWriter) {
+    if (cjMethodsIgnoreList.has(method.name)) return
+
     method = new Method(method.name, method.signature, [MethodModifier.PUBLIC, MethodModifier.STATIC])
     const signature = method.signature as NamedMethodSignature
     const nativeName = method.name.substring(1)

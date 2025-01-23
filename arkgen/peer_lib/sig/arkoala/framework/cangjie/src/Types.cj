@@ -21,4 +21,5 @@ type pointer = KPointer
 type KInt = Int32
 type KStringPtr = String
 type ArrayBuffer = ArrayList<UInt8>
-type Callback_RangeUpdate = (idnex: Int32, mark: pointer) -> Unit
+type Callback_RangeUpdate = (index: Int32, mark: pointer) -> Unit
+type Callback_String_Void = (str: String) -> Unit

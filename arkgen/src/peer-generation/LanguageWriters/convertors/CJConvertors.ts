@@ -56,7 +56,7 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         return node.name
     }
     convertTypedef(node: idl.IDLTypedef): string {
-        throw new Error('Method not implemented.')
+        return node.name
     }
     convertCallback(type: idl.IDLCallback): string {
         const params = type.parameters.map(it =>
@@ -123,8 +123,9 @@ export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNam
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
 
-    private callbackType(decl: idl.IDLCallback): string {const params = decl.parameters.map(it =>
-        `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
+    private callbackType(decl: idl.IDLCallback): string {
+        const params = decl.parameters.map(it =>
+            `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 
