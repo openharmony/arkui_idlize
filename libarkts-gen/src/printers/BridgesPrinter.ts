@@ -25,6 +25,7 @@ import {
     IDLKind,
     IDLMethod,
     IDLReferenceType,
+    IDLPointerType,
     IndentedPrinter,
     isContainerType,
     isPrimitiveType,
@@ -34,12 +35,16 @@ import {
     MethodSignature,
     throwException
 } from "@idlize/core"
-import { IDLEntry, IDLInterface, IDLParameter, IDLType, isEnum, isInterface, } from "@idlize/core/idl"
+import { IDLEntry, IDLInterface, IDLParameter, IDLPrimitiveType, IDLType, isEnum, isInterface, } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "../NativeTypeConvertor"
 import { IDLFile } from "../Es2PandaTransformer"
 import { Config } from "../Config"
 import { PrimitiveTypes } from "./PrimitiveTypeList"
 import { bridgesConstructions } from "./BridgesConstructions"
+
+function isString(node: IDLType): node is IDLPrimitiveType {
+    return isPrimitiveType(node) && node.name === "String"
+}
 
 export class BridgesPrinter {
     constructor(
@@ -80,12 +85,11 @@ export class BridgesPrinter {
 
     private printInteropMacro(node: IDLMethod): void {
         const isVoid = isVoidType(node.returnType)
-        const macro = this.constructions.interopMacro(isVoid, node.parameters.length)
         this.writer.writeExpressionStatement(
             this.writer.makeFunctionCall(
-                macro,
+                this.constructions.interopMacro(isVoid, node.parameters.length),
                 [node.name]
-                    .concat(isVoid ? [] : this.mapType(node.returnType))
+                    .concat(isVoid ? [] : this.mapType(isString(node.returnType) ? IDLPointerType : node.returnType))
                     .concat(node.parameters.map(it => this.mapType(it.type)))
                     .map(it => this.writer.makeString(it))
             )
@@ -143,7 +147,7 @@ export class BridgesPrinter {
         this.writer.writeFunctionImplementation(
             this.constructions.implFunction(node.name),
             new MethodSignature(
-                node.returnType,
+                isString(node.returnType) ? IDLPointerType : node.returnType,
                 node.parameters.map(it => it.type),
                 undefined,
                 undefined,
@@ -152,6 +156,7 @@ export class BridgesPrinter {
             (writer) => this.printBody(writer, node)
         )
         this.printInteropMacro(node)
+        this.writer.writeLines(``)
     }
 
     private transform(node: IDLMethod, parent: IDLInterface): IDLMethod {
@@ -210,8 +215,6 @@ export class BridgesPrinter {
     }
 
     private printBody(writer: CppLanguageWriter, node: IDLMethod) {
-        const isSequence = IDLContainerUtils.isSequence(node.returnType)
-
         node.parameters
             .forEach(it => writer.writeStatement(
                 writer.makeAssign(
@@ -223,7 +226,7 @@ export class BridgesPrinter {
                     )
                 )
             ))
-        if (isSequence) {
+        if (IDLContainerUtils.isSequence(node.returnType)) {
             writer.writeExpressionStatement(
                 writer.makeString(this.constructions.sequenceLengthDeclaration)
             )
@@ -238,19 +241,28 @@ export class BridgesPrinter {
                         .map(it => ({
                             asString: () => this.constructions.castedParameterName(it.name),
                         }))
-                        .concat(isSequence ? writer.makeString(this.constructions.sequenceLengthPass) : [])
+                        .concat(IDLContainerUtils.isSequence(node.returnType) ? writer.makeString(this.constructions.sequenceLengthPass) : [])
                 )
             )
         )
+        const getReturn = (node: IDLMethod): string => {
+            if (IDLContainerUtils.isSequence(node.returnType)) {
+                return this.constructions.sequenceConstructor(
+                    this.constructions.resultName,
+                    this.constructions.sequenceLengthUsage
+                )
+            }
+            if (isString(node.returnType)) {
+                return this.constructions.stringConstructor(
+                    this.constructions.resultName
+                )
+            }
+            return this.constructions.resultName
+        }
         writer.writeStatement(
             writer.makeReturn(
                 writer.makeString(
-                    isSequence
-                        ? this.constructions.sequenceConstructor(
-                            this.constructions.resultName,
-                            this.constructions.sequenceLengthUsage
-                        )
-                        : this.constructions.resultName
+                    getReturn(node)
                 )
             )
         )

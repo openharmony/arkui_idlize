@@ -41,6 +41,9 @@ export const bridgesConstructions = {
     get receiverName(): string {
         return `receiver`
     },
+    stringConstructor(name: string): string {
+        return `new std::string(${name})`
+    },
     sequenceConstructor(first: string, length: string): string {
         return `new std::vector<void*>(${first}, ${first} + ${length})`
     },
