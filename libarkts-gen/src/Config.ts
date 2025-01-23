@@ -17,13 +17,16 @@ import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
 
 export class Config {
     constructor(
+        private enumsGenerateFor?: string[],
         private interfacesGenerateFor?: string[],
         private methodsGenerateFor?: string[]
     ) {}
 
     private nativeModulePrefix = `_`
 
-    private handwrittenMethods =new Set([
+    private handwrittenEnums = new Set<string>([])
+
+    private handwrittenMethods = new Set([
         `CreateConfig`, // sequence<String>
         `ProgramExternalSources`, // sequence<sequence>
         `ExternalSourcePrograms`, // sequence<sequence>
@@ -50,6 +53,13 @@ export class Config {
 
     get sequenceLengthType(): IDLPrimitiveType {
         return IDLU32Type
+    }
+
+    shouldEmitEnum(name: string): boolean {
+        if (this.enumsGenerateFor !== undefined) {
+            return this.enumsGenerateFor.includes(name)
+        }
+        return !this.handwrittenEnums.has(name)
     }
 
     shouldEmitInterface(name: string): boolean {

@@ -18,6 +18,7 @@ import * as fs from "node:fs"
 import { forceWriteFile } from "@idlize/core"
 import { BridgesPrinter } from "./printers/BridgesPrinter"
 import { NativeModulePrinter } from "./printers/NativeModulePrinter"
+import { EnumsPrinter } from "./printers/EnumsPrinter"
 import { IDLFile } from "./Es2PandaTransformer"
 import { Config } from "./Config"
 
@@ -52,9 +53,17 @@ export class LibarktsGenerator {
         this.files?.includes(`nativeModule`) ?? true,
     )
 
+    private enumsPrinter = new FilePrinter(
+        new EnumsPrinter(this.idl, this.config),
+        `libarkts/src/Es2pandaEnums.ts`,
+        `Es2pandaEnums.ts`,
+        this.files?.includes(`enums`) ?? true,
+    )
+
     print(): void {
         this.printFile(this.bridgesPrinter)
         this.printFile(this.nativeModulePrinter)
+        this.printFile(this.enumsPrinter)
     }
 
     private printFile(filePrinter: FilePrinter): void {
@@ -65,7 +74,7 @@ export class LibarktsGenerator {
                 this.readTemplate(filePrinter.template)
                     .replaceAll(
                         `%GENERATED_PART%`,
-                        this.bridgesPrinter.printer.print()
+                        filePrinter.printer.print()
                     )
             )
         }
