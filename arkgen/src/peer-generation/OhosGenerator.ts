@@ -338,13 +338,6 @@ class OHOSVisitor {
                     { name: "resourceId", type: IDLI32Type }
                 ])
             )
-            writer.writeNativeMethodDeclaration("_Utf8ToString",
-                NamedMethodSignature.make(IDLStringType, [
-                    { name: "buffer", type: IDLUint8ArrayType },
-                    { name: "position", type: IDLI32Type },
-                    { name: "length", type: IDLI32Type },
-                ])
-            )
             if (writer.language === Language.TS) {
                 writer.writeNativeMethodDeclaration("_MaterializeBuffer",
                     NamedMethodSignature.make(IDLBufferType, [
@@ -353,15 +346,6 @@ class OHOSVisitor {
                         { name: "resourceId", type: IDLI32Type },
                         { name: "holdPtr", type: IDLPointerType },
                         { name: "releasePtr", type: IDLPointerType },
-                    ])
-                )
-            }
-            if (writer.language === Language.ARKTS) {
-                writer.writeNativeMethodDeclaration("_ManagedStringWrite",
-                    NamedMethodSignature.make(IDLI32Type, [
-                        { name: "str", type: IDLStringType },
-                        { name: "arr", type: IDLUint8ArrayType },
-                        { name: "len", type: IDLI32Type },
                     ])
                 )
             }
