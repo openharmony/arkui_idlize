@@ -5,6 +5,7 @@ project('NativeBridge', 'c', 'cpp',
 
 is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
+is_cj = get_option('target_vm') == 'cangjie'
 
 external_interop_dir = '../../../external/interop/src/cpp'
 
@@ -95,6 +96,22 @@ elif is_panda
     ]
     sources += [
         external_interop_dir / 'ets/convertors-ets.cc',
+        external_interop_dir / 'types/signatures.cc',
+    ]
+elif is_cj
+    library_name = 'XML_NativeBridgeCJ'
+    platform_build_dir = 'build/cangjie'
+
+    cflags += ['-DKOALA_CJ', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    cflags += [
+        '-DETS_NATIVE_MODULE_CLASS_NAME=XMLNativeModule',
+        '-DETS_NATIVE_MODULE_QUALIFIED_NAME=xmlNative',
+    ]
+    include_dirs += [
+        external_interop_dir / 'cangjie',
+    ]
+    sources += [
+        external_interop_dir / 'cangjie/convertors-cj.cc',
         external_interop_dir / 'types/signatures.cc',
     ]
 endif

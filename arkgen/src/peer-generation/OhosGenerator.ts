@@ -382,7 +382,7 @@ class OHOSVisitor {
 
     private printPeer() {
         const nativeModuleVar = `${this.libraryName}NativeModule`
-        this.peerWriter.print('import { TypeChecker } from "./type_check"')
+        if (this.library.language != Language.CJ) this.peerWriter.print('import { TypeChecker } from "./type_check"')
         if (this.library.language === Language.TS) {
             this.peerWriter.print('import {')
             this.peerWriter.pushIndent()
@@ -398,13 +398,13 @@ class OHOSVisitor {
         }
         this.data.forEach(data => {
             const namespaces = idl.getNamespacesPathFor(data);
-            namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
+            if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             this.peerWriter.writeInterface(data.name, writer => {
                 data.properties.forEach(prop => {
                     writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                 })
             })
-            namespaces.forEach(() => this.peerWriter.popNamespace(true));
+            if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
         this.enums.forEach(e => {
             const writer = this.peerWriter
@@ -428,7 +428,7 @@ class OHOSVisitor {
         })
         this.interfaces.forEach(int => {
             const namespaces = idl.getNamespacesPathFor(int);
-            namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
+            if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
             this.peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
@@ -617,7 +617,7 @@ class OHOSVisitor {
                     })
                 }
             }
-            namespaces.forEach(() => this.peerWriter.popNamespace(true));
+            if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
 
         this.library.globalScopeInterfaces.forEach(entry => {

@@ -2,7 +2,7 @@
 
 [package]
   cjc-version = "0.56.4"
-  compile-option = "-L ./build/cangjie -l XML_NativeBridgeCJ"
+  compile-option = "-L ./build/native/cangjie -l XML_NativeBridgeCJ"
   description = "config file for cj-xml build"
   link-option = ""
   name = "idlize"

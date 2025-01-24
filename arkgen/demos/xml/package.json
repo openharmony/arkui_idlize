@@ -12,10 +12,12 @@
         "compile:arkts:panda": "bash scripts/build-panda.sh",
         "compile:native:node": "meson setup build/native/node -Dtarget_vm=node && meson install -C build/native/node",
         "compile:native:panda": "meson setup build/native/panda -Dtarget_vm=panda && meson install -C build/native/panda",
+        "compile:native:cj": "meson setup build/native/cangjie -Dtarget_vm=cangjie && meson install -C build/native/cangjie",
         "compile:node": "npm run compile:native:node && npm run compile:ts:node",
         "compile:panda": "npm run compile:native:panda && npm run compile:arkts:panda",
         "start": "node build/node/index.js",
-        "start:panda": "bash scripts/run-panda.sh"
+        "start:panda": "bash scripts/run-panda.sh",
+        "start:cj": "npm run compile:native:cj && LD_LIBRARY_PATH=./build/native/cangjie/:$LD_LIBRARY_PATH && cjpm run"
     },
     "dependencies": {
         "@koalaui/interop": "next",
