@@ -30,9 +30,15 @@ export abstract class InteropPrinter {
     }
 
     private visit(node: IDLEntry): void {
-        if (isInterface(node)) return this.visitInterface(node)
-        if (isEnum(node)) return this.visitEnum(node)
-        if (isTypedef(node)) return
+        if (isInterface(node)) {
+            return this.visitInterface(node)
+        }
+        if (isEnum(node)) {
+            return this.visitEnum(node)
+        }
+        if (isTypedef(node)) {
+            return
+        }
 
         throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
     }

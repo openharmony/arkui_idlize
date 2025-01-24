@@ -519,6 +519,9 @@ export abstract class LanguageWriter {
     writeStatement(stmt: LanguageStatement) {
         stmt.write(this)
     }
+    writeStatements(...statements: LanguageStatement[]) {
+        statements.forEach(it => this.writeStatement(it))
+    }
     writeExpressionStatement(smth: LanguageExpression) {
         this.writeStatement(new ExpressionStatement(smth))
     }

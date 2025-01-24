@@ -18,32 +18,28 @@ import {
     CppLanguageWriter,
     createEmptyReferenceResolver,
     IDLContainerType,
-    IDLContainerUtils,
     IDLKind,
     IDLMethod,
-    IDLReferenceType,
     IDLPointerType,
+    IDLReferenceType,
     IndentedPrinter,
     isContainerType,
     isPrimitiveType,
     isReferenceType,
     isVoidType,
+    LanguageExpression,
     MethodSignature,
     PrimitiveType,
     PrimitiveTypeList,
-    throwException,
-    LanguageExpression
+    throwException
 } from "@idlize/core"
-import { IDLParameter, IDLPrimitiveType, IDLType, } from "@idlize/core/idl"
+import { IDLParameter, IDLType } from "@idlize/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { InteropPrinter } from "../InteropPrinter"
 import { IDLFile } from "../../IdlFile"
 import { Config } from "../../Config"
-
-function isString(node: IDLType): node is IDLPrimitiveType {
-    return isPrimitiveType(node) && node.name === "String"
-}
+import { isSequence, isString } from "../../idl-utils"
 
 export class BridgesPrinter extends InteropPrinter {
     constructor(idl: IDLFile, config: Config) {
@@ -86,7 +82,7 @@ export class BridgesPrinter extends InteropPrinter {
             }
             return BridgesConstructions.referenceTypeCast(castTo)
         }
-        throw new Error(`Unsupported type: ${node.type}`)
+        throwException(`Unsupported type: ${node.type}`)
     }
 
     private castTo(node: IDLReferenceType | IDLContainerType): string | undefined {
@@ -102,7 +98,7 @@ export class BridgesPrinter extends InteropPrinter {
             return `${BridgesConstructions.referenceType(node.name)}*`
         }
         if (isContainerType(node)) {
-            if (IDLContainerUtils.isSequence(node)) {
+            if (isSequence(node)) {
                 const typeParam = node.elementType[0]
                 if (isContainerType(typeParam)) {
                     console.warn(`Warning: doing nothing for sequence<container>`)
@@ -124,16 +120,14 @@ export class BridgesPrinter extends InteropPrinter {
     }
 
     override printMethod(node: IDLMethod): void {
-        const transformReturnType = (type: IDLType) => {
-            if (isString(type)) {
-                return IDLPointerType
-            }
+        const mapReturnType = (type: IDLType) => {
+            if (isString(type)) return IDLPointerType
             return type
         }
         this.writer.writeFunctionImplementation(
             BridgesConstructions.implFunction(node.name),
             new MethodSignature(
-                transformReturnType(node.returnType),
+                mapReturnType(node.returnType),
                 node.parameters.map(it => it.type),
                 undefined,
                 undefined,
@@ -153,7 +147,7 @@ export class BridgesPrinter extends InteropPrinter {
                     asString: () => BridgesConstructions.castedParameter(it.name),
                 }))
                 .concat(
-                    IDLContainerUtils.isSequence(node.returnType)
+                    isSequence(node.returnType)
                         ? writer.makeString(BridgesConstructions.sequenceLengthPass)
                         : []
                 )
@@ -172,7 +166,7 @@ export class BridgesPrinter extends InteropPrinter {
                     )
                 )
             ))
-        if (IDLContainerUtils.isSequence(node.returnType)) {
+        if (isSequence(node.returnType)) {
             writer.writeExpressionStatement(
                 writer.makeString(BridgesConstructions.sequenceLengthDeclaration)
             )
@@ -183,14 +177,12 @@ export class BridgesPrinter extends InteropPrinter {
             )
             return
         }
-        writer.writeStatement(
+        writer.writeStatements(
             writer.makeAssign(
                 BridgesConstructions.result,
                 undefined,
                 this.makeFunctionCall(writer, node)
-            )
-        )
-        writer.writeStatement(
+            ),
             writer.makeReturn(
                 writer.makeString(
                     this.wrapResultInConstructor(node.returnType)
@@ -200,11 +192,15 @@ export class BridgesPrinter extends InteropPrinter {
     }
 
     private wrapResultInConstructor(returnType: IDLType): string {
-        if (IDLContainerUtils.isSequence(returnType)) return BridgesConstructions.sequenceConstructor(
-            BridgesConstructions.result,
-            BridgesConstructions.sequenceLengthUsage
-        )
-        if (isString(returnType)) return BridgesConstructions.stringConstructor(BridgesConstructions.result)
+        if (isSequence(returnType)) {
+            return BridgesConstructions.sequenceConstructor(
+                BridgesConstructions.result,
+                BridgesConstructions.sequenceLengthUsage
+            )
+        }
+        if (isString(returnType)) {
+            return BridgesConstructions.stringConstructor(BridgesConstructions.result)
+        }
 
         return BridgesConstructions.result
     }

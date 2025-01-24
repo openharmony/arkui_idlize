@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createEmptyReferenceResolver, IndentedPrinter, TSLanguageWriter, } from "@idlize/core"
+import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLanguageWriter, } from "@idlize/core"
 import { IDLEnum, IDLType, isPrimitiveType, } from "@idlize/core/idl"
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
@@ -30,7 +30,7 @@ export class EnumsPrinter extends InteropPrinter {
     private writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => { throw new Error(`There is no type conversions for enums`) } },
+        { convert : (node: IDLType) => { throwException(`There is no type conversions for enums`) } },
     )
 
     override printEnum(node: IDLEnum): void {
@@ -39,10 +39,10 @@ export class EnumsPrinter extends InteropPrinter {
             node.elements.map(
                 element => {
                     if (!isPrimitiveType(element.type)) {
-                        throw new Error(`Unexpected kind of enum element type: ${element.type}`)
+                        throwException(`Unexpected kind of enum element type: ${element.type}`)
                     }
                     if (typeof element.initializer !== 'number') {
-                        throw new Error(`Unexpected type of initializer: ${typeof element.initializer}`)
+                        throwException(`Unexpected type of initializer: ${typeof element.initializer}`)
                     }
                     return {
                         name: element.name,

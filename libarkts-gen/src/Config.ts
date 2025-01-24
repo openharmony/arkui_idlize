@@ -17,6 +17,7 @@ import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
 
 export class Config {
     constructor(
+        private fixInput: boolean,
         private enumsGenerateFor?: string[],
         private interfaces?: string[],
         private methods?: string[],
@@ -69,5 +70,9 @@ export class Config {
             return this.files.includes(name)
         }
         return true
+    }
+
+    shouldFixInput(): boolean {
+        return this.fixInput
     }
 }

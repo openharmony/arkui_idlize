@@ -21,10 +21,12 @@ import { NativeModulePrinter } from "./printers/native-module/NativeModulePrinte
 import { EnumsPrinter } from "./printers/EnumsPrinter"
 import { IDLFile } from "./IdlFile"
 import { Config } from "./Config"
+import { TemporaryTransformer } from "./transformers/TemporaryTransformer"
+import { MainTransformer } from "./transformers/MainTransformer"
 
 class FilePrinter {
     constructor(
-        public printer: { print(): string },
+        public print: (idl: IDLFile) => string,
         public path: string,
         public template: string,
         public enabled: boolean
@@ -39,33 +41,36 @@ export class FileEmitter {
     ) {}
 
     private bridgesPrinter = new FilePrinter(
-        new BridgesPrinter(this.idl, this.config),
+        (idl: IDLFile) => new BridgesPrinter(idl, this.config).print(),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
         this.config.shouldEmitFile(`bridges`),
     )
 
     private nativeModulePrinter = new FilePrinter(
-        new NativeModulePrinter(this.idl, this.config),
+        (idl: IDLFile) => new NativeModulePrinter(idl, this.config).print(),
         `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
         this.config.shouldEmitFile(`nativeModule`),
     )
 
     private enumsPrinter = new FilePrinter(
-        new EnumsPrinter(this.idl, this.config),
+        (idl: IDLFile) => new EnumsPrinter(idl, this.config).print(),
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
         this.config?.shouldEmitFile(`enums`),
     )
 
     print(): void {
-        this.printFile(this.bridgesPrinter)
-        this.printFile(this.nativeModulePrinter)
-        this.printFile(this.enumsPrinter)
+        const fixed = new TemporaryTransformer(this.config).transform(this.idl)
+        this.printFile(this.enumsPrinter, fixed)
+
+        const transformedForInterop = new MainTransformer(this.config).transform(this.idl)
+        this.printFile(this.bridgesPrinter, transformedForInterop)
+        this.printFile(this.nativeModulePrinter, transformedForInterop)
     }
 
-    private printFile(filePrinter: FilePrinter): void {
+    private printFile(filePrinter: FilePrinter, idl: IDLFile): void {
         if (filePrinter.enabled) {
             console.log(`emit to ${filePrinter.path}`)
             forceWriteFile(
@@ -73,7 +78,7 @@ export class FileEmitter {
                 this.readTemplate(filePrinter.template)
                     .replaceAll(
                         `%GENERATED_PART%`,
-                        filePrinter.printer.print()
+                        filePrinter.print(idl)
                     )
             )
         }
