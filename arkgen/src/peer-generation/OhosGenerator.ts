@@ -128,6 +128,18 @@ class OHOSVisitor {
 
     private impls = new Map<string, SignatureDescriptor>()
 
+    private getPropertiesFromInterfaces(decl: idl.IDLInterface) {
+        const superType = idl.getSuperType(decl)
+        const propertiesFromInterface: idl.IDLProperty[] = []
+        if (superType) {
+            const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
+            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
+            }
+        }
+        return propertiesFromInterface
+    }
+
     private writeModifier(clazz: IDLInterface, writer: CppLanguageWriter) {
         let name = this.modifierName(clazz)
         let handleType = this.handleType(clazz.name)
@@ -178,15 +190,7 @@ class OHOSVisitor {
             this.impls.set(implName, { params, returnType, paramsCString: args })
         })
 
-        const superType = idl.getSuperType(clazz)
-        const propertiesFromInterface: idl.IDLProperty[] = []
-        if (superType) {
-            const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
-            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
-                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(clazz, this.library))
-            }
-        }
-
+        const propertiesFromInterface: idl.IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
         propertiesFromInterface.concat(clazz.properties).forEach(property => {
             let returnType = `${this.mapType(property.type)}`
             _h.print(`${returnType} (*get${capitalize(property.name)})(${handleType} thiz);`)
@@ -328,15 +332,7 @@ class OHOSVisitor {
                     writer.writeNativeMethodDeclaration(name, signature)  // TODO temporarily removed _${this.libraryName} prefix
                 })
 
-                const superType = idl.getSuperType(it)
-                const propertiesFromInterface: idl.IDLProperty[] = []
-                if (superType) {
-                    const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
-                    if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
-                        propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(it, this.library))
-                    }
-                }
-                it.properties.concat(propertiesFromInterface).forEach(property => {
+                this.getPropertiesFromInterfaces(it).concat(it.properties).forEach(property => {
                     const getterSignature = makePeerCallSignature(this.library, [], property.type, "self")
                     const getterName = `_${it.name}_get${capitalize(property.name)}`
                     writer.writeNativeMethodDeclaration(getterName, getterSignature)
@@ -399,23 +395,36 @@ class OHOSVisitor {
         this.data.forEach(data => {
             const namespaces = idl.getNamespacesPathFor(data);
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
-            this.peerWriter.writeInterface(data.name, writer => {
-                data.properties.forEach(prop => {
-                    writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
+            if (idl.isInterfaceSubkind(data)) {
+                this.peerWriter.writeInterface(data.name, writer => {
+                    data.properties.forEach(prop => {
+                        writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
+                    })
                 })
-            })
+            } else if (idl.isClassSubkind(data)) {
+                this.peerWriter.writeClass(data.name, writer => {
+                    data.properties.forEach(prop => {
+                        writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
+                    })
+                })
+            }
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
         this.enums.forEach(e => {
             const writer = this.peerWriter
             writer.writeStatement(writer.makeEnumEntity(e, true))
         })
-        this.interfaces.forEach(int => {
+
+        const ifaces: Array<idl.IDLInterface> = this.interfaces.concat(this.data);
+        ifaces.forEach(int => {
             if (hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
                 return
             }
             const superTypes = int.inheritance.filter(it => it !== idl.IDLTopType).map(superClass => `${superClass.name}Interface`)
             this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
+                int.properties.forEach(prop => {
+                    writer.writeFieldDeclaration(prop.name, prop.type, [], idl.isOptionalType(prop.type))
+                })
                 int.methods.forEach(method => {
                     if (method.isStatic) {
                         return
@@ -430,6 +439,9 @@ class OHOSVisitor {
             const namespaces = idl.getNamespacesPathFor(int);
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
+
+            const superType = idl.getSuperType(int)
+
             this.peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
                 if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
@@ -437,6 +449,28 @@ class OHOSVisitor {
                 }
                 // TODO Make peer private again
                 writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [/* FieldModifier.PRIVATE */], false, peerInitExpr)
+                const peerPtr = "this.peer!.ptr"
+                const fields = this.getPropertiesFromInterfaces(int).concat(int.properties.concat())
+                fields.forEach(f => {
+                    const typeName = idl.isNamedNode(f.type) ? f.type.name : "UnknownType"
+                    // TBD: use deserializer to get complex type from native
+                    writer.writeMethodImplementation(new Method(`get${capitalize(f.name)}`,
+                        new MethodSignature(f.type, [])), writer => {
+                            writer.writeStatement(
+                                writer.makeReturn(
+                                    writer.makeNativeCall(NativeModule.Generated, `_${int.name}_get${capitalize(f.name)}`, [writer.makeString(peerPtr)])
+                                ))
+                        });
+                    writer.writeMethodImplementation(new Method(`set${capitalize(f.name)}`,
+                        new NamedMethodSignature(idl.IDLVoidType, [f.type], [f.name])), writer => {
+                            writer.writeExpressionStatement(
+                                writer.makeNativeCall(NativeModule.Generated, `_${int.name}_set${capitalize(f.name)}`,
+                                    [writer.makeString(peerPtr), writer.makeString(f.name)])
+                            )
+                        });
+
+                })
+
                 const ctors = int.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
                 if (ctors.length === 0)
                     // create empty constructor anyway
@@ -465,6 +499,9 @@ class OHOSVisitor {
                     })
 
                     writer.writeConstructorImplementation(int.name, signature, writer => {
+                        if (superType) {
+                            writer.writeSuperCall([])
+                        }
                         if (serializerPushed) {
                             writer.writeStatement(
                                 writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
@@ -590,7 +627,7 @@ class OHOSVisitor {
                     )
                     })
 
-            }, idl.getSuperType(int)?.name, isGlobalScope ? undefined : [`${int.name}Interface`])
+            }, superType?.name, isGlobalScope ? undefined : [`${int.name}Interface`])
 
             // TODO Migrate to MaterializedPrinter
             if (int.constructors.length === 0) {
