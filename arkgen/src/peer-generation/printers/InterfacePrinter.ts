@@ -52,7 +52,7 @@ import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGene
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
-import { maybeTransformManagedCallback } from '../ArgConvertors'
+import { maybeTransformManagedCallback } from '@idlize/core'
 import { isComponentDeclaration } from '../ComponentsCollector'
 
 interface InterfacesVisitor {

@@ -59,7 +59,7 @@ export class PeerGeneratorConfig {
         "ContentSlot",
     ]
 
-    private static knownParametrized = [
+    public static knownParametrized = [
         "Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT", "Record"
     ]
 

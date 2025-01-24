@@ -14,11 +14,11 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
-import { generatorConfiguration, IdlNameConvertor } from "@idlize/core"
-import { ConvertResult, InteropArgConvertor, InteropConverter } from './InteropConvertor'
+import { ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
+import { generatorConfiguration, IdlNameConvertor, ConvertResult, InteropConvertor } from "@idlize/core"
+import { InteropArgConvertor } from './InteropConvertor'
 
-export class CppIDLNodeToStringConvertor extends InteropConverter implements IdlNameConvertor {
+export class CppIDLNodeToStringConvertor extends InteropConvertor implements IdlNameConvertor {
     private unwrap(type: idl.IDLNode, result:ConvertResult): string {
         if (idl.isType(type) && idl.isOptionalType(type)) {
             return `Opt_${result.text}`

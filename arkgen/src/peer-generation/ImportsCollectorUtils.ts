@@ -8,7 +8,7 @@ import { PeerLibrary } from "./PeerLibrary"
 import { renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces } from "@idlize/core"
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName } from "./Materialized"
-import { maybeTransformManagedCallback } from "./ArgConvertors"
+import { maybeTransformManagedCallback } from "@idlize/core"
 import { isComponentDeclaration } from "./ComponentsCollector"
 
 export const SyntheticModule = "./SyntheticDeclarations"

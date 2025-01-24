@@ -14,9 +14,9 @@
  */
 
 import { IDLI32Type, IDLPointerType, IDLProperty } from '@idlize/core/idl'
+import { NumericConvertor } from "@idlize/core"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
-import { NumericConvertor } from "./ArgConvertors"
 import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
 
 export interface PeerClassBase {

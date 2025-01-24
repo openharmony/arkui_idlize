@@ -15,7 +15,6 @@
 
 import * as idl from '@idlize/core/idl'
 import { generatorConfiguration, Language, throwException } from '@idlize/core'
-import { ArkPrimitiveType } from "../ArkPrimitiveType"
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlize/core"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
@@ -33,13 +32,12 @@ import { createDeclarationNameConvertor } from '@idlize/core'
 import { IDLEntry } from "@idlize/core/idl"
 import { convertDeclaration } from '@idlize/core'
 import { collectMaterializedImports, getInternalClassName, getInternalClassQualifiedName } from '../Materialized'
-import { generateCallbackKindValue, maybeTransformManagedCallback } from '../ArgConvertors'
+import { generateCallbackKindValue } from '../ArgConvertors'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
-import { qualifiedName } from '@idlize/core'
-import { flattenUnionType } from '@idlize/core'
+import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlize/core'
 import { NativeModule } from '../NativeModule'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback

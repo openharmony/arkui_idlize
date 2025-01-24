@@ -20,12 +20,13 @@ import { generatorConfiguration, generatorTypePrefix, LanguageWriter } from "@id
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from  '@idlize/core'
-import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue, maybeTransformManagedCallback } from "../ArgConvertors";
+import { CallbackConvertor, CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "../ArgConvertors";
 import { PrintHint } from "@idlize/core";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 import { LibraryInterface } from "@idlize/core";
+import { maybeTransformManagedCallback } from "@idlize/core"
 
 function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []

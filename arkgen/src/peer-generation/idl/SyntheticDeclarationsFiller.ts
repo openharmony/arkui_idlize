@@ -1,6 +1,6 @@
 import * as idl from '@idlize/core/idl'
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
-import { maybeTransformManagedCallback } from "../ArgConvertors";
+import { maybeTransformManagedCallback } from "@idlize/core";
 import { getInternalClassName } from "../Materialized";
 import { PeerLibrary } from "../PeerLibrary";
 import { DependenciesCollector } from "./IdlDependenciesCollector";

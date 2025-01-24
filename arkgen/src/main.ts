@@ -127,6 +127,7 @@ class DefaultConfig implements GeneratorConfiguration {
         switch (name) {
             case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
             case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
+            case 'knownParameterized': return PeerGeneratorConfig.knownParametrized as T[]
         }
         throw new Error(`array ${name} is unknown`)
     }

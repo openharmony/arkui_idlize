@@ -33,13 +33,12 @@ import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../../peer-generati
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlize/core";
-import { TypeAliasConvertor, ArkoalaInterfaceConvertor } from "../../peer-generation/ArgConvertors";
-import { ClassConvertor, StringConvertor, UnionConvertor } from "@idlize/core";
+import { ArkoalaInterfaceConvertor } from "../../peer-generation/ArgConvertors";
+import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor } from "@idlize/core";
 import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlize/core";
 import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlize/core";
 import { LibraryFileInterface, LibraryInterface } from "@idlize/core";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
-import { IDLNodeToStringConvertor } from "../../peer-generation/LanguageWriters/convertors/InteropConvertor";
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 
@@ -72,7 +71,7 @@ export class IldSkoalaFile implements LibraryFileInterface {
 export class IdlSkoalaLibrary implements LibraryInterface {
     public readonly serializerDeclarations: Set<idl.IDLInterface> = new Set()
     readonly nameConvertorInstance: IdlNameConvertor = new TSSkoalaTypeNameConvertor(this)
-    readonly interopNameConvertorInstance: IdlNameConvertor = new IDLNodeToStringConvertor(this)
+    readonly interopNameConvertorInstance: IdlNameConvertor = new InteropNameConvertor(this)
     readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
 
