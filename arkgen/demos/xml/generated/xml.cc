@@ -77,7 +77,7 @@ void impl_AllocateNativeBuffer(KInt len, KByte* ret, KByte* init) {
     void* mem;
     int resourceId = allocate_buffer(len, &mem);
     memcpy((KByte*)mem, init, len);
-    SerializerBase ser { ret };
+    SerializerBase ser { ret, 40 }; // todo check
     ser.writeInt32(resourceId);
     ser.writePointer((void*)&holdBuffer);
     ser.writePointer((void*)&releaseBuffer);
@@ -962,7 +962,7 @@ KInt impl_CheckArkoalaCallbackEvent(KByte* result, KInt size) {
         return 0;
     }
     const CallbackEventKind frontEventKind = callbackEventsQueue.front();
-    Serializer serializer(result);
+    Serializer serializer(result, size);
     serializer.writeInt32(frontEventKind);
     switch (frontEventKind)
     {

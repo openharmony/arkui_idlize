@@ -55,7 +55,7 @@ KInt impl_CheckArkoalaCallbackEvent(KByte* result, KInt size) {
         return 0;
     }
     const CallbackEventKind frontEventKind = callbackEventsQueue.front();
-    Serializer serializer(result);
+    Serializer serializer(result, size);
     serializer.writeInt32(frontEventKind);
     switch (frontEventKind)
     {
