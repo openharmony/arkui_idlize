@@ -35,10 +35,11 @@ import {
     isEnum,
     throwException,
     IDLF64Type,
-    IDLF32Type
+    IDLF32Type,
+    TypeConvertor
 } from "@idlize/core"
 
-export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
+export class NativeTypeConvertor implements TypeConvertor<string> {
     constructor(private idl: IDLEntry[]) {}
 
     private incorrectDeclarations = new Set<string>()
@@ -52,7 +53,9 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
     }
 
     convertContainer(type: IDLContainerType): string {
-        if (IDLContainerUtils.isSequence(type)) return `KNativePointer`
+        if (IDLContainerUtils.isSequence(type)) {
+            return `KNativePointerArray`
+        }
         throwException(`Unexpected container`)
     }
 
@@ -84,7 +87,7 @@ export class NativeTypeConvertor /*implements TypeConvertor<string>*/ {
             case IDLF64Type: return `KDouble`
             case IDLBooleanType: return `KBoolean`
             case IDLStringType: return `KStringPtr&`
-            case IDLVoidType: return `KNativePointer`
+            case IDLVoidType: return `void`
             case IDLPointerType: return `KNativePointer`
         }
         throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)
