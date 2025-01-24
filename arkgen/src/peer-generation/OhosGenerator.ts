@@ -179,14 +179,11 @@ class OHOSVisitor {
         })
 
         const superType = idl.getSuperType(clazz)
-        // const interfaces: idl.IDLReferenceType[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []
         if (superType) {
             const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
             if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
                 propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(clazz, this.library))
-                // interfaces.push(superType)
-                // superType = undefined
             }
         }
 
@@ -329,6 +326,24 @@ class OHOSVisitor {
                     const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, method.isStatic ? undefined : "self")
                     const name = `_${it.name}_${method.name}${overloadPostfix}`
                     writer.writeNativeMethodDeclaration(name, signature)  // TODO temporarily removed _${this.libraryName} prefix
+                })
+
+                const superType = idl.getSuperType(it)
+                const propertiesFromInterface: idl.IDLProperty[] = []
+                if (superType) {
+                    const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
+                    if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+                        propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(it, this.library))
+                    }
+                }
+                it.properties.concat(propertiesFromInterface).forEach(property => {
+                    const getterSignature = makePeerCallSignature(this.library, [], property.type, "self")
+                    const getterName = `_${it.name}_get${capitalize(property.name)}`
+                    writer.writeNativeMethodDeclaration(getterName, getterSignature)
+
+                    const setterSignature = makePeerCallSignature(this.library, [idl.createParameter("value", property.type)], idl.IDLVoidType, "self")
+                    const setterName = `_${it.name}_set${capitalize(property.name)}`
+                    writer.writeNativeMethodDeclaration(setterName, setterSignature)
                 })
             })
         })(this.nativeFunctionsWriter)
