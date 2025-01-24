@@ -24,7 +24,7 @@ import { generateCallbackAPIArguments } from './ArgConvertors'
 import { createOutArgConvertor } from './PromiseConvertors'
 import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
 import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, makeTypeChecker, readLangTemplate } from './FileGenerators'
-import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
+import { getUniquePropertiesFromSuperTypes, isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
 import { LanguageWriter, LanguageStatement } from '@idlize/core'
 import { PeerLibrary } from './PeerLibrary'
@@ -177,7 +177,20 @@ class OHOSVisitor {
             _c.print(`&${implName},`)
             this.impls.set(implName, { params, returnType, paramsCString: args })
         })
-        clazz.properties.forEach(property => {
+
+        const superType = idl.getSuperType(clazz)
+        // const interfaces: idl.IDLReferenceType[] = []
+        const propertiesFromInterface: idl.IDLProperty[] = []
+        if (superType) {
+            const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
+            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(clazz, this.library))
+                // interfaces.push(superType)
+                // superType = undefined
+            }
+        }
+
+        propertiesFromInterface.concat(clazz.properties).forEach(property => {
             let returnType = `${this.mapType(property.type)}`
             _h.print(`${returnType} (*get${capitalize(property.name)})(${handleType} thiz);`)
             let getImplName = `${clazz.name}get${capitalize(property.name)}Impl`

@@ -629,7 +629,7 @@ export function forEachSuperType(declaration: idl.IDLInterface, resolver: Refere
     forEachSuperType(resolvedType as idl.IDLInterface, resolver, callback)
 }
 
-function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLProperty[] {
+export function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLProperty[] {
     const result: idl.IDLProperty[] = []
     const seenProperties = new Set<string>()
     forEachSuperType(declaration, resolver, (superInterface) => {
