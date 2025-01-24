@@ -5,9 +5,7 @@ import { DeserializerBase } from "../../generated/arkts/DeserializerBase"
 import { XMLNativeModule } from "../../generated/arkts/xmlNative"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule } from "@koalaui/interop";
-import { xml } from "../../generated/arkts/xml"
-
-export default xml
+export { xml } from "../../generated/arkts/xml"
 
 export type EventType = xml_EventType
 export type OHBuffer = NativeBuffer

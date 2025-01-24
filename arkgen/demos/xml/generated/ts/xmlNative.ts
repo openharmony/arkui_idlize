@@ -102,9 +102,6 @@ export class XMLNativeModule {
     static _ReleaseArkoalaResource(resourceId: int32): void {
         throw new Error("Not implemented")
     }
-    static _Utf8ToString(buffer: Uint8Array, position: int32, length: int32): string {
-        throw new Error("Not implemented")
-    }
     static _MaterializeBuffer(data: KPointer, length: int32, resourceId: int32, holdPtr: KPointer, releasePtr: KPointer): ArrayBuffer {
         throw new Error("Not implemented")
     }

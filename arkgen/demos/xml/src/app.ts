@@ -1,4 +1,4 @@
-import xml, { EventType, eventTypeStr, encodeText } from "#compat"
+import { xml, EventType, eventTypeStr, encodeText } from "#compat"
 
 export function run() {
     const sampleXml = `<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`

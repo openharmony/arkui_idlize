@@ -69,9 +69,6 @@ typedef struct InteropDeferred {
     void (*reject)(struct InteropDeferred* thiz, const char* message);
 } InteropDeferred;
 
-struct InteropObjectHandleOpaque;
-typedef struct InteropObjectHandleOpaque* InteropObjectHandle;
-
 // Binary layout of InteropString must match that of KStringPtrImpl.
 typedef struct InteropString {
   const char* chars;
@@ -141,11 +138,6 @@ typedef struct InteropBuffer {
   InteropInt64 length;
 } InteropBuffer;
 
-typedef struct InteropAnyAPI {
-    InteropInt32 version;
-} InteropAPI;
-
-
 #endif // _INTEROP_TYPES_H_
 
 
@@ -163,7 +155,7 @@ extern "C" {
 #endif
 
 typedef InteropTag OH_Tag;
-typedef InteropRuntimeType OH_RuntimeType;
+typedef InteropRuntimeType OH_XML_RuntimeType;
 
 typedef InteropFloat32 OH_Float32;
 typedef InteropFloat64 OH_Float64;
@@ -175,97 +167,101 @@ typedef InteropBoolean OH_Boolean;
 typedef InteropCharPtr OH_CharPtr;
 typedef InteropNativePointer OH_NativePointer;
 typedef InteropString OH_String;
-typedef InteropCallbackResource OH_CallbackResource;
+typedef InteropCallbackResource OH_XML_CallbackResource;
 typedef InteropNumber OH_Number;
 typedef InteropMaterialized OH_Materialized;
 typedef InteropCustomObject OH_CustomObject;
 typedef InteropUndefined OH_Undefined;
-typedef InteropAnyAPI OH_AnyAPI;
 // typedef InteropAPIKind OH_APIKind;
-typedef InteropVMContext OH_VMContext;
+typedef InteropVMContext OH_XML_VMContext;
 typedef InteropBuffer OH_Buffer;
 typedef InteropLength OH_Length;
+typedef InteropFunction OH_Function;
 
 typedef enum OH_APIKind {
     OH_XML_API_KIND = 100
 } OH_APIKind;
 
-typedef struct Callback_EventType_ParseInfo_Boolean Callback_EventType_ParseInfo_Boolean;
-typedef struct Opt_Callback_EventType_ParseInfo_Boolean Opt_Callback_EventType_ParseInfo_Boolean;
-typedef struct Callback_String_String_Boolean Callback_String_String_Boolean;
-typedef struct Opt_Callback_String_String_Boolean Opt_Callback_String_String_Boolean;
-typedef struct OH_ParseOptions OH_ParseOptions;
+typedef struct OH_AnyAPI {
+    OH_Int32 version;
+} OH_AnyAPI;
+
+typedef struct XML_Callback_EventType_ParseInfo_Boolean XML_Callback_EventType_ParseInfo_Boolean;
+typedef struct Opt_XML_Callback_EventType_ParseInfo_Boolean Opt_XML_Callback_EventType_ParseInfo_Boolean;
+typedef struct XML_Callback_String_String_Boolean XML_Callback_String_String_Boolean;
+typedef struct Opt_XML_Callback_String_String_Boolean Opt_XML_Callback_String_String_Boolean;
+typedef struct OH_XML_ParseOptions OH_XML_ParseOptions;
 typedef struct Opt_ParseOptions Opt_ParseOptions;
-typedef struct Callback_Boolean_Void Callback_Boolean_Void;
-typedef struct Opt_Callback_Boolean_Void Opt_Callback_Boolean_Void;
-typedef OH_Materialized OH_ParseInfo;
+typedef struct XML_Callback_Boolean_Void XML_Callback_Boolean_Void;
+typedef struct Opt_XML_Callback_Boolean_Void Opt_XML_Callback_Boolean_Void;
+typedef OH_Materialized OH_XML_ParseInfo;
 typedef struct Opt_ParseInfo Opt_ParseInfo;
-typedef enum OH_xml_EventType {
-    OH_XML_EVENT_TYPE_START_DOCUMENT = 0,
-    OH_XML_EVENT_TYPE_END_DOCUMENT = 1,
-    OH_XML_EVENT_TYPE_START_TAG = 2,
-    OH_XML_EVENT_TYPE_END_TAG = 3,
-    OH_XML_EVENT_TYPE_TEXT = 4,
-    OH_XML_EVENT_TYPE_CDSECT = 5,
-    OH_XML_EVENT_TYPE_COMMENT = 6,
-    OH_XML_EVENT_TYPE_DOCDECL = 7,
-    OH_XML_EVENT_TYPE_INSTRUCTION = 8,
-    OH_XML_EVENT_TYPE_ENTITY_REFERENCE = 9,
-    OH_XML_EVENT_TYPE_WHITESPACE = 10,
-} OH_xml_EventType;
+typedef enum OH_XML_xml_EventType {
+    OH_XML_XML_EVENT_TYPE_START_DOCUMENT = 0,
+    OH_XML_XML_EVENT_TYPE_END_DOCUMENT = 1,
+    OH_XML_XML_EVENT_TYPE_START_TAG = 2,
+    OH_XML_XML_EVENT_TYPE_END_TAG = 3,
+    OH_XML_XML_EVENT_TYPE_TEXT = 4,
+    OH_XML_XML_EVENT_TYPE_CDSECT = 5,
+    OH_XML_XML_EVENT_TYPE_COMMENT = 6,
+    OH_XML_XML_EVENT_TYPE_DOCDECL = 7,
+    OH_XML_XML_EVENT_TYPE_INSTRUCTION = 8,
+    OH_XML_XML_EVENT_TYPE_ENTITY_REFERENCE = 9,
+    OH_XML_XML_EVENT_TYPE_WHITESPACE = 10,
+} OH_XML_xml_EventType;
 typedef struct Opt_xml_EventType {
     OH_Tag tag;
-    OH_xml_EventType value;
+    OH_XML_xml_EventType value;
 } Opt_xml_EventType;
 typedef struct Opt_Int32 {
     OH_Tag tag;
     OH_Int32 value;
 } Opt_Int32;
-typedef struct Callback_EventType_ParseInfo_Boolean {
-    OH_CallbackResource resource;
-    void (*call)(const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_Void continuation);
-    void (*callSync)(OH_VMContext context, const OH_Int32 resourceId, OH_xml_EventType eventType, const OH_ParseInfo value, const Callback_Boolean_Void continuation);
-} Callback_EventType_ParseInfo_Boolean;
-typedef struct Opt_Callback_EventType_ParseInfo_Boolean {
+typedef struct XML_Callback_EventType_ParseInfo_Boolean {
+    OH_XML_CallbackResource resource;
+    void (*call)(const OH_Int32 resourceId, OH_XML_xml_EventType eventType, const OH_XML_ParseInfo value, const XML_Callback_Boolean_Void continuation);
+    void (*callSync)(OH_XML_VMContext context, const OH_Int32 resourceId, OH_XML_xml_EventType eventType, const OH_XML_ParseInfo value, const XML_Callback_Boolean_Void continuation);
+} XML_Callback_EventType_ParseInfo_Boolean;
+typedef struct Opt_XML_Callback_EventType_ParseInfo_Boolean {
     OH_Tag tag;
-    Callback_EventType_ParseInfo_Boolean value;
-} Opt_Callback_EventType_ParseInfo_Boolean;
-typedef struct Callback_String_String_Boolean {
-    OH_CallbackResource resource;
-    void (*call)(const OH_Int32 resourceId, const OH_String name, const OH_String value, const Callback_Boolean_Void continuation);
-    void (*callSync)(OH_VMContext context, const OH_Int32 resourceId, const OH_String name, const OH_String value, const Callback_Boolean_Void continuation);
-} Callback_String_String_Boolean;
-typedef struct Opt_Callback_String_String_Boolean {
+    XML_Callback_EventType_ParseInfo_Boolean value;
+} Opt_XML_Callback_EventType_ParseInfo_Boolean;
+typedef struct XML_Callback_String_String_Boolean {
+    OH_XML_CallbackResource resource;
+    void (*call)(const OH_Int32 resourceId, const OH_String name, const OH_String value, const XML_Callback_Boolean_Void continuation);
+    void (*callSync)(OH_XML_VMContext context, const OH_Int32 resourceId, const OH_String name, const OH_String value, const XML_Callback_Boolean_Void continuation);
+} XML_Callback_String_String_Boolean;
+typedef struct Opt_XML_Callback_String_String_Boolean {
     OH_Tag tag;
-    Callback_String_String_Boolean value;
-} Opt_Callback_String_String_Boolean;
+    XML_Callback_String_String_Boolean value;
+} Opt_XML_Callback_String_String_Boolean;
 typedef struct Opt_Boolean {
     OH_Tag tag;
     OH_Boolean value;
 } Opt_Boolean;
-typedef struct OH_ParseOptions {
+typedef struct OH_XML_ParseOptions {
     Opt_Boolean supportDoctype;
     Opt_Boolean ignoreNameSpace;
-    Opt_Callback_String_String_Boolean tagValueCallbackFunction;
-    Opt_Callback_String_String_Boolean attributeValueCallbackFunction;
-    Opt_Callback_EventType_ParseInfo_Boolean tokenValueCallbackFunction;
-} OH_ParseOptions;
+    Opt_XML_Callback_String_String_Boolean tagValueCallbackFunction;
+    Opt_XML_Callback_String_String_Boolean attributeValueCallbackFunction;
+    Opt_XML_Callback_EventType_ParseInfo_Boolean tokenValueCallbackFunction;
+} OH_XML_ParseOptions;
 typedef struct Opt_ParseOptions {
     OH_Tag tag;
-    OH_ParseOptions value;
+    OH_XML_ParseOptions value;
 } Opt_ParseOptions;
-typedef struct Callback_Boolean_Void {
-    OH_CallbackResource resource;
+typedef struct XML_Callback_Boolean_Void {
+    OH_XML_CallbackResource resource;
     void (*call)(const OH_Int32 resourceId, const OH_Boolean value);
-    void (*callSync)(OH_VMContext context, const OH_Int32 resourceId, const OH_Boolean value);
-} Callback_Boolean_Void;
-typedef struct Opt_Callback_Boolean_Void {
+    void (*callSync)(OH_XML_VMContext context, const OH_Int32 resourceId, const OH_Boolean value);
+} XML_Callback_Boolean_Void;
+typedef struct Opt_XML_Callback_Boolean_Void {
     OH_Tag tag;
-    Callback_Boolean_Void value;
-} Opt_Callback_Boolean_Void;
+    XML_Callback_Boolean_Void value;
+} Opt_XML_Callback_Boolean_Void;
 typedef struct Opt_ParseInfo {
     OH_Tag tag;
-    OH_ParseInfo value;
+    OH_XML_ParseInfo value;
 } Opt_ParseInfo;
 typedef struct Opt_Buffer {
     OH_Tag tag;
@@ -312,8 +308,8 @@ typedef struct OH_XML_XmlPullParserHandleOpaque* OH_XML_XmlPullParserHandle;
 typedef struct OH_XML_XmlPullParserModifier {
     OH_XML_XmlPullParserHandle (*construct)(const OH_Buffer* buffer, const Opt_String* encoding);
     void (*destruct)(OH_XML_XmlPullParserHandle thiz);
-    void (*parse)(OH_NativePointer thisPtr, const OH_ParseOptions* option);
-    void (*parseXml)(OH_NativePointer thisPtr, const OH_ParseOptions* option);
+    void (*parse)(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option);
+    void (*parseXml)(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option);
 } OH_XML_XmlPullParserModifier;
 typedef struct OH_XML_API {
     OH_Int32 version;

@@ -57,6 +57,4 @@ export class ArkUINativeModule {
     native static _CheckArkoalaCallbackEvent(buffer: KUint8ArrayPtr, bufferLength: int32): int32 
     native static _HoldArkoalaResource(resourceId: int32): void 
     native static _ReleaseArkoalaResource(resourceId: int32): void 
-    native static _Utf8ToString(buffer: KUint8ArrayPtr, position: int32, length: int32): string 
-    native static _ManagedStringWrite(str: string, arr: KUint8ArrayPtr, len: int32): int32 
 }
