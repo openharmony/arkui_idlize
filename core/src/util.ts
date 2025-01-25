@@ -313,6 +313,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (node.kind == ts.SyntaxKind.VoidKeyword) return `void`
     if (node.kind == ts.SyntaxKind.UndefinedKeyword) return `undefined`
 
+    if (ts.isVariableDeclaration(node)) {
+        return identString(node.name)
+    }
     if (ts.isTypeReferenceNode(node)) {
         return identString(node.typeName)
     }
@@ -365,11 +368,12 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isTemplateLiteralTypeNode(node)) return `TemplateLiteral`
     if (ts.isParameter(node)) return `Parameter`
     if (ts.isParenthesizedTypeNode(node)) return identName(node.type)
+    if (ts.isIntersectionTypeNode(node)) return node.types.map(it => identName(it)).join("&")
     if(node.kind === ts.SyntaxKind.UnknownKeyword) return `UnknownKeyword`
     throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 
-export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName  | undefined): string | undefined {
+export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName | ts.BindingName | undefined): string | undefined {
     if (!node) return undefined
     if (ts.isStringLiteral(node)) return node.text
     if (ts.isNumericLiteral(node)) return node.text

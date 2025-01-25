@@ -25,7 +25,8 @@ import {
     isStatic,
     nameOrNull,
     zip,
-    isCommonMethodOrSubclass
+    isCommonMethodOrSubclass,
+    findRealDeclarations
 } from "@idlize/core"
 import { LinterWhitelist } from "./LinterWhitelist"
 import { LinterError, LinterMessage } from "./LinterMessage"
@@ -66,12 +67,30 @@ export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
             this.visitFunctionDeclaration(node)
         } else if (ts.isTypeAliasDeclaration(node)) {
             this.visitTypeAlias(node)
+        } else if (ts.isVariableStatement(node)) {
+            this.visitVariable(node)
         }
+    }
+
+    visitVariable(node: ts.VariableStatement) {
+        //if (node.modifiers?.includes(ts.factory.createToken(ts.SyntaxKind.DeclareKeyword))) {
+        node.declarationList.forEachChild(declaration => {
+                if (ts.isVariableDeclaration(declaration)) {
+                    if (declaration.initializer == undefined && declaration.type) {
+                        let name = identName(declaration.type)
+                        if (!name?.endsWith("Interface") && !name?.endsWith("Attribute"))
+                            this.report(declaration, LinterError.VARIABLE_WITHOUT_VALUE, `Variable ${identName(declaration.name)} has no initialization`)
+                    }
+                }
+            }
+        )
+        ts.forEachChild(node, this.visit)
     }
 
     visitNamespace(node: ts.ModuleDeclaration) {
         if (node.name) {
-            this.report(node, LinterError.NAMESPACE, `Namespace detected: ${asString(node.name)}`)
+            // No longer an error.
+            // this.report(node, LinterError.NAMESPACE, `Namespace detected: ${asString(node.name)}`)
         }
         ts.forEachChild(node, this.visit)
     }
