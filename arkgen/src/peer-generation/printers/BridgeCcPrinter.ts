@@ -214,7 +214,6 @@ class BridgeCcVisitor {
             .join(", ")
         const suffix = this.generateCMacroSuffix(method)
         this.generatedApi.print(`KOALA_INTEROP_${suffix}(${macroArgs})`)
-        this.generatedApi.print(` `)
     }
 
     /*
