@@ -26,6 +26,7 @@ import { getReferenceResolver } from "../ReferenceResolver";
 import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
+import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
@@ -262,8 +263,14 @@ class BridgeCcVisitor {
 
         this.generatedApi.print("\n// Accessors\n")
         for (const clazz of this.library.materializedToGenerate) {
+            const isGlobal = isGlobalScope(clazz.decl)
+            const modifierName = isGlobal ? capitalize(this.library.name) : "";
             for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
-                this.printMethod(method)
+                if (isGlobal) {
+                    this.printMethod(method, modifierName)
+                } else {
+                    this.printMethod(method)
+                }
             }
         }
 
