@@ -13,7 +13,7 @@ interface DoubleAnimationParam {
     attribute (Curve or String or ICurve) curve;
 
     [Optional]
-    attribute Callback_Extender_OnAnimation onProgress;
+    attribute Callback_Extender_OnProgress onProgress;
 
     [Optional]
     attribute Callback_Extender_OnFinish onFinish;
