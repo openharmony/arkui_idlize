@@ -1163,6 +1163,7 @@ export function printInterface(idl: IDLInterface): PrintedLine[] {
 }
 
 export function getSuperType(idl: IDLInterface): IDLReferenceType | undefined {
+    if (!idl.inheritance) return undefined
     const parent = idl.inheritance[0]
     return parent && parent !== IDLTopType ? parent : undefined
 }

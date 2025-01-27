@@ -633,12 +633,15 @@ export function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface,
     const result: idl.IDLProperty[] = []
     const seenProperties = new Set<string>()
     forEachSuperType(declaration, resolver, (superInterface) => {
-        superInterface.properties.forEach((property) => {
-            if (seenProperties.has(property.name)) return
-            result.push(property)
-            seenProperties.add(property.name)
-        
-        })
+        const props = superInterface.properties
+        if (props) {
+            props.forEach((property) => {
+                if (seenProperties.has(property.name)) return
+                result.push(property)
+                seenProperties.add(property.name)
+
+            })
+        }
     })
     return result
 }
