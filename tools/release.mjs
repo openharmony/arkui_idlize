@@ -17,7 +17,7 @@ import fs from "fs"
 import path from "path"
 import { Version, Git, writeToPackageJson, IDLIZE_HOME, all_packages } from "./utils.mjs"
 
-const files = all_packages.map(it => path.join(it.path, "package.json"))
+//const files = all_packages.map(it => path.join(it.path, "package.json"))
 
 const CURRENT_VERSION = readVersion()
 const git = new Git
@@ -52,12 +52,13 @@ function run() {
         writeVersion(next)
     }
 
-    files.forEach(file => {
-        //replaceInJson(file, new RegExp(`${old.toString()}\\+devel`, 'g'), next.toString())
-        writeToPackageJson(file, "description", `idlize hash of head: ${git.hash()}`)
-        writeToPackageJson(file, "version", `${nextString}`, (json) => {
-            if (json.dependencies && json.dependencies["@idlize/core"])
-               json.dependencies["@idlize/core"] = nextString
+    all_packages.forEach(module => {
+        module.write(`version`, `${nextString}`, (json) => {
+            module.externalDependencies.forEach(dep => {
+                if (json.dependencies && json.dependencies[dep]) {
+                    json.dependencies[dep] = nextString
+                }
+            })
         })
     })
 
@@ -65,14 +66,14 @@ function run() {
 
     try {
 
-        all_packages.forEach(module => module.publish())
-
-        files.forEach(file => {
-            //replaceInJson(file, new RegExp(`${next.toString()}`, 'g'), `${next.toString()}+devel`)
-            writeToPackageJson(file, "description", "")
-            writeToPackageJson(file, "version", `${nextString}+devel`, (json) => {
-                if (json.dependencies && json.dependencies["@idlize/core"])
-                   json.dependencies["@idlize/core"] = `${nextString}+devel`
+        all_packages.forEach(module => {
+            module.publish()
+            module.write(`version`, `${nextString}+devel`, (json) => {
+                module.externalDependencies.forEach(dep => {
+                    if (json.dependencies && json.dependencies[dep]) {
+                        json.dependencies[dep] = `${nextString}+devel`
+                    }
+                })
             })
         })
 
@@ -84,15 +85,17 @@ function run() {
 
     } catch(e) {
         writeVersion(old)
-        files.forEach(file => {
-            //replaceInJson(file, new RegExp(`${next.toString()}`, 'g'), `${old.toString()}+devel`)
-            writeToPackageJson(file, "description", "")
-            writeToPackageJson(file, "version", `${oldString}+devel`, (json) => {
-                if (json.dependencies && json.dependencies["@idlize/core"])
-                   json.dependencies["@idlize/core"] = `${oldString}+devel`
+
+        all_packages.forEach(module => {
+            module.write(`version`, `${oldString}+devel`, (json) => {
+                module.externalDependencies.forEach(dep => {
+                    if (json.dependencies && json.dependencies[dep]) {
+                        json.dependencies[dep] = `${oldString}+devel`
+                    }
+                })
             })
         })
-        throw new Error("Failed to publish idlize package")
+        throw new Error(`Failed to publish idlize package. Error: ${e}`)
     }
 
     console.log(`> Link: https://nexus.bz-openlab.ru:10443/repository/koala-npm/%40idlize/arkgen/-/arkgen-${next.toString()}.tgz`)

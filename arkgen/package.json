@@ -16,7 +16,6 @@
   "keywords": [],
   "dependencies": {
     "@idlize/core": "2.0.11+devel",
-    "@koalaui/interop": "next",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",

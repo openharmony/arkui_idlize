@@ -12,10 +12,28 @@ export class Package {
         this.path = path
     }
 
+    package() {
+        return path.join(this.path, "package.json")
+    }
+
+    write(key, value, updater) {
+        const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
+        json[key] = value
+        if (updater) updater(json)
+        fs.writeFileSync(this.package(), JSON.stringify(json, null, 2), "utf-8")
+    }
+
+    read(key) {
+        const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
+        return json[key]
+    }
+
     publish() {
         process.chdir(this.path)
         publishToOpenlab("next")
     }
+
+    externalDependencies = ["@idlize/core", "@koalaui/interop", "@koalaui/compat", "@koalaui/common"]
 }
 
 export const all_packages = [
@@ -24,6 +42,9 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "linter")),
     new Package(path.join(IDLIZE_HOME, "libarkts-gen")),
     new Package(path.join(IDLIZE_HOME, "ohosgen")),
+    new Package(path.join(IDLIZE_HOME, "external/incremental/compat")),
+    new Package(path.join(IDLIZE_HOME, "external/incremental/common")),
+    new Package(path.join(IDLIZE_HOME, "external/interop"))
 ]
 
 export class Version {
