@@ -566,7 +566,7 @@ export class IdlWrapperProcessor {
                     || conv.runtimeTypes.indexOf(RuntimeType.FUNCTION) > -1
                 ) {
                     importsCollector.addFeatures(["Serializer"], "Serializer")
-                    importsCollector.addFeatures(["RuntimeType", "runtimeType" ], "SerializerBase")
+                    importsCollector.addFeatures(["RuntimeType", "runtimeType" ], "@koalaui/interop")
                 }
             })
         })

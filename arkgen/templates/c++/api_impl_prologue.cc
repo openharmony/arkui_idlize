@@ -17,6 +17,7 @@
 
 #define KOALA_INTEROP_MODULE %INTEROP_MODULE_NAME%
 #include "common-interop.h"
+#include "callback-resource.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include <deque>
@@ -25,13 +26,6 @@
 CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
 
 %CALLBACK_KINDS%
-
-struct CallbackBuffer {
-    CallbackKind kind;
-    uint8_t buffer[60 * 4];
-    CallbackResourceHolder resourceHolder;
-};
-void enqueueArkoalaCallback(const CallbackBuffer* event);
 
 OH_NativePointer getManagedCallbackCaller(CallbackKind kind);
 OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind);

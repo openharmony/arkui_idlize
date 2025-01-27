@@ -299,10 +299,8 @@ class TSEventsVisitor {
 
     private printImports() {
         const imports = new ImportsCollector()
-        imports.addFeature("RuntimeType", "./peers/SerializerBase")
         imports.addFeature("int32", "@koalaui/common")
-        imports.addFeature("KStringPtr", "@koalaui/interop")
-        imports.addFeature("KPointer", "@koalaui/interop")
+        imports.addFeatures(["KStringPtr", "KPointer", "RuntimeType"], "@koalaui/interop")
         if ([Language.TS].includes(this.library.language))
             imports.addFeature("Deserializer", "./peers/Deserializer")
 

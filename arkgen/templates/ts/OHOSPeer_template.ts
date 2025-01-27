@@ -1,6 +1,5 @@
 import { int32 } from "@koalaui/common"
-import { KPointer, pointer } from "@koalaui/interop"
-import { RuntimeType, runtimeType, unsafeCast } from "./SerializerBase"
+import { KPointer, pointer, RuntimeType, runtimeType, unsafeCast } from "@koalaui/interop"
 import { Serializer } from "%SERIALIZER_PATH%"
 import { Finalizable } from "%FINALIZABLE_PATH%"
 

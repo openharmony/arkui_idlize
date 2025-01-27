@@ -358,9 +358,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
         return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
     }
-    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
-        return new NamedMethodSignature(IDLVoidType, [], [])
-    }
     makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, `${this.getNodeName(type)}`, options?.unsafe ?? false)
     }

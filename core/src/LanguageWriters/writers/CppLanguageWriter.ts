@@ -484,9 +484,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.getNodeName(type)
     }
     override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
-        return new NamedMethodSignature(
-            IDLVoidType, [
-                IDLUint8ArrayType /*idl.createReferenceType("uint8_t*")*/ ,
+        return new NamedMethodSignature(IDLVoidType, [
+                IDLUint8ArrayType,
                 IDLU32Type,
                 createReferenceType("CallbackResourceHolder" /* ast */)
             ],

@@ -30,6 +30,7 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
+    NamedMethodSignature,
     ObjectArgs,
     ReturnStatement,
     StringExpression
@@ -415,5 +416,9 @@ export class TSLanguageWriter extends LanguageWriter {
             this.makeNaryOp(">=", [ordinal, this.makeString(low.toString())]),
             this.makeNaryOp("<=",  [ordinal, this.makeString(high.toString())])
         ])
+    }
+
+    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
+        return new NamedMethodSignature(idl.IDLVoidType, [], [])
     }
 }

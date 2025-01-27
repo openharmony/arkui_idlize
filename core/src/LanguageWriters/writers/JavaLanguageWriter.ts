@@ -297,9 +297,6 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return `${enumName}.getIntValue()`
     }
     override castToBoolean(value: string): string { return value }
-    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
-        return new NamedMethodSignature(idl.IDLVoidType, [], [])
-    }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
         return this.makeBlock([
             this.makeStatement(this.makeMethodCall(serializer, "writeInt8", [this.makeRuntimeType(RuntimeType.STRING)])),

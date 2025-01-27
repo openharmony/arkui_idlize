@@ -166,8 +166,7 @@ class DeserializeCallbacksVisitor {
             imports.addFeature("CallbackKind", "./peers/CallbackKind")
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeatures(["int32", "int64"], "@koalaui/common")
-            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer"], "@koalaui/interop")
-            imports.addFeature("RuntimeType", "./peers/SerializerBase")
+            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType"], "@koalaui/interop")
             imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
 
             if (this.writer.language === Language.ARKTS) {
@@ -441,7 +440,7 @@ class ManagedCallCallbackVisitor {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
-            writer.print(`enqueueArkoalaCallback(&__buffer);`)
+            writer.print(`enqueueCallback(&__buffer);`)
         })
     }
 

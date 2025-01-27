@@ -177,7 +177,6 @@ class SerializerPrinter {
     print(prefix: string, declarationPath?: string) {
         const className = "Serializer"
         const superName = `${className}Base`
-        let ctorSignature = this.writer.makeSerializerConstructorSignature()
         if (prefix == "" && this.writer.language === Language.CPP)
             prefix = generatorConfiguration().param("TypePrefix") + this.library.libraryPrefix
         const serializerDeclarations = getSerializerDeclarations(this.library,
@@ -251,10 +250,10 @@ class SerializerPrinter {
                     writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
                 })
             }
+            const ctorSignature = this.writer.makeSerializerConstructorSignature()
             if (ctorSignature) {
-                const ctorMethod = new Method(superName, ctorSignature)
-                writer.writeConstructorImplementation(className, ctorSignature, writer => {
-                }, ctorMethod)
+                writer.writeConstructorImplementation(className, ctorSignature, writer => {},
+                    new Method(superName, ctorSignature))
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {

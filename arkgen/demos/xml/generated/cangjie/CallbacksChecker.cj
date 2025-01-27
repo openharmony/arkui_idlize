@@ -19,7 +19,7 @@ let deserializer = Deserializer(buffer, bufferSize)
 
 public func checkArkoalaCallbacks() {
     while (true) {
-        let result = ArkUINativeModule._CheckArkoalaCallbackEvent(buffer, Int32(bufferSize))
+        let result = InteropNativeModule._CheckCallbackEvent(buffer, Int32(bufferSize))
         if (result == 0) {
             break
         }

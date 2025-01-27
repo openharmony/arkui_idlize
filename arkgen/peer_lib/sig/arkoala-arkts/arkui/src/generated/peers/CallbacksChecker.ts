@@ -31,7 +31,7 @@ const deserializer = new Deserializer(buffer.buffer, bufferSize)
 export function checkArkoalaCallbacks() {
     while (true) {
         deserializer.resetCurrentPosition()
-        let result = ArkUINativeModule._CheckArkoalaCallbackEvent(buffer.buffer, bufferSize)
+        let result = ArkUINativeModule._CheckCallbackEvent(buffer.buffer, bufferSize)
         if (result == 0) break
 
         const eventKind = deserializer.readInt32() as CallbackEventKind

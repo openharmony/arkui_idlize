@@ -119,7 +119,6 @@ class PeerFileVisitor {
         if (printer.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
         }
-        imports.addFeature("registerCallback", "./peers/SerializerBase")
         imports.addFeature("wrapCallback", "@koalaui/interop")
         if (this.library.language !== Language.ARKTS) {
             imports.addFeature("Deserializer", "./peers/Deserializer")
@@ -252,7 +251,7 @@ class PeerFileVisitor {
         const defaultPeerImports = [
             `import { int32 } from "@koalaui/common"`,
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
-            `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "./SerializerBase"`,
+            `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "@koalaui/interop"`,
             `import { Serializer } from "./Serializer"`,
             `import { ArkUINodeType } from "./ArkUINodeType"`,
             `import { ComponentBase } from "../ComponentBase"`,

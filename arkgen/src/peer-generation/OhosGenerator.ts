@@ -342,24 +342,8 @@ class OHOSVisitor {
             })
         })(this.nativeFunctionsWriter)
 
-        this.arkUIFunctionsWriter.printer.pushIndent(this.nativeWriter.indentDepth() + 1)
-        ;((writer: LanguageWriter) => {
-            writer.writeNativeMethodDeclaration("_CheckArkoalaCallbackEvent",
-                NamedMethodSignature.make(IDLI32Type, [
-                    { name: "buffer", type: IDLUint8ArrayType },
-                    { name: "bufferLength", type: IDLI32Type },
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_HoldArkoalaResource",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "resourceId", type: IDLI32Type }
-                ])
-            )
-            writer.writeNativeMethodDeclaration("_ReleaseArkoalaResource",
-                NamedMethodSignature.make(IDLVoidType, [
-                    { name: "resourceId", type: IDLI32Type }
-                ])
-            )
+        this.arkUIFunctionsWriter.printer.pushIndent(this.nativeWriter.indentDepth() + 1);
+        ((writer: LanguageWriter) => {
             if (writer.language === Language.TS) {
                 writer.writeNativeMethodDeclaration("_MaterializeBuffer",
                     NamedMethodSignature.make(IDLBufferType, [
@@ -784,10 +768,6 @@ class OHOSVisitor {
             finalizablePath: `./${fileNamePrefix}Finalizable`,
         }
 
-        if (this.library.language === Language.ARKTS) {
-            managedCodeModuleInfo.name = `${this.libraryName}NativeModule`
-        }
-
         const nativeModuleTemplate = readLangTemplate(`OHOSNativeModule_template${ext}`, this.library.language)
         const nativeModuleText = nativeModuleTemplate
             .replaceAll('%NATIVE_MODULE_NAME%', this.libraryName)
@@ -820,16 +800,6 @@ class OHOSVisitor {
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
-        fs.writeFileSync(path.join(managedOutDir, `SerializerBase${ext}`),
-            readLangTemplate(`SerializerBase${ext}`, this.library.language)
-                .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
-                .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
-        )
-        fs.writeFileSync(path.join(managedOutDir, `DeserializerBase${ext}`),
-            readLangTemplate(`DeserializerBase${ext}`, this.library.language)
-                .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
-                .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
-        )
         fs.writeFileSync(path.join(managedOutDir, `CallbacksChecker${ext}`),
             readLangTemplate(`CallbacksChecker${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)

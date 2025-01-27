@@ -1,12 +1,10 @@
 import { checkArkoalaCallbacks } from "../../generated/arkts/CallbacksChecker";
 import { xml_EventType } from "../../generated/arkts/xml";
-import { NativeBuffer } from "../../generated/arkts/SerializerBase"
-import { DeserializerBase } from "../../generated/arkts/DeserializerBase"
 import { XMLNativeModule } from "../../generated/arkts/xmlNative"
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule } from "@koalaui/interop";
-export { xml } from "../../generated/arkts/xml"
+import { InteropNativeModule, NativeBuffer, DeserializerBase } from "@koalaui/interop";
 
+export { xml } from "../../generated/arkts/xml"
 export type EventType = xml_EventType
 export type OHBuffer = NativeBuffer
 

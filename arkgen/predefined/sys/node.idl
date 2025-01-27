@@ -48,8 +48,8 @@ interface Node {
     void StartPerf(String str1);
     void EndPerf(String str1);
     pointer DumpPerf(i32 arg);
-    i32 CheckArkoalaCallbackEvent(sequence<u8> buffer, i32 bufferLength);
-    void HoldArkoalaResource(i32 resourceId);
-    void ReleaseArkoalaResource(i32 resourceId);
+    i32 CheckCallbackEvent(sequence<u8> buffer, i32 bufferLength);
+    void HoldCallbackResource(i32 resourceId);
+    void ReleaseCallbackResource(i32 resourceId);
     Object LoadUserView(String userClass, String params);
 };

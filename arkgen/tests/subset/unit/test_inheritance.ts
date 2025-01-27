@@ -1,7 +1,7 @@
 import {strict as assert} from 'assert';
 
 import {toArray, toStr, toInt32} from "../unit_utils"
-import {RuntimeType, Tags} from "@arkoala/arkui/peers/SerializerBase"
+import {RuntimeType, Tags} from "@arkoala/interop"
 import {Serializer} from "@arkoala/arkui/peers/Serializer"
 
 enum AdaptiveColor {

@@ -1,7 +1,7 @@
 import {strict as assert} from 'assert';
 
 import {toArray, toInt32} from "../unit_utils"
-import {RuntimeType, Tags} from "@arkoala/arkui/peers/SerializerBase"
+import {RuntimeType, Tags} from "@arkoala/interop"
 import {Serializer} from "@arkoala/arkui/peers/Serializer"
 
 it('Should write tuple [0, false]', function () {

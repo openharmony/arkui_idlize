@@ -43,11 +43,11 @@ class NativeModuleRecorderVisitor {
 
     private printImports() {
         const imports = new ImportsCollector()
-        imports.addFeature("RuntimeType", "./peers/SerializerBase")
         imports.addFeature("Deserializer", "./peers/Deserializer")
         imports.addFeature("unsafeCast", "./shared/generated-utils")
         imports.addFeatures(["int32", "asFloat64", "CustomTextEncoder"], "@koalaui/common")
-        imports.addFeatures(["encodeToData", "KFloat", "KFloat32ArrayPtr", "KInt", "KInt32ArrayPtr", "KPointer", "KStringPtr", "KUint8ArrayPtr", "nullptr", "pointer", "KBoolean"], "@koalaui/interop")
+        imports.addFeatures(["encodeToData", "KFloat", "KFloat32ArrayPtr", "KInt", "KInt32ArrayPtr", "KPointer",
+            "KStringPtr", "KUint8ArrayPtr", "nullptr", "pointer", "KBoolean", "RuntimeType"], "@koalaui/interop")
         imports.addFeatures(["NodePointer", "NativeModuleEmpty"], "@koalaui/arkoala")
         imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
         imports.print(this.nativeModuleRecorder, '')

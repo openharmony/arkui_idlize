@@ -12,10 +12,9 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { pointer, nullptr, wrapCallback, callCallback } from "@koalaui/interop"
+import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
-import { CallbackTransformer } from "@arkoala/arkui/peers/CallbackTransformer"
 import { MaterializedBase } from "@arkoala/arkui/MaterializedBase"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
@@ -29,7 +28,6 @@ import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
 import { CanvasRenderingContext2D as CanvasRenderingContext2DImpl, CanvasRenderingContext2DInternal } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
-import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
 import {
@@ -246,7 +244,7 @@ function enqueueCallback(
     const serializer = Serializer.hold()
     const resourceId = writeCallback(serializer)
     /* imitate libace holding resource */
-    ArkUINativeModule._HoldArkoalaResource(resourceId)
+    InteropNativeModule._HoldCallbackResource(resourceId)
     /* libace stored resource somewhere */
     const buffer = new Uint8Array(serializer.asArray().buffer.byteLength)
     const bufferLength = serializer.length()
@@ -257,7 +255,7 @@ function enqueueCallback(
     const deserializer = new Deserializer(buffer.buffer, bufferLength)
     readAndCallCallback(deserializer)
     /* libace released resource */
-    ArkUINativeModule._ReleaseArkoalaResource(resourceId)
+    InteropNativeModule._ReleaseCallbackResource(resourceId)
 }
 
 function checkCallbackWithReturn() {

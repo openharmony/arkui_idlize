@@ -1,6 +1,5 @@
-import { ResourceHolder } from "@koalaui/interop"
+import { InteropNativeModule, ResourceHolder } from "@koalaui/interop"
 import { Deserializer, deserializeAndCallCallback } from "%SERIALIZER_PATH%"
-import { %NATIVE_MODULE_ACCESSOR% } from "%NATIVE_MODULE_PATH%"
 
 enum CallbackEventKind {
     Event_CallCallback = 0,
@@ -13,7 +12,7 @@ const buffer = new Uint8Array(bufferSize)
 const deserializer = new Deserializer(buffer.buffer, bufferSize)
 export function checkArkoalaCallbacks() {
     while (true) {
-        let result = %NATIVE_MODULE_ACCESSOR%._CheckArkoalaCallbackEvent(buffer, bufferSize)
+        let result = InteropNativeModule._CheckCallbackEvent(buffer, bufferSize)
         if (result == 0) break
 
         deserializer.resetCurrentPosition()

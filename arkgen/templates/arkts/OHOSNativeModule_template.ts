@@ -20,8 +20,6 @@ export class %NATIVE_MODULE_NAME%NativeModule {
     native static _AllocateNativeBuffer(length: KInt, retBuffer: KUint8ArrayPtr, init:KUint8ArrayPtr): void;
 
 %NATIVE_FUNCTIONS%
-}
 
-export class ArkUINativeModule {
 %ARKUI_FUNCTIONS%
 }

@@ -250,7 +250,7 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     let printer = createLanguageWriter(library.language, getReferenceResolver(library))
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
-    imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "./SerializerBase")
+    imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
     imports.addFeatures(["int32", "float32"], "@koalaui/common")
     if (printer.language == Language.TS) {
         imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
@@ -280,15 +280,15 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
         // destFile.imports.clear() // TODO fix dependencies
-        destFile.imports.addFeatures(["SerializerBase", "RuntimeType", "runtimeType", "CallbackResource"], "./SerializerBase")
-        destFile.imports.addFeatures(["DeserializerBase" ], "./DeserializerBase")
         destFile.imports.addFeatures(["int32"], "@koalaui/common")
-        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr", "InteropNativeModule"], "@koalaui/interop")
-        destFile.imports.addFeature("wrapSystemCallback", "@koalaui/interop")
-        destFile.imports.addFeatures(["CallbackKind"], nativeModule.path)
+        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr",
+            "InteropNativeModule", "SerializerBase", "RuntimeType", "runtimeType", "CallbackResource",
+            "DeserializerBase", "wrapSystemCallback"
+        ], "@koalaui/interop")
+        destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
         destFile.imports.addFeatures(["Finalizable", "MaterializedBase"], nativeModule.finalizablePath)
         if (lang === Language.TS) {
-            destFile.imports.addFeature("unsafeCast", "./SerializerBase")
+            destFile.imports.addFeature("unsafeCast", "@koalaui/interop")
         }
 
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
@@ -388,14 +388,13 @@ export function makeTSDeserializer(library: PeerLibrary): string {
     const deserializer = createLanguageWriter(Language.TS, library)
     writeDeserializer(library, deserializer, "")
     return `${cStyleCopyright}
-import { runtimeType, Tags, RuntimeType, SerializerBase, CallbackResource } from "./SerializerBase"
+import { runtimeType, Tags, RuntimeType, SerializerBase, DeserializerBase, CallbackResource } from "@koalaui/interop"
+import { KPointer, ${NativeModule.Interop.name} } from "@koalaui/interop"
 import { MaterializedBase } from "./../MaterializedBase"
-import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
 import { unsafeCast } from "../shared/generated-utils"
 import { CallbackKind } from "./CallbackKind"
 import { Serializer } from "./Serializer"
-import { KPointer, ${NativeModule.Interop.name} } from "@koalaui/interop"
 
 ${deserializer.getOutput().join("\n")}
 
@@ -408,13 +407,11 @@ export function makeArkTSDeserializer(library: PeerLibrary): string {
     printer.writeLines(cStyleCopyright)
 
     const imports = new ImportsCollector()
-    imports.addFeatures(["runtimeType", "RuntimeType", "CallbackResource"], "./SerializerBase")
-    imports.addFeature("DeserializerBase", "./DeserializerBase")
+    imports.addFeatures(["KPointer", "runtimeType", "RuntimeType", "CallbackResource", "DeserializerBase"], "@koalaui/interop")
     imports.addFeatures(["int32", "int64"], "@koalaui/common")
     imports.addFeature("Serializer", "./Serializer")
     imports.addFeatures([NativeModule.Generated.name], "#components")
     imports.addFeatures(["CallbackKind"], "CallbackKind")
-    imports.addFeatures(['KPointer'], '@koalaui/interop')
     imports.print(printer, '')
 
     writeDeserializer(library, printer, "")

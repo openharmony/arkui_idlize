@@ -320,7 +320,7 @@ function enqueueCallback(
     const serializer = Serializer.hold()
     const resourceId = writeCallback(serializer)
     /* imitate libace holding resource */
-    ArkUINativeModule._HoldArkoalaResource(resourceId)
+    InteropNativeModule._HoldCallbackResource(resourceId)
     /* libace stored resource somewhere */
     const buffer = new byte[serializer.length()]
     for (let i = 0; i < buffer.length; i++) {
@@ -332,7 +332,7 @@ function enqueueCallback(
     const deserializer = new Deserializer(buffer, buffer.length)
     readAndCallCallback(deserializer)
     /* libace released resource */
-    ArkUINativeModule._ReleaseArkoalaResource(resourceId)
+    InteropNativeModule._ReleaseCallbackResource(resourceId)
 }
 
 function checkTwoSidesCallback() {
