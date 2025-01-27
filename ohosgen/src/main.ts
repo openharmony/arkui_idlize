@@ -20,6 +20,7 @@ const options = program
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-files <path>', 'Path to file(s) to generate from')
     .option('--idl2bridges', 'Convert IDL files to bridges')
+    .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .parse()
     .opts()
 
@@ -27,7 +28,7 @@ function main() {
     const outDir = options.outputDir ?? `./out`
     const inputFiles = options.inputFiles.split(",")
     if (options.idl2bridges)
-        generateOhos(outDir, inputFiles)
+        generateOhos(outDir, inputFiles, options.defaultIdlPackage as string)
 }
 
 main()

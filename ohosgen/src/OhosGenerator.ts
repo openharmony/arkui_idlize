@@ -29,13 +29,13 @@ class OHOSVisitor {
     }
 }
 
-export function generateOhos(outDir: string, inputFiles: string[]): void {
+export function generateOhos(outDir: string, inputFiles: string[], defaultIdlPackage?: string): void {
     setDefaultConfiguration(new OhosConfiguration({
         "prefix": "XML"
     }))
     const generatedSubDir = path.join(outDir, 'generated')
     if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
-    const visitor = new OHOSVisitor(inputFiles)
+    const visitor = new OHOSVisitor(inputFiles /**, defaultIdlPackage */)
     visitor.execute(generatedSubDir)
 }
 

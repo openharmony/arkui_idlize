@@ -431,7 +431,7 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
         generateTracker(outDir, idlLibrary, options.trackerStatus, options.verbose)
     }
     if (options.generatorTarget == "ohos") {
-        generateOhos(outDir, idlLibrary)
+        generateOhos(outDir, idlLibrary, options.defaultIdlPackage as string)
     }
     if (options.plugin) {
         loadPlugin(options.plugin)

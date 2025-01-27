@@ -68,12 +68,12 @@ class OHOSVisitor {
     callbacks = new Array<IDLCallback>()
     callbackInterfaces = new Array<IDLInterface>()
 
-    constructor(protected library: PeerLibrary) {
+    constructor(protected library: PeerLibrary, libraryName: string) {
         if (this.library.files.length == 0)
             throw new Error("No files in library")
 
-        this.libraryName = suggestLibraryName(this.library)
-        this.library.name = this.libraryName
+        this.libraryName = libraryName
+        this.library.name = libraryName
 
         this.peerWriter = createLanguageWriter(library.language, library)
         this.nativeWriter = createLanguageWriter(library.language, library)
@@ -840,13 +840,14 @@ function generateTypeCheckFile(dir: string, lang: Language): void {
     fs.writeFileSync(path.join(dir, `type_check.ts`), code)
 }
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary): void {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultIdlPackage?: string): void {
     const generatedSubDir = path.join(outDir, 'generated')
     const managedOutDir = path.join(generatedSubDir, peerLibrary.language.name.toLocaleLowerCase())
     if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
     if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir, { recursive: true })
 
-    const visitor = new OHOSVisitor(peerLibrary)
+    const libraryName = defaultIdlPackage ?? suggestLibraryName(peerLibrary)
+    const visitor = new OHOSVisitor(peerLibrary, libraryName)
     visitor.execute(generatedSubDir, managedOutDir)
 }
 
