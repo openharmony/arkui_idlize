@@ -14,7 +14,7 @@ class OHOSVisitor {
     execute(outDir: string) {
         const forEachInterface =
             lib.lens(lib.select.files())
-                .pipe(lib.select.entities(true))
+                .pipe(lib.select.nodes({ expandNamespaces: true }))
                 .pipe(lib.select.interfaces())
 
         const firstInterface = this.query(forEachInterface.pipe(lib.utils.fst()))

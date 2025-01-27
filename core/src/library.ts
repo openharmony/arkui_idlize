@@ -37,6 +37,41 @@ function toLibrary(ii:Iterable<IDLFile>): IDLLibrary {
     }
 }
 
+function serializeParam(params:unknown): string {
+    if (typeof params === 'undefined') {
+        return 'undefined'
+    }
+    if (typeof params === 'boolean') {
+        return params ? 'true' : 'false'
+    }
+    if (typeof params === 'string') {
+        return `"${params}"`
+    }
+    if (typeof params === 'number') {
+        return params.toString()
+    }
+    if (typeof params === 'object') {
+        if (params === null) {
+            return 'null'
+        }
+        if (Array.isArray(params)) {
+            return '[' + params.map(serializeParam).join(', ') + ']'
+        }
+        const keys = Object.keys(params)
+        keys.sort()
+        return '{' + 
+            keys.map((key:string):string => {
+                if (typeof key !== 'string') {
+                    throw new Error(`Unsupported key! "${typeof key}"`) 
+                }
+                const objectKey = key as keyof typeof params
+                return `${key}=${serializeParam(params[objectKey])}`
+            }).join(',') 
+        + '}'
+    }
+    throw new Error(`Unsupported type! "${typeof params}"`)
+}
+
 const queryCache = new Map<string, any>()
 function cached<A, R>(key: string, f:(x:A) => R): (x:A) => R {
     return x => {
@@ -142,23 +177,29 @@ const utils = {
     lst: <T>() => req<T[], T | undefined>('lst', xs => xs.at(-1)), 
 }
 
+interface EntitiesParams {
+    expandNamespaces?: boolean
+    slipPackage?: boolean
+}
+
 const select = {
     files(): LibraryReducer<readonly IDLFile[]> {
         return reduce('files', x => x.files)
     },
-    entities(traverseNamespaces = false): LibraryQuery<readonly IDLFile[], idl.IDLNode[]> {
-        if (traverseNamespaces) {
-            function go(node:idl.IDLNode): idl.IDLNode[] {
-                if (idl.isNamespace(node)) {
-                    return node.members.flatMap(go)
-                }
-                return [node]
+    nodes(params:EntitiesParams): LibraryQuery<readonly IDLFile[], idl.IDLNode[]> {
+        const key = 'entities' + serializeParam(params)
+        function go(node:idl.IDLNode): idl.IDLNode[] {
+            if (idl.isNamespace(node) && params.expandNamespaces) {
+                return node.members.flatMap(go)
             }
-            return req('entities.flat', xs => {
-                return xs.flatMap(x => x.entities).flatMap(go)
-            })
+            if (idl.isPackage(node) && params.slipPackage) {
+                return []
+            }
+            return [node]
         }
-        return req('entities', xs => xs.flatMap(x => x.entities))
+        return req(key, xs => {
+            return xs.flatMap(x => x.entities).flatMap(go)
+        })
     },
     entries(): LibraryQuery<idl.IDLNode[], idl.IDLEntry[]> {
         return req('entries', xs => xs.filter(idl.isEntry))
@@ -195,5 +236,9 @@ export const lib = {
 
     req,
     compose,
-    concat
+    concat,
+
+    other: {
+        serializeParam
+    }
 }
