@@ -113,7 +113,7 @@ interface UnifiedData {
     sequence<String> getTypes();
 };
 
-callback Callback_RangeUpdate = void (i32 index, pointer mark);
+callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
 
 [Entity=Class]
 interface LazyForEachOps {
