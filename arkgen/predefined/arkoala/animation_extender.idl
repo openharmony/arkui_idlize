@@ -1,6 +1,7 @@
 package "org.openharmony.idlize.predefined";
 
-callback Callback_Extender_OnProgress = void (i32 value);
+callback Callback_Extender_OnProgress = void (f32 value);
+callback Callback_Extender_OnFinish = void ();
 
 [Entity=Interface]
 interface DoubleAnimationParam {
@@ -15,7 +16,7 @@ interface DoubleAnimationParam {
     attribute Callback_Extender_OnAnimation onProgress;
 
     [Optional]
-    attribute Callback_Void onFinish;
+    attribute Callback_Extender_OnFinish onFinish;
 };
 
 [Entity=Class]
