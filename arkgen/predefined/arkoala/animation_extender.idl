@@ -1,6 +1,6 @@
 package "org.openharmony.idlize.predefined";
 
-callback Callback_Number_Void = void (i32 value);
+callback Callback_Extender_OnProgress = void (i32 value);
 
 [Entity=Interface]
 interface DoubleAnimationParam {
@@ -10,10 +10,10 @@ interface DoubleAnimationParam {
     attribute number duration;
     attribute number delay;
     attribute (Curve or String or ICurve) curve;
-    
+
     [Optional]
-    attribute Callback_Number_Void onProgress;
-    
+    attribute Callback_Extender_OnAnimation onProgress;
+
     [Optional]
     attribute Callback_Void onFinish;
 };
