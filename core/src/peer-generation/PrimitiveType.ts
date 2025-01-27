@@ -13,13 +13,15 @@
  * limitations under the License.
  */
 
+import { generatorConfiguration } from "../config"
+
 export class PrimitiveType {
     constructor(protected name: string,
                 protected isPointer: boolean = false) {
     }
 
     getText(): string {
-        return this.name
+        return generatorConfiguration().param("TypePrefix") + this.name
     }
 
     toString(): string {
@@ -27,7 +29,7 @@ export class PrimitiveType {
     }
 }
 
-export abstract class PrimitiveTypeList {
+export class PrimitiveTypeList {
     public static get UndefinedTag() {
         return "INTEROP_TAG_UNDEFINED"
     }
@@ -40,6 +42,16 @@ export abstract class PrimitiveTypeList {
         return "INTEROP_TAG_OBJECT"
     }
 
-    abstract Undefined: PrimitiveType
-    abstract Void: PrimitiveType
+    readonly Int32 = new PrimitiveType(`Int32`)
+    readonly Int64 = new PrimitiveType(`Int64`)
+    readonly Boolean = new PrimitiveType(`Boolean`)
+    readonly Function = new PrimitiveType(`Function`)
+    readonly Undefined = new PrimitiveType(`Undefined`)
+    readonly Void = new PrimitiveType(`Void`)
+    readonly NativePointer = new PrimitiveType(`NativePointer`)
+    readonly Tag = new PrimitiveType(`Tag`)
+    readonly Materialized = new PrimitiveType(`Materialized`, true)
+    readonly CustomObject = new PrimitiveType(`CustomObject`, true)
 }
+
+export const PrimitiveTypesInstance = new PrimitiveTypeList()

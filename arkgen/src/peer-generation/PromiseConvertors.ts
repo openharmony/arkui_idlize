@@ -14,11 +14,9 @@
  */
 
 import * as idl from '@idlize/core/idl'
-import { LibraryInterface } from "@idlize/core"
-import { CallbackConvertor } from "./ArgConvertors"
-import { ArgConvertor, BaseArgConvertor, RuntimeType, ExpressionAssigner } from "@idlize/core"
-import { LanguageStatement, LanguageWriter } from "@idlize/core"
-import { Language } from '@idlize/core'
+import { LibraryInterface, LanguageStatement, LanguageWriter, Language,
+    ArgConvertor, BaseArgConvertor, CallbackConvertor, RuntimeType, ExpressionAssigner
+} from "@idlize/core"
 
 class PromiseOutArgConvertor extends BaseArgConvertor {
     callbackConvertor: CallbackConvertor

@@ -26,7 +26,8 @@ import {
     findVersion,
     GeneratorConfiguration,
     setDefaultConfiguration,
-    initRNG
+    initRNG,
+    PrimitiveType
 } from "@idlize/core"
 import {
     forEachChild,
@@ -52,7 +53,6 @@ import { generateOhos } from "./peer-generation/OhosGenerator"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
-import { ArkPrimitiveType } from "./peer-generation/ArkPrimitiveType"
 
 import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"

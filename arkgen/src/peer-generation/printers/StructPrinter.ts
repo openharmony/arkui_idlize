@@ -24,17 +24,16 @@ import {
     generatorTypePrefix,
 } from "@idlize/core"
 import { RuntimeType } from "@idlize/core"
-import { ArkPrimitiveType, ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
+import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlize/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { generateCallbackAPIArguments } from "../ArgConvertors"
 import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
 import { PrintHint } from "@idlize/core"
 import { LibraryInterface } from "@idlize/core"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector"
-import { flattenUnionType } from "@idlize/core"
+import { flattenUnionType, generateCallbackAPIArguments } from "@idlize/core"
 
 export class StructPrinter {
     constructor(private library: PeerLibrary) {}

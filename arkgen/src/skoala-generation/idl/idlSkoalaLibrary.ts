@@ -29,7 +29,7 @@ import {
     CustomTypeConvertor,
     generatorConfiguration
 } from '@idlize/core'
-import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
+import { ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlize/core";

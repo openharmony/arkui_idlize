@@ -29,7 +29,7 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "../Materialized";
 import { groupBy, Language } from '@idlize/core'
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter, CppInteropConvertor } from "@idlize/core"
 import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlize/core/idl'
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
@@ -38,7 +38,6 @@ import { createEmptyReferenceResolver } from "@idlize/core";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { PeerLibrary } from "../PeerLibrary";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
-import { CppIDLNodeToStringConvertor } from "../LanguageWriters/convertors/CppConvertors";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
@@ -481,7 +480,7 @@ export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: 
 }
 
 function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppIDLNodeToStringConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
 
     writer.writeInclude(`core/components_ng/base/frame_node.h`)
@@ -506,7 +505,7 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
 }
 
 function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppIDLNodeToStringConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
@@ -542,7 +541,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
 }
 
 function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(library), new CppIDLNodeToStringConvertor(library), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(library), new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")

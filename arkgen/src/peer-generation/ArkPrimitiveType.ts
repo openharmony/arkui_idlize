@@ -13,26 +13,10 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration, PrimitiveType, PrimitiveTypeList } from "@idlize/core"
+import { PrimitiveType, PrimitiveTypeList } from "@idlize/core"
 
 export class ArkPrimitiveTypeList extends PrimitiveTypeList {
-    readonly Int32 = new ArkPrimitiveType(`Int32`)
-    readonly Int64 = new ArkPrimitiveType(`Int64`)
-    readonly Boolean = new ArkPrimitiveType(`Boolean`)
-    readonly Function = new ArkPrimitiveType(`Function`, false)
-    readonly Undefined = new ArkPrimitiveType(`Undefined`)
-    readonly Void = new ArkPrimitiveType(`Void`)
-    readonly NativePointer = new ArkPrimitiveType(`NativePointer`)
-    readonly Tag = new ArkPrimitiveType(`Tag`)
-    readonly Materialized = new ArkPrimitiveType(`Materialized`, true)
-    readonly Length = new ArkPrimitiveType(`Length`, true)
-    readonly CustomObject = new ArkPrimitiveType(`CustomObject`, true)
-}
-
-export class ArkPrimitiveType extends PrimitiveType {
-    getText(): string {
-        return generatorConfiguration().param("TypePrefix") + this.name
-    }
+    readonly Length = new PrimitiveType(`Length`, true)
 }
 
 export const ArkPrimitiveTypesInstance = new ArkPrimitiveTypeList()

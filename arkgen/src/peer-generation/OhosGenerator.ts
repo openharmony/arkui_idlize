@@ -19,14 +19,13 @@ import * as idl from '@idlize/core/idl'
 
 import { createConstructor, createContainerType, createOptionalType, createReferenceType, createTypeParameterReference, createParameter, forceAsNamedNode, hasExtAttribute, IDLBufferType, IDLCallback, IDLConstructor, IDLEntry, IDLEnum, IDLExtendedAttributes, IDLI32Type, IDLI64Type, IDLInterface, IDLInterfaceSubkind, IDLMethod, IDLParameter, IDLPointerType, IDLStringType, IDLType, IDLU8Type, IDLUint8ArrayType, IDLVoidType, isCallback, isConstructor, isContainerType, isEnum, isInterface, isReferenceType, isUnionType } from '@idlize/core/idl'
 import { IndentedPrinter, Language, capitalize, qualifiedName, generatorConfiguration, GeneratorConfiguration, setDefaultConfiguration, generatorTypePrefix } from '@idlize/core'
-import { ArgConvertor } from '@idlize/core'
-import { generateCallbackAPIArguments } from './ArgConvertors'
+import { ArgConvertor, generateCallbackAPIArguments } from '@idlize/core'
 import { createOutArgConvertor } from './PromiseConvertors'
-import { ArkPrimitiveType, ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
-import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, makeTypeChecker, readLangTemplate } from './FileGenerators'
+import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
+import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
 import { getUniquePropertiesFromSuperTypes, isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { CppLanguageWriter, createLanguageWriter, ExpressionStatement, LanguageExpression, Method, MethodModifier, MethodSignature, NamedMethodSignature } from './LanguageWriters'
-import { LanguageWriter, LanguageStatement } from '@idlize/core'
+import { LanguageWriter, LanguageStatement, CppInteropConvertor } from '@idlize/core'
 import { PeerLibrary } from './PeerLibrary'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
@@ -38,7 +37,6 @@ import { collapseSameMethodsIDL, groupOverloads, groupOverloadsIDL, OverloadsPri
 import { MaterializedClass, MaterializedMethod } from './Materialized'
 import { PeerMethod } from './PeerMethod'
 import { writePeerMethod } from './printers/PeersPrinter'
-import { CppIDLNodeToStringConvertor } from "./LanguageWriters/convertors/CppConvertors";
 import { PeerGeneratorConfig } from './PeerGeneratorConfig'
 
 class NameType {
@@ -54,8 +52,8 @@ interface SignatureDescriptor {
 class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
-    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
-    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
+    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
+    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
 
     peerWriter: LanguageWriter
     nativeWriter: LanguageWriter
@@ -706,7 +704,7 @@ class OHOSVisitor {
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
 
-        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
+        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)

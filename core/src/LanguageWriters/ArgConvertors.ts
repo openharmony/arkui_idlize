@@ -22,14 +22,18 @@ import {
     ExpressionAssigner,
     PrintHint,
     BlockStatement,
-    BranchStatement
+    BranchStatement,
+    StringExpression
 } from "./LanguageWriter";
 import { RuntimeType } from "./common";
+import { generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { warn } from "../util";
+import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { InteropNameConvertor } from "./InteropConvertor";
 import { createEmptyReferenceResolver } from "../peer-generation/ReferenceResolver";
+import { CppInteropConvertor } from "./convertors/CppConvertors";
+import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 
 export interface ArgConvertor {
     param: string
@@ -1032,15 +1036,122 @@ export class ImportTypeConvertor extends BaseArgConvertor {
     }
 }
 
+export class CallbackConvertor extends BaseArgConvertor {
+    constructor(
+        private readonly library: LibraryInterface,
+        param: string,
+        private readonly decl: idl.IDLCallback,
+    ) {
+        super(idl.createReferenceType(decl.name, undefined, decl), [RuntimeType.FUNCTION], false, true, param)
+    }
+
+    private get isTransformed(): boolean {
+        return this.decl !== this.transformedDecl
+    }
+
+    private get transformedDecl(): idl.IDLCallback {
+        return maybeTransformManagedCallback(this.decl) ?? this.decl
+    }
+
+    convertorArg(param: string, writer: LanguageWriter): string {
+        throw new Error("Must never be used")
+    }
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
+        if (writer.language == Language.CPP) {
+            writer.writeMethodCall(`${param}Serializer`, "writeCallbackResource", [`${value}.resource`])
+            writer.writeMethodCall(`${param}Serializer`, "writePointer", [writer.makeCast(
+                new StringExpression(`${value}.call`), idl.IDLPointerType, { unsafe: true }).asString()])
+            writer.writeMethodCall(`${param}Serializer`, "writePointer", [writer.makeCast(
+                new StringExpression(`${value}.callSync`), idl.IDLPointerType, { unsafe: true }).asString()])
+            return
+        }
+        if (this.isTransformed)
+            value = `CallbackTransformer.transformFrom${this.library.getInteropName(this.decl)}(${value})`
+        writer.writeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [`${value}`])
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter, useSyncVersion: boolean = false): LanguageStatement {
+        if (writer.language == Language.CPP) {
+            const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
+            const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
+            const resourceReadExpr = writer.makeMethodCall(`${deserializerName}`, `readCallbackResource`, [])
+            const callReadExpr = writer.makeCast(
+                writer.makeMethodCall(`${deserializerName}`, `readPointerOrDefault`,
+                    [writer.makeCast(callerInvocation, idl.IDLPointerType, { unsafe: true })]),
+                    idl.IDLUndefinedType /* not used */,
+                    {
+                        unsafe: true,
+                        overrideTypeName: `void(*)(${generateCallbackAPIArguments(this.library, this.transformedDecl).join(", ")})`
+                    }
+            )
+            const callSyncReadExpr = writer.makeCast(
+                writer.makeMethodCall(`${deserializerName}`, `readPointerOrDefault`,
+                    [writer.makeCast(callerSyncInvocation, idl.IDLPointerType, { unsafe: true })]),
+                    idl.IDLUndefinedType /* not used */,
+                    {
+                        unsafe: true,
+                        overrideTypeName: `void(*)(${[`${generatorTypePrefix()}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, this.transformedDecl)).join(", ")})`
+                    }
+            )
+            return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}, ${callSyncReadExpr.asString()}}`))
+        }
+        let result = writer.makeString(
+            `${deserializerName}.read${this.library.getInteropName(this.transformedDecl)}(${useSyncVersion ? 'true' : ''})`)
+        if (this.isTransformed)
+            result = writer.makeMethodCall(`CallbackTransformer`, `transformTo${this.library.getInteropName(this.decl)}`, [result])
+        return assigneer(result)
+    }
+    nativeType(): idl.IDLType {
+        return idl.createReferenceType(this.transformedDecl.name, undefined, this.decl)
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // UTILS
 
 const customObjects = new Set<string>()
-export function warnCustomObject(type: string, msg?: string) {
+function warnCustomObject(type: string, msg?: string) {
     if (!customObjects.has(type)) {
         warn(`Use CustomObject for ${msg ? `${msg} ` : ``}type ${type}`)
         customObjects.add(type)
     }
+}
+
+export const CallbackKind = "CallbackKind"
+
+export function generateCallbackKindName(callback: idl.IDLCallback) {
+    return `Kind_${callback.name}`
+}
+
+export function generateCallbackKindAccess(callback: idl.IDLCallback, language: Language) {
+    const name = generateCallbackKindName(callback)
+    if (language == Language.CPP)
+        return name
+    return `${CallbackKind}.${name}`
+}
+
+export function generateCallbackKindValue(callback: idl.IDLCallback): number {
+    const name = generateCallbackKindName(callback)
+    return hashCodeFromString(name)
+}
+
+export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {
+    const nameConvertor = new CppInteropConvertor(library)
+    const args: string[] = [`const ${PrimitiveTypesInstance.Int32.getText()} resourceId`]
+    args.push(...callback.parameters.map(it => {
+        const target = library.toDeclaration(it.type!)
+        const type = library.typeConvertor(it.name, it.type!, it.isOptional)
+        const constPrefix = !idl.isEnum(target) ? "const " : ""
+        return `${constPrefix}${nameConvertor.convert(type.nativeType())} ${type.param}`
+    }))
+    if (!idl.isVoidType(callback.returnType)) {
+        const type = library.typeConvertor(`continuation`,
+            library.createContinuationCallbackReference(callback.returnType)!, false)
+        args.push(`const ${nameConvertor.convert(type.nativeType())} ${type.param}`)
+    }
+    return args
 }
 
 export function maybeTransformManagedCallback(callback: idl.IDLCallback): idl.IDLCallback | undefined {

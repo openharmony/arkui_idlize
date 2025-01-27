@@ -21,6 +21,7 @@ import { JavaLanguageWriter } from "@idlize/core";
 import { CppLanguageWriter } from "@idlize/core";
 import { CJLanguageWriter } from "@idlize/core";
 import { ReferenceResolver } from "@idlize/core";
+import { IdlNameConvertor, CppInteropConvertor } from "@idlize/core";
 
 import {
     CJIDLNodeToStringConvertor,
@@ -30,8 +31,7 @@ import {
 import { TsIDLNodeToStringConverter } from "./convertors/TSConvertors";
 import { JavaIDLNodeToStringConvertor, JavaInteropArgConvertor } from "./convertors/JavaConvertors";
 import { EtsIDLNodeToStringConvertor } from "./convertors/ETSConvertors";
-import { CppIDLNodeToStringConvertor, CppInteropArgConvertor } from "./convertors/CppConvertors";
-import { IdlNameConvertor } from "@idlize/core";
+import { CppInteropArgConvertor } from "./convertors/CppConvertors";
 import { InteropArgConvertor } from "./convertors/InteropConvertor";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 
@@ -63,11 +63,11 @@ export function createLanguageWriter(language: Language, resolver:ReferenceResol
         case Language.TS: return new TSLanguageWriter(new IndentedPrinter(), resolver,
             new TsIDLNodeToStringConverter(resolver))
         case Language.ARKTS: return new ETSLanguageWriter(new IndentedPrinter(), resolver,
-            new EtsIDLNodeToStringConvertor(resolver), new CppIDLNodeToStringConvertor(resolver))
+            new EtsIDLNodeToStringConvertor(resolver), new CppInteropConvertor(resolver))
         case Language.JAVA: return new JavaLanguageWriter(new IndentedPrinter(), resolver,
             new JavaIDLNodeToStringConvertor(resolver))
         case Language.CPP: return new CppLanguageWriter(new IndentedPrinter(), resolver,
-            new CppIDLNodeToStringConvertor(resolver), ArkPrimitiveTypesInstance)
+            new CppInteropConvertor(resolver), ArkPrimitiveTypesInstance)
         case Language.CJ: return new CJLanguageWriter(new IndentedPrinter(), resolver,
             new CJIDLNodeToStringConvertor(resolver), new CJIDLTypeToForeignStringConvertor(resolver))
         default: throw new Error(`Language ${language.toString()} is not supported`)
@@ -102,7 +102,7 @@ export function createTypeNameConvertor(language: Language , library: ReferenceR
     if (language === Language.CJ)
         return new CJIDLNodeToStringConvertor(library)
     if (language === Language.CPP)
-        return new CppIDLNodeToStringConvertor(library)
+        return new CppInteropConvertor(library)
     throw new Error(`Convertor from IDL to ${language} not implemented`)
 }
 

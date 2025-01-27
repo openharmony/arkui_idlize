@@ -1,7 +1,6 @@
 import * as idl from "@idlize/core/idl"
 import { generatorConfiguration, Language } from "@idlize/core"
-import { LibraryInterface } from "@idlize/core";
-import { ArkPrimitiveType } from "./ArkPrimitiveType";
+import { LibraryInterface, PrimitiveType } from "@idlize/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { isMaterialized, isPredefined } from "./idl/IdlPeerGeneratorVisitor";

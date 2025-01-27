@@ -15,28 +15,7 @@
 
 import * as idl from '@idlize/core/idl'
 import { ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
-import { generatorConfiguration, IdlNameConvertor, ConvertResult, InteropConvertor } from "@idlize/core"
 import { InteropArgConvertor } from './InteropConvertor'
-
-export class CppIDLNodeToStringConvertor extends InteropConvertor implements IdlNameConvertor {
-    private unwrap(type: idl.IDLNode, result:ConvertResult): string {
-        if (idl.isType(type) && idl.isOptionalType(type)) {
-            return `Opt_${result.text}`
-        }
-        if (result.noPrefix) {
-            return result.text
-        }
-        const conf = generatorConfiguration()
-        const typePrefix = conf.param("TypePrefix")
-        const libPrefix = idl.isPrimitiveType(type) ? "" : conf.param("LibraryPrefix")
-        return `${typePrefix}${libPrefix}${result.text}`
-    }
-
-    convert(node: idl.IDLNode): string {
-        return this.unwrap(node, this.convertNode(node))
-    }
-
-}
 
 export class CppInteropArgConvertor extends InteropArgConvertor {
     static INSTANCE = new CppInteropArgConvertor()

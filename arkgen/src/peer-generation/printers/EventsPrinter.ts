@@ -38,9 +38,8 @@ import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver } from "../ReferenceResolver"
-import { ReferenceResolver } from "@idlize/core"
+import { ReferenceResolver, CppInteropConvertor } from "@idlize/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
-import { CppIDLNodeToStringConvertor } from "../LanguageWriters/convertors/CppConvertors";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { TsIDLNodeToStringConverter } from "../LanguageWriters/convertors/TSConvertors";
 
@@ -194,8 +193,8 @@ export function collapseIdlEventsOverloads(library: PeerLibrary, peer: PeerClass
 }
 
 class CEventsVisitor {
-    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
-    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppIDLNodeToStringConvertor(this.library), ArkPrimitiveTypesInstance)
+    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
+    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
 
     constructor(
         protected readonly library: PeerLibrary,
