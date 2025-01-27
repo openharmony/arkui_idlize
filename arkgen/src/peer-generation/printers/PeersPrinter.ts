@@ -507,9 +507,30 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                     ]
 
                 } else if (!isPrimitiveType(returnType)) {
+                    let contType: LanguageExpression | undefined = undefined
+                    if (idl.isContainerType(returnType) && idl.IDLContainerUtils.isSequence(returnType)) {
+                        const elemType = returnType.elementType[0]
+                        if (idl.isNamedNode(elemType)) {
+                            contType = writer.makeNewObject(writer.getNodeName(returnType))
+                        }
+                    }
+                    let ret:LanguageExpression | undefined = undefined
+                    if (PeerGeneratorConfig.isShouldReplaceThrowingError(method.originalParentName)) {
+                        ret = idl.isOptionalType(returnType)
+                            ? writer.makeUndefined()
+                            : contType
+                                ? contType
+                                : undefined
+                        if (ret) {
+                            writer.print(`console.log("Object deserialization is not implemented for type: ${contType}, return default value.")`)
+                        }
+                    }
                     result = [
-                        writer.makeThrowError("Object deserialization is not implemented.")
+                        ret
+                            ? writer.makeReturn(ret)
+                            : writer.makeThrowError("Object deserialization is not implemented.")
                     ]
+                    
                 }
             }
             for (const stmt of result) {

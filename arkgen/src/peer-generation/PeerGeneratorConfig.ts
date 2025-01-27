@@ -105,6 +105,17 @@ export class PeerGeneratorConfig {
         return false
     }
 
+    private static replaceThrowErrorReturn = [
+        "NavPathStack"
+    ]
+
+    public static isShouldReplaceThrowingError(name: string) {
+        for (const ignore of this.replaceThrowErrorReturn) {
+            if (name.endsWith(ignore)) return true
+        }
+        return false
+    }
+
     private static ignoreMaterialized = [
         // TBD
         "Layoutable",
