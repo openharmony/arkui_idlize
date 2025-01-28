@@ -261,6 +261,10 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration)
         }
         if (idl.isTypedef(declaration)) {
+            if (isCyclicTypeDef(declaration)) {
+                warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
+                return new CustomTypeConvertor(param, declaration.name, false, declaration.name)
+            }
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
@@ -344,6 +348,10 @@ export class PeerLibrary implements LibraryInterface {
             if (!decl) {
                 warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
             }
+            if (decl && idl.isTypedef(decl) && isCyclicTypeDef(decl)) {
+                warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
+                return ArkCustomObject
+            }
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
                 : decl
@@ -365,4 +373,8 @@ export const ArkCustomObject = idl.IDLCustomObjectType
 
 export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
+}
+
+function isCyclicTypeDef(decl: idl.IDLTypedef): boolean {
+    return idl.isReferenceType(decl.type) && idl.isNamedNode(decl.type) && decl.type.name == decl.name
 }
