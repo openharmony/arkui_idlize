@@ -22,16 +22,17 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/chai": "^4.3.1",
+    "@types/json5": "^2.2.0",
     "@types/mocha": "^9.1.0",
     "@types/node": "^18.0.0",
+    "json5": "^2.2.3",
     "source-map-support": "^0.5.21"
   },
   "scripts": {
     "compile:core": "npm run --prefix ../core compile",
     "compile": "npm run compile:core && rollup -c",
-    "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/ --libarkts-transform",
-    "subset": "npm run compile && node . --input-file ./input/subset.idl --output-dir ./out/subset",
-    "full": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/full",
+    "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/",
+    "full": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/full --options-file ./input/ignore.json5",
     "integrate:some": "npm run compile && node . --input-file ./input/full.idl --output-dir ../external/arkoala-arkts/ --files nativeModule && npm run external:test",
     "external:test": "npm run --prefix ../external/arkoala-arkts/libarkts run"
   }

@@ -2,6 +2,7 @@
     "compilerOptions": {
         "target": "es2017",
         "lib": ["ESNext", "ESNext.WeakRef"],
+        "allowSyntheticDefaultImports": true,
         "moduleResolution": "node",
         "composite": true,
         "incremental": true,
@@ -16,5 +17,5 @@
         "rootDirs": [".."],
         "module": "esnext",
     },
-    "include": ["src/**/*"]
+    "include": ["src/**/*.ts"]
 }

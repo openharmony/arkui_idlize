@@ -18,43 +18,38 @@ import { toIDL } from "@idlize/core"
 import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
 import { IDLFile } from "./IdlFile"
+import { Options } from "./Options"
 
-const options: {
-    outputDir?: string,
+const cliOptions: {
     inputFile?: string,
+    outputDir?: string,
     transform?: boolean,
-    interfaces?: string
-    methods?: string
     files?: string
+    optionsFile?: string
 } = program
-    .option('--output-dir <path>', 'Path to output dir')
     .option('--input-file <path>', 'Path to file to generate from')
+    .option('--output-dir <path>', 'Path to output dir')
     .option('--transform', 'Applies some temporary fixes on input .idl')
-    .option('--interfaces <string>', 'Ignore all other nodes, comma separated, no space')
-    .option('--methods <string>', 'Ignore all other nodes, comma separated, no space')
     .option('--files <string>', 'Types of files to be emitted [bridges|bindings|enums], comma separated, no space')
+    .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
     .opts()
 
 function main() {
-    const outDir = options.outputDir ?? `./out`
-    const idlFile = options.inputFile ?? `./input/full.idl`
-    const interfaces = options.interfaces?.split(`,`)
-    const methods = options.methods?.split(`,`)
-    const files = options.files?.split(`,`)
-    const shouldFixInput = options.transform ?? false
-    const idl = new IDLFile(toIDL(idlFile))
+    const outDir = cliOptions.outputDir ?? `./out`
+    const idlFile = cliOptions.inputFile ?? `./input/full.idl`
+    const files = cliOptions.files?.split(`,`)
+    const shouldFixInput = cliOptions.transform ?? false
 
     const config = new Config(
+        new Options(cliOptions.optionsFile),
         shouldFixInput,
-        interfaces,
-        methods,
-        files,
+        files
     )
 
     new FileEmitter(
         outDir,
-        idl,
+        new IDLFile(toIDL(idlFile)),
         config,
     ).print()
 }

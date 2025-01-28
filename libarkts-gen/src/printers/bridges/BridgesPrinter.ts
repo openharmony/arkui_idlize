@@ -48,7 +48,7 @@ export class BridgesPrinter extends InteropPrinter {
 
     private convertor = new NativeTypeConvertor(this.idl.entries)
 
-    private writer = new CppLanguageWriter(
+    override writer = new CppLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert : (node: IDLType) => this.mapType(node) },
@@ -203,9 +203,5 @@ export class BridgesPrinter extends InteropPrinter {
         }
 
         return BridgesConstructions.result
-    }
-
-    override getOutput(): string[] {
-        return this.writer.getOutput()
     }
 }

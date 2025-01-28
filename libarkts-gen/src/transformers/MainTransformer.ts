@@ -64,7 +64,7 @@ export class MainTransformer {
     private withFilteredOutMethods(node: IDLInterface): IDLInterface {
         return withUpdatedMethods(
             node,
-            node.methods.filter(it => this.config.shouldEmitMethod(it.name))
+            node.methods.filter(it => this.config.shouldEmitMethod(node.name, it.name))
         )
     }
 

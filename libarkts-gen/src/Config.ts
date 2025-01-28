@@ -14,27 +14,14 @@
  */
 
 import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
+import { Options } from "./Options"
 
 export class Config {
     constructor(
+        private options: Options,
         private fixInput: boolean,
-        private enumsGenerateFor?: string[],
-        private interfaces?: string[],
-        private methods?: string[],
         private files?: string[]
     ) {}
-
-    private handwrittenEnums = new Set<string>([])
-
-    private handwrittenMethods = new Set([
-        `CreateConfig`, // sequence<String>
-        `ProgramExternalSources`, // sequence<sequence>
-        `ExternalSourcePrograms`, // sequence<sequence>
-        `ProtectionFlagConst`, // u8
-        `TypeIdConst`, // u64
-    ])
-
-    private handwrittenInterfaces = new Set<string>([])
 
     get sequencePointerType(): IDLPrimitiveType {
         return IDLPointerType
@@ -45,24 +32,15 @@ export class Config {
     }
 
     shouldEmitEnum(name: string): boolean {
-        if (this.enumsGenerateFor !== undefined) {
-            return this.enumsGenerateFor.includes(name)
-        }
-        return !this.handwrittenEnums.has(name)
+        return true
     }
 
     shouldEmitInterface(name: string): boolean {
-        if (this.interfaces !== undefined) {
-            return this.interfaces.includes(name)
-        }
-        return !this.handwrittenInterfaces.has(name)
+        return this.options.shouldEmitInterface(name)
     }
 
-    shouldEmitMethod(name: string): boolean {
-        if (this.methods !== undefined) {
-            return this.methods.includes(name)
-        }
-        return !this.handwrittenMethods.has(name)
+    shouldEmitMethod(iface: string, method: string): boolean {
+        return this.options.shouldEmitMethod(iface, method)
     }
 
     shouldEmitFile(name: string): boolean {

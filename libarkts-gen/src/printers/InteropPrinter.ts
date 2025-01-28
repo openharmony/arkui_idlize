@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLKind, IDLMethod, isTypedef, throwException } from "@idlize/core"
+import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlize/core"
 import { IDLEntry, IDLEnum, IDLInterface, isEnum, isInterface, } from "@idlize/core/idl"
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
@@ -24,9 +24,11 @@ export abstract class InteropPrinter {
         protected config: Config
     ) { }
 
+    protected abstract writer: LanguageWriter
+
     print(): string {
         this.idl.entries.forEach(it => this.visit(it))
-        return this.getOutput().join('\n')
+        return this.writer.getOutput().join('\n')
     }
 
     private visit(node: IDLEntry): void {
@@ -44,10 +46,7 @@ export abstract class InteropPrinter {
     }
 
     private visitInterface(node: IDLInterface): void {
-        if (!this.config.shouldEmitInterface(node.name)) return
-        node.methods
-            .filter(it => this.config.shouldEmitMethod(it.name))
-            .forEach(it => this.visitMethod(it))
+        node.methods.forEach(it => this.visitMethod(it))
     }
 
     private visitEnum(node: IDLEnum): void {
@@ -58,8 +57,6 @@ export abstract class InteropPrinter {
     private visitMethod(node: IDLMethod): void {
         this.printMethod(node)
     }
-
-    protected abstract getOutput(): string[]
 
     protected printMethod(node: IDLMethod): void {}
 

@@ -1,0 +1,10 @@
+{
+    "generate": {
+        "interfaces": {
+            "FunctionSignature": [
+                "ParamsConst"
+            ],
+            "Identifier": ["*"]
+        }
+    }
+}

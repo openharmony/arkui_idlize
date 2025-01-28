@@ -35,7 +35,7 @@ export class NativeModulePrinter extends InteropPrinter {
         this.writer.pushIndent()
     }
 
-    private writer = new TSLanguageWriter(
+    override writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert: (node: IDLType) => this.mapType(node) },
@@ -65,9 +65,5 @@ export class NativeModulePrinter extends InteropPrinter {
                 )
             }
         )
-    }
-
-    override getOutput(): string[] {
-        return this.writer.getOutput()
     }
 }

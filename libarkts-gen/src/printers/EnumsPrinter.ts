@@ -27,7 +27,7 @@ export class EnumsPrinter extends InteropPrinter {
         super(idl, config)
     }
 
-    private writer = new TSLanguageWriter(
+    override writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert : (node: IDLType) => { throwException(`There is no type conversions for enums`) } },
@@ -52,9 +52,5 @@ export class EnumsPrinter extends InteropPrinter {
                 }
             )
         )
-    }
-
-    override getOutput(): string[] {
-        return this.writer.getOutput()
     }
 }
