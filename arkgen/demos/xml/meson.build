@@ -90,7 +90,7 @@ elif is_panda
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += [
         '-DETS_NATIVE_MODULE_CLASS_NAME=XMLNativeModule',
-        '-DETS_NATIVE_MODULE_QUALIFIED_NAME=xmlNative',
+        '-DETS_NATIVE_MODULE_QUALIFIED_NAME=_00040xml_generated_arkts_xmlNative',
     ]
     include_dirs += [
         external_interop_dir / 'ets',

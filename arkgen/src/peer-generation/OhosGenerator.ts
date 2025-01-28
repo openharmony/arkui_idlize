@@ -707,7 +707,7 @@ class OHOSVisitor {
         )
     }
 
-    execute(outDir: string, managedOutDir: string) {
+    execute(rootProject: string, outDir: string, managedOutDir: string) {
 
         const params: Record<string, any> = {
             TypePrefix: "OH_",
@@ -768,16 +768,22 @@ class OHOSVisitor {
             finalizablePath: `./${fileNamePrefix}Finalizable`,
         }
 
+        let nativeModuleName = managedCodeModuleInfo.path.replace('./', '')
+
+        if (this.library.language === Language.ARKTS) {
+            nativeModuleName = path.join(`@${this.libraryName.toLowerCase()}/${managedOutDir}`, nativeModuleName)
+        }
+
         const nativeModuleTemplate = readLangTemplate(`OHOSNativeModule_template${ext}`, this.library.language)
         const nativeModuleText = nativeModuleTemplate
             .replaceAll('%NATIVE_MODULE_NAME%', this.libraryName)
             .replaceAll('%NATIVE_MODULE_CONTENT%', this.nativeWriter.getOutput().join('\n'))
             .replaceAll('%NATIVE_FUNCTIONS%', this.nativeFunctionsWriter.getOutput().join('\n'))
             .replaceAll('%ARKUI_FUNCTIONS%', this.arkUIFunctionsWriter.getOutput().join('\n'))
-            .replaceAll('%OUTPUT_FILE%', managedCodeModuleInfo.path.replace('./', ''))
-        fs.writeFileSync(path.join(managedOutDir, `${managedCodeModuleInfo.path}${ext}`), nativeModuleText, 'utf-8')
+            .replaceAll('%OUTPUT_FILE%', nativeModuleName)
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `${managedCodeModuleInfo.path}${ext}`), nativeModuleText, 'utf-8')
 
-        fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Finalizable${ext}`),
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}Finalizable${ext}`),
             readLangTemplate(`OHOSFinalizable_template${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
@@ -788,26 +794,26 @@ class OHOSVisitor {
             .replaceAll('%PEER_CONTENT%', this.peerWriter.getOutput().join('\n'))
             .replaceAll('%SERIALIZER_PATH%', managedCodeModuleInfo.serializerPath)
             .replaceAll('%FINALIZABLE_PATH%', managedCodeModuleInfo.finalizablePath)
-        fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
 
-        this.hWriter.printTo(path.join(outDir, `${fileNamePrefix}.h`))
-        this.cppWriter.printTo(path.join(outDir, `${fileNamePrefix}.cc`))
+        this.hWriter.printTo(path.join(rootProject, outDir, `${fileNamePrefix}.h`))
+        this.cppWriter.printTo(path.join(rootProject, outDir, `${fileNamePrefix}.cc`))
 
-        fs.writeFileSync(path.join(outDir, this.implementationStubsFile.name),
+        fs.writeFileSync(path.join(rootProject, outDir, this.implementationStubsFile.name),
             this.implementationStubsFile.printToString()
         )
         
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
-        fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
-        fs.writeFileSync(path.join(managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
-        fs.writeFileSync(path.join(managedOutDir, `CallbacksChecker${ext}`),
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
+        fs.writeFileSync(path.join(rootProject, managedOutDir, `CallbacksChecker${ext}`),
             readLangTemplate(`CallbacksChecker${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
                 .replaceAll("%SERIALIZER_PATH%", managedCodeModuleInfo.serializerPath)
         )
 
-        generateTypeCheckFile(managedOutDir, this.library.language)
+        generateTypeCheckFile(path.join(rootProject, managedOutDir), this.library.language)
     }
 }
 
@@ -841,14 +847,15 @@ function generateTypeCheckFile(dir: string, lang: Language): void {
 }
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultIdlPackage?: string): void {
-    const generatedSubDir = path.join(outDir, 'generated')
+    const rootProject = outDir
+    const generatedSubDir = 'generated'
     const managedOutDir = path.join(generatedSubDir, peerLibrary.language.name.toLocaleLowerCase())
     if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
     if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir, { recursive: true })
 
     const libraryName = defaultIdlPackage ?? suggestLibraryName(peerLibrary)
     const visitor = new OHOSVisitor(peerLibrary, libraryName)
-    visitor.execute(generatedSubDir, managedOutDir)
+    visitor.execute(rootProject, generatedSubDir, managedOutDir)
 }
 
 

@@ -1,5 +1,6 @@
 {
     "compilerOptions": {
+        "package": "@xml",
         "baseUrl": ".",
         "outDir": "build/panda/out",
         "paths": {
