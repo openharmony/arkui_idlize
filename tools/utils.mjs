@@ -30,10 +30,10 @@ export class Package {
 
     publish() {
         process.chdir(this.path)
-        publishToOpenlab("next")
+        publishToOpenlab("latest")
     }
 
-    externalDependencies = ["@idlize/core", "@koalaui/interop", "@koalaui/compat", "@koalaui/common"]
+    externalDependencies = ["@idlize/core", "@koalaui/interop"]
 }
 
 export const all_packages = [
@@ -41,10 +41,7 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "core")),
     new Package(path.join(IDLIZE_HOME, "linter")),
     new Package(path.join(IDLIZE_HOME, "libarkts-gen")),
-    new Package(path.join(IDLIZE_HOME, "ohosgen")),
-    new Package(path.join(IDLIZE_HOME, "external/incremental/compat")),
-    new Package(path.join(IDLIZE_HOME, "external/incremental/common")),
-    new Package(path.join(IDLIZE_HOME, "external/interop"))
+    new Package(path.join(IDLIZE_HOME, "ohosgen"))
 ]
 
 export class Version {
@@ -143,9 +140,6 @@ function getRegistry(key) {
 }
 
 export function publishToOpenlab(tag, dryRun = false) {
-    //setRegistry(keyIdlizeRegistry, idlizeRegistry)
-    //setRegistry(keyIdlizeRegistry2, idlizeRegistry)
-    //setRegistry("strict-ssl", false)
 
     if (dryRun) {
         execSync(`npm publish --dry-run --tag ${tag}`)
