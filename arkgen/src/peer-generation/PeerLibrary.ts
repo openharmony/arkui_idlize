@@ -261,12 +261,6 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration)
         }
         if (idl.isTypedef(declaration)) {
-            const typedefType = declaration.type
-            // Cyclic typedef
-            if (idl.isNamedNode(typedefType) && typedefType.name === type.name) {
-                console.log(`Cyclic typedef: ${typedefType.name}`)
-                return new CustomTypeConvertor(param, typedefType.name, false, typedefType.name)
-            }
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
@@ -349,13 +343,6 @@ export class PeerLibrary implements LibraryInterface {
             const decl = this.resolveTypeReference(type)
             if (!decl) {
                 warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
-            }
-            if (decl && idl.isTypedef(decl)) {
-                const declType = decl.type
-                if (idl.isNamedNode(declType) && declType.name == decl.name) {
-                    // Cyclic typedef
-                    return ArkCustomObject
-                }
             }
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)

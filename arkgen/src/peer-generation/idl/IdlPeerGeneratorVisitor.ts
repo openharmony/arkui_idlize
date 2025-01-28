@@ -606,7 +606,7 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
 
     // A materialized class is a class or an interface with methods
     // excluding components and related classes
-    if (declaration.methods && declaration.methods.length > 0) return true
+    if (declaration.methods.length > 0) return true
 
     // Or a class or an interface derived from materialized class
     if (idl.hasSuperType(declaration)) {
