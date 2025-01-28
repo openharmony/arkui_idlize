@@ -1,6 +1,6 @@
 import * as idl from "@idlize/core/idl"
 import * as path from "path"
-import { createFeatureNameConvertor } from "./idl/IdlNameConvertor"
+import { createFeatureNameConvertor } from "@idlize/core"
 import { isBuilderClass, isMaterialized, isPredefined } from "./idl/IdlPeerGeneratorVisitor"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { convertDeclaration } from "@idlize/core"
