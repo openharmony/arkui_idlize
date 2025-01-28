@@ -847,15 +847,19 @@ function generateTypeCheckFile(dir: string, lang: Language): void {
 }
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultIdlPackage?: string): void {
-    const rootProject = outDir
+    const rootPath = outDir
     const generatedSubDir = 'generated'
     const managedOutDir = path.join(generatedSubDir, peerLibrary.language.name.toLocaleLowerCase())
-    if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
-    if (!fs.existsSync(managedOutDir)) fs.mkdirSync(managedOutDir, { recursive: true })
-
+    if (!fs.existsSync(rootPath)) {
+        fs.mkdirSync(rootPath, { recursive: true })
+    }
+    const manageOutPath = path.join(rootPath, managedOutDir)
+    if (!fs.existsSync(manageOutPath)) {
+        fs.mkdirSync(manageOutPath, { recursive: true })
+    }
     const libraryName = defaultIdlPackage ?? suggestLibraryName(peerLibrary)
     const visitor = new OHOSVisitor(peerLibrary, libraryName)
-    visitor.execute(rootProject, generatedSubDir, managedOutDir)
+    visitor.execute(rootPath, generatedSubDir, managedOutDir)
 }
 
 
