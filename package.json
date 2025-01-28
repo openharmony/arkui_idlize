@@ -9,8 +9,7 @@
     "arkgen",
     "core",
     "linter",
-    "libarkts-gen",
-    "external/interop"
+    "libarkts-gen"
   ],
   "license": "Apache-2.0",
   "keywords": [],
