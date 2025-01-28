@@ -27,6 +27,7 @@ import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
 import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
+import { MaterializedClass } from '../Materialized';
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
@@ -198,7 +199,7 @@ class BridgeCcVisitor {
         return maybeReceiver
     }
 
-    private printMethod(method: PeerMethod, modifierName?: string) {
+    protected printMethod(method: PeerMethod, modifierName?: string) {
         const cName = `${method.originalParentName}_${method.overloadedName}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
         const argTypesAndNames = this.generateCParameters(method);
@@ -263,15 +264,7 @@ class BridgeCcVisitor {
 
         this.generatedApi.print("\n// Accessors\n")
         for (const clazz of this.library.materializedToGenerate) {
-            const isGlobal = isGlobalScope(clazz.decl)
-            const modifierName = isGlobal ? capitalize(this.library.name) : "";
-            for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
-                if (isGlobal) {
-                    this.printMethod(method, modifierName)
-                } else {
-                    this.printMethod(method)
-                }
-            }
+            this.printMaterializedClass(clazz);
         }
 
         /*
@@ -282,6 +275,12 @@ class BridgeCcVisitor {
             }
         }
         */
+    }
+
+    protected printMaterializedClass(clazz: MaterializedClass) {
+        for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
+            this.printMethod(method);
+        }
     }
 }
 
@@ -335,6 +334,18 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
             return super.getApiCallResultField(method)
         }
 
+    }
+
+    protected printMaterializedClass(clazz: MaterializedClass) {
+        const isGlobal = isGlobalScope(clazz.decl);
+        const modifierName = isGlobal ? capitalize(this.library.name) : "";
+        for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
+            if (isGlobal) {
+                this.printMethod(method, modifierName);
+            } else {
+                this.printMethod(method);
+            }
+        }
     }
 }
 
