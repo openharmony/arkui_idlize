@@ -14,8 +14,8 @@
  */
 
 import * as ts from "typescript"
-import * as idl from '@idlize/core/idl'
-import { IndentedPrinter, Language, isImportAttr } from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { IndentedPrinter, Language, isImportAttr } from '@idlizer/core'
 import {
     BlockStatement,
     CppLanguageWriter,
@@ -26,19 +26,19 @@ import {
     StringExpression,
     TSLanguageWriter
 } from "../LanguageWriters"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { PeerClassBase } from "../PeerClass"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { PeerMethod } from "../PeerMethod"
 import { PeerLibrary } from "../PeerLibrary"
-import { ArgConvertor } from "@idlize/core"
+import { ArgConvertor } from "@idlizer/core"
 import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { getReferenceResolver } from "../ReferenceResolver"
-import { ReferenceResolver, CppInteropConvertor } from "@idlize/core"
+import { ReferenceResolver, CppInteropConvertor } from "@idlizer/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { TsIDLNodeToStringConverter } from "../LanguageWriters/convertors/TSConvertors";

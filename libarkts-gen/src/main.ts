@@ -14,7 +14,7 @@
  */
 
 import { program } from "commander"
-import { toIDL } from "@idlize/core"
+import { toIDL } from "@idlizer/core"
 import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
 import { IDLFile } from "./IdlFile"

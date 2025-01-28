@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     createLanguageWriter,
@@ -25,7 +25,7 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, RuntimeType } from "@idlize/core"
+import { LanguageWriter, RuntimeType } from "@idlizer/core"
 import { getInternalClassName, MaterializedClass, MaterializedField } from "../Materialized"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
@@ -41,7 +41,7 @@ import {
 import { createInterfaceDeclName } from './lang/CommonUtils';
 import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlize/core/idl'
+import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";

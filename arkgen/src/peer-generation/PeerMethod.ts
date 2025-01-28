@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-import { capitalize, IDLType, isDefined } from '@idlize/core'
-import { ArgConvertor } from "@idlize/core"
+import { capitalize, IDLType, isDefined } from '@idlizer/core'
+import { ArgConvertor } from "@idlizer/core"
 import { Method, MethodModifier } from "./LanguageWriters"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { mangleMethodName } from "@idlize/core"
-import { IdlNameConvertor } from "@idlize/core"
+import { mangleMethodName } from "@idlizer/core"
+import { IdlNameConvertor } from "@idlizer/core"
 export class PeerMethod {
     private overloadIndex?: number
     constructor(

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 import * as ts from "typescript"
-import { asString, getDeclarationsByNode, nameOrNull, GenericVisitor } from "@idlize/core"
-import {randInt, randString, pick, pickArray} from "@idlize/core"
+import { asString, getDeclarationsByNode, nameOrNull, GenericVisitor } from "@idlizer/core"
+import {randInt, randString, pick, pickArray} from "@idlizer/core"
 
 const LAMBDA = "LAMBDA"
 

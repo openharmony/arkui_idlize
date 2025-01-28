@@ -15,7 +15,7 @@
 
 import JSON5 from "json5"
 import * as fs from "node:fs"
-import { throwException } from "@idlize/core"
+import { throwException } from "@idlizer/core"
 
 export class Options {
     constructor(filePath?: string) {

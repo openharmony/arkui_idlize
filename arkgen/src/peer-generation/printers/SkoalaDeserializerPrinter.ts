@@ -1,5 +1,5 @@
-import { IDLEntry, IDLInterface, isInterface } from "@idlize/core/idl"
-import { IndentedPrinter } from "@idlize/core"
+import { IDLEntry, IDLInterface, isInterface } from "@idlizer/core/idl"
+import { IndentedPrinter } from "@idlizer/core"
 import { cStyleCopyright } from "../FileGenerators"
 import * as fs from "fs"
 import * as path from "path"

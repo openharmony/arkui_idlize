@@ -1,6 +1,6 @@
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import * as ts from "typescript"
-import { identName } from '@idlize/core'
+import { identName } from '@idlizer/core'
 
 function radiusParameterType(): idl.IDLType {
     return idl.createUnionType([

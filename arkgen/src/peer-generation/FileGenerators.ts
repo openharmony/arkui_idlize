@@ -14,10 +14,10 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language } from "@idlize/core"
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language } from "@idlizer/core"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createLanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
-import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlize/core";
+import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
@@ -26,10 +26,10 @@ import { ImportsCollector } from "./ImportsCollector"
 import { PeerLibrary } from "./PeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
-import * as idl from "@idlize/core/idl"
-import { createEmptyReferenceResolver, ReferenceResolver } from "@idlize/core"
+import * as idl from "@idlizer/core/idl"
+import { createEmptyReferenceResolver, ReferenceResolver } from "@idlizer/core"
 import { getReferenceResolver } from "./ReferenceResolver"
-import { PrintHint } from "@idlize/core"
+import { PrintHint } from "@idlizer/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 

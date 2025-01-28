@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLanguageWriter, } from "@idlize/core"
-import { IDLEnum, IDLType, isPrimitiveType, } from "@idlize/core/idl"
+import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLanguageWriter, } from "@idlizer/core"
+import { IDLEnum, IDLType, isPrimitiveType, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
 import { InteropPrinter } from "./InteropPrinter"

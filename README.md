@@ -17,14 +17,14 @@ registry=https://repo.huaweicloud.com/repository/npm/
 @ohos:registry=https://repo.harmonyos.com/npm/
 strict-ssl=false
 lockfile=false
-@idlize:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
+@idlizer:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
 @koalaui:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
 @panda:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
 //nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth=a29hbGEtcHViOnkzdCFuMHRoZXJQ
 ```
 Using:
 ```
-npx @idlize/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
+npx @idlizer/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
 ```
 
 Run:

@@ -21,8 +21,8 @@ import {
     Method,
     MethodSignature,
     TSLanguageWriter
-} from "@idlize/core"
-import { IDLType, } from "@idlize/core/idl"
+} from "@idlizer/core"
+import { IDLType, } from "@idlizer/core/idl"
 import { Config } from "../../Config"
 import { IDLFile } from "../../IdlFile"
 import { InteropPrinter } from "../InteropPrinter"

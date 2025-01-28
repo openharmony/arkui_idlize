@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 
 interface IdlSyntheticType {
     getName(): string

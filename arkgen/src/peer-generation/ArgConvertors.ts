@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlize/core/idl"
+import * as idl from "@idlizer/core/idl"
 import {
     Language, LanguageExpression, LanguageStatement, LanguageWriter, ExpressionAssigner,
     RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor
-} from "@idlize/core";
+} from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 
 export class ArkoalaInterfaceConvertor extends InterfaceConvertor {

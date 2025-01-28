@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ReferenceResolver } from '@idlize/core'
+import { ReferenceResolver } from '@idlizer/core'
 import { PeerLibrary } from "./PeerLibrary";
 export { ReferenceResolver }
 

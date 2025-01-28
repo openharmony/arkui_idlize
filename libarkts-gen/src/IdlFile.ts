@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLEntry } from "@idlize/core/idl"
+import { IDLEntry } from "@idlizer/core/idl"
 
 export class IDLFile {
     constructor(

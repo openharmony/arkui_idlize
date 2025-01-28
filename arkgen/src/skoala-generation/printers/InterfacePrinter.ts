@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { IldSkoalaFile, TSDeclConvertor, IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
-import * as idl from "@idlize/core/idl"
-import { convertDeclaration } from "@idlize/core"
+import * as idl from "@idlizer/core/idl"
+import { convertDeclaration } from "@idlizer/core"
 
 
 export class TSInterfacesVisitor {

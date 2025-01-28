@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { posix as path } from "path"
 import { DeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
@@ -28,16 +28,16 @@ import {
     isImport,
     CustomTypeConvertor,
     generatorConfiguration
-} from '@idlize/core'
+} from '@idlizer/core'
 import { ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
-import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlize/core";
+import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlizer/core";
 import { ArkoalaInterfaceConvertor } from "../../peer-generation/ArgConvertors";
-import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor } from "@idlize/core";
-import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlize/core";
-import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlize/core";
-import { LibraryFileInterface, LibraryInterface } from "@idlize/core";
+import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor } from "@idlizer/core";
+import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlizer/core";
+import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlizer/core";
+import { LibraryFileInterface, LibraryInterface } from "@idlizer/core";
 import { generateSyntheticFunctionName } from "../../IDLVisitor";
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";

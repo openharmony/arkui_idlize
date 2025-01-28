@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot } from '@idlize/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import {
@@ -28,7 +28,7 @@ import {
     NamedMethodSignature,
     createLanguageWriter
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { getInternalClassName, MaterializedMethod } from "../Materialized";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
@@ -43,7 +43,7 @@ import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
         IDLVoidType, isNamedNode, isPrimitiveType
-} from '@idlize/core'
+} from '@idlizer/core'
 import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { findComponentByType } from "../ComponentsCollector";

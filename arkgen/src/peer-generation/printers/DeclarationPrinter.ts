@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { CustomPrintVisitor as DtsPrintVisitor} from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { CustomPrintVisitor as DtsPrintVisitor} from '@idlizer/core'
 import { isPredefined } from "../idl/IdlPeerGeneratorVisitor"
 import { PeerLibrary } from "../PeerLibrary"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
 import { collectComponents } from "../ComponentsCollector"
-import { qualifiedName } from '@idlize/core'
+import { qualifiedName } from '@idlizer/core'
 
 class GeneratorSyntheticPrinter extends DependenciesCollector {
     constructor(

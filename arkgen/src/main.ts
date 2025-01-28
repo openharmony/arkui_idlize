@@ -28,7 +28,7 @@ import {
     setDefaultConfiguration,
     initRNG,
     PrimitiveType
-} from "@idlize/core"
+} from "@idlizer/core"
 import {
     forEachChild,
     IDLEntry,
@@ -39,7 +39,7 @@ import {
     transformMethodsAsync2ReturnPromise,
     verifyIDLString,
     linearizeNamespaceMembers
-} from "@idlize/core/idl"
+} from "@idlizer/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"

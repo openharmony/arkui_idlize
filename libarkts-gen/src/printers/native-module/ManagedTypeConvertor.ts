@@ -32,7 +32,7 @@ import {
     IDLVoidType,
     isEnum,
     throwException
-} from "@idlize/core"
+} from "@idlizer/core"
 import { BaseConvertor } from "../BaseConvertor"
 
 export class ManagedTypeConvertor extends BaseConvertor {

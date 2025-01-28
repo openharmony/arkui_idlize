@@ -1,11 +1,11 @@
-import * as idl from "@idlize/core/idl"
-import { generatorConfiguration, Language } from "@idlize/core"
-import { LibraryInterface, PrimitiveType } from "@idlize/core";
+import * as idl from "@idlizer/core/idl"
+import { generatorConfiguration, Language } from "@idlizer/core"
+import { LibraryInterface, PrimitiveType } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { isMaterialized, isPredefined } from "./idl/IdlPeerGeneratorVisitor";
 import { createTypeNameConvertor } from "./LanguageWriters";
-import { IdlNameConvertor } from "@idlize/core";
+import { IdlNameConvertor } from "@idlizer/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { cleanPrefix } from "./PeerLibrary";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";

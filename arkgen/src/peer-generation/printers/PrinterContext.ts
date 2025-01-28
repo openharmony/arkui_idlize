@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language } from '@idlize/core'
+import { Language } from '@idlizer/core'
 import { ImportTable } from './ImportTable'
 import { SynthesizedTypesRegistry } from './SynthesizedTypesRegistry'
 

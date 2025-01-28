@@ -1,4 +1,4 @@
-import * as idl from "@idlize/core/idl"
+import * as idl from "@idlizer/core/idl"
 import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import {
     createLanguageWriter,
@@ -8,13 +8,13 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { PeerLibrary } from "../PeerLibrary";
-import { createDeclarationNameConvertor } from "@idlize/core";
-import { Language } from "@idlize/core"
-import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlize/core/idl"
+import { createDeclarationNameConvertor } from "@idlizer/core";
+import { Language } from "@idlizer/core"
+import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { getReferenceResolver } from '../ReferenceResolver';
-import { convertDeclaration } from '@idlize/core';
+import { convertDeclaration } from '@idlizer/core';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';

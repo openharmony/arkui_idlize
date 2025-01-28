@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor';
@@ -22,16 +22,16 @@ import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor } from './ArgConv
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor
-        } from '@idlize/core'
-import { IndentedPrinter, Language, warn, isImportAttr, InteropNameConvertor } from '@idlize/core'
+        } from '@idlizer/core'
+import { IndentedPrinter, Language, warn, isImportAttr, InteropNameConvertor } from '@idlizer/core'
 import { createTypeNameConvertor } from './LanguageWriters';
-import { LanguageWriter } from '@idlize/core';
+import { LanguageWriter } from '@idlizer/core';
 import { StructPrinter } from './printers/StructPrinter';
 import { LengthConvertor } from './ArgConvertors';
-import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlize/core';
+import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlizer/core';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
-import { IdlNameConvertor } from '@idlize/core';
-import { LibraryInterface } from '@idlize/core';
+import { IdlNameConvertor } from '@idlizer/core';
+import { LibraryInterface } from '@idlizer/core';
 
 export class PeerLibrary implements LibraryInterface {
     private _syntheticEntries: idl.IDLEntry[] = []

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLEntry, IDLInterfaceSubkind, IDLNode, forEachChild, isCallback, isEnum, isInterface, isTypedef } from "@idlize/core/idl"
+import { IDLEntry, IDLInterfaceSubkind, IDLNode, forEachChild, isCallback, isEnum, isInterface, isTypedef } from "@idlizer/core/idl"
 
 export enum TypeKind {
     Primitive,

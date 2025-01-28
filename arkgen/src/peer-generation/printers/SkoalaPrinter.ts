@@ -1,8 +1,8 @@
 import * as fs from "fs"
 import * as path from "path"
-import * as idl from "@idlize/core/idl"
-import { IDLEntry, IDLMethod, IDLInterface, isInterface } from "@idlize/core/idl"
-import { IndentedPrinter, capitalize, toCamelCase } from "@idlize/core"
+import * as idl from "@idlizer/core/idl"
+import { IDLEntry, IDLMethod, IDLInterface, isInterface } from "@idlizer/core/idl"
+import { IndentedPrinter, capitalize, toCamelCase } from "@idlizer/core"
 
 export class SkoalaCCodeGenerator {
     private entries: IDLEntry[]

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { LanguageWriter, Method, NamedMethodSignature } from "@idlize/core"
+import { LanguageWriter, Method, NamedMethodSignature } from "@idlizer/core"
 import { createLanguageWriter } from "../../peer-generation/LanguageWriters"
-import { Language } from "@idlize/core"
-import * as idl from '@idlize/core/idl'
+import { Language } from "@idlizer/core"
+import * as idl from '@idlizer/core/idl'
 import { IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
 
 export function makeTSSerializerFromIdl(library: IdlSkoalaLibrary): string {

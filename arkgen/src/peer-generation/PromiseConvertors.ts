@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { LibraryInterface, LanguageStatement, LanguageWriter, Language,
     ArgConvertor, BaseArgConvertor, CallbackConvertor, RuntimeType, ExpressionAssigner
-} from "@idlize/core"
+} from "@idlizer/core"
 
 class PromiseOutArgConvertor extends BaseArgConvertor {
     callbackConvertor: CallbackConvertor

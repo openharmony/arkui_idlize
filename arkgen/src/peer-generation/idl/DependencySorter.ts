@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { LibraryInterface } from "@idlize/core";
+import * as idl from '@idlizer/core/idl'
+import { LibraryInterface } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
-import { flattenUnionType, maybeTransformManagedCallback } from "@idlize/core";
+import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 
 class SorterDependenciesCollector extends DependenciesCollector {

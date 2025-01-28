@@ -21,7 +21,7 @@ import {
     IDLPrimitiveType,
     IDLType,
     isPrimitiveType
-} from "@idlize/core"
+} from "@idlizer/core"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === "String"

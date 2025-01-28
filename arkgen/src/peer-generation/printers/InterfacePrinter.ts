@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import * as path from 'path'
 import { PeerLibrary } from "../PeerLibrary"
 import {
@@ -25,7 +25,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from '../LanguageWriters'
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import {
     indentedBy,
     isDefined,
@@ -36,23 +36,23 @@ import {
     IndentedPrinter,
     Language,
     CustomPrintVisitor
-} from '@idlize/core'
+} from '@idlizer/core'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { PeerFile } from '../PeerFile'
 import { TargetFile } from './TargetFile'
 import { PrinterContext } from './PrinterContext'
-import { convertDeclaration, DeclarationConvertor } from "@idlize/core";
+import { convertDeclaration, DeclarationConvertor } from "@idlizer/core";
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'
 import { printJavaImports } from './lang/JavaPrinters'
 import { collectJavaImports } from './lang/JavaIdlUtils'
 import { collectProperties } from './StructPrinter'
-import { escapeIDLKeyword, IDLType } from '@idlize/core/idl'
+import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
-import { maybeTransformManagedCallback } from '@idlize/core'
+import { maybeTransformManagedCallback } from '@idlizer/core'
 import { isComponentDeclaration } from '../ComponentsCollector'
 
 interface InterfacesVisitor {

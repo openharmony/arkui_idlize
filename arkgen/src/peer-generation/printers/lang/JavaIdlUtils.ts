@@ -1,5 +1,5 @@
-import * as idl from "@idlize/core/idl"
-import { convertType, TypeConvertor } from "@idlize/core"
+import * as idl from "@idlizer/core/idl"
+import { convertType, TypeConvertor } from "@idlizer/core"
 import { ImportFeature } from "../../ImportsCollector"
 
 class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {

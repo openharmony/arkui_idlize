@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, Language } from "@idlize/core"
-import { LanguageWriter } from "@idlize/core";
-import { TSLanguageWriter } from "@idlize/core";
-import { ETSLanguageWriter } from "@idlize/core";
-import { JavaLanguageWriter } from "@idlize/core";
-import { CppLanguageWriter } from "@idlize/core";
-import { CJLanguageWriter } from "@idlize/core";
-import { ReferenceResolver } from "@idlize/core";
-import { IdlNameConvertor, CppInteropConvertor } from "@idlize/core";
+import { IndentedPrinter, Language } from "@idlizer/core"
+import { LanguageWriter } from "@idlizer/core";
+import { TSLanguageWriter } from "@idlizer/core";
+import { ETSLanguageWriter } from "@idlizer/core";
+import { JavaLanguageWriter } from "@idlizer/core";
+import { CppLanguageWriter } from "@idlizer/core";
+import { CJLanguageWriter } from "@idlizer/core";
+import { ReferenceResolver } from "@idlizer/core";
+import { IdlNameConvertor, CppInteropConvertor } from "@idlizer/core";
 
 import {
     CJIDLNodeToStringConvertor,
@@ -38,7 +38,7 @@ import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
 
-export { generateTypeCheckerName, makeArrayTypeCheckCall } from '@idlize/core'
+export { generateTypeCheckerName, makeArrayTypeCheckCall } from '@idlizer/core'
 export {
     Field,
     FieldModifier,
@@ -55,7 +55,7 @@ export {
     StringExpression,
     PrinterLike,
     printMethodDeclaration
-} from '@idlize/core'
+} from '@idlizer/core'
 export { CppLanguageWriter, TSLanguageWriter }
 
 export function createLanguageWriter(language: Language, resolver:ReferenceResolver): LanguageWriter {

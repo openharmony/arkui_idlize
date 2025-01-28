@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { PrimitiveType, PrimitiveTypeList } from "@idlize/core"
+import { PrimitiveType, PrimitiveTypeList } from "@idlizer/core"
 
 export class ArkPrimitiveTypeList extends PrimitiveTypeList {
     readonly Length = new PrimitiveType(`Length`, true)

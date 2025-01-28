@@ -1,4 +1,4 @@
-import { createReferenceType, isEnum, isEnumMember } from "@idlize/core"
+import { createReferenceType, isEnum, isEnumMember } from "@idlizer/core"
 import { withDataFrom } from "./test-util"
 import { assert } from "chai"
 

@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { Language } from '@idlize/core'
-import { DeclarationConvertor } from '@idlize/core'
-import { qualifiedName } from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { Language } from '@idlizer/core'
+import { DeclarationConvertor } from '@idlizer/core'
+import { qualifiedName } from '@idlizer/core'
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
     convertNamespace(decl: idl.IDLNamespace): string {

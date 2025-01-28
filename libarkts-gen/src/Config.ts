@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlize/core"
+import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
 import { Options } from "./Options"
 
 export class Config {

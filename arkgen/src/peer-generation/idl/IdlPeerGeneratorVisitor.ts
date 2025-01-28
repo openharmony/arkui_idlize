@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import {
     getExtAttribute,
     IDLExtendedAttributes,
     IDLType,
     maybeOptional
-} from '@idlize/core/idl'
+} from '@idlizer/core/idl'
 import {
     capitalize,
     isDefined,
@@ -27,8 +27,8 @@ import {
     GenericVisitor,
     Language,
     isRoot
-} from '@idlize/core'
-import { ArgConvertor } from "@idlize/core"
+} from '@idlizer/core'
+import { ArgConvertor } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { PeerClass } from "../PeerClass"
@@ -42,7 +42,7 @@ import { ImportFeature } from "../ImportsCollector";
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
-import { ReferenceResolver } from "@idlize/core"
+import { ReferenceResolver } from "@idlizer/core"
 
 /**
  * Theory of operations.

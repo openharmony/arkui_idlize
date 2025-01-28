@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { removeExt, renameDtsToComponent, Language, isCommonMethod } from '@idlize/core'
+import { removeExt, renameDtsToComponent, Language, isCommonMethod } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
 import { componentToPeerClass } from "./PeersPrinter";
 import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
@@ -26,7 +26,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile";
@@ -37,8 +37,8 @@ import { PeerFile } from "../PeerFile";
 import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { createReferenceType, IDLVoidType, isOptionalType } from '@idlize/core'
-import { createEmptyReferenceResolver } from "@idlize/core";
+import { createReferenceType, IDLVoidType, isOptionalType } from '@idlizer/core'
+import { createEmptyReferenceResolver } from "@idlizer/core";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";

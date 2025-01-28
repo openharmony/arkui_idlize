@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { convertNode, IdlNameConvertor, NodeConvertor } from '@idlize/core'
-import * as idl from '@idlize/core/idl'
-import { ReferenceResolver } from "@idlize/core"
-import { stringOrNone } from '@idlize/core'
+import { convertNode, IdlNameConvertor, NodeConvertor } from '@idlizer/core'
+import * as idl from '@idlizer/core/idl'
+import { ReferenceResolver } from "@idlizer/core"
+import { stringOrNone } from '@idlizer/core'
 
 export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {
 

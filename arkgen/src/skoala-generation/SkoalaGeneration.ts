@@ -21,9 +21,9 @@ import { TSInterfacesVisitor } from "./printers/InterfacePrinter"
 import { TSWrappersVisitor } from "./printers/WrappersPrinter"
 import { TargetFile } from "../peer-generation/printers/TargetFile"
 import { createLanguageWriter } from "../peer-generation/LanguageWriters"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { makeTSSerializerFromIdl } from "./printers/SerializerPrinter"
-import { Language } from "@idlize/core"
+import { Language } from "@idlizer/core"
 import { IdlSkoalaLibrary } from "./idl/idlSkoalaLibrary"
 
 export function generateIdlSkoala(outDir: string, skoalaLibrary: IdlSkoalaLibrary, options: OptionValues) {

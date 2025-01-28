@@ -17,11 +17,11 @@ import { tsCopyrightAndWarning } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils"
 import { createLanguageWriter } from "../LanguageWriters"
-import { LanguageStatement, LanguageWriter, Method, NamedMethodSignature } from "@idlize/core"
+import { LanguageStatement, LanguageWriter, Method, NamedMethodSignature } from "@idlizer/core"
 import { getMaterializedFileName } from "../Materialized"
 import { PeerLibrary } from "../PeerLibrary"
 import { TargetFile } from "./TargetFile"
-import * as idl from '@idlize/core'
+import * as idl from '@idlizer/core'
 
 const MODULE_NAME = 'GlobalScope'
 class GlobalScopePrinter {

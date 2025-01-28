@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { NodeConvertor, convertNode, convertType } from "@idlize/core"
-import { LibraryInterface } from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { NodeConvertor, convertNode, convertType } from "@idlizer/core"
+import { LibraryInterface } from '@idlizer/core'
 import { PeerLibrary } from '../PeerLibrary'
-import { Language } from '@idlize/core'
+import { Language } from '@idlizer/core'
 import { isMaterialized } from './IdlPeerGeneratorVisitor'
 import { getInternalClassName } from '../Materialized'
 

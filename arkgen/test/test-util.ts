@@ -1,6 +1,6 @@
 import * as path from "path"
-import { Language, toIDL } from "@idlize/core"
-import { createReferenceType, IDLEntry } from "@idlize/core/idl"
+import { Language, toIDL } from "@idlizer/core"
+import { createReferenceType, IDLEntry } from "@idlizer/core/idl"
 import { PeerLibrary } from "../src/peer-generation/PeerLibrary"
 import { PeerFile } from "../src/peer-generation/PeerFile"
 

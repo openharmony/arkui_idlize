@@ -1,6 +1,6 @@
-import * as idl from "@idlize/core/idl"
-import { LibraryInterface } from "@idlize/core"
-import { isDefined } from "@idlize/core"
+import * as idl from "@idlizer/core/idl"
+import { LibraryInterface } from "@idlizer/core"
+import { isDefined } from "@idlizer/core"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 
 export class IdlComponentDeclaration {

@@ -27,7 +27,7 @@ import {
     zip,
     isCommonMethodOrSubclass,
     findRealDeclarations
-} from "@idlize/core"
+} from "@idlizer/core"
 import { LinterWhitelist } from "./LinterWhitelist"
 import { LinterError, LinterMessage } from "./LinterMessage"
 

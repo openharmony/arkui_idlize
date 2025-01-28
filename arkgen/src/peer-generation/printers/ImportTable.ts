@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLType } from '@idlize/core/idl'
-import { LanguageWriter } from "@idlize/core";
+import { IDLType } from '@idlizer/core/idl'
+import { LanguageWriter } from "@idlizer/core";
 
 export interface ImportTable {
     getImportsForTypes(types: IDLType[]): string[]

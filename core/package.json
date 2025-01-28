@@ -1,5 +1,5 @@
 {
-  "name": "@idlize/core",
+  "name": "@idlizer/core",
   "version": "2.0.14+devel",
   "description": "",
   "types": "build/lib/src/index.d.ts",

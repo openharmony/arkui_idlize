@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor } from '@idlize/core'
+import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor } from '@idlizer/core'
 import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";

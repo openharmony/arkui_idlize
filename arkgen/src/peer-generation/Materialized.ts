@@ -13,16 +13,16 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { ArgConvertor, qualifiedName } from "@idlize/core"
+import * as idl from '@idlizer/core/idl'
+import { ArgConvertor, qualifiedName } from "@idlizer/core"
 import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
-import { capitalize } from '@idlize/core'
+import { capitalize } from '@idlizer/core'
 import { ImportsCollector } from "./ImportsCollector"
-import { createReferenceType, IDLType, IDLVoidType } from '@idlize/core/idl'
+import { createReferenceType, IDLType, IDLVoidType } from '@idlizer/core/idl'
 import { PeerMethod } from "./PeerMethod";
 import { PeerClassBase } from "./PeerClass";
 import { PeerLibrary } from "./PeerLibrary"
-import { copyMethod } from '@idlize/core'
+import { copyMethod } from '@idlizer/core'
 
 export class MaterializedField {
     constructor(

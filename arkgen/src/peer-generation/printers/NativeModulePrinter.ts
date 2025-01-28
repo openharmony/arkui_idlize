@@ -14,18 +14,18 @@
  */
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { createConstructPeerMethod } from "../PeerClass";
 import { PeerClass } from "../PeerClass";
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
-import { Language } from  '@idlize/core'
-import * as idl from  '@idlize/core/idl'
+import { Language } from  '@idlizer/core'
+import * as idl from  '@idlizer/core/idl'
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { NativeModule } from "../NativeModule";
-import { NativeModuleType } from "@idlize/core"
+import { NativeModuleType } from "@idlizer/core"
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { CJLanguageWriter } from "@idlize/core";
+import { CJLanguageWriter } from "@idlizer/core";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlize/core/idl"
+import * as idl from "@idlizer/core/idl"
 import {
     IndentedPrinter,
     Language,
@@ -22,18 +22,18 @@ import {
     isStringEnum,
     generatorConfiguration,
     generatorTypePrefix,
-} from "@idlize/core"
-import { RuntimeType } from "@idlize/core"
+} from "@idlizer/core"
+import { RuntimeType } from "@idlizer/core"
 import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
-import { PrintHint } from "@idlize/core"
-import { LibraryInterface } from "@idlize/core"
+import { PrintHint } from "@idlizer/core"
+import { LibraryInterface } from "@idlizer/core"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector"
-import { flattenUnionType, generateCallbackAPIArguments } from "@idlize/core"
+import { flattenUnionType, generateCallbackAPIArguments } from "@idlizer/core"
 
 export class StructPrinter {
     constructor(private library: PeerLibrary) {}

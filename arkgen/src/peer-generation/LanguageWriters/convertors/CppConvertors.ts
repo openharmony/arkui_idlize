@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
 import { InteropArgConvertor } from './InteropConvertor'
 

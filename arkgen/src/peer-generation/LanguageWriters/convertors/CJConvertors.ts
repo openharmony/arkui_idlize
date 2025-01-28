@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { ARK_CUSTOM_OBJECT, cjCustomTypeMapping } from '../../printers/lang/Cangjie'
-import { ReferenceResolver } from "@idlize/core"
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "@idlize/core"
+import { ReferenceResolver } from "@idlizer/core"
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "@idlizer/core"
 import { InteropArgConvertor } from './InteropConvertor'
 
 export class CJIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNameConvertor {

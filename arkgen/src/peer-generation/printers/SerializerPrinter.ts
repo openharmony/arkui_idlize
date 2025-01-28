@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
-import { generatorConfiguration, Language, lib, throwException } from '@idlize/core'
+import * as idl from '@idlizer/core/idl'
+import { generatorConfiguration, Language, lib, throwException } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { ImportsCollector } from '../ImportsCollector'
 import { PeerLibrary } from '../PeerLibrary'
@@ -27,16 +27,16 @@ import {
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor'
 import { collectFunctions, collectProperties } from '../printers/StructPrinter'
-import { FieldModifier, MethodModifier, ProxyStatement } from '@idlize/core'
-import { createDeclarationNameConvertor } from '@idlize/core'
-import { IDLEntry } from "@idlize/core/idl"
-import { convertDeclaration, generateCallbackKindValue } from '@idlize/core'
+import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
+import { createDeclarationNameConvertor } from '@idlizer/core'
+import { IDLEntry } from "@idlizer/core/idl"
+import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
 import { collectMaterializedImports, getInternalClassName, getInternalClassQualifiedName } from '../Materialized'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
-import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlize/core'
+import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback

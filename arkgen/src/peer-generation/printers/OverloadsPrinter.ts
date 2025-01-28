@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -22,14 +22,14 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { PeerClassBase } from "../PeerClass";
-import { isDefined, Language, throwException, typeOrUnion } from '@idlize/core'
+import { isDefined, Language, throwException, typeOrUnion } from '@idlizer/core'
 import { callbackIdByInfo, canProcessCallback, convertIdlToCallback } from "./EventsPrinter";
 import { PeerMethod } from "../PeerMethod";
 import { PeerLibrary } from "../PeerLibrary";
-import { ArgConvertor, UndefinedConvertor } from "@idlize/core"
-import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlize/core";
+import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
+import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
     if (methods.some(it => it.signature.defaults?.length))

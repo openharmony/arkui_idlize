@@ -22,8 +22,8 @@ import {
     IDLMethod,
     isTypedef,
     throwException
-} from "@idlize/core"
-import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlize/core/idl"
+} from "@idlizer/core"
+import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../printers/InteropConstructions"
 import { IDLFile } from "../IdlFile"

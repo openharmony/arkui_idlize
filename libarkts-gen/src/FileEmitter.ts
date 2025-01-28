@@ -15,7 +15,7 @@
 
 import * as path from "node:path"
 import * as fs from "node:fs"
-import { forceWriteFile } from "@idlize/core"
+import { forceWriteFile } from "@idlizer/core"
 import { BridgesPrinter } from "./printers/bridges/BridgesPrinter"
 import { NativeModulePrinter } from "./printers/native-module/NativeModulePrinter"
 import { EnumsPrinter } from "./printers/EnumsPrinter"

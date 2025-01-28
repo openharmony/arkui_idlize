@@ -33,7 +33,7 @@ export class Package {
         publishToOpenlab("latest")
     }
 
-    externalDependencies = ["@idlize/core", "@koalaui/interop"]
+    externalDependencies = ["@idlizer/core", "@koalaui/interop"]
 }
 
 export const all_packages = [
@@ -126,7 +126,7 @@ export function replaceInJson(filePath, regexp, value) {
 }
 
 
-const keyIdlizeRegistry = "@idlize:registry"
+const keyIdlizeRegistry = "@idlizer:registry"
 const keyKoalaRegistry = "@koalaui:registry"
 const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/packages/npm/"
 const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"

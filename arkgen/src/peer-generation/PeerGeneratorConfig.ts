@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language } from '@idlize/core'
+import { Language } from '@idlizer/core'
 
 export class PeerGeneratorConfig {
     public static commonMethod = ["CommonMethod"]

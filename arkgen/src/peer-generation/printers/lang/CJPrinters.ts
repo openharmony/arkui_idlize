@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlize/core/idl"
+import * as idl from "@idlizer/core/idl"
 import { MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { PeerLibrary } from "../../PeerLibrary"
 import {
     createLanguageWriter,
 } from "../../LanguageWriters"
-import { LanguageWriter } from "@idlize/core"
+import { LanguageWriter } from "@idlizer/core"
 import { getReferenceResolver } from "../../ReferenceResolver"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"

@@ -13,15 +13,15 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { PeerLibrary } from "../PeerLibrary";
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter } from "@idlize/core"
+import { generatorTypePrefix, LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
-import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlize/core'
-import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlize/core";
-import { PrintHint } from "@idlize/core";
+import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
+import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
+import { PrintHint } from "@idlizer/core";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";

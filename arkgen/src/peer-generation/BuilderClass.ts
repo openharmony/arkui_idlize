@@ -18,7 +18,7 @@ import { PeerLibrary } from "./PeerLibrary";
 import {
     createConstructor, createInterface, createMethod, createParameter, createReferenceType, IDLInterface, IDLInterfaceSubkind,
     IDLReferenceType, IDLThisType, IDLType, IDLVoidType
-} from "@idlize/core/idl"
+} from "@idlizer/core/idl"
 
 function builderMethod(name: string, type: IDLType): Method {
     return new Method(name, new NamedMethodSignature(IDLThisType, [type], ["value"]))

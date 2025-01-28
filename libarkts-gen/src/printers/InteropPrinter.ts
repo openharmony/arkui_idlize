@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlize/core"
-import { IDLEntry, IDLEnum, IDLInterface, isEnum, isInterface, } from "@idlize/core/idl"
+import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlizer/core"
+import { IDLEntry, IDLEnum, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
 

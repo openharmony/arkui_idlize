@@ -32,8 +32,8 @@ import {
     PrimitiveType,
     PrimitiveTypeList,
     throwException
-} from "@idlize/core"
-import { IDLParameter, IDLType } from "@idlize/core/idl"
+} from "@idlizer/core"
+import { IDLParameter, IDLType } from "@idlizer/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { InteropPrinter } from "../InteropPrinter"

@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlize/core/idl'
+import * as idl from '@idlizer/core/idl'
 import { PeerClass } from "./PeerClass"
-import { LibraryFileInterface } from "@idlize/core"
+import { LibraryFileInterface } from "@idlizer/core"
 
 export class PeerFile implements LibraryFileInterface {
     readonly peers: Map<string, PeerClass> = new Map()

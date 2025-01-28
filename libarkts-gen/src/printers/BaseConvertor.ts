@@ -22,7 +22,7 @@ import {
     IDLTypeParameterType,
     IDLUnionType,
     TypeConvertor
-} from "@idlize/core"
+} from "@idlizer/core"
 
 export abstract class BaseConvertor implements TypeConvertor<string> {
     protected constructor(private idl: IDLEntry[]) {}

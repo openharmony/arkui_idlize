@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlize/core/idl"
+import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlizer/core/idl"
 import { PeerLibrary } from "../../PeerLibrary"
 import { PeerMethod } from "../../PeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
-import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "@idlize/core"
+import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "@idlizer/core"
 import { createLanguageWriter } from "../../LanguageWriters"
 import { getReferenceResolver } from "../../ReferenceResolver"
 import { generateArkComponentName } from "../ComponentsPrinter"

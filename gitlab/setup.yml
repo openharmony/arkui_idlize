@@ -3,7 +3,7 @@
         - npm config set @ohos:registry https://repo.harmonyos.com/npm/
         - npm config set @koalaui:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
         - npm config set @azanat:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set @idlize:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
+        - npm config set @idlizer:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
         - npm config set @panda:registry https://nexus.bz-openlab.ru:10443/repository/koala-npm/
         - npm config set //nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
         - npm i --no-audit --no-fund

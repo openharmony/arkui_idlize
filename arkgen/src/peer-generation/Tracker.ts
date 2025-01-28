@@ -16,9 +16,9 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { IndentedPrinter } from '@idlize/core'
+import { IndentedPrinter } from '@idlizer/core'
 import { MaterializedClass } from "./Materialized"
-import { IDLEnum } from '@idlize/core/idl'
+import { IDLEnum } from '@idlizer/core/idl'
 import { PeerLibrary } from './PeerLibrary'
 import { PeerClass } from './PeerClass'
 

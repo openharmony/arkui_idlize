@@ -1,5 +1,5 @@
-import { Language } from "@idlize/core"
-import { IDLInterface } from '@idlize/core/idl'
+import { Language } from "@idlizer/core"
+import { IDLInterface } from '@idlizer/core/idl'
 import { createLanguageWriter } from '../src/peer-generation/LanguageWriters'
 import { withDataFrom } from "./test-util"
 

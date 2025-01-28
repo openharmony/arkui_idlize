@@ -1,6 +1,6 @@
 import * as fs from 'fs'
 import * as path from 'path'
-import { GeneratorConfiguration, setDefaultConfiguration, toIDLFile, IDLFile, lib, IDLLibrary, QueryType } from '@idlize/core'
+import { GeneratorConfiguration, setDefaultConfiguration, toIDLFile, IDLFile, lib, IDLLibrary, QueryType } from '@idlizer/core'
 
 class OHOSVisitor {
 

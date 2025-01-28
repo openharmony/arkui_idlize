@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from '@idlize/core'
+import { IndentedPrinter } from '@idlizer/core'
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
@@ -27,14 +27,14 @@ import {
 } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod } from "../Materialized";
-import { groupBy, Language } from '@idlize/core'
+import { groupBy, Language } from '@idlizer/core'
 import { CppLanguageWriter, createLanguageWriter, createTypeNameConvertor, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { LanguageWriter, CppInteropConvertor } from "@idlize/core"
+import { LanguageWriter, CppInteropConvertor } from "@idlizer/core"
 import { LibaceInstall } from "../../Install";
-import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlize/core/idl'
+import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlizer/core/idl'
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { createEmptyReferenceResolver } from "@idlize/core";
+import { createEmptyReferenceResolver } from "@idlizer/core";
 import { getReferenceResolver } from "../ReferenceResolver";
 import { PeerLibrary } from "../PeerLibrary";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
