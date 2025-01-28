@@ -23,7 +23,7 @@ import { LanguageWriter } from "@idlize/core"
 import { getReferenceResolver } from "../../ReferenceResolver"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
-import { ARK_UI_NODE_TYPE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
 export function makeCJSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
@@ -37,20 +37,6 @@ export function makeCJDeserializer(library: PeerLibrary): { targetFile: TargetFi
     writeDeserializer(library, writer, "")
     return { targetFile: new TargetFile('Deserializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
-
-export function makeCJNodeTypes(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    const componentNames = library.files.flatMap(file => {
-        return Array.from(file.peers.values()).map(peer => peer.componentName)
-    })
-    const nodeTypesEnum = new CJEnum(undefined, ARK_UI_NODE_TYPE, componentNames.map((it, index) => { return { name: it, id: index } }))
-
-    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
-    writer.print(`package ${ARKOALA_PACKAGE}\n`)
-    nodeTypesEnum.print(writer)
-
-    return { targetFile: new TargetFile(ARK_UI_NODE_TYPE, ARKOALA_PACKAGE_PATH), writer: writer }
-}
-
 
 export class CJEnum extends IdlSyntheticTypeBase {
     public readonly isStringEnum: boolean

@@ -765,7 +765,7 @@ class OHOSVisitor {
             name: `${this.libraryName}NativeModule`,
             path: `./${fileNamePrefix}Native`,
             serializerPath: `./${fileNamePrefix}Serializer`,
-            finalizablePath: `./${fileNamePrefix}Finalizable`,
+            finalizablePath: `@koalaui/interop`,
         }
 
         let nativeModuleName = managedCodeModuleInfo.path.replace('./', '')

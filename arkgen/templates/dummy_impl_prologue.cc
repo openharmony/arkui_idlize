@@ -816,7 +816,7 @@ void SetCurrentIndex(Ark_NativePointer nodePtr,
     }
     NodeData* data = (NodeData*)node->customVoidData();
     if (data) {
-        data->updater.call(data->updater.resource.resourceId, index, mark);
+        data->updater.call(data->updater.resource.resourceId, index, mark, 1000);
     }
 }
 

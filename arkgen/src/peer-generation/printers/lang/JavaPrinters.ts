@@ -26,7 +26,7 @@ import { PrinterContext } from "../PrinterContext"
 import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_UI_NODE_TYPE, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
 import { collectJavaImports } from "./JavaIdlUtils"
 
 export function makeJavaSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
@@ -44,19 +44,6 @@ export function printJavaImports(printer: LanguageWriter, imports: ImportFeature
         .filter(it => it.module === "")  // ignore imports from local package
         .forEach(it => printer.print(`import ${it.feature};`))
     printer.print('')
-}
-
-export function makeJavaNodeTypes(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    const componentNames = library.files.flatMap(file => {
-        return Array.from(file.peers.values()).map(peer => peer.componentName)
-    })
-    const nodeTypesEnum = new JavaEnum(undefined, ARK_UI_NODE_TYPE, componentNames.map((it, index) => { return { name: it, id: index } }))
-
-    let writer = createLanguageWriter(library.language, library)
-    writer.print(`package ${ARKOALA_PACKAGE};\n`)
-    nodeTypesEnum.print(writer)
-
-    return { targetFile: new TargetFile(ARK_UI_NODE_TYPE, ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
 export function makeJavaArkComponents(library: PeerLibrary, printerContext: PrinterContext): { targetFile: TargetFile, writer: LanguageWriter } {

@@ -253,7 +253,6 @@ class PeerFileVisitor {
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
             `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "@koalaui/interop"`,
             `import { Serializer } from "./Serializer"`,
-            `import { ArkUINodeType } from "./ArkUINodeType"`,
             `import { ComponentBase } from "../ComponentBase"`,
             `import { PeerNode } from "../PeerNode"`
         ]
@@ -529,7 +528,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                             ? writer.makeReturn(ret)
                             : writer.makeThrowError("Object deserialization is not implemented.")
                     ]
-                    
+
                 }
             }
             for (const stmt of result) {

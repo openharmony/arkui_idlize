@@ -253,7 +253,7 @@ export class TestGeneratorVisitor implements GenericVisitor<string[]> {
         this.output.push(`import { Ark${clazzName}Peer } from "@arkoala/arkui/peers/Ark${clazzName}Peer"`)
         this.output.push(``)
         this.output.push(`function check${clazzName}() {`)
-        this.output.push(`  let peer = new Ark${clazzName}Peer(ArkUINodeType.${clazzName})`)
+        this.output.push(`  let peer = new Ark${clazzName}Peer()`)
     }
 
     epilogue(name: ts.Identifier) {

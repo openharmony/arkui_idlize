@@ -198,23 +198,6 @@ class NativeModuleRecorderVisitor {
             w.writeLines(`finalizerFunc(ptr)`)
         })
 
-        this.nativeModuleRecorder.writeMethodImplementation(new Method("_CreateNode", new NamedMethodSignature(/* IDLNodePointer ? */ IDLPointerType /* NodePointer */, [IDLI32Type, IDLI32Type, IDLI32Type], ["type", "id", "flags"])), w => {
-            w.writeLines(`let element: UIElement = {`)
-            w.pushIndent()
-            w.writeLines(`nodeId: id,`)
-            w.writeLines(`kind: this.nameByNodeType(type),`)
-            w.writeLines(`children: [],`)
-            w.writeLines(`elementId: undefined,`)
-            w.popIndent()
-            w.writeLines(`}`)
-            w.writeLines(`if (type == 0 /* ArkUINodeType.Root */) {`)
-            w.pushIndent()
-            w.writeLines(`this.rootElement = element`)
-            w.popIndent()
-            w.writeLines(`}`)
-            w.writeLines(`return this.object2ptr(element)`)
-        })
-
         this.nativeModuleRecorder.writeMethodImplementation(new Method("_DisposeNode", new NamedMethodSignature(IDLVoidType, [IDLPointerType /* NodePointer */], ["ptr"])), w => {
             w.writeLines(`let node = this.ptr2object<UIElement|null>(ptr)`)
             w.writeLines(`console.log("Dispose", node)`)

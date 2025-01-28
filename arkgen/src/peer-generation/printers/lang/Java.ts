@@ -21,7 +21,6 @@ export const INTEROP_PACKAGE_PATH = getPackagePath(INTEROP_PACKAGE)
 
 export const ARK_OBJECTBASE = 'Ark_ObjectBase'
 export const ARK_BASE = 'ArkBase'
-export const ARK_UI_NODE_TYPE = 'ArkUINodeType'
 export const ARK_MATERIALIZEDBASE = 'Ark_MaterializedBase'
 export const ARK_CUSTOM_OBJECT = 'Ark_CustomObject'
 export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.EmptyParameter`

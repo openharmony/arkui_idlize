@@ -502,7 +502,7 @@ export function makeAPI(
     prologue = prologue
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%INTEROP_TYPES_HEADER`, 
+        .replaceAll(`%INTEROP_TYPES_HEADER`,
             fs.readFileSync(
                 path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
                 'utf-8'
@@ -556,14 +556,6 @@ function copyFile(from: string, to: string, filters?: string[]) {
     if (filters && !filters.includes(from))
         return
     fs.copyFileSync(from, to)
-}
-export function makeNodeTypes(types: string[]): string {
-    const enumValues = types.map(it => `  ${it},`).join("\n")
-    return `
-export enum ArkUINodeType {
-${enumValues}
-}
-`.trim()
 }
 
 export function makeArkuiModule(componentsFiles: string[]): string {

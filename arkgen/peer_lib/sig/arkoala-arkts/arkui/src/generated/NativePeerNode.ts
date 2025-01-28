@@ -1,6 +1,6 @@
 import { int32 } from "@koalaui/common"
 import { pointer } from "@koalaui/interop"
-import { Finalizable } from "./Finalizable"
+import { Finalizable } from "@koalaui/interop"
 import { ArkUINativeModule } from "#components"
 import { PeerNode } from "./PeerNode"
 

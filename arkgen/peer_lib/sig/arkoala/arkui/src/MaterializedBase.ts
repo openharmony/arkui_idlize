@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Finalizable } from "./Finalizable"
+import { Finalizable } from "@koalaui/interop"
 
 export interface MaterializedBase {
     getPeer(): Finalizable | undefined

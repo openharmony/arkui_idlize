@@ -1,4 +1,4 @@
-import { Finalizable } from "./Finalizable"
+import { Finalizable } from "@koalaui/interop"
 import { MaterializedBase } from "./MaterializedBase"
 import { Serializer } from "./peers/Serializer"
 import { ArkUIGeneratedNativeModule } from "#components"
