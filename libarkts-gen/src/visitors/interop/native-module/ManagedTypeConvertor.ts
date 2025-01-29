@@ -16,6 +16,7 @@
 import {
     IDLBooleanType,
     IDLContainerType,
+    IDLContainerUtils,
     IDLEntry,
     IDLF32Type,
     IDLF64Type,
@@ -28,48 +29,39 @@ import {
     IDLReferenceType,
     IDLStringType,
     IDLU32Type,
-    IDLU64Type,
     IDLVoidType,
     isEnum,
     throwException
 } from "@idlizer/core"
 import { BaseConvertor } from "../BaseConvertor"
-import { isSequence } from "../../idl-utils"
 
-export class NativeTypeConvertor extends BaseConvertor {
-    constructor(idl: IDLEntry[]) {
-        super(idl)
-    }
-
+export class ManagedTypeConvertor extends BaseConvertor {
     override convertContainer(type: IDLContainerType): string {
-        if (isSequence(type)) {
+        if (IDLContainerUtils.isSequence(type)) {
             return `KNativePointer`
         }
         throwException(`Unexpected container`)
     }
 
     override convertTypeReference(type: IDLReferenceType): string {
-        const declaration = this.findRealDeclaration(type.name)
-        if (declaration !== undefined && isEnum(declaration)) {
+        if (this.typechecker.isEnumReference(type)) {
             return `KInt`
         }
-
         return `KNativePointer`
     }
 
     override convertPrimitiveType(type: IDLPrimitiveType): string {
         switch (type) {
             case IDLI8Type: return `KBoolean`
-            case IDLI16Type: return `KShort`
+            case IDLI16Type: return `KInt`
             case IDLI32Type: return `KInt`
             case IDLU32Type: return `KUInt`
             case IDLI64Type: return `KLong`
-            case IDLU64Type: return `KULong`
             case IDLF32Type: return `KFloat`
             case IDLF64Type: return `KDouble`
             case IDLBooleanType: return `KBoolean`
-            case IDLStringType: return `KStringPtr&`
-            case IDLVoidType: return `void`
+            case IDLStringType: return `KStringPtr`
+            case IDLVoidType: return `KNativePointer`
             case IDLPointerType: return `KNativePointer`
         }
         throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)

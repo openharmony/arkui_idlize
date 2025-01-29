@@ -17,7 +17,7 @@ import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLangua
 import { IDLEnum, IDLType, isPrimitiveType, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
-import { InteropPrinter } from "./InteropPrinter"
+import { InteropPrinter } from "./interop/InteropPrinter"
 
 export class EnumsPrinter extends InteropPrinter {
     constructor(

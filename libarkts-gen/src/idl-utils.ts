@@ -16,11 +16,16 @@
 import {
     createInterface,
     IDLContainerUtils,
+    IDLEntry,
     IDLInterface,
     IDLMethod,
     IDLPrimitiveType,
+    IDLReferenceType,
     IDLType,
-    isPrimitiveType
+    isEnum,
+    isInterface,
+    isPrimitiveType,
+    isReferenceType
 } from "@idlizer/core"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
@@ -43,4 +48,39 @@ export function withUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): ID
         node.callables,
         node.typeParameters
     )
+}
+
+export class Typechecker {
+    constructor(private idl: IDLEntry[]) {}
+
+    private findRealDeclaration(name: string): IDLEntry | undefined {
+        const declarations = this.idl.filter(it => name === it.name)
+        if (declarations.length === 1) {
+            return declarations[0]
+        }
+        return undefined
+    }
+
+    isHeir(name: string, ancestor: string): boolean {
+        if (name === ancestor) {
+            return true
+        }
+        const declaration = this.findRealDeclaration(name)
+        if (declaration === undefined || !isInterface(declaration)) {
+            return false
+        }
+        const parent = declaration.inheritance[0]
+        if (parent === undefined) {
+            return declaration.name === ancestor
+        }
+        return this.isHeir(parent.name, ancestor)
+    }
+
+    isEnumReference(type: IDLType): type is IDLReferenceType {
+        if (!isReferenceType(type)) {
+            return false
+        }
+        const declaration = this.findRealDeclaration(type.name)
+        return declaration !== undefined && isEnum(declaration)
+    }
 }

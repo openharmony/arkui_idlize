@@ -19,6 +19,7 @@ import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
 import { IDLFile } from "./IdlFile"
 import { Options } from "./Options"
+import { VerifyVisitor } from "./visitors/VerifyVisitor"
 
 const cliOptions: {
     inputFile?: string,
@@ -41,6 +42,9 @@ function main() {
     const files = cliOptions.files?.split(`,`)
     const shouldFixInput = cliOptions.transform ?? false
 
+    const idl = new IDLFile(toIDL(idlFile))
+    new VerifyVisitor(idl).complain()
+
     const config = new Config(
         new Options(cliOptions.optionsFile),
         shouldFixInput,
@@ -49,7 +53,7 @@ function main() {
 
     new FileEmitter(
         outDir,
-        new IDLFile(toIDL(idlFile)),
+        idl,
         config,
     ).print()
 }

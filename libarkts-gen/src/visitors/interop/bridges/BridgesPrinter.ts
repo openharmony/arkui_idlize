@@ -37,9 +37,10 @@ import { IDLParameter, IDLType } from "@idlizer/core/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { InteropPrinter } from "../InteropPrinter"
-import { IDLFile } from "../../IdlFile"
-import { Config } from "../../Config"
-import { isSequence, isString } from "../../idl-utils"
+import { IDLFile } from "../../../IdlFile"
+import { Config } from "../../../Config"
+import { isSequence, isString } from "../../../idl-utils"
+import { CachedLogger } from "../../../CachedLogger"
 
 export class BridgesPrinter extends InteropPrinter {
     constructor(idl: IDLFile, config: Config) {
@@ -82,7 +83,7 @@ export class BridgesPrinter extends InteropPrinter {
         if (isPrimitiveType(node.type)) {
             return BridgesConstructions.primitiveTypeCast(this.mapType(node.type))
         }
-        if (this.convertor.isEnumReference(node.type)) {
+        if (this.convertor.typechecker.isEnumReference(node.type)) {
             return BridgesConstructions.enumCast(node.type.name)
         }
         if (isReferenceType(node.type)) {
@@ -100,7 +101,7 @@ export class BridgesPrinter extends InteropPrinter {
         if (node.name === `es2panda_AstNode`) return `${node.name}*`
         if (node.name === `es2panda_Impl`) return `${node.name}*`
 
-        if (this.convertor.isHeir(node, Config.astNodeCommonAncestor)) {
+        if (this.convertor.typechecker.isHeir(node.name, Config.astNodeCommonAncestor)) {
             return BridgesConstructions.referenceType(Config.astNodeCommonAncestor)
         }
         return BridgesConstructions.referenceType(node.name)
@@ -111,7 +112,7 @@ export class BridgesPrinter extends InteropPrinter {
             throwException(`Unexpected container type: ${IDLKind[node.kind]}`)
         }
         const typeParam = node.elementType[0]
-        console.warn(`Warning: doing nothing for sequence<T>`)
+        CachedLogger.warn(`doing nothing for sequence<T>`)
         return ``
     }
 

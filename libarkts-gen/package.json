@@ -31,7 +31,7 @@
   "scripts": {
     "compile:core": "npm run --prefix ../core compile",
     "compile": "npm run compile:core && rollup -c",
-    "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/",
+    "real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ./out/real/ --options-file ./input/ignore.json5",
     "full": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/full --options-file ./input/ignore.json5",
     "subset": "npm run compile && node . --input-file ./input/full.idl --output-dir ./out/subset --options-file ./input/generate.json5",
     "external": "node . --input-file ./input/full.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/generate.json5 --files nativeModule,bridges",

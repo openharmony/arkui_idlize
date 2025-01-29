@@ -23,8 +23,8 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { IDLType, } from "@idlizer/core/idl"
-import { Config } from "../../Config"
-import { IDLFile } from "../../IdlFile"
+import { Config } from "../../../Config"
+import { IDLFile } from "../../../IdlFile"
 import { InteropPrinter } from "../InteropPrinter"
 import { ManagedTypeConvertor } from "./ManagedTypeConvertor"
 import { NativeModuleConstructions } from "./NativeModuleConstructions"

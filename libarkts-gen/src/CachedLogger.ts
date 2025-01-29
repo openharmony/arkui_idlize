@@ -13,18 +13,14 @@
  * limitations under the License.
  */
 
-import { Config } from "../Config"
-import { IDLFile } from "../IdlFile"
+export class CachedLogger {
+    private static logs = new Set<string>()
 
-export class TemporaryTransformer {
-    constructor(
-        private config: Config
-    ) {}
-
-    transform(file: IDLFile): IDLFile {
-        if (!this.config.shouldFixInput()) {
-            return file
+    static warn(message: string): void {
+        if (CachedLogger.logs.has(message)) {
+            return
         }
-        return file
+        CachedLogger.logs.add(message)
+        console.warn(`Warning: ${message}`)
     }
 }

@@ -25,11 +25,11 @@ import {
 } from "@idlizer/core"
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
-import { InteropConstructions } from "../printers/InteropConstructions"
+import { InteropConstructions } from "../visitors/interop/InteropConstructions"
 import { IDLFile } from "../IdlFile"
 import { withUpdatedMethods } from "../idl-utils"
 
-export class MainTransformer {
+export class InteropTransformer {
     constructor(
         private config: Config
     ) {}
@@ -84,7 +84,7 @@ export class MainTransformer {
     }
 
     private withInsertedReceiver(node: IDLMethod, parent: IDLInterface): IDLMethod {
-        if (MainTransformer.isCreateOrUpdate(node)) {
+        if (InteropTransformer.isCreateOrUpdate(node)) {
             return node
         }
         const copy = createMethod(
@@ -127,7 +127,7 @@ export class MainTransformer {
     }
 
     private withQualifiedName(node: IDLMethod, parent: IDLInterface): IDLMethod {
-        if (MainTransformer.isCreateOrUpdate(node)) {
+        if (InteropTransformer.isCreateOrUpdate(node)) {
             return createMethod(
                 `${InteropConstructions.method(node.name, parent.name)}`,
                 node.parameters,

@@ -15,16 +15,22 @@
 
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
+import { Typechecker } from "../idl-utils"
 
-export class TemporaryTransformer {
+export class AstNodeFilterTransformer {
     constructor(
-        private config: Config
+        private file: IDLFile
     ) {}
 
-    transform(file: IDLFile): IDLFile {
-        if (!this.config.shouldFixInput()) {
-            return file
-        }
-        return file
+    private typechecker = new Typechecker(this.file.entries)
+
+    transformed(): IDLFile {
+        return new IDLFile(
+            this.file.entries
+                .filter(it => this.typechecker.isHeir(
+                    it.name,
+                    Config.astNodeCommonAncestor
+                ))
+        )
     }
 }
