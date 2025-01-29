@@ -18,7 +18,6 @@ import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
-import { ArkUINodeType } from "@arkoala/arkui/peers/ArkUINodeType"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
 import { BlurOptions,
     SheetSize,

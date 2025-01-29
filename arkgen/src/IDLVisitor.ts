@@ -177,6 +177,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
             ["object", () => idl.IDLObjectType],
+            ["ESObject", () => idl.IDLObjectType],
             ["string", () => idl.IDLStringType],
             ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK
             ["ArrayBuffer", () => idl.IDLBufferType],

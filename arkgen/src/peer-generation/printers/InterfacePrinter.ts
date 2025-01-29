@@ -509,6 +509,19 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     private typeNameConvertor = createLanguageWriter(Language.ARKTS, this.peerLibrary)
     private seenInterfaceNames = new Set<string>()
 
+    private wrapWithNamespaces(node: idl.IDLEntry, cb: () => void) {
+        if (!node.namespace) {
+            cb()
+        } else {
+            this.wrapWithNamespaces(node.namespace, () => {
+                this.writer.print(`namespace ${node.namespace!.name} {`)
+                this.writer.pushIndent()
+                cb()
+                this.writer.popIndent()
+                this.writer.print('}')
+            })
+        }
+    }
     convertTypedef(node: idl.IDLTypedef) {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
@@ -518,8 +531,10 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     }
 
     convertCallback(node: idl.IDLCallback) {
-        this.writer.print('export ' +
-            this.printCallback(node, node.parameters, node.returnType))
+        this.wrapWithNamespaces(node, () => {
+            this.writer.print('export ' +
+                this.printCallback(node, node.parameters, node.returnType))
+        })
     }
 
     convertInterface(node: idl.IDLInterface) {
