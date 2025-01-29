@@ -485,8 +485,7 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
 }
 
 export function getInteropRootPath() {
-    const interopScriptPath = require.resolve('@koalaui/interop')
-    return path.resolve(interopScriptPath, '..', '..', '..', '..', '..')
+    return path.resolve(__dirname, "../../external/interop")
 }
 
 export function makeAPI(

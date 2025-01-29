@@ -1,13 +1,14 @@
 {
     "compilerOptions": {
-        "baseUrl": ".",
+        "package": "@koalaui/arkts-arkui",
+        "baseUrl": "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src",
         "paths": {
-            "#components": ["./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/arkts"],
-            "@arkoala/arkui": ["./out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated"],
-            "@koalaui/interop": ["../external/interop/src/arkts"],
-            "@koalaui/common": ["../external/incremental/common/src"],
-            "@koalaui/compat": ["../external/incremental/compat/src/arkts"],
-            "@koalaui/runtime": ["../external/incremental/runtime/src"]
+            "#components": ["./generated/arkts"],
+            "@arkoala/arkui": ["./generated"],
+            "@koalaui/interop": ["../../../../../../../../external/interop/src/arkts"],
+            "@koalaui/common": ["../../../../../../../../external/incremental/common/src"],
+            "@koalaui/compat": ["../../../../../../../../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"]
         }
     },
     "include": ["out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/**/*.ts"],

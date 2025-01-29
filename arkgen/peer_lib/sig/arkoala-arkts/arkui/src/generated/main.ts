@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { ArkUINativeModule, TestNativeModule } from "#components"
-import { wrapCallback, callCallback, wrapSystemCallback } from "./CallbackRegistry"
+import { wrapCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName } from "@koalaui/interop"
 import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
@@ -537,6 +537,11 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
+    registerNativeModuleLibraryName("InteropNativeModule", "ArkoalaNative_ark")
+    registerNativeModuleLibraryName("TestNativeModule", "ArkoalaNative_ark")
+    registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ark")
+    registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ark")
+
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()
 

@@ -1,6 +1,3 @@
-declare const LOAD_NATIVE: string
-registerLoadedLibrary(LOAD_NATIVE)
-
 class NativeString extends NativeStringBase {
     constructor(ptr: KPointer) {
         super(ptr)
@@ -24,5 +21,3 @@ providePlatformDefinedData({
     nativeStringArrayDecoder(): ArrayDecoder<NativeStringBase> { throw new Error("Not implemented") },
     callbackRegistry(): CallbackRegistry | undefined { return undefined }
 })
-
-InteropNativeModule._SetCallbackDispatcher(callCallback)

@@ -525,7 +525,13 @@ export abstract class LanguageWriter {
     writeExpressionStatement(smth: LanguageExpression) {
         this.writeStatement(new ExpressionStatement(smth))
     }
-
+    writeStaticBlock(op: (writer: this) => void) {
+        this.print("static {")
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.print("}")
+    }
     makeRef(type: idl.IDLType, _options?: MakeRefOptions): idl.IDLType {
         return type
     }

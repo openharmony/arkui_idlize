@@ -18,9 +18,11 @@ import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
+    BlockStatement,
     CheckOptionalStatement,
     ExpressionStatement,
     FieldModifier,
+    IfStatement,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -31,6 +33,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    NaryOpExpression,
     ObjectArgs,
     ReturnStatement,
     StringExpression
@@ -216,6 +219,17 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+            const selfCallExpression = writer.makeFunctionCall(
+                `this.${name}`,
+                signature.args.map((_, i) => writer.makeString(signature.argName(i)))
+            )
+            writer.writeStatement(new IfStatement(
+                new NaryOpExpression("==", [writer.makeFunctionCall("this._LoadOnce", []), writer.makeString("true")]),
+                new BlockStatement([
+                    writer.makeReturn(selfCallExpression)
+                ]),
+                undefined, undefined, undefined
+            ))
             writer.writeStatement(writer.makeThrowError("Not implemented"))
         })
     }

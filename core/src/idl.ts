@@ -869,7 +869,7 @@ export function createConstructor(
 export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType,
         nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback
 {
-    if (returnType === IDLThisType)
+    if (returnType === IDLThisType || isReferenceType(returnType) && returnType.name === "this")
         returnType = IDLAnyType
     parameters = parameters.map(it => {
         if (it.type && isNamedNode(it.type) && (it.type.name === "T" || it.type.name === "this"))
