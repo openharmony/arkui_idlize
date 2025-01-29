@@ -13,31 +13,8 @@
  * limitations under the License.
  */
 
-import { FinalizableBase, InteropNativeModule, NativeThunk, pointer } from "@koalaui/interop"
+import { Finalizable } from "@koalaui/interop"
 
 export interface MaterializedBase {
     getPeer(): Finalizable
-}
-
-export class Finalizable extends FinalizableBase {
-    createHandle(): string | undefined {
-        return undefined
-    }
-    constructor(public ptr: pointer, finalizer: pointer, managed: boolean = true) {
-        super(ptr, finalizer, managed)
-    }
-
-    makeNativeThunk(ptr: pointer, finalizer: pointer, handle: string | undefined): NativeThunk {
-        return new NativeThunkImpl(ptr, finalizer, handle)
-    }
-}
-
-
-export class NativeThunkImpl extends NativeThunk {
-    constructor(ptr: pointer, finalizer: pointer, name?: string) {
-        super(ptr, finalizer, name)
-    }
-    destroyNative(ptr: pointer, finalizer: pointer): void {
-        InteropNativeModule._InvokeFinalizer(ptr, finalizer)
-    }
 }

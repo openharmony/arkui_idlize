@@ -15,12 +15,10 @@
 
 import { xml, xml_EventType } from "./xml"
 import { TypeChecker } from "./type_check"
-import { SerializerBase, RuntimeType, runtimeType, CallbackResource } from "./SerializerBase"
-import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
-import { KPointer, KInt, KStringPtr, KUint8ArrayPtr, nullptr, InteropNativeModule, wrapSystemCallback, ResourceHolder } from "@koalaui/interop"
-import { CallbackKind } from "./xmlNative"
-import { Finalizable, MaterializedBase } from "./xmlFinalizable"
+import { KPointer, KInt, KStringPtr, KUint8ArrayPtr, nullptr, InteropNativeModule, SerializerBase, RuntimeType, runtimeType, CallbackResource, DeserializerBase, wrapSystemCallback, Finalizable, ResourceHolder } from "@koalaui/interop"
+import { XMLNativeModule, CallbackKind } from "./xmlNative"
+import { MaterializedBase } from "./xmlFinalizable"
 
 export class Serializer extends SerializerBase {
     private static pool?: Array<Serializer> | undefined = undefined

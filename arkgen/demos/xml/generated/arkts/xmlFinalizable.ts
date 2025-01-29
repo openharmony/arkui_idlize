@@ -13,26 +13,8 @@
  * limitations under the License.
  */
 
-import { pointer, nullptr } from "@koalaui/interop"
+import { Finalizable } from "@koalaui/interop"
 
 export interface MaterializedBase {
     getPeer(): Finalizable
-}
-
-export class Finalizable {
-    public ptr: pointer
-    public finalizerPtr: pointer
-
-    public static Empty: Finalizable = new Finalizable(nullptr, nullptr)
-
-    constructor(ptr: pointer, finalizerPtr: pointer) {
-        this.ptr = ptr
-        this.finalizerPtr = finalizerPtr
-    }
-
-    release(): pointer {
-        let result = this.ptr
-        this.ptr = nullptr
-        return result
-    }
 }

@@ -51,10 +51,6 @@ export class XMLNativeModule {
     native static _XmlPullParser_getFinalizer(): KPointer 
     native static _XmlPullParser_parse(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
     native static _XmlPullParser_parseXml(self: KPointer, thisArray: KUint8ArrayPtr, thisLength: int32): void 
-}
 
-export class ArkUINativeModule {
-    native static _CheckArkoalaCallbackEvent(buffer: KUint8ArrayPtr, bufferLength: int32): int32 
-    native static _HoldArkoalaResource(resourceId: int32): void 
-    native static _ReleaseArkoalaResource(resourceId: int32): void 
+
 }

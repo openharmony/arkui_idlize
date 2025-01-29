@@ -93,21 +93,11 @@ export class XMLNativeModule {
         throw new Error("Not implemented")
     }
 
-    static _CheckArkoalaCallbackEvent(buffer: Uint8Array, bufferLength: int32): int32 {
-        throw new Error("Not implemented")
-    }
-    static _HoldArkoalaResource(resourceId: int32): void {
-        throw new Error("Not implemented")
-    }
-    static _ReleaseArkoalaResource(resourceId: int32): void {
-        throw new Error("Not implemented")
-    }
     static _MaterializeBuffer(data: KPointer, length: int32, resourceId: int32, holdPtr: KPointer, releasePtr: KPointer): ArrayBuffer {
         throw new Error("Not implemented")
     }
 }
 
 registerNativeModule("XMLNativeModule", XMLNativeModule)
-registerNativeModule("ArkUINativeModule", XMLNativeModule)
 declare const LOAD_NATIVE: any
 registerLoadedLibrary(LOAD_NATIVE)

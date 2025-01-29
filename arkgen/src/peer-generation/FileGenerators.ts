@@ -271,7 +271,7 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     return printer
 }
 
-export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string, finalizablePath: string }, declarationPath?: string): SourceFile {
+export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string, materializedBasePath: string }, declarationPath?: string): SourceFile {
     const lang = library.language
     // TODO Add Java and migrate arkoala code
     // TODO Complete refactoring to SourceFiles
@@ -283,10 +283,10 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         destFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
         destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr",
             "InteropNativeModule", "SerializerBase", "RuntimeType", "runtimeType", "CallbackResource",
-            "DeserializerBase", "wrapSystemCallback"
+            "DeserializerBase", "wrapSystemCallback", "Finalizable"
         ], "@koalaui/interop")
         destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
-        destFile.imports.addFeatures(["Finalizable", "MaterializedBase"], nativeModule.finalizablePath)
+        destFile.imports.addFeatures(["MaterializedBase"], nativeModule.materializedBasePath)
         if (lang === Language.TS) {
             destFile.imports.addFeature("unsafeCast", "@koalaui/interop")
         }

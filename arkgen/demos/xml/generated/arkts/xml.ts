@@ -1,8 +1,7 @@
 import { int32 } from "@koalaui/common"
-import { KPointer, KInt, KStringPtr, pointer } from "@koalaui/interop"
-import { RuntimeType, runtimeType, NativeBuffer } from "./SerializerBase"
+import { KPointer, KInt, KStringPtr, pointer, nullptr, RuntimeType, runtimeType, NativeBuffer } from "@koalaui/interop"
 import { Serializer } from "./xmlSerializer"
-import { Finalizable } from "./xmlFinalizable"
+import { Finalizable } from "@koalaui/interop"
 
 import { TypeChecker } from "./type_check"
 import {
@@ -57,6 +56,13 @@ export interface ParseInfoInterface {
 export interface XmlPullParserInterface {
     parse(option: xml.ParseOptions): void 
     parseXml(option: xml.ParseOptions): void 
+}
+export interface ParseOptionsInterface {
+    supportDoctype: boolean
+    ignoreNameSpace: boolean
+    tagValueCallbackFunction: ((name: string,value: string) => boolean)
+    attributeValueCallbackFunction: ((name: string,value: string) => boolean)
+    tokenValueCallbackFunction: ((eventType: xml_EventType,value: xml.ParseInfo) => boolean)
 }
 export namespace xml {
     export class XmlSerializer implements XmlSerializerInterface {
@@ -164,7 +170,7 @@ export namespace xml {
 }
 export namespace xml {
     export class ParseInfo implements ParseInfoInterface {
-        peer: Finalizable = Finalizable.Empty
+        peer: Finalizable = new Finalizable(nullptr, nullptr)
          constructor() {
             this.peer = new Finalizable(XMLNativeModule._ParseInfo_ctor(), ParseInfo.getFinalizer())
         }

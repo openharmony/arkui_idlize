@@ -17,6 +17,7 @@
 
 #define KOALA_INTEROP_MODULE XMLNativeModule
 #include "common-interop.h"
+#include "callback-resource.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include <deque>
@@ -29,13 +30,6 @@ typedef enum CallbackKind {
     Kind_Callback_EventType_ParseInfo_Boolean = 240036623,
     Kind_Callback_String_String_Boolean = 923368928,
 } CallbackKind;
-
-struct CallbackBuffer {
-    CallbackKind kind;
-    uint8_t buffer[60 * 4];
-    CallbackResourceHolder resourceHolder;
-};
-void enqueueArkoalaCallback(const CallbackBuffer* event);
 
 OH_NativePointer getManagedCallbackCaller(CallbackKind kind);
 OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind);
@@ -581,122 +575,98 @@ OH_NativePointer impl_XmlSerializer_ctor(uint8_t* thisArray, int32_t thisLength)
         return GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->construct((const OH_Buffer*)&buffer_value, (const Opt_String*)&encoding_value);
 }
 KOALA_INTEROP_2(XmlSerializer_ctor, OH_NativePointer, uint8_t*, int32_t)
- 
 OH_NativePointer impl_XmlSerializer_getFinalizer() {
         return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->destruct;
 }
 KOALA_INTEROP_0(XmlSerializer_getFinalizer, OH_NativePointer)
- 
 void impl_XmlSerializer_setAttributes(OH_NativePointer thisPtr, const KStringPtr& name, const KStringPtr& value) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setAttributes(thisPtr, (const OH_String*) (&name), (const OH_String*) (&value));
 }
 KOALA_INTEROP_V3(XmlSerializer_setAttributes, OH_NativePointer, KStringPtr, KStringPtr)
- 
 void impl_XmlSerializer_addEmptyElement(OH_NativePointer thisPtr, const KStringPtr& name) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->addEmptyElement(thisPtr, (const OH_String*) (&name));
 }
 KOALA_INTEROP_V2(XmlSerializer_addEmptyElement, OH_NativePointer, KStringPtr)
- 
 void impl_XmlSerializer_setDeclaration(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setDeclaration(thisPtr);
 }
 KOALA_INTEROP_V1(XmlSerializer_setDeclaration, OH_NativePointer)
- 
 void impl_XmlSerializer_startElement(OH_NativePointer thisPtr, const KStringPtr& name) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->startElement(thisPtr, (const OH_String*) (&name));
 }
 KOALA_INTEROP_V2(XmlSerializer_startElement, OH_NativePointer, KStringPtr)
- 
 void impl_XmlSerializer_endElement(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->endElement(thisPtr);
 }
 KOALA_INTEROP_V1(XmlSerializer_endElement, OH_NativePointer)
- 
 void impl_XmlSerializer_setNamespace(OH_NativePointer thisPtr, const KStringPtr& prefix, const KStringPtr& namespace_) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setNamespace(thisPtr, (const OH_String*) (&prefix), (const OH_String*) (&namespace_));
 }
 KOALA_INTEROP_V3(XmlSerializer_setNamespace, OH_NativePointer, KStringPtr, KStringPtr)
- 
 void impl_XmlSerializer_setComment(OH_NativePointer thisPtr, const KStringPtr& text) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setComment(thisPtr, (const OH_String*) (&text));
 }
 KOALA_INTEROP_V2(XmlSerializer_setComment, OH_NativePointer, KStringPtr)
- 
 void impl_XmlSerializer_setCDATA(OH_NativePointer thisPtr, const KStringPtr& text) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setCDATA(thisPtr, (const OH_String*) (&text));
 }
 KOALA_INTEROP_V2(XmlSerializer_setCDATA, OH_NativePointer, KStringPtr)
- 
 void impl_XmlSerializer_setText(OH_NativePointer thisPtr, const KStringPtr& text) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setText(thisPtr, (const OH_String*) (&text));
 }
 KOALA_INTEROP_V2(XmlSerializer_setText, OH_NativePointer, KStringPtr)
- 
 void impl_XmlSerializer_setDocType(OH_NativePointer thisPtr, const KStringPtr& text) {
         GetXMLAPIImpl(XML_API_VERSION)->XmlSerializer()->setDocType(thisPtr, (const OH_String*) (&text));
 }
 KOALA_INTEROP_V2(XmlSerializer_setDocType, OH_NativePointer, KStringPtr)
- 
 OH_NativePointer impl_ParseInfo_ctor() {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->construct();
 }
 KOALA_INTEROP_0(ParseInfo_ctor, OH_NativePointer)
- 
 OH_NativePointer impl_ParseInfo_getFinalizer() {
         return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->destruct;
 }
 KOALA_INTEROP_0(ParseInfo_getFinalizer, OH_NativePointer)
- 
 OH_Int32 impl_ParseInfo_getColumnNumber(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getColumnNumber(thisPtr).i32;
 }
 KOALA_INTEROP_1(ParseInfo_getColumnNumber, OH_Int32, OH_NativePointer)
- 
 OH_Int32 impl_ParseInfo_getDepth(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getDepth(thisPtr).i32;
 }
 KOALA_INTEROP_1(ParseInfo_getDepth, OH_Int32, OH_NativePointer)
- 
 OH_Int32 impl_ParseInfo_getLineNumber(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getLineNumber(thisPtr).i32;
 }
 KOALA_INTEROP_1(ParseInfo_getLineNumber, OH_Int32, OH_NativePointer)
- 
 void impl_ParseInfo_getName(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getName(thisPtr);
 }
 KOALA_INTEROP_V1(ParseInfo_getName, OH_NativePointer)
- 
 void impl_ParseInfo_getNamespace(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getNamespace(thisPtr);
 }
 KOALA_INTEROP_V1(ParseInfo_getNamespace, OH_NativePointer)
- 
 void impl_ParseInfo_getPrefix(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getPrefix(thisPtr);
 }
 KOALA_INTEROP_V1(ParseInfo_getPrefix, OH_NativePointer)
- 
 void impl_ParseInfo_getText(OH_NativePointer thisPtr) {
         GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getText(thisPtr);
 }
 KOALA_INTEROP_V1(ParseInfo_getText, OH_NativePointer)
- 
 OH_Boolean impl_ParseInfo_isEmptyElementTag(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->isEmptyElementTag(thisPtr);
 }
 KOALA_INTEROP_1(ParseInfo_isEmptyElementTag, OH_Boolean, OH_NativePointer)
- 
 OH_Boolean impl_ParseInfo_isWhitespace(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->isWhitespace(thisPtr);
 }
 KOALA_INTEROP_1(ParseInfo_isWhitespace, OH_Boolean, OH_NativePointer)
- 
 OH_Int32 impl_ParseInfo_getAttributeCount(OH_NativePointer thisPtr) {
         return GetXMLAPIImpl(XML_API_VERSION)->ParseInfo()->getAttributeCount(thisPtr).i32;
 }
 KOALA_INTEROP_1(ParseInfo_getAttributeCount, OH_Int32, OH_NativePointer)
- 
 OH_NativePointer impl_XmlPullParser_ctor(uint8_t* thisArray, int32_t thisLength) {
         Deserializer thisDeserializer(thisArray, thisLength);
         OH_Buffer buffer_value = static_cast<OH_Buffer>(thisDeserializer.readBuffer());;
@@ -711,26 +681,22 @@ OH_NativePointer impl_XmlPullParser_ctor(uint8_t* thisArray, int32_t thisLength)
         return GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->construct((const OH_Buffer*)&buffer_value, (const Opt_String*)&encoding_value);
 }
 KOALA_INTEROP_2(XmlPullParser_ctor, OH_NativePointer, uint8_t*, int32_t)
- 
 OH_NativePointer impl_XmlPullParser_getFinalizer() {
         return (OH_NativePointer) GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->destruct;
 }
 KOALA_INTEROP_0(XmlPullParser_getFinalizer, OH_NativePointer)
- 
 void impl_XmlPullParser_parse(OH_NativePointer thisPtr, uint8_t* thisArray, int32_t thisLength) {
         Deserializer thisDeserializer(thisArray, thisLength);
         OH_XML_ParseOptions option_value = thisDeserializer.readParseOptions();;
         GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->parse(thisPtr, (const OH_XML_ParseOptions*)&option_value);
 }
 KOALA_INTEROP_V3(XmlPullParser_parse, OH_NativePointer, uint8_t*, int32_t)
- 
 void impl_XmlPullParser_parseXml(OH_NativePointer thisPtr, uint8_t* thisArray, int32_t thisLength) {
         Deserializer thisDeserializer(thisArray, thisLength);
         OH_XML_ParseOptions option_value = thisDeserializer.readParseOptions();;
         GetXMLAPIImpl(XML_API_VERSION)->XmlPullParser()->parseXml(thisPtr, (const OH_XML_ParseOptions*)&option_value);
 }
 KOALA_INTEROP_V3(XmlPullParser_parseXml, OH_NativePointer, uint8_t*, int32_t)
- 
 void deserializeAndCallCallback_Boolean_Void(uint8_t* thisArray, OH_Int32 thisLength)
 {
     Deserializer thisDeserializer = Deserializer(thisArray, thisLength);
@@ -820,7 +786,7 @@ void callManagedCallback_Boolean_Void(OH_Int32 resourceId, OH_Boolean value)
     argsSerializer.writeInt32(Kind_Callback_Boolean_Void);
     argsSerializer.writeInt32(resourceId);
     argsSerializer.writeBoolean(value);
-    enqueueArkoalaCallback(&__buffer);
+    enqueueCallback(&__buffer);
 }
 void callManagedCallback_Boolean_VoidSync(OH_XML_VMContext vmContext, OH_Int32 resourceId, OH_Boolean value)
 {
@@ -844,7 +810,7 @@ void callManagedCallback_EventType_ParseInfo_Boolean(OH_Int32 resourceId, OH_XML
     argsSerializer.writeCallbackResource(continuation.resource);
     argsSerializer.writePointer(reinterpret_cast<OH_NativePointer>(continuation.call));
     argsSerializer.writePointer(reinterpret_cast<OH_NativePointer>(continuation.callSync));
-    enqueueArkoalaCallback(&__buffer);
+    enqueueCallback(&__buffer);
 }
 void callManagedCallback_EventType_ParseInfo_BooleanSync(OH_XML_VMContext vmContext, OH_Int32 resourceId, OH_XML_xml_EventType eventType, OH_XML_ParseInfo value, XML_Callback_Boolean_Void continuation)
 {
@@ -872,7 +838,7 @@ void callManagedCallback_String_String_Boolean(OH_Int32 resourceId, OH_String na
     argsSerializer.writeCallbackResource(continuation.resource);
     argsSerializer.writePointer(reinterpret_cast<OH_NativePointer>(continuation.call));
     argsSerializer.writePointer(reinterpret_cast<OH_NativePointer>(continuation.callSync));
-    enqueueArkoalaCallback(&__buffer);
+    enqueueCallback(&__buffer);
 }
 void callManagedCallback_String_String_BooleanSync(OH_XML_VMContext vmContext, OH_Int32 resourceId, OH_String name, OH_String value, XML_Callback_Boolean_Void continuation)
 {
@@ -923,85 +889,4 @@ extern "C" const OH_AnyAPI* GetAnyAPI(int kind, int version) {
         impls[kind] = GetAnyAPIImpl(kind, version);
     }
     return impls[kind];
-}
-
-// ArkUINativeModule::Callbacks
-
-#undef KOALA_INTEROP_MODULE
-#define KOALA_INTEROP_MODULE ArkUINativeModule
-enum CallbackEventKind {
-    Event_CallCallback = 0,
-    Event_HoldManagedResource = 1,
-    Event_ReleaseManagedResource = 2,
-};
-
-static bool needReleaseFront = false;
-static std::deque<CallbackEventKind> callbackEventsQueue;
-static std::deque<CallbackBuffer> callbackCallSubqueue;
-static std::deque<OH_Int32> callbackResourceSubqueue;
-KInt impl_CheckArkoalaCallbackEvent(KByte* result, KInt size) {
-    if (needReleaseFront)
-    {
-        switch (callbackEventsQueue.front())
-        {
-            case Event_CallCallback:
-                callbackCallSubqueue.front().resourceHolder.release();
-                callbackCallSubqueue.pop_front();
-                break;
-            case Event_HoldManagedResource:
-            case Event_ReleaseManagedResource:
-                callbackResourceSubqueue.pop_front();
-                break;
-            default:
-                throw "Unknown event kind";
-        }
-        callbackEventsQueue.pop_front();
-        needReleaseFront = false;
-    }
-    if (callbackEventsQueue.empty()) {
-        return 0;
-    }
-    const CallbackEventKind frontEventKind = callbackEventsQueue.front();
-    Serializer serializer(result, size);
-    serializer.writeInt32(frontEventKind);
-    switch (frontEventKind)
-    {
-        case Event_CallCallback:
-            memcpy(result + serializer.length(), callbackCallSubqueue.front().buffer, sizeof(CallbackBuffer::buffer));
-            break;
-        case Event_HoldManagedResource:
-        case Event_ReleaseManagedResource:
-            serializer.writeInt32(callbackResourceSubqueue.front());
-            break;
-        default:
-            throw "Unknown event kind";
-    }
-    needReleaseFront = true;
-    return 1;
-}
-KOALA_INTEROP_2(CheckArkoalaCallbackEvent, KInt, KByte*, KInt)
-
-void impl_ReleaseArkoalaResource(OH_Int32 resourceId) {
-    releaseManagedCallbackResource(resourceId);
-}
-KOALA_INTEROP_V1(ReleaseArkoalaResource, KInt)
-
-void impl_HoldArkoalaResource(OH_Int32 resourceId) {
-    holdManagedCallbackResource(resourceId);
-}
-KOALA_INTEROP_V1(HoldArkoalaResource, KInt)
-
-void enqueueArkoalaCallback(const CallbackBuffer* event) {
-    callbackEventsQueue.push_back(Event_CallCallback);
-    callbackCallSubqueue.push_back(*event);
-}
-
-void holdManagedCallbackResource(OH_Int32 resourceId) {
-    callbackEventsQueue.push_back(Event_HoldManagedResource);
-    callbackResourceSubqueue.push_back(resourceId);
-}
-
-void releaseManagedCallbackResource(OH_Int32 resourceId) {
-    callbackEventsQueue.push_back(Event_ReleaseManagedResource);
-    callbackResourceSubqueue.push_back(resourceId);
 }

@@ -15,12 +15,10 @@
 
 import { TypeChecker } from "./type_check"
 import { xml } from "./xml"
-import { SerializerBase, RuntimeType, runtimeType, CallbackResource, unsafeCast } from "./SerializerBase"
-import { DeserializerBase } from "./DeserializerBase"
 import { int32 } from "@koalaui/common"
-import { KPointer, KInt, KStringPtr, KUint8ArrayPtr, nullptr, InteropNativeModule, wrapSystemCallback, ResourceHolder } from "@koalaui/interop"
-import { CallbackKind } from "./xmlNative"
-import { Finalizable, MaterializedBase } from "./xmlFinalizable"
+import { KPointer, KInt, KStringPtr, KUint8ArrayPtr, nullptr, InteropNativeModule, SerializerBase, RuntimeType, runtimeType, CallbackResource, DeserializerBase, wrapSystemCallback, Finalizable, unsafeCast, ResourceHolder } from "@koalaui/interop"
+import { XMLNativeModule, CallbackKind } from "./xmlNative"
+import { MaterializedBase } from "./xmlFinalizable"
 
 export class Serializer extends SerializerBase {
     private static pool?: Array<Serializer> | undefined = undefined
@@ -56,6 +54,9 @@ export class Serializer extends SerializerBase {
             return
         }
         throw new Error("Only last serializer should be released")
+    }
+     constructor() {
+        super()
     }
     writeParseOptions(value: xml.ParseOptions): void {
         let valueSerializer: Serializer = this

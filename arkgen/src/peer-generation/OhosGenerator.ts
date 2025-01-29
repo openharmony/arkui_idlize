@@ -411,7 +411,7 @@ class OHOSVisitor {
             this.peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
                 if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
-                    peerInitExpr = writer.makeString("Finalizable.Empty")
+                    peerInitExpr = writer.makeString("new Finalizable(nullptr, nullptr)")
                 }
                 // TODO Make peer private again
                 writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [/* FieldModifier.PRIVATE */], false, peerInitExpr)
@@ -775,6 +775,7 @@ class OHOSVisitor {
             path: `./${fileNamePrefix}Native`,
             serializerPath: `./${fileNamePrefix}Serializer`,
             finalizablePath: `@koalaui/interop`,
+            materializedBasePath: "./xmlFinalizable"
         }
 
         let nativeModuleName = managedCodeModuleInfo.path.replace('./', '')
@@ -811,7 +812,7 @@ class OHOSVisitor {
         fs.writeFileSync(path.join(rootProject, outDir, this.implementationStubsFile.name),
             this.implementationStubsFile.printToString()
         )
-        
+
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(rootProject, managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
