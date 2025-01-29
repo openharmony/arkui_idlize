@@ -281,7 +281,7 @@ class OHOSVisitor {
 
     private printManaged() {
         this.printNative()
-        this.printPeer()
+        this.printPeers()
     }
 
     private printNative() {
@@ -358,47 +358,29 @@ class OHOSVisitor {
         })(this.arkUIFunctionsWriter)
     }
 
-    private printPeer() {
-        const nativeModuleVar = `${this.libraryName}NativeModule`
-        if (this.library.language != Language.CJ) this.peerWriter.print('import { TypeChecker } from "./type_check"')
-        if (this.library.language === Language.TS) {
-            this.peerWriter.print('import {')
-            this.peerWriter.pushIndent()
-            this.peerWriter.print(`${nativeModuleVar},`)
-            this.peerWriter.popIndent()
-            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
-        } else if (this.library.language === Language.ARKTS) {
-            this.peerWriter.print('import {')
-            this.peerWriter.pushIndent()
-            this.peerWriter.print(`${nativeModuleVar},`)
-            this.peerWriter.popIndent()
-            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
-        }
-        this.data.forEach(data => {
-            const namespaces = idl.getNamespacesPathFor(data);
+    private printStructsDeclarations(data: idl.IDLInterface[]) {
+        data.forEach(clazz => {
+            const namespaces = idl.getNamespacesPathFor(clazz);
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
-            if (idl.isInterfaceSubkind(data)) {
-                this.peerWriter.writeInterface(data.name, writer => {
-                    data.properties.forEach(prop => {
+            if (idl.isInterfaceSubkind(clazz)) {
+                this.peerWriter.writeInterface(clazz.name, writer => {
+                    clazz.properties.forEach(prop => {
                         writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                     })
                 })
-            } else if (idl.isClassSubkind(data)) {
-                this.peerWriter.writeClass(data.name, writer => {
-                    data.properties.forEach(prop => {
+            } else if (idl.isClassSubkind(clazz)) {
+                this.peerWriter.writeClass(clazz.name, writer => {
+                    clazz.properties.forEach(prop => {
                         writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                     })
                 })
             }
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
-        this.enums.forEach(e => {
-            const writer = this.peerWriter
-            writer.writeStatement(writer.makeEnumEntity(e, true))
-        })
+    }
 
-        const ifaces: Array<idl.IDLInterface> = this.interfaces.concat(this.data);
-        ifaces.forEach(int => {
+    private printInterfacesDeclarations(data: idl.IDLInterface[]) {
+        data.forEach(int => {
             if (hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
                 return
             }
@@ -411,13 +393,15 @@ class OHOSVisitor {
                     if (method.isStatic) {
                         return
                     }
-                    const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
-                    const signature = writer.makeNamedSignature(adjustedSignature.returnType, adjustedSignature.parameters)
+                    const signature = writer.makeNamedSignature(method.returnType, method.parameters)
                     writer.writeMethodDeclaration(method.name, signature)
                 })
             }, superTypes.length > 0 ? superTypes : undefined)
         })
-        this.interfaces.forEach(int => {
+    }
+
+    private printInterfacesImplementations(data: Array<idl.IDLInterface>) {
+        data.forEach(int => {
             const namespaces = idl.getNamespacesPathFor(int);
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
@@ -564,18 +548,14 @@ class OHOSVisitor {
                             it.parameters.map(p => ({ name: writer.escapeKeyword(p.name), type: p.type }))
                         ),
                         it.isStatic ? [MethodModifier.STATIC] : []
-                                    )
+                    ),
+                    createOutArgConvertor(this.library, it.returnType, it.parameters.map(p => p.name))
                 ))
 
                 PeerMethod.markAndGroupOverloads(materializedMethods)
 
-                const groupedMethods = groupOverloads(
-                    materializedMethods
-                        )
-
-                groupedMethods.forEach(methods => {
-                    PeerMethod.markAndGroupOverloads(methods)
-                            })
+                const groupedMethods = groupOverloads(materializedMethods)
+                groupedMethods.forEach(methods => PeerMethod.markAndGroupOverloads(methods))
 
                 const overloadsPrinter = new OverloadsPrinter(this.library, writer, this.library.language, false)
                 const clazz = new MaterializedClass(
@@ -592,9 +572,10 @@ class OHOSVisitor {
                     true,
                     []
                 )
+
                 for (const group of groupedMethods) {
                     overloadsPrinter.printGroupedComponentOverloads(clazz, group)
-                        }
+                }
 
                 materializedMethods.forEach(method => {
                     writePeerMethod(
@@ -638,6 +619,34 @@ class OHOSVisitor {
             }
             if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
         })
+    }
+
+    private printPeers() {
+        const nativeModuleVar = `${this.libraryName}NativeModule`
+        if (this.library.language != Language.CJ) this.peerWriter.print('import { TypeChecker } from "./type_check"')
+        if (this.library.language === Language.TS) {
+            this.peerWriter.print('import {')
+            this.peerWriter.pushIndent()
+            this.peerWriter.print(`${nativeModuleVar},`)
+            this.peerWriter.popIndent()
+            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+        } else if (this.library.language === Language.ARKTS) {
+            this.peerWriter.print('import {')
+            this.peerWriter.pushIndent()
+            this.peerWriter.print(`${nativeModuleVar},`)
+            this.peerWriter.popIndent()
+            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+        }
+
+        this.printStructsDeclarations(this.data)
+        this.printInterfacesDeclarations([...this.interfaces, ...this.data])
+
+        this.enums.forEach(e => {
+            const writer = this.peerWriter
+            writer.writeStatement(writer.makeEnumEntity(e, true))
+        })
+
+        this.printInterfacesImplementations(this.interfaces)
 
         this.library.globalScopeInterfaces.forEach(entry => {
             const groupedMethods = groupOverloadsIDL(entry.methods)
