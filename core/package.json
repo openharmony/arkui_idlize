@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/core",
-  "version": "2.0.15+devel",
+  "version": "2.0.16+devel",
   "description": "",
   "types": "build/lib/src/index.d.ts",
   "exports": {
@@ -34,7 +34,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@koalaui/interop": "2.0.15+devel",
+    "@koalaui/interop": "2.0.16+devel",
     "typescript": "4.9.5",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
