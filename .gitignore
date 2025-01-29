@@ -6,7 +6,7 @@
 /generated/
 /.packages/
 /idl/
-/node_modules/
+node_modules
 /.rollup.cache/
 
 /package-lock.json

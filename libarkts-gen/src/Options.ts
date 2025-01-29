@@ -79,7 +79,7 @@ export class Options {
 
     shouldEmitInterface(name: string): boolean {
         const known = this.interfaces.find(it => it.name === name)
-        return this.generateByDefault && !(known instanceof Ignored)
+        return this.generateByDefault || !(known instanceof Ignored)
     }
 }
 

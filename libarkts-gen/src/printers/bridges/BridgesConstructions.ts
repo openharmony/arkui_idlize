@@ -27,7 +27,7 @@ export class BridgesConstructions {
     }
 
     static referenceType(name: string): string {
-        return `es2panda_${name}`
+        return `es2panda_${name}*`
     }
 
     static get sequenceLengthDeclaration(): string {
@@ -59,6 +59,10 @@ export class BridgesConstructions {
     }
 
     static primitiveTypeCast(type: string): string {
+        return `static_cast<${type}>`
+    }
+
+    static enumCast(type: string): string {
         return `static_cast<${type}>`
     }
 

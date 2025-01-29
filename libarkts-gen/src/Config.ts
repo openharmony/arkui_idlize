@@ -23,12 +23,24 @@ export class Config {
         private files?: string[]
     ) {}
 
-    get sequencePointerType(): IDLPrimitiveType {
+    static get sequencePointerType(): IDLPrimitiveType {
         return IDLPointerType
     }
 
-    get sequenceLengthType(): IDLPrimitiveType {
+    static get sequenceLengthType(): IDLPrimitiveType {
         return IDLU32Type
+    }
+
+    static get createMethod(): string {
+        return `Create`
+    }
+
+    static get updateMethod(): string {
+        return `Update`
+    }
+
+    static get astNodeCommonAncestor(): string {
+        return `AstNode`
     }
 
     shouldEmitEnum(name: string): boolean {

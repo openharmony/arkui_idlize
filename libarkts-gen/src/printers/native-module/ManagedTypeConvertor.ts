@@ -42,7 +42,7 @@ export class ManagedTypeConvertor extends BaseConvertor {
 
     override convertContainer(type: IDLContainerType): string {
         if (IDLContainerUtils.isSequence(type)) {
-            return `KNativePointerArray`
+            return `KNativePointer`
         }
         throwException(`Unexpected container`)
     }

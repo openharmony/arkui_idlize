@@ -19,15 +19,19 @@ import {
     IDLOptionalType,
     IDLPrimitiveType,
     IDLReferenceType,
+    IDLType,
     IDLTypeParameterType,
     IDLUnionType,
+    isEnum,
+    isInterface,
+    isReferenceType,
     TypeConvertor
 } from "@idlizer/core"
 
 export abstract class BaseConvertor implements TypeConvertor<string> {
     protected constructor(private idl: IDLEntry[]) {}
 
-    private incorrectDeclarations = new Set<string>()
+    private static incorrectDeclarations = new Set<string>()
 
     abstract convertTypeReference(type: IDLReferenceType): string
 
@@ -56,11 +60,31 @@ export abstract class BaseConvertor implements TypeConvertor<string> {
         if (declarations.length === 1) {
             return declarations[0]
         }
-        if (this.incorrectDeclarations.has(name)) {
+        if (BaseConvertor.incorrectDeclarations.has(name)) {
             return undefined
         }
-        this.incorrectDeclarations.add(name)
+        BaseConvertor.incorrectDeclarations.add(name)
         console.warn(`Expected reference type "${name}" to have exactly one declaration, got: ${declarations.length}`)
         return undefined
+    }
+
+    isHeir(node: IDLReferenceType, ancestor: string): boolean {
+        const declaration = this.findRealDeclaration(node.name)
+        if (declaration === undefined || !isInterface(declaration)) {
+            return false
+        }
+        const parent = declaration.inheritance[0]
+        if (parent === undefined) {
+            return declaration.name === ancestor
+        }
+        return this.isHeir(parent, ancestor)
+    }
+
+    isEnumReference(type: IDLType): type is IDLReferenceType {
+        if (!isReferenceType(type)) {
+            return false
+        }
+        const declaration = this.findRealDeclaration(type.name)
+        return declaration !== undefined && isEnum(declaration)
     }
 }

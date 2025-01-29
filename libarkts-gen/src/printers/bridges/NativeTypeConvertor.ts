@@ -43,7 +43,7 @@ export class NativeTypeConvertor extends BaseConvertor {
 
     override convertContainer(type: IDLContainerType): string {
         if (isSequence(type)) {
-            return `KNativePointerArray`
+            return `KNativePointer`
         }
         throwException(`Unexpected container`)
     }
