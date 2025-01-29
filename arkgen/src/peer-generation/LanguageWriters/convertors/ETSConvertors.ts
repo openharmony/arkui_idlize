@@ -42,7 +42,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
         if (typeName === "Function") {
             return "Function<void>"
         }
-        return typeName;
+        return typeName
     }
 
     override convertContainer(type: idl.IDLContainerType): string {

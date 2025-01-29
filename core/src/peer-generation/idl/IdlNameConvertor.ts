@@ -60,7 +60,7 @@ export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
 
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getNamespacesPathFor(decl).join('')
+        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name).join('')
         return `${namespace ? `${namespace}_` : ``}${decl.name}`
     }
     static readonly I = new ETSFeatureNameConvertor()

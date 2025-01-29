@@ -165,7 +165,7 @@ class DeserializeCallbacksVisitor {
             const imports = tsFile.imports
             imports.addFeature("CallbackKind", "./peers/CallbackKind")
             imports.addFeature("Deserializer", "./peers/Deserializer")
-            imports.addFeatures(["int32", "int64"], "@koalaui/common")
+            imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
             imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType"], "@koalaui/interop")
             imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
 
