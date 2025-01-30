@@ -1,5 +1,5 @@
 import { int32 } from "@koalaui/common"
-import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr } from "@koalaui/interop"
+import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr, loadNativeModuleLibrary } from "@koalaui/interop"
 
 export enum CallbackKind {
     Kind_Callback_Boolean_Void = 313269291,
@@ -9,8 +9,7 @@ export enum CallbackKind {
 
 export class XMLNativeModule {
     static {
-        loadLibrary("XML_NativeBridgeArk")
-        XMLNativeModule.init(["@xml/generated/arkts/xmlNative/XMLNativeModule", "@xml/generated/arkts/xmlNative/ArkUINativeModule"])
+        loadNativeModuleLibrary("XML_NativeBridgeArk")
     }
 
     static native init(modules: string[]): void

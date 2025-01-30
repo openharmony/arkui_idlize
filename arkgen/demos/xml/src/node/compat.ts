@@ -1,3 +1,4 @@
+import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/CallbacksChecker";
 import { xml } from "../../generated/ts/xml"
 export { xml } from "../../generated/ts/xml"
@@ -9,6 +10,14 @@ export const EventType = xml.EventType
 export function encodeText(text:string): OHBuffer {
     const enc = new TextEncoder()
     return enc.encode(text).buffer as OHBuffer
+}
+
+declare const NATIVE_LIBRARY_NAME: string
+export function init() {
+    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
+    registerNativeModuleLibraryName("XMLNativeModule", NATIVE_LIBRARY_NAME)
+    loadInteropNativeModule()
+    InteropNativeModule._SetCallbackDispatcher(callCallback)
 }
 
 export function runEventLoop() {

@@ -1,12 +1,11 @@
 import { int32 } from "@koalaui/common"
-import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr } from "@koalaui/interop"
+import { pointer, KPointer, KInt, KStringPtr, KUint8ArrayPtr, loadNativeModuleLibrary } from "@koalaui/interop"
 
 %NATIVE_MODULE_CONTENT%
 
 export class %NATIVE_MODULE_NAME%NativeModule {
     static {
-        loadLibrary("%NATIVE_MODULE_NAME%_NativeBridgeArk")
-        %NATIVE_MODULE_NAME%NativeModule.init(["%OUTPUT_FILE%/XMLNativeModule", "%OUTPUT_FILE%/ArkUINativeModule"])
+        loadNativeModuleLibrary("%NATIVE_MODULE_NAME%_NativeBridgeArk")
     }
 
     static native init(modules: string[]): void

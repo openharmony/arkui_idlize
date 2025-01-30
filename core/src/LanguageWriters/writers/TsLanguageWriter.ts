@@ -221,7 +221,7 @@ export class TSLanguageWriter extends LanguageWriter {
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
             const selfCallExpression = writer.makeFunctionCall(
                 `this.${name}`,
-                signature.args.map((_, i) => writer.makeString(signature.argName(i)))
+                signature.args.map((_, i) => writer.makeString(this.escapeKeyword(signature.argName(i))))
             )
             writer.writeStatement(new IfStatement(
                 new NaryOpExpression("==", [writer.makeFunctionCall("this._LoadOnce", []), writer.makeString("true")]),

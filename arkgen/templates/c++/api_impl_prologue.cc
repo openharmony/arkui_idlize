@@ -23,6 +23,10 @@
 #include <deque>
 #include <unordered_map>
 
+#if KOALA_USE_PANDA_VM
+KOALA_ETS_INTEROP_MODULE_CLASSPATH(KOALA_INTEROP_MODULE, KOALA_QUOTE(ETS_MODULE_CLASSPATH_PREFIX) KOALA_QUOTE(KOALA_INTEROP_MODULE));
+#endif
+
 CustomDeserializer * DeserializerBase::customDeserializers = nullptr;
 
 %CALLBACK_KINDS%

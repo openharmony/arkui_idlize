@@ -2,7 +2,7 @@ import { checkArkoalaCallbacks } from "../../generated/arkts/CallbacksChecker";
 import { xml_EventType } from "../../generated/arkts/xml";
 import { XMLNativeModule } from "../../generated/arkts/xmlNative"
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule, NativeBuffer, DeserializerBase } from "@koalaui/interop";
+import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
 
 export { xml } from "../../generated/arkts/xml"
 export type EventType = xml_EventType
@@ -13,6 +13,8 @@ export function pullEvents() {
 }
 
 export function init() {
+    registerNativeModuleLibraryName("InteropNativeModule", "XML_NativeBridgeArk")
+    registerNativeModuleLibraryName("XMLNativeModule", "XML_NativeBridgeArk")
     new XMLNativeModule()
 }
 

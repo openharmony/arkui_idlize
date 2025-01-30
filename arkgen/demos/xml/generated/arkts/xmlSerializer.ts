@@ -15,7 +15,7 @@
 
 import { xml, xml_EventType } from "./xml"
 import { TypeChecker } from "./type_check"
-import { int32 } from "@koalaui/common"
+import { int32, float32 } from "@koalaui/common"
 import { KPointer, KInt, KStringPtr, KUint8ArrayPtr, nullptr, InteropNativeModule, SerializerBase, RuntimeType, runtimeType, CallbackResource, DeserializerBase, wrapSystemCallback, Finalizable, ResourceHolder } from "@koalaui/interop"
 import { XMLNativeModule, CallbackKind } from "./xmlNative"
 import { MaterializedBase } from "./xmlFinalizable"

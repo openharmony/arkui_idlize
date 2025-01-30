@@ -2,8 +2,10 @@ import * as path from "node:path"
 import { defineConfig } from "rollup"
 import typescript from "@rollup/plugin-typescript"
 import resolve from "@rollup/plugin-node-resolve"
-import inject from "@rollup/plugin-inject"
+import replace from "@rollup/plugin-replace"
 import commonjs from "@rollup/plugin-commonjs"
+
+const outDir = path.resolve("build/node")
 
 export default defineConfig({
     input: "src/node/main.ts",
@@ -13,9 +15,6 @@ export default defineConfig({
         sourcemap: true,
     },
     plugins: [
-        inject({
-            LOAD_NATIVE: path.resolve("./src/node/load_native.mjs")
-        }),
         typescript({
             moduleResolution: "nodenext",
             outDir: "build/node"
@@ -23,5 +22,9 @@ export default defineConfig({
         resolve(),
         // TODO Runtime JS modules should be in ES6 format
         commonjs(),
+        replace({
+            "NATIVE_LIBRARY_NAME": `"${path.join(outDir, 'Xml_NativeBridgeNapi.node')}"`,
+            preventAssignment: true,
+        }),
     ]
 })

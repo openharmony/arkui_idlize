@@ -16,19 +16,6 @@ export namespace xml {
         tokenValueCallbackFunction?: ((eventType: xml_EventType,value: xml.ParseInfo) => boolean)
     }
 }
-export enum xml_EventType {
-    START_DOCUMENT = 0,
-    END_DOCUMENT = 1,
-    START_TAG = 2,
-    END_TAG = 3,
-    TEXT = 4,
-    CDSECT = 5,
-    COMMENT = 6,
-    DOCDECL = 7,
-    INSTRUCTION = 8,
-    ENTITY_REFERENCE = 9,
-    WHITESPACE = 10
-}
 export interface XmlSerializerInterface {
     setAttributes(name: string, value: string): void 
     addEmptyElement(name: string): void 
@@ -63,6 +50,19 @@ export interface ParseOptionsInterface {
     tagValueCallbackFunction: ((name: string,value: string) => boolean)
     attributeValueCallbackFunction: ((name: string,value: string) => boolean)
     tokenValueCallbackFunction: ((eventType: xml_EventType,value: xml.ParseInfo) => boolean)
+}
+export enum xml_EventType {
+    START_DOCUMENT = 0,
+    END_DOCUMENT = 1,
+    START_TAG = 2,
+    END_TAG = 3,
+    TEXT = 4,
+    CDSECT = 5,
+    COMMENT = 6,
+    DOCDECL = 7,
+    INSTRUCTION = 8,
+    ENTITY_REFERENCE = 9,
+    WHITESPACE = 10
 }
 export namespace xml {
     export class XmlSerializer implements XmlSerializerInterface {
