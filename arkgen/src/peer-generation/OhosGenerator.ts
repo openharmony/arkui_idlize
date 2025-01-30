@@ -890,7 +890,7 @@ function adjustSignature(library: PeerLibrary, parameters: IDLParameter[], retur
     return {
         convertors,
         parameters,
-        returnType,
+        returnType: idl.isPrimitiveType(returnType) ? returnType : idl.IDLPointerType,
     }
 }
 
