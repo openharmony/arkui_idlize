@@ -44,7 +44,7 @@ export class ManagedTypeConvertor extends BaseConvertor {
     }
 
     override convertTypeReference(type: IDLReferenceType): string {
-        if (this.typechecker.isEnumReference(type)) {
+        if (this.typechecker.isReferenceTo(type, isEnum)) {
             return `KInt`
         }
         return `KNativePointer`

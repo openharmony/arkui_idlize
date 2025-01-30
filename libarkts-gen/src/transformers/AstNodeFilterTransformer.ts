@@ -16,6 +16,7 @@
 import { Config } from "../Config"
 import { IDLFile } from "../IdlFile"
 import { Typechecker } from "../idl-utils"
+import { isInterface } from "@idlizer/core"
 
 export class AstNodeFilterTransformer {
     constructor(
@@ -27,7 +28,7 @@ export class AstNodeFilterTransformer {
     transformed(): IDLFile {
         return new IDLFile(
             this.file.entries
-                .filter(it => this.typechecker.isHeir(
+                .filter(it => !isInterface(it) || this.typechecker.isHeir(
                     it.name,
                     Config.astNodeCommonAncestor
                 ))

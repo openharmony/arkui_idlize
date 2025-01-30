@@ -19,6 +19,7 @@ import {
     IDLEntry,
     IDLInterface,
     IDLMethod,
+    IDLNode,
     IDLPrimitiveType,
     IDLReferenceType,
     IDLType,
@@ -36,7 +37,7 @@ export function isSequence(node: IDLType): boolean {
     return IDLContainerUtils.isSequence(node)
 }
 
-export function withUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): IDLInterface {
+export function createInterfaceWithUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): IDLInterface {
     return createInterface(
         node.name,
         node.subkind,
@@ -53,7 +54,7 @@ export function withUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): ID
 export class Typechecker {
     constructor(private idl: IDLEntry[]) {}
 
-    private findRealDeclaration(name: string): IDLEntry | undefined {
+    findRealDeclaration(name: string): IDLEntry | undefined {
         const declarations = this.idl.filter(it => name === it.name)
         if (declarations.length === 1) {
             return declarations[0]
@@ -82,5 +83,13 @@ export class Typechecker {
         }
         const declaration = this.findRealDeclaration(type.name)
         return declaration !== undefined && isEnum(declaration)
+    }
+
+    isReferenceTo(type: IDLType, isTarget: (type: IDLNode) => boolean): boolean  {
+        if (!isReferenceType(type)) {
+            return false
+        }
+        const declaration = this.findRealDeclaration(type.name)
+        return declaration !== undefined && isTarget(declaration)
     }
 }

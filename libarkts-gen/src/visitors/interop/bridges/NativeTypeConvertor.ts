@@ -30,7 +30,7 @@ import {
     IDLU32Type,
     IDLU64Type,
     IDLVoidType,
-    isEnum,
+    isReferenceType,
     throwException
 } from "@idlizer/core"
 import { BaseConvertor } from "../BaseConvertor"
@@ -49,7 +49,7 @@ export class NativeTypeConvertor extends BaseConvertor {
     }
 
     override convertTypeReference(type: IDLReferenceType): string {
-        if (this.typechecker.isEnumReference(type)) {
+        if (this.typechecker.isReferenceTo(type, isReferenceType)) {
             return `KInt`
         }
         return `KNativePointer`

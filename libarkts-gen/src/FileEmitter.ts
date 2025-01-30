@@ -21,9 +21,9 @@ import { NativeModulePrinter } from "./visitors/interop/native-module/NativeModu
 import { EnumsPrinter } from "./visitors/EnumsPrinter"
 import { IDLFile } from "./IdlFile"
 import { Config } from "./Config"
-import { TemporaryTransformer } from "./transformers/TemporaryTransformer"
 import { InteropTransformer } from "./transformers/InteropTransformer"
 import { AstNodeFilterTransformer } from "./transformers/AstNodeFilterTransformer"
+import { OptionsFilterTransformer } from "./transformers/OptionsFilterTransformer"
 
 class FilePrinter {
     constructor(
@@ -63,8 +63,8 @@ export class FileEmitter {
     )
 
     print(): void {
-        const fixed = new TemporaryTransformer(this.config).transform(this.idl)
-        const astNodes = new AstNodeFilterTransformer(fixed).transformed()
+        const ignored = new OptionsFilterTransformer(this.config, this.idl).transformed()
+        const astNodes = new AstNodeFilterTransformer(ignored).transformed()
         this.printFile(this.enumsPrinter, astNodes)
 
         const transformedForInterop = new InteropTransformer(this.config).transform(astNodes)

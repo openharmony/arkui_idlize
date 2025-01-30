@@ -11,7 +11,19 @@
             ],
             "Type": [
                 "IdConst", // u64
-            ]
+            ],
+            "FunctionSignature": [ // not AstNode
+                "*"
+            ],
+            "es2panda_FunctionSignature": [ // not AstNode
+                "*"
+            ],
+            "es2panda_Signature": [ // not AstNode
+                "*"
+            ],
+            "LocalScope": [ // bugged
+                "*"
+            ],
         }
     }
 }

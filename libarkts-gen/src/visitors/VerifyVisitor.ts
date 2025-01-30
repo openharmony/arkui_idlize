@@ -15,6 +15,7 @@
 
 import { IDLFile } from "../IdlFile"
 import { CachedLogger } from "../CachedLogger"
+import { isInterface, isReferenceType } from "@idlizer/core"
 
 export class VerifyVisitor {
     constructor(
@@ -25,6 +26,13 @@ export class VerifyVisitor {
 
     complain(): void {
         this.idl.entries.forEach(it => this.verifyDeclaration(it.name))
+        this.idl.entries
+            .filter(isInterface)
+            .flatMap(it => it.methods)
+            .flatMap(it => it.parameters)
+            .map(it => it.type)
+            .filter(isReferenceType)
+            .forEach(it => this.verifyDeclaration(it.name))
     }
 
     private verifyDeclaration(name: string): void {

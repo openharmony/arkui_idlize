@@ -24,6 +24,7 @@ import {
     IDLReferenceType,
     IndentedPrinter,
     isContainerType,
+    isEnum,
     isPrimitiveType,
     isReferenceType,
     isVoidType,
@@ -83,10 +84,10 @@ export class BridgesPrinter extends InteropPrinter {
         if (isPrimitiveType(node.type)) {
             return BridgesConstructions.primitiveTypeCast(this.mapType(node.type))
         }
-        if (this.convertor.typechecker.isEnumReference(node.type)) {
-            return BridgesConstructions.enumCast(node.type.name)
-        }
         if (isReferenceType(node.type)) {
+            if (this.convertor.typechecker.isReferenceTo(node.type, isEnum)) {
+                return BridgesConstructions.enumCast(node.type.name)
+            }
             return BridgesConstructions.referenceTypeCast(this.castToReference(node.type))
         }
         if (isContainerType(node.type)) {
