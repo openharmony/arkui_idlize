@@ -177,7 +177,7 @@ export class StructPrinter {
         structs.concat(enumsDeclarations)
         structs.concat(concreteDeclarations)
         // TODO: hack, remove me!
-        if (this.library.name == "") { // TODO we probably don't need this typedef for any library except Ark
+        if (["arkoala", "libace"].includes(this.library.name)) { // TODO we probably don't need this typedef for any library except Ark
             typedefs.print(`typedef ${generatorConfiguration().param("OptionalPrefix")}Length ${generatorConfiguration().param("OptionalPrefix")}Dimension;`)
         }
     }

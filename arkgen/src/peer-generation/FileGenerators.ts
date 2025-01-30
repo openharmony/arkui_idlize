@@ -292,7 +292,7 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         }
 
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
-        printDeserializeAndCall(library, deserializeCallImpls)
+        printDeserializeAndCall('ohos', library, deserializeCallImpls)
         deserializeCallImpls.imports.clear() // TODO fix dependencies
         deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
         destFile.merge(deserializeCallImpls)
@@ -303,7 +303,7 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
         const deserializeCallImpls = SourceFile.makeSameAs(destFile)
-        printDeserializeAndCall(library, deserializeCallImpls)
+        printDeserializeAndCall('ohos', library, deserializeCallImpls)
         destFile.merge(deserializeCallImpls)
         return destFile
     } else {
@@ -361,7 +361,31 @@ export function makeConverterHeader(path: string, namespace: string, library: Pe
     return converter
 }
 
-export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+export function makeCSerializersArk(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+    return `
+#include "SerializerBase.h"
+#include "DeserializerBase.h"
+#include "callbacks.h"
+#include "arkoala_api_generated.h"
+#include <string>
+
+${makeCSerializers(library, structs, typedefs)}
+`
+}
+
+export function makeCSerializersOhos(libraryName:string, library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+    return `
+#include "SerializerBase.h"
+#include "DeserializerBase.h"
+#include "callbacks.h"
+#include "${libraryName}_api_generated.h"
+#include <string>
+
+${makeCSerializers(library, structs, typedefs)}
+`
+}
+
+function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = createLanguageWriter(Language.CPP, library)
     const writeToString = createLanguageWriter(Language.CPP, library)
@@ -372,12 +396,6 @@ export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, 
     library.generateStructs(structs, typedefs, writeToString)
 
     return `
-#include "SerializerBase.h"
-#include "DeserializerBase.h"
-#include "callbacks.h"
-#include "arkoala_api_generated.h"
-#include <string>
-
 ${writeToString.getOutput().join("\n")}
 
 ${serializers.getOutput().join("\n")}
@@ -400,6 +418,14 @@ ${deserializer.getOutput().join("\n")}
 
 export function createDeserializer(args: Uint8Array, length: int32): Deserializer { return new Deserializer(args, length) }
 `
+}
+
+export function makeDeserializer(library: PeerLibrary): string {
+    switch (library.language) {
+        case Language.ARKTS: return makeArkTSDeserializer(library)
+        case Language.TS: return makeTSDeserializer(library)
+    }
+    throw new Error(`Unsupported language "${library.language}"`)
 }
 
 export function makeArkTSDeserializer(library: PeerLibrary): string {
@@ -456,13 +482,21 @@ ${node_api}
 
 const TEMPLATES_CACHE = new Map<string, string>()
 
-function readTemplate(name: string): string {
+export function readTemplate(name: string): string {
     let template = TEMPLATES_CACHE.get(name);
     if (template == undefined) {
         template = fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
         TEMPLATES_CACHE.set(name, template)
     }
     return template
+}
+
+export function readInteropTypesHeader() {
+    const interopRootPath = getInteropRootPath()
+    return fs.readFileSync(
+        path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
+        'utf-8'
+    )
 }
 
 function useLangExtIfNeeded(file: string, lang: Language): string {
@@ -489,39 +523,26 @@ export function getInteropRootPath() {
 }
 
 export function makeAPI(
-    apiVersion: string,
     headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
-    structs: LanguageWriter, typedefs: IndentedPrinter
+    structs: LanguageWriter, typedefs: IndentedPrinter,
 ): string {
 
-    let prologue = readTemplate('arkoala_api_prologue.h')
-    let epilogue = readTemplate('arkoala_api_epilogue.h')
-
-    const interopRootPath = getInteropRootPath()
-    prologue = prologue
-        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
-        .replaceAll(`%INTEROP_TYPES_HEADER`,
-            fs.readFileSync(
-                path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h'),
-                'utf-8'
-            )
-        )
-    epilogue = epilogue
-        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
-
     return `
-${prologue}
+${makeApiOhos(headers, structs, typedefs)}
 
+${makeApiModifiers(modifiers, accessors, events, nodeTypes)}
+`
+}
+
+export function makeApiOhos(
+    headers: string[], structs: LanguageWriter, typedefs: IndentedPrinter,
+): string {
+    return `
 ${structs.getOutput().join("\n")}
 
 ${typedefs.getOutput().join("\n")}
 
 ${headers.join("\n")}
-
-${makeApiModifiers(modifiers, accessors, events, nodeTypes)}
-
-${epilogue}
 `
 }
 
@@ -565,6 +586,14 @@ export function makeArkuiModule(componentsFiles: string[]): string {
     }).join("\n")
 }
 
+export function makeOhosModule(componentsFiles: string[]): string {
+    return componentsFiles.map(file => {
+        const basename = path.basename(file)
+        const basenameNoExt = basename.replaceAll(path.extname(basename), "")
+        return `export * from "./${basenameNoExt}"`
+    }).join("\n")
+}
+
 export function makeMaterializedPrologue(lang: Language): string {
     let prologue = readLangTemplate('materialized_class_prologue' + lang.extension, lang)
     return `
@@ -586,7 +615,7 @@ ${content}
 
 export function makeDeserializeAndCall(library: PeerLibrary, language: Language, fileName: string): SourceFile {
     const writer = SourceFile.make(fileName, language, library)
-    printDeserializeAndCall(library, writer)
+    printDeserializeAndCall(library.name, library, writer)
     return writer
 }
 

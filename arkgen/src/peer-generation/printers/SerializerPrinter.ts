@@ -581,7 +581,9 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
                 collector.addFeature(builder, `Ark${builder}Builder`)
             }
             collector.addFeature('Finalizable', '@koalaui/interop')
-            collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            if (library.name === 'arkoala') {
+                collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            }
             collectMaterializedImports(collector, library)
         } else {
             // Add TypeChecker import for OhosGenerator
@@ -596,7 +598,9 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         if (!declarationPath) {
             collector.addFeature("TypeChecker", "#components")
             collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
-            collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            if (library.name === 'arkoala') {
+                collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            }
             for (const callback of collectUniqueCallbacks(library)) {
                 if (idl.isSyntheticEntry(callback))
                     continue

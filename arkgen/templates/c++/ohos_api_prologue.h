@@ -12,10 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-%INTEROP_TYPES_HEADER
 
 #ifndef %INCLUDE_GUARD_DEFINE%
 #define %INCLUDE_GUARD_DEFINE%
+
+%INTEROP_TYPES_HEADER
 
 #define %LIBRARY_NAME%_API_VERSION 1
 

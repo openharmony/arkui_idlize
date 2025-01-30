@@ -22,6 +22,7 @@ import { getMaterializedFileName } from "../Materialized"
 import { PeerLibrary } from "../PeerLibrary"
 import { TargetFile } from "./TargetFile"
 import * as idl from '@idlizer/core'
+import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter"
 
 const MODULE_NAME = 'GlobalScope'
 class GlobalScopePrinter {
@@ -55,39 +56,21 @@ class GlobalScopePrinter {
     }
 
     visit(): string {
-        const globals = this.library.files
-            .flatMap(f => f.entries)
-            .filter(e => idl.isInterface(e))
-            .filter(e => idl.hasExtAttribute(e, idl.IDLExtendedAttributes.GlobalScope)) as idl.IDLInterface[]
-
-        this.printImports(globals)
-        
-        for (const entry of globals) {
-            if (idl.isInterface(entry)) {
-                entry.methods.forEach(method => {
-                    const lwMethod = new Method(
-                        method.name,
-                        new NamedMethodSignature(
-                            method.returnType,
-                            method.parameters.map(p => p.type!),
-                            method.parameters.map(p => p.name)
-                        ),
-                    )
-                    this.writer.writeFunctionImplementation(lwMethod.name, lwMethod.signature, w => {
-                        const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
-                        let statement: LanguageStatement
-                        if (method.returnType !== idl.IDLVoidType) {
-                            statement = w.makeReturn(call)
-                        } else {
-                            statement = w.makeStatement(call)
-                        }
-                        w.writeStatement(
-                            statement
-                        )
-                    })
+        this.printImports(this.library.globalScopeInterfaces)
+        this.library.globalScopeInterfaces.forEach(entry => {
+            const groupedMethods = groupOverloadsIDL(entry.methods)
+            groupedMethods.forEach(methods => {
+                const method = collapseSameMethodsIDL(methods)
+                const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
+                this.writer.writeFunctionImplementation(method.name, signature, w => {
+                    const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
+                    const statement = method.returnType !== idl.IDLVoidType
+                        ? w.makeReturn(call)
+                        : w.makeStatement(call)
+                    w.writeStatement(statement)
                 })
-            }
-        }
+            })
+        })
 
         return this.writer.getOutput().join('\n')
     }

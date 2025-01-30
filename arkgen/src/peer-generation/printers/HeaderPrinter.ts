@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor } from '@idlizer/core'
-import { getNodeTypes, makeAPI, makeConverterHeader, makeCSerializers } from "../FileGenerators";
+import { getInteropRootPath, getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
@@ -150,6 +150,48 @@ class HeaderVisitor {
     }
 }
 
+function decorateApiArk(apiVersion:string, text:string) {
+    let prologue = readTemplate('arkoala_api_prologue.h')
+    let epilogue = readTemplate('arkoala_api_epilogue.h')
+
+    prologue = prologue
+        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
+        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%INTEROP_TYPES_HEADER`,
+           readInteropTypesHeader()
+        )
+    epilogue = epilogue
+        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+
+    return `
+${prologue}
+
+${text}
+
+${epilogue}
+`
+}
+
+function decorateApiOhos(text:string) {
+    let prologue = readLangTemplate('ohos_api_prologue.h', Language.CPP)
+    let epilogue = readLangTemplate('ohos_api_epilogue.h', Language.CPP)
+
+    prologue = prologue
+        .replaceAll(`%INCLUDE_GUARD_DEFINE%`, 'OH_LIB_NAME')
+        .replaceAll(`%LIBRARY_NAME%`, 'LIBNAME')
+        .replaceAll(`%INTEROP_TYPES_HEADER`, readInteropTypesHeader())
+    epilogue = epilogue
+        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+
+    return `
+${prologue}
+
+${text}
+
+${epilogue}
+`
+}
+
 export function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: PeerLibrary) :
         {api: string, converterHeader: string}
 {
@@ -166,8 +208,9 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
-    makeCSerializers(peerLibrary, structs, typedefs)
-    const api = makeAPI(apiVersion.toString(), apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    makeCSerializersArk(peerLibrary, structs, typedefs)
+    const apiText = makeAPI(apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    const api = decorateApiArk(apiVersion.toString(), apiText)
     return {api, converterHeader}
 }
 
@@ -184,8 +227,27 @@ export function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): 
     const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary), new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
-    const serializers = makeCSerializers(peerLibrary, structs, typedefs)
-    const api = makeAPI(apiVersion.toString(), apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    const serializers = makeCSerializersArk(peerLibrary, structs, typedefs)
+    const apiText = makeAPI(apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
+    const api = decorateApiArk(apiVersion.toString(), apiText)
+    return {api, serializers}
+}
 
+export function printSerializersOhos(apiVersion: number, peerLibrary: PeerLibrary): { api:string, serializers:string } {
+    const apiHeader = new IndentedPrinter()
+    const modifierList = new IndentedPrinter()
+    const accessorList = new IndentedPrinter()
+    const eventsList = new IndentedPrinter()
+    const nodeTypesList = new IndentedPrinter()
+
+    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
+    visitor.printApiAndDeserializer()
+
+    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary), new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const typedefs = new IndentedPrinter()
+
+    const serializers = makeCSerializersOhos('ohos', peerLibrary, structs, typedefs)
+    const apiText = makeApiOhos(apiHeader.getOutput(), structs, typedefs)
+    const api = decorateApiOhos(apiText)
     return {api, serializers}
 }

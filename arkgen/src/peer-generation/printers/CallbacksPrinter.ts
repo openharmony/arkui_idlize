@@ -144,7 +144,11 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
 }
 
 class DeserializeCallbacksVisitor {
-    constructor(private readonly library: PeerLibrary, private readonly destFile: SourceFile) {}
+    constructor(
+        private readonly libraryName: string,
+        private readonly library: PeerLibrary,
+        private readonly destFile: SourceFile
+    ) {}
 
     private get writer(): LanguageWriter {
         return this.destFile.content
@@ -153,7 +157,7 @@ class DeserializeCallbacksVisitor {
     private writeImports() {
         if (this.writer.language === Language.CPP) {
             const cppFile = this.destFile as CppSourceFile
-            cppFile.addInclude("arkoala_api_generated.h")
+            cppFile.addInclude(`${this.libraryName}_api_generated.h`)
             cppFile.addInclude("callback_kind.h")
             cppFile.addInclude("Serializers.h")
             cppFile.addInclude("callbacks.h")
@@ -167,7 +171,9 @@ class DeserializeCallbacksVisitor {
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
             imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType"], "@koalaui/interop")
-            imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            if (this.libraryName === 'arkoala') {
+                imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+            }
 
             if (this.writer.language === Language.ARKTS) {
                 for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
@@ -401,14 +407,18 @@ class DeserializeCallbacksVisitor {
 }
 
 class ManagedCallCallbackVisitor {
-    constructor(private readonly library: PeerLibrary, private readonly dest: CppSourceFile) {}
+    constructor(
+        private readonly libraryName:string,
+        private readonly library: PeerLibrary,
+        private readonly dest: CppSourceFile
+    ) {}
 
     private get writer(): CppLanguageWriter {
         return this.dest.content
     }
 
     private writeImports() {
-        this.dest.addInclude("arkoala_api_generated.h")
+        this.dest.addInclude(`${this.libraryName}_api_generated.h`)
         this.dest.addInclude("callback_kind.h")
         this.dest.addInclude("Serializers.h")
         this.dest.addInclude("common-interop.h")
@@ -509,14 +519,14 @@ class ManagedCallCallbackVisitor {
     }
 }
 
-export function printDeserializeAndCall(library: PeerLibrary, destination: SourceFile): void {
-    const visitor = new DeserializeCallbacksVisitor(library, destination)
+export function printDeserializeAndCall(libraryName:string, library: PeerLibrary, destination: SourceFile): void {
+    const visitor = new DeserializeCallbacksVisitor(libraryName, library, destination)
     visitor.visit()
 }
 
-export function printManagedCaller(library: PeerLibrary): SourceFile {
+export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
     const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
-    const visitor = new ManagedCallCallbackVisitor(library, destFile)
+    const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile
 }

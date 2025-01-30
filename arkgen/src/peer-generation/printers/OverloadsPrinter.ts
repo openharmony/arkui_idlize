@@ -255,7 +255,7 @@ export class OverloadsPrinter {
                 this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
             }
             else {
-                this.printer.print(`const ${castedArgName} = ${argName} as (${this.printer.getNodeName(castedType)})`)
+                this.printer.print(`const ${castedArgName} = ${this.printer.escapeKeyword(argName)} as (${this.printer.getNodeName(castedType)})`)
             }
             return castedArgName
         })

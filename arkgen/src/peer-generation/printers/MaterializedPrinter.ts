@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
+import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName, IndentedPrinter } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     createLanguageWriter,
@@ -46,29 +46,30 @@ import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
+import { NativeModule } from '../NativeModule';
+import * as path from 'node:path';
 
 interface MaterializedFileVisitor {
     visit(): void
-    getTargetFile(): TargetFile
     getOutput(): string[]
 }
 
 const FinalizableType = idl.maybeOptional(createReferenceType("Finalizable"), true)
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
-    protected readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
     protected readonly internalPrinter: LanguageWriter = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
     protected overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language, false)
 
     constructor(
+        protected readonly collector: ImportsCollector,
+        protected readonly printer: LanguageWriter,
         protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
         protected readonly dumpSerialized: boolean
-    ) {}
+    ) { }
 
     abstract visit(): void
-    abstract getTargetFile(): TargetFile
     abstract printImports(): void
 
     convertToPropertyType(field: MaterializedField): IDLType {
@@ -84,8 +85,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected printMaterializedClass(clazz: MaterializedClass) {
         const printer = this.printer
-
-        printer.print(makeMaterializedPrologue(this.printerContext.language))
 
         this.printImports()
 
@@ -107,6 +106,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         if (clazz.isInterface) {
             interfaces.push(`${this.namespacePrefix}${this.clazz.className}`)
+            // const chunks = idl.getNamespacesPathFor(clazz.decl).map(it => it.name).join('.')
+            // const name = chunks === ''
+            //     ? clazz.decl.name
+            //     : chunks + '.' + clazz.decl.name
+            // interfaces.push(name)
         }
 
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
@@ -123,7 +127,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const implementationClassName = clazz.getImplementationName()
         printer.writeClass(implementationClassName, writer => {
             if (writer.language == Language.TS || writer.language == Language.ARKTS || writer.language == Language.JAVA) {
-            writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
+                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
                 // write getPeer() method
                 const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
                 writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
@@ -139,12 +143,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 const isSimpleType = !field.argConvertor.useArray // type needs to be deserialized from the native
                 writer.writeGetterImplementation(new Method(mField.name,
                     new MethodSignature(this.convertToPropertyType(field), [])), writer => {
-                    writer.writeStatement(
-                        isSimpleType
-                            ? writer.makeReturn(writer.makeString(`this.get${capitalize(mField.name)}()`))
-                            : writer.makeThrowError("Not implemented")
-                    )
-                });
+                        writer.writeStatement(
+                            isSimpleType
+                                ? writer.makeReturn(writer.makeString(`this.get${capitalize(mField.name)}()`))
+                                : writer.makeThrowError("Not implemented")
+                        )
+                    });
 
                 const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
                 if (!isReadOnly) {
@@ -180,54 +184,54 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 ctorSig.defaults)
 
             if (writer.language != Language.JAVA) {
-            writer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
-                if (superClassName) {
-                    let params:string[] = []
-                    // workaround for MutableStyledString which does not have a constructor
-                    // the same as in the parent StyledString class
+                writer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
+                    if (superClassName) {
+                        let params: string[] = []
+                        // workaround for MutableStyledString which does not have a constructor
+                        // the same as in the parent StyledString class
                         if (superClassName === "StyledString") params = [""]
-                    writer.writeSuperCall(params);
-                }
-
-                const allOptional = ctorSig.args.every(it => isOptionalType(it))
-                const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
-                if (hasStaticMethods && allOptional) {
-                    if (ctorSig.args.length == 0) {
-                        writer.print(`// Constructor does not have parameters.`)
-                    } else {
-                        writer.print(`// All constructor parameters are optional.`)
+                        writer.writeSuperCall(params);
                     }
-                    writer.print(`// It means that the static method call invokes ctor method as well`)
-                    writer.print(`// when all arguments are undefined.`)
-                }
-                let ctorStatements: LanguageStatement = writer.makeBlock([
-                    writer.makeAssign("ctorPtr", IDLPointerType,
-                        writer.makeMethodCall(implementationClassName, "ctor",
+
+                    const allOptional = ctorSig.args.every(it => isOptionalType(it))
+                    const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
+                    if (hasStaticMethods && allOptional) {
+                        if (ctorSig.args.length == 0) {
+                            writer.print(`// Constructor does not have parameters.`)
+                        } else {
+                            writer.print(`// All constructor parameters are optional.`)
+                        }
+                        writer.print(`// It means that the static method call invokes ctor method as well`)
+                        writer.print(`// when all arguments are undefined.`)
+                    }
+                    let ctorStatements: LanguageStatement = writer.makeBlock([
+                        writer.makeAssign("ctorPtr", IDLPointerType,
+                            writer.makeMethodCall(implementationClassName, "ctor",
                                 ctorSig.args.map((it, index) => writer.makeString(ctorSig.argsNames[index]))),
-                        true),
-                    writer.makeAssign(
-                        "this.peer",
-                        FinalizableType,
-                        writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
-                        false
-                    )
-                    ], false)
-                if (!allOptional) {
-                    ctorStatements =
-                        writer.makeCondition(
-                            ctorSig.args.length === 0 ? writer.makeString("true") :
-                                writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
-                                        writer.language == Language.CJ ?
-                                        writer.makeRuntimeTypeCondition('', true, RuntimeType.OBJECT, it) :
-                                        writer.language == Language.JAVA ?
-                                        writer.makeNaryOp('!=', [writer.makeString(it), writer.makeUndefined()]) :
-                                    writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
-                                ),
-                                writer.makeBlock([ctorStatements,])
+                            true),
+                        writer.makeAssign(
+                            "this.peer",
+                            FinalizableType,
+                            writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
+                            false
                         )
-                }
-                writer.writeStatement(ctorStatements)
-            })
+                    ], false)
+                    if (!allOptional) {
+                        ctorStatements =
+                            writer.makeCondition(
+                                ctorSig.args.length === 0 ? writer.makeString("true") :
+                                    writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
+                                        writer.language == Language.CJ ?
+                                            writer.makeRuntimeTypeCondition('', true, RuntimeType.OBJECT, it) :
+                                            writer.language == Language.JAVA ?
+                                                writer.makeNaryOp('!=', [writer.makeString(it), writer.makeUndefined()]) :
+                                                writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
+                                    ),
+                                writer.makeBlock([ctorStatements,])
+                            )
+                    }
+                    writer.writeStatement(ctorStatements)
+                })
             } else {
                 // constructor with a special parameter to use in static methods
                 const emptySignature = new MethodSignature(IDLVoidType, [emptyParameterType])
@@ -299,10 +303,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.overloadedName}`)
                 writePeerMethod(writer, privateMethod, true, this.printerContext, this.dumpSerialized, "_serialize",
                     writer.language == Language.CJ ?
-                    "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
-                    writer.language == Language.JAVA ?
-                    "this.peer.ptr" :
-                    "this.peer!.ptr", returnType)
+                        "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
+                        writer.language == Language.JAVA ?
+                            "this.peer.ptr" :
+                            "this.peer!.ptr", returnType)
                 this.library.setCurrentContext(undefined)
             })
 
@@ -326,9 +330,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         } else {
             if (printer.language == Language.CJ || printer.language == Language.JAVA) {
                 // TODO: fill interface fields
-                printer.writeInterface(clazz.className, writer => {}, undefined, undefined)
+                printer.writeInterface(clazz.className, writer => { }, undefined, undefined)
+            }
         }
-    }
     }
 }
 
@@ -363,10 +367,20 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printImports() {
-        const imports = new ImportsCollector()
-        this.collectImports(imports)
-        const currentModule = removeExt(renameClassToMaterialized(this.clazz.className, this.library.language))
-        imports.print(this.printer, currentModule)
+        this.collectImports(this.collector)
+        // const currentModule = removeExt(renameClassToMaterialized(this.clazz.className, this.library.language))
+        if (this.library.name === 'arkoala') {
+            this.collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
+            if (this.library.language === Language.TS) {
+                this.collector.addFeatures(['ArkUIGeneratedNativeModule'], './ArkUIGeneratedNativeModule')
+            }
+            if (this.library.language === Language.ARKTS) {
+                this.collector.addFeatures(['ArkUIGeneratedNativeModule'], '#components')
+            }
+        } else {
+            this.collector.addFeatures([NativeModule.Generated.name], `./${NativeModule.Generated.name}`)
+        }
+        // this.collector.print(this.printer, currentModule)
     }
 
     override get namespacePrefix(): string {
@@ -375,10 +389,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
     visit(): void {
         this.printMaterializedClass(this.clazz)
-    }
-
-    getTargetFile(): TargetFile {
-        return new TargetFile(renameClassToMaterialized(this.clazz.className, this.printerContext.language))
     }
 }
 
@@ -410,16 +420,12 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printImports(): void {
-        const imports = [{feature: 'org.koalaui.interop.Finalizable', module: ''}]
+        const imports = [{ feature: 'org.koalaui.interop.Finalizable', module: '' }]
         printJavaImports(this.printer, imports)
     }
 
     visit(): void {
         this.printMaterializedClass(this.clazz)
-    }
-
-    getTargetFile(): TargetFile {
-        return new TargetFile(this.clazz.getImplementationName() + this.printerContext.language.extension, ARKOALA_PACKAGE_PATH)
     }
 }
 
@@ -450,10 +456,6 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     visit(): void {
         this.printMaterializedClass(this.clazz)
     }
-
-    getTargetFile(): TargetFile {
-        return new TargetFile(this.clazz.className + this.printerContext.language.extension, '')
-    }
 }
 
 
@@ -464,32 +466,92 @@ class MaterializedVisitor {
         private readonly library: PeerLibrary,
         private readonly printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
-    ) {}
+    ) { }
+
+    private printContent(clazz:MaterializedClass, collector:ImportsCollector, printer:LanguageWriter) {
+        let visitor: MaterializedFileVisitor
+        if (Language.TS == this.printerContext.language) {
+            visitor = new TSMaterializedFileVisitor(
+                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+        } else if (Language.ARKTS == this.printerContext.language) {
+            visitor = new ArkTSMaterializedFileVisitor(
+                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+        } else if (this.printerContext.language == Language.JAVA) {
+            visitor = new JavaMaterializedFileVisitor(
+                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+        } else if (this.printerContext.language == Language.CJ) {
+            visitor = new CJMaterializedFileVisitor(
+                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+        } else {
+            throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
+        }
+
+        visitor.visit()
+    }
+
+    private printFile(bucket: MaterializedClass[], file:TargetFile, nameSpace?:string) {
+        const prologue = makeMaterializedPrologue(this.printerContext.language)
+        const collector = new ImportsCollector()
+        const printer = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
+        printer.print(prologue)
+        if (nameSpace) {
+            printer.pushNamespace(nameSpace)
+        }
+        for (const clazz of bucket) {
+            this.printContent(clazz, collector, printer)
+        }
+        if (nameSpace) {
+            printer.popNamespace()
+        }
+
+        this.materialized.set(
+            file,
+            collector.printToLines(path.basename(file.name, path.extname(file.name)))
+                .concat(printer.getOutput())
+        )
+    }
+
+    private selectTargetFile(clazz:MaterializedClass) {
+        switch (this.library.language) {
+            case Language.JAVA: {
+                return new TargetFile(clazz.getImplementationName() + this.library.language.extension, ARKOALA_PACKAGE_PATH)
+            }
+            case Language.TS:
+            case Language.ARKTS: {
+                return new TargetFile(renameClassToMaterialized(clazz.className, this.library.language))
+            }
+            case Language.CJ: {
+                return new TargetFile(clazz.className + this.printerContext.language.extension, '')
+            }
+        }
+        throw new Error(`Unsupported language "${this.library.language}"`)
+    }
 
     printMaterialized(): void {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        for (const clazz of this.library.materializedToGenerate) {
-            let visitor: MaterializedFileVisitor
-            if (Language.TS == this.printerContext.language) {
-                visitor = new TSMaterializedFileVisitor(
-                    this.library, this.printerContext, clazz, this.dumpSerialized)
-            } else if (Language.ARKTS == this.printerContext.language) {
-                visitor = new ArkTSMaterializedFileVisitor(
-                    this.library, this.printerContext, clazz, this.dumpSerialized)
-            } else if (this.printerContext.language == Language.JAVA) {
-                visitor = new JavaMaterializedFileVisitor(
-                    this.library, this.printerContext, clazz, this.dumpSerialized)
-            } else if (this.printerContext.language == Language.CJ) {
-                visitor = new CJMaterializedFileVisitor(
-                    this.library, this.printerContext, clazz, this.dumpSerialized)
+        const buckets = groupByNamespace(this.library.materializedToGenerate)
+        for (const [ns, bucket] of buckets) {
+            if (ns === '' || this.library.language === Language.JAVA) {
+                for (const clazz of bucket) {
+                    this.printFile([clazz], this.selectTargetFile(clazz))
+                }
             } else {
-                throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
+                this.printFile(bucket, new TargetFile(ns + this.library.language.extension), ns)
             }
-
-            visitor.visit()
-            this.materialized.set(visitor.getTargetFile(), visitor.getOutput())
         }
     }
+}
+
+function groupByNamespace(classes: MaterializedClass[]): Map<string, MaterializedClass[]> {
+    const buckets = new Map<string, MaterializedClass[]>()
+    for (const clazz of classes) {
+        const ns = idl.getNamespacesPathFor(clazz.decl).map(it => it.name).join('_')
+        if (!buckets.has(ns)) {
+            buckets.set(ns, [])
+        }
+        buckets.get(ns)?.push(clazz)
+    }
+    return buckets
 }
 
 export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {

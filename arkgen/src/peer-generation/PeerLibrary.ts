@@ -165,12 +165,11 @@ export class PeerLibrary implements LibraryInterface {
 
         // TODO: remove the next block after namespaces out of quarantine
         if (!pointOfView) {
-            const this_ = this
             const resolveds: idl.IDLEntry[] = []
-            function traverseNamespaces(entry: idl.IDLEntry) {
+            const traverseNamespaces = (entry: idl.IDLEntry) => {
                 if (entry && idl.isNamespace(entry) && entry.members.length) {
                     //console.log(`Try alien namespace '${idl.getNamespacesPathFor(entry.members[0]).map(obj => obj.name).join(".")}' to resolve name '${type.name}'`)
-                    const resolved = this_.resolveTypeReference(type, entry, rootEntries)
+                    const resolved = this.resolveTypeReference(type, entry, rootEntries)
                     if (resolved)
                         resolveds.push(resolved)
                     entry.members.forEach(traverseNamespaces)

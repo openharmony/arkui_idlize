@@ -169,7 +169,7 @@ export class StringConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP
             ? writer.makeUnsafeCast_(writer.makeString(`&${param}`), this.idlType, PrintHint.AsConstPointer)
-            : param
+            : writer.escapeKeyword(param)
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`, `writeString`, [value])
@@ -209,7 +209,7 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.makeEnumCast(param, false, this)
+        return writer.makeEnumCast(writer.escapeKeyword(param), false, this)
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         value =
@@ -251,7 +251,7 @@ export class NumberConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.language == Language.CPP
             ? writer.makeUnsafeCast_(writer.makeString(`&${param}`), this.idlType, PrintHint.AsConstPointer)
-            : param
+            : writer.escapeKeyword(param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeMethodCall(`${param}Serializer`, "writeNumber", [value])

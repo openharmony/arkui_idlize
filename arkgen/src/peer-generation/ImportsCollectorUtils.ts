@@ -35,7 +35,12 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): I
         if (isBuilderClass(node)) {
             fileName = renameClassToBuilderClass(node.name, library.language)
         } else if (isMaterialized(node, library)) {
-            fileName = renameClassToMaterialized(node.name, library.language)
+            const ns = idl.getNamespacesPathFor(node).map(it => it.name).join('_')
+            if (ns !== '') {
+                fileName = ns
+            } else {
+                fileName = renameClassToMaterialized(node.name, library.language)
+            }
         }
     }
 

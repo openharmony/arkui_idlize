@@ -276,7 +276,7 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
     }
 }
 
-function collectNativeModuleImports(module: NativeModuleType, file: SourceFile) {
+function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, library:PeerLibrary) {
     if (file.language === Language.TS || file.language === Language.ARKTS) {
         const tsFile = file as TsSourceFile
         tsFile.imports.addFeatures([
@@ -295,7 +295,7 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile) 
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
         if (file.language === Language.ARKTS) {
             tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
-            if (module === NativeModule.Generated)
+            if (module === NativeModule.Generated && library.name === 'arkoala')
                 tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
         }
     }
@@ -359,7 +359,7 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     const visitor = createPredefinedNativeModuleVisitor(library, language, entries)
     visitor.visit()
     const file = SourceFile.make(`${module.name}${language.extension}`, language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.writeClass(module.name, writer => {
         printNativeModuleRegistration(language, module, file)
         writer.concat(visitor.nativeModule)
@@ -375,7 +375,7 @@ export function printTSPredefinedEmptyNativeModule(library: PeerLibrary, module:
     const visitor = new TSNativeModulePredefinedVisitor(library, library.language, entries)
     visitor.visit()
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.writeClass(`${module.name}Empty`, writer => {
         writer.concat(visitor.nativeModuleEmpty)
     })
@@ -394,7 +394,7 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
             writer.writeLines(maybeTemplate)
     })
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.concat(writer)
     return file
 }
@@ -403,7 +403,7 @@ export function printArkUIGeneratedNativeModule(library: PeerLibrary, module: Na
     const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
     visitor.visit()
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.writeClass(module.name, writer => {
         printNativeModuleRegistration(library.language, module, file)
         writer.concat(visitor.nativeModule)
@@ -415,7 +415,7 @@ export function printTSArkUIGeneratedEmptyNativeModule(library: PeerLibrary, mod
     const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language) as TSNativeModuleArkUIGeneratedVisitor
     visitor.visit()
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.writeClass(`${module.name}Empty`, writer => {
         writer.concat(visitor.nativeModuleEmpty)
     })
@@ -430,7 +430,7 @@ export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, modul
         writer.concat(visitor.nativeFunctions)
     })
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file)
+    collectNativeModuleImports(module, file, library)
     file.content.concat(writer)
     return file
 }

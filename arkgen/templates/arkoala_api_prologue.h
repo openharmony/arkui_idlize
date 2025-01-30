@@ -12,7 +12,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-%INTEROP_TYPES_HEADER
 
 #ifndef GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
 #define GENERATED_FOUNDATION_ACE_FRAMEWORKS_CORE_INTERFACES_ARKOALA_API_H
@@ -20,6 +19,8 @@
 /**
  * THIS FILE IS GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
  */
+
+%INTEROP_TYPES_HEADER
 
 // The only include allowed in this file! Do not add anything else ever.
 #include <stdint.h>

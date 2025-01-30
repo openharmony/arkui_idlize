@@ -4,7 +4,7 @@ export function run() {
     const sampleXml = `<foo valOfFoo="xx">Hello<bar>124</bar>World</foo>`
     console.log(`PARSING ${sampleXml}`)
     const buffer = encodeText(sampleXml)
-    const parser = new xml.XmlPullParser(buffer)
+    const parser = new xml.XmlPullParser(buffer, 'utf8')
     parser.parse({
         ignoreNameSpace: true,
         supportDoctype: false,
