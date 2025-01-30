@@ -124,12 +124,19 @@ class DefaultConfig implements GeneratorConfiguration {
         throw new Error(`${name} is unknown`)
     }
     paramArray<T>(name: string): T[] {
+        return []
+    }
+}
+
+class ArkoalaConfiguration extends DefaultConfig {
+    override paramArray<T>(name: string): T[] {
         switch (name) {
             case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
             case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
             case 'knownParameterized': return PeerGeneratorConfig.knownParametrized as T[]
+            case 'boundProperties': return PeerGeneratorConfig.boundProperties as T[]
         }
-        throw new Error(`array ${name} is unknown`)
+        return super.paramArray(name)
     }
 }
 
@@ -151,7 +158,7 @@ class OhosConfiguration extends DefaultConfig {
     }
 }
 
-setDefaultConfiguration(new DefaultConfig())
+setDefaultConfiguration(new ArkoalaConfiguration())
 
 if (options.dts2idl) {
     generate(

@@ -181,6 +181,34 @@ export class PeerGeneratorConfig {
         "Dimension",
     ])
 
+    public static boundProperties: Array<[string, string[]]> = [
+        ["Checkbox", ["select"]],
+        ["CheckboxGroup", ["selectAll"]],
+        ["DatePicker", ["selected"]],
+        ["TimePicker", ["selected"]],
+        ["MenuItem", ["selected"]],
+        ["Panel", ["mode"]],
+        ["Radio", ["checked"]],
+        ["Rating", ["rating"]],
+        ["Search", ["value"]],
+        ["SideBarContainer", ["showSideBar"]],
+        ["Slider", ["value"]],
+        ["Stepper", ["index"]],
+        ["Swiper", ["index"]],
+        ["Tabs", ["index"]],
+        ["TextArea", ["text"]],
+        ["TextInput", ["text"]],
+        ["TextPicker", ["selected", "value"]],
+        ["Toggle", ["isOn"]],
+        ["AlphabetIndexer", ["selected"]],
+        ["Select", ["selected", "value"]],
+        ["BindSheet", ["isShow"]],
+        ["BindContentCover", ["isShow"]],
+        ["Refresh", ["refreshing"]],
+        ["GridItem", ["selected"]],
+        ["ListItem", ["selected"]],
+    ]
+
     public static ignoredCallbacks = new Set<string>([
         // Empty for now
     ])
