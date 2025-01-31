@@ -15,7 +15,6 @@
 
 import { ReferenceResolver } from '@idlizer/core'
 import { PeerLibrary } from "./PeerLibrary";
-export { ReferenceResolver }
 
 export function createEmptyReferenceResolver(): ReferenceResolver {
     return {
