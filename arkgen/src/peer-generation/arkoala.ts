@@ -228,7 +228,7 @@ export function generateArkoalaFromIdl(config: {
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
         let enumImpls = createLanguageWriter(peerLibrary.language, peerLibrary)
         printEnumsImpl(peerLibrary, enumImpls)
-        enumImpls.printTo(arkoala.tsArkoalaLib(new TargetFile('EnumsImpl')),)
+        enumImpls.printTo(arkoala.interface(new TargetFile('EnumsImpl' + peerLibrary.language.extension)),)
     }
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {

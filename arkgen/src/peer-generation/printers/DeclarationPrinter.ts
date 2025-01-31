@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { CustomPrintVisitor as DtsPrintVisitor} from '@idlizer/core'
+import { CustomPrintVisitor as DtsPrintVisitor, Language} from '@idlizer/core'
 import { isPredefined } from "../idl/IdlPeerGeneratorVisitor"
 import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "@idlizer/core"
@@ -79,8 +79,25 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     return result
 }
 
+function printEnumsGlobalAssign(enums: idl.IDLEnum[], writer: LanguageWriter) {
+    if (writer.language !== Language.TS)
+        return
+    writer.print("Object.assign(globalThis, {")
+    writer.pushIndent()
+    for (const decl of enums) {
+        const namespaces = idl.getNamespacesPathFor(decl)
+        if (namespaces.length > 0)
+            writer.print(`${namespaces[0].name}: ${namespaces[0].name},`)
+        else
+            writer.print(`${decl.name}: ${decl.name},`)
+    }
+    writer.popIndent()
+    writer.print("})")
+}
+
 export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter) {
-    const seenNames = new Set()
+    const seenNames = new Set<string>()
+    const enums = new Array<idl.IDLEnum>()
     const imports = new ImportsCollector()
     imports.addFeature("int32", "@koalaui/common")
     imports.print(writer, "")
@@ -90,7 +107,9 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
                 // An ugly hack to avoid double definition of ContentType enum.
                 if (seenNames.has(decl.name) && decl.name == "ContentType") continue
                 seenNames.add(decl.name)
+                enums.push(decl)
                 writer.writeStatement(writer.makeEnumEntity(decl, true))
             }
         }
+    printEnumsGlobalAssign(enums, writer)
 }
