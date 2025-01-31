@@ -40,7 +40,8 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config?: 
     const params: Record<string, any> = {
         TypePrefix: "OH_",
         LibraryPrefix: `${peerLibrary.name.toUpperCase()}_`,
-        OptionalPrefix: "Opt_"
+        OptionalPrefix: "Opt_",
+        GenerateUnused: true
     }
     setDefaultConfiguration(new OhosConfiguration(params))
 

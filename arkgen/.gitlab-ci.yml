@@ -288,3 +288,15 @@ check generated XML demo:
       - npm start
       - npm run compile:panda
       - npm run start:panda
+
+check ohos demos:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/arkgen
+  script:
+    - npm run run:ohos:mediaquery
+    - npm run run:ohos:context

@@ -60,6 +60,8 @@
     "run:xml": "npm run compile && node . --generator-target ohos --dts2peer --input-dir ./interface_sdk-js/api --input-file @ohos.xml.d.ts --output-dir ./out/xml --verify-idl --common-to-attributes --docs=none",
     "run:xml:arkts": "npm run compile && node . --generator-target ohos --dts2peer --input-dir ./interface_sdk-js/api --input-file @ohos.xml.d.ts --output-dir ./out/xml --verify-idl --common-to-attributes --docs=none --language=arkts",
     "run:xml:cj": "npm run compile && node . --generator-target ohos --dts2peer --input-dir ./interface_sdk-js/api --input-file @ohos.xml.d.ts --output-dir ./out/xml --verify-idl --common-to-attributes --docs=none --language=cangjie",
+    "run:ohos:mediaquery": "npm run compile && node . --generator-target ohos --use-new-ohos --language=ts --default-idl-package mediaquery --input-dir ./tests/ohos-subset/ets/api --input-file @ohos.mediaquery.d.ts --output-dir ./out/ts-ohos-mediaquery --dts2peer --verify-idl --common-to-attributes --docs=none",
+    "run:ohos:context": "npm run compile && node . --generator-target ohos --use-new-ohos --language=ts --default-idl-package context --input-dir ./tests/ohos-subset/ets/api/application --output-dir ./out/ts-ohos-context --dts2peer --verify-idl --common-to-attributes --docs=none",
     "run2dts": "npm run compile && node . --idl2dts --input-dir ./idl",
     "dts2skoala": "npm run compile && node . --dts2skoala --input-dir ./tests/mini_skoala/build/ ",
     "idl2peer:target": "node --stack_trace_limit=200 . --api-version 99 --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/global --output-dir ./out/ts-peers/generated",

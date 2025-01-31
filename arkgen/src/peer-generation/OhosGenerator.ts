@@ -692,7 +692,7 @@ class OHOSVisitor {
         )
 
         let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
-        new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter, true)
+        new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
         const prefix = generatorTypePrefix()
         writeSerializer(this.library, this.cppWriter, prefix)
@@ -762,7 +762,8 @@ class OHOSVisitor {
         const params: Record<string, any> = {
             TypePrefix: "OH_",
             LibraryPrefix: `${this.libraryName}_`,
-            OptionalPrefix: "Opt_"
+            OptionalPrefix: "Opt_",
+            GenerateUnused: true
         }
         setDefaultConfiguration(new OhosConfiguration(params))
 

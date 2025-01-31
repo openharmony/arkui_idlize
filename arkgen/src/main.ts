@@ -117,6 +117,7 @@ class DefaultConfig implements GeneratorConfiguration {
         TypePrefix: "Ark_",
         LibraryPrefix: "",
         OptionalPrefix: "Opt_",
+        GenerateUnused: false,
     }
 
     param<T>(name: string): T {

@@ -11,7 +11,10 @@ import { cleanPrefix } from "./PeerLibrary";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
-export function collectDeclarationTargets(library: LibraryInterface, generateUnused = false): idl.IDLNode[] {
+export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNode[] {
+
+    const generateUnused = generatorConfiguration().param("GenerateUnused")
+
     if (collectDeclarationTargets_cache.has(library))
         return collectDeclarationTargets_cache.get(library)!
 
