@@ -242,16 +242,29 @@ class OHOSVisitor {
 
         const propertiesFromInterface: idl.IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
         propertiesFromInterface.concat(clazz.properties).forEach(property => {
-            let returnType = `${this.mapType(property.type)}`
-            _h.print(`${returnType} (*get${capitalize(property.name)})(${handleType} thiz);`)
-            let getImplName = `${clazz.name}get${capitalize(property.name)}Impl`
-            _c.print(`&${getImplName},`)
-            this.impls.set(getImplName, { params: [new NameType(`thiz`, returnType)], returnType })
+            let accessorMethods = []
+            let getterMethod = idl.createMethod(`get${capitalize(property.name)}`, [], property.type)
+            accessorMethods.push(getterMethod)
             if (!property.isReadonly) {
-                let setImplName = `${clazz.name}set${capitalize(property.name)}Impl`
-                _h.print(`void (*set${capitalize(property.name)})(${handleType} thiz, ${returnType} value);`)
-                _c.print(`&${setImplName},`)
-                this.impls.set(setImplName, { params: [new NameType("thiz", handleType), new NameType("value", returnType)], returnType: "void" })
+                let setterMethod = idl.createMethod(`set${capitalize(property.name)}`, [
+                    idl.createParameter("value", property.type)
+                ], idl.IDLVoidType)
+                accessorMethods.push(setterMethod)
+            }
+
+            for (const method of accessorMethods) {
+                const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
+                let params = new Array<NameType>()
+                if (!isGlobalScope) {
+                    params.push(new NameType("thiz", handleType))
+                }
+                params = params.concat(adjustedSignature.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!))))
+                let returnType = this.mapType(adjustedSignature.returnType)
+                const args = generateCParameters(method, adjustedSignature.convertors, _h)
+                _h.print(`${returnType} (*${method.name})(${args});`)
+                let implName = `${clazz.name}_${method.name}Impl`
+                _c.print(`&${implName},`)
+                this.impls.set(implName, { params, returnType, paramsCString: args })
             }
         })
         _h.popIndent()
