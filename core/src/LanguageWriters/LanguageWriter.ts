@@ -305,7 +305,7 @@ export abstract class LambdaExpression implements LanguageExpression {
 
         return writer.getOutput()
             .filter(line => line !== "")
-            .map(line => line === "{" || line === "}" || line.endsWith(';') ? line : `${line};`)
+            .map(line => line.endsWith('{') || line.endsWith('}') || line.endsWith(';') ? line : `${line};`)
             .join("\n")
     }
 }
