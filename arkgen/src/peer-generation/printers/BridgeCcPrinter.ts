@@ -22,7 +22,6 @@ import { LanguageWriter } from "@idlizer/core"
 import { PeerLibrary } from "../PeerLibrary";
 import { PeerMethod } from "../PeerMethod";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
-import { getReferenceResolver } from "../ReferenceResolver";
 import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
@@ -51,7 +50,7 @@ class BridgeCcVisitor {
 
     // TODO: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
-        const nameConverter = createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+        const nameConverter = createTypeNameConvertor(Language.CPP, this.library)
         const prefix = argConvertor.isPointerType() ? `(const ${nameConverter.convert(argConvertor.nativeType())}*)&`: "    "
         if (argConvertor.useArray)
             return `${prefix}${this.escapeKeyword(argConvertor.param)}_value`

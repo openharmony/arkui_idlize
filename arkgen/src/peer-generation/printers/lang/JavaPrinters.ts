@@ -19,7 +19,6 @@ import { PeerMethod } from "../../PeerMethod"
 import { ImportFeature } from "../../ImportsCollector"
 import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier } from "@idlizer/core"
 import { createLanguageWriter } from "../../LanguageWriters"
-import { getReferenceResolver } from "../../ReferenceResolver"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
 import { PrinterContext } from "../PrinterContext"
@@ -30,7 +29,7 @@ import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_BASE, ARK_OBJECTBASE, INT_VA
 import { collectJavaImports } from "./JavaIdlUtils"
 
 export function makeJavaSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
+    let writer = createLanguageWriter(library.language, library)
     writer.print(`package ${ARKOALA_PACKAGE};\n`)
     writeSerializer(library, writer, "")
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
@@ -56,7 +55,7 @@ export function makeJavaArkComponents(library: PeerLibrary, printerContext: Prin
         {feature: 'java.util.function.Consumer', module: ''},
         {feature: 'java.util.function.Supplier', module: ''},
     ]
-    const writer = createLanguageWriter(library.language, getReferenceResolver(library))
+    const writer = createLanguageWriter(library.language, library)
 
     writer.writeClass(ark, writer => {
         library.files.forEach(file => {
@@ -117,7 +116,7 @@ export function makeJavaArkComponents(library: PeerLibrary, printerContext: Prin
         })
     }, ARK_BASE)
 
-    const result = createLanguageWriter(library.language, getReferenceResolver(library))
+    const result = createLanguageWriter(library.language, library)
     result.print(`package ${ARKOALA_PACKAGE};\n`)
     printJavaImports(result, imports)
     result.concat(writer)

@@ -44,7 +44,6 @@ import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
         IDLVoidType, isNamedNode, isPrimitiveType
 } from '@idlizer/core'
-import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { findComponentByType } from "../ComponentsCollector";
 import { NativeModule } from "../NativeModule";
@@ -236,7 +235,7 @@ class PeerFileVisitor {
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.language, getReferenceResolver(this.library))
+        const printer = createLanguageWriter(this.library.language, this.library)
         const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 
@@ -306,7 +305,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): void {
         this.file.peers.forEach(peer => {
-            let printer = createLanguageWriter(this.library.language, getReferenceResolver(this.library))
+            let printer = createLanguageWriter(this.library.language, this.library)
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
 
@@ -350,7 +349,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.language, getReferenceResolver(this.library))
+        const printer = createLanguageWriter(this.library.language, this.library)
         const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 

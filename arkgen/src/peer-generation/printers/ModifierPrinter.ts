@@ -35,16 +35,15 @@ import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringT
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
 import { createEmptyReferenceResolver } from "@idlizer/core";
-import { getReferenceResolver } from "../ReferenceResolver";
 import { PeerLibrary } from "../PeerLibrary";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 export class ModifierVisitor {
-    dummy = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
-    real = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
-    modifiers = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
-    getterDeclarations = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
-    modifierList = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
+    dummy = createLanguageWriter(Language.CPP, this.library)
+    real = createLanguageWriter(Language.CPP, this.library)
+    modifiers = createLanguageWriter(Language.CPP, this.library)
+    getterDeclarations = createLanguageWriter(Language.CPP, this.library)
+    modifierList = createLanguageWriter(Language.CPP, this.library)
     private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
     commentedCode = true
 
@@ -141,7 +140,7 @@ export class ModifierVisitor {
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod,
         clazz: PeerClass | undefined = undefined) {
         const apiParameters = method.generateAPIParameters(
-            createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+            createTypeNameConvertor(Language.CPP, this.library)
         )
         if (apiParameters.at(0)?.includes(ArkPrimitiveTypesInstance.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
@@ -197,7 +196,7 @@ export class ModifierVisitor {
 
     printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
         const apiParameters = method.generateAPIParameters(
-            createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+            createTypeNameConvertor(Language.CPP, this.library)
         )
         printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), method.implName, apiParameters)
         printer.print("{")
@@ -288,8 +287,8 @@ export class ModifierVisitor {
 }
 
 class AccessorVisitor extends ModifierVisitor {
-    accessors = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
-    accessorList = createLanguageWriter(Language.CPP, getReferenceResolver(this.library))
+    accessors = createLanguageWriter(Language.CPP, this.library)
+    accessorList = createLanguageWriter(Language.CPP, this.library)
 
     constructor(library: PeerLibrary) {
         super(library)
@@ -412,9 +411,9 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 
     emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
-        const modifierList = createLanguageWriter(Language.CPP, getReferenceResolver(library))
-        const accessorList = createLanguageWriter(Language.CPP, getReferenceResolver(library))
-        const getterDeclarations = createLanguageWriter(Language.CPP, getReferenceResolver(library))
+        const modifierList = createLanguageWriter(Language.CPP, library)
+        const accessorList = createLanguageWriter(Language.CPP, library)
+        const getterDeclarations = createLanguageWriter(Language.CPP, library)
 
         for (const [slug, state] of this.stateByFile) {
             if (state.hasModifiers)
@@ -541,7 +540,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
 }
 
 function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(library), new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")

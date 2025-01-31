@@ -13,7 +13,6 @@ import { PeerLibrary } from "../PeerLibrary";
 import { createDeclarationNameConvertor } from "@idlizer/core";
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
-import { getReferenceResolver } from '../ReferenceResolver';
 import { convertDeclaration } from '@idlizer/core';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
@@ -191,7 +190,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.ARKTS, getReferenceResolver(library)))
+        super(library, createLanguageWriter(Language.ARKTS, library))
     }
 
     private writeInstanceofChecker(typeName: string,
@@ -265,7 +264,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.TS, getReferenceResolver(library)))
+        super(library, createLanguageWriter(Language.TS, library))
     }
 
     protected writeTypeInstanceOf(): void {

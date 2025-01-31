@@ -21,7 +21,6 @@ import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } fr
 import { PeerLibrary } from "../PeerLibrary";
 import { createConstructPeerMethod, PeerClass } from "../PeerClass";
 import { PeerMethod } from "../PeerMethod";
-import { getReferenceResolver } from "../ReferenceResolver";
 import { createDestroyPeerMethod } from "../Materialized";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
@@ -53,7 +52,7 @@ class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters(createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library)))
+        const apiParameters = method.generateAPIParameters(createTypeNameConvertor(Language.CPP, this.library))
         printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.returnType), `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
@@ -98,7 +97,7 @@ class HeaderVisitor {
         this.api.print(`typedef struct ${receiver} {`)
         this.api.pushIndent()
 
-        const nameConvertor = createTypeNameConvertor(Language.CPP, getReferenceResolver(this.library))
+        const nameConvertor = createTypeNameConvertor(Language.CPP, this.library)
 
         for (const callback of callbacks) {
             const args = ["Ark_Int32 nodeId",
@@ -204,7 +203,7 @@ export function printUserConverter(headerPath: string, namespace: string, apiVer
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary), new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
@@ -224,7 +223,7 @@ export function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): 
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary), new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializersArk(peerLibrary, structs, typedefs)
@@ -243,7 +242,7 @@ export function printSerializersOhos(apiVersion: number, peerLibrary: PeerLibrar
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), getReferenceResolver(peerLibrary), new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializersOhos('ohos', peerLibrary, structs, typedefs)

@@ -14,26 +14,22 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { MethodSignature, FieldModifier } from "../../LanguageWriters"
+import { MethodSignature, FieldModifier, createLanguageWriter } from "../../LanguageWriters"
 import { PeerLibrary } from "../../PeerLibrary"
-import {
-    createLanguageWriter,
-} from "../../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
-import { getReferenceResolver } from "../../ReferenceResolver"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Cangjie"
+import { ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
 export function makeCJSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
+    let writer = createLanguageWriter(library.language, library)
     writeSerializer(library, writer, "")
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
 export function makeCJDeserializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language, getReferenceResolver(library))
+    let writer = createLanguageWriter(library.language, library)
     writeDeserializer(library, writer, "")
     return { targetFile: new TargetFile('Deserializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }

@@ -39,7 +39,6 @@ import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, IDLVoidType, isOptionalType } from '@idlizer/core'
 import { createEmptyReferenceResolver } from "@idlizer/core";
-import { getReferenceResolver } from "../ReferenceResolver";
 import { convertIdlToCallback } from "./EventsPrinter";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { collectComponents, findComponentByType } from "../ComponentsCollector";
@@ -59,8 +58,8 @@ interface ComponentFileVisitor {
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
     private readonly language = this.library.language
-    private readonly printer = createLanguageWriter(this.language, this.library instanceof PeerLibrary ? this.library : createEmptyReferenceResolver())
-    private readonly overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language)
+    private readonly printer = createLanguageWriter(this.language, this.library)
+    private readonly overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language)
 
     constructor(
         private readonly library: PeerLibrary,
@@ -103,7 +102,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
             for (const method of peer.methods) {
                 for (const argType of method.method.signature.args)
-                    if (convertIdlToCallback(getReferenceResolver(this.library), peer, method, argType))
+                    if (convertIdlToCallback(this.library, peer, method, argType))
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
 

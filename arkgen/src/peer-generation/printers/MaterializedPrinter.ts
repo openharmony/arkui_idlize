@@ -42,7 +42,6 @@ import { createInterfaceDeclName } from './lang/CommonUtils';
 import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
-import { getReferenceResolver } from "../ReferenceResolver";
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
@@ -57,8 +56,8 @@ interface MaterializedFileVisitor {
 const FinalizableType = idl.maybeOptional(createReferenceType("Finalizable"), true)
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
-    protected readonly internalPrinter: LanguageWriter = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
-    protected overloadsPrinter = new OverloadsPrinter(getReferenceResolver(this.library), this.printer, this.library.language, false)
+    protected readonly internalPrinter: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library)
+    protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false)
 
     constructor(
         protected readonly collector: ImportsCollector,
@@ -492,7 +491,7 @@ class MaterializedVisitor {
     private printFile(bucket: MaterializedClass[], file:TargetFile, nameSpace?:string) {
         const prologue = makeMaterializedPrologue(this.printerContext.language)
         const collector = new ImportsCollector()
-        const printer = createLanguageWriter(this.printerContext.language, getReferenceResolver(this.library))
+        const printer = createLanguageWriter(this.printerContext.language, this.library)
         printer.print(prologue)
         if (nameSpace) {
             printer.pushNamespace(nameSpace)

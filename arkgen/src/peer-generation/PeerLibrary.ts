@@ -18,7 +18,7 @@ import { BuilderClass } from './BuilderClass';
 import { MaterializedClass } from "./Materialized";
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor';
 import { PeerFile } from "./PeerFile";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor } from './ArgConvertors';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor } from '../arkoala/ArkoalaArgConvertors';
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor
@@ -27,7 +27,7 @@ import { IndentedPrinter, Language, warn, isImportAttr, InteropNameConvertor } f
 import { createTypeNameConvertor } from './LanguageWriters';
 import { LanguageWriter } from '@idlizer/core';
 import { StructPrinter } from './printers/StructPrinter';
-import { LengthConvertor } from './ArgConvertors';
+import { LengthConvertor } from '../arkoala/ArkoalaArgConvertors';
 import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlizer/core';
 import { generateSyntheticFunctionName } from '../IDLVisitor';
 import { IdlNameConvertor } from '@idlizer/core';
@@ -65,7 +65,7 @@ export class PeerLibrary implements LibraryInterface {
 
     readonly customComponentMethods: string[] = []
 
-    private readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
+    protected readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
     private readonly interopNameConvertorInstance: IdlNameConvertor = new InteropNameConvertor(this)
 
     get libraryPrefix(): string {
@@ -286,18 +286,12 @@ export class PeerLibrary implements LibraryInterface {
 
     private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
-            case `Object`: return new CustomTypeConvertor(param, "Object")
-            case `Dimension`:
-            case `Length`:
-                return new LengthConvertor(typeName, param, this.language)
+            case `Object`:
+                return new CustomTypeConvertor(param, "Object")
             case `Date`:
                 return new DateConvertor(param)
             case `Function`:
                 return new FunctionConvertor(this, param, type as idl.IDLReferenceType)
-            case `AnimationRange`:
-                return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
-            case `ContentModifier`:
-                return new CustomTypeConvertor(param, "ContentModifier", false, "ContentModifier<any>")
             case `Record`:
                 return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Optional`:

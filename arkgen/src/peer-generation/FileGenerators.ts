@@ -28,7 +28,6 @@ import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeChec
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
 import * as idl from "@idlizer/core/idl"
 import { createEmptyReferenceResolver, ReferenceResolver } from "@idlizer/core"
-import { getReferenceResolver } from "./ReferenceResolver"
 import { PrintHint } from "@idlizer/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
@@ -247,7 +246,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 }
 
 export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
-    let printer = createLanguageWriter(library.language, getReferenceResolver(library))
+    let printer = createLanguageWriter(library.language, library)
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
@@ -276,7 +275,7 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
     // TODO Add Java and migrate arkoala code
     // TODO Complete refactoring to SourceFiles
     if (lang === Language.TS || lang === Language.ARKTS) {
-        const destFile = SourceFile.make("Serializer" + lang.extension, lang, getReferenceResolver(library)) as TsSourceFile
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as TsSourceFile
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
         // destFile.imports.clear() // TODO fix dependencies
@@ -298,7 +297,7 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
         destFile.merge(deserializeCallImpls)
         return destFile
     } if (lang === Language.CJ) {
-        const destFile = SourceFile.make("Serializer" + lang.extension, lang, getReferenceResolver(library)) as CJSourceFile
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as CJSourceFile
         // destFile.content.nativeModuleAccessor = nativeModule.name
         writeSerializerFile(library, destFile, "", declarationPath)
         writeDeserializerFile(library, destFile, "", declarationPath)
