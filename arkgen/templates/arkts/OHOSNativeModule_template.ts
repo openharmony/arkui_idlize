@@ -8,8 +8,6 @@ export class %NATIVE_MODULE_NAME%NativeModule {
         loadNativeModuleLibrary("%NATIVE_MODULE_NAME%_NativeBridgeArk")
     }
 
-    static native init(modules: string[]): void
-
     static callCallbackFromNative(id: KInt, args: KUint8ArrayPtr, length: KInt): KInt {
         // TODO implement callCallbackFromNative
         return 0
