@@ -1,5 +1,6 @@
 package idlize
 
+import Interop.*
 import std.collection.*
 
 class CallbackEventKind {

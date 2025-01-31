@@ -31,6 +31,14 @@ declare interface BlurOptions {
     grayscale: [number, number];
 }
 
+declare interface AnimateParam {
+    duration?: number;
+}
+
+declare interface ICurve {
+    interpolate(fraction: number): number;
+}
+
 // declare interface StateStyles {
 
 //     normal?: any;

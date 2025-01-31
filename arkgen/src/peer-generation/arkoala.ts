@@ -64,7 +64,6 @@ import { LanguageWriter } from "@idlizer/core"
 import { printManagedCaller } from "./printers/CallbacksPrinter"
 import { NativeModule } from "./NativeModule"
 import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
-import { makeGetFunctionRuntimeType } from "./printers/lang/CJIdlUtils"
 import { printGlobal } from "./printers/GlobalScopePrinter"
 import { writeFile, writeIntegratedFile } from "./common"
 
@@ -447,9 +446,6 @@ export function generateArkoalaFromIdl(config: {
             printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
                 printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
             )
-        )
-        writeIntegratedFile(
-            arkoala.cjLib(new TargetFile('Ark_Object')), makeGetFunctionRuntimeType(peerLibrary)
         )
         writeFile(arkoala.peer(new TargetFile('CallbackKind', '')),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),

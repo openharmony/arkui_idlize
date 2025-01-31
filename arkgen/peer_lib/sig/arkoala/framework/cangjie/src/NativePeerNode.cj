@@ -14,6 +14,8 @@
  */
 package idlize
 
+import Interop.*
+
 public open class NativePeerNode <: Finalizable {
     public NativePeerNode(ptr: UInt64, finalizer: UInt64) {
         super(ptr, finalizer)

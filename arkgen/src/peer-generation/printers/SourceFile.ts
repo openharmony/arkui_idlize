@@ -202,7 +202,8 @@ export class CJSourceFile extends SourceFile {
     }
     public printImports(writer: LanguageWriter): void {
         writer.print(`package idlize\n`)
-        writer.print(`import std.collection.*\n`)
+        writer.print(`import std.collection.*`)
+        writer.print(`import Interop.*\n`)
     }
     protected onMerge(file: this): void {
 

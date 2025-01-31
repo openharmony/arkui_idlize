@@ -1022,6 +1022,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         this.printPackage(writer)
 
         writer.print('import std.collection.*\n')
+        writer.print('import Interop.*\n')
 
         const members = type.types.map(it => it)
         writer.writeClass(alias, () => {
@@ -1064,12 +1065,12 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                                 writer.makeString(memberName)
                             )
                         )
-                        writer.print(`} else { throw Exception("Wrong selector value inside Union ${alias}") }`)
                         writer.popIndent()
+                        writer.print(`} else { throw Exception("Wrong selector value inside Union ${alias}") }`)
                     }
                 )
             }
-        }, ARK_OBJECTBASE)
+        })
 
         return new CJDeclaration(alias, writer)
     }
@@ -1077,6 +1078,8 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     private makeTuple(alias: string, type: idl.IDLInterface): CJDeclaration {
         const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
+
+        writer.print('import Interop.*\n')
 
         const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
         const memberNames: string[] = members.map((_, index) => `value${index}`)
@@ -1093,7 +1096,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                     )
                 }
             })
-        }, ARK_OBJECTBASE)
+        })
 
         return new CJDeclaration(alias, writer)
     }
@@ -1102,6 +1105,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
       const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
+        writer.print('import Interop.*\n')
         writer.print('import std.collection.*\n')
 
         const initializers = enumDecl.elements.map(it => {
@@ -1147,7 +1151,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
             })
-        }, ARK_OBJECTBASE)
+        })
 
         return new CJDeclaration(alias, writer)
     }
@@ -1156,6 +1160,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         const writer = createLanguageWriter(Language.CJ, this.peerLibrary)
         this.printPackage(writer)
 
+        writer.print('import Interop.*\n')
         writer.print('import std.collection.*\n')
 
         const members = isComponentDeclaration(this.peerLibrary, type) ? []
@@ -1198,7 +1203,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                             writer.print(`this.${i.name}_container = ${i.name}`)
                         }
                     })
-        }, superName ?? ARK_OBJECTBASE)
+        }, superName)
 
         return new CJDeclaration(alias, writer)
     }

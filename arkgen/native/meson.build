@@ -31,6 +31,7 @@ endif
 arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
 external_framework_dir = '../../external/arkoala/framework/native/src'
 external_interop_dir = '../../external/interop/src/cpp'
+external_incremental_cj_dir = '../../external/incremental-cj'
 libace_dir = gen_dir / 'libace'
 
 cxx = meson.get_compiler('cpp')
@@ -172,12 +173,13 @@ arkts_sources = [
 ]
 
 cj_include_dirs = [
-    external_interop_dir/ 'cangjie'
+    external_interop_dir / 'cangjie',
+    external_incremental_cj_dir / 'runtime/src/' 
 ]
 cj_sources = [
     external_interop_dir / 'cangjie/convertors-cj.cc',
     external_interop_dir / 'cangjie/convertors-cj.h',
-    external_interop_dir / 'cangjie/CallsiteKey.c'
+    external_incremental_cj_dir / 'runtime/src/core/CallsiteKey.c' 
 ]
 
 if is_jni

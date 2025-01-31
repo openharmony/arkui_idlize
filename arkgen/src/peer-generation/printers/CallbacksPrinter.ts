@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { PeerLibrary } from "../PeerLibrary";
-import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
+import { CppLanguageWriter, createTypeNameConvertor, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector";
@@ -397,10 +397,16 @@ class DeserializeCallbacksVisitor {
     }
 
     visit(): void {
+        let nameConvertor = createTypeNameConvertor(Language.CJ, this.library)
         this.writeImports()
         const uniqCallbacks = collectUniqueCallbacks(this.library, { transformCallbacks: true })
         for (const callback of uniqCallbacks) {
             this.writeCallbackDeserializeAndCall(callback)
+            if (this.writer.language == Language.CJ) {
+                const params = callback.parameters.map(it =>
+                    `${it.name}: ${it.isOptional ? "?" : ""}${nameConvertor.convert(it.type!)}`)
+                this.writer.print(`public type ${callback.name} = (${params.join(", ")}) -> ${nameConvertor.convert(callback.returnType)}`)
+            }
         }
         this.writeInteropImplementation(uniqCallbacks)
     }

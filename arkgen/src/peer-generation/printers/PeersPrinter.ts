@@ -357,6 +357,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
         this.printPackage(printer)
 
         printer.print("import std.collection.*")
+        printer.print("import Interop.*")
         this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer, printer)
         })

@@ -16,6 +16,7 @@ package idlize
 
 import std.collection.*
 import KoalaRuntime.*
+import Interop.*
 
 public open class PeerNode <: IncrementalNode {
     private static var PEER_NODE_TYPE: UInt32 = 11

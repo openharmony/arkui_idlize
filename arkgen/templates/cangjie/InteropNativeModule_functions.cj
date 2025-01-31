@@ -5,7 +5,7 @@ public static func _StringData(ptr: KPointer, data: Array<UInt8>, arg2: Int32): 
         releaseArrayRawData(handle_1)
     }
 }
-public static func _CheckArkoalaCallbackEvent(buffer: Array<UInt8>, bufferLength: Int32): Int32 {
+public static func _CheckCallbackEvent(buffer: Array<UInt8>, bufferLength: Int32): Int32 {
     unsafe {
         let handle_0 = acquireArrayRawData(buffer)
         let result = CheckCallbackEvent(handle_0.pointer, bufferLength)

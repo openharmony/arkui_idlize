@@ -14,7 +14,7 @@
  */
 package idlize
 
-public class Ark_Length <: Ark_ObjectBase {
+public class Ark_Length {
     private var selector: Int32
     public func getSelector(): Int32 {
         return selector

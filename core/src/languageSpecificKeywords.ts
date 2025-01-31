@@ -36,7 +36,7 @@ export const CJKeywords = new Set([
     'break', 'is', 'as', 'in', 'match',
     'from', 'where', 'extend', 'spawn',
     'synchronized', 'macro', 'quote', 'true',
-    'false', 'static', 'public', 'private',
+    /*'false', */'static', 'public', 'private',
     'protected', 'override', 'redef', 'abstract',
     'open', 'operator', 'foreign', 'inout',
     'prop', 'mut', 'unsafe', 'get', 'set'

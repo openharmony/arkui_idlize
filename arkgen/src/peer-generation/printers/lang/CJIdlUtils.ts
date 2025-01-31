@@ -121,18 +121,3 @@ export function collectCJImportsForDeclaration(declaration: idl.IDLEntry | undef
     const collector = new CJDeclarationImportsCollector()
     return uniqueImports(collector.convert(declaration))
 }
-export function makeGetFunctionRuntimeType(library: PeerLibrary) {
-    const uniqCallbacks = collectUniqueCallbacks(library, { transformCallbacks: true })
-    const writer = createLanguageWriter(Language.CJ, library)
-    writer.pushIndent()
-    for (const callback of uniqCallbacks) {
-        const signature = new MethodSignature(idl.createReferenceType('RuntimeType'), [idl.maybeOptional(idl.createReferenceType(callback.name), true)])
-        const method = new Method('getRuntimeType', signature, [MethodModifier.STATIC])
-        writer.writeMethodImplementation(method, () => {
-            writer.makeCheckOptional(writer.makeString('arg0'), writer.makeReturn(writer.makeString('RuntimeType.FUNCTION'))).write(writer)
-            writer.makeReturn(writer.makeString('RuntimeType.UNDEFINED')).write(writer)
-        })  
-    }
-    let Ark_Object = fs.readFileSync(path.join(__dirname, `../templates/cangjie/Ark_Object_template.cj`), 'utf8').replace('%GET_FUNCTION_RUNTIME%', writer.getOutput().join('\n'))
-    return Ark_Object
-}

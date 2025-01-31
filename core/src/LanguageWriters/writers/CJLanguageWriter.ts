@@ -340,7 +340,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
         const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`)
-        return `public func ${name}(${args.join(", ")})`
+        return `public func ${name}(${args.join(", ")}): ${this.getNodeName(signature.returnType)}`
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         params = params.map(argName => this.escapeKeyword(argName))

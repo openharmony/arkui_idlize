@@ -303,11 +303,10 @@ export abstract class LambdaExpression implements LanguageExpression {
             }
         }
 
-        return writer.printer.getOutput()
-            .map(line => line.trim())
+        return writer.getOutput()
             .filter(line => line !== "")
-            .map(line => line === "{" || line === "}" || this.statementHasSemicolon ? line : `${line};`)
-            .join(" ")
+            .map(line => line === "{" || line === "}" || line.endsWith(';') ? line : `${line};`)
+            .join("\n")
     }
 }
 
