@@ -442,7 +442,9 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         if (options.useNewOhos) {
-            generateOhos(outDir, idlLibrary)
+            generateOhos(outDir, idlLibrary, {
+                apiVersion: apiVersion
+            })
         } else {
             generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string)
         }

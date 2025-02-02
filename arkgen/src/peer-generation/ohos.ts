@@ -28,13 +28,15 @@ import { NativeModule } from './NativeModule';
 import { TargetFile } from './printers/TargetFile';
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
+import { printEventsCArkoalaImpl } from './printers/EventsPrinter';
 
 interface GenerateOhosConfig {
-    dumpSerialized: boolean
+    apiVersion: number
+    dumpSerialized?: boolean
     callLog?: boolean
 }
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config?: GenerateOhosConfig) {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: GenerateOhosConfig) {
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
 
     const params: Record<string, any> = {
@@ -62,7 +64,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config?: 
 
     // manged-classes
 
-    const materialized = printMaterialized(peerLibrary, context, config?.dumpSerialized ?? false)
+    const materialized = printMaterialized(peerLibrary, context, config.dumpSerialized ?? false)
     for (const [targetFile, materializedClass] of materialized) {
         const outMaterializedFile = ohos.materialized(targetFile)
         writeIntegratedFile(outMaterializedFile, materializedClass, "producing")
@@ -174,6 +176,11 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config?: 
     for (const [ file, content ] of native) {
         writeIntegratedFile(ohos.native(file), content)
     }
+
+    // const { api, serializers } = printSerializersOhos(config.apiVersion, peerLibrary)
+    // writeIntegratedFile(ohos.native(new TargetFile(`Serializers.h`)), serializers)
+
+    writeIntegratedFile(ohos.native(new TargetFile(`all_events.cc`)), printEventsCArkoalaImpl(peerLibrary))
 }
 
 const PEER_LIB_CONFIG = new Map<Language, [string, string][]>()

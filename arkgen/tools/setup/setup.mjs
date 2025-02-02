@@ -5,7 +5,7 @@ import { execSync } from 'child_process';
 
 const CWD = process.cwd()
 const options = program
-    .option(`--template [ts_subset|ts_peers|arkts_subset_tsc|arkts_peers_tsc]`)
+    .option(`--template [ts_subset|ts_peers|ts_ohos|arkts_subset_tsc|arkts_peers_tsc]`)
     .option(`--out <path>`)
     .parse()
     .opts()
@@ -56,6 +56,7 @@ function main() {
             installExternal()
             symlinkSdk()
         },
+        ts_ohos: installExternal,
     }
 
     fs.rmSync(options.out, { recursive: true, force: true })
