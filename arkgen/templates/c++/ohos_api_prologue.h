@@ -53,7 +53,7 @@ typedef InteropLength OH_Length;
 typedef InteropFunction OH_Function;
 
 typedef enum OH_APIKind {
-    OH_XML_API_KIND = 100
+    OH_%LIBRARY_NAME%_API_KIND = 100
 } OH_APIKind;
 
 typedef struct OH_AnyAPI {
