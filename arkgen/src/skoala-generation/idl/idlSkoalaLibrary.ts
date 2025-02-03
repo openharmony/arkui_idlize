@@ -15,7 +15,6 @@
 
 import * as idl from '@idlizer/core/idl'
 import { posix as path } from "path"
-import { DeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { ImportsCollector } from "../../peer-generation/ImportsCollector";
 import {
     capitalize,
@@ -23,6 +22,7 @@ import {
     throwException,
     Language,
     CustomPrintVisitor,
+    DeclarationNameConvertor,
     addSyntheticType,
     resolveSyntheticType,
     isImport,
