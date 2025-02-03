@@ -17,7 +17,7 @@ import { program } from "commander"
 import { toIDL } from "@idlizer/core"
 import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
-import { IDLFile } from "./IdlFile"
+import { IDLFile } from "./idl-utils"
 import { Options } from "./Options"
 import { VerifyVisitor } from "./visitors/VerifyVisitor"
 
@@ -45,16 +45,14 @@ function main() {
     const idl = new IDLFile(toIDL(idlFile))
     new VerifyVisitor(idl).complain()
 
-    const config = new Config(
-        new Options(cliOptions.optionsFile),
-        shouldFixInput,
-        files
-    )
-
     new FileEmitter(
         outDir,
         idl,
-        config,
+        new Config(
+            new Options(cliOptions.optionsFile),
+            shouldFixInput,
+            files
+        ),
     ).print()
 }
 

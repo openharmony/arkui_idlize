@@ -19,11 +19,12 @@ import { forceWriteFile } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
 import { NativeModulePrinter } from "./visitors/interop/native-module/NativeModulePrinter"
 import { EnumsPrinter } from "./visitors/EnumsPrinter"
-import { IDLFile } from "./IdlFile"
+import { IDLFile } from "./idl-utils"
 import { Config } from "./Config"
 import { InteropTransformer } from "./transformers/InteropTransformer"
-import { AstNodeFilterTransformer } from "./transformers/AstNodeFilterTransformer"
-import { OptionsFilterTransformer } from "./transformers/OptionsFilterTransformer"
+import { AstNodeFilterTransformer } from "./transformers/filter/AstNodeFilterTransformer"
+import { OptionsFilterTransformer } from "./transformers/filter/OptionsFilterTransformer"
+import { MultipleDeclarationFilterTransformer } from "./transformers/filter/MultipleDeclarationFilterTransformer"
 
 class FilePrinter {
     constructor(
@@ -37,39 +38,42 @@ class FilePrinter {
 export class FileEmitter {
     constructor(
         private outDir: string,
-        private idl: IDLFile,
+        private file: IDLFile,
         private config: Config,
     ) {}
 
     private bridgesPrinter = new FilePrinter(
-        (idl: IDLFile) => new BridgesPrinter(idl, this.config).print(),
+        (idl: IDLFile) => new BridgesPrinter(idl).print(),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
         this.config.shouldEmitFile(`bridges`),
     )
 
     private nativeModulePrinter = new FilePrinter(
-        (idl: IDLFile) => new NativeModulePrinter(idl, this.config).print(),
+        (idl: IDLFile) => new NativeModulePrinter(idl).print(),
         `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
         this.config.shouldEmitFile(`nativeModule`),
     )
 
     private enumsPrinter = new FilePrinter(
-        (idl: IDLFile) => new EnumsPrinter(idl, this.config).print(),
+        (idl: IDLFile) => new EnumsPrinter(idl).print(),
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
         this.config?.shouldEmitFile(`enums`),
     )
 
     print(): void {
-        const ignored = new OptionsFilterTransformer(this.config, this.idl).transformed()
-        const astNodes = new AstNodeFilterTransformer(ignored).transformed()
-        this.printFile(this.enumsPrinter, astNodes)
+        let idl = this.file
 
-        const transformedForInterop = new InteropTransformer(this.config).transform(astNodes)
-        this.printFile(this.bridgesPrinter, transformedForInterop)
-        this.printFile(this.nativeModulePrinter, transformedForInterop)
+        idl = new OptionsFilterTransformer(this.config, idl).transformed()
+        idl = new MultipleDeclarationFilterTransformer(idl).transformed()
+        this.printFile(this.enumsPrinter, idl)
+
+        idl = new AstNodeFilterTransformer(idl).transformed()
+        idl = new InteropTransformer(idl).transformed()
+        this.printFile(this.nativeModulePrinter, idl)
+        this.printFile(this.bridgesPrinter, idl)
     }
 
     private printFile(filePrinter: FilePrinter, idl: IDLFile): void {

@@ -11,18 +11,31 @@
             ],
             "Type": [
                 "IdConst", // u64
-            ],
-            "FunctionSignature": [ // not AstNode
                 "*"
             ],
-            "es2panda_FunctionSignature": [ // not AstNode
+            "LocalScope": [ // missing inheritance
                 "*"
             ],
-            "es2panda_Signature": [ // not AstNode
-                "*"
+            "ETSReExportDeclaration": [
+                "Create", // sequence<String>
+                "Update", // sequence<String>
             ],
-            "LocalScope": [ // bugged
-                "*"
+            "CharLiteral": [
+                "Create1", // KShort,
+                "Update1", // KShort
+                "CharConst", // KShort
+            ],
+            "ForUpdateStatement": [ // ??
+                "Update"
+            ],
+            "StringLiteral": [
+                "Create" // differs from handwritten
+            ],
+            "CallExpression": [
+                "Update" // differs from handwritten
+            ],
+            "TryStatement": [
+                "AddFinalizerInsertion" // idl missing const
             ],
         }
     }

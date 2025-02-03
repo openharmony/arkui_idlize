@@ -69,4 +69,12 @@ export class BridgesConstructions {
     static callMethod(name: string): string {
         return `GetImpl()->${name}`
     }
+
+    static get stringType(): string {
+        return `KStringPtr`
+    }
+
+    static get stringCast(): string {
+        return `getStringCopy`
+    }
 }

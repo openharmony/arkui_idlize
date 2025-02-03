@@ -15,25 +15,16 @@
 
 import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLanguageWriter, } from "@idlizer/core"
 import { IDLEnum, IDLType, isPrimitiveType, } from "@idlizer/core/idl"
-import { Config } from "../Config"
-import { IDLFile } from "../IdlFile"
 import { InteropPrinter } from "./interop/InteropPrinter"
 
 export class EnumsPrinter extends InteropPrinter {
-    constructor(
-        idl: IDLFile,
-        config: Config
-    ) {
-        super(idl, config)
-    }
-
-    override writer = new TSLanguageWriter(
+    protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => { throwException(`There is no type conversions for enums`) } },
+        { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
     )
 
-    override printEnum(node: IDLEnum): void {
+    protected printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
             node.name,
             node.elements.map(

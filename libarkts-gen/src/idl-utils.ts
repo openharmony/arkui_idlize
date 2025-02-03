@@ -37,6 +37,12 @@ export function isSequence(node: IDLType): boolean {
     return IDLContainerUtils.isSequence(node)
 }
 
+export class IDLFile {
+    constructor(
+        public entries: IDLEntry[]
+    ) {}
+}
+
 export function createInterfaceWithUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): IDLInterface {
     return createInterface(
         node.name,
@@ -77,12 +83,15 @@ export class Typechecker {
         return this.isHeir(parent.name, ancestor)
     }
 
-    isEnumReference(type: IDLType): type is IDLReferenceType {
-        if (!isReferenceType(type)) {
+    isHollow(name: string): boolean {
+        const declaration = this.findRealDeclaration(name)
+        if (declaration === undefined) {
             return false
         }
-        const declaration = this.findRealDeclaration(type.name)
-        return declaration !== undefined && isEnum(declaration)
+        if (!isInterface(declaration)) {
+            return false
+        }
+        return declaration.methods.length === 0
     }
 
     isReferenceTo(type: IDLType, isTarget: (type: IDLNode) => boolean): boolean  {

@@ -18,7 +18,7 @@ import { Options } from "./Options"
 
 export class Config {
     constructor(
-        private options: Options,
+        public options: Options,
         private fixInput: boolean,
         private files?: string[]
     ) {}
@@ -45,14 +45,6 @@ export class Config {
 
     shouldEmitEnum(name: string): boolean {
         return true
-    }
-
-    shouldEmitInterface(name: string): boolean {
-        return this.options.shouldEmitInterface(name)
-    }
-
-    shouldEmitMethod(iface: string, method: string): boolean {
-        return this.options.shouldEmitMethod(iface, method)
     }
 
     shouldEmitFile(name: string): boolean {

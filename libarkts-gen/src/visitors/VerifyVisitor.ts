@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLFile } from "../IdlFile"
+import { IDLFile } from "../idl-utils"
 import { CachedLogger } from "../CachedLogger"
 import { isInterface, isReferenceType } from "@idlizer/core"
 

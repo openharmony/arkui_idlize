@@ -13,10 +13,23 @@
  * limitations under the License.
  */
 
-import { IDLEntry } from "@idlizer/core/idl"
+import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
+import { Config } from "../../Config"
+import { IDLFile } from "../../idl-utils"
 
-export class IDLFile {
+export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(
-        public entries: IDLEntry[]
-    ) {}
+        private config: Config,
+        file: IDLFile
+    ) {
+        super(file)
+    }
+
+    protected shouldFilterOutInterface(name: string): boolean {
+        return !this.config.options.shouldEmitInterface(name)
+    }
+
+    protected shouldFilterOutMethod(node: string, name: string): boolean {
+        return !this.config.options.shouldEmitMethod(node, name)
+    }
 }

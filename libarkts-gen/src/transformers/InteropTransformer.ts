@@ -17,7 +17,6 @@ import {
     createMethod,
     createParameter,
     createReferenceType,
-    IDLContainerUtils,
     IDLKind,
     IDLMethod,
     isTypedef,
@@ -26,18 +25,17 @@ import {
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { IDLFile } from "../IdlFile"
-import { createInterfaceWithUpdatedMethods } from "../idl-utils"
+import { createInterfaceWithUpdatedMethods, IDLFile, isSequence } from "../idl-utils"
 
 export class InteropTransformer {
     constructor(
-        private config: Config
+        private file: IDLFile
     ) {}
 
-    transform(file: IDLFile): IDLFile {
-        file = this.withFilteredOutInterfaces(file)
-        file = this.withEntriesTransformed(file)
-        return file
+    transformed(): IDLFile {
+        return new IDLFile(
+            this.file.entries.map(it => this.transformEntry(it))
+        )
     }
 
     private transformEntry(node: IDLEntry): IDLEntry {
@@ -96,26 +94,27 @@ export class InteropTransformer {
     }
 
     private withSplitSequenceParameter(node: IDLMethod): IDLMethod {
-        const parameters = node.parameters
-            .flatMap(it =>
-                IDLContainerUtils.isSequence(it)
-                    ? [
-                        createParameter(
-                            InteropConstructions.sequenceParameterPointer(it.name),
-                            Config.sequencePointerType
-                        ),
-                        createParameter(
-                            InteropConstructions.sequenceParameterLength(it.name),
-                            Config.sequenceLengthType
-                        )
-                    ]
-                    : it
-            )
-        return createMethod(
-            node.name,
-            parameters,
-            node.returnType
-        )
+        return node
+        // const parameters = node.parameters
+        //     .flatMap(it =>
+        //         isSequence(it.type)
+        //             ? [
+        //                 createParameter(
+        //                     InteropConstructions.sequenceParameterPointer(it.name),
+        //                     Config.sequencePointerType
+        //                 ),
+        //                 createParameter(
+        //                     InteropConstructions.sequenceParameterLength(it.name),
+        //                     Config.sequenceLengthType
+        //                 )
+        //             ]
+        //             : it
+        //     )
+        // return createMethod(
+        //     node.name,
+        //     parameters,
+        //     node.returnType
+        // )
     }
 
     private withQualifiedName(node: IDLMethod, parent: IDLInterface): IDLMethod {
@@ -152,49 +151,31 @@ export class InteropTransformer {
     }
 
     private withOverloadsRenamed(node: IDLInterface): IDLInterface {
-        const findOverloaded = (): Set<string> => {
-            const seen = new Set<string>()
-            const result = new Set<string>()
-            node.methods.forEach(it => {
-                if (seen.has(it.name)) {
-                    result.add(it.name)
-                }
-                seen.add(it.name)
-            })
-            return result
-        }
-        const overloaded = findOverloaded()
+        return node
+        // const findOverloaded = (): Set<string> => {
+        //     const seen = new Set<string>()
+        //     const result = new Set<string>()
+        //     node.methods.forEach(it => {
+        //         if (seen.has(it.name)) {
+        //             result.add(it.name)
+        //         }
+        //         seen.add(it.name)
+        //     })
+        //     return result
+        // }
 
-        return createInterfaceWithUpdatedMethods(
-            node, node.methods.map(it => {
-                if (overloaded.has(it.name)) {
-                    return createMethod(
-                        `${it.name}${it.parameters.length}`,
-                        it.parameters,
-                        it.returnType
-                    )
-                }
-                overloaded.add(it.name)
-                return it
-            })
-        )
-    }
-
-    private withFilteredOutInterfaces(node: IDLFile): IDLFile {
-        return new IDLFile(
-            node.entries.filter(it => {
-                return !isInterface(it) || this.config.shouldEmitInterface(it.name)
-            })
-        )
-    }
-
-    private withEntriesTransformed(node: IDLFile): IDLFile {
-        return new IDLFile(
-            node.entries.map(it => this.transformEntry(it))
-        )
+        // const overloaded = new Set<string>()
+        // const methods = new Map<string, IDLMethod>(
+        //     node.methods.map(it => [it.name, it])
+        // )
+        //
+        // return createInterfaceWithUpdatedMethods(
+        //     node,
+        //     Array.from(methods.values())
+        // )
     }
 
     private static isCreateOrUpdate(node: IDLMethod): boolean {
-        return node.name === Config.createMethod || node.name === Config.updateMethod
+        return node.name.startsWith(Config.createMethod) || node.name.startsWith(Config.updateMethod)
     }
 }

@@ -23,15 +23,14 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { IDLType, } from "@idlizer/core/idl"
-import { Config } from "../../../Config"
-import { IDLFile } from "../../../IdlFile"
+import { IDLFile } from "../../../idl-utils"
 import { InteropPrinter } from "../InteropPrinter"
 import { ManagedTypeConvertor } from "./ManagedTypeConvertor"
 import { NativeModuleConstructions } from "./NativeModuleConstructions"
 
 export class NativeModulePrinter extends InteropPrinter {
-    constructor(idl: IDLFile, config: Config) {
-        super(idl, config)
+    constructor(idl: IDLFile) {
+        super(idl)
         this.writer.pushIndent()
     }
 

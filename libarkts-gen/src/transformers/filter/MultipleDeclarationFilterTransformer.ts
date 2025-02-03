@@ -13,25 +13,27 @@
  * limitations under the License.
  */
 
-import { Config } from "../Config"
-import { IDLFile } from "../IdlFile"
-import { Typechecker } from "../idl-utils"
 import { isInterface } from "@idlizer/core"
+import { IDLFile } from "../../idl-utils"
 
-export class AstNodeFilterTransformer {
+export class MultipleDeclarationFilterTransformer {
     constructor(
         private file: IDLFile
     ) {}
 
-    private typechecker = new Typechecker(this.file.entries)
-
     transformed(): IDLFile {
+        const seen = new Set<string>()
         return new IDLFile(
-            this.file.entries
-                .filter(it => !isInterface(it) || this.typechecker.isHeir(
-                    it.name,
-                    Config.astNodeCommonAncestor
-                ))
+            this.file.entries.filter(it => {
+                if (!isInterface(it)) {
+                    return true
+                }
+                if (seen.has(it.name)) {
+                    return false
+                }
+                seen.add(it.name)
+                return true
+            })
         )
     }
 }
