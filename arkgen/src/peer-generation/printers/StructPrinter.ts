@@ -18,17 +18,19 @@ import {
     IndentedPrinter,
     Language,
     camelCaseToUpperSnakeCase,
+    isBuilderClass,
     isImportAttr,
     isStringEnum,
     generatorConfiguration,
     generatorTypePrefix,
+    lib,
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { createLanguageWriter, LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { isBuilderClass, isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
+import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor"
 import { cleanPrefix, PeerLibrary } from "../PeerLibrary"
 import { PrintHint } from "@idlizer/core"
 import { LibraryInterface } from "@idlizer/core"
@@ -504,6 +506,10 @@ export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterfa
         ...decl.methods,
         ...decl.callables,
     ]
+}
+
+export function generateStructs(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
+    new StructPrinter(library).generateStructs(structs, typedefs, writeToString)
 }
 
 class NameWithType {

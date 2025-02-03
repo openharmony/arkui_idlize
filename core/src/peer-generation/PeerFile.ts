@@ -13,18 +13,18 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlizer/core/idl'
+import * as idl from '../idl'
 import { PeerClass } from "./PeerClass"
-import { LibraryFileInterface } from "@idlizer/core"
+import { LibraryFileInterface } from '../LibraryInterface'
 
 export class PeerFile implements LibraryFileInterface {
     readonly peers: Map<string, PeerClass> = new Map()
+
     constructor(
         public readonly originalFilename: string,
         public readonly entries: idl.IDLEntry[],
         public readonly isPredefined: boolean = false
     ) {}
-
 
     public packageName(): string {
         let packageTag = this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage

@@ -14,11 +14,10 @@
  */
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
-import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression } from "@idlizer/core"
-import { createConstructPeerMethod } from "../PeerClass";
-import { PeerClass } from "../PeerClass";
+import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
+    createConstructPeerMethod, PeerClass, PeerMethod
+} from "@idlizer/core"
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerMethod } from "../PeerMethod";
 import { Language } from  '@idlizer/core'
 import * as idl from  '@idlizer/core/idl'
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";

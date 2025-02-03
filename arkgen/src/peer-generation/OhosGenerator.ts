@@ -58,6 +58,7 @@ import {
     Language,
     LanguageStatement,
     LanguageWriter,
+    PeerMethod,
     qualifiedName,
     setDefaultConfiguration
 } from '@idlizer/core'
@@ -88,8 +89,7 @@ import {
     groupOverloadsIDL,
     OverloadsPrinter
 } from './printers/OverloadsPrinter'
-import { MaterializedClass, MaterializedMethod } from './Materialized'
-import { PeerMethod } from './PeerMethod'
+import { MaterializedClass, MaterializedMethod } from '@idlizer/core'
 import { writePeerMethod } from './printers/PeersPrinter'
 import { PeerGeneratorConfig } from './PeerGeneratorConfig'
 import { TargetFile } from './printers/TargetFile'
@@ -1060,11 +1060,6 @@ export class OhosConfiguration implements GeneratorConfiguration {
         throw new Error(`${name} is unknown`)
     }
     paramArray<T>(name: string): T[] {
-        switch (name) {
-            case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
-            case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
-            case 'knownParameterized': return PeerGeneratorConfig.knownParametrized as T[]
-        }
-        throw new Error(`array ${name} is unknown`)
+        return []
     }
 }

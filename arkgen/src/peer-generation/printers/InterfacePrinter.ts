@@ -25,10 +25,11 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from '../LanguageWriters'
-import { LanguageWriter } from "@idlizer/core"
+import { LanguageWriter, PeerFile } from "@idlizer/core"
 import {
     indentedBy,
     isDefined,
+    isBuilderClass,
     removeExt,
     renameDtsToInterfaces,
     stringOrNone,
@@ -38,7 +39,6 @@ import {
     CustomPrintVisitor
 } from '@idlizer/core'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
-import { PeerFile } from '../PeerFile'
 import { TargetFile } from './TargetFile'
 import { PrinterContext } from './PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "@idlizer/core";
@@ -48,7 +48,7 @@ import { collectJavaImports } from './lang/JavaIdlUtils'
 import { collectProperties } from './StructPrinter'
 import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
-import { isBuilderClass, isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
+import { isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'

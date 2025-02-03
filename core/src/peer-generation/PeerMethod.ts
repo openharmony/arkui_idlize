@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-import { capitalize, IDLType, isDefined } from '@idlizer/core'
-import { ArgConvertor } from "@idlizer/core"
-import { Method, MethodModifier } from "./LanguageWriters"
-import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { mangleMethodName } from "@idlizer/core"
-import { IdlNameConvertor } from "@idlizer/core"
+import { IDLType } from "../idl"
+import { IdlNameConvertor } from "../LanguageWriters"
+import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
+import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
+import { capitalize, isDefined } from "../util"
+import { PrimitiveTypesInstance } from "./PrimitiveType"
+
 export class PeerMethod {
     private overloadIndex?: number
     constructor(
@@ -87,7 +88,7 @@ export class PeerMethod {
         if (!this.hasReceiver()) return undefined
         return {
             argName: "node",
-            argType: ArkPrimitiveTypesInstance.NativePointer.getText()
+            argType: PrimitiveTypesInstance.NativePointer.getText()
         }
     }
 

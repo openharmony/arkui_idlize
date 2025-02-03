@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlizer/core/idl'
-import { ArgConvertor, qualifiedName } from "@idlizer/core"
-import { Field, Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
-import { capitalize } from '@idlizer/core'
-import { ImportsCollector } from "./ImportsCollector"
-import { createReferenceType, IDLType, IDLVoidType } from '@idlizer/core/idl'
-import { PeerMethod } from "./PeerMethod";
-import { PeerClassBase } from "./PeerClass";
-import { PeerLibrary } from "./PeerLibrary"
-import { copyMethod } from '@idlizer/core'
+import * as idl from '../idl'
+import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
+import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
+import { capitalize } from '../util'
+import { qualifiedName } from './idl/common'
+import { PeerClassBase } from './PeerClass'
+import { PeerMethod } from './PeerMethod'
 
 export class MaterializedField {
     constructor(
@@ -38,7 +35,7 @@ export class MaterializedMethod extends PeerMethod {
         originalParentName: string,
         public implementationParentName: string,
         argConvertors: ArgConvertor[],
-        returnType: IDLType,
+        returnType: idl.IDLType,
         isCallSignature: boolean,
         method: Method,
         public outArgConvertor?: ArgConvertor,
@@ -101,7 +98,7 @@ export class MaterializedMethod extends PeerMethod {
         return this.implementationParentName
     }
 
-    tsReturnType(): IDLType | undefined {
+    tsReturnType(): idl.IDLType | undefined {
         return this.method.signature.returnType
     }
 
@@ -176,13 +173,13 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
             clazz.className,
             clazz.getImplementationName(),
             [],
-            IDLVoidType,
+            idl.IDLVoidType,
             false,
             new Method(
                 'destroyPeer',
                 new NamedMethodSignature(
-                    IDLVoidType,
-                    [createReferenceType(clazz.className)],
+                    idl.IDLVoidType,
+                    [idl.createReferenceType(clazz.className)],
                     ['peer']
                 )
             )
@@ -198,12 +195,6 @@ export function getInternalClassQualifiedName(target: idl.IDLEntry): string {
 }
 
 export function getMaterializedFileName(name:string): string {
-     const pascalCase = name.split('_').map(x => capitalize(x)).join('')
+    const pascalCase = name.split('_').map(x => capitalize(x)).join('')
     return `Ark${pascalCase}Materialized`
-}
-
-export function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
-    for (const materialized of library.materializedClasses.values()) {
-        imports.addFeature(getInternalClassName(materialized.className), `./${getMaterializedFileName(materialized.className)}`)
-    }
 }

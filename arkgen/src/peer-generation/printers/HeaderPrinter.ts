@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor } from '@idlizer/core'
-import { getInteropRootPath, getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
+import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor,
+    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod
+} from '@idlizer/core'
+import { getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
 import { PeerLibrary } from "../PeerLibrary";
-import { createConstructPeerMethod, PeerClass } from "../PeerClass";
-import { PeerMethod } from "../PeerMethod";
-import { createDestroyPeerMethod } from "../Materialized";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 

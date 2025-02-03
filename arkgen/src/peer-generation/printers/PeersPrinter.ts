@@ -17,7 +17,6 @@ import * as idl from '@idlizer/core/idl'
 import * as path from "path"
 import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
-import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -28,17 +27,15 @@ import {
     NamedMethodSignature,
     createLanguageWriter
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
-import { getInternalClassName, MaterializedMethod } from "../Materialized";
+import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerFile, PeerMethod,
+    getInternalClassName, MaterializedMethod
+} from "@idlizer/core";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerFile } from "../PeerFile";
-import { PeerClass } from "../PeerClass";
-import { PeerMethod } from "../PeerMethod";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,

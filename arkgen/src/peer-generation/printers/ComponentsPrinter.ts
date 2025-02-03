@@ -26,15 +26,13 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
+import { LanguageWriter, PeerFile, PeerClass } from "@idlizer/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerFile } from "../PeerFile";
-import { PeerClass } from "../PeerClass";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, IDLVoidType, isOptionalType } from '@idlizer/core'

@@ -31,6 +31,7 @@ import { createEmptyReferenceResolver, ReferenceResolver } from "@idlizer/core"
 import { PrintHint } from "@idlizer/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
+import { generateStructs } from "./printers/StructPrinter"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -392,7 +393,7 @@ function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedef
     writeSerializer(library, serializers, "")
     serializers.print("\n// Deserializers\n")
     writeDeserializer(library, serializers, "")
-    library.generateStructs(structs, typedefs, writeToString)
+    generateStructs(library, structs, typedefs, writeToString)
 
     return `
 ${writeToString.getOutput().join("\n")}

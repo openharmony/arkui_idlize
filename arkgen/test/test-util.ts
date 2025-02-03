@@ -1,9 +1,7 @@
 import * as path from "path"
-import { Language, toIDL } from "@idlizer/core"
+import { Language, toIDL, PeerFile } from "@idlizer/core"
 import { createReferenceType, IDLEntry } from "@idlizer/core/idl"
 import { PeerLibrary } from "../src/peer-generation/PeerLibrary"
-import { PeerFile } from "../src/peer-generation/PeerFile"
-
 
 export class IDLTestData {
     readonly peerLibrary: PeerLibrary

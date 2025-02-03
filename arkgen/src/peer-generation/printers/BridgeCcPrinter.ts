@@ -13,20 +13,17 @@
  * limitations under the License.
  */
 
-import { capitalize, dropSuffix, isDefined, Language } from '@idlizer/core'
-import { ArgConvertor } from "@idlizer/core";
+import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstructPeerMethod } from '@idlizer/core'
+import { ArgConvertor, MaterializedClass } from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement } from "../LanguageWriters";
 import { LanguageWriter } from "@idlizer/core"
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerMethod } from "../PeerMethod";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
-import { createConstructPeerMethod } from "../PeerClass";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
 import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
-import { MaterializedClass } from '../Materialized';
 
 class BridgeCcVisitor {
     readonly generatedApi = createLanguageWriter(Language.CPP, this.library)

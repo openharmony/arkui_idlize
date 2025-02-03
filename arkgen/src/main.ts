@@ -27,7 +27,7 @@ import {
     GeneratorConfiguration,
     setDefaultConfiguration,
     initRNG,
-    PrimitiveType
+    PeerFile
 } from "@idlizer/core"
 import {
     forEachChild,
@@ -59,7 +59,6 @@ import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
 import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
 import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
 import { PeerLibrary } from "./peer-generation/PeerLibrary"
-import { PeerFile } from "./peer-generation/PeerFile"
 import { generateOhos } from "./peer-generation/ohos"
 import { ArkoalaPeerLibrary } from "./arkoala/ArkoalaPeerLibrary"
 
@@ -139,6 +138,7 @@ class ArkoalaConfiguration extends DefaultConfig {
             case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
             case 'knownParameterized': return PeerGeneratorConfig.knownParametrized as T[]
             case 'boundProperties': return PeerGeneratorConfig.boundProperties as T[]
+            case 'builderClasses': return PeerGeneratorConfig.builderClasses as T[]
         }
         return super.paramArray(name)
     }

@@ -15,8 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { ArkPrimitiveTypesInstance } from '../../ArkPrimitiveType'
-import { PeerMethod } from '../../PeerMethod'
-import { convertType, TypeConvertor } from '@idlizer/core'
+import { convertType, PeerMethod, TypeConvertor } from '@idlizer/core'
 
 export class InteropReturnTypeConvertor implements TypeConvertor<string> {
     isVoid(method: PeerMethod): boolean {

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { IndentedPrinter, Language, isImportAttr } from '@idlizer/core'
+import { IndentedPrinter, Language, isImportAttr, PeerClassBase, PeerClass, PeerMethod } from '@idlizer/core'
 import {
     BlockStatement,
     CppLanguageWriter,
@@ -26,13 +26,10 @@ import {
     TSLanguageWriter
 } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
-import { PeerClassBase } from "../PeerClass"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { PeerMethod } from "../PeerMethod"
 import { PeerLibrary } from "../PeerLibrary"
-import { PeerClass } from "../PeerClass"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { ReferenceResolver, CppInteropConvertor } from "@idlizer/core"

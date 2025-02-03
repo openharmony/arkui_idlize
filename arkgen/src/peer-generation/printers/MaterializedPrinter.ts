@@ -25,8 +25,7 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, RuntimeType } from "@idlizer/core"
-import { getInternalClassName, MaterializedClass, MaterializedField } from "../Materialized"
+import { LanguageWriter, RuntimeType, getInternalClassName, MaterializedClass, MaterializedField } from "@idlizer/core"
 import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector";

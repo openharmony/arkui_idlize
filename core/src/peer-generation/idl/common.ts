@@ -67,6 +67,12 @@ export function generateSyntheticUnionName(types: idl.IDLType[]) {
     return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
 }
 
+export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
+    let prefix = isAsync ? "AsyncCallback" : "Callback"
+    const names = parameters.map(it => `${generateSyntheticIdlNodeName(it.type!)}`).concat(generateSyntheticIdlNodeName(returnType))
+    return `${prefix}_${names.join("_").replaceAll(".", "_")}`
+}
+
 export function isImportAttr(decl: idl.IDLNode): boolean {
     return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)
 }

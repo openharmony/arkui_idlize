@@ -22,8 +22,8 @@ import {
     isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
     snakeCaseToCamelCase, escapeIDLKeyword, GenericVisitor,
-    generateSyntheticUnionName, generateSyntheticIdlNodeName, typeOrUnion, isCommonMethodOrSubclass,
-    generatorConfiguration
+    generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
+    typeOrUnion, isCommonMethodOrSubclass, generatorConfiguration
 } from "@idlizer/core"
 import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { ReferenceResolver } from "@idlizer/core"
@@ -59,12 +59,6 @@ export function selectName(nameSuggestion: NameSuggestion | undefined, synthetic
     if (nameSuggestion?.name && syntheticName.length >= MaxSyntheticTypeLength)
         return nameSuggestion.name
     return syntheticName
-}
-
-export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
-    let prefix = isAsync ? "AsyncCallback" : "Callback"
-    const names = parameters.map(it => `${generateSyntheticIdlNodeName(it.type!)}`).concat(generateSyntheticIdlNodeName(returnType))
-    return `${prefix}_${names.join("_").replaceAll(".", "_")}`
 }
 
 function mangleConflictingName(name: string, sourceFile: ts.SourceFile | undefined): string {

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, lib, throwException } from '@idlizer/core'
+import { generatorConfiguration, Language, isBuilderClass, throwException } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
@@ -23,7 +23,6 @@ import { PeerLibrary } from '../PeerLibrary'
 import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
-    isBuilderClass,
     isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor'
 import { collectFunctions, collectProperties } from '../printers/StructPrinter'
@@ -31,7 +30,7 @@ import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
 import { createDeclarationNameConvertor } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
-import { collectMaterializedImports, getInternalClassName, getInternalClassQualifiedName } from '../Materialized'
+import { getInternalClassName, getInternalClassQualifiedName, getMaterializedFileName } from '@idlizer/core'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
@@ -632,6 +631,12 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         } else { // This is used for OHOS library generation only
             collectOhosImports(collector, true)
             collector.addFeature("TypeChecker", "./type_check")
+        }
+    }
+
+    function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
+        for (const materialized of library.materializedClasses.values()) {
+            imports.addFeature(getInternalClassName(materialized.className), `./${getMaterializedFileName(materialized.className)}`)
         }
     }
 

@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import { IDLI32Type, IDLPointerType, IDLProperty } from '@idlizer/core/idl'
-import { NumericConvertor } from "@idlizer/core"
+import { IDLI32Type, IDLPointerType, IDLProperty } from "../idl"
+import { NumericConvertor } from "../LanguageWriters/ArgConvertors"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
-import { Method, MethodModifier, NamedMethodSignature } from "./LanguageWriters"
+import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"
 
 export interface PeerClassBase {
     generatedName(isCallSignature: boolean): string

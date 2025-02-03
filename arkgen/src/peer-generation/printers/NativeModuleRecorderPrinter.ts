@@ -14,11 +14,8 @@
  */
 
 import { createInteropArgConvertor, createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
-import { createConstructPeerMethod, PeerClassBase } from "../PeerClass";
-import { PeerClass } from "../PeerClass";
+import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod } from "@idlizer/core"
 import { PeerLibrary } from "../PeerLibrary";
-import { PeerMethod } from "../PeerMethod";
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from '@idlizer/core'
 import {
@@ -27,8 +24,7 @@ import {
 } from "@idlizer/core/idl"
 import { makeInteropSignature } from "./NativeModulePrinter";
 import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
-import { generateSyntheticFunctionName } from "../../IDLVisitor";
-import { createAlternativeReferenceResolver } from "@idlizer/core";
+import { generateSyntheticFunctionName, createAlternativeReferenceResolver } from "@idlizer/core";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter

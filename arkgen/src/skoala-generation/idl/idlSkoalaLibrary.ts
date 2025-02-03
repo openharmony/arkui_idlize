@@ -27,18 +27,19 @@ import {
     resolveSyntheticType,
     isImport,
     CustomTypeConvertor,
-    generatorConfiguration
+    generatorConfiguration,
+    LibraryInterface,
+    LibraryFileInterface
 } from '@idlizer/core'
 import { ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlizer/core";
 import { ArkoalaInterfaceConvertor } from "../../arkoala/ArkoalaArgConvertors";
-import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor } from "@idlizer/core";
-import { ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor } from "@idlizer/core";
-import { convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor } from "@idlizer/core";
-import { LibraryFileInterface, LibraryInterface } from "@idlizer/core";
-import { generateSyntheticFunctionName } from "../../IDLVisitor";
+import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor,
+    ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor,
+    convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor, generateSyntheticFunctionName
+} from "@idlizer/core"
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 

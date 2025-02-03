@@ -14,24 +14,17 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { BuilderClass } from './BuilderClass';
-import { MaterializedClass } from "./Materialized";
 import { isMaterialized } from './idl/IdlPeerGeneratorVisitor';
-import { PeerFile } from "./PeerFile";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor } from '../arkoala/ArkoalaArgConvertors';
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
-         NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor
+         NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
+         ImportTypeConvertor, InterfaceConvertor
         } from '@idlizer/core'
-import { IndentedPrinter, Language, warn, isImportAttr, InteropNameConvertor } from '@idlizer/core'
+import { Language, warn, isImportAttr, InteropNameConvertor } from '@idlizer/core'
 import { createTypeNameConvertor } from './LanguageWriters';
-import { LanguageWriter } from '@idlizer/core';
-import { StructPrinter } from './printers/StructPrinter';
-import { LengthConvertor } from '../arkoala/ArkoalaArgConvertors';
+import { PeerFile, BuilderClass, MaterializedClass } from '@idlizer/core';
 import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlizer/core';
-import { generateSyntheticFunctionName } from '../IDLVisitor';
-import { IdlNameConvertor } from '@idlizer/core';
-import { LibraryInterface } from '@idlizer/core';
+import { generateSyntheticFunctionName, IdlNameConvertor, LibraryInterface } from '@idlizer/core';
 
 export class PeerLibrary implements LibraryInterface {
     private _syntheticEntries: idl.IDLEntry[] = []
@@ -219,7 +212,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isReferenceType(type)) {
             if (isImportAttr(type))
-                return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
             const decl = this.resolveTypeReference(type)
             return this.declarationConvertor(param, type, decl)
         }
@@ -248,7 +241,7 @@ export class PeerLibrary implements LibraryInterface {
 
         const declarationName = declaration.name!
         if (isImportAttr(declaration)) {
-            return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+            return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         if (idl.isEnum(declaration)) {
             return new EnumConvertor(param, declaration)
@@ -272,7 +265,7 @@ export class PeerLibrary implements LibraryInterface {
             }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
-                    return new ArkoalaInterfaceConvertor(this, declarationName, param, declaration)
+                    return new InterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.Class:
                     return new ClassConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.AnonymousInterface:
@@ -350,10 +343,6 @@ export class PeerLibrary implements LibraryInterface {
                 : decl
         }
         return type
-    }
-
-    generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        new StructPrinter(this).generateStructs(structs, typedefs, writeToString)
     }
 }
 
