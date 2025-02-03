@@ -31,7 +31,7 @@ interface FrameNode {
     // String getId();
     // number getUniqueId();
     // String getNodeType();
-    // number getOpacity();
+    number getOpacity();
     // boolean isVisible();
     // boolean isClipToFrame();
     // boolean isAttached();
@@ -48,7 +48,7 @@ interface FrameNode {
     // void setNeedsLayout();
     // void invalidate();
     // Position getPositionToScreen();
-    // Position getPositionToWindowWithTransform();
+    Position getPositionToWindowWithTransform();
     // Position getPositionToParentWithTransform();
     // Position getPositionToScreenWithTransform();
     // void disposeTree();

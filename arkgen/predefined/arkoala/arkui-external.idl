@@ -148,3 +148,15 @@ interface LengthMetrics {
    */
   attribute number value;
 };
+
+[Entity=Interface]
+interface WebHeader {
+    attribute String headerKey;
+    attribute String headerValue;
+};
+
+[Entity=Class]
+interface WebviewController {
+  static void initializeWebEngine();
+  void loadUrl((String or Resource) url, optional sequence<WebHeader> headers);
+};

@@ -124,7 +124,7 @@ export class PeerGeneratorConfig {
         "IMonitor", // IMonitor class processing will fixed in !920
         "Configuration",
         "UIGestureEvent",
-        "GestureHandler",           // class with generics
+        //"GestureHandler",           // class with generics
         "GestureGroupHandler",
         "ContentModifier",
         // constant values need to be generated
