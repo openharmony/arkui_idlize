@@ -12,6 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import * as fs from "fs"
+import * as path from "path"
+import { isDefined } from "./util"
+
+
 export interface GeneratorConfiguration {
     param<T>(name: string): T
     paramArray<T>(name: string): T[]
@@ -40,3 +46,4 @@ export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.param("TypePrefix")}${conf.param("LibraryPrefix")}`
 }
+

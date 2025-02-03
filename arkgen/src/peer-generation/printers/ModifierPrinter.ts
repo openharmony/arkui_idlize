@@ -14,6 +14,7 @@
  */
 
 import { IndentedPrinter } from '@idlizer/core'
+import { PeerGeneratorConfigCore } from '../PeerGeneratorConfig'
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
@@ -208,14 +209,16 @@ export class ModifierVisitor {
     }
 
     printRealAndDummyModifier(method: PeerMethod, clazz: PeerClass) {
+        this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
+        if (PeerGeneratorConfigCore.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
+            return
+        }
         this.printMethodProlog(this.dummy, method)
         this.printMethodProlog(this.real, method)
         this.printDummyImplFunctionBody(method)
         this.printModifierImplFunctionBody(method, clazz)
         this.printMethodEpilog(this.dummy)
         this.printMethodEpilog(this.real)
-
-        this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
     }
 
     printClassProlog(clazz: PeerClass) {
@@ -270,7 +273,9 @@ export class ModifierVisitor {
         Array.from(namespaces.keys()).forEach (namespaceName => {
             this.pushNamespace(namespaceName, false)
             namespaces.get(namespaceName)?.forEach(
-                method => this.printRealAndDummyModifier(method, clazz)
+                method => {
+                    this.printRealAndDummyModifier(method, clazz)
+                }
             )
             this.popNamespace(namespaceName, false)
         })
@@ -299,16 +304,19 @@ class AccessorVisitor extends ModifierVisitor {
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass) {
-        this.printMaterializedClassProlog(clazz)
+        this.printMaterializedClassProlog(clazz) 
         // Materialized class methods share the same namespace
         // so take the first one.
         const namespaceName = clazz.ctor.implNamespaceName
         this.pushNamespace(namespaceName, false)
         const mDestroyPeer = createDestroyPeerMethod(clazz);
         [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
+            this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
+            if (PeerGeneratorConfigCore.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
+                return
+            }
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
-            this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
         })
         this.popNamespace(namespaceName, false)
         this.printMaterializedClassEpilog(clazz)

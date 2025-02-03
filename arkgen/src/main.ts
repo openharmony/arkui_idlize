@@ -42,7 +42,7 @@ import {
 } from "@idlizer/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
+import { loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
 import {
     IDLInteropPredefinesVisitor,
@@ -100,11 +100,15 @@ const options = program
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--use-new-ohos', 'Use new ohos generator')
+    .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
     .opts()
 
 let apiVersion = options.apiVersion ?? 9999
 
+if (options.optionsFile) {
+    setFileGeneratorConfiguration(loadConfiguration(options.optionsFile as string))
+}
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)

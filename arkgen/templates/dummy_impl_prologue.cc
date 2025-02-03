@@ -827,3 +827,118 @@ namespace GeneratedEvents {
     void %CPP_PREFIX%SetArkUiEventsAPI(const %CPP_PREFIX%ArkUIEventsAPI* api) { g_OverriddenEventsImpl = api; }
 }
 }
+
+// handWritten implementations
+namespace OHOS::Ace::NG::GeneratedModifier {
+    namespace LazyForEachOpsAccessor {
+    void DestroyPeerImpl(LazyForEachOpsPeer* peer)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("destroyPeer(");
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    Ark_NativePointer CtorImpl()
+    {
+        if (!needGroupedLog(1))
+            return (LazyForEachOpsPeer*) 100;
+        string out("new LazyForEachOps(");
+        out.append(") \n");
+        out.append("[return (LazyForEachOpsPeer*) 100] \n");
+        appendGroupedLog(1, out);
+        return (LazyForEachOpsPeer*) 100;
+    }
+    Ark_NativePointer GetFinalizerImpl()
+    {
+        if (!needGroupedLog(1))
+            return fnPtr<KNativePointer>(dummyClassFinalizer);
+        string out("getFinalizer(");
+        out.append(") \n");
+        out.append("[return fnPtr<KNativePointer>(dummyClassFinalizer)] \n");
+        appendGroupedLog(1, out);
+        return fnPtr<KNativePointer>(dummyClassFinalizer);
+    }
+    Ark_NativePointer NeedMoreElementsImpl(Ark_NativePointer node,
+                                           Ark_NativePointer mark,
+                                           Ark_Int32 direction)
+    {
+        if (!needGroupedLog(1))
+            return (void*) 300;
+        string out("NeedMoreElements(");
+        WriteToString(&out, node);
+        out.append(", ");
+        WriteToString(&out, mark);
+        out.append(", ");
+        WriteToString(&out, direction);
+        out.append(") \n");
+        out.append("[return (void*) 300] \n");
+        appendGroupedLog(1, out);
+        return (void*) 300;
+    }
+    void OnRangeUpdateImpl(Ark_NativePointer node,
+                           Ark_Int32 totalCount,
+                           const Callback_RangeUpdate* updater)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("OnRangeUpdate(");
+        WriteToString(&out, node);
+        out.append(", ");
+        WriteToString(&out, totalCount);
+        out.append(", ");
+        WriteToString(&out, updater);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    void SetCurrentIndexImpl(Ark_NativePointer node,
+                             Ark_Int32 index)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("SetCurrentIndex(");
+        WriteToString(&out, node);
+        out.append(", ");
+        WriteToString(&out, index);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    void PrepareImpl(Ark_NativePointer node)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("Prepare(");
+        WriteToString(&out, node);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    } // LazyForEachOpsAccessor
+
+    namespace CommonMethodModifier {
+        void OnClick0Impl(Ark_NativePointer node,
+                      const Callback_ClickEvent_Void* value)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("onClick(");
+        WriteToString(&out, value);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    void OnClick1Impl(Ark_NativePointer node,
+                      const Callback_ClickEvent_Void* event,
+                      const Ark_Number* distanceThreshold)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("onClick(");
+        WriteToString(&out, event);
+        out.append(", ");
+        WriteToString(&out, distanceThreshold);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
+    } // CommonMethodModifier
+}
+
+// end of handWritten implementations

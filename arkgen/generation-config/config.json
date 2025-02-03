@@ -1,0 +1,12 @@
+{
+    "generators": {
+        "dummy": {
+            "ignoreMethods": {
+                "LazyForEachOps": ["*"],
+                "CommonMethod": [
+                    "onClick"
+                ]
+            }
+        }
+    }
+}
