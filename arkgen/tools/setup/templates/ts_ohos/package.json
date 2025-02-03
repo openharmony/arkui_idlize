@@ -1,0 +1,12 @@
+{
+    "name": "ohos",
+    "main": "lib/index.js",
+    "bin": "lib/index.js",
+    "files": [
+        "build/*.js"
+    ],
+    "dependencies": {
+        "@types/node": "^20.14.11",
+        "typescript": "^4.9.5"
+    }
+}
