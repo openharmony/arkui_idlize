@@ -15,107 +15,69 @@
 
 import * as idl from '@idlizer/core/idl'
 import { ARK_CUSTOM_OBJECT, convertJavaOptional, javaCustomTypeMapping } from '../../printers/lang/Java';
-import { ReferenceResolver } from "@idlizer/core"
+import { lazy, ReferenceResolver } from "@idlizer/core"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from "@idlizer/core";
 import { InteropArgConvertor } from './InteropConvertor';
 
-
-class JavaTypeAlias {
-    // Java type itself
-    // string representation can contain special characters (e.g. String[])
-    readonly type: {
-        text: string,
-        optional: boolean
-    }
-
-    // synthetic identifier for internal use cases: naming classes/files etc.
-    // string representation contains only letters, numbers and underscores (e.g. Array_String)
-    readonly alias: string
-
-    static fromTypeName(typeName: string, optional: boolean): JavaTypeAlias {
-        return new JavaTypeAlias({ text: typeName, optional }, optional ? convertJavaOptional(typeName) : typeName)
-    }
-
-    static fromTypeAlias(typeAlias: JavaTypeAlias, optional: boolean): JavaTypeAlias {
-        return new JavaTypeAlias({ text: typeAlias.type.text, optional: typeAlias.type.optional || optional }, optional ? convertJavaOptional(typeAlias.alias) : typeAlias.alias)
-    }
-
-    constructor(type: { text: string, optional: boolean } | string, alias: string) {
-        if (typeof type === 'string') {
-            this.type = {
-                text: type,
-                optional: false
-            }
-        } else {
-            this.type = type
-        }
-        this.alias = alias
-    }
-}
-
-export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias>, IdlNameConvertor {
-
+export class JavaIDLNodeToStringConvertor implements NodeConvertor<string>, IdlNameConvertor {
     constructor(
         private resolver: ReferenceResolver
     ) { }
+    protected solidConvertor = lazy(() => new JavaIdlNodeToSolidStringConvertor(this.resolver))
 
     convert(node: idl.IDLNode): string {
-        const alias = convertNode<JavaTypeAlias>(this, node)
-        const rowType = alias.type.optional ? convertJavaOptional(alias.type.text) : alias.type.text
-        return this.mapTypeName(rowType)
+        const typeString = convertNode<string>(this, node)
+        return this.mapTypeName(typeString)
     }
 
-    convertNamespace(node: idl.IDLNamespace): JavaTypeAlias {
+    convertNamespace(node: idl.IDLNamespace): string {
         throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
     }
-    convertInterface(node: idl.IDLInterface): JavaTypeAlias {
+    convertInterface(node: idl.IDLInterface): string {
         if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
-            return this.productType(node, true, false)
+            const javaTypeAliases = node.properties.map(it => convertType(this, idl.maybeOptional(it.type, it.isOptional)))
+            return `Tuple_${javaTypeAliases.join('_')}`
         }
-        return JavaTypeAlias.fromTypeName(node.name, false)
+        return node.name
     }
-    convertEnum(node: idl.IDLEnum): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(node.name, false)
+    convertEnum(node: idl.IDLEnum): string {
+        return node.name
     }
-    convertTypedef(node: idl.IDLTypedef): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(node.name, false)
+    convertTypedef(node: idl.IDLTypedef): string {
+        return node.name
     }
 
-    convertOptional(type: idl.IDLOptionalType): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(convertJavaOptional(this.convert(type.type)), true)
+    convertOptional(type: idl.IDLOptionalType): string {
+        return convertJavaOptional(this.convert(type.type))
     }
-    convertUnion(type: idl.IDLUnionType): JavaTypeAlias {
-        const aliases = type.types.map(it => convertType(this, it))
-        return JavaTypeAlias.fromTypeName(`Union_${aliases.map(it => it.alias).join('_')}`, false)
+    convertUnion(type: idl.IDLUnionType): string {
+        const aliases = type.types.map(it => convertType(this.solidConvertor.value, it))
+        return `Union_${aliases.join('_')}`
     }
-    convertContainer(type: idl.IDLContainerType): JavaTypeAlias {
+    convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            const javaTypeAlias = convertType(this, type.elementType[0])
-            return new JavaTypeAlias(`${javaTypeAlias.type.text}[]`, `Array_${javaTypeAlias.alias}`)
+            const javaType = convertType(this, type.elementType[0])
+            return `${javaType}[]`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            const javaTypeAliases = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
-            return new JavaTypeAlias(`Map<${javaTypeAliases[0].type.text}, ${javaTypeAliases[1].type.text}>`, `Map_${javaTypeAliases[0].alias}_${javaTypeAliases[1].alias}`)
+            const javaTypes = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
+            return `Map<${javaTypes[0]}, ${javaTypes[1]}>`
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
-    convertCallback(type: idl.IDLCallback): JavaTypeAlias {
-        if (idl.isSyntheticEntry(type)) {
-            return this.callbackType(type)
-        }
-        // TODO
-        return JavaTypeAlias.fromTypeName(`Callback`, false)
+    convertCallback(type: idl.IDLCallback): string {
+        return `Callback`
     }
-    convertMethod(type: idl.IDLMethod): JavaTypeAlias {
+    convertMethod(type: idl.IDLMethod): string {
         throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
     }
-    convertConstant(type: idl.IDLConstant): JavaTypeAlias {
+    convertConstant(type: idl.IDLConstant): string {
         throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): JavaTypeAlias {
-        return JavaTypeAlias.fromTypeName(type.name, false)
+    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+        return type.name
     }
-    convertTypeReference(type: idl.IDLReferenceType): JavaTypeAlias {
+    convertTypeReference(type: idl.IDLReferenceType): string {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         if (importAttr) {
             return this.convertImport(type, importAttr)
@@ -123,78 +85,63 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
 
         let typeSpec = type.name
         if (javaCustomTypeMapping.has(typeSpec)) {
-            return JavaTypeAlias.fromTypeName(javaCustomTypeMapping.get(typeSpec)!, false)
+            return javaCustomTypeMapping.get(typeSpec)!
         }
 
         const decl = this.resolver.resolveTypeReference(type)!
         if (decl) {
             const declName = this.convert(decl)
-            return JavaTypeAlias.fromTypeName(declName, false)
+            return declName
         }
 
         if (typeSpec === `Optional`) {
-            return JavaTypeAlias.fromTypeName(idl.printType(type.typeArguments![0]), true)
+            return convertJavaOptional(idl.printType(type.typeArguments![0]))
         }
-        return JavaTypeAlias.fromTypeName(typeSpec, false)
+        return typeSpec
     }
-    convertTypeParameter(type: idl.IDLTypeParameterType): JavaTypeAlias {
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
         // TODO
-        return JavaTypeAlias.fromTypeName(type.name, false)
+        return type.name
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): JavaTypeAlias {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLAnyType: return JavaTypeAlias.fromTypeName(ARK_CUSTOM_OBJECT, false)
-            case idl.IDLStringType: return JavaTypeAlias.fromTypeName('String', false)
-            case idl.IDLNumberType: return JavaTypeAlias.fromTypeName('double', false)
-            case idl.IDLBooleanType: return JavaTypeAlias.fromTypeName('boolean', false)
-            case idl.IDLUndefinedType: return JavaTypeAlias.fromTypeName('Ark_Undefined', false)
-            case idl.IDLI8Type: return JavaTypeAlias.fromTypeName('byte', false)
-            case idl.IDLU8Type: return JavaTypeAlias.fromTypeName('byte', false)
-            case idl.IDLI16Type: return JavaTypeAlias.fromTypeName('short', false)
-            case idl.IDLU16Type: return JavaTypeAlias.fromTypeName('short', false)
-            case idl.IDLI32Type: return JavaTypeAlias.fromTypeName('int', false)
-            case idl.IDLU32Type: return JavaTypeAlias.fromTypeName('int', false)
-            case idl.IDLI64Type: return JavaTypeAlias.fromTypeName('long', false)
-            case idl.IDLU64Type: return JavaTypeAlias.fromTypeName('long', false)
-            case idl.IDLF32Type: return JavaTypeAlias.fromTypeName('float', false)
-            case idl.IDLF64Type: return JavaTypeAlias.fromTypeName('double', false)
-            case idl.IDLPointerType: return JavaTypeAlias.fromTypeName('long', false)
-            case idl.IDLVoidType: return JavaTypeAlias.fromTypeName('void', false)
-            case idl.IDLDate: return JavaTypeAlias.fromTypeName('Date', false)
-            case idl.IDLBufferType: return JavaTypeAlias.fromTypeName('byte[]', false)
-            case idl.IDLLengthType: return JavaTypeAlias.fromTypeName('Ark_Length', false)
+            case idl.IDLAnyType: return ARK_CUSTOM_OBJECT
+            case idl.IDLStringType: return 'String'
+            case idl.IDLNumberType: return 'double'
+            case idl.IDLBooleanType: return 'boolean'
+            case idl.IDLUndefinedType: return 'Ark_Undefined'
+            case idl.IDLI8Type: return 'byte'
+            case idl.IDLU8Type: return 'byte'
+            case idl.IDLI16Type: return 'short'
+            case idl.IDLU16Type: return 'short'
+            case idl.IDLI32Type: return 'int'
+            case idl.IDLU32Type: return 'int'
+            case idl.IDLI64Type: return 'long'
+            case idl.IDLU64Type: return 'long'
+            case idl.IDLF32Type: return 'float'
+            case idl.IDLF64Type: return 'double'
+            case idl.IDLPointerType: return 'long'
+            case idl.IDLVoidType: return 'void'
+            case idl.IDLDate: return 'Date'
+            case idl.IDLBufferType: return 'byte[]'
+            case idl.IDLLengthType: return 'Ark_Length'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
     private readonly javaPrimitiveToReferenceTypeMap = new Map([
-        ['byte', JavaTypeAlias.fromTypeName('Byte', false)],
-        ['short', JavaTypeAlias.fromTypeName('Short', false)],
-        ['int', JavaTypeAlias.fromTypeName('Integer', false)],
-        ['float', JavaTypeAlias.fromTypeName('Float', false)],
-        ['double', JavaTypeAlias.fromTypeName('Double', false)],
-        ['boolean', JavaTypeAlias.fromTypeName('Boolean', false)],
-        ['char', JavaTypeAlias.fromTypeName('Character', false)],
+        ['byte', 'Byte'],
+        ['short', 'Short'],
+        ['int', 'Integer'],
+        ['float', 'Float'],
+        ['double', 'Double'],
+        ['boolean', 'Boolean'],
+        ['char', 'Character'],
     ])
-    private maybeConvertPrimitiveType(javaType: JavaTypeAlias): JavaTypeAlias {
-        if (this.javaPrimitiveToReferenceTypeMap.has(javaType.type.text)) {
-            return this.javaPrimitiveToReferenceTypeMap.get(javaType.type.text)!
+    protected maybeConvertPrimitiveType(javaType: string): string {
+        if (this.javaPrimitiveToReferenceTypeMap.has(javaType)) {
+            return this.javaPrimitiveToReferenceTypeMap.get(javaType)!
         }
         return javaType
-    }
-
-    private callbackType(decl: idl.IDLCallback): JavaTypeAlias {
-        // TODO
-        //const params = decl.parameters.map(it => `${it.isVariadic ? "..." : ""}${it.name}: ${this.library.mapType(it.type)}`)
-        //`((${params.join(", ")}) => ${this.library.mapType(decl.returnType)})`
-        return JavaTypeAlias.fromTypeName('Callback', false)
-    }
-
-    // Tuple + ??? AnonymousClass
-    private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): JavaTypeAlias {
-        // // TODO: other types
-        if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
-        const javaTypeAliases = decl.properties.map(it => JavaTypeAlias.fromTypeAlias(convertType(this, it.type), it.isOptional))
-        return JavaTypeAlias.fromTypeName(`Tuple_${javaTypeAliases.map(it => it.alias, false).join('_')}`, false)
     }
 
     private mapTypeName(name: string): string {
@@ -218,6 +165,22 @@ export class JavaIDLNodeToStringConvertor implements NodeConvertor<JavaTypeAlias
     }
 
     /**********************************************************************/
+}
+
+class JavaIdlNodeToSolidStringConvertor extends JavaIDLNodeToStringConvertor {
+    protected override solidConvertor = lazy(() => this)
+
+    convertContainer(type: idl.IDLContainerType): string {
+        if (idl.IDLContainerUtils.isSequence(type)) {
+            const javaTypeSolid = convertType(this, type.elementType[0])
+            return `Array_${javaTypeSolid}`
+        }
+        if (idl.IDLContainerUtils.isRecord(type)) {
+            const javaTypeSolids = type.elementType.slice(0, 2).map(it => convertType(this, it)).map(this.maybeConvertPrimitiveType, this)
+            return `Map_${javaTypeSolids[0]}_${javaTypeSolids[1]}`
+        }
+        throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
+    }
 }
 
 export class JavaInteropArgConvertor extends InteropArgConvertor {
