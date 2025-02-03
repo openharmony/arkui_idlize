@@ -497,9 +497,10 @@ export function generateArkoalaFromIdl(config: {
 
     const modifiers = printRealAndDummyModifiers(peerLibrary, true)
     const accessors = printRealAndDummyAccessors(peerLibrary)
+    const apiGenFile = "arkoala_api_generated"
     writeFile(
         arkoala.native(new TargetFile('dummy_impl.cc')),
-        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion , 6).getOutput().join('\n'),
+        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion , 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
@@ -507,7 +508,7 @@ export function generateArkoalaFromIdl(config: {
     )
     writeFile(
         arkoala.native(new TargetFile('real_impl.cc')),
-        dummyImplementations(modifiers.real, accessors.real, 1, config.apiVersion, 6).getOutput().join('\n'),
+        dummyImplementations(modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,

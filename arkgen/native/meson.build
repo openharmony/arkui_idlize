@@ -21,6 +21,7 @@ is_node = true
 is_arkts = true
 is_cj = (source_set == 'cangjie-subset')
 is_jni = java_home != 'undefined'
+is_ohos_demo = (source_set == 'ts-ohos-context')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
@@ -82,6 +83,33 @@ endif
 sources += [
     arkoala_dir + '/buffer_test.cc',
 ]
+
+if is_ohos_demo
+    arkoala_dir = gen_dir + '/native'
+
+    include_dirs = [
+        arkoala_dir,
+        # arkoala_dir / 'legacy',
+        external_interop_dir,
+        external_interop_dir / 'types',
+        external_framework_dir,
+    ]
+
+    sources = [
+        # arkoala_dir / 'all_events.cc',
+        # arkoala_dir / 'bridge_custom.cc',
+        # arkoala_dir / 'bridge_generated.cc',
+        # arkoala_dir / 'custom.cc',
+        # arkoala_dir / 'library.cc',
+        # arkoala_dir / 'callback_deserialize_call.cc',
+        # arkoala_dir / 'callback_managed_caller.cc',
+        external_interop_dir / 'common-interop.cc',
+        # external_interop_dir / 'callback-resource.cc',
+        # external_interop_dir / 'interop-logging.cc',
+        # external_framework_dir / 'events.cc',
+        # external_framework_dir / 'vsync.cc'
+    ]
+endif
 
 is_msvc = meson.get_compiler('cpp').get_id() == 'msvc'
 is_clang = meson.get_compiler('cpp').get_id() == 'clang'
@@ -343,7 +371,7 @@ endif
 endif
 
 # TODO: fix on Windows as well
-if os != 'windows'
+if (os != 'windows') and (is_ohos_demo == false)
 executable('test_arkoala_api',
     arkoala_dir / 'api_test.c',
     c_args: cflags,

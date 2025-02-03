@@ -185,12 +185,13 @@ ${lines}
 `
 }
 
-export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cc')
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     prologue = prologue
         .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%API_GENERATED%`, apiGeneratedFile)
     epilogue = epilogue
         .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
         .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())

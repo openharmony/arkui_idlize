@@ -20,7 +20,7 @@
 #include <future>
 #include <thread>
 
-#include "arkoala_api_generated.h"
+#include "%API_GENERATED%.h"
 #include "Serializers.h"
 #include "interop-logging.h"
 #include "arkoala-macros.h"
