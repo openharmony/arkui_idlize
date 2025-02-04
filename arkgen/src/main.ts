@@ -105,6 +105,7 @@ const options = program
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--options-file <path>', 'Path to file which determines what to generate')
     .option('--use-new-ohos', 'Use new ohos generator')
+    .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
     .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
     .opts()
@@ -447,7 +448,7 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
                 }
             ))
         } else {
-            generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string)
+            generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string, options.splitFiles)
         }
     }
     if (options.plugin) {

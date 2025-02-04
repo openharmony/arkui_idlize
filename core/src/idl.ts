@@ -684,11 +684,12 @@ export function createPackage(name: string): IDLPackage {
     }
 }
 
-export function createImport(name: string, importClause?: string[]): IDLImport {
+export function createImport(name: string, importClause?: string[], nodeInitializer?: IDLNodeInitializer): IDLImport {
     return {
         kind: IDLKind.Import,
         name,
         importClause: importClause,
+        ...nodeInitializer,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,

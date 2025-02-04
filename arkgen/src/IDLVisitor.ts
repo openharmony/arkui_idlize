@@ -358,7 +358,17 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         if (node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
             importClause = node.importClause.namedBindings.elements.map(it => it.getText())
         }
-        const result = idl.createImport(name, importClause)
+        const extendedAttributes:idl.IDLExtendedAttribute[] = []
+        this.computeDeprecatedExtendAttributes(node, extendedAttributes)
+        this.computeExportAttribute(node, extendedAttributes)
+        const result = idl.createImport(
+            name,
+            importClause,
+            {
+                fileName: node.getSourceFile().fileName,
+                extendedAttributes: extendedAttributes,
+                documentation: getDocumentation(this.sourceFile, node, this.options.docs),
+            })
         return result
     }
 

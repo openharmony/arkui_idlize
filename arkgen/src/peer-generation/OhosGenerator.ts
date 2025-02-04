@@ -104,13 +104,209 @@ interface SignatureDescriptor {
     paramsCString?: string
 }
 
-class OHOSVisitor {
+interface DependecyCollector {
+
+    parseImport(imp: idl.IDLImport): void
+    collect(decl: idl.IDLNode, fileName?: string, traverse?: boolean): void
+    getImportLines(fileName: string): string[]
+    dump(): void
+}
+
+class OneFileDependecyCollector implements DependecyCollector {
+
+    parseImport(imp: idl.IDLImport): void {
+    }
+    collect(decl: idl.IDLNode, fileName?: string, traverse?: boolean): void {
+    }
+    getImportLines(fileName: string): string[] {
+        return []
+    }
+    dump(): void {
+    }
+}
+class ManyFilesDependecyCollector implements DependecyCollector{
+
+    // file -> imports
+    fileToImpors: Map<string, Set<idl.IDLImport>> = new Map()
+    // already seen declarations
+    seen: Set<string> = new Set()
+    // declaration -> name
+    declToFile: Map<string, string> = new Map()
+    // file -> declarations
+    fileToDeclSet: Map<string, Set<string>> = new Map()
+    // declaration -> dependencies
+    dependencies: Map<string, Set<string>> = new Map()
+
+    constructor(private library: PeerLibrary) {
+    }
+
+    collect(decl: idl.IDLNode, fileName?: string, traverse: boolean = true) {
+        if (!fileName) {
+            fileName = getFileNameFromDeclaration(decl)
+        }
+        let declName: string | undefined = undefined
+        if (idl.isInterface(decl)) {
+            declName = decl.name
+            if (traverse) {
+                this.dependencies.set(declName, new Set(this.collectInterface(decl)))
+            }
+        } else if (idl.isReferenceType(decl)) {
+            declName = decl.name
+        }
+        if (declName) {
+            // IDLNode file name is unknown
+            if (fileName == "unknown") {
+                // try to reuse the existed one
+                fileName = this.declToFile.get(declName)
+                if (!fileName) {
+                    console.log(`Unable find the file for the declaration: ${declName}`)
+                    fileName = "unknown"
+                }
+            }
+            this.seen.add(declName)
+            this.declToFile.set(declName, fileName)
+            if (!this.fileToDeclSet.has(fileName)) {
+                this.fileToDeclSet.set(fileName, new Set())
+            }
+            this.fileToDeclSet.get(fileName)?.add(declName)
+        }
+    }
+
+    parseImport(imp: idl.IDLImport) {
+        if (!imp.importClause) {
+            return
+        }
+        const fileName = getFileNameFromDeclaration(imp)
+        // console.log(`File name: "${fileName}", import: ${imp.name}, clause: ${imp.importClause}`)
+        let imports = this.fileToImpors.get(fileName)
+        if (!imports) {
+            imports = new Set()
+        }
+        imports.add(imp)
+        this.fileToImpors.set(fileName, imports)
+    }
+
+    getImportLines(fileName: string): string[] {
+        const importLines: string[] = []
+
+        // imports from IDLImport
+        const imps = this.fileToImpors.get(fileName)
+        if (imps) {
+            for (const imp of imps) {
+                importLines.push(this.getImportLine(imp.name, imp.importClause))
+            }
+        }
+
+        // import from dependencies
+        const declarations = this.fileToDeclSet.get(fileName)
+        if (!declarations) {
+            return importLines
+        }
+
+        for (const decl of declarations) {
+            //  file to decl
+            const importsMap = new Map<string, string[]>()
+            const deps = this.dependencies.get(decl)
+            if (!deps) {
+                continue
+            }
+            for (const d of deps) {
+                // Add only collected declarations
+                if (this.seen.has(d)) {
+                    const f = this.declToFile.get(d)
+                    if (!f) {
+                        continue
+                    }
+                    let imports = importsMap.get(f)
+                    if (!imports) {
+                        imports = []
+                    }
+                    if (!imports.includes(d)) {
+                        imports.push(d)
+                        importsMap.set(f, imports)
+                    }
+                }
+            }
+            for (const [f, imports] of importsMap) {
+                if (f == fileName) {
+                    continue
+                }
+                importLines.push(this.getImportLine(`./${f}`, imports))
+            }
+        }
+        return importLines
+    }
+
+    private getImportLine(path: string, imports?: string[]) : string {
+        return `import { ${imports?.join(", ")} } from "${path}"`
+    }
+
+    private collectTypeReference(type?: idl.IDLReferenceType): string {
+        if (!type) {
+            return this.NONE_TYPE
+        }
+        const resolvedType = this.library.resolveTypeReference(type)
+        if (!resolvedType) return this.NONE_TYPE
+        this.collect(resolvedType, undefined, false)
+        return idl.isNamedNode(resolvedType) ? type.name : this.NONE_TYPE
+    }
+
+    NONE_TYPE: string = "NONE_TYPE"
+    private collectInterface(decl: idl.IDLInterface): string[] {
+        const superType = idl.getSuperType(decl)
+        return [
+            this.collectTypeReference(superType),
+            ...decl.properties
+                .map(prop => this.collectType(prop.type))
+                .filter(it => it != this.NONE_TYPE),
+            ...decl.methods
+                .flatMap(meth => [
+                    this.collectType(meth.returnType),
+                    ...meth.parameters.map(param => this.collectType(param.type)),
+                ])
+                .filter(it => it != this.NONE_TYPE),
+        ]
+    }
+
+    private collectType(type: idl.IDLType): string {
+        if (idl.isNamedNode(type)) {
+            if (type.name == "ApplicationContext") {
+                console.log(`Type: ApplicationContext`)
+            }
+        }
+        if (idl.isReferenceType(type)) {
+            return this.collectTypeReference(type)
+        }
+        return idl.isNamedNode(type) ? type.name : this.NONE_TYPE
+    }
+
+    dump() {
+        console.log(`Dump dependency collector`)
+        console.log(`Seen:`)
+        console.log(`  ${Array.from(this.seen)}`)
+        console.log(`Decl to files`)
+        for (const [decl, file] of this.declToFile) {
+            console.log(`  decl: ${decl} -> file: ${file}`)
+        }
+        console.log(`File to decls`)
+        for (const [file, declSet] of this.fileToDeclSet) {
+            console.log(`  file: ${file} -> decl: ${Array.from(declSet)}`)
+        }
+        console.log(`Decl to imports`)
+        for (const [decl, imports] of this.dependencies) {
+            console.log(`  decl: ${decl} -> imports: ${Array.from(imports)}`)
+        }
+    }
+}
+
+abstract class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
     hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
     cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
 
-    peerWriter: LanguageWriter
+    dependecyCollector: DependecyCollector
+
     nativeWriter: LanguageWriter
     nativeFunctionsWriter: LanguageWriter
     arkUIFunctionsWriter: LanguageWriter
@@ -123,14 +319,14 @@ class OHOSVisitor {
     callbacks = new Array<IDLCallback>()
     callbackInterfaces = new Array<IDLInterface>()
 
-    constructor(protected library: PeerLibrary, libraryName: string) {
+    constructor(protected library: PeerLibrary, libraryName: string, dependencyCollector: DependecyCollector) {
         if (this.library.files.length == 0)
             throw new Error("No files in library")
 
         this.libraryName = libraryName
         this.library.name = libraryName
+        this.dependecyCollector = dependencyCollector
 
-        this.peerWriter = createLanguageWriter(library.language, library)
         this.nativeWriter = createLanguageWriter(library.language, library)
         this.nativeFunctionsWriter = createLanguageWriter(library.language, library)
         this.arkUIFunctionsWriter = createLanguageWriter(library.language, library)
@@ -425,21 +621,22 @@ class OHOSVisitor {
     private printStructsDeclarations(data: idl.IDLInterface[]) {
         data.forEach(clazz => {
             const namespaces = idl.getNamespacesPathFor(clazz);
-            if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
+            const peerWriter = this.getPeerWriter(clazz)
+            if (peerWriter.language != Language.CJ) namespaces.forEach(ns => peerWriter.pushNamespace(ns.name, true));
             if (idl.isInterfaceSubkind(clazz)) {
-                this.peerWriter.writeInterface(clazz.name, writer => {
+                peerWriter.writeInterface(clazz.name, writer => {
                     clazz.properties.forEach(prop => {
                         writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                     })
                 })
             } else if (idl.isClassSubkind(clazz)) {
-                this.peerWriter.writeClass(clazz.name, writer => {
+                peerWriter.writeClass(clazz.name, writer => {
                     clazz.properties.forEach(prop => {
                         writer.writeFieldDeclaration(prop.name, prop.type, [], prop.isOptional)
                     })
                 })
             }
-            if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
+            if (peerWriter.language != Language.CJ) namespaces.forEach(() => peerWriter.popNamespace(true));
         })
     }
 
@@ -449,7 +646,8 @@ class OHOSVisitor {
                 return
             }
             const superTypes = int.inheritance.filter(it => it !== idl.IDLTopType).map(superClass => `${superClass.name}Interface`)
-            this.peerWriter.writeInterface(`${int.name}Interface`, writer => {
+            const peerWriter = this.getPeerWriter(int)
+            peerWriter.writeInterface(`${int.name}Interface`, writer => {
                 int.properties.forEach(prop => {
                     writer.writeFieldDeclaration(prop.name, prop.type, [], idl.isOptionalType(prop.type))
                 })
@@ -467,12 +665,13 @@ class OHOSVisitor {
     private printInterfacesImplementations(data: Array<idl.IDLInterface>) {
         data.forEach(int => {
             const namespaces = idl.getNamespacesPathFor(int);
-            if (this.peerWriter.language != Language.CJ) namespaces.forEach(ns => this.peerWriter.pushNamespace(ns.name, true));
+            const peerWriter = this.getPeerWriter(int)
+            if (peerWriter.language != Language.CJ) namespaces.forEach(ns => peerWriter.pushNamespace(ns.name, true));
             const isGlobalScope = hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)
 
             const superType = idl.getSuperType(int)
 
-            this.peerWriter.writeClass(`${int.name}`, writer => {
+            peerWriter.writeClass(`${int.name}`, writer => {
                 let peerInitExpr: LanguageExpression | undefined = undefined
                 if (this.library.language === Language.ARKTS && int.constructors.length === 0) {
                     peerInitExpr = writer.makeString("new Finalizable(nullptr, nullptr)")
@@ -660,7 +859,7 @@ class OHOSVisitor {
             if (int.constructors.length === 0) {
                 // Write MaterializedClass static
                 if (!hasExtAttribute(int, IDLExtendedAttributes.GlobalScope)) {
-                    this.peerWriter.writeClass(`${int.name}Internal`, writer => {
+                    peerWriter.writeClass(`${int.name}Internal`, writer => {
                         // write fromPtr(ptr: number):MaterializedClass method
                         const clazzRefType = createReferenceType(int.name, int.typeParameters?.map(createTypeParameterReference), int)
                         const fromPtrSig = new NamedMethodSignature(clazzRefType, [IDLPointerType], ["ptr"])
@@ -681,32 +880,34 @@ class OHOSVisitor {
                     })
                 }
             }
-            if (this.peerWriter.language != Language.CJ) namespaces.forEach(() => this.peerWriter.popNamespace(true));
+            if (peerWriter.language != Language.CJ) namespaces.forEach(() => peerWriter.popNamespace(true));
         })
     }
 
     private printPeers() {
         const nativeModuleVar = `${this.libraryName}NativeModule`
-        if (this.library.language != Language.CJ) this.peerWriter.print('import { TypeChecker } from "./type_check"')
-        if (this.library.language === Language.TS) {
-            this.peerWriter.print('import {')
-            this.peerWriter.pushIndent()
-            this.peerWriter.print(`${nativeModuleVar},`)
-            this.peerWriter.popIndent()
-            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
-        } else if (this.library.language === Language.ARKTS) {
-            this.peerWriter.print('import {')
-            this.peerWriter.pushIndent()
-            this.peerWriter.print(`${nativeModuleVar},`)
-            this.peerWriter.popIndent()
-            this.peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+        for (const [fileName, peerWriter] of this.getPeerWriters()) {
+            if (this.library.language != Language.CJ) peerWriter.print('import { TypeChecker } from "./type_check"')
+            if (this.library.language === Language.TS) {
+                peerWriter.print('import {')
+                peerWriter.pushIndent()
+                peerWriter.print(`${nativeModuleVar},`)
+                peerWriter.popIndent()
+                peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+            } else if (this.library.language === Language.ARKTS) {
+                peerWriter.print('import {')
+                peerWriter.pushIndent()
+                peerWriter.print(`${nativeModuleVar},`)
+                peerWriter.popIndent()
+                peerWriter.print(`} from './${this.libraryName.toLocaleLowerCase()}Native'`)
+            }
         }
 
         this.printStructsDeclarations(this.data)
         this.printInterfacesDeclarations([...this.interfaces, ...this.data])
 
         this.enums.forEach(e => {
-            const writer = this.peerWriter
+            const writer = this.getPeerWriter(e)
             writer.writeStatement(writer.makeEnumEntity(e, true))
         })
 
@@ -714,10 +915,11 @@ class OHOSVisitor {
 
         this.library.globalScopeInterfaces.forEach(entry => {
             const groupedMethods = groupOverloadsIDL(entry.methods)
+            const peerWriter = this.getPeerWriter(entry)
             groupedMethods.forEach(methods => {
                 const method = collapseSameMethodsIDL(methods)
                 const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
-                this.peerWriter.writeFunctionImplementation(method.name, signature, w => {
+                peerWriter.writeFunctionImplementation(method.name, signature, w => {
                     const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
                     let statement: LanguageStatement
                     if (method.returnType !== IDLVoidType) {
@@ -792,6 +994,8 @@ class OHOSVisitor {
                     }
                 } else if (isEnum(entry)) {
                     this.enums.push(entry)
+                } else if(idl.isImport(entry)) {
+                    this.dependecyCollector.parseImport(entry)
                 }
                 entry.scope?.forEach(it => {
                     if (isCallback(it))
@@ -855,12 +1059,21 @@ class OHOSVisitor {
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
         )
 
-        const peerTemplate = readLangTemplate(`OHOSPeer_template${ext}`, this.library.language)
-        const peerText = peerTemplate
-            .replaceAll('%PEER_CONTENT%', this.peerWriter.getOutput().join('\n'))
-            .replaceAll('%SERIALIZER_PATH%', managedCodeModuleInfo.serializerPath)
-            .replaceAll('%FINALIZABLE_PATH%', managedCodeModuleInfo.finalizablePath)
-        fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
+        this.dependecyCollector.dump()
+
+        for (const [file, peerWriter] of this.getPeerWriters()) {
+            const peerTemplate = readLangTemplate(`OHOSPeer_template${ext}`, this.library.language)
+
+            const imports = this.dependecyCollector.getImportLines(file)
+            // console.log(`File: ${file}, imports: ${imports}`)
+
+            const peerText = peerTemplate
+                .replaceAll('%PEER_IMPORTS%', imports.join('\n'))
+                .replaceAll('%PEER_CONTENT%', peerWriter.getOutput().join('\n'))
+                .replaceAll('%SERIALIZER_PATH%', managedCodeModuleInfo.serializerPath)
+                .replaceAll('%FINALIZABLE_PATH%', managedCodeModuleInfo.finalizablePath)
+            fs.writeFileSync(path.join(rootPath, managedOutDir, `${file}${ext}`), peerText, 'utf-8')
+        }
 
         this.hWriter.printTo(path.join(rootPath, outDir, `${fileNamePrefix}.h`))
         this.cppWriter.printTo(path.join(rootPath, outDir, `${fileNamePrefix}.cc`))
@@ -870,7 +1083,7 @@ class OHOSVisitor {
         )
 
         const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
-        fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
+        // fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
         fs.writeFileSync(path.join(rootPath, managedOutDir, `CallbacksChecker${ext}`),
             readLangTemplate(`CallbacksChecker${ext}`, this.library.language)
@@ -887,6 +1100,54 @@ class OHOSVisitor {
 
     private mangleTypeName(typeName: string): string {
         return `${generatorTypePrefix()}${typeName}`
+    }
+
+    abstract getPeerWriter(decl: idl.IDLNode): LanguageWriter
+    abstract getPeerWriters(): Map<string, LanguageWriter>
+}
+
+class OneFileOHOSVisitor extends OHOSVisitor {
+
+    peerWriter: LanguageWriter
+    peerWriters: Map<string, LanguageWriter> = new Map()
+    constructor(protected library: PeerLibrary, libraryName: string) {
+        super(library, libraryName, new OneFileDependecyCollector())
+        console.log(`Use OneFileOHOSVisitor`)
+        this.peerWriter = createLanguageWriter(library.language, library)
+        this.peerWriters.set(this.libraryName.toLowerCase(), this.peerWriter)
+    }
+
+    getPeerWriter(decl: idl.IDLNode): LanguageWriter {
+        return this.peerWriter
+    }
+
+    getPeerWriters(): Map<string, LanguageWriter> {
+        return this.peerWriters
+    }
+}
+
+class ManyFilesOHOSVisitor extends OHOSVisitor {
+
+    peerWriters: Map<string, LanguageWriter> = new Map<string, LanguageWriter>()
+
+    constructor(protected library: PeerLibrary, libraryName: string) {
+        super(library, libraryName, new ManyFilesDependecyCollector(library))
+        console.log(`Use ManyFilesOHOSVisitor`)
+    }
+
+    getPeerWriter(decl: idl.IDLNode): LanguageWriter {
+        const fileName = getFileNameFromDeclaration(decl)
+        this.dependecyCollector.collect(decl, fileName)
+        let writer = this.peerWriters.get(fileName)
+        if (!writer) {
+            writer = createLanguageWriter(this.library.language, this.library)
+            this.peerWriters.set(fileName, writer)
+        }
+        return writer
+    }
+
+    getPeerWriters(): Map<string, LanguageWriter> {
+        return this.peerWriters
     }
 }
 
@@ -919,7 +1180,12 @@ function generateTypeCheckFile(dir: string, lang: Language): void {
     fs.writeFileSync(path.join(dir, `type_check.ts`), code)
 }
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultIdlPackage?: string): void {
+function getOhosGenerator(peerLibrary: PeerLibrary, libraryName: string, splitFiles?: boolean) {
+    console.log(`Use split file option: ${splitFiles}`)
+    return splitFiles ? new ManyFilesOHOSVisitor(peerLibrary, libraryName) : new OneFileOHOSVisitor(peerLibrary, libraryName)
+}
+
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultIdlPackage?: string, splitFiles?: boolean): void {
     const rootPath = outDir
     const generatedSubDir = 'generated'
     const managedOutDir = path.join(generatedSubDir, peerLibrary.language.name.toLocaleLowerCase())
@@ -931,13 +1197,13 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultId
         fs.mkdirSync(manageOutPath, { recursive: true })
     }
     const libraryName = defaultIdlPackage ?? suggestLibraryName(peerLibrary)
-    const visitor = new OHOSVisitor(peerLibrary, libraryName)
+    const visitor = getOhosGenerator(peerLibrary, libraryName, splitFiles)
     visitor.execute(rootPath, generatedSubDir, managedOutDir)
 }
 
 export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, string> {
     const libraryName = suggestLibraryName(peerLibrary)
-    const visitor = new OHOSVisitor(peerLibrary, libraryName)
+    const visitor = new ManyFilesOHOSVisitor(peerLibrary, libraryName)
     visitor.prepare()
     visitor.printC()
     return new Map([
@@ -1068,3 +1334,19 @@ export class OhosConfiguration implements GeneratorConfiguration {
         return []
     }
 }
+
+function getFileNameFromDeclaration(decl: idl.IDLNode): string {
+    let filePath = decl.fileName
+    if (!filePath) {
+        const declName = idl.isNamedNode(decl) ? decl.name : `$kind ${decl.kind}`
+        console.log(`File name is unknown for declaration: ${decl}, use unknown.d.ts`)
+        filePath = `unknown.d.ts`
+    }
+    const fileName = path.basename(filePath)
+    if (fileName.endsWith("d.ts")) {
+        return fileName.substring(0, fileName.length - ".d.ts".length)
+    }
+    console.log(`Non d.ts file: "${fileName}"`)
+    return "non_dts_file"
+}
+
