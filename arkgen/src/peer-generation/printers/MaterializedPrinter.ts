@@ -44,36 +44,34 @@ import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
 import { NativeModule } from '../NativeModule';
-import { LayoutNodeRole } from '../LayoutManager';
+import { LayoutNodeRole, Printer, PrinterClass, PrinterResult } from '../LayoutManager';
 
 interface MaterializedFileVisitor {
-    visit(): void
-    getOutput(): string[]
+    visit(): PrinterResult
 }
 
 const FinalizableType = idl.maybeOptional(createReferenceType("Finalizable"), true)
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
+
+    protected readonly collector = new ImportsCollector()
+    protected readonly printer = createLanguageWriter(this.library.language, this.library)
+
     protected readonly internalPrinter: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library)
     protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false)
 
     constructor(
-        protected readonly collector: ImportsCollector,
-        protected readonly printer: LanguageWriter,
         protected readonly library: PeerLibrary,
         protected readonly printerContext: PrinterContext,
         protected readonly clazz: MaterializedClass,
         protected readonly dumpSerialized: boolean
     ) { }
 
-    abstract visit(): void
+    abstract visit(): PrinterResult
     abstract printImports(): void
 
     convertToPropertyType(field: MaterializedField): IDLType {
         return field.field.type
-    }
-    getOutput(): string[] {
-        return this.printer.getOutput()
     }
 
     protected get namespacePrefix(): string {
@@ -418,8 +416,16 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return this.clazz.decl.namespace ? this.clazz.decl.namespace.name + "." : ""
     }
 
-    visit(): void {
+    visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
+        return {
+            collector: this.collector,
+            content: this.printer,
+            over: {
+                node: this.clazz.decl,
+                role: LayoutNodeRole.INTERFACE
+            }
+        }
     }
 }
 
@@ -456,8 +462,16 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
         printJavaImports(this.printer, imports)
     }
 
-    visit(): void {
+    visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
+        return {
+            collector: this.collector,
+            content: this.printer,
+            over: {
+                node: this.clazz.decl,
+                role: LayoutNodeRole.INTERFACE
+            }
+        }
     }
 }
 
@@ -485,13 +499,21 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
         this.printer.print("import std.collection.*\n")
     }
 
-    visit(): void {
+    visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
+        return {
+            collector: this.collector,
+            content: this.printer,
+            over: {
+                node: this.clazz.decl,
+                role: LayoutNodeRole.INTERFACE
+            }
+        }
     }
 }
 
 
-class MaterializedVisitor {
+class MaterializedVisitor implements PrinterClass {
     readonly materialized: Map<TargetFile, string[]> = new Map()
 
     constructor(
@@ -500,26 +522,25 @@ class MaterializedVisitor {
         private readonly dumpSerialized: boolean,
     ) { }
 
-    private printContent(clazz:MaterializedClass) {
-        const {printer, collector} = this.library.layout.allocate(clazz.decl, LayoutNodeRole.INTERFACE)
+    private printContent(clazz:MaterializedClass): PrinterResult {
         let visitor: MaterializedFileVisitor
         if (Language.TS == this.printerContext.language) {
             visitor = new TSMaterializedFileVisitor(
-                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+                this.library, this.printerContext, clazz, this.dumpSerialized)
         } else if (Language.ARKTS == this.printerContext.language) {
             visitor = new ArkTSMaterializedFileVisitor(
-                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+                this.library, this.printerContext, clazz, this.dumpSerialized)
         } else if (this.printerContext.language == Language.JAVA) {
             visitor = new JavaMaterializedFileVisitor(
-                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+                this.library, this.printerContext, clazz, this.dumpSerialized)
         } else if (this.printerContext.language == Language.CJ) {
             visitor = new CJMaterializedFileVisitor(
-                collector, printer, this.library, this.printerContext, clazz, this.dumpSerialized)
+                this.library, this.printerContext, clazz, this.dumpSerialized)
         } else {
             throw new Error(`Unsupported language ${this.printerContext.language} in MaterializedPrinter.ts`)
         }
 
-        visitor.visit()
+        return visitor.visit()
     }
 
     printMaterialized(): void {
@@ -528,11 +549,21 @@ class MaterializedVisitor {
             this.printContent(clazz)
         }
     }
+
+    print(): PrinterResult[] {
+        console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
+        return this.library.materializedToGenerate.flatMap(it => {
+            return this.printContent(it)
+        })
+    }
+}
+
+export function createMaterializedPrinter(printerContext: PrinterContext, dumpSerialized: boolean) {
+    return (peerLibrary: PeerLibrary) => printMaterialized(peerLibrary, printerContext, dumpSerialized).print()
 }
 
 export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean) {
-    const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
-    visitor.printMaterialized()
+    return new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
 }
 
 function getSuperName(clazz: MaterializedClass): string | undefined {

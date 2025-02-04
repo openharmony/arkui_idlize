@@ -43,7 +43,7 @@ import {
 
 import { printComponents } from "./printers/ComponentsPrinter"
 import { printPeers } from "./printers/PeersPrinter"
-import { printMaterialized } from "./printers/MaterializedPrinter"
+import { createMaterializedPrinter, printMaterialized } from "./printers/MaterializedPrinter"
 import { printSerializers, printUserConverter } from "./printers/HeaderPrinter"
 import { printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./printers/EventsPrinter"
 import { printGniSources } from "./printers/GniPrinter"
@@ -204,8 +204,6 @@ export function generateArkoalaFromIdl(config: {
         })
     }
 
-    printMaterialized(peerLibrary, context, config.dumpSerialized)
-
     if (PeerGeneratorConfig.needInterfaces) {
         const interfaces = printIdlInterfaces(peerLibrary, context)
         for (const [targetFile, data] of interfaces) {
@@ -218,6 +216,14 @@ export function generateArkoalaFromIdl(config: {
             arkuiComponentsFiles.push(outComponentFile)
         }
     }
+
+    const installedFiles = install(
+        selectOutDir(arkoala, peerLibrary.language),
+        peerLibrary,
+        [
+            createMaterializedPrinter(context, config.dumpSerialized)
+        ]
+    )
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
         let enumImpls = createLanguageWriter(peerLibrary.language, peerLibrary)
@@ -276,7 +282,7 @@ export function generateArkoalaFromIdl(config: {
         // )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(globalScopeFiles)),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles).concat(globalScopeFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated
             }
@@ -535,11 +541,6 @@ export function generateArkoalaFromIdl(config: {
             integrated: true
         })
 
-    install(
-        selectOutDir(arkoala, peerLibrary.language),
-        peerLibrary.layout,
-        peerLibrary.language.extension
-    )
     copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)
 }
 

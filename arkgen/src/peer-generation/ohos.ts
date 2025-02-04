@@ -18,7 +18,7 @@ import * as path from 'node:path'
 import { layout, writeIntegratedFile } from "./common";
 import { OhosInstall } from "../Install";
 import { PeerLibrary } from "./PeerLibrary";
-import { printMaterialized } from "./printers/MaterializedPrinter";
+import { createMaterializedPrinter, printMaterialized } from "./printers/MaterializedPrinter";
 import { printGlobal } from "./printers/GlobalScopePrinter";
 import { printDeclarations } from "./printers/DeclarationPrinter";
 import {
@@ -58,6 +58,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
+    peerLibrary.setFileLayout(layout(peerLibrary))
 
     peerLibrary.setFileLayout(layout(peerLibrary))
 
@@ -75,11 +76,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
 
     // MANAGED
     /////////////////////////////////////////
-
-    // manged-classes
-
-    printMaterialized(peerLibrary, context, config.param("DumpSerialized"))
-    printInterfaceData(peerLibrary)
 
     const globals = printGlobal(peerLibrary)
     for (const [targetFile, content] of globals) {
@@ -158,10 +154,21 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
             )
     )
 
+    // install managed part
+
+    const installed = install(
+        ohos.managedDir(),
+        peerLibrary,
+        [
+            createMaterializedPrinter(context, false),
+            printInterfaceData
+        ]
+    )
+
     // managed-index
 
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
-        const generatedFiles = peerLibrary.layout.entries().map(([file, ]) => file)
+        const generatedFiles = [...installed]
         if (peerLibrary.language === Language.ARKTS) {
             generatedFiles.push('./peers/type_check.ts')
             generatedFiles.push('./' + path.basename(nativeModuleFileName, path.extname(nativeModuleFileName)))
@@ -170,14 +177,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
             makeOhosModule(generatedFiles)
         )
     }
-
-    // install managed part
-
-    install(
-        ohos.managedDir(),
-        peerLibrary.layout,
-        peerLibrary.language.extension
-    )
 
     // NATIVE
     /////////////////////////////////////////

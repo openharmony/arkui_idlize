@@ -28,7 +28,7 @@ import { generateSyntheticFunctionName, IdlNameConvertor, LibraryInterface } fro
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager';
 export class PeerLibrary implements LibraryInterface {
 
-    public layout: LayoutManager = LayoutManager.Empty(this)
+    public layout: LayoutManager = LayoutManager.Empty()
 
     private _syntheticEntries: idl.IDLEntry[] = []
     /** @deprecated PeerLibrary should contain only SDK entries */
@@ -348,7 +348,7 @@ export class PeerLibrary implements LibraryInterface {
         return type
     }
     setFileLayout(strategy: LayoutManagerStrategy) {
-        this.layout = new LayoutManager(strategy, this)
+        this.layout = new LayoutManager(strategy)
     }
 }
 

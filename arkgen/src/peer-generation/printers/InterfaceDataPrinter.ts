@@ -14,41 +14,48 @@
  */
 
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
+import { ImportsCollector } from "../ImportsCollector";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
-import { LayoutNodeRole } from "../LayoutManager";
+import { createLanguageWriter } from "../LanguageWriters";
+import { LayoutNodeRole, PrinterResult } from "../LayoutManager";
 import { PeerLibrary } from "../PeerLibrary";
 import * as idl from '@idlizer/core'
 
 /**
  * Printer for OHOS interfaces
  */
-export function printInterfaceData(library: PeerLibrary) {
-    library.files.forEach(file => {
+export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
+    return library.files.flatMap(file => {
         if (file.isPredefined) {
-            return
+            return []
         }
-        file.entries.flatMap(it => idl.isNamespace(it) ? it.members : [it]).forEach(entry => {
-            if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope)) {
-                return
-            }
-            if (idl.isInterface(entry)) {
-                if (isMaterialized(entry, library) && idl.isClassSubkind(entry)) {
-                    return
+        return file.entries
+            .flatMap(it => idl.isNamespace(it) ? it.members : [it])
+            .flatMap(entry => {
+                if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope)) {
+                    return []
                 }
-                if (idl.isBuilderClass(entry)) {
-                    return
+                if (idl.isInterface(entry)) {
+                    if (isMaterialized(entry, library) && idl.isClassSubkind(entry)) {
+                        return []
+                    }
+                    if (idl.isBuilderClass(entry)) {
+                        return []
+                    }
+                    return [printInterface(library, entry)]
                 }
-                printInterface(library, entry)
-            }
-            if (idl.isEnum(entry)) {
-                printEnum(library, entry)
-            }
-        })
+                if (idl.isEnum(entry)) {
+                    return [printEnum(library, entry)]
+                }
+                return []
+            })
     })
 }
 
-function printInterface(library: PeerLibrary, entry: idl.IDLInterface) {
-    const { printer, collector } = library.layout.allocate(entry, LayoutNodeRole.INTERFACE)
+function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterResult {
+    const printer = createLanguageWriter(library.language, library)
+    const collector = new ImportsCollector()
+
     collectDeclDependencies(library, entry, collector)
 
     const ns = idl.getNamespaceName(entry)
@@ -74,10 +81,21 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface) {
     if (ns !== '') {
         printer.popNamespace()
     }
+
+    return {
+        over: {
+            node: entry,
+            role: LayoutNodeRole.INTERFACE
+        },
+        collector,
+        content: printer
+    }
 }
 
-function printEnum(library: PeerLibrary, entry: idl.IDLEnum) {
-    const { printer, collector } = library.layout.allocate(entry, LayoutNodeRole.INTERFACE)
+function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
+    const printer = createLanguageWriter(library.language, library)
+    const collector = new ImportsCollector()
+
     collectDeclDependencies(library, entry, collector)
 
     if (library.language === idl.Language.TS) {
@@ -104,6 +122,15 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum) {
             numberId: typeof it.initializer === 'number' ? it.initializer : idx,
             stringId: typeof it.initializer === 'string' ? it.initializer : undefined
         })))
+    }
+
+    return {
+        over: {
+            node: entry,
+            role: LayoutNodeRole.INTERFACE
+        },
+        collector,
+        content: printer
     }
 }
 

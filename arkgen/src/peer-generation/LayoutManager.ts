@@ -14,25 +14,14 @@
  */
 
 import { IDLNode, LanguageWriter } from "@idlizer/core/*";
-import { ImportsCollector } from "./ImportsCollector";
-import { PeerLibrary } from "./PeerLibrary";
-import { createLanguageWriter } from "./LanguageWriters";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
+import { PeerLibrary } from "./PeerLibrary";
+import { ImportsCollector } from "./ImportsCollector";
 
 export enum LayoutNodeRole {
     PEER,
     INTERFACE,
-}
-
-interface LayoutManagerAllocated {
-    printer: LanguageWriter
-    collector: ImportsCollector
-}
-
-interface LayoutManagerRecord {
-    printer: LanguageWriter
-    collector: ImportsCollector
 }
 
 export interface LayoutManagerStrategy {
@@ -40,49 +29,70 @@ export interface LayoutManagerStrategy {
 }
 
 export class LayoutManager {
-
-    private storage = new Map<string, LayoutManagerRecord>()
-
     constructor(
-        private strategy: LayoutManagerStrategy,
-        private library: PeerLibrary
+        private strategy: LayoutManagerStrategy
     ) { }
-
-    allocate(node:IDLNode, role:LayoutNodeRole): LayoutManagerAllocated {
-        const place = this.strategy.resolve(node, role)
-        if (!this.storage.has(place)) {
-            this.storage.set(place, {
-                printer: createLanguageWriter(this.library.language, this.library),
-                collector: new ImportsCollector()
-            })
-        }
-        return this.storage.get(place)!
-    }
 
     resolve(node:IDLNode, role:LayoutNodeRole): string {
         return this.strategy.resolve(node, role)
     }
-
-    entries(): [string, LayoutManagerRecord][] {
-        return Array.from(this.storage.entries())
-    }
-
     ////////////////////////////////////////////////////////////////////
 
-    static Empty(lib:PeerLibrary): LayoutManager {
-        return new LayoutManager({ resolve: () => '' }, lib)
+    static Empty(): LayoutManager {
+        return new LayoutManager({ resolve: () => '' })
     }
 }
 
-export function install(outDir:string, manager: LayoutManager, ext:string) {
-    manager.entries().forEach(it => {
-        const [filePath, record] = it
-        const installPath = join(outDir, filePath) + ext
-        const content = record
-            .collector.printToLines(filePath)
-            .concat(record.printer.getOutput())
+export interface PrinterResult {
+    over: {
+        node: IDLNode
+        role: LayoutNodeRole
+    }
+    collector: ImportsCollector
+    content: LanguageWriter
+    weight?: number
+}
+
+export interface PrinterClass {
+    print(library:PeerLibrary): PrinterResult[]
+}
+export interface PrinterFunction {
+    (library:PeerLibrary): PrinterResult[]
+}
+export type Printer = PrinterClass | PrinterFunction
+
+export function install(outDir:string, library:PeerLibrary, printers:Printer[]): string[] {
+    const storage = new Map<string, PrinterResult[]>()
+
+    // groupBy
+    printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
+        const filePath = library.layout.resolve(it.over.node, it.over.role)
+        if (!storage.has(filePath)) {
+            storage.set(filePath, [])
+        }
+        storage.get(filePath)?.push(it)
+    })
+
+    // print
+    Array.from(storage.entries()).forEach(([filePath, results]) => {
+        const installPath = join(outDir, filePath) + library.language.extension
+        results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
+
+        const imports = new ImportsCollector()
+        let content: string[] = []
+
+        for (const record of results) {
+            imports.merge(record.collector)
+            content = content.concat(record.content.getOutput())
+        }
+
+        const text = imports
+            .printToLines(filePath)
+            .concat(content)
             .join('\n')
 
-        writeIntegratedFile(installPath, content, 'producing')
+        writeIntegratedFile(installPath, text, 'producing')
     })
+
+    return Array.from(storage.keys())
 }
