@@ -103,6 +103,7 @@ const options = program
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--options-file <path>', 'Path to file which determines what to generate')
     .option('--use-new-ohos', 'Use new ohos generator')
+    .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
     .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
