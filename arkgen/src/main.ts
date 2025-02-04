@@ -49,7 +49,11 @@ import {
     IdlPeerProcessor,
     IDLPredefinesVisitor,
 } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
-import { generateOhos as generateOhosOld } from "./peer-generation/OhosGenerator"
+import {
+    generateOhos as generateOhosOld,
+    OhosConfiguration,
+    suggestLibraryName
+} from "./peer-generation/OhosGenerator"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
 import { loadPlugin } from "./peer-generation/plugin-api"
 import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
@@ -151,16 +155,6 @@ class ArkoalaConfiguration extends DefaultConfig {
 class SkoalaConfiguration extends DefaultConfig {
     protected params: Record<string, any> = {
         TypePrefix: "",
-        LibraryPrefix: "",
-        OptionalPrefix: "Opt_"
-    }
-}
-
-// TBD: OhosConfiguration needs to include LibraryPrefix
-// from the library name
-class OhosConfiguration extends DefaultConfig {
-    protected params: Record<string, any> = {
-        TypePrefix: "OH_",
         LibraryPrefix: "",
         OptionalPrefix: "Opt_"
     }
@@ -446,9 +440,11 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         if (options.useNewOhos) {
-            generateOhos(outDir, idlLibrary, {
-                apiVersion: apiVersion
-            })
+            generateOhos(outDir, idlLibrary, new OhosConfiguration(suggestLibraryName(idlLibrary),
+                {
+                    ApiVersion: apiVersion
+                }
+            ))
         } else {
             generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string)
         }

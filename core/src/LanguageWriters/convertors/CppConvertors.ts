@@ -14,19 +14,19 @@
  */
 
 import * as idl from '../../idl'
-import { generatorConfiguration } from "../../config"
+import { generatorConfiguration, generatorTypePrefix } from "../../config"
 import { IdlNameConvertor } from "../nameConvertor"
 import { ConvertResult, InteropConvertor } from '../InteropConvertor'
 
 export class CppInteropConvertor extends InteropConvertor implements IdlNameConvertor {
     private unwrap(type: idl.IDLNode, result: ConvertResult): string {
+        const conf = generatorConfiguration()
         if (idl.isType(type) && idl.isOptionalType(type)) {
-            return `Opt_${result.text}`
+            return `${conf.param("OptionalPrefix")}${result.text}`
         }
         if (result.noPrefix) {
             return result.text
         }
-        const conf = generatorConfiguration()
         const typePrefix = conf.param("TypePrefix")
         // TODO remove this ugly hack for CustomObject's
         const convertedToCustomObject = result.text === idl.IDLCustomObjectType.name

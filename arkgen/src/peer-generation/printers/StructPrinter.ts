@@ -157,7 +157,6 @@ export class StructPrinter {
                     concreteDeclarations.print(`${generatorTypePrefix()}CallbackResource resource;`)
                     const args = generateCallbackAPIArguments(this.library, target)
                     concreteDeclarations.print(`void (*call)(${args.join(', ')});`)
-                    const typePrefix = `${generatorConfiguration().param("TypePrefix")}${generatorConfiguration().param("LibraryPrefix")}`
                     const syncArgs = [`${generatorTypePrefix()}VMContext context`].concat(args)
                     concreteDeclarations.print(`void (*callSync)(${syncArgs.join(', ')});`)
                 }
