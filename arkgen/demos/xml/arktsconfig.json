@@ -5,6 +5,7 @@
         "outDir": "build/panda/out",
         "paths": {
             "#compat": ["./src/panda/compat"],
+            "#components": ["./generated/arkts"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

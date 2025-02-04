@@ -119,6 +119,12 @@ export function isPredefined(entry: idl.IDLEntry) {
     return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Predefined)
 }
 
+export function isSystemEntry(entry: idl.IDLEntry) {
+    return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.CPPType)
+        || idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType)
+        || idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ArkTSType)
+}
+
 function generateArgConvertor(library: PeerLibrary, param: idl.IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
     return library.typeConvertor(param.name, param.type, param.isOptional)

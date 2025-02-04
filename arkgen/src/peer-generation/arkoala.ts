@@ -60,12 +60,12 @@ import { PeerLibrary } from "./PeerLibrary"
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations, printEnumsImpl } from "./printers/DeclarationPrinter"
 import { createLanguageWriter } from "./LanguageWriters"
-import { LanguageWriter } from "@idlizer/core"
 import { printManagedCaller } from "./printers/CallbacksPrinter"
 import { NativeModule } from "./NativeModule"
 import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
 import { printGlobal } from "./printers/GlobalScopePrinter"
-import { writeFile, writeIntegratedFile } from "./common"
+import { layout, writeFile, writeIntegratedFile } from "./common"
+import { install } from "./LayoutManager"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -154,6 +154,7 @@ export function generateArkoalaFromIdl(config: {
     arkoala.createDirs(['', ''].map(dir => path.join(arkoala.cjDir, dir)))
 
     peerLibrary.name = 'arkoala'
+    peerLibrary.setFileLayout(layout(peerLibrary))
 
     const context = {
         language: config.lang,
@@ -202,16 +203,9 @@ export function generateArkoalaFromIdl(config: {
             message: "producing [idl]"
         })
     }
-    const materialized = printMaterialized(peerLibrary, context, config.dumpSerialized)
-    for (const [targetFile, materializedClass] of materialized) {
-        const outMaterializedFile = arkoala.materialized(targetFile)
-        writeFile(outMaterializedFile, materializedClass, {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-            message: "producing [idl]"
-        })
-        arkuiComponentsFiles.push(outMaterializedFile)
-    }
+
+    printMaterialized(peerLibrary, context, config.dumpSerialized)
+
     if (PeerGeneratorConfig.needInterfaces) {
         const interfaces = printIdlInterfaces(peerLibrary, context)
         for (const [targetFile, data] of interfaces) {
@@ -541,5 +535,20 @@ export function generateArkoalaFromIdl(config: {
             integrated: true
         })
 
+    install(
+        selectOutDir(arkoala, peerLibrary.language),
+        peerLibrary.layout,
+        peerLibrary.language.extension
+    )
     copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)
+}
+
+function selectOutDir(arkoala:ArkoalaInstall, lang:Language) {
+    switch (lang) {
+        case Language.TS: return arkoala.tsDir
+        case Language.ARKTS: return arkoala.arktsDir
+        case Language.JAVA: return arkoala.javaDir
+        case Language.CJ: return arkoala.cjDir
+    }
+    return ''
 }

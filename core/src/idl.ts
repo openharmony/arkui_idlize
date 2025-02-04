@@ -57,6 +57,7 @@ export enum IDLEntity {
 export enum IDLExtendedAttributes {
     Accessor = "Accessor",
     Async = "Async",
+    ArkTSType = "ArkTSType",
     CallSignature = "CallSignature",
     CJType = "CJType",
     CommonMethod = "CommonMethod",
@@ -75,6 +76,7 @@ export enum IDLExtendedAttributes {
     NativeModule = "NativeModule",
     Optional = "Optional",
     OriginalEnumMemberName = "OriginalEnumMemberName",
+    Predefined = "Predefined",
     Protected = "Protected",
     Synthetic = "Synthetic",
     TSType = "TSType",
@@ -82,7 +84,6 @@ export enum IDLExtendedAttributes {
     TypeParameters = "TypeParameters",
     VerbatimDts = "VerbatimDts",
     HandWrittenImplementation = "HandWrittenImplementation",
-    Predefined = "Predefined",
 }
 
 export enum IDLAccessorAttribute {
@@ -582,6 +583,18 @@ export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
     if (a.kind !== b.kind || a.name !== b.name)
         return false
     return isEqualByQualifedName(a.namespace, b.namespace)
+}
+
+export function getNamespaceName(a:IDLEntry): string {
+    return getNamespacesPathFor(a).map(it => it.name).join('.')
+}
+
+export function getFQName(a:IDLEntry): string {
+    let ns = getNamespaceName(a)
+    if (ns !== '') {
+        ns += '.'
+    }
+    return ns + a.name
 }
 
 export function createVersion(value: string[], extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLVersion {

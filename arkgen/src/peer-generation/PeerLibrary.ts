@@ -25,8 +25,11 @@ import { createTypeNameConvertor } from './LanguageWriters';
 import { PeerFile, BuilderClass, MaterializedClass } from '@idlizer/core';
 import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlizer/core';
 import { generateSyntheticFunctionName, IdlNameConvertor, LibraryInterface } from '@idlizer/core';
-
+import { LayoutManager, LayoutManagerStrategy } from './LayoutManager';
 export class PeerLibrary implements LibraryInterface {
+
+    public layout: LayoutManager = LayoutManager.Empty(this)
+
     private _syntheticEntries: idl.IDLEntry[] = []
     /** @deprecated PeerLibrary should contain only SDK entries */
     public get syntheticEntries(): idl.IDLEntry[] {
@@ -343,6 +346,9 @@ export class PeerLibrary implements LibraryInterface {
                 : decl
         }
         return type
+    }
+    setFileLayout(strategy: LayoutManagerStrategy) {
+        this.layout = new LayoutManager(strategy, this)
     }
 }
 

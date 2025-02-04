@@ -51,6 +51,9 @@ export class TSFeatureNameConvertor extends DeclarationNameConvertor {
 }
 
 export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
+    override convertInterface(decl: idl.IDLInterface): string {
+        return idl.getFQName(decl)
+    }
     override convertEnum(decl: idl.IDLEnum): string {
         const namespace = idl.getNamespacesPathFor(decl).map(it => it.name).join('_')
         return `${namespace ? `${namespace}_` : ``}${decl.name}`

@@ -1,7 +1,7 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts/CallbacksChecker";
-import { xml } from "../../generated/ts/xml"
-export { xml } from "../../generated/ts/xml"
+import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
+import { xml } from "../../generated/ts/ArkXmlNamespace"
+export { xml } from "../../generated/ts/ArkXmlNamespace"
 
 export type EventType = xml.EventType
 export type OHBuffer = ArrayBuffer

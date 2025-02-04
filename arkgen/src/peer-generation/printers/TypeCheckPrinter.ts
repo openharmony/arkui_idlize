@@ -17,7 +17,7 @@ import { convertDeclaration } from '@idlizer/core';
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
-import { isPredefined } from '../idl/IdlPeerGeneratorVisitor';
+import { isPredefined, isSystemEntry } from '../idl/IdlPeerGeneratorVisitor';
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#components")
@@ -105,7 +105,9 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
         for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isPackage(decl) || idl.isImport(decl) ||
                 idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope) ||
-                isPredefined(decl))
+                isPredefined(decl) ||
+                isSystemEntry(decl)
+            )
                 continue
             if (PeerGeneratorConfig.ignoreEntry(decl.name, library.language))
                 continue

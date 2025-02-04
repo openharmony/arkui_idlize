@@ -37,6 +37,7 @@ import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
+import { LayoutNodeRole } from '../LayoutManager'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -636,7 +637,10 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
 
     function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
         for (const materialized of library.materializedClasses.values()) {
-            imports.addFeature(getInternalClassName(materialized.className), `./${getMaterializedFileName(materialized.className)}`)
+            const file = library.layout.resolve(materialized.decl, LayoutNodeRole.INTERFACE)
+            const ns = idl.getNamespaceName(materialized.decl)
+            const name = ns === '' ? getInternalClassName(materialized.className) : ns.split('.')[0]
+            imports.addFeature(name, `./${file}`)
         }
     }
 

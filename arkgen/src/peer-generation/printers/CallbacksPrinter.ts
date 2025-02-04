@@ -185,6 +185,11 @@ class DeserializeCallbacksVisitor {
                     imports.addFeature(builder, `Ark${builder}Builder`)
                 }
             }
+            if (this.writer.language === Language.TS && this.library.name !== 'arkoala') {
+                for (const callback of collectUniqueCallbacks(this.library)) {
+                    collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
+                }
+            }
         }
     }
 

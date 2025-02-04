@@ -35,7 +35,6 @@ import {
     ARK_MATERIALIZEDBASE,
     ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
     ARKOALA_PACKAGE,
-    ARKOALA_PACKAGE_PATH
 } from "./lang/Java";
 import { createInterfaceDeclName } from './lang/CommonUtils';
 import { PeerLibrary } from "../PeerLibrary";
@@ -45,7 +44,7 @@ import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
 import { NativeModule } from '../NativeModule';
-import * as path from 'node:path';
+import { LayoutNodeRole } from '../LayoutManager';
 
 interface MaterializedFileVisitor {
     visit(): void
@@ -86,13 +85,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printImports()
 
-        if (clazz.isInterface) {
-            // generate interface declarations for ArkTS only
-            if (Language.ARKTS == this.printerContext.language) {
-                writeInterface(clazz.decl, printer);
-            }
-        }
-
         const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
         const finalizableType = FinalizableType
         const superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz)) ?? (new Set([Language.JAVA]).has(printer.language) ? ARK_MATERIALIZEDBASE : undefined)
@@ -120,6 +112,18 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         // Need to restrict generic type to the Object type
         if (hasMethodWithTypeParams) {
             classTypeParameters = ["T extends Object"]
+        }
+
+        const ns = idl.getNamespaceName(clazz.decl)
+        if (ns !== '') {
+            printer.pushNamespace(ns)
+        }
+
+        if (clazz.isInterface && this.library.name === 'arkoala') {
+            // generate interface declarations for ArkTS only
+            if (Language.ARKTS == this.printerContext.language) {
+                writeInterface(clazz.decl, printer);
+            }
         }
 
         const implementationClassName = clazz.getImplementationName()
@@ -331,6 +335,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 printer.writeInterface(clazz.className, writer => { }, undefined, undefined)
             }
         }
+
+        if (ns !== '') {
+            printer.popNamespace()
+        }
     }
 }
 
@@ -365,8 +373,34 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printImports() {
+        // collect imports
         this.collectImports(this.collector)
-        // const currentModule = removeExt(renameClassToMaterialized(this.clazz.className, this.library.language))
+
+        // common runtime dependencies
+        this.collector.addFeatures([
+            'Finalizable',
+            'isResource',
+            'isInstanceOf',
+            'runtimeType',
+            'RuntimeType',
+            'SerializerBase',
+            'registerCallback',
+            'wrapCallback',
+            'KPointer',
+        ], '@koalaui/interop')
+        this.collector.addFeatures(['MaterializedBase'], './MaterializedBase')
+        this.collector.addFeatures(['Serializer'], './peers/Serializer')
+        this.collector.addFeatures(['unsafeCast'], './shared/generated-utils')
+        this.collector.addFeatures(['CallbackKind'], './peers/CallbackKind')
+        this.collector.addFeatures(['int32'], '@koalaui/common')
+        if (this.library.language === Language.ARKTS) {
+            this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+        }
+        if (this.library.language === Language.TS) {
+            this.collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
+        }
+
+        // specific runtime dependencies
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
             if (this.library.language === Language.TS) {
@@ -378,7 +412,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         } else {
             this.collector.addFeatures([NativeModule.Generated.name], `./${NativeModule.Generated.name}`)
         }
-        // this.collector.print(this.printer, currentModule)
     }
 
     override get namespacePrefix(): string {
@@ -418,6 +451,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printImports(): void {
+        this.printPackage()
         const imports = [{ feature: 'org.koalaui.interop.Finalizable', module: '' }]
         printJavaImports(this.printer, imports)
     }
@@ -466,7 +500,8 @@ class MaterializedVisitor {
         private readonly dumpSerialized: boolean,
     ) { }
 
-    private printContent(clazz:MaterializedClass, collector:ImportsCollector, printer:LanguageWriter) {
+    private printContent(clazz:MaterializedClass) {
+        const {printer, collector} = this.library.layout.allocate(clazz.decl, LayoutNodeRole.INTERFACE)
         let visitor: MaterializedFileVisitor
         if (Language.TS == this.printerContext.language) {
             visitor = new TSMaterializedFileVisitor(
@@ -487,81 +522,17 @@ class MaterializedVisitor {
         visitor.visit()
     }
 
-    private printFile(bucket: MaterializedClass[], file:TargetFile, nameSpace?:string) {
-        const prologue = makeMaterializedPrologue(this.printerContext.language)
-        const collector = new ImportsCollector()
-        const printer = createLanguageWriter(this.printerContext.language, this.library)
-        printer.print(prologue)
-        if (nameSpace) {
-            printer.pushNamespace(nameSpace)
-        }
-        for (const clazz of bucket) {
-            this.printContent(clazz, collector, printer)
-        }
-        if (nameSpace) {
-            printer.popNamespace()
-        }
-
-        this.materialized.set(
-            file,
-            collector.printToLines(path.basename(file.name, path.extname(file.name)))
-                .concat(printer.getOutput())
-        )
-    }
-
-    private selectTargetFile(clazz:MaterializedClass) {
-        switch (this.library.language) {
-            case Language.JAVA: {
-                return new TargetFile(clazz.getImplementationName() + this.library.language.extension, ARKOALA_PACKAGE_PATH)
-            }
-            case Language.TS:
-            case Language.ARKTS: {
-                return new TargetFile(renameClassToMaterialized(clazz.className, this.library.language))
-            }
-            case Language.CJ: {
-                return new TargetFile(clazz.className + this.printerContext.language.extension, '')
-            }
-        }
-        throw new Error(`Unsupported language "${this.library.language}"`)
-    }
-
     printMaterialized(): void {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        const buckets = groupByNamespace(this.library.materializedToGenerate)
-        for (const [ns, bucket] of buckets) {
-            if (ns === '' || this.library.language === Language.JAVA) {
-                for (const clazz of bucket) {
-                    this.printFile([clazz], this.selectTargetFile(clazz))
-                }
-            } else {
-                this.printFile(bucket, new TargetFile(ns + this.library.language.extension), ns)
-            }
+        for (const clazz of this.library.materializedToGenerate) {
+            this.printContent(clazz)
         }
     }
 }
 
-function groupByNamespace(classes: MaterializedClass[]): Map<string, MaterializedClass[]> {
-    const buckets = new Map<string, MaterializedClass[]>()
-    for (const clazz of classes) {
-        const ns = idl.getNamespacesPathFor(clazz.decl).map(it => it.name).join('_')
-        if (!buckets.has(ns)) {
-            buckets.set(ns, [])
-        }
-        buckets.get(ns)?.push(clazz)
-    }
-    return buckets
-}
-
-export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printMaterialized(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean) {
     const visitor = new MaterializedVisitor(peerLibrary, printerContext, dumpSerialized)
     visitor.printMaterialized()
-    const result = new Map<TargetFile, string>()
-    for (const [file, content] of visitor.materialized) {
-        if (content.length === 0) continue
-        const text = tsCopyrightAndWarning(content.join('\n'))
-        result.set(file, text)
-    }
-    return result
 }
 
 function getSuperName(clazz: MaterializedClass): string | undefined {

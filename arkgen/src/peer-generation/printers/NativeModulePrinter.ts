@@ -398,13 +398,14 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
     return file
 }
 
-export function printArkUIGeneratedNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
+export function printArkUIGeneratedNativeModule(library: PeerLibrary, module: NativeModuleType, more?:(w:LanguageWriter) => void): SourceFile {
     const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
     visitor.visit()
     const file = SourceFile.make("", library.language, library)
     collectNativeModuleImports(module, file, library)
     file.content.writeClass(module.name, writer => {
         printNativeModuleRegistration(library.language, module, file)
+        more?.(writer)
         writer.concat(visitor.nativeModule)
     })
     return file

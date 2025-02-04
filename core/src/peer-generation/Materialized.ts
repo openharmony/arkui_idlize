@@ -20,7 +20,6 @@ import { capitalize } from '../util'
 import { qualifiedName } from './idl/common'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod } from './PeerMethod'
-
 export class MaterializedField {
     constructor(
         public field: Field,

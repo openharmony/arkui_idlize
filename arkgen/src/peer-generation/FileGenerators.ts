@@ -589,9 +589,8 @@ export function makeArkuiModule(componentsFiles: string[]): string {
 
 export function makeOhosModule(componentsFiles: string[]): string {
     return componentsFiles.map(file => {
-        const basename = path.basename(file)
-        const basenameNoExt = basename.replaceAll(path.extname(basename), "")
-        return `export * from "./${basenameNoExt}"`
+        const fileNameNoExt = file.replaceAll(path.extname(file), "")
+        return `export * from "./${fileNameNoExt}"`
     }).join("\n")
 }
 

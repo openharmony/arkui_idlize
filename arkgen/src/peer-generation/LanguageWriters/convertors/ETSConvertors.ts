@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { TsIDLNodeToStringConverter } from "./TSConvertors"
 import { createReferenceType, IDLEntry, IDLReferenceType } from "@idlizer/core/idl"
-import { createDeclarationNameConvertor } from "@idlizer/core"
+import { capitalize, createDeclarationNameConvertor } from "@idlizer/core"
 import { convertDeclaration } from "@idlizer/core"
 import { Language, stringOrNone } from "@idlizer/core"
 
@@ -43,6 +43,13 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
             return "Function<void>"
         }
         return typeName
+    }
+    convertEnum(node: idl.IDLEnum): string {
+        let ns = idl.getNamespaceName(node).split('.').join('_')
+        if (ns !== '') {
+            ns += '_'
+        }
+        return ns + node.name
     }
 
     override convertContainer(type: idl.IDLContainerType): string {

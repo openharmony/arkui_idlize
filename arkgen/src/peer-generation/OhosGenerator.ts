@@ -876,7 +876,8 @@ class OHOSVisitor {
             readLangTemplate(`CallbacksChecker${ext}`, this.library.language)
                 .replaceAll("%NATIVE_MODULE_ACCESSOR%", managedCodeModuleInfo.name)
                 .replaceAll("%NATIVE_MODULE_PATH%", managedCodeModuleInfo.path)
-                .replaceAll("%SERIALIZER_PATH%", managedCodeModuleInfo.serializerPath)
+                .replaceAll("%DESERIALIZER_PATH%", managedCodeModuleInfo.serializerPath)
+                .replaceAll("%CALLBACKS_PATH%", managedCodeModuleInfo.serializerPath)
         )
 
         generateTypeCheckFile(path.join(rootPath, managedOutDir), this.library.language)

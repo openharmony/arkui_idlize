@@ -53,4 +53,3 @@ export * from "./peer-generation/idl/common"
 export { fromIDL }  from "./from-idl/common"
 export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
 export { toIDL, toIDLFile, addSyntheticType, resolveSyntheticType } from "./from-idl/deserialize"
-
