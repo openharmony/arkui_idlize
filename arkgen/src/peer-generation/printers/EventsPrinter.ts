@@ -67,7 +67,7 @@ export function collectCallbacks(library: PeerLibrary): CallbackInfo[] {
                 let callbackFound = false
                 for (const target of method.method.signature.args) {
                     const info = convertIdlToCallback(library, peer, method, target)
-                    if (info && canProcessCallback(info)) {
+                    if (info) {
                         if (callbackFound)
                             throw new Error("Only one callback per method is acceptable")
                         callbackFound = true
@@ -78,12 +78,6 @@ export function collectCallbacks(library: PeerLibrary): CallbackInfo[] {
         }
     }
     return callbacks
-}
-
-export function canProcessCallback(callback: CallbackInfo): boolean {
-    if (PeerGeneratorConfig.invalidEvents.includes(callback.methodName))
-        return false
-    return true
 }
 
 export function convertIdlToCallback(resolver: ReferenceResolver, peer: PeerClassBase, method: PeerMethod, argType: idl.IDLType): CallbackInfo | undefined {

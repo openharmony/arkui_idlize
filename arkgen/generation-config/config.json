@@ -1,12 +1,250 @@
 {
-    "generators": {
-        "dummy": {
-            "ignoreMethods": {
-                "LazyForEachOps": ["*"],
-                "CommonMethod": [
-                    "onClick"
-                ]
-            }
+    "components": {
+        "custom": [
+            "BaseCustomComponent",
+            "CustomComponent",
+            "CustomComponentV2"
+        ],
+        "customTypes": [
+            "CustomNode"
+        ],
+        "handWritten": [
+            "LocalStorage",
+            "SyncedPropertyOneWay",
+            "SubscribedAbstractProperty",
+            "SyncedPropertyTwoWay",
+            "AttributeModifier",
+            "AbstractProperty",
+            "SubscribaleAbstract",
+            "IPropertySubscriber",
+            "ISinglePropertyChangeSubscriber",
+            "SystemBarStyle",
+            "Navigation",
+            "AbstractProperty",
+            "ISinglePropertyChangeSubscriber",
+            "PageTransitionEnterInterface",
+            "PageTransitionExitInterface",
+            "CommonTransition"
+        ],
+        "ignoreEntry": [
+            "Optional",
+            "AppStorage",
+            "DataAddOperation",
+            "DataChangeListener",
+            "DataChangeOperation",
+            "DataReloadOperation",
+            "DisturbanceFieldOptions",
+            "EntryOptions",
+            "Environment",
+            "GestureGroupHandler",
+            "IDataSource",
+            "LazyForEachInterface",
+            "LocalStorage",
+            "OffscreenCanvas",
+            "OffscreenCanvasRenderingContext2D",
+            "PersistentStorage",
+            "PositionT",
+            "SizeT",
+            "Storage",
+            "SubscribedAbstractProperty",
+            "SyncedPropertyOneWay",
+            "SyncedPropertyTwoWay",
+            "IMonitorValue"
+        ],
+        "ignoreEntryJava": [
+            "AnimationRange",
+            "EventTargetInfo",
+            "GestureRecognizer",
+            "GestureRecognizerJudgeBeginCallback",
+            "Matrix2D",
+            "ScrollAnimationOptions",
+            "SheetDismiss",
+            "SubTabBarStyle",
+            "TextPickerDialog",
+            "Dimension"
+        ],
+        "ignoreComponents": [
+            "Particle",
+            "ForEach",
+            "LazyForEach",
+            "ContentSlot"
+        ],
+        "ignorePeerMethod": [
+            "attributeModifier"
+        ],
+        "ignoreMethodArkts": [
+            "testTupleNumberStringEnum", 
+            "testTupleOptional", 
+            "testTupleUnion"
+        ],
+        "invalidAttributes": [
+            "ScrollableCommonMethod"
+        ],
+        "replaceThrowErrorReturn": [
+            "NavPathStack"
+        ],
+        "parameterized": [
+            "Indicator",
+            "AttributeModifier",
+            "AnimationRange",
+            "ContentModifier",
+            "SizeT",
+            "PositionT",
+            "Record"
+        ],
+        "builderClasses": [
+            "SubTabBarStyle",
+            "BottomTabBarStyle",
+            "DotIndicator",
+            "DigitIndicator"
+        ],
+        "inheritanceRole": {
+            "rootComponents": [
+                "Root",
+                "ComponentRoot",
+                "CommonMethod",
+                "SecurityComponentMethod",
+                "CommonTransition",
+                "CalendarAttribute",
+                "ContainerSpanAttribute"
+            ],
+            "standaloneComponents": [
+                "TextPickerDialog",
+                "TimePickerDialog",
+                "AlertDialog",
+                "CanvasPattern"
+            ]
+        },
+        "boundProperties": {
+            "Checkbox": [
+                "select"
+            ],
+            "CheckboxGroup": [
+                "selectAll"
+            ],
+            "DatePicker": [
+                "selected"
+            ],
+            "TimePicker": [
+                "selected"
+            ],
+            "MenuItem": [
+                "selected"
+            ],
+            "Panel": [
+                "mode"
+            ],
+            "Radio": [
+                "checked"
+            ],
+            "Rating": [
+                "rating"
+            ],
+            "Search": [
+                "value"
+            ],
+            "SideBarContainer": [
+                "showSideBar"
+            ],
+            "Slider": [
+                "value"
+            ],
+            "Stepper": [
+                "index"
+            ],
+            "Swiper": [
+                "index"
+            ],
+            "Tabs": [
+                "index"
+            ],
+            "TextArea": [
+                "text"
+            ],
+            "TextInput": [
+                "text"
+            ],
+            "TextPicker": [
+                "selected",
+                "value"
+            ],
+            "Toggle": [
+                "isOn"
+            ],
+            "AlphabetIndexer": [
+                "selected"
+            ],
+            "Select": [
+                "selected",
+                "value"
+            ],
+            "BindSheet": [
+                "isShow"
+            ],
+            "BindContentCover": [
+                "isShow"
+            ],
+            "Refresh": [
+                "refreshing"
+            ],
+            "GridItem": [
+                "selected"
+            ],
+            "ListItem": [
+                "selected"
+            ]
+        }
+    },
+    "materialized": {
+        "ignore": [
+            "Layoutable",
+            "LayoutChild",
+            "Measurable",
+            "IMonitor",
+            "Configuration",
+            "UIGestureEvent",
+            "GestureGroupHandler",
+            "ContentModifier",
+            "AnimatableArithmetic",
+            "DataChangeListener"
+        ],
+        "ignoreStandart": [
+            "Attribute",
+            "Interface",
+            "Method"
+        ],
+        "ignoreReturnTypes": [
+            "Promise"
+        ]
+    },
+    "interfaces": {
+        "needInterfaces": true
+    },
+    "native": {
+        "cppPrefix": "GENERATED_"
+    },
+    "serializer": {
+        "ignore": [
+            "Array",
+            "Callback",
+            "ErrorCallback",
+            "Length",
+            "AttributeModifier",
+            "Number",
+            "String",
+            "Function",
+            "Optional",
+            "RelativeIndexable"
+        ]
+    },
+    "dummy": {
+        "ignoreMethods": {
+            "LazyForEachOps": [
+                "*"
+            ],
+            "CommonMethod": [
+                "onClick"
+            ]
         }
     }
 }

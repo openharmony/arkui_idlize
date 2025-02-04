@@ -381,8 +381,6 @@ class DeserializerPrinter {
             // callbacks in native are just CallbackResource while in managed we need to convert them to
             // target language callable
             return
-        if (PeerGeneratorConfig.ignoredCallbacks.has(target.name))
-            return
         target = maybeTransformManagedCallback(target) ?? target
         const methodName = this.library.getInteropName(target)
         const type = idl.createReferenceType(target.name, undefined, target)

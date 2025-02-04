@@ -17,7 +17,8 @@
         "module": "esnext",
         "paths": {
             "webidl2": ["./webidl2.js/types/index.d.ts"]
-        }
+        },
+        "allowSyntheticDefaultImports": true,
     },
     "include": ["src/**/*"]
 }

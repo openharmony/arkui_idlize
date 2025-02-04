@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { 
-    Language, 
-    isDefined, 
+import {
+    Language,
+    isDefined,
+    deepMergeConfig,
     warn
 } from '@idlizer/core'
 
@@ -23,18 +24,55 @@ import * as fs from "fs"
 import * as path from "path"
 
 export interface CoreGeneratorConfiguration {
-    get dummy(): { 
-        [key: string]: { }
+    get components(): {
+        [key: string]: {}
+    }
+    get materialized(): {
+        [key: string]: {}
+    }
+    get interfaces(): {
+        [key: string]: {}
+    }
+    get native(): {
+        [key: string]: {}
+    }
+    get serializer(): {
+        [key: string]: {}
+    }
+    get dummy(): {
+        [key: string]: {}
     }
 }
 
 export const defaultCoreGeneratorConfiguration: CoreGeneratorConfiguration = {
+    "components": {
+        "custom": [],
+        "handWritten": [],
+        "ignore": [],
+        "ignoreJava": [],
+        "parameterized": [],
+        "inheritanceRole": {
+            "rootComponents": [],
+            "standaloneComponents": []
+        }
+    },
+    "materialized": {
+        "ignore": [],
+        "ignoreStandart": []
+    },
+    "interfaces": {
+        "needInterfaces": true
+    },
+    "native": {
+        "cppPrefix": "GENERATED_"
+    },
+    "serializer": {
+        "ignore": []
+    },
     "dummy": {
         "ignoreMethods": {
             "LazyForEachOps": ["*"],
-            "CommonMethod": [
-                "onClick"
-            ]
+            "CommonMethod": ["onClick"]
         }
     }
 }
@@ -53,17 +91,138 @@ export function loadConfiguration(configurationFile?: string): CoreGeneratorConf
 }
 
 export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
+    readonly components: Record<string, any>
+    readonly materialized: Record<string, any>
+    readonly interfaces: Record<string, any>
+    readonly native: Record<string, any>
+    readonly serializer: Record<string, any>
+    readonly dummy: Record<string, any>
     constructor(private data: CoreGeneratorConfiguration) {
 
-        this.dummy = this.data.dummy
+        this.components = this.data?.components
+        this.materialized = this.data?.materialized
+        this.interfaces = this.data?.interfaces
+        this.native = this.data?.native
+        this.serializer = this.data?.serializer
+        this.dummy = this.data?.dummy
 
-        const ignoreDummy = this.dummy?.ignoreMethods
-        if (ignoreDummy) {
-            this.noDummyComponents = new Map<string, string[]>(Object.entries(ignoreDummy))
+
+        // components
+        if (this.components?.["custom"]) {
+            this.customComponents = Object.values(this.components["custom"])
+        }
+        if (this.components?.["customTypes"]) {
+            this.customNodeTypes = Object.values(this.components["customTypes"])
+        }
+        if (this.components?.["handWritten"]) {
+            this.handWritten = Object.values(this.components["handWritten"])
+        }
+        if (this.components?.["ignoreEntry"]) {
+            this.ignoredEntriesCommon = Object.values(this.components["ignoreEntry"])
+        }
+        if (this.components?.["ignoreEntryJava"]) {
+            this.ignoredEntriesJava = Object.values(this.components["ignoreEntryJava"])
+        }
+        if (this.components?.["ignoreComponents"]) {
+            this.ignoreComponents = Object.values(this.components["ignoreComponents"])
+        }
+        if (this.components?.["ignorePeerMethod"]) {
+            this.ignorePeerMethod = Object.values(this.components["ignorePeerMethod"])
+        }
+        if (this.components?.["ignoreMethodArkts"]) {
+            this.ignoreMethodArkts = Object.values(this.components["ignoreMethodArkts"])
+        }
+        if (this.components?.["invalidAttributes"]) {
+            this.invalidAttributes = Object.values(this.components["invalidAttributes"])
+        }
+        if (this.components?.["replaceThrowErrorReturn"]) {
+            this.replaceThrowErrorReturn = Object.values(this.components["replaceThrowErrorReturn"])
+        }
+        if (this.components?.["parameterized"]) {
+            this.knownParameterized = Object.values(this.components["parameterized"])
+        }
+        if (this.components?.["builderClasses"]) {
+            this.builderClasses = Object.values(this.components["builderClasses"])
+        }
+        if (this.components?.["inheritanceRole"]) {
+            const inheritanceRole = new Map<string, string[]>(Object.entries(this.components["inheritanceRole"]))
+            this.rootComponents = inheritanceRole.get("rootComponents") ?? []
+            this.standaloneComponents = inheritanceRole.get("standaloneComponents") ?? []
+        }
+        if (this.components?.["boundProperties"]) {
+            this.boundProperties = new Map<string, string[]>(Object.entries(this.components["boundProperties"]))
+        }
+
+        // materialized
+        if (this.materialized?.["ignore"]) {
+            this.ignoreMaterialized = Object.values(this.materialized["ignore"])
+        }
+        if (this.materialized?.["ignoreStandart"]) {
+            this.ignoreStandardNames = Object.values(this.materialized["ignoreStandart"])
+        }
+        if (this.materialized?.["ignoreReturnTypes"]) {
+            this.ignoreReturnTypes = Object.values(this.materialized["ignoreReturnTypes"])
+        }
+
+        // interfaces
+        if (this.interfaces?.["needInterfaces"]) {
+            this.needInterfaces = this.interfaces["needInterfaces"] as boolean
+        }
+
+        // native
+        if (this.native?.["cppPrefix"]) {
+            this.cppPrefix = this.native["cppPrefix"] as string
+        }
+
+        // serializer
+        if (this.serializer?.["ignore"]) {
+            this.ignoreSerialization = Object.values(this.serializer["ignore"])
+        }
+
+        // dummy
+        if (this.dummy?.["ignoreMethods"]) {
+            this.noDummyComponents = new Map<string, string[]>(Object.entries(this.dummy["ignoreMethods"]))
         }
     }
 
-    readonly dummy: Record<string, any> 
+    mapComponentName(originalName: string): string {
+        if (originalName.endsWith("Attribute"))
+            return originalName.substring(0, originalName.length - 9)
+        return originalName
+    }
+
+    ignoreEntry(name: string, language: Language) {
+        return this.ignoredEntriesCommon.includes(name) ||
+            language === Language.JAVA && this.ignoredEntriesJava.concat(this.customComponents).includes(name)
+    }
+
+    ignoreMethod(name: string, language: Language) {
+        return language === Language.ARKTS && this.ignoreMethodArkts.includes(name)
+    }
+
+    isMaterializedIgnored(name: string): boolean {
+        if (this.isStandardNameIgnored(name)) return true
+
+        for (const ignore of this.ignoreMaterialized) {
+            if (name.endsWith(ignore)) return true
+        }
+        return false
+    }
+
+    isHandWritten(component: string) {
+        return this.handWritten.concat(this.customComponents).includes(component)
+    }
+
+    isKnownParametrized(name: string | undefined): boolean {
+        return name != undefined && this.knownParameterized.includes(name)
+    }
+
+    isShouldReplaceThrowingError(name: string) {
+        for (const ignore of this.replaceThrowErrorReturn) {
+            if (name.endsWith(ignore)) return true
+        }
+        return false
+    }
 
     noDummyGeneration(component: string, method = "") {
         const ignoreMethods = this.noDummyComponents.get(component)
@@ -74,275 +233,44 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
         return false
     }
 
-    private isWhole(methods: string[]): boolean {
-        return methods.includes("*")
-    }
-
-    private noDummyComponents: Map<string, string[]> = new Map()
-}
-
-export let PeerGeneratorConfigCore = new PeerGeneratorConfigImpl(defaultCoreGeneratorConfiguration)
-
-export function setFileGeneratorConfiguration(config: CoreGeneratorConfiguration) {
-    PeerGeneratorConfigCore = new PeerGeneratorConfigImpl(config)
-}
-
-export class PeerGeneratorConfig {
-    public static commonMethod = ["CommonMethod"]
-    public static customNodeTypes = ["CustomNode"]
-
-    public static ignoreSerialization = [
-        "Array", "Callback", "ErrorCallback", "Length", "AttributeModifier",
-        "Number", "String", "Function", "Optional", "RelativeIndexable",
-    ]
-
-    private static customComponents = [
-        "BaseCustomComponent",
-        "CustomComponent",
-        "CustomComponentV2",
-    ]
-
-    public static handWritten = [
-        ...this.customComponents,
-        "LocalStorage",
-        "SyncedPropertyOneWay",
-        "SubscribedAbstractProperty",
-        "SyncedPropertyTwoWay",
-        "AttributeModifier",
-        "AbstractProperty",
-        "SubscribaleAbstract",
-        "IPropertySubscriber",
-        "ISinglePropertyChangeSubscriber",
-        "SystemBarStyle",
-        "Navigation",
-        "AbstractProperty",
-        "ISinglePropertyChangeSubscriber",
-        "PageTransitionEnterInterface",
-        "PageTransitionExitInterface",
-        "CommonTransition",
-    ]
-
-    public static ignorePeerMethod = ["attributeModifier"]
-
-    public static ignoreComponents = [
-        "Particle",
-        "ForEach",
-        "LazyForEach",
-        "ContentSlot",
-    ]
-
-    public static knownParametrized = [
-        "Indicator", "AttributeModifier", "AnimationRange", "ContentModifier", "SizeT", "PositionT", "Record"
-    ]
-
-    public static invalidAttributes = ["ScrollableCommonMethod"]
-
-    public static invalidEvents: string[] = []
-
-    public static rootComponents = [
-        "Root",
-        "ComponentRoot",
-        "CommonMethod",
-        "SecurityComponentMethod",
-        "CommonTransition",
-        "CalendarAttribute",
-        "ContainerSpanAttribute",
-    ]
-
-    public static standaloneComponents = [
-        "TextPickerDialog",
-        "TimePickerDialog",
-        "AlertDialog",
-        "CanvasPattern"
-    ]
-
-    public static builderClasses = [
-        "SubTabBarStyle",
-        "BottomTabBarStyle",
-        "DotIndicator",
-        "DigitIndicator",
-    ]
-
-    private static ignoreStandardNames = [
-        // standard exclusion
-        "Attribute",
-        "Interface",
-        "Method",
-    ]
-
-    public static isStandardNameIgnored(name: string) {
+    private isStandardNameIgnored(name: string) {
         for (const ignore of this.ignoreStandardNames) {
             if (name.endsWith(ignore)) return true
         }
         return false
     }
 
-    private static replaceThrowErrorReturn = [
-        "NavPathStack"
-    ]
-
-    public static isShouldReplaceThrowingError(name: string) {
-        for (const ignore of this.replaceThrowErrorReturn) {
-            if (name.endsWith(ignore)) return true
-        }
-        return false
+    private isWhole(methods: string[]): boolean {
+        return methods.includes("*")
     }
 
-    private static ignoreMaterialized = [
-        // TBD
-        "Layoutable",
-        "LayoutChild",
-        "Measurable",
-        "IMonitor", // IMonitor class processing will fixed in !920
-        "Configuration",
-        "UIGestureEvent",
-        //"GestureHandler",           // class with generics
-        "GestureGroupHandler",
-        "ContentModifier",
-        // constant values need to be generated
-        // "equals(id: TextMenuItemId): boolean" method leads to the "cycle detected" message
-        // "TextMenuItemId", // SyntaxError: Unexpected token, expected 'private' or identifier [ArkTextCommonInterfaces.ts:52:24]
-        "AnimatableArithmetic", // Unused generic class
-        "DataChangeListener"
-    ]
-
-    public static ignoreReturnTypes = new Set<string>([
-        "Promise"
-    ])
-
-    private static ignoredEntriesCommon = new Set([
-        // Predefined types
-        "Optional",
-
-        // common
-        "AppStorage",
-        "DataAddOperation",
-        "DataChangeListener",  // causes discrimination code failure
-        "DataChangeOperation",
-        "DataReloadOperation",
-        "DisturbanceFieldOptions",
-        "EntryOptions",
-        "Environment",
-        "GestureGroupHandler",
-        "IDataSource",
-        "LazyForEachInterface",  // pulls in DataChangeListener
-        "LocalStorage",
-        "OffscreenCanvas",
-        "OffscreenCanvasRenderingContext2D",
-        "PersistentStorage",
-        "PositionT",
-        "SizeT",
-        "Storage",  // escape method name `delete` in C++ code
-        "SubscribedAbstractProperty",
-        "SyncedPropertyOneWay",
-        "SyncedPropertyTwoWay",
-        "IMonitorValue",
-    ])
-
-    private static ignoredEntriesJava = new Set([
-        ...this.customComponents,
-        "AnimationRange",
-        "EventTargetInfo",
-        "GestureRecognizer",
-        "GestureRecognizerJudgeBeginCallback",
-        "Matrix2D",
-        "ScrollAnimationOptions",
-        "SheetDismiss",
-        "SubTabBarStyle",
-        "TextPickerDialog",
-        "Dimension",
-    ])
-
-    public static boundProperties: Array<[string, string[]]> = [
-        ["Checkbox", ["select"]],
-        ["CheckboxGroup", ["selectAll"]],
-        ["DatePicker", ["selected"]],
-        ["TimePicker", ["selected"]],
-        ["MenuItem", ["selected"]],
-        ["Panel", ["mode"]],
-        ["Radio", ["checked"]],
-        ["Rating", ["rating"]],
-        ["Search", ["value"]],
-        ["SideBarContainer", ["showSideBar"]],
-        ["Slider", ["value"]],
-        ["Stepper", ["index"]],
-        ["Swiper", ["index"]],
-        ["Tabs", ["index"]],
-        ["TextArea", ["text"]],
-        ["TextInput", ["text"]],
-        ["TextPicker", ["selected", "value"]],
-        ["Toggle", ["isOn"]],
-        ["AlphabetIndexer", ["selected"]],
-        ["Select", ["selected", "value"]],
-        ["BindSheet", ["isShow"]],
-        ["BindContentCover", ["isShow"]],
-        ["Refresh", ["refreshing"]],
-        ["GridItem", ["selected"]],
-        ["ListItem", ["selected"]],
-    ]
-
-    public static ignoredCallbacks = new Set<string>([
-        // Empty for now
-    ])
-
-    static ignoreEntry(name: string, language: Language) {
-        return PeerGeneratorConfig.ignoredEntriesCommon.has(name) ||
-            language === Language.JAVA && PeerGeneratorConfig.ignoredEntriesJava.has(name)
-    }
-
-    static ignoreMethod(name: string, language: Language) {
-        return language === Language.ARKTS &&
-            ["testTupleNumberStringEnum", "testTupleOptional", "testTupleUnion"].includes(name)
-    }
-
-    public static isMaterializedIgnored(name: string) {
-        if (this.isStandardNameIgnored(name)) return true
-
-        for (const ignore of this.ignoreMaterialized) {
-            if (name.endsWith(ignore)) return true
-        }
-        return false
-    }
-
-    static mapComponentName(originalName: string): string {
-        if (originalName.endsWith("Attribute"))
-            return originalName.substring(0, originalName.length - 9)
-        return originalName
-    }
-
-    static isKnownParametrized(name: string | undefined) : boolean {
-        return name != undefined && PeerGeneratorConfig.knownParametrized.includes(name)
-    }
-
-    static cppPrefix = "GENERATED_"
-    static needInterfaces = true
+    readonly cppPrefix: string = "GENERATED_"
+    public needInterfaces: boolean = true
+    private ignoredEntriesCommon: string[] = []
+    private ignoredEntriesJava: string[] = []
+    readonly ignoreComponents: string[] = []
+    readonly ignorePeerMethod: string[] = []
+    private ignoreMethodArkts: string[] = []
+    readonly invalidAttributes: string[] = []
+    private replaceThrowErrorReturn: string[] = []
+    readonly ignoreSerialization: string[] = []
+    private customComponents: string[] = []
+    readonly customNodeTypes: string[] = []
+    private handWritten: string[] = []
+    readonly builderClasses: string[] = []
+    readonly knownParameterized: string[] = []
+    readonly rootComponents: string[] = []
+    readonly standaloneComponents: string[] = []
+    readonly boundProperties: Map<string, string[]> = new Map()
+    private ignoreMaterialized: string[] = []
+    private ignoreStandardNames: string[] = []
+    readonly ignoreReturnTypes: string[] = []
+    private noDummyComponents: Map<string, string[]> = new Map()
 }
 
+export let PeerGeneratorConfig = new PeerGeneratorConfigImpl(defaultCoreGeneratorConfiguration)
 
-function isObject(i: any): i is object {
-    if (typeof i !== 'object')
-        return false
-    if (Array.isArray(i))
-        return false
-    return true
+export function setFileGeneratorConfiguration(config: CoreGeneratorConfiguration) {
+    PeerGeneratorConfig = new PeerGeneratorConfigImpl(config)
 }
 
-export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T>): T {
-    if (custom === undefined)
-        return defaults
-    const result = Object.assign({}, defaults)
-    for (const key in custom) {
-        if (Object.prototype.hasOwnProperty.call(custom, key)) {
-            const defaultValue = result[key]
-            const customValue = custom[key]
-            if (isObject(defaultValue) && isObject(customValue)) {
-                Object.assign(result, { [key]: deepMergeConfig(defaultValue, customValue) })
-            } else {
-                if (isObject(defaultValue))
-                    throw new Error("Replacing default object value with custom non-object")
-                Object.assign(result, { [key]: customValue })
-            }
-        }
-    }
-    return result
-}

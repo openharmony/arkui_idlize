@@ -87,7 +87,6 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
     }
     return foundCallbacks
         .sort((a, b) => a.name.localeCompare(b.name))
-        .filter(it => !PeerGeneratorConfig.ignoredCallbacks.has(it.name))
         .filter(callback => {
             const subtypes = callback.parameters.map(it => it.type!).concat(callback.returnType)
                 .flatMap(it => {
@@ -100,7 +99,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
                     return it
                 })
             // handwritten types are not serializable
-            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.handWritten.includes(it.name)))
+            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.isHandWritten(it.name)))
                 return false
             // can not process callbacks with type arguments used inside
             // (value: SomeInterface<T>) => void

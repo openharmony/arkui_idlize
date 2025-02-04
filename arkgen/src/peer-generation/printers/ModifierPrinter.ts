@@ -14,7 +14,7 @@
  */
 
 import { IndentedPrinter } from '@idlizer/core'
-import { PeerGeneratorConfigCore } from '../PeerGeneratorConfig'
+import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
@@ -26,7 +26,6 @@ import {
     modifierStructList,
     warning
 } from "../FileGenerators";
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod
 } from '@idlizer/core'
@@ -210,7 +209,7 @@ export class ModifierVisitor {
 
     printRealAndDummyModifier(method: PeerMethod, clazz: PeerClass) {
         this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
-        if (PeerGeneratorConfigCore.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
+        if (PeerGeneratorConfig.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
             return
         }
         this.printMethodProlog(this.dummy, method)
@@ -312,7 +311,7 @@ class AccessorVisitor extends ModifierVisitor {
         const mDestroyPeer = createDestroyPeerMethod(clazz);
         [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
             this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
-            if (PeerGeneratorConfigCore.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
+            if (PeerGeneratorConfig.noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
                 return
             }
             this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))

@@ -103,6 +103,7 @@ const options = program
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
+    .option('--options-file <path>', 'Path to file which determines what to generate')
     .option('--use-new-ohos', 'Use new ohos generator')
     .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
@@ -144,8 +145,8 @@ class ArkoalaConfiguration extends DefaultConfig {
         switch (name) {
             case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
             case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
-            case 'knownParameterized': return PeerGeneratorConfig.knownParametrized as T[]
-            case 'boundProperties': return PeerGeneratorConfig.boundProperties as T[]
+            case 'knownParameterized': return PeerGeneratorConfig.knownParameterized as T[]
+            case 'boundProperties': return Array.from(PeerGeneratorConfig.boundProperties) as T[]
             case 'builderClasses': return PeerGeneratorConfig.builderClasses as T[]
         }
         return super.paramArray(name)
