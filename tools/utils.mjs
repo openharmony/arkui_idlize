@@ -6,6 +6,7 @@ import { execSync } from "child_process"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 export const IDLIZE_HOME = path.resolve(path.join(__dirname, ".."))
+export const EXTERNAL_HOME = path.resolve(path.join(__dirname, "../external"))
 
 export class Package {
     constructor(path) {
