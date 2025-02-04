@@ -20,6 +20,7 @@ export interface GenerateOptions<T> {
     onBegin?: (outDir: string, typeChecker: ts.TypeChecker) => void
     onSingleFile?: (entries: T, outDir: string, inputFile: ts.SourceFile) => void
     onEnd?: (outDir: string) => void
+    enableLog?: boolean
 }
 
 export interface GenericVisitor<T> {

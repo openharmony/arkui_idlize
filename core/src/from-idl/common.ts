@@ -34,37 +34,45 @@ function getFilesRecursive(dirPath: string, arrayOfFiles: string[] = []) {
 }
 
 export function fromIDL(
-    inputDir: string,
-    inputFile: string | undefined,
+    inputDirs: string | string[],
+    inputFiles: string | string[] | undefined,
     outputDir: string,
     extension: string,
     verbose: boolean,
     transform: (name: string, content: string) => string
 ): void {
-    inputDir = path.resolve(inputDir)
-    const files: string[] = inputFile
-        ? [path.join(inputDir, inputFile)]
-        : getFilesRecursive(inputDir)
+    const resolvedInputDirs = Array.isArray(inputDirs) ? inputDirs.map(dir => path.resolve(dir)) : [path.resolve(inputDirs)]
+    const resolvedInputFiles: string[] = Array.isArray(inputFiles)
+        ? inputFiles.map(file => path.resolve(file))
+        : typeof inputFiles === 'string'
+        ? [path.resolve(inputFiles)]
+        : []
 
-    const results: string[] =
-        files
-            .map((file: string) => transform(file, fs.readFileSync(file).toString()))
-
-    zip(files, results)
-        .forEach(([fileName, output]: [string, string]) => {
-            fs.mkdirSync(outputDir, { recursive: true })
-            console.log('producing', path.relative(inputDir, fileName))
-            const outFile = path.join(
-                outputDir,
-                path.relative(inputDir, fileName).replace(".idl", extension)
-            )
-            if (verbose) console.log(output)
-            if (!fs.existsSync(path.dirname(outFile))) {
-                fs.mkdirSync(path.dirname(outFile), { recursive: true });
-            }
-            fs.writeFileSync(outFile, licence.concat(output))
-            console.log("saved", outFile)
+    let files: string[] = []
+    if (resolvedInputFiles.length > 0) {
+        files = resolvedInputFiles
+    } else {
+        resolvedInputDirs.forEach(dir => {
+            files = files.concat(getFilesRecursive(dir))
         })
+    }
+
+    const results: string[] = files.map(file => transform(file, fs.readFileSync(file).toString()))
+
+    zip(files, results).forEach(([fileName, output]: [string, string]) => {
+        fs.mkdirSync(outputDir, { recursive: true })
+        console.log('producing', path.relative(resolvedInputDirs[0], fileName))
+        const outFile = path.join(
+            outputDir,
+            path.relative(resolvedInputDirs[0], fileName).replace(".idl", extension)
+        )
+        if (verbose) console.log(output)
+        if (!fs.existsSync(path.dirname(outFile))) {
+            fs.mkdirSync(path.dirname(outFile), { recursive: true })
+        }
+        fs.writeFileSync(outFile, licence.concat(output))
+        console.log("saved", outFile)
+    })
 }
 
 export function scanIDL(

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
@@ -26,7 +27,6 @@ import {
     findVersion,
     GeneratorConfiguration,
     setDefaultConfiguration,
-    initRNG,
     PeerFile
 } from "@idlizer/core"
 import {
@@ -37,11 +37,9 @@ import {
     isSyntheticEntry,
     toIDLString,
     transformMethodsAsync2ReturnPromise,
-    verifyIDLString,
-    linearizeNamespaceMembers
+    verifyIDLString
 } from "@idlizer/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
-import { TestGeneratorVisitor } from "./TestGeneratorVisitor"
 import { loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
 import { generateTracker } from "./peer-generation/Tracker"
 import {
@@ -73,7 +71,7 @@ const options = program
     .option('--ets2ts', 'Convert .ets to .ts')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
-    .option('--input-file <name>', 'Name of file to convert, all files in input-dir if none')
+    .option('--input-files <files...>', 'Comma-separated list of specific files to process')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
     .option('--idl2peer', 'Convert IDL to peer drafts')
     .option('--dts2skoala', 'Convert DTS to skoala definitions')
@@ -132,7 +130,7 @@ class DefaultConfig implements GeneratorConfiguration {
 
     param<T>(name: string): T {
         if (name in this.params) {
-            return this.params[name] as T;
+            return this.params[name] as T
         }
         throw new Error(`${name} is unknown`)
     }
@@ -164,33 +162,52 @@ class SkoalaConfiguration extends DefaultConfig {
 
 setDefaultConfiguration(new ArkoalaConfiguration())
 
+
 if (options.dts2idl) {
+
+    const { inputDirs, inputFiles } = formatInputPaths(options)
+
+    validatePaths(inputDirs, 'dir')
+    validatePaths(inputFiles, 'file')
+
     generate(
-        options.inputDir.split(','),
-        options.inputFile,
+        inputDirs,
+        inputFiles,
         options.outputDir ?? "./idl",
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
                 console.log('producing', path.basename(sourceFile.fileName))
-                const outFile = path.join(outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", ".idl"))
+                const outFile = path.join(
+                    outputDir,
+                    path.basename(sourceFile.fileName).replace(".d.ts", ".idl")
+                )
+
                 console.log("saved", outFile)
+
                 if (options.skipDocs) {
-                    entries.forEach(it => forEachChild(
-                        it, (it) => it.documentation = undefined))
+                    entries.forEach(entry =>
+                        forEachChild(entry, it => (it.documentation = undefined))
+                    )
                 }
-                let generated = toIDLString(entries, {
+
+                const generated = toIDLString(entries, {
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })
-                if (options.verbose) console.log(generated)
-                if (!fs.existsSync(path.dirname(outFile))){
-                    fs.mkdirSync(path.dirname(outFile), { recursive: true });
+
+                if (options.verbose) {
+                    console.log(generated)
+                }
+
+                if (!fs.existsSync(path.dirname(outFile))) {
+                    fs.mkdirSync(path.dirname(outFile), { recursive: true })
                 }
                 fs.writeFileSync(outFile, generated)
-                if (options.verifyIdl)
+
+                if (options.verifyIdl) {
                     verifyIDLString(generated)
+                }
             }
         }
     )
@@ -199,6 +216,8 @@ if (options.dts2idl) {
 
 if (options.dts2skoala) {
     setDefaultConfiguration(new SkoalaConfiguration())
+
+    console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
 
     const outputDir: string = options.outputDir ?? "./out/skoala"
 
@@ -209,9 +228,17 @@ if (options.dts2skoala) {
     const generatedIDLMap = new Map<string, IDLEntry[]>()
     const skoalaLibrary = new IdlSkoalaLibrary()
 
+    const inputDirs = options.inputDir ? options.inputDir.split(',') : []
+    const inputFiles = options.inputFile ? (Array.isArray(options.inputFile) ? options.inputFile : [options.inputFile]) : []
+
+    if (inputDirs.length === 0 && inputFiles.length === 0) {
+        console.error("Error: No input directory or files provided.")
+        process.exit(1)
+    }
+
     generate(
-        options.inputDir.split(','),
-        options.inputFile,
+        inputDirs,
+        inputFiles,
         outputDir,
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, skoalaLibrary),
         {
@@ -252,72 +279,6 @@ if (options.dts2skoala) {
     didJob = true
 }
 
-if (options.dts2test) {
-    initRNG()
-    let testInterfaces = options.testInterface
-    if (testInterfaces === undefined) {
-        function fileNameToClass(name: string): string {
-            return name
-                .split('_')
-                .map(s => s.charAt(0).toUpperCase() + s.slice(1))
-                .join(``)
-        }
-
-        (options.inputDir as string).split(",").forEach(inputDir => {
-            let inDir = path.resolve(inputDir)
-            testInterfaces = testInterfaces.concat(
-                fs.readdirSync(inDir)
-                .filter(file => file.endsWith("d.ts"))
-                .map(file => file.substring(0, file.length - 5))
-                .map(fileNameToClass)
-                .join(','))
-            })
-    }
-
-    let lines: string[] = []
-    generate(
-        options.inputDir.split(','),
-        options.inputFile,
-        options.outputDir ?? "./generated/tests",
-        (sourceFile, typeChecker) => new TestGeneratorVisitor(sourceFile, typeChecker, testInterfaces, options.testMethod, options.testProperties),
-        {
-            compilerOptions: defaultCompilerOptions,
-            onBegin: (outDir: string) => {
-                lines.push(`import {checkResult, checkTestFailures} from "@arkoala/arkui/test_utils"`)
-                lines.push(``)
-            },
-            onSingleFile: (entries: string[], outputDir, sourceFile) => {
-                lines = lines.concat(entries)
-            },
-            onEnd: (outDir: string) => {
-                lines.push(``)
-                lines.push(`checkTestFailures()`)
-
-                let generated = lines.join("\n")
-                const outFile = path.join(outDir, "index.ts")
-                if (options.verbose) {
-                    console.log(generated)
-                }
-                console.log(`Write fuzzing peers to file ${outFile}`)
-                fs.writeFileSync(outFile, lines.join("\n"))
-            }
-        }
-    )
-    didJob = true
-}
-
-if (options.idl2dts) {
-    fromIDL(
-        options.inputDir,
-        options.inputFile,
-        options.outputDir ?? "./generated/dts/",
-        ".d.ts",
-        options.verbose ?? false,
-        idlToDtsString,
-    )
-    didJob = true
-}
-
 if (options.idl2peer) {
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
@@ -331,12 +292,85 @@ if (options.idl2peer) {
     didJob = true
 }
 
+if (options.idl2dts) {
+    const generatedDtsDir = options.outputDir ?? "./generated/dts/"
+
+    if (options.inputFiles && typeof options.inputFiles === 'string') {
+        options.inputFiles = options.inputFiles
+            .split(',')
+            .map(file => file.trim())
+            .filter(Boolean)
+    }
+
+    const inputDirs = options.inputDir
+
+    if (typeof options.inputDir === 'string') {
+        options.inputDir = options.inputDir.split(',')
+            .map(dir => dir.trim())
+            .filter(Boolean)
+    }
+
+    const inputFiles: string[] = options.inputFiles || []
+    inputFiles.forEach(file => {
+        if (!fs.existsSync(file)) {
+            console.error(`Input file does not exist: ${file}`)
+            process.exit(1)
+        } else {
+            console.log(`Input file exists: ${file}`)
+        }
+    })
+
+    fromIDL(
+        inputDirs,
+        inputFiles,
+        generatedDtsDir,
+        ".d.ts",
+        options.verbose ?? false,
+        idlToDtsString
+    )
+    didJob = true
+}
+
+
 if (options.dts2peer) {
     PeerGeneratorConfig.needInterfaces = options.needInterfaces
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
     const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
+
+    if (options.inputFiles && typeof options.inputFiles === 'string') {
+        options.inputFiles = options.inputFiles
+            .split(',')
+            .map(file => file.trim())
+            .filter(Boolean)
+    }
+
+    if (options.inputDir && typeof options.inputDir === 'string') {
+        options.inputDir = options.inputDir.split(',')
+            .map(dir => dir.trim())
+            .filter(Boolean)
+    }
+
+    const inputDirs: string[] = options.inputDir || []
+    inputDirs.forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            console.error(`Input directory does not exist: ${dir}`)
+            process.exit(1)
+        } else {
+            console.log(`Input directory exists: ${dir}`)
+        }
+    })
+
+    const inputFiles: string[] = options.inputFiles || []
+    inputFiles.forEach(file => {
+        if (!fs.existsSync(file)) {
+            console.error(`Input file does not exist: ${file}`)
+            process.exit(1)
+        } else {
+            console.log(`Input file exists: ${file}`)
+        }
+    })
 
     options.docs = "all"
     const idlLibrary = createPeerLibrary(lang)
@@ -348,6 +382,7 @@ if (options.dts2peer) {
             peerFile: file,
         }).visitWholeFile()
     })
+
     scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
         new IDLPredefinesVisitor({
             sourceFile: file.originalFilename,
@@ -355,6 +390,7 @@ if (options.dts2peer) {
             peerFile: file,
         }).visitWholeFile()
     })
+
     if (["arkoala", "libace", "all", "tracker"].includes(options.generatorTarget)) {
         scanPredefinedDirectory(PREDEFINED_PATH, "arkoala").forEach(file => {
             new IDLPredefinesVisitor({
@@ -365,33 +401,34 @@ if (options.dts2peer) {
         })
     }
 
-    // First convert DTS to IDL
     generate(
-        options.inputDir.split(','),
-        options.inputFile,
+        inputDirs,
+        inputFiles,
         generatedPeersDir,
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
-                // Search for duplicate declarations
                 entries = entries.filter(newEntry =>
-                    !idlLibrary.files.find(peerFile => linearizeNamespaceMembers(peerFile.entries).find(entry => {
+                    !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isEnum)
                             || [newEntry, entry].every(isSyntheticEntry))) {
                             if (newEntry.name === entry.name) {
-                                console.warn(`WARNING: Skip entry:'${newEntry.name}'(${sourceFile.fileName}) already exists in ${peerFile.originalFilename}`)
                                 return true
                             }
                         }
+                        return false
                     }))
                 )
                 entries.forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
-                const file = new PeerFile(sourceFile.fileName, entries)
-                idlLibrary.files.push(file)
+
+                const baseFileName = path.resolve(sourceFile.fileName)
+                const peerFile = new PeerFile(baseFileName, entries)
+
+                idlLibrary.files.push(peerFile)
             },
             onEnd(outDir) {
                 if (options.generatorTarget == "ohos") {
@@ -459,7 +496,6 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
             })
             .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
     }
-
 }
 
 function scanNotPredefinedDirectory(dir: string, ...subdirs: string[]): PeerFile[] {
@@ -481,6 +517,41 @@ function scanDirectory(isPredefined: boolean, dir: string, ...subdirs: string[])
         })
 }
 
+function processInputOption(option: string | undefined): string[] {
+    if (!option) return []
+    if (typeof option === 'string') {
+        return option.split(',')
+            .map(item => item.trim())
+            .filter(Boolean)
+    }
+    return []
+}
+
+function formatInputPaths(options: any): { inputDirs: string[]; inputFiles: string[] } {
+    if (options.inputFiles && typeof options.inputFiles === 'string') {
+        options.inputFiles = processInputOption(options.inputFiles)
+    }
+
+    if (options.inputDir && typeof options.inputDir === 'string') {
+        options.inputDir = processInputOption(options.inputDir)
+    }
+
+    const inputDirs: string[] = options.inputDir || []
+    const inputFiles: string[] = options.inputFiles || []
+
+    return { inputDirs, inputFiles }
+}
+
+function validatePaths(paths: string[], type: 'file' | 'dir'): void {
+    paths.forEach(pathItem => {
+        if (!fs.existsSync(pathItem)) {
+            console.error(`Input ${type} does not exist: ${pathItem}`)
+            process.exit(1)
+        } else {
+            console.log(`Input ${type} exists: ${pathItem}`)
+        }
+    })
+}
 function createPeerLibrary(lang: Language) {
     if (["arkoala", "libace", "all"].includes(options.generatorTarget))
         return new ArkoalaPeerLibrary(lang)

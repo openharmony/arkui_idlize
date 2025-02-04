@@ -35,6 +35,7 @@ import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
 import { ReferenceResolver } from "@idlizer/core"
+import * as path from "path"
 
 /**
  * Theory of operations.
@@ -274,15 +275,29 @@ class PeersGenerator {
     }
 
     public generatePeer(component: IdlComponentDeclaration): void {
-        const sourceFile = component.attributeDeclaration.fileName
-        if (!sourceFile)
-            throw new Error("Expected parent of attributes to be a SourceFile")
-        const file = this.library.findFileByOriginalFilename(sourceFile)
-        if (!file)
-            throw new Error("Not found a file corresponding to attributes class")
-        const peer = new PeerClass(file, component.name, sourceFile)
-        if (component.interfaceDeclaration)
+
+        if (!component.attributeDeclaration.fileName) {
+            throw new Error("Expected parent of attributes to be a SourceFile, but fileName is undefined")
+        }
+    
+        const originalFileName = component.attributeDeclaration.fileName
+        const baseName = path.basename(originalFileName)
+        const resolvedPath = path.resolve(originalFileName)
+    
+        const file = this.library.findFileByOriginalFilename(baseName) ||
+                     this.library.findFileByOriginalFilename(resolvedPath)
+    
+        if (!file) {
+            console.error("Available files in library:", this.library.files.map(f => f.originalFilename))
+            throw new Error(`Not found a file corresponding to attributes class: ${baseName} (${resolvedPath})`)
+        }
+    
+        const peer = new PeerClass(file, component.name, baseName)
+    
+        if (component.interfaceDeclaration) {
             this.fillInterface(peer, component.interfaceDeclaration)
+        }
+
         this.fillClass(peer, component.attributeDeclaration)
         collapseIdlEventsOverloads(this.library, peer)
         file.peers.set(component.name, peer)
