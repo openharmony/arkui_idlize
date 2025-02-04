@@ -77,17 +77,26 @@ export const defaultCoreGeneratorConfiguration: CoreGeneratorConfiguration = {
     }
 }
 
-export function loadConfiguration(configurationFile?: string): CoreGeneratorConfiguration {
-    if (!isDefined(configurationFile)) return defaultCoreGeneratorConfiguration
+export function loadConfigurationFromFile(configurationFile: string): CoreGeneratorConfiguration | undefined {
+    if (!fs.existsSync(configurationFile)) return undefined
 
     const data = fs.readFileSync(path.resolve(configurationFile)).toString()
-    const userConfiguration = JSON.parse(data)
-    if (!isDefined(userConfiguration)) {
-        warn(`Could not parse json config file ${configurationFile}`)
-        return defaultCoreGeneratorConfiguration
-    }
-    const mergedConfig = deepMergeConfig(defaultCoreGeneratorConfiguration, userConfiguration)
-    return mergedConfig
+    return JSON.parse(data) as CoreGeneratorConfiguration
+}
+
+export function loadConfiguration(configurationFiles?: string): CoreGeneratorConfiguration {
+    let files = [path.join(__dirname, "..", "generation-config", "config.json")]
+    if (configurationFiles) files.concat(configurationFiles.split(","))
+
+    let configuration = defaultCoreGeneratorConfiguration
+    files.forEach(file => {
+        const nextConfiguration = loadConfigurationFromFile(file)
+        if (nextConfiguration) {
+            console.log(`Using options from ${file}`)
+            configuration = deepMergeConfig(configuration, nextConfiguration)
+        }
+    })
+    return configuration
 }
 
 export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {

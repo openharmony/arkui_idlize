@@ -111,9 +111,7 @@ const options = program
 
 let apiVersion = options.apiVersion ?? 9999
 
-if (options.optionsFile) {
-    setFileGeneratorConfiguration(loadConfiguration(options.optionsFile as string))
-}
+setFileGeneratorConfiguration(loadConfiguration(options.optionsFile))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)
