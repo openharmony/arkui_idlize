@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
 import { Options } from "./Options"
 
 export class Config {
@@ -23,20 +22,16 @@ export class Config {
         private files?: string[]
     ) {}
 
-    static get sequencePointerType(): IDLPrimitiveType {
-        return IDLPointerType
-    }
-
-    static get sequenceLengthType(): IDLPrimitiveType {
-        return IDLU32Type
-    }
-
-    static get createMethod(): string {
+    static get createPrefix(): string {
         return `Create`
     }
 
-    static get updateMethod(): string {
+    static get updatePrefix(): string {
         return `Update`
+    }
+
+    static get constPostfix(): string {
+        return `Const`
     }
 
     static get astNodeCommonAncestor(): string {

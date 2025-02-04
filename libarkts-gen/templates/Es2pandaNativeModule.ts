@@ -17,13 +17,11 @@ import {
     KNativePointer,
     KStringPtr,
     KUInt,
-    KDouble,
-    KFloat,
-    KLong,
     KInt,
     KBoolean,
-    registerNativeModule,
-    registerLoadedLibrary
+    KDouble,
+    KFloat,
+    KLong
 } from "@koalaui/interop"
 
 // TODO: this type should be in interop

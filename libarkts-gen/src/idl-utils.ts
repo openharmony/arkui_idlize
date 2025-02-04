@@ -21,13 +21,12 @@ import {
     IDLMethod,
     IDLNode,
     IDLPrimitiveType,
-    IDLReferenceType,
-    IDLType,
-    isEnum,
+    IDLType, isEnum,
     isInterface,
     isPrimitiveType,
     isReferenceType
 } from "@idlizer/core"
+import { Config } from "./Config"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === "String"
@@ -100,5 +99,12 @@ export class Typechecker {
         }
         const declaration = this.findRealDeclaration(type.name)
         return declaration !== undefined && isTarget(declaration)
+    }
+
+    isConstReturnValue(node: IDLMethod): boolean {
+        if (isPrimitiveType(node.returnType) || this.isReferenceTo(node.returnType, isEnum)) {
+            return false
+        }
+        return node.name.endsWith(Config.constPostfix)
     }
 }

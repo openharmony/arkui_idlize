@@ -28,7 +28,7 @@ import { BridgesConstructions } from "./BridgesConstructions"
 import { CachedLogger } from "../../../CachedLogger"
 import { Config } from "../../../Config"
 
-export class TypeMapper {
+export class NativeTypeMapper {
     constructor(
         private idl: IDLFile
     ) {}
@@ -55,20 +55,17 @@ export class TypeMapper {
         throwException(`Unsupported type: ${node.type}`)
     }
 
-    castToContainer(node: IDLContainerType): string {
+    private castToContainer(node: IDLContainerType): string {
         if (!isSequence(node)) {
             throwException(`Unexpected container type: ${IDLKind[node.kind]}`)
         }
         const inner = node.elementType[0]
         if (isReferenceType(inner)) {
             if (this.typechecker.isHeir(inner.name, Config.astNodeCommonAncestor)) {
-                return `es2panda_AstNode**`
+                return BridgesConstructions.arrayOf(BridgesConstructions.astNode)
             }
             if (this.typechecker.isHollow(inner.name)) {
-                return `${inner.name}**`
-            }
-            if (inner.name === `Type`) {
-                return `es2panda_${inner.name}**`
+                return BridgesConstructions.arrayOf(BridgesConstructions.pointer(inner.name))
             }
         }
 
@@ -76,15 +73,12 @@ export class TypeMapper {
         return ``
     }
 
-    castToReference(node: IDLReferenceType): string {
+    private castToReference(node: IDLReferenceType): string {
         if (this.convertor.typechecker.isHeir(node.name, Config.astNodeCommonAncestor)) {
             return BridgesConstructions.referenceType(Config.astNodeCommonAncestor)
         }
-        if (node.name.startsWith(`es2panda_`)) { /* TODO: better */
-            return `${node.name}*`
-        }
-        if (node.name === `Type`) { /* TODO: better */
-            return `es2panda_${node.name}*`
+        if (this.typechecker.isHollow(node.name)) {
+            return BridgesConstructions.pointer(node.name)
         }
         return BridgesConstructions.referenceType(node.name)
     }
@@ -95,7 +89,7 @@ export class TypeMapper {
 
     toInteropMacro(node: IDLType): string {
         if (isString(node)) {
-            return `KStringPtr`
+            return BridgesConstructions.stringType
         }
         return this.toString(node)
     }

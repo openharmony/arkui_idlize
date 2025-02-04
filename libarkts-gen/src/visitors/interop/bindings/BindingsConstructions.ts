@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-export class NativeModuleConstructions {
+export class BindingsConstructions {
     static method(name: string): string {
         return `_${name}`
     }

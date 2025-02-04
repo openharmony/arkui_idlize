@@ -16,8 +16,8 @@
 import {
     CppLanguageWriter,
     createEmptyReferenceResolver,
-    IDLMethod, IDLPointerType,
-    IndentedPrinter, isEnum, isPrimitiveType,
+    IDLMethod,
+    IndentedPrinter,
     isVoidType,
     LanguageExpression,
     MethodSignature,
@@ -28,10 +28,10 @@ import { IDLType } from "@idlizer/core/idl"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { InteropPrinter } from "../InteropPrinter"
 import { isSequence, isString } from "../../../idl-utils"
-import { TypeMapper } from "./TypeMapper"
+import { NativeTypeMapper } from "./NativeTypeMapper"
 
 export class BridgesPrinter extends InteropPrinter {
-    private typeMapper = new TypeMapper(this.idl)
+    private typeMapper = new NativeTypeMapper(this.idl)
 
     protected writer = new CppLanguageWriter(
         new IndentedPrinter(),
@@ -49,11 +49,13 @@ export class BridgesPrinter extends InteropPrinter {
                 BridgesConstructions.interopMacro(isVoidType(node.returnType), node.parameters.length),
                 [node.name]
                     .concat(
-                        (() => {
-                            if (isVoidType(node.returnType)) return []
-                            if (isSequence(node.returnType)) return `KNativePointer`
-                            if (isString(node.returnType)) return `KNativePointer`
-                            return this.typeMapper.toString(node.returnType)
+                        ((): string | never[] => {
+                            if (isVoidType(node.returnType)) {
+                                return []
+                            }
+                            return this.typeMapper.toString(
+                                this.typeMapper.toReturn(node.returnType)
+                            )
                         })()
                     )
                     .concat(node.parameters.map(it => this.typeMapper.toInteropMacro(it.type)))
@@ -115,7 +117,11 @@ export class BridgesPrinter extends InteropPrinter {
             return
         }
         this.writer.writeExpressionStatement(
-            this.writer.makeString(`auto ${BridgesConstructions.result} = ${this.makeEs2pandaMethodCall(node).asString()}`)
+            this.writer.makeString(
+                BridgesConstructions.resultAssignment(
+                    this.makeEs2pandaMethodCall(node).asString()
+                )
+            )
         )
     }
 
@@ -146,8 +152,8 @@ export class BridgesPrinter extends InteropPrinter {
         this.writer.writeStatement(
             this.writer.makeReturn(
                 this.writer.makeString(
-                    this.maybeConstCast(
-                        this.makeReturnValue(node.returnType),
+                    this.maybeDropConst(
+                        this.makeReturnExpression(node.returnType),
                         node
                     )
                 )
@@ -155,7 +161,7 @@ export class BridgesPrinter extends InteropPrinter {
         )
     }
 
-    private makeReturnValue(returnType: IDLType): string {
+    private makeReturnExpression(returnType: IDLType): string {
         if (isSequence(returnType)) {
             return BridgesConstructions.sequenceConstructor(
                 BridgesConstructions.result,
@@ -169,20 +175,10 @@ export class BridgesPrinter extends InteropPrinter {
         return BridgesConstructions.result
     }
 
-    private maybeConstCast(x: string, node: IDLMethod): string {
-        if (node.name.endsWith(`Const`) && !isPrimitiveType(node.returnType) && !this.typeMapper.typechecker.isReferenceTo(node.returnType, isEnum)) {
-            return `(void*)${x}`
+    private maybeDropConst(value: string, node: IDLMethod): string {
+        if (this.typeMapper.typechecker.isConstReturnValue(node)) {
+            return BridgesConstructions.dropConstCast(value)
         }
-        return x
-    }
-
-    private signatureNonVoidReturnType(node: IDLType): string {
-        if (isSequence(node)) {
-            return `KNativePointer`
-        }
-        if (isString(node)) {
-            return `KNativePointer`
-        }
-        return this.typeMapper.toString(node)
+        return value
     }
 }

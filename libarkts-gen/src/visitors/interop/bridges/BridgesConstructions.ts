@@ -74,7 +74,31 @@ export class BridgesConstructions {
         return `KStringPtr`
     }
 
+    static get pointerType(): string {
+        return `KNativePointer`
+    }
+
     static get stringCast(): string {
         return `getStringCopy`
+    }
+
+    static resultAssignment(value: string): string {
+        return `auto ${BridgesConstructions.result} = ${value}`
+    }
+
+    static dropConstCast(value: string): string {
+        return `(void*)${value}`
+    }
+
+    static get astNode(): string {
+        return `es2panda_AstNode*`
+    }
+
+    static arrayOf(type: string): string {
+        return `${type}*`
+    }
+
+    static pointer(type: string): string {
+        return `${type}*`
     }
 }

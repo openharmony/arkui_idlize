@@ -37,7 +37,7 @@
     "external:subset": "node . --input-file ./input/full.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/generate.json5 --files nativeModule,bridges",
     "external:test": "npm run --prefix ../external/arkoala-arkts/libarkts run",
     "integrate:subset": "npm run compile && npm run external:subset && npm run external:test",
-    "external:real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges",
+    "external:real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges,nativeModule",
     "integrate:real": "npm run compile && npm run external:real && npm run external:test"
   }
 }

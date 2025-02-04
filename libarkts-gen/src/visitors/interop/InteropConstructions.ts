@@ -13,9 +13,19 @@
  * limitations under the License.
  */
 
+import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
+
 export class InteropConstructions {
     static get receiver(): string {
         return `receiver`
+    }
+
+    static get sequencePointerType(): IDLPrimitiveType {
+        return IDLPointerType
+    }
+
+    static get sequenceLengthType(): IDLPrimitiveType {
+        return IDLU32Type
     }
 
     static sequenceParameterPointer(parameter: string): string {

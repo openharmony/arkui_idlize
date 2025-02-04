@@ -17,7 +17,6 @@ import {
     IDLBooleanType,
     IDLContainerType,
     IDLContainerUtils,
-    IDLEntry,
     IDLF32Type,
     IDLF64Type,
     IDLI16Type,
@@ -38,7 +37,7 @@ import { BaseConvertor } from "../BaseConvertor"
 export class ManagedTypeConvertor extends BaseConvertor {
     override convertContainer(type: IDLContainerType): string {
         if (IDLContainerUtils.isSequence(type)) {
-            return `KNativePointer`
+            return `BigUint64Array`
         }
         throwException(`Unexpected container`)
     }

@@ -14,7 +14,6 @@
  */
 
 import {
-    convertType,
     createEmptyReferenceResolver,
     IDLMethod,
     IndentedPrinter,
@@ -25,10 +24,10 @@ import {
 import { IDLType, } from "@idlizer/core/idl"
 import { IDLFile } from "../../../idl-utils"
 import { InteropPrinter } from "../InteropPrinter"
-import { ManagedTypeConvertor } from "./ManagedTypeConvertor"
-import { NativeModuleConstructions } from "./NativeModuleConstructions"
+import { BindingsConstructions } from "./BindingsConstructions"
+import { ManagedTypeMapper } from "./ManagedTypeMapper"
 
-export class NativeModulePrinter extends InteropPrinter {
+export class BindingsPrinter extends InteropPrinter {
     constructor(idl: IDLFile) {
         super(idl)
         this.writer.pushIndent()
@@ -37,21 +36,17 @@ export class NativeModulePrinter extends InteropPrinter {
     override writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => this.mapType(node) },
+        { convert: (node: IDLType) => this.typeMapper.toString(node) },
     )
 
-    private convertor = new ManagedTypeConvertor(this.idl.entries)
-
-    private mapType(node: IDLType): string {
-        return convertType(this.convertor, node)
-    }
+    private typeMapper = new ManagedTypeMapper(this.idl)
 
     override printMethod(node: IDLMethod): void {
         this.writer.writeMethodImplementation(
             new Method(
-                NativeModuleConstructions.method(node.name),
+                BindingsConstructions.method(node.name),
                 new MethodSignature(
-                    node.returnType,
+                    this.typeMapper.toReturn(node.returnType),
                     node.parameters.map(it => it.type),
                     undefined,
                     undefined,
@@ -60,7 +55,7 @@ export class NativeModulePrinter extends InteropPrinter {
             ),
             (writer) => {
                 writer.writeExpressionStatement(
-                    writer.makeString(NativeModuleConstructions.unimplemented)
+                    writer.makeString(BindingsConstructions.unimplemented)
                 )
             }
         )

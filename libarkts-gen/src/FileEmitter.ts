@@ -17,7 +17,7 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
-import { NativeModulePrinter } from "./visitors/interop/native-module/NativeModulePrinter"
+import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
 import { EnumsPrinter } from "./visitors/EnumsPrinter"
 import { IDLFile } from "./idl-utils"
 import { Config } from "./Config"
@@ -49,8 +49,8 @@ export class FileEmitter {
         this.config.shouldEmitFile(`bridges`),
     )
 
-    private nativeModulePrinter = new FilePrinter(
-        (idl: IDLFile) => new NativeModulePrinter(idl).print(),
+    private bindingsPrinter = new FilePrinter(
+        (idl: IDLFile) => new BindingsPrinter(idl).print(),
         `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
         this.config.shouldEmitFile(`nativeModule`),
@@ -72,7 +72,7 @@ export class FileEmitter {
 
         idl = new AstNodeFilterTransformer(idl).transformed()
         idl = new InteropTransformer(idl).transformed()
-        this.printFile(this.nativeModulePrinter, idl)
+        this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }
 

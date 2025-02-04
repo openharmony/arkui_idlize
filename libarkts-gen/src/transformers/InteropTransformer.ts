@@ -25,7 +25,7 @@ import {
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { createInterfaceWithUpdatedMethods, IDLFile, isSequence } from "../idl-utils"
+import { createInterfaceWithUpdatedMethods, IDLFile } from "../idl-utils"
 
 export class InteropTransformer {
     constructor(
@@ -176,6 +176,6 @@ export class InteropTransformer {
     }
 
     private static isCreateOrUpdate(node: IDLMethod): boolean {
-        return node.name.startsWith(Config.createMethod) || node.name.startsWith(Config.updateMethod)
+        return node.name.startsWith(Config.createPrefix) || node.name.startsWith(Config.updatePrefix)
     }
 }
