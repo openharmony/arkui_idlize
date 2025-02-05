@@ -1203,7 +1203,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, defaultId
 
 export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, string> {
     const libraryName = suggestLibraryName(peerLibrary)
-    const visitor = new ManyFilesOHOSVisitor(peerLibrary, libraryName)
+    const visitor = new OneFileOHOSVisitor(peerLibrary, libraryName)
     visitor.prepare()
     visitor.printC()
     return new Map([

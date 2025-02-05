@@ -51,6 +51,23 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
     })
 }
 
+function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, printer: idl.LanguageWriter): void {
+    entry.properties.forEach(prop => {
+        printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional)
+    })
+    entry.methods.forEach(method => {
+        printer.writeMethodDeclaration(
+            method.name,
+            idl.NamedMethodSignature.make(
+                method.returnType,
+                method.parameters
+                    .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) }))
+            ),
+            toMethodModifiers(method)
+        )
+    })
+}
+
 function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterResult {
     const printer = createLanguageWriter(library.language, library)
     const collector = new ImportsCollector()
@@ -61,22 +78,15 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
     if (ns !== '') {
         printer.pushNamespace(ns)
     }
-    printer.writeInterface(entry.name, w => {
-        entry.properties.forEach(prop => {
-            printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional)
+    if (idl.isInterfaceSubkind(entry)) {
+        printer.writeInterface(entry.name, w => {
+            printInterfaceBody(library, entry, w)
         })
-        entry.methods.forEach(method => {
-            printer.writeMethodDeclaration(
-                method.name,
-                idl.NamedMethodSignature.make(
-                    method.returnType,
-                    method.parameters
-                        .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) }))
-                ),
-                toMethodModifiers(method)
-            )
+    } else if (idl.isClassSubkind(entry)) {
+        printer.writeClass(entry.name, w => {
+            printInterfaceBody(library, entry, w)
         })
-    })
+    }
     if (ns !== '') {
         printer.popNamespace()
     }
