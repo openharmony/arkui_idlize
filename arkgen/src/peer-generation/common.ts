@@ -62,7 +62,7 @@ class TsLayout extends CommonLayoutBase {
                     if (isMaterialized(node, this.library)) {
                         return `Ark${toFileName(node.name)}Materialized`
                     }
-                    return `Ark${toFileName(node.name)}Interface`
+                    return `Ark${toFileName(node.name)}Interfaces`
                 }
                 return `Common`
             }
@@ -98,7 +98,7 @@ class ArkTsLayout extends CommonLayoutBase {
                     if (isMaterialized(node, this.library)) {
                         return `Ark${toFileName(node.name)}Materialized`
                     }
-                    return `Ark${toFileName(node.name)}Interface`
+                    return `Ark${toFileName(node.name)}Interfaces`
                 }
                 return `Common`
             }
@@ -136,11 +136,11 @@ class JavaLayout extends CommonLayoutBase {
                     }
                     if (isMaterialized(node, this.library)) {
                         if (idl.isInterfaceSubkind(node)) {
-                            return this.getPath(toFileName(node.name) + 'Internal')
+                            return this.getPath(node.name + 'Internal')
                         }
-                        return this.getPath(toFileName(node.name))
+                        return this.getPath(node.name)
                     }
-                    return this.getPath(`Ark${toFileName(node.name)}Interface`)
+                    return this.getPath(`Ark${toFileName(node.name)}Interfaces`)
                 }
                 return this.getPath(`Common`)
             }
@@ -182,7 +182,7 @@ class CJLayout extends CommonLayoutBase {
                         }
                         return this.getPath(toFileName(node.name))
                     }
-                    return this.getPath(`Ark${toFileName(node.name)}Interface`)
+                    return this.getPath(`Ark${toFileName(node.name)}Interfaces`)
                 }
                 return this.getPath(`Common`)
             }

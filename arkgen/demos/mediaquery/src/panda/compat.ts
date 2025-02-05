@@ -1,8 +1,8 @@
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
 import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
-// import { MEDIAQUERYNativeModule } from "../../generated/arkts/mediaqueryNative"
-// export { mediaquery } from "../../generated/arkts/mediaquery"
+import { MEDIAQUERYNativeModule } from "../../generated/arkts";
+export { mediaquery } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 
@@ -13,5 +13,5 @@ export function pullEvents() {
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", "MEDIAQUERY_NativeBridgeArk")
     registerNativeModuleLibraryName("MEDIAQUERYNativeModule", "MEDIAQUERY_NativeBridgeArk")
-    // new MEDIAQUERYNativeModule()
+    new MEDIAQUERYNativeModule()
 }

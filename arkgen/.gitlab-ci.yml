@@ -297,7 +297,17 @@ check ohos demos:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/arkgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - chmod +x ../external/incremental/tools/panda/arkts/ark{,tsc,link,disasm}
+    - npm run compile --prefix ../external/interop
+    - npm run compile --prefix ../external/incremental/common
+    - npm run compile --prefix ../external/incremental/compat
+    - npm run compile --prefix ../external/incremental/runtime
+    - npm run build:interop:inc --prefix ../external/interop
+    - npm run build:incremental:inc --prefix ../external/incremental/runtime
   script:
-    - npm run run:ohos:mediaquery:ts
-    - npm run run:ohos:context:ts
+    - cd demos/mediaquery
+    - npm run check:ts
+    - npm run check:arkts
+#   - npm run run:ohos:context:ts
 #   - npm run check:ohos:context:run

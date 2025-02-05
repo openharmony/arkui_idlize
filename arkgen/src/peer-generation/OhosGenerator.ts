@@ -1209,6 +1209,7 @@ export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, st
     return new Map([
         [new TargetFile(`${peerLibrary.name.toLowerCase()}.h`), visitor.hWriter.getOutput().join('\n')],
         [new TargetFile(`${peerLibrary.name.toLowerCase()}.cc`), visitor.cppWriter.getOutput().join('\n')],
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}Impl_temp.cc`), visitor.implementationStubsFile.printToString()]
     ])
 }
 

@@ -341,7 +341,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     protected collectImports(imports: ImportsCollector) {
         const decl = this.library.resolveTypeReference(idl.createReferenceType(this.clazz.className))!
-        if (PeerGeneratorConfig.needInterfaces) {
+        if (PeerGeneratorConfig.needInterfaces && this.library.language !== Language.TS) {
             collectDeclDependencies(this.library, decl, imports, {
                 expandTypedefs: true,
                 includeTransformedCallbacks: true,
@@ -355,8 +355,11 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             }
         } else {
             collectDeclDependencies(this.library, decl, (it) => {
-                if (idl.isInterface(it) && isMaterialized(it, this.library))
-                    collectDeclItself(this.library, it, imports)
+                if (idl.isInterface(it) && isMaterialized(it, this.library)) {
+                    if (idl.isClassSubkind(it) || this.library.language !== Language.TS) {
+                        collectDeclItself(this.library, it, imports)
+                    }
+                }
             })
             if (this.clazz.superClass) {
                 let name = this.clazz.superClass.name

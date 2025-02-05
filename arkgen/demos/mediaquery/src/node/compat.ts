@@ -1,5 +1,6 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
+export { mediaquery } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 

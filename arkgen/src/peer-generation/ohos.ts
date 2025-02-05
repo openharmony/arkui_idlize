@@ -166,6 +166,9 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
 
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
         const generatedFiles = [...installed]
+        ohosManagedFiles.forEach(it => {
+            generatedFiles.push('./' + path.relative(ohos.managedDir(), it))
+        })
         if (peerLibrary.language === Language.ARKTS) {
             generatedFiles.push('./peers/type_check.ts')
             generatedFiles.push('./' + path.basename(nativeModuleFileName, path.extname(nativeModuleFileName)))

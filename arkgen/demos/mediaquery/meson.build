@@ -20,8 +20,8 @@ include_dirs = [
 ]
 
 sources = [
-    # TODO 'generated/mediaquery.cc',
-    # TODO 'src/cpp/mediaqueryImpl.cc',
+    'generated/native/mediaquery.cc',
+    'src/cpp/mediaqueryImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',
@@ -86,7 +86,7 @@ elif is_panda
     platform_build_dir = 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@mediaquery/generated/arkts/mediaqueryNative/']
+    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@mediaquery/generated/arkts/MEDIAQUERYNativeModule/']
     include_dirs += [
         external_interop_dir / 'ets',
     ]
