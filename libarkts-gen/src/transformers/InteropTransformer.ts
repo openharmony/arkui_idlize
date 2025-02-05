@@ -25,7 +25,7 @@ import {
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { createInterfaceWithUpdatedMethods, IDLFile } from "../idl-utils"
+import { createUpdatedInterface, IDLFile } from "../idl-utils"
 
 export class InteropTransformer {
     constructor(
@@ -59,7 +59,7 @@ export class InteropTransformer {
     }
 
     private withTransformedMethods(node: IDLInterface): IDLInterface {
-        return createInterfaceWithUpdatedMethods(
+        return createUpdatedInterface(
             node,
             node.methods.map(it => this.transformMethod(it, node))
         )

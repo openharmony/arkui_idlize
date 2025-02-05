@@ -25,11 +25,22 @@ import { InteropTransformer } from "./transformers/InteropTransformer"
 import { AstNodeFilterTransformer } from "./transformers/filter/AstNodeFilterTransformer"
 import { OptionsFilterTransformer } from "./transformers/filter/OptionsFilterTransformer"
 import { MultipleDeclarationFilterTransformer } from "./transformers/filter/MultipleDeclarationFilterTransformer"
+import { Result } from "./visitors/MultiFilePrinter"
+import { AllPeersPrinter } from "./visitors/peers/AllPeersPrinter"
 
 class FilePrinter {
     constructor(
         public print: (idl: IDLFile) => string,
         public path: string,
+        public template: string,
+        public enabled: boolean
+    ) {}
+}
+
+class MultiFilePrinter {
+    constructor(
+        public print: (idl: IDLFile) => Result[],
+        public dir: string,
         public template: string,
         public enabled: boolean
     ) {}
@@ -63,6 +74,13 @@ export class FileEmitter {
         this.config?.shouldEmitFile(`enums`),
     )
 
+    private peersPrinter = new MultiFilePrinter(
+        (idl: IDLFile) => new AllPeersPrinter(idl).print(),
+        `libarkts/src/generated/peers`,
+        `peer.ts`,
+        true
+    )
+
     print(): void {
         let idl = this.file
 
@@ -71,23 +89,45 @@ export class FileEmitter {
         this.printFile(this.enumsPrinter, idl)
 
         idl = new AstNodeFilterTransformer(idl).transformed()
+        this.printMultiFile(this.peersPrinter, idl)
+
         idl = new InteropTransformer(idl).transformed()
         this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }
 
     private printFile(filePrinter: FilePrinter, idl: IDLFile): void {
-        if (filePrinter.enabled) {
-            console.log(`emit to ${filePrinter.path}`)
-            forceWriteFile(
-                path.join(this.outDir, filePrinter.path),
-                this.readTemplate(filePrinter.template)
-                    .replaceAll(
-                        `%GENERATED_PART%`,
-                        filePrinter.print(idl)
-                    )
-            )
+        if (!filePrinter.enabled) {
+            return
         }
+        console.log(`emit to ${filePrinter.path}`)
+        forceWriteFile(
+            path.join(this.outDir, filePrinter.path),
+            this.readTemplate(filePrinter.template)
+                .replaceAll(
+                    `%GENERATED_PART%`,
+                    filePrinter.print(idl)
+                )
+        )
+    }
+
+    private printMultiFile(multiFilePrinter: MultiFilePrinter, idl: IDLFile): void {
+        if (!multiFilePrinter.enabled) {
+            return
+        }
+        console.log(`emit to ${multiFilePrinter.dir}`)
+        multiFilePrinter
+            .print(idl)
+            .forEach(({fileName, output}) => {
+                forceWriteFile(
+                    path.join(this.outDir, multiFilePrinter.dir, fileName),
+                    this.readTemplate(multiFilePrinter.template)
+                        .replaceAll(
+                            `%GENERATED_PART%`,
+                            output
+                        )
+                )
+            })
     }
 
     private readTemplate(name: string): string {

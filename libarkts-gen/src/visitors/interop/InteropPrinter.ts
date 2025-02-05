@@ -34,7 +34,7 @@ export abstract class InteropPrinter {
             return this.visitInterface(node)
         }
         if (isEnum(node)) {
-            return this.visitEnum(node)
+            return
         }
         if (isTypedef(node)) {
             return
@@ -47,15 +47,9 @@ export abstract class InteropPrinter {
         node.methods.forEach(it => this.visitMethod(it))
     }
 
-    private visitEnum(node: IDLEnum): void {
-        this.printEnum(node)
-    }
-
     private visitMethod(node: IDLMethod): void {
         this.printMethod(node)
     }
 
     protected printMethod(node: IDLMethod): void {}
-
-    protected printEnum(node: IDLEnum): void {}
 }

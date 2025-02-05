@@ -42,15 +42,15 @@ export class IDLFile {
     ) {}
 }
 
-export function createInterfaceWithUpdatedMethods(node: IDLInterface, methods: IDLMethod[]): IDLInterface {
+export function createUpdatedInterface(node: IDLInterface, methods?: IDLMethod[], name?: string): IDLInterface {
     return createInterface(
-        node.name,
+        name ?? node.name,
         node.subkind,
         node.inheritance,
         node.constructors,
         node.constants,
         node.properties,
-        methods,
+        methods ?? node.methods,
         node.callables,
         node.typeParameters
     )

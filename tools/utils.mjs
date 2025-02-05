@@ -41,7 +41,6 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "arkgen")),
     new Package(path.join(IDLIZE_HOME, "core")),
     new Package(path.join(IDLIZE_HOME, "linter")),
-    new Package(path.join(IDLIZE_HOME, "libarkts-gen")),
     new Package(path.join(IDLIZE_HOME, "ohosgen"))
 ]
 

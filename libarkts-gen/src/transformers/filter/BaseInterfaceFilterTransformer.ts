@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createInterfaceWithUpdatedMethods, IDLFile, Typechecker } from "../../idl-utils"
+import { createUpdatedInterface, IDLFile, Typechecker } from "../../idl-utils"
 import { IDLMethod, isContainerType, isInterface, isReferenceType } from "@idlizer/core"
 
 export abstract class BaseInterfaceFilterTransformer {
@@ -33,7 +33,7 @@ export abstract class BaseInterfaceFilterTransformer {
                     if (this.shouldFilterOutInterface(entry.name)) {
                         return []
                     }
-                    return createInterfaceWithUpdatedMethods(
+                    return createUpdatedInterface(
                         entry,
                         entry.methods
                             .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))

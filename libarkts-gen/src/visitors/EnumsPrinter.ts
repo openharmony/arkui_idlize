@@ -13,35 +13,41 @@
  * limitations under the License.
  */
 
-import { createEmptyReferenceResolver, IndentedPrinter, throwException, TSLanguageWriter, } from "@idlizer/core"
-import { IDLEnum, IDLType, isPrimitiveType, } from "@idlizer/core/idl"
-import { InteropPrinter } from "./interop/InteropPrinter"
+import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter, } from "@idlizer/core"
+import { IDLEnum, IDLType, } from "@idlizer/core/idl"
+import { IDLFile } from "../idl-utils"
 
-export class EnumsPrinter extends InteropPrinter {
-    protected writer = new TSLanguageWriter(
+export class EnumsPrinter {
+    constructor(
+        private idl: IDLFile,
+    ) { }
+
+    private writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
     )
 
-    protected printEnum(node: IDLEnum): void {
+    print(): string {
+        this.idl.entries
+            .filter(isEnum)
+            .forEach(it => this.printEnum(it))
+        return this.writer.getOutput().join('\n')
+    }
+
+    private printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
             node.name,
-            node.elements.map(
-                element => {
-                    if (!isPrimitiveType(element.type)) {
-                        throwException(`Unexpected kind of enum element type: ${element.type}`)
-                    }
-                    if (typeof element.initializer !== 'number') {
-                        throwException(`Unexpected type of initializer: ${typeof element.initializer}`)
-                    }
-                    return {
-                        name: element.name,
-                        stringId: undefined,
-                        numberId: element.initializer,
-                    }
+            node.elements.map(it => {
+                if (typeof it.initializer !== 'number') {
+                    throwException(`Unexpected type of initializer: ${typeof it.initializer}`)
                 }
-            )
+                return {
+                    name: it.name,
+                    stringId: undefined,
+                    numberId: it.initializer,
+                }
+            })
         )
     }
 }
