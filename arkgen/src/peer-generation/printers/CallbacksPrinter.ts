@@ -357,18 +357,20 @@ class DeserializeCallbacksVisitor {
                 writer.print(`}`)
                 writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
             } else {
-                writer.print(`switch (kind) {`)
-                writer.pushIndent()
-                for (const callback of callbacks) {
-                    const args = writer.language === Language.CPP
-                        ? [`thisArray`, `thisLength`]
-                        : [`thisDeserializer`]
-                    const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                    writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                if (callbacks.length > 0) {
+                    writer.print(`switch (kind) {`)
+                    writer.pushIndent()
+                    for (const callback of callbacks) {
+                        const args = writer.language === Language.CPP
+                            ? [`thisArray`, `thisLength`]
+                            : [`thisDeserializer`]
+                        const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
+                        writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                    }
+                    writer.popIndent()
+                    writer.print(`}`)
                 }
-                writer.popIndent()
-                writer.print(`}`)
-                writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
+                writer.writePrintLog(`Unknown callback kind`)
             }
         })
         if (this.writer.language === Language.TS) {
@@ -383,18 +385,20 @@ class DeserializeCallbacksVisitor {
                         true
                     ))
                 }
-                writer.print(`switch (kind) {`)
-                writer.pushIndent()
-                for (const callback of callbacks) {
-                    const args = writer.language === Language.CPP
-                        ? [`vmContext`, `thisArray`, `thisLength`]
-                        : [`thisDeserializer`]
-                    const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                    writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCallSync${callback.name}(${args.join(', ')});`)
+                if (callbacks.length > 0) {
+                    writer.print(`switch (kind) {`)
+                    writer.pushIndent()
+                    for (const callback of callbacks) {
+                        const args = writer.language === Language.CPP
+                            ? [`vmContext`, `thisArray`, `thisLength`]
+                            : [`thisDeserializer`]
+                        const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
+                        writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCallSync${callback.name}(${args.join(', ')});`)
+                    }
+                    writer.popIndent()
+                    writer.print(`}`)
                 }
-                writer.popIndent()
-                writer.print(`}`)
-                writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
+                writer.writePrintLog(`Unknown callback kind`)
             })
         }
     }
@@ -496,23 +500,27 @@ class ManagedCallCallbackVisitor {
             [undefined, PrintHint.AsValue]
         )
         this.writer.writeFunctionImplementation(`getManagedCallbackCaller`, signature, writer => {
-            writer.print(`switch (kind) {`)
-            writer.pushIndent()
-            for (const callback of callbacks) {
-                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
+            if (callbacks.length > 0) {
+                writer.print(`switch (kind) {`)
+                writer.pushIndent()
+                for (const callback of callbacks) {
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
+                }
+                writer.popIndent()
+                writer.print(`}`)
             }
-            writer.popIndent()
-            writer.print(`}`)
             writer.writeStatement(writer.makeReturn(writer.makeString(`nullptr`)))
         })
         this.writer.writeFunctionImplementation(`getManagedCallbackCallerSync`, signature, writer => {
-            writer.print(`switch (kind) {`)
-            writer.pushIndent()
-            for (const callback of callbacks) {
-                writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
+            if (callbacks.length > 0) {
+                writer.print(`switch (kind) {`)
+                writer.pushIndent()
+                for (const callback of callbacks) {
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
+                }
+                writer.popIndent()
+                writer.print(`}`)
             }
-            writer.popIndent()
-            writer.print(`}`)
             writer.writeStatement(writer.makeReturn(writer.makeString(`nullptr`)))
         })
     }

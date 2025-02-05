@@ -341,7 +341,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return new CppPointerPropertyAccessExpression(expression, name)
     }
     writePrintLog(message: string): void {
-        this.print(`printf("${message}\n")`)
+        this.print(`printf("${message}\\n")`)
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CDefinedExpression(value);
