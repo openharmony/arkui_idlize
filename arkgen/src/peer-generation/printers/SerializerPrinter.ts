@@ -14,30 +14,27 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isBuilderClass, throwException } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
-import { LanguageWriter } from "@idlizer/core"
+import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { ImportsCollector } from '../ImportsCollector'
-import { PeerLibrary } from '../PeerLibrary'
 import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
-    isMaterialized,
 } from '../idl/IdlPeerGeneratorVisitor'
 import { collectFunctions, collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
 import { createDeclarationNameConvertor } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
-import { getInternalClassName, getInternalClassQualifiedName, getMaterializedFileName } from '@idlizer/core'
+import { getInternalClassName, getInternalClassQualifiedName, LayoutNodeRole } from '@idlizer/core'
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
-import { LayoutNodeRole } from '../LayoutManager'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 

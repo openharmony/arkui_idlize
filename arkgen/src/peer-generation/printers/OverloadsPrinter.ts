@@ -22,10 +22,9 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary } from "@idlizer/core"
 import { isDefined, Language, throwException, typeOrUnion } from '@idlizer/core'
 import { callbackIdByInfo, convertIdlToCallback } from "./EventsPrinter";
-import { PeerLibrary } from "../PeerLibrary";
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
 

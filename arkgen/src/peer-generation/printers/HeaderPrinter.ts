@@ -14,13 +14,12 @@
  */
 
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor,
-    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod
+    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary
 } from '@idlizer/core'
 import { getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
-import { CppLanguageWriter, createTypeNameConvertor, printMethodDeclaration } from "../LanguageWriters";
-import { PeerLibrary } from "../PeerLibrary";
+import { CppLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 
@@ -51,7 +50,7 @@ class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters(createTypeNameConvertor(Language.CPP, this.library))
+        const apiParameters = method.generateAPIParameters(this.library.createTypeNameConvertor(Language.CPP))
         printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.returnType), `(*${method.fullMethodName})`, apiParameters, `;`)
     }
 
@@ -96,7 +95,7 @@ class HeaderVisitor {
         this.api.print(`typedef struct ${receiver} {`)
         this.api.pushIndent()
 
-        const nameConvertor = createTypeNameConvertor(Language.CPP, this.library)
+        const nameConvertor = this.library.createTypeNameConvertor(Language.CPP)
 
         for (const callback of callbacks) {
             const args = ["Ark_Int32 nodeId",

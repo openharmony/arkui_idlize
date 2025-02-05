@@ -60,12 +60,14 @@ import {
     LanguageWriter,
     PeerMethod,
     qualifiedName,
-    setDefaultConfiguration
+    setDefaultConfiguration,
+    isMaterialized,
+    PeerLibrary
 } from '@idlizer/core'
 import { createOutArgConvertor } from './PromiseConvertors'
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType'
 import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, readLangTemplate } from './FileGenerators'
-import { getUniquePropertiesFromSuperTypes, isMaterialized } from './idl/IdlPeerGeneratorVisitor'
+import { getUniquePropertiesFromSuperTypes } from './idl/IdlPeerGeneratorVisitor'
 import {
     CppLanguageWriter,
     createLanguageWriter,
@@ -76,7 +78,6 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from './LanguageWriters'
-import { PeerLibrary } from './PeerLibrary'
 import { printBridgeCcForOHOS } from './printers/BridgeCcPrinter'
 import { printCallbacksKinds, printManagedCaller } from './printers/CallbacksPrinter'
 import { writeDeserializer, writeSerializer } from './printers/SerializerPrinter'
@@ -91,7 +92,6 @@ import {
 } from './printers/OverloadsPrinter'
 import { MaterializedClass, MaterializedMethod } from '@idlizer/core'
 import { writePeerMethod } from './printers/PeersPrinter'
-import { PeerGeneratorConfig } from './PeerGeneratorConfig'
 import { TargetFile } from './printers/TargetFile'
 
 class NameType {

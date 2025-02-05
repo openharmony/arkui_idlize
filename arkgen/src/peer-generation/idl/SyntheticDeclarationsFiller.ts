@@ -1,8 +1,6 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName } from "@idlizer/core";
-import { PeerLibrary } from "../PeerLibrary";
+import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
-import { isMaterialized } from "./IdlPeerGeneratorVisitor";
 
 function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
     for (const file of library.files) {

@@ -17,10 +17,8 @@ import * as path from 'node:path'
 
 import { layout, writeIntegratedFile } from "./common";
 import { OhosInstall } from "../Install";
-import { PeerLibrary } from "./PeerLibrary";
-import { createMaterializedPrinter, printMaterialized } from "./printers/MaterializedPrinter";
+import { createMaterializedPrinter } from "./printers/MaterializedPrinter";
 import { printGlobal } from "./printers/GlobalScopePrinter";
-import { printDeclarations } from "./printers/DeclarationPrinter";
 import {
     IDLBufferType,
     IDLI32Type,
@@ -28,10 +26,10 @@ import {
     NamedMethodSignature,
     GeneratorConfiguration,
     generatorConfiguration,
-    IndentedPrinter,
     Language,
     NativeModuleType,
-    setDefaultConfiguration
+    setDefaultConfiguration,
+    PeerLibrary,
 } from "@idlizer/core";
 import {
     dummyImplementations,
@@ -42,7 +40,6 @@ import {
     makeTSSerializer,
     makeTypeChecker,
     readLangTemplate,
-    tsCopyrightAndWarning
 } from "./FileGenerators";
 import { printArkUIGeneratedNativeModule } from './printers/NativeModulePrinter';
 import { NativeModule } from './NativeModule';

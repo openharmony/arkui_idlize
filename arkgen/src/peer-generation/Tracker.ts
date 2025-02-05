@@ -16,9 +16,8 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { IndentedPrinter, PeerClass, MaterializedClass } from '@idlizer/core'
+import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { IDLEnum } from '@idlizer/core/idl'
-import { PeerLibrary } from './PeerLibrary'
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 

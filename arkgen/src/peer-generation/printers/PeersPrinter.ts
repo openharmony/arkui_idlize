@@ -28,14 +28,13 @@ import {
     createLanguageWriter
 } from "../LanguageWriters";
 import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerFile, PeerMethod,
-    getInternalClassName, MaterializedMethod
+    getInternalClassName, MaterializedMethod, PeerLibrary
 } from "@idlizer/core";
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { PeerLibrary } from "../PeerLibrary";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,

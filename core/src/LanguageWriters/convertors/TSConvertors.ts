@@ -13,22 +13,17 @@
  * limitations under the License.
  */
 
-import { convertNode, IdlNameConvertor, NodeConvertor } from '@idlizer/core'
-import * as idl from '@idlizer/core/idl'
-import { ReferenceResolver } from "@idlizer/core"
-import { stringOrNone } from '@idlizer/core'
+import * as idl from '../../idl'
+import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 
-export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNameConvertor {
+export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
-    constructor(
-        protected resolver: ReferenceResolver
-    ) { }
+    constructor(protected resolver: ReferenceResolver) { }
 
     convert(node: idl.IDLNode): string {
         return convertNode(this, node)
     }
-
-    /***** TypeConvertor<string> *****************************************/
 
     convertNamespace(node: idl.IDLNamespace): string {
         return node.name
@@ -110,10 +105,6 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
 
         let typeSpec = type.name
         let typeArgs = type.typeArguments?.map(it => idl.printType(it)) ?? []
-        if (typeSpec === `AttributeModifier`)
-            typeArgs = [`object`]
-        if (typeSpec === `ContentModifier` || typeSpec === `WrappedBuilder`)
-            typeArgs = [this.convert(idl.IDLAnyType)]
         if (typeSpec === `Optional`)
             return `${typeArgs} | undefined`
         if (typeSpec === `Function`)
@@ -166,9 +157,6 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
 
             case idl.IDLBufferType:
                 return `ArrayBuffer`
-
-            case idl.IDLLengthType:
-                return 'Length'
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -202,6 +190,4 @@ export class TsIDLNodeToStringConverter implements NodeConvertor<string>, IdlNam
     protected mapFunctionType(typeArgs: string[]): string {
         return `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
     }
-
-    /**********************************************************************/
 }

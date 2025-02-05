@@ -14,14 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import * as fs from "fs"
-import * as path from "path"
 import { convertDeclaration, convertType, DeclarationConvertor, TypeConvertor } from "@idlizer/core"
 import { ImportFeature } from "../../ImportsCollector"
-import { createLanguageWriter, Method, MethodModifier, MethodSignature } from "../../LanguageWriters"
-import { collectUniqueCallbacks } from "../CallbacksPrinter"
-import { PeerLibrary } from "../../PeerLibrary"
-import { Language } from "@idlizer/core"
 
 class CJImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertOptional(type: idl.IDLOptionalType): ImportFeature[] {

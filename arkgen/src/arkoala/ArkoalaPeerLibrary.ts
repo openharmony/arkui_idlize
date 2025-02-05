@@ -14,20 +14,32 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { ArgConvertor, CustomTypeConvertor, isImportAttr } from "@idlizer/core";
-import { PeerLibrary } from "../peer-generation/PeerLibrary";
+import { ArgConvertor, CustomTypeConvertor, isMaterialized,
+    isImportAttr, IdlNameConvertor, Language, PeerLibrary
+} from "@idlizer/core";
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor } from './ArkoalaArgConvertors';
-import { isMaterialized } from '../peer-generation/idl/IdlPeerGeneratorVisitor';
+import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
+    ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
+} from '../arkoala/ArkoalaTypeNameConvertors';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
-    typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
+    override createTypeNameConvertor(language: Language): IdlNameConvertor {
+        switch (language) {
+            case Language.TS: return new ArkoalaTSTypeNameConvertor(this)
+            case Language.ARKTS: return new ArkoalaETSTypeNameConvertor(this)
+            case Language.JAVA: return new ArkoalaJavaTypeNameConvertor(this)
+            case Language.CJ: return new ArkoalaCJTypeNameConvertor(this)
+        }
+        return super.createTypeNameConvertor(language)
+    }
+    override typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
         if (idl.isReferenceType(type)) {
             if (isImportAttr(type))
                 return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
         return super.typeConvertor(param, type, isOptionalParam)
     }
-    declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
+    override declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
         switch (type.name) {
             case `Dimension`:
             case `Length`:

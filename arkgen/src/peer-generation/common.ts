@@ -1,10 +1,8 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { LayoutManagerStrategy, LayoutNodeRole } from './LayoutManager'
-import { PeerLibrary } from './PeerLibrary'
+import { isMaterialized, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration } from './ComponentsCollector'
-import { isMaterialized } from './idl/IdlPeerGeneratorVisitor'
 import { ARKOALA_PACKAGE_PATH } from './printers/lang/Java'
 
 export function writeFile(filename: string, content: string, config: { // TODO make content a string or a writer only

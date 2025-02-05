@@ -14,8 +14,7 @@
  */
 
 import { createInteropArgConvertor, createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
-import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod } from "@idlizer/core"
-import { PeerLibrary } from "../PeerLibrary";
+import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary } from "@idlizer/core"
 import { ImportsCollector } from "../ImportsCollector";
 import { Language } from '@idlizer/core'
 import {

@@ -23,13 +23,12 @@ import {
     isRoot,
     MethodSignature
 } from '@idlizer/core'
-import { ArgConvertor, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
+import { ArgConvertor, PeerLibrary, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { PeerLibrary } from "../PeerLibrary"
 import { getInternalClassName, isBuilderClass, MaterializedClass, MaterializedField, MaterializedMethod } from "@idlizer/core"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
-import { BuilderClass, CUSTOM_BUILDER_CLASSES, isCustomBuilderClass } from "@idlizer/core";
+import { BuilderClass, CUSTOM_BUILDER_CLASSES, isCustomBuilderClass, isMaterialized } from "@idlizer/core";
 import { ImportFeature } from "../ImportsCollector";
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
@@ -567,33 +566,6 @@ function generateSignature(
         method.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
         method.parameters.map(it => it.name)
     )
-}
-
-export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
-    if (PeerGeneratorConfig.isMaterializedIgnored(declaration.name) || idl.isHandwritten(declaration))
-        return false
-    if (isBuilderClass(declaration))
-        return false
-    if (declaration.subkind === idl.IDLInterfaceSubkind.AnonymousInterface ||
-        declaration.subkind === idl.IDLInterfaceSubkind.Tuple)
-        return false
-
-    // TODO: parse Builder classes separatly
-
-    // A materialized class is a class or an interface with methods
-    // excluding components and related classes
-    if (declaration.methods.length > 0) return true
-
-    // Or a class or an interface derived from materialized class
-    if (idl.hasSuperType(declaration)) {
-        const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
-        if (!superType || !idl.isInterface(superType)) {
-            console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
-            return false
-        }
-        return isMaterialized(superType, resolver)
-    }
-    return false
 }
 
 export function forEachSuperType(declaration: idl.IDLInterface, resolver: ReferenceResolver, callback: (superType: idl.IDLInterface) => void) {

@@ -14,7 +14,7 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language } from "@idlizer/core"
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary } from "@idlizer/core"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createLanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer/core";
@@ -23,7 +23,6 @@ import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSeriali
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
-import { PeerLibrary } from "./PeerLibrary"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
 import * as idl from "@idlizer/core/idl"

@@ -3,13 +3,11 @@ import { ImportFeature, ImportsCollector } from "../ImportsCollector";
 import {
     createLanguageWriter,
     generateTypeCheckerName,
-    LanguageExpression,
     Method,
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
-import { PeerLibrary } from "../PeerLibrary";
+import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { createDeclarationNameConvertor } from "@idlizer/core";
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"

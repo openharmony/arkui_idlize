@@ -58,7 +58,6 @@ export const defaultCoreGeneratorConfiguration: CoreGeneratorConfiguration = {
     },
     "materialized": {
         "ignore": [],
-        "ignoreStandart": []
     },
     "interfaces": {
         "needInterfaces": true
@@ -163,14 +162,11 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
         }
 
         // materialized
-        if (this.materialized?.["ignore"]) {
-            this.ignoreMaterialized = Object.values(this.materialized["ignore"])
+        if (this.materialized?.["ignoredSuffixes"]) {
+            this.ignoreMaterialized = Object.values(this.materialized["ignoredSuffixes"])
         }
-        if (this.materialized?.["ignoreStandart"]) {
-            this.ignoreStandardNames = Object.values(this.materialized["ignoreStandart"])
-        }
-        if (this.materialized?.["ignoreReturnTypes"]) {
-            this.ignoreReturnTypes = Object.values(this.materialized["ignoreReturnTypes"])
+        if (this.materialized?.["ignoredReturnTypes"]) {
+            this.ignoreReturnTypes = Object.values(this.materialized["ignoredReturnTypes"])
         }
 
         // interfaces
@@ -210,8 +206,6 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
     }
 
     isMaterializedIgnored(name: string): boolean {
-        if (this.isStandardNameIgnored(name)) return true
-
         for (const ignore of this.ignoreMaterialized) {
             if (name.endsWith(ignore)) return true
         }
@@ -242,13 +236,6 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
         return false
     }
 
-    private isStandardNameIgnored(name: string) {
-        for (const ignore of this.ignoreStandardNames) {
-            if (name.endsWith(ignore)) return true
-        }
-        return false
-    }
-
     private isWhole(methods: string[]): boolean {
         return methods.includes("*")
     }
@@ -271,8 +258,7 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
     readonly rootComponents: string[] = []
     readonly standaloneComponents: string[] = []
     readonly boundProperties: Map<string, string[]> = new Map()
-    private ignoreMaterialized: string[] = []
-    private ignoreStandardNames: string[] = []
+    readonly ignoreMaterialized: string[] = []
     readonly ignoreReturnTypes: string[] = []
     private noDummyComponents: Map<string, string[]> = new Map()
 }

@@ -30,18 +30,3 @@ export const COMPONENT_BASE = 'ComponentBase'
 function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')
 }
-
-export function convertJavaOptional(type: string): string {
-    switch (type) {
-        case 'boolean': return  'Opt_Boolean'
-        case 'double': return 'Opt_Number'
-    }
-    return type
-}
-
-export const javaCustomTypeMapping = new Map<string, string>([
-    ['Dimension', 'Ark_Length'],
-    ['Length', 'Ark_Length'],
-    ['ContentModifier', ARK_CUSTOM_OBJECT],
-    ['Optional', 'Optional'],
-])

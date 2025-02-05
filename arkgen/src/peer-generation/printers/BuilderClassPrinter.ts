@@ -15,14 +15,14 @@
 
 import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName } from '@idlizer/core'
 import { MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
-import { BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES } from "@idlizer/core";
+import { LanguageWriter, PeerLibrary,
+    BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES
+} from "@idlizer/core";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TargetFile } from "./TargetFile";
 import { PrinterContext } from "./PrinterContext";
 import { ImportsCollector } from "../ImportsCollector";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
-import { PeerLibrary } from "../PeerLibrary";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";

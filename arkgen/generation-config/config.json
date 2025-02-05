@@ -196,24 +196,16 @@
         }
     },
     "materialized": {
-        "ignore": [
-            "Layoutable",
-            "LayoutChild",
-            "Measurable",
-            "IMonitor",
-            "Configuration",
-            "UIGestureEvent",
-            "GestureGroupHandler",
-            "ContentModifier",
-            "AnimatableArithmetic",
-            "DataChangeListener"
-        ],
-        "ignoreStandart": [
+        "ignoredSuffixes": [
             "Attribute",
             "Interface",
-            "Method"
+            "Method",
+            "Configuration",
+            "UIGestureEvent",
+            "GestureHandler",
+            "AnimatableArithmetic"
         ],
-        "ignoreReturnTypes": [
+        "ignoredReturnTypes": [
             "Promise"
         ]
     },

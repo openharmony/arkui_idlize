@@ -13,35 +13,10 @@
  * limitations under the License.
  */
 
-import { IDLNode, LanguageWriter } from "@idlizer/core/*";
+import { IDLNode, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
-import { PeerLibrary } from "./PeerLibrary";
 import { ImportsCollector } from "./ImportsCollector";
-
-export enum LayoutNodeRole {
-    PEER,
-    INTERFACE,
-}
-
-export interface LayoutManagerStrategy {
-    resolve(node:IDLNode, role:LayoutNodeRole): string
-}
-
-export class LayoutManager {
-    constructor(
-        private strategy: LayoutManagerStrategy
-    ) { }
-
-    resolve(node:IDLNode, role:LayoutNodeRole): string {
-        return this.strategy.resolve(node, role)
-    }
-    ////////////////////////////////////////////////////////////////////
-
-    static Empty(): LayoutManager {
-        return new LayoutManager({ resolve: () => '' })
-    }
-}
 
 export interface PrinterResult {
     over: {

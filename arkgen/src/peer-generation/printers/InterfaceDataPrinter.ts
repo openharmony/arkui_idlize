@@ -13,12 +13,11 @@
  * limitations under the License.
  */
 
-import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
 import { ImportsCollector } from "../ImportsCollector";
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { createLanguageWriter } from "../LanguageWriters";
-import { LayoutNodeRole, PrinterResult } from "../LayoutManager";
-import { PeerLibrary } from "../PeerLibrary";
+import { PrinterResult } from "../LayoutManager";
+import { LayoutNodeRole, PeerLibrary, isMaterialized } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 
 /**

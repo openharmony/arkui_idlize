@@ -256,6 +256,10 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         )
         return idl.createReferenceType(syntheticName)
     }
+
+    createTypeNameConvertor(language: Language): IdlNameConvertor {
+        return this.nameConvertorInstance
+    }
 }
 
 export class IdlWrapperClassConvertor extends BaseArgConvertor {

@@ -13,26 +13,28 @@
  * limitations under the License.
  */
 
-import { PeerLibrary } from "@idlizer/core";
+import { IDLNode } from "../idl";
 
-export interface PluginHost {
-    log(message: string): void
+export enum LayoutNodeRole {
+    PEER,
+    INTERFACE,
 }
 
-export type PluginOptions = any
+export interface LayoutManagerStrategy {
+    resolve(node:IDLNode, role:LayoutNodeRole): string
+}
 
-class PluginHostImpl implements PluginHost {
-    log(message: string): void {
-        console.log(`PLUGIN: ${message}`)
+export class LayoutManager {
+    constructor(
+        private strategy: LayoutManagerStrategy
+    ) { }
+
+    resolve(node:IDLNode, role:LayoutNodeRole): string {
+        return this.strategy.resolve(node, role)
     }
-}
+    ////////////////////////////////////////////////////////////////////
 
-export interface Plugin {
-    process(options: PluginOptions, idl: PeerLibrary): void
-}
-
-export async function loadPlugin(path: string): Promise<Plugin> {
-    let host = new PluginHostImpl()
-    return import(path)
-        .then(plugin => plugin.default(host))
+    static Empty(): LayoutManager {
+        return new LayoutManager({ resolve: () => '' })
+    }
 }

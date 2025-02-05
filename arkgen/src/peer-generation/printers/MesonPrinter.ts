@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, PeerClass, MaterializedClass } from '@idlizer/core'
+import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { makeFileNameFromClassName } from "../FileGenerators"
-import { PeerLibrary } from "../PeerLibrary"
 
 export class MesonVisitor {
     printer = new IndentedPrinter()

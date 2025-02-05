@@ -13,13 +13,12 @@
  * limitations under the License.
  */
 
-import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstructPeerMethod } from '@idlizer/core'
-import { ArgConvertor, MaterializedClass } from "@idlizer/core";
+import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstructPeerMethod,
+    ArgConvertor, MaterializedClass, PeerLibrary, LanguageWriter
+} from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, createTypeNameConvertor, ExpressionStatement } from "../LanguageWriters";
-import { LanguageWriter } from "@idlizer/core"
-import { PeerLibrary } from "../PeerLibrary";
+import { createLanguageWriter, ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
@@ -47,7 +46,7 @@ class BridgeCcVisitor {
 
     // TODO: may be this is another method of ArgConvertor?
     private generateApiArgument(argConvertor: ArgConvertor): string {
-        const nameConverter = createTypeNameConvertor(Language.CPP, this.library)
+        const nameConverter = this.library.createTypeNameConvertor(Language.CPP)
         const prefix = argConvertor.isPointerType() ? `(const ${nameConverter.convert(argConvertor.nativeType())}*)&`: "    "
         if (argConvertor.useArray)
             return `${prefix}${this.escapeKeyword(argConvertor.param)}_value`

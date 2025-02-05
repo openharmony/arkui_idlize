@@ -13,19 +13,27 @@
  * limitations under the License.
  */
 
-import * as idl from '@idlizer/core/idl'
-import { isMaterialized } from './idl/IdlPeerGeneratorVisitor';
+import { warn } from 'console'
+import * as idl from '../idl'
+import { Language } from '../Language'
+import { IdlNameConvertor, InteropNameConvertor } from '../LanguageWriters'
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
-         ImportTypeConvertor, InterfaceConvertor
-        } from '@idlizer/core'
-import { Language, warn, isImportAttr, InteropNameConvertor } from '@idlizer/core'
-import { createTypeNameConvertor } from './LanguageWriters';
-import { PeerFile, BuilderClass, MaterializedClass } from '@idlizer/core';
-import { ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor } from '@idlizer/core';
-import { generateSyntheticFunctionName, IdlNameConvertor, LibraryInterface } from '@idlizer/core';
-import { LayoutManager, LayoutManagerStrategy } from './LayoutManager';
+         ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor,
+} from "../LanguageWriters/ArgConvertors"
+import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
+import { CppInteropConvertor } from '../LanguageWriters/convertors/CppConvertors'
+import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
+import { JavaTypeNameConvertor } from '../LanguageWriters/convertors/JavaConvertors'
+import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
+import { LibraryInterface } from '../LibraryInterface'
+import { BuilderClass } from './BuilderClass'
+import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
+import { isMaterialized, MaterializedClass } from './Materialized'
+import { PeerFile } from './PeerFile'
+import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
+
 export class PeerLibrary implements LibraryInterface {
 
     public layout: LayoutManager = LayoutManager.Empty()
@@ -61,7 +69,18 @@ export class PeerLibrary implements LibraryInterface {
 
     readonly customComponentMethods: string[] = []
 
-    protected readonly targetNameConvertorInstance: IdlNameConvertor = createTypeNameConvertor(this.language, this)
+    createTypeNameConvertor(language: Language): IdlNameConvertor {
+        switch (language) {
+            case Language.TS: return new TSTypeNameConvertor(this)
+            case Language.ARKTS: return new ETSTypeNameConvertor(this)
+            case Language.JAVA: return new JavaTypeNameConvertor(this)
+            case Language.CJ: return new CJTypeNameConvertor(this)
+            case Language.CPP: return new CppInteropConvertor(this)
+        }
+        throw new Error(`IdlNameConvertor for ${language} is not implemented`)
+    }
+
+    protected readonly targetNameConvertorInstance: IdlNameConvertor = this.createTypeNameConvertor(this.language)
     private readonly interopNameConvertorInstance: IdlNameConvertor = new InteropNameConvertor(this)
 
     get libraryPrefix(): string {
@@ -104,9 +123,7 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     mapType(type: idl.IDLType): string {
-        return this.targetNameConvertorInstance.convert(
-            type ?? idl.IDLVoidType
-        )
+        return this.targetNameConvertorInstance.convert(type)
     }
 
     resolveTypeReference(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {

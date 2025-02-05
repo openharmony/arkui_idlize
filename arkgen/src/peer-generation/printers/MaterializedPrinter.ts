@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, removeExt, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName, IndentedPrinter } from '@idlizer/core'
+import { capitalize, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     createLanguageWriter,
@@ -25,8 +25,8 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, RuntimeType, getInternalClassName, MaterializedClass, MaterializedField } from "@idlizer/core"
-import { makeMaterializedPrologue, tsCopyrightAndWarning } from "../FileGenerators";
+import { LanguageWriter, RuntimeType, getInternalClassName,
+    MaterializedClass, MaterializedField, isMaterialized, PeerLibrary, LayoutNodeRole } from "@idlizer/core"
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector";
 import { PrinterContext } from "./PrinterContext";
@@ -37,14 +37,12 @@ import {
     ARKOALA_PACKAGE,
 } from "./lang/Java";
 import { createInterfaceDeclName } from './lang/CommonUtils';
-import { PeerLibrary } from "../PeerLibrary";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclItself, collectDeclDependencies, SyntheticModule } from "../ImportsCollectorUtils";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { isMaterialized } from "../idl/IdlPeerGeneratorVisitor";
 import { NativeModule } from '../NativeModule';
-import { LayoutNodeRole, Printer, PrinterClass, PrinterResult } from '../LayoutManager';
+import { PrinterClass, PrinterResult } from '../LayoutManager';
 
 interface MaterializedFileVisitor {
     visit(): PrinterResult

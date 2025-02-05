@@ -14,9 +14,8 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { CustomPrintVisitor as DtsPrintVisitor, Language} from '@idlizer/core'
+import { CustomPrintVisitor as DtsPrintVisitor, Language, PeerLibrary } from '@idlizer/core'
 import { isPredefined } from "../idl/IdlPeerGeneratorVisitor"
-import { PeerLibrary } from "../PeerLibrary"
 import { LanguageWriter } from "@idlizer/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"

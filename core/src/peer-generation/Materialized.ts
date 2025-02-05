@@ -13,13 +13,45 @@
  * limitations under the License.
  */
 
+import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
 import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
 import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { capitalize } from '../util'
+import { isBuilderClass } from './BuilderClass'
 import { qualifiedName } from './idl/common'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod } from './PeerMethod'
+import { ReferenceResolver } from './ReferenceResolver'
+
+export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
+    if (idl.isHandwritten(declaration) ||
+        isBuilderClass(declaration) ||
+        declaration.subkind === idl.IDLInterfaceSubkind.AnonymousInterface ||
+        declaration.subkind === idl.IDLInterfaceSubkind.Tuple)
+    {
+        return false
+    }
+    for (const ignore of generatorConfiguration().paramArray<string>("ignoreMaterialized")) {
+        if (declaration.name.endsWith(ignore)) return false
+    }
+
+    // A materialized class is a class or an interface with methods
+    // excluding components and related classes
+    if (declaration.methods.length > 0) return true
+
+    // Or a class or an interface derived from materialized class
+    if (idl.hasSuperType(declaration)) {
+        const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
+        if (!superType || !idl.isInterface(superType)) {
+            console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
+            return false
+        }
+        return isMaterialized(superType, resolver)
+    }
+    return false
+}
+
 export class MaterializedField {
     constructor(
         public field: Field,

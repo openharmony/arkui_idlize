@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { IndentedPrinter, Language, isImportAttr, PeerClassBase, PeerClass, PeerMethod } from '@idlizer/core'
+import { IndentedPrinter, Language, isImportAttr, PeerClassBase, PeerClass, PeerMethod, PeerLibrary } from '@idlizer/core'
 import {
     BlockStatement,
     CppLanguageWriter,
@@ -29,13 +29,12 @@ import { LanguageWriter } from "@idlizer/core"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
-import { PeerLibrary } from "../PeerLibrary"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector";
 import { ReferenceResolver, CppInteropConvertor } from "@idlizer/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
-import { TsIDLNodeToStringConverter } from "../LanguageWriters/convertors/TSConvertors";
+import { ArkoalaTSTypeNameConvertor } from '../../arkoala/ArkoalaTypeNameConvertors'
 
 export const PeerEventsProperties = "PeerEventsProperties"
 export const PeerEventKind = "PeerEventKind"
@@ -281,8 +280,8 @@ class CEventsVisitor {
 class TSEventsVisitor {
     readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(),
         this.library,
-        new TsIDLNodeToStringConverter(this.library))
-
+        new ArkoalaTSTypeNameConvertor(this.library))
+    
     constructor(protected readonly library: PeerLibrary) {}
 
     private printImports() {

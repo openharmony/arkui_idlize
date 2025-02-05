@@ -15,10 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import { NodeConvertor, convertNode, convertType } from "@idlizer/core"
-import { LibraryInterface } from '@idlizer/core'
-import { PeerLibrary } from '../PeerLibrary'
-import { Language, getInternalClassName} from '@idlizer/core'
-import { isMaterialized } from './IdlPeerGeneratorVisitor'
+import { LibraryInterface, PeerLibrary } from '@idlizer/core'
+import { Language, getInternalClassName, isMaterialized } from '@idlizer/core'
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(protected readonly library: LibraryInterface) {}

@@ -14,9 +14,10 @@
  */
 
 import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlizer/core/idl"
-import { PeerLibrary } from "../../PeerLibrary"
 import { ImportFeature } from "../../ImportsCollector"
-import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature, FieldModifier, PeerMethod } from "@idlizer/core"
+import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature,
+    FieldModifier, PeerMethod, PeerLibrary
+} from "@idlizer/core"
 import { createLanguageWriter } from "../../LanguageWriters"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"

@@ -15,10 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from 'path'
-import { PeerLibrary } from "../PeerLibrary"
 import {
     createLanguageWriter,
-    createTypeNameConvertor,
     FieldModifier,
     Method,
     MethodModifier,
@@ -30,13 +28,15 @@ import {
     indentedBy,
     isDefined,
     isBuilderClass,
+    isMaterialized,
     removeExt,
     renameDtsToInterfaces,
     stringOrNone,
     throwException,
     IndentedPrinter,
     Language,
-    CustomPrintVisitor
+    CustomPrintVisitor,
+    PeerLibrary
 } from '@idlizer/core'
 import { ImportFeature, ImportsCollector } from '../ImportsCollector'
 import { TargetFile } from './TargetFile'
@@ -48,7 +48,7 @@ import { collectJavaImports } from './lang/JavaIdlUtils'
 import { collectProperties } from './StructPrinter'
 import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
-import { isMaterialized, isPredefined } from '../idl/IdlPeerGeneratorVisitor'
+import { isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
@@ -194,7 +194,7 @@ class JavaDeclaration {
 }
 
 class JavaSyntheticGenerator extends DependenciesCollector {
-    private readonly nameConvertor = createLanguageWriter(Language.JAVA, this.library)
+    private readonly nameConvertor = this.library.createTypeNameConvertor(Language.JAVA)
 
     constructor(
         library: PeerLibrary,
@@ -204,13 +204,13 @@ class JavaSyntheticGenerator extends DependenciesCollector {
     }
 
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
-        const typeName = this.nameConvertor.getNodeName(type)
+        const typeName = this.nameConvertor.convert(type)
         this.onSyntheticDeclaration(idl.createTypedef(typeName, type))
         return super.convertUnion(type)
     }
 
     convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
-        const generatedName = this.nameConvertor.getNodeName(type)
+        const generatedName = this.nameConvertor.convert(type)
         const clazz = idl.createInterface(
             generatedName,
             idl.IDLInterfaceSubkind.Interface,
@@ -228,7 +228,7 @@ class JavaSyntheticGenerator extends DependenciesCollector {
 }
 
 class JavaDeclarationConvertor implements DeclarationConvertor<void> {
-    private readonly nameConvertor = createTypeNameConvertor(Language.JAVA, this.peerLibrary)
+    private readonly nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.JAVA)
     constructor(private readonly peerLibrary: PeerLibrary, private readonly onNewDeclaration: (declaration: JavaDeclaration) => void) {}
     convertCallback(node: idl.IDLCallback): void {
     }
@@ -929,7 +929,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
 }
 
 class CJSyntheticGenerator extends DependenciesCollector {
-    private readonly nameConvertor = createTypeNameConvertor(Language.CJ, this.library)
+    private readonly nameConvertor = this.library.createTypeNameConvertor(Language.CJ)
 
     constructor(
         library: PeerLibrary,

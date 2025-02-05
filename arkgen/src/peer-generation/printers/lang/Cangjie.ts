@@ -44,6 +44,4 @@ export const cjCustomTypeMapping = new Map<string, string>([
     ['Length', 'Ark_Length'],
     ['ContentModifier', ARK_CUSTOM_OBJECT],
     ['Date', ARK_CUSTOM_OBJECT],
-    ['Optional', 'Optional'],
-    ['Object', 'KPointer']
 ])

@@ -13,15 +13,14 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl"
-import { TsIDLNodeToStringConverter } from "./TSConvertors"
-import { createReferenceType, IDLEntry, IDLReferenceType } from "@idlizer/core/idl"
-import { capitalize, createDeclarationNameConvertor } from "@idlizer/core"
-import { convertDeclaration } from "@idlizer/core"
-import { Language, stringOrNone } from "@idlizer/core"
+import * as idl from "../../idl"
+import { Language } from "../../Language"
+import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
+import { convertDeclaration } from "../nameConvertor"
+import { TSTypeNameConvertor } from "./TSConvertors"
 
-export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
-    convertTypeReference(type: IDLReferenceType): string {
+export class ETSTypeNameConvertor extends TSTypeNameConvertor {
+    convertTypeReference(type: idl.IDLReferenceType): string {
         // Only to deal with namespaces. TODO: remove later
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isEnum(decl)) {
@@ -32,7 +31,7 @@ export class EtsIDLNodeToStringConvertor extends TsIDLNodeToStringConverter {
         const types = type.name.split(".")
         if (types.length > 1) {
             // Takes only name without the namespace prefix
-            const decl = this.resolver.resolveTypeReference(createReferenceType(types.slice(-1).join(), undefined, type))
+            const decl = this.resolver.resolveTypeReference(idl.createReferenceType(types.slice(-1).join(), undefined, type))
             if (decl !== undefined) {
                 return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
             }
