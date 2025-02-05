@@ -343,7 +343,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.arktsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(globalScopeFiles)),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles).concat(globalScopeFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
