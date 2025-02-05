@@ -777,6 +777,7 @@ Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
     return (Ark_PipelineContext)42;
 }
 void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback) {
+    using namespace std::chrono_literals;
     auto producer = std::thread([pipelineContext, callback] {
         while (true) {
             std::this_thread::sleep_for(1000ms);
