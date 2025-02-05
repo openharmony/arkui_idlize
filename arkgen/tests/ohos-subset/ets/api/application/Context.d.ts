@@ -18,18 +18,18 @@
  * @kit AbilityKit
  */
 
-import { ApplicationInfo } from '../bundleManager/ApplicationInfo';
-import type { AsyncCallback } from '../@ohos.base';
-import resmgr from '../@ohos.resourceManager';
+// import { ApplicationInfo } from '../bundleManager/ApplicationInfo';
+// import type { AsyncCallback } from '../@ohos.base';
+// import resmgr from '../@ohos.resourceManager';
 import BaseContext from './BaseContext';
-import EventHub from './EventHub';
-import ApplicationContext from './ApplicationContext';
-import contextConstant from '../@ohos.app.ability.contextConstant';
+// import EventHub from './EventHub';
+// import ApplicationContext from './ApplicationContext';
+// import contextConstant from '../@ohos.app.ability.contextConstant';
 
 export default class Context extends BaseContext {
 
-  resourceManager: resmgr.ResourceManager;
-  applicationInfo: ApplicationInfo;
+  // resourceManager: resmgr.ResourceManager;
+  // applicationInfo: ApplicationInfo;
   cacheDir: string;
   tempDir: string;
   filesDir: string;
@@ -39,18 +39,18 @@ export default class Context extends BaseContext {
   distributedFilesDir: string;
   resourceDir: string;
   cloudFileDir: string;
-  eventHub: EventHub;
-  area: contextConstant.AreaMode;
+  // eventHub: EventHub;
+  // area: contextConstant.AreaMode;
   processName: string;
 
   createBundleContext(bundleName: string): Context;
   createModuleContext(moduleName: string): Context;
   createModuleContext(bundleName: string, moduleName: string): Context;
-  createSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
+  // createSystemHspModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
   getApplicationContext(): ApplicationContext;
-  getGroupDir(dataGroupID: string, callback: AsyncCallback<string>): void;
+  // getGroupDir(dataGroupID: string, callback: AsyncCallback<string>): void;
   getGroupDir(dataGroupID: string): Promise<string>;
-  createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
-  createAreaModeContext(areaMode: contextConstant.AreaMode): Context;
+  // createModuleResourceManager(bundleName: string, moduleName: string): resmgr.ResourceManager;
+  // createAreaModeContext(areaMode: contextConstant.AreaMode): Context;
   createDisplayContext(displayId: number): Context;
 }
