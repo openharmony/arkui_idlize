@@ -14,13 +14,12 @@
  */
 
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor,
-    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary
+    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor
 } from '@idlizer/core'
 import { getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { CppLanguageWriter, printMethodDeclaration } from "../LanguageWriters";
-import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 
 export function generateEventReceiverName(componentName: string) {

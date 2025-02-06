@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { createInteropArgConvertor, createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
-import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary } from "@idlizer/core"
+import { createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary,
+    InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
+    Language
+} from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector";
-import { Language } from '@idlizer/core'
 import {
     createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type,
     IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType
 } from "@idlizer/core/idl"
 import { makeInteropSignature } from "./NativeModulePrinter";
-import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
-import { generateSyntheticFunctionName, createAlternativeReferenceResolver } from "@idlizer/core";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter

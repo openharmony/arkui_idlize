@@ -13,17 +13,14 @@
  * limitations under the License.
  */
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
-import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature, StringExpression, createInteropArgConvertor, createLanguageWriter } from "../LanguageWriters";
+import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature, createLanguageWriter } from "../LanguageWriters";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
-    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary
+    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
+    createInteropArgConvertor, NativeModuleType, CJLanguageWriter,
 } from "@idlizer/core"
-import { Language } from  '@idlizer/core'
 import * as idl from  '@idlizer/core/idl'
-import { InteropArgConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 import { NativeModule } from "../NativeModule";
-import { NativeModuleType } from "@idlizer/core"
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { CJLanguageWriter } from "@idlizer/core";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library)

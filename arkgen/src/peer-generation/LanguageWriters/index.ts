@@ -21,11 +21,7 @@ import { JavaLanguageWriter } from "@idlizer/core";
 import { CppLanguageWriter } from "@idlizer/core";
 import { CJLanguageWriter, CJIDLTypeToForeignStringConvertor } from "@idlizer/core";
 import { ReferenceResolver } from "@idlizer/core";
-import { CppInteropConvertor } from "@idlizer/core";
-import { CJInteropArgConvertor } from "./convertors/CJConvertors";
-import { JavaInteropArgConvertor } from "./convertors/JavaConvertors";
-import { CppInteropArgConvertor } from "./convertors/CppConvertors";
-import { InteropArgConvertor } from "./convertors/InteropConvertor";
+import { CppInteropConvertor } from "@idlizer/core"
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
     ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
@@ -86,15 +82,4 @@ export const languageWritersUtils = {
     isArkTsWriter(writer: LanguageWriter): writer is ETSLanguageWriter {
         return writer.language === Language.ARKTS
     }
-}
-
-export function createInteropArgConvertor(language: Language): InteropArgConvertor {
-    switch (language) {
-        case Language.TS:
-        case Language.ARKTS: return new InteropArgConvertor()
-        case Language.CPP: return CppInteropArgConvertor.INSTANCE
-        case Language.JAVA: return new JavaInteropArgConvertor()
-        case Language.CJ: return new CJInteropArgConvertor()
-    }
-    throw new Error(`InteropArgConvertor for language ${language} not implemented`)
 }

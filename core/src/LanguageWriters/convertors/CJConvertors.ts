@@ -16,6 +16,7 @@
 import * as idl from '../../idl'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
+import { InteropArgConvertor } from './InteropConvertors'
 
 export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -158,6 +159,16 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLBufferType: return 'CPointer<UInt8>'
+        }
+        return super.convertPrimitiveType(type)
+    }
+}
+
+export class CJInteropArgConvertor extends InteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLNumberType: return "Float64"
+            case idl.IDLLengthType: return "Ark_Length"
         }
         return super.convertPrimitiveType(type)
     }

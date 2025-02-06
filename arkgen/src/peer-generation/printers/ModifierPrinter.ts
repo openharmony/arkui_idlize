@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter } from '@idlizer/core'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
@@ -26,15 +25,14 @@ import {
     modifierStructList,
     warning
 } from "../FileGenerators";
-import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
-    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary
+import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
+    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor
 } from '@idlizer/core'
 import { CppLanguageWriter, createLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { LanguageWriter, CppInteropConvertor } from "@idlizer/core"
 import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlizer/core/idl'
 import { createEmptyReferenceResolver } from "@idlizer/core";
-import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
 
 export class ModifierVisitor {
     dummy = createLanguageWriter(Language.CPP, this.library)

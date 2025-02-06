@@ -16,12 +16,13 @@
 import { warn } from 'console'
 import * as idl from '../idl'
 import { Language } from '../Language'
-import { IdlNameConvertor, InteropNameConvertor } from '../LanguageWriters'
+import { IdlNameConvertor } from '../LanguageWriters'
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
          ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor,
 } from "../LanguageWriters/ArgConvertors"
+import { InteropNameConvertor } from '../LanguageWriters/convertors/InteropConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
 import { CppInteropConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'

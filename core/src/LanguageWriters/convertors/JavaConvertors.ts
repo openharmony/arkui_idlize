@@ -17,6 +17,7 @@ import * as idl from '../../idl'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { lazy } from '../../util'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
+import { InteropArgConvertor } from './InteropConvertors'
 
 function convertJavaOptional(type: string): string {
     switch (type) {
@@ -175,5 +176,16 @@ class JavaIdlNodeToSolidStringConvertor extends JavaTypeNameConvertor {
             return `Map_${javaTypeSolids[0]}_${javaTypeSolids[1]}`
         }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
+    }
+}
+
+export class JavaInteropArgConvertor extends InteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLNumberType: return "double"
+            case idl.IDLLengthType: return "String"
+            case idl.IDLBooleanType: return "boolean"
+        }
+        return super.convertPrimitiveType(type)
     }
 }

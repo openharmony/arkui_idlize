@@ -14,14 +14,12 @@
  */
 
 import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstructPeerMethod,
-    ArgConvertor, MaterializedClass, PeerLibrary, LanguageWriter
+    ArgConvertor, MaterializedClass, PeerLibrary, LanguageWriter, InteropReturnTypeConvertor, CppInteropArgConvertor,
 } from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { createLanguageWriter, ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
-import { InteropReturnTypeConvertor } from "../LanguageWriters/convertors/InteropConvertor";
-import { CppInteropArgConvertor } from "../LanguageWriters/convertors/CppConvertors";
 import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
 
 class BridgeCcVisitor {
