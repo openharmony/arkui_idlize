@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/ohosgen",
-  "version": "2.0.18+devel",
+  "version": "2.0.19+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.0.18+devel",
+    "@idlizer/core": "2.0.19+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
