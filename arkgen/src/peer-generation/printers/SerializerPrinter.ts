@@ -632,6 +632,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
 
     function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
         for (const materialized of library.materializedClasses.values()) {
+            if (materialized.isGlobalScope()) continue
             const file = library.layout.resolve(materialized.decl, LayoutNodeRole.INTERFACE)
             const ns = idl.getNamespaceName(materialized.decl)
             const name = ns === '' ? getInternalClassName(materialized.className) : ns.split('.')[0]
