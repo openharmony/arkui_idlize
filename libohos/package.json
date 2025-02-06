@@ -1,0 +1,29 @@
+{
+  "name": "@idlizer/libohos",
+  "version": "2.0.19+devel",
+  "description": "",
+  "types": "build/lib/src/index.d.ts",
+  "exports": {
+    ".": [
+      "./build/lib/src/index.js"
+    ]
+  },
+  "files": [
+    "build/lib/**/*.js",
+    "build/lib/**/*.d.ts"
+  ],
+  "type": "module",
+  "engines": {
+    "npm": ">= 8",
+    "node": ">= 18"
+  },
+  "keywords": [],
+  "dependencies": {
+    "@idlizer/core": "2.0.19+devel",
+    "@types/node": "^18.0.0"
+  },
+  "scripts": {
+    "clean": "rimraf -g build",
+    "compile": "npm run -C ../core compile && tsc -b ."
+  }
+}

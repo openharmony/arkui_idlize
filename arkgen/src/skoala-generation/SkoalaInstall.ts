@@ -15,7 +15,7 @@
 
 import * as path from "path"
 import * as fs from "fs"
-import { TargetFile } from "../peer-generation/printers/TargetFile"
+import { TargetFile } from "@idlizer/libohos"
 import { Language } from "@idlizer/core"
 
 class Install {

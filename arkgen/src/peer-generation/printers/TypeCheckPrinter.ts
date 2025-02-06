@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { ImportFeature, ImportsCollector } from "../ImportsCollector";
+import { ImportFeature, ImportsCollector } from  "@idlizer/libohos"
 import {
     createLanguageWriter,
     generateTypeCheckerName,
@@ -7,8 +7,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { createDeclarationNameConvertor } from "@idlizer/core";
+import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration } from '@idlizer/core';

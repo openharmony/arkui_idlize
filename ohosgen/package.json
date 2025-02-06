@@ -12,6 +12,7 @@
   "keywords": [],
   "dependencies": {
     "@idlizer/core": "2.0.19+devel",
+    "@idlizer/libohos": "2.0.19+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
@@ -27,7 +28,7 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
-    "compile:core": "npm run --prefix ../core compile",
+    "compile:core": "npm run --prefix ../libohos compile",
     "compile": "npm run compile:core && rollup -c",
     "run:xml": "npm run compile && node . --idl2bridges --input-files ./@ohos.xml.idl --output-dir ./out/xml"
   }

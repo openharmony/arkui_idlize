@@ -16,7 +16,7 @@
 import * as path from 'node:path'
 
 import { layout, writeIntegratedFile } from "./common";
-import { OhosInstall } from "../Install";
+import { OhosInstall } from "../Install"
 import { createMaterializedPrinter } from "./printers/MaterializedPrinter";
 import { printGlobal } from "./printers/GlobalScopePrinter";
 import {
@@ -43,7 +43,7 @@ import {
 } from "./FileGenerators";
 import { printArkUIGeneratedNativeModule } from './printers/NativeModulePrinter';
 import { NativeModule } from './NativeModule';
-import { TargetFile } from './printers/TargetFile';
+import { TargetFile } from "@idlizer/libohos"
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { generateNativeOhos, suggestLibraryName } from './OhosGenerator';
 import { printRealAndDummyAccessors, printRealAndDummyModifiers } from './printers/ModifierPrinter';

@@ -18,7 +18,7 @@ import { CustomPrintVisitor as DtsPrintVisitor, Language, PeerLibrary } from '@i
 import { isPredefined } from "../idl/IdlPeerGeneratorVisitor"
 import { LanguageWriter } from "@idlizer/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
-import { ImportsCollector } from "../ImportsCollector"
+import { ImportsCollector } from "@idlizer/libohos"
 import { collectComponents } from "../ComponentsCollector"
 import { qualifiedName } from '@idlizer/core'
 

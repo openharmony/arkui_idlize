@@ -42,7 +42,7 @@ import {
 } from "@idlizer/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
-import { generateTracker } from "./peer-generation/Tracker"
+import { generateTracker } from "@idlizer/libohos"
 import {
     IDLInteropPredefinesVisitor,
     IdlPeerProcessor,

@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core/idl"
 import { convertType, TypeConvertor } from "@idlizer/core"
-import { ImportFeature } from "../../ImportsCollector"
+import { ImportFeature } from "@idlizer/libohos"
 
 class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
     convertOptional(type: idl.IDLOptionalType): ImportFeature[] {

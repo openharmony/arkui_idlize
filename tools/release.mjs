@@ -15,7 +15,7 @@
 
 import fs from "fs"
 import path from "path"
-import { Version, Git, writeToPackageJson, IDLIZE_HOME, EXTERNAL_HOME, all_packages } from "./utils.mjs"
+import { Version, Git, IDLIZE_HOME, EXTERNAL_HOME, all_packages } from "./utils.mjs"
 
 //const files = all_packages.map(it => path.join(it.path, "package.json"))
 

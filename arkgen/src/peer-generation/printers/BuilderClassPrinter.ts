@@ -19,9 +19,9 @@ import { LanguageWriter, PeerLibrary,
     BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES
 } from "@idlizer/core";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
-import { TargetFile } from "./TargetFile";
+import { TargetFile } from "@idlizer/libohos"
 import { PrinterContext } from "./PrinterContext";
-import { ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "@idlizer/libohos"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
 import { collectDeclDependencies } from "../ImportsCollectorUtils";

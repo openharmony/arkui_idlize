@@ -38,8 +38,8 @@ import {
     CustomPrintVisitor,
     PeerLibrary
 } from '@idlizer/core'
-import { ImportFeature, ImportsCollector } from '../ImportsCollector'
-import { TargetFile } from './TargetFile'
+import { ImportFeature, ImportsCollector } from "@idlizer/libohos"
+import { TargetFile } from "@idlizer/libohos"
 import { PrinterContext } from './PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "@idlizer/core";
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'

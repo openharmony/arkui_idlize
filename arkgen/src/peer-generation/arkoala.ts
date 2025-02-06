@@ -53,7 +53,7 @@ import {
 } from "./printers/InterfacePrinter"
 import { printBuilderClasses } from "./printers/BuilderClassPrinter"
 import { ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH } from "./printers/lang/Java"
-import { TargetFile } from "./printers/TargetFile"
+import { TargetFile } from "@idlizer/libohos"
 import { printBridgeCcCustom, printBridgeCcGenerated } from "./printers/BridgeCcPrinter"
 import { Language, IndentedPrinter, PeerLibrary } from '@idlizer/core'
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"

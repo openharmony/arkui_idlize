@@ -18,7 +18,7 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
     InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
     Language
 } from '@idlizer/core'
-import { ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "@idlizer/libohos"
 import {
     createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type,
     IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType

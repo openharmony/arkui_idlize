@@ -29,7 +29,7 @@ import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
 import { getInternalClassName, isBuilderClass, MaterializedClass, MaterializedField, MaterializedMethod } from "@idlizer/core"
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BuilderClass, CUSTOM_BUILDER_CLASSES, isCustomBuilderClass, isMaterialized } from "@idlizer/core";
-import { ImportFeature } from "../ImportsCollector";
+import { ImportFeature } from "@idlizer/libohos"
 import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
@@ -278,21 +278,21 @@ class PeersGenerator {
         if (!component.attributeDeclaration.fileName) {
             throw new Error("Expected parent of attributes to be a SourceFile, but fileName is undefined")
         }
-    
+
         const originalFileName = component.attributeDeclaration.fileName
         const baseName = path.basename(originalFileName)
         const resolvedPath = path.resolve(originalFileName)
-    
+
         const file = this.library.findFileByOriginalFilename(baseName) ||
                      this.library.findFileByOriginalFilename(resolvedPath)
-    
+
         if (!file) {
             console.error("Available files in library:", this.library.files.map(f => f.originalFilename))
             throw new Error(`Not found a file corresponding to attributes class: ${baseName} (${resolvedPath})`)
         }
-    
+
         const peer = new PeerClass(file, component.name, baseName)
-    
+
         if (component.interfaceDeclaration) {
             this.fillInterface(peer, component.interfaceDeclaration)
         }

@@ -14,11 +14,11 @@
  */
 
 import { tsCopyrightAndWarning } from "../FileGenerators"
-import { ImportsCollector } from "../ImportsCollector"
+import { ImportsCollector } from "@idlizer/libohos"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
 import { createLanguageWriter } from "../LanguageWriters"
 import { LanguageWriter, NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
-import { TargetFile } from "./TargetFile"
+import { TargetFile } from "@idlizer/libohos"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter"
 

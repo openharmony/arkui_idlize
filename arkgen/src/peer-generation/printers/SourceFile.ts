@@ -13,15 +13,10 @@
  * limitations under the License.
  */
 
-import { Language } from "@idlizer/core"
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
-import { ImportsCollector } from "../ImportsCollector"
+import { ImportsCollector } from "@idlizer/libohos"
 import { CppLanguageWriter, createLanguageWriter } from "../LanguageWriters"
-import { LanguageWriter } from "@idlizer/core"
-import { CJLanguageWriter } from "@idlizer/core"
-import { ETSLanguageWriter } from "@idlizer/core"
-import { TSLanguageWriter } from "@idlizer/core"
-import { ReferenceResolver } from "@idlizer/core"
+import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, ReferenceResolver } from "@idlizer/core"
 
 export abstract class SourceFile {
     public readonly content: LanguageWriter

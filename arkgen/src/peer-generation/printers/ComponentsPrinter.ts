@@ -16,7 +16,7 @@
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
 import { removeExt, renameDtsToComponent, Language, isCommonMethod } from '@idlizer/core'
-import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector";
+import { convertPeerFilenameToModule, ImportsCollector } from "@idlizer/libohos"
 import { componentToPeerClass } from "./PeersPrinter";
 import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import {
@@ -29,7 +29,7 @@ import {
 import { LanguageWriter, PeerFile, PeerClass, PeerLibrary } from "@idlizer/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
-import { TargetFile } from "./TargetFile";
+import { TargetFile } from "@idlizer/libohos"
 import { PrinterContext } from "./PrinterContext";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
 import { collectJavaImports } from "./lang/JavaIdlUtils";

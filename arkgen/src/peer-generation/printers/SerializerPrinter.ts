@@ -18,7 +18,7 @@ import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throw
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
-import { ImportsCollector } from '../ImportsCollector'
+import { ImportsCollector } from "@idlizer/libohos"
 import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,

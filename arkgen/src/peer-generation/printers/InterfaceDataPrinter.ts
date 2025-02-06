@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "@idlizer/libohos"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { createLanguageWriter } from "../LanguageWriters";
 import { PrinterResult } from "../LayoutManager";

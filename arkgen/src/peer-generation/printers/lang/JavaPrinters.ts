@@ -14,7 +14,7 @@
  */
 
 import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlizer/core/idl"
-import { ImportFeature } from "../../ImportsCollector"
+import { ImportFeature } from "@idlizer/libohos"
 import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature,
     FieldModifier, PeerMethod, PeerLibrary
 } from "@idlizer/core"
@@ -23,7 +23,7 @@ import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
 import { PrinterContext } from "../PrinterContext"
 import { writeSerializer } from "../SerializerPrinter"
-import { TargetFile } from "../TargetFile"
+import { TargetFile } from "@idlizer/libohos"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
 import { collectJavaImports } from "./JavaIdlUtils"

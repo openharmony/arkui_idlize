@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, renameClassToMaterialized, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     createLanguageWriter,
@@ -28,9 +28,9 @@ import {
 import { LanguageWriter, RuntimeType, getInternalClassName,
     MaterializedClass, MaterializedField, isMaterialized, PeerLibrary, LayoutNodeRole } from "@idlizer/core"
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
-import { ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "@idlizer/libohos"
 import { PrinterContext } from "./PrinterContext";
-import { TargetFile } from "./TargetFile";
+import { TargetFile } from "@idlizer/libohos"
 import {
     ARK_MATERIALIZEDBASE,
     ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
@@ -268,7 +268,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         ))
                     })
                 }
-    
+
                 printPeerFinalizer(clazz, writer)
             }
 

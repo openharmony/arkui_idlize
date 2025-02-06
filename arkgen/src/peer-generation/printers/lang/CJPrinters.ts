@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { MethodSignature, FieldModifier, createLanguageWriter } from "../../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
-import { TargetFile } from "../TargetFile"
+import { TargetFile } from "@idlizer/libohos"
 import { ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 

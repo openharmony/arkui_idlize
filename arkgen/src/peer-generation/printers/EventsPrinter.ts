@@ -30,7 +30,7 @@ import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators
 import { generateEventReceiverName } from "./HeaderPrinter"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
-import { ImportsCollector } from "../ImportsCollector";
+import { ImportsCollector } from "@idlizer/libohos"
 import { ReferenceResolver, CppInteropConvertor } from "@idlizer/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
@@ -281,7 +281,7 @@ class TSEventsVisitor {
     readonly printer: LanguageWriter = new TSLanguageWriter(new IndentedPrinter(),
         this.library,
         new ArkoalaTSTypeNameConvertor(this.library))
-    
+
     constructor(protected readonly library: PeerLibrary) {}
 
     private printImports() {

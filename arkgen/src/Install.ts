@@ -16,14 +16,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { Language } from '@idlizer/core'
-import { TargetFile } from './peer-generation/printers/TargetFile'
-
-class Install {
-    mkdir(path: string): string {
-        fs.mkdirSync(path, { recursive: true })
-        return path
-    }
-}
+import { TargetFile, Install } from '@idlizer/libohos'
 
 export class ArkoalaInstall extends Install {
     constructor (private outDir: string, private lang: Language, private test: boolean) {

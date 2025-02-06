@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { posix as path } from "path"
-import { ImportsCollector } from "../../peer-generation/ImportsCollector";
+import { ImportsCollector } from '@idlizer/libohos'
 import {
     capitalize,
     isDefined,
@@ -227,7 +227,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         // // let wrapperClassEntries: idl.IDLEntry[] = this.files.map(it => it.wrapperClasses.get(type.name)?.[1] as idl.IDLEntry).filter(it => !!it)
         // let wrapperClassEntries = this.files.flatMap(f => f.wrapperClasses.get(type.name)?.[1]).filter(isDefined)
         // entries ??= [...this.files.flatMap(it => [...it.declarations]), ...wrapperClassEntries]
-                
+
         // const [qualifier, typeName] = idl.decomposeQualifiedName(type)
         // if (qualifier) {
         //     // This is a namespace or enum member. Try enum first

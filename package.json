@@ -8,6 +8,7 @@
     "demos/*",
     "arkgen",
     "core",
+    "libohos",
     "linter",
     "libarkts-gen"
   ],

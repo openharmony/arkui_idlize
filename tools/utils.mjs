@@ -34,12 +34,13 @@ export class Package {
         publishToOpenlab("latest")
     }
 
-    externalDependencies = ["@idlizer/core", "@koalaui/interop"]
+    externalDependencies = ["@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
 }
 
 export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "arkgen")),
     new Package(path.join(IDLIZE_HOME, "core")),
+    new Package(path.join(IDLIZE_HOME, "libohos")),
     new Package(path.join(IDLIZE_HOME, "linter")),
     new Package(path.join(IDLIZE_HOME, "ohosgen"))
 ]

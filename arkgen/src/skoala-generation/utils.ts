@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ImportFeature } from "../peer-generation/ImportsCollector"
+import { ImportFeature } from '@idlizer/libohos'
 
 export namespace Skoala {
     export enum BaseClasses {

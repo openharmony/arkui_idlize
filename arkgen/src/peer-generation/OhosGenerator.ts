@@ -92,7 +92,7 @@ import {
 } from './printers/OverloadsPrinter'
 import { MaterializedClass, MaterializedMethod } from '@idlizer/core'
 import { writePeerMethod } from './printers/PeersPrinter'
-import { TargetFile } from './printers/TargetFile'
+import { TargetFile } from "@idlizer/libohos"
 
 class NameType {
     constructor(public name: string, public type: string) {}
