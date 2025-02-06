@@ -580,11 +580,13 @@ function copyFile(from: string, to: string, filters?: string[]) {
 }
 
 export function makeArkuiModule(componentsFiles: string[]): string {
-    return componentsFiles.map(file => {
-        const basename = path.basename(file)
-        const basenameNoExt = basename.replaceAll(path.extname(basename), "")
-        return `export * from "./${basenameNoExt}"`
-    }).join("\n")
+    return tsCopyrightAndWarning(
+        componentsFiles.map(file => {
+            const basename = path.basename(file)
+            const basenameNoExt = basename.replaceAll(path.extname(basename), "")
+            return `export * from "./${basenameNoExt}"`
+        }).join("\n")
+    )
 }
 
 export function makeOhosModule(componentsFiles: string[]): string {

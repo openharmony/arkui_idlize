@@ -17,6 +17,7 @@ import { IDLNode, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/c
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
 import { ImportsCollector } from "@idlizer/libohos"
+import { tsCopyrightAndWarning } from "./FileGenerators";
 
 export interface PrinterResult {
     over: {
@@ -61,10 +62,11 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[]):
             content = content.concat(record.content.getOutput())
         }
 
-        const text = imports
-            .printToLines(filePath)
-            .concat(content)
-            .join('\n')
+        const text = tsCopyrightAndWarning(
+            imports.printToLines(filePath)
+                .concat(content)
+                .join('\n')
+        )
 
         writeIntegratedFile(installPath, text, 'producing')
     })

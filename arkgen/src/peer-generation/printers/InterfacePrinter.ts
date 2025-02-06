@@ -54,6 +54,7 @@ import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { maybeTransformManagedCallback } from '@idlizer/core'
 import { isComponentDeclaration } from '../ComponentsCollector'
+import { tsCopyrightAndWarning } from '../FileGenerators'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -1236,7 +1237,7 @@ export function printInterfaces(peerLibrary: PeerLibrary, context: PrinterContex
     const result = new Map<TargetFile, string>()
     for (const [key, writer] of visitor.getInterfaces()) {
         if (writer.getOutput().length === 0) continue
-        result.set(key, writer.getOutput().join('\n'))
+        result.set(key, tsCopyrightAndWarning(writer.getOutput().join('\n')))
     }
     return result
 }
