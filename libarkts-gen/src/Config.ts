@@ -34,6 +34,10 @@ export class Config {
         return `Const`
     }
 
+    static get nodeTypeAttribute(): string {
+        return `Es2pandaAstNodeType`
+    }
+
     static get astNodeCommonAncestor(): string {
         return `AstNode`
     }

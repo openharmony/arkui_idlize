@@ -20,6 +20,7 @@ import { Config } from "./Config"
 import { IDLFile } from "./idl-utils"
 import { Options } from "./Options"
 import { VerifyVisitor } from "./visitors/VerifyVisitor"
+import * as path from "node:path"
 
 const cliOptions: {
     inputFile?: string,
@@ -40,6 +41,7 @@ function main() {
     const outDir = cliOptions.outputDir ?? `./out`
     const idlFile = cliOptions.inputFile ?? `./input/full.idl`
     const files = cliOptions.files?.split(`,`)
+    const optionsFile = cliOptions.optionsFile ?? path.join(__dirname, `../input/ignore.json5`)
     const shouldFixInput = cliOptions.transform ?? false
 
     const idl = new IDLFile(toIDL(idlFile))
@@ -49,7 +51,7 @@ function main() {
         outDir,
         idl,
         new Config(
-            new Options(cliOptions.optionsFile),
+            new Options(optionsFile),
             shouldFixInput,
             files
         ),

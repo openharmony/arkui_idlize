@@ -14,8 +14,11 @@
  */
 
 import {
+    convertType,
     createEmptyReferenceResolver,
+    createReferenceType,
     IDLInterface,
+    IDLPointerType,
     IDLType,
     IDLVoidType,
     IndentedPrinter,
@@ -24,39 +27,68 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "../../Config"
+import { IDLFile } from "../../idl-utils"
+import { PeersConstructions } from "./PeersConstructions"
+import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
 
 export class PeerPrinter {
     constructor(
-        private node: IDLInterface,
+        private idl: IDLFile,
+        private node: IDLInterface
     ) { }
 
-    // private typechecker = new Typechecker(this.idl.entries)
+    private convertor = new TopLevelTypeConvertor(this.idl.entries)
 
     private writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
+        { convert: (node: IDLType) => convertType(this.convertor, node) }
     )
 
-    print(): string {
+    print(): string | undefined {
         this.write()
+        if (this.writer.getOutput().length === 0) {
+            return undefined
+        }
         return this.writer.getOutput().join(`\n`)
     }
 
     private write(): void {
-        let parent = this.node.inheritance[0]?.name
-        if (parent === undefined) {
+        if (this.parent() === undefined) {
             return
         }
+        this.printPeer()
+        this.printTypeGuard()
+    }
+
+    private nodeType(): string | undefined {
+        return this.node.extendedAttributes
+            ?.find(it => it.name === Config.nodeTypeAttribute)
+            ?.value
+    }
+
+    private parent(): string | undefined {
+        return this.node.inheritance[0]?.name
+    }
+
+    private isAbstract(): boolean {
+        return this.nodeType() === undefined
+    }
+
+    private printPeer(): void {
         this.writer.writeClass(
             this.node.name,
             () => this.printBody(),
-            Config.astNodeCommonAncestor
+            Config.astNodeCommonAncestor,
+            undefined,
+            undefined,
+            undefined,
+            this.isAbstract()
         )
     }
 
     private printBody(): void {
-        // this.printConstructor()
+        this.printConstructor()
     }
 
     private printConstructor(): void {
@@ -64,9 +96,68 @@ export class PeerPrinter {
             this.node.name,
             new MethodSignature(
                 IDLVoidType,
-                []
+                [
+                    IDLPointerType
+                ],
+                undefined,
+                undefined,
+                [
+                    PeersConstructions.peer
+                ]
             ),
-            () => {}
+            () => this.printConstructorBody()
+        )
+    }
+
+    private printConstructorBody(): void {
+        if (!this.isAbstract()) {
+            this.writer.writeExpressionStatement(
+                this.writer.makeFunctionCall(
+                    PeersConstructions.validatePeer,
+                    [
+                        this.writer.makeString(PeersConstructions.peer),
+                        this.writer.makeString(this.nodeType() ?? throwException(`somehow abstract node`))
+                    ]
+                )
+            )
+        }
+        this.writer.writeExpressionStatement(
+            this.writer.makeFunctionCall(
+                PeersConstructions.super,
+                [
+                    this.writer.makeString(PeersConstructions.peer)
+                ]
+            )
+        )
+    }
+
+    private printTypeGuard(): void {
+        this.writer.writeFunctionImplementation(
+            PeersConstructions.typeGuard.name(this.node.name),
+            new MethodSignature(
+                createReferenceType(
+                    PeersConstructions.typeGuard.returnType(this.node.name)
+                ),
+                [
+                    createReferenceType(
+                        Config.astNodeCommonAncestor
+                    )
+                ],
+                undefined,
+                undefined,
+                [
+                    PeersConstructions.typeGuard.parameter
+                ]
+            ),
+            () => {
+                this.writer.writeStatement(
+                    this.writer.makeReturn(
+                        this.writer.makeString(
+                            PeersConstructions.typeGuard.body(this.node.name)
+                        )
+                    )
+                )
+            }
         )
     }
 }

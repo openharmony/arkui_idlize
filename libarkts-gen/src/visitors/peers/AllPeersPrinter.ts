@@ -14,7 +14,7 @@
  */
 
 import { MultiFilePrinter, Result } from "../MultiFilePrinter"
-import { IDLInterface, isInterface } from "@idlizer/core"
+import { IDLInterface, isDefined, isInterface } from "@idlizer/core"
 import { PeersConstructions } from "./PeersConstructions"
 import { Config } from "../../Config"
 import { PeerPrinter } from "./PeerPrinter"
@@ -25,12 +25,17 @@ export class AllPeersPrinter extends MultiFilePrinter {
             .filter(isInterface)
             .filter(it => this.typechecker.isHeir(it.name, Config.astNodeCommonAncestor))
             .map(it => this.printInterface(it))
+            .filter(isDefined)
     }
 
-    private printInterface(node: IDLInterface): Result {
+    private printInterface(node: IDLInterface): Result | undefined {
+        const output = new PeerPrinter(this.idl, node).print()
+        if (output === undefined) {
+            return undefined
+        }
         return {
             fileName: PeersConstructions.fileName(node.name),
-            output: new PeerPrinter(node).print()
+            output: output
         }
     }
 }

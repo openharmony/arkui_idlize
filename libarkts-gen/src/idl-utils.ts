@@ -52,7 +52,12 @@ export function createUpdatedInterface(node: IDLInterface, methods?: IDLMethod[]
         node.properties,
         methods ?? node.methods,
         node.callables,
-        node.typeParameters
+        node.typeParameters,
+        {
+            extendedAttributes: node.extendedAttributes,
+            fileName: node.fileName,
+            documentation: node.documentation
+        }
     )
 }
 

@@ -15,14 +15,14 @@
 
 import { IDLFile, isSequence, Typechecker } from "../../../idl-utils"
 import { convertType, IDLPointerType, IDLType } from "@idlizer/core"
-import { ManagedTypeConvertor } from "./ManagedTypeConvertor"
+import { BindingsTypeConvertor } from "./BindingsTypeConvertor"
 
-export class ManagedTypeMapper {
+export class BindingsTypeMapper {
     constructor(
         private idl: IDLFile
     ) {}
 
-    private convertor = new ManagedTypeConvertor(this.idl.entries)
+    private convertor = new BindingsTypeConvertor(this.idl.entries)
     typechecker = new Typechecker(this.idl.entries)
 
     toString(node: IDLType): string {

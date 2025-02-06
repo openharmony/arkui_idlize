@@ -25,7 +25,7 @@ import { IDLType, } from "@idlizer/core/idl"
 import { IDLFile } from "../../../idl-utils"
 import { InteropPrinter } from "../InteropPrinter"
 import { BindingsConstructions } from "./BindingsConstructions"
-import { ManagedTypeMapper } from "./ManagedTypeMapper"
+import { BindingsTypeMapper } from "./BindingsTypeMapper"
 
 export class BindingsPrinter extends InteropPrinter {
     constructor(idl: IDLFile) {
@@ -36,10 +36,10 @@ export class BindingsPrinter extends InteropPrinter {
     override writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => this.typeMapper.toString(node) },
+        { convert: (node: IDLType) => this.typeMapper.toString(node) }
     )
 
-    private typeMapper = new ManagedTypeMapper(this.idl)
+    private typeMapper = new BindingsTypeMapper(this.idl)
 
     override printMethod(node: IDLMethod): void {
         this.writer.writeMethodImplementation(

@@ -18,7 +18,25 @@ export class PeersConstructions {
         return `${node}.ts`
     }
 
-    static get implCommonParent(): string {
-        return `Node`
+    static get peer(): string {
+        return `peer`
+    }
+
+    static get validatePeer(): string {
+        return `assertValidPeer`
+    }
+
+    static get super(): string {
+        return `super`
+    }
+
+    static get typeGuard() {
+        const parameter = `node`
+        return {
+            name: (type: string) => `is${type}`,
+            parameter: parameter,
+            returnType: (type: string) => `${parameter} is ${type}`,
+            body: (type: string) => `${parameter} instanceof ${type}`
+        }
     }
 }

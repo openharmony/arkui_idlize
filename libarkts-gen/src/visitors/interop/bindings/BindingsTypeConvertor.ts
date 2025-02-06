@@ -34,7 +34,7 @@ import {
 } from "@idlizer/core"
 import { BaseConvertor } from "../BaseConvertor"
 
-export class ManagedTypeConvertor extends BaseConvertor {
+export class BindingsTypeConvertor extends BaseConvertor {
     override convertContainer(type: IDLContainerType): string {
         if (IDLContainerUtils.isSequence(type)) {
             return `BigUint64Array`

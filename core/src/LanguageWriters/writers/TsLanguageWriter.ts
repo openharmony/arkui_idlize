@@ -163,11 +163,21 @@ export class TSLanguageWriter extends LanguageWriter {
         return this.typeConvertor.convert(type)
     }
 
-    writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean): void {
+    writeClass(
+        name: string,
+        op: (writer: this) => void,
+        superClass?: string,
+        interfaces?: string[],
+        generics?: string[],
+        isDeclared?: boolean,
+        isAbstract?: boolean
+    ): void {
         let extendsClause = superClass ? ` extends ${superClass}` : ''
         let implementsClause = interfaces ? ` implements ${interfaces.join(",")}` : ''
-        const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
-        this.printer.print(`export${isDeclared ? " declare" : ""} class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
+        let genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
+        let declaredClause = isDeclared ? ` declare` : ''
+        let abstractClause = isAbstract ? ` abstract` : ''
+        this.printer.print(`export${declaredClause}${abstractClause} class ${name}${genericsClause}${extendsClause}${implementsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -192,8 +202,11 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print('}')
     }
     private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
-        const args = signature.args.map((it, index) => `${signature.argName(index)}${idl.isOptionalType(it) ? '?' : ''}: ${this.getNodeName(it)}`)
-        return `export function ${name}(${args.join(", ")})`
+        const args = signature.args.map((it, index) =>
+            `${signature.argName(index)}${idl.isOptionalType(it) ? '?' : ''}: ${this.getNodeName(it)}`
+        )
+        const returnType = this.getNodeName(signature.returnType)
+        return `export function ${name}(${args.join(", ")}): ${returnType}`
     }
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[]): void {
         this.printer.print(`export enum ${name} {`)

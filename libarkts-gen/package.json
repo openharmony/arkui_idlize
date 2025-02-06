@@ -1,12 +1,13 @@
 {
   "name": "@idlizer/libarkts-gen",
-  "version": "3.0.0",
+  "version": "3.0.4",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
   "files": [
     "lib/*.js",
-    "stdlib.d.ts"
+    "input/ignore.json5",
+    "templates/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],
