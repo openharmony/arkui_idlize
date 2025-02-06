@@ -23,16 +23,26 @@ export interface GeneratorConfiguration {
     paramArray<T>(name: string): T[]
 }
 
-class EmptyGeneratorConfiguration implements GeneratorConfiguration {
+export class BaseGeneratorConfiguration implements GeneratorConfiguration {
+    protected params: Record<string, any> = {}
+    constructor(params: Record<string, any> = {}) {
+        Object.assign(this.params, params);
+    }
     param<T>(name: string): T {
+        if (name in this.params) {
+            return this.params[name] as T;
+        }
         throw new Error(`${name} is unknown`)
     }
     paramArray<T>(name: string): T[] {
-        throw new Error(`array ${name} is unknown`)
+        if (name in this.params) {
+            return this.params[name] as T[]
+        }
+        throw new Error(`${name} is unknown`)
     }
 }
 
-let currentConfig: GeneratorConfiguration = new EmptyGeneratorConfiguration()
+let currentConfig: GeneratorConfiguration = new BaseGeneratorConfiguration()
 
 export function setDefaultConfiguration(config: GeneratorConfiguration): void {
     currentConfig = config

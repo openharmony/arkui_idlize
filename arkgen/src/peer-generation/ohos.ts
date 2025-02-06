@@ -45,7 +45,7 @@ import { printArkUIGeneratedNativeModule } from './printers/NativeModulePrinter'
 import { NativeModule } from './NativeModule';
 import { TargetFile } from './printers/TargetFile';
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
-import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
+import { generateNativeOhos, suggestLibraryName } from './OhosGenerator';
 import { printRealAndDummyAccessors, printRealAndDummyModifiers } from './printers/ModifierPrinter';
 import { printSerializersOhos } from './printers/HeaderPrinter';
 import { install } from './LayoutManager';

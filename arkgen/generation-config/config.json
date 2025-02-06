@@ -213,7 +213,9 @@
         "needInterfaces": true
     },
     "native": {
-        "cppPrefix": "GENERATED_"
+        "cppPrefix": "GENERATED_",
+        "typePrefix": "Ark_",
+        "optionalTypePrefix": "Opt_"
     },
     "serializer": {
         "ignore": [

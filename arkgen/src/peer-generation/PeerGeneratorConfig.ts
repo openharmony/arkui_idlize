@@ -85,7 +85,7 @@ export function loadConfigurationFromFile(configurationFile: string): CoreGenera
 
 export function loadConfiguration(configurationFiles?: string): CoreGeneratorConfiguration {
     let files = [path.join(__dirname, "..", "generation-config", "config.json")]
-    if (configurationFiles) files.concat(configurationFiles.split(","))
+    if (configurationFiles) files.push(...configurationFiles.split(","))
 
     let configuration = defaultCoreGeneratorConfiguration
     files.forEach(file => {
@@ -177,6 +177,8 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
         // native
         if (this.native?.["cppPrefix"]) {
             this.cppPrefix = this.native["cppPrefix"] as string
+            this.typePrefix = this.native["typePrefix"] as string
+            this.optionalTypePrefix = this.native["optionalTypePrefix"] as string
         }
 
         // serializer
@@ -241,6 +243,8 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
     }
 
     readonly cppPrefix: string = "GENERATED_"
+    readonly typePrefix: string = ""
+    readonly optionalTypePrefix: string = ""
     public needInterfaces: boolean = true
     private ignoredEntriesCommon: string[] = []
     private ignoredEntriesJava: string[] = []

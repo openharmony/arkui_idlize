@@ -48,11 +48,11 @@ import {
 } from '@idlizer/core/idl'
 import {
     ArgConvertor,
+    BaseGeneratorConfiguration,
     capitalize,
     CppInteropConvertor,
     generateCallbackAPIArguments,
     generatorConfiguration,
-    GeneratorConfiguration,
     generatorTypePrefix,
     IndentedPrinter,
     Language,
@@ -1027,7 +1027,11 @@ abstract class OHOSVisitor {
 
     execute(rootPath: string, outDir: string, managedOutDir: string) {
         const origGenConfig = generatorConfiguration()
-        setDefaultConfiguration(new OhosConfiguration(this.libraryName))
+        setDefaultConfiguration(new BaseGeneratorConfiguration({
+            TypePrefix: "OH_",
+            LibraryPrefix: `${this.libraryName}_`,
+            OptionalPrefix: "Opt_",
+        }))
 
         this.prepare()
 
@@ -1308,32 +1312,6 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
             overloadPostfix
         }
     })
-}
-
-export class OhosConfiguration implements GeneratorConfiguration {
-    readonly params: Record<string, any>
-
-    constructor(libraryName?: string, params?: Record<string, any>) {
-        this.params = {
-            TypePrefix: "OH_",
-            LibraryPrefix: libraryName !== undefined ? `${libraryName}_` : "",
-            OptionalPrefix: "Opt_",
-            GenerateUnused: true,
-            DumpSerialized: false,
-            ApiVersion: 0,
-            ...params
-        }
-    }
-
-    param<T>(name: string): T {
-        if (name in this.params) {
-            return this.params[name] as T;
-        }
-        throw new Error(`${name} is unknown`)
-    }
-    paramArray<T>(name: string): T[] {
-        return []
-    }
 }
 
 function getFileNameFromDeclaration(decl: idl.IDLNode): string {

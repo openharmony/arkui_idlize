@@ -70,7 +70,7 @@ function main() {
     const allEntries = new Array<LinterMessage[]>()
     generate(
         options.inputDir.split(','),
-        options.inputFile,
+        options.inputFile ?? [],
         options.outputDir,
         (sourceFile, typeChecker) => new LinterVisitor(sourceFile, typeChecker),
         {

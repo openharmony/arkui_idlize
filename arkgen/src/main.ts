@@ -25,10 +25,10 @@ import {
     idlToDtsString,
     Language,
     findVersion,
-    GeneratorConfiguration,
     setDefaultConfiguration,
     PeerFile,
-    PeerLibrary
+    PeerLibrary,
+    BaseGeneratorConfiguration
 } from "@idlizer/core"
 import {
     forEachChild,
@@ -50,7 +50,6 @@ import {
 } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
 import {
     generateOhos as generateOhosOld,
-    OhosConfiguration,
     suggestLibraryName
 } from "./peer-generation/OhosGenerator"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
@@ -105,7 +104,6 @@ const options = program
     .option('--use-new-ohos', 'Use new ohos generator')
     .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
-    .option('--options-file <path>', 'Path to file which determines what to generate')
     .parse()
     .opts()
 
@@ -119,44 +117,36 @@ if (process.env.npm_package_version) {
 
 let didJob = false
 
-class DefaultConfig implements GeneratorConfiguration {
-    protected params: Record<string, any> = {
-        TypePrefix: "Ark_",
-        LibraryPrefix: "",
-        OptionalPrefix: "Opt_",
-        GenerateUnused: false,
-    }
-
-    param<T>(name: string): T {
-        if (name in this.params) {
-            return this.params[name] as T
-        }
-        throw new Error(`${name} is unknown`)
-    }
-    paramArray<T>(name: string): T[] {
-        return []
+class DefaultConfig extends BaseGeneratorConfiguration {
+    constructor(params: Record<string, any> = {}) {
+        super({
+            TypePrefix: PeerGeneratorConfig.typePrefix,
+            LibraryPrefix: "",
+            OptionalPrefix: PeerGeneratorConfig.optionalTypePrefix,
+            GenerateUnused: false,
+            DumpSerialized: false,
+            ApiVersion: apiVersion,
+            builderClasses: [], // TODO: builderClasses, knownParameterized, ignoreMaterialized should be taken from PeerGeneratorConfig
+            knownParameterized: [],
+            ignoreMaterialized: [],
+            ...params
+        })
     }
 }
 
 class ArkoalaConfiguration extends DefaultConfig {
-    override paramArray<T>(name: string): T[] {
-        switch (name) {
-            case 'rootComponents': return PeerGeneratorConfig.rootComponents as T[]
-            case 'standaloneComponents': return PeerGeneratorConfig.standaloneComponents as T[]
-            case 'knownParameterized': return PeerGeneratorConfig.knownParameterized as T[]
-            case 'boundProperties': return Array.from(PeerGeneratorConfig.boundProperties) as T[]
-            case 'builderClasses': return PeerGeneratorConfig.builderClasses as T[]
-            case 'ignoreMaterialized': return PeerGeneratorConfig.ignoreMaterialized as T[]
-        }
-        return super.paramArray(name)
+    constructor() {
+        super({
+            rootComponents: PeerGeneratorConfig.rootComponents,
+            standaloneComponents: PeerGeneratorConfig.standaloneComponents,
+            knownParameterized: PeerGeneratorConfig.knownParameterized,
+            boundProperties: Array.from(PeerGeneratorConfig.boundProperties.entries()),
+            builderClasses: PeerGeneratorConfig.builderClasses,
+            ignoreMaterialized: PeerGeneratorConfig.ignoreMaterialized,
+        });
     }
-}
-
-class SkoalaConfiguration extends DefaultConfig {
-    protected params: Record<string, any> = {
-        TypePrefix: "",
-        LibraryPrefix: "",
-        OptionalPrefix: "Opt_"
+    override paramArray<T>(name: string): T[] {
+        return super.paramArray(name)
     }
 }
 
@@ -215,7 +205,7 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    setDefaultConfiguration(new SkoalaConfiguration())
+    setDefaultConfiguration(new DefaultConfig())
 
     console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
 
@@ -434,7 +424,7 @@ if (options.dts2peer) {
                 if (options.generatorTarget == "ohos") {
                     // This setup code placed here because wrong prefix may be cached during library creation
                     // TODO find better place for setup?
-                    setDefaultConfiguration(new OhosConfiguration())
+                    setDefaultConfiguration(new DefaultConfig())
                 }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
@@ -479,11 +469,10 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         if (options.useNewOhos) {
-            generateOhos(outDir, idlLibrary, new OhosConfiguration(suggestLibraryName(idlLibrary),
-                {
-                    ApiVersion: apiVersion
-                }
-            ))
+            generateOhos(outDir, idlLibrary, new DefaultConfig({
+                LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`,
+                GenerateUnused: true
+            }))
         } else {
             generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string, options.splitFiles)
         }
