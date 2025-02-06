@@ -100,16 +100,18 @@ const options = program
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
-    .option('--options-file <path>', 'Path to file which determines what to generate')
     .option('--use-new-ohos', 'Use new ohos generator')
     .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
+    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
+    .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
+
     .parse()
     .opts()
 
 let apiVersion = options.apiVersion ?? 9999
 
-setFileGeneratorConfiguration(loadConfiguration(options.optionsFile))
+setFileGeneratorConfiguration(loadConfiguration(options.optionsFile, options.overrideOptionsFile))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)

@@ -83,16 +83,22 @@ export function loadConfigurationFromFile(configurationFile: string): CoreGenera
     return JSON.parse(data) as CoreGeneratorConfiguration
 }
 
-export function loadConfiguration(configurationFiles?: string): CoreGeneratorConfiguration {
+export function loadConfiguration(configurationFiles?: string, overrideConfigurationFiles?: string): CoreGeneratorConfiguration {
     let files = [path.join(__dirname, "..", "generation-config", "config.json")]
     if (configurationFiles) files.push(...configurationFiles.split(","))
 
     let configuration = defaultCoreGeneratorConfiguration
+
+    if (overrideConfigurationFiles) {
+        files = overrideConfigurationFiles.split(",")
+    }
     files.forEach(file => {
         const nextConfiguration = loadConfigurationFromFile(file)
         if (nextConfiguration) {
             console.log(`Using options from ${file}`)
             configuration = deepMergeConfig(configuration, nextConfiguration)
+        } else {
+            throw new Error(`file ${file} does not exist or cannot parse`)
         }
     })
     return configuration
