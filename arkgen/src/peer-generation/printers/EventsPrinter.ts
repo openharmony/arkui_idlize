@@ -18,7 +18,6 @@ import { IndentedPrinter, Language, isImportAttr, PeerClassBase, PeerClass, Peer
 import {
     BlockStatement,
     CppLanguageWriter,
-    createLanguageWriter,
     ExpressionStatement,
     FieldModifier,
     printMethodDeclaration,
@@ -471,7 +470,7 @@ interface PeerEvent {
 }
 
 class ArkTSEventVisitor extends TSEventsVisitor {
-    readonly printer: LanguageWriter = createLanguageWriter(Language.ARKTS, this.library)
+    readonly printer: LanguageWriter = this.library.createLanguageWriter(Language.ARKTS)
 
     protected printParseFunction(infos: CallbackInfo[]) {
         // Disable event functions printing until deserializer is ready

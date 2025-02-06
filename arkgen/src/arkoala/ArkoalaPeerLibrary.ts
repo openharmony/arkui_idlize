@@ -15,14 +15,41 @@
 
 import * as idl from '@idlizer/core/idl'
 import { ArgConvertor, CustomTypeConvertor, isMaterialized,
-    isImportAttr, IdlNameConvertor, Language, PeerLibrary
+    isImportAttr, IdlNameConvertor, Language, PeerLibrary,
+    LanguageWriter,
+    IndentedPrinter,
+    TSLanguageWriter,
+    CppInteropConvertor,
+    CppLanguageWriter,
+    JavaLanguageWriter,
+    ETSLanguageWriter,
+    CJLanguageWriter,
+    CJIDLTypeToForeignStringConvertor
 } from "@idlizer/core";
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
     ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
 } from '../arkoala/ArkoalaTypeNameConvertors';
+import { ArkPrimitiveTypesInstance } from '../peer-generation/ArkPrimitiveType';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
+    override createLanguageWriter(language?: Language): LanguageWriter {
+        language ??= this.language
+        const printer = new IndentedPrinter()
+        switch (language) {
+            case Language.TS: return new TSLanguageWriter(printer, this,
+                new ArkoalaTSTypeNameConvertor(this))
+            case Language.ARKTS: return new ETSLanguageWriter(printer, this,
+                new ArkoalaETSTypeNameConvertor(this), new CppInteropConvertor(this))
+            case Language.JAVA: return new JavaLanguageWriter(printer, this,
+                new ArkoalaJavaTypeNameConvertor(this))
+            case Language.CPP: return new CppLanguageWriter(printer, this,
+                new CppInteropConvertor(this), ArkPrimitiveTypesInstance)
+            case Language.CJ: return new CJLanguageWriter(printer, this,
+                new ArkoalaCJTypeNameConvertor(this), new CJIDLTypeToForeignStringConvertor(this))
+            default: return super.createLanguageWriter(language)
+        }
+    }
     override createTypeNameConvertor(language: Language): IdlNameConvertor {
         switch (language) {
             case Language.TS: return new ArkoalaTSTypeNameConvertor(this)

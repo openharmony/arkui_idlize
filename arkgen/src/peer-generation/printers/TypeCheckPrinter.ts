@@ -1,7 +1,6 @@
 import * as idl from "@idlizer/core/idl"
 import { ImportFeature, ImportsCollector } from  "@idlizer/libohos"
 import {
-    createLanguageWriter,
     generateTypeCheckerName,
     Method,
     MethodModifier,
@@ -189,7 +188,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.ARKTS, library))
+        super(library, library.createLanguageWriter(Language.ARKTS))
     }
 
     private writeInstanceofChecker(typeName: string,
@@ -263,7 +262,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, createLanguageWriter(Language.TS, library))
+        super(library, library.createLanguageWriter(Language.TS))
     }
 
     protected writeTypeInstanceOf(): void {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createLanguageWriter, Method, NamedMethodSignature } from "../LanguageWriters";
+import { Method, NamedMethodSignature } from "../LanguageWriters";
 import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary,
     InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
     Language
@@ -32,7 +32,7 @@ class NativeModuleRecorderVisitor {
     constructor(
         protected readonly library: PeerLibrary,
     ) {
-        this.nativeModuleRecorder = createLanguageWriter(library.language, this.library)
+        this.nativeModuleRecorder = library.createLanguageWriter()
         this.interopConvertor = createInteropArgConvertor(library.language)
     }
 

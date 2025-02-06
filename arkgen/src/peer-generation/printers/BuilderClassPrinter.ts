@@ -14,7 +14,7 @@
  */
 
 import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName } from '@idlizer/core'
-import { MethodModifier, Method, createLanguageWriter, Field, NamedMethodSignature } from "../LanguageWriters";
+import { MethodModifier, Method, Field, NamedMethodSignature } from "../LanguageWriters";
 import { LanguageWriter, PeerLibrary,
     BuilderClass, methodsGroupOverloads, CUSTOM_BUILDER_CLASSES
 } from "@idlizer/core";
@@ -35,7 +35,7 @@ interface BuilderClassFileVisitor {
 
 class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = createLanguageWriter(this.language, this.peerLibrary)
+    private readonly printer: LanguageWriter = this.peerLibrary.createLanguageWriter(this.language)
 
     constructor(
         private readonly language: Language,
@@ -127,7 +127,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
 class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library)
+    private readonly printer: LanguageWriter = this.library.createLanguageWriter(this.printerContext.language)
 
     constructor(
         private readonly library: PeerLibrary,

@@ -26,20 +26,19 @@ import {
     warning
 } from "../FileGenerators";
 import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
-    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor
+    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor,
+    createLanguageWriter, createEmptyReferenceResolver, LanguageWriter, CppInteropConvertor
 } from '@idlizer/core'
-import { CppLanguageWriter, createLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { LanguageWriter, CppInteropConvertor } from "@idlizer/core"
+import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlizer/core/idl'
-import { createEmptyReferenceResolver } from "@idlizer/core";
 
 export class ModifierVisitor {
-    dummy = createLanguageWriter(Language.CPP, this.library)
-    real = createLanguageWriter(Language.CPP, this.library)
-    modifiers = createLanguageWriter(Language.CPP, this.library)
-    getterDeclarations = createLanguageWriter(Language.CPP, this.library)
-    modifierList = createLanguageWriter(Language.CPP, this.library)
+    dummy = this.library.createLanguageWriter(Language.CPP)
+    real = this.library.createLanguageWriter(Language.CPP)
+    modifiers = this.library.createLanguageWriter(Language.CPP)
+    getterDeclarations = this.library.createLanguageWriter(Language.CPP)
+    modifierList = this.library.createLanguageWriter(Language.CPP)
     private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
     commentedCode = true
 
@@ -287,8 +286,8 @@ export class ModifierVisitor {
 }
 
 class AccessorVisitor extends ModifierVisitor {
-    accessors = createLanguageWriter(Language.CPP, this.library)
-    accessorList = createLanguageWriter(Language.CPP, this.library)
+    accessors = this.library.createLanguageWriter(Language.CPP)
+    accessorList = this.library.createLanguageWriter(Language.CPP)
 
     constructor(library: PeerLibrary) {
         super(library)
@@ -358,13 +357,13 @@ class AccessorVisitor extends ModifierVisitor {
 }
 
 class MultiFileModifiersVisitorState {
-    dummy = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    real = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    accessorList = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    accessors = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    modifierList = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    modifiers = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
-    getterDeclarations = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    dummy = createLanguageWriter(Language.CPP)
+    real = createLanguageWriter(Language.CPP)
+    accessorList = createLanguageWriter(Language.CPP)
+    accessors = createLanguageWriter(Language.CPP)
+    modifierList = createLanguageWriter(Language.CPP)
+    modifiers = createLanguageWriter(Language.CPP)
+    getterDeclarations = createLanguageWriter(Language.CPP)
     hasModifiers = false
     hasAccessors = false
 }
@@ -414,9 +413,9 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
     }
 
     emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
-        const modifierList = createLanguageWriter(Language.CPP, library)
-        const accessorList = createLanguageWriter(Language.CPP, library)
-        const getterDeclarations = createLanguageWriter(Language.CPP, library)
+        const modifierList = library.createLanguageWriter(Language.CPP)
+        const accessorList = library.createLanguageWriter(Language.CPP)
+        const getterDeclarations = library.createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.stateByFile) {
             if (state.hasModifiers)

@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { MethodSignature, FieldModifier, createLanguageWriter } from "../../LanguageWriters"
+import { MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "@idlizer/libohos"
@@ -22,13 +22,13 @@ import { ARKOALA_PACKAGE_PATH } from "./Cangjie"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
 
 export function makeCJSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language, library)
+    let writer = library.createLanguageWriter()
     writeSerializer(library, writer, "")
     return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }
 
 export function makeCJDeserializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = createLanguageWriter(library.language, library)
+    let writer = library.createLanguageWriter()
     writeDeserializer(library, writer, "")
     return { targetFile: new TargetFile('Deserializer', ARKOALA_PACKAGE_PATH), writer: writer }
 }

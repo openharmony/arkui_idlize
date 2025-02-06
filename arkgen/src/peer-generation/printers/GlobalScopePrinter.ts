@@ -16,7 +16,6 @@
 import { tsCopyrightAndWarning } from "../FileGenerators"
 import { ImportsCollector } from "@idlizer/libohos"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { createLanguageWriter } from "../LanguageWriters"
 import { LanguageWriter, NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
 import { TargetFile } from "@idlizer/libohos"
 import * as idl from '@idlizer/core'
@@ -29,7 +28,7 @@ class GlobalScopePrinter {
     constructor(
         private library: PeerLibrary
     ) {
-        this.writer = createLanguageWriter(library.language, this.library)
+        this.writer = library.createLanguageWriter()
     }
 
     static create(library: PeerLibrary) {

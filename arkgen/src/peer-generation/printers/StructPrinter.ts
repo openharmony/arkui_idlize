@@ -29,7 +29,7 @@ import {
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
-import { createLanguageWriter, LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
+import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
 import { PrintHint } from "@idlizer/core"
@@ -74,9 +74,9 @@ export class StructPrinter {
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        const enumsDeclarations = createLanguageWriter(Language.CPP, this.library)
-        const forwardDeclarations = createLanguageWriter(Language.CPP, this.library)
-        const concreteDeclarations = createLanguageWriter(Language.CPP, this.library)
+        const enumsDeclarations = this.library.createLanguageWriter(Language.CPP)
+        const forwardDeclarations = this.library.createLanguageWriter(Language.CPP)
+        const concreteDeclarations = this.library.createLanguageWriter(Language.CPP)
         const seenNames = new Set<string>()
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]

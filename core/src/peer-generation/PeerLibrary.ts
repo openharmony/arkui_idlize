@@ -16,7 +16,8 @@
 import { warn } from 'console'
 import * as idl from '../idl'
 import { Language } from '../Language'
-import { IdlNameConvertor } from '../LanguageWriters'
+import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
+import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
@@ -70,6 +71,10 @@ export class PeerLibrary implements LibraryInterface {
 
     readonly customComponentMethods: string[] = []
 
+    createLanguageWriter(language?: Language): LanguageWriter {
+        return createLanguageWriter(language ?? this.language, this)
+    }
+    
     createTypeNameConvertor(language: Language): IdlNameConvertor {
         switch (language) {
             case Language.TS: return new TSTypeNameConvertor(this)

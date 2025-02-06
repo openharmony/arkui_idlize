@@ -14,9 +14,9 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary } from "@idlizer/core"
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter } from "@idlizer/core"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { createLanguageWriter, Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
+import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer/core";
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
@@ -114,7 +114,7 @@ export function bridgeCcCustomDeclaration(customApi: string[]): string {
 }
 
 export function appendModifiersCommonPrologue(): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('impl_prologue.cc')
 
     body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
@@ -134,7 +134,7 @@ export function getNodeTypes(library: PeerLibrary): string[] {
 }
 
 export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('view_model_bridge.cc')
 
     const createNodeSwitch = new IndentedPrinter()
@@ -160,7 +160,7 @@ export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
 }
 
 export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
@@ -197,7 +197,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
 
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     result.writeLines(prologue)
     result.print("namespace OHOS::Ace::NG::GeneratedModifier {")
     result.pushIndent()
@@ -210,7 +210,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 }
 
 export function modifierStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()`)
     result.print("{")
     result.pushIndent()
@@ -228,7 +228,7 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
 }
 
 export function accessorStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP, createEmptyReferenceResolver())
+    let result = createLanguageWriter(Language.CPP)
     result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()`)
     result.print("{")
     result.pushIndent()
@@ -247,7 +247,7 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 }
 
 export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
-    let printer = createLanguageWriter(library.language, library)
+    let printer = library.createLanguageWriter()
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
@@ -313,13 +313,13 @@ export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name
 
 export function makeTypeChecker(library: PeerLibrary, language: Language): string {
     if (language === Language.ARKTS) {
-    let arktsPrinter = createLanguageWriter(Language.ARKTS, createEmptyReferenceResolver())
+    let arktsPrinter = createLanguageWriter(Language.ARKTS)
     writeARKTSTypeCheckers(library, arktsPrinter)
         return arktsPrinter.getOutput().join("\n")
     }
 
     if (language === Language.TS) {
-    let tsPrinter = createLanguageWriter(Language.TS, createEmptyReferenceResolver())
+    let tsPrinter = createLanguageWriter(Language.TS)
     writeTSTypeCheckers(library, tsPrinter)
         return tsPrinter.getOutput().join("\n")
     }
@@ -387,8 +387,8 @@ ${makeCSerializers(library, structs, typedefs)}
 
 function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
-    const serializers = createLanguageWriter(Language.CPP, library)
-    const writeToString = createLanguageWriter(Language.CPP, library)
+    const serializers = library.createLanguageWriter(Language.CPP)
+    const writeToString = library.createLanguageWriter(Language.CPP)
     serializers.print("\n// Serializers\n")
     writeSerializer(library, serializers, "")
     serializers.print("\n// Deserializers\n")
@@ -403,7 +403,7 @@ ${serializers.getOutput().join("\n")}
 }
 
 export function makeTSDeserializer(library: PeerLibrary): string {
-    const deserializer = createLanguageWriter(Language.TS, library)
+    const deserializer = library.createLanguageWriter(Language.TS)
     writeDeserializer(library, deserializer, "")
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, DeserializerBase, CallbackResource } from "@koalaui/interop"
@@ -429,7 +429,7 @@ export function makeDeserializer(library: PeerLibrary): string {
 }
 
 export function makeArkTSDeserializer(library: PeerLibrary): string {
-    const printer = createLanguageWriter(Language.ARKTS, library)
+    const printer = library.createLanguageWriter(Language.ARKTS)
     printer.writeLines(cStyleCopyright)
 
     const imports = new ImportsCollector()
@@ -688,7 +688,7 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 }
 
 export function makeCallbacksKinds(library: PeerLibrary, language: Language): string {
-    const writer = createLanguageWriter(language, library)
+    const writer = library.createLanguageWriter(language)
     printCallbacksKindsImports(language, writer)
     printCallbacksKinds(library, writer)
     const enumContent = writer.getOutput().join("\n")

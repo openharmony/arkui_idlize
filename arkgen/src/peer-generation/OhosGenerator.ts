@@ -70,7 +70,6 @@ import { getInteropRootPath, makeDeserializeAndCall, makeSerializerForOhos, read
 import { getUniquePropertiesFromSuperTypes } from './idl/IdlPeerGeneratorVisitor'
 import {
     CppLanguageWriter,
-    createLanguageWriter,
     ExpressionStatement,
     LanguageExpression,
     Method,
@@ -327,9 +326,9 @@ abstract class OHOSVisitor {
         this.library.name = libraryName
         this.dependecyCollector = dependencyCollector
 
-        this.nativeWriter = createLanguageWriter(library.language, library)
-        this.nativeFunctionsWriter = createLanguageWriter(library.language, library)
-        this.arkUIFunctionsWriter = createLanguageWriter(library.language, library)
+        this.nativeWriter = library.createLanguageWriter()
+        this.nativeFunctionsWriter = library.createLanguageWriter()
+        this.arkUIFunctionsWriter = library.createLanguageWriter()
 
         const fileNamePrefix = this.libraryName.toLowerCase()
         this.implementationStubsFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
@@ -936,7 +935,7 @@ abstract class OHOSVisitor {
     }
 
     printC() {
-        let callbackKindsPrinter = createLanguageWriter(Language.CPP, this.library);
+        let callbackKindsPrinter = this.library.createLanguageWriter(Language.CPP);
         printCallbacksKinds(this.library, callbackKindsPrinter)
 
         this.cppWriter.writeLines(
@@ -956,7 +955,7 @@ abstract class OHOSVisitor {
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
 
-        let toStringsPrinter = createLanguageWriter(Language.CPP, this.library)
+        let toStringsPrinter = this.library.createLanguageWriter(Language.CPP)
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
         const prefix = generatorTypePrefix()
@@ -1117,7 +1116,7 @@ class OneFileOHOSVisitor extends OHOSVisitor {
     constructor(protected library: PeerLibrary, libraryName: string) {
         super(library, libraryName, new OneFileDependecyCollector())
         console.log(`Use OneFileOHOSVisitor`)
-        this.peerWriter = createLanguageWriter(library.language, library)
+        this.peerWriter = library.createLanguageWriter()
         this.peerWriters.set(this.libraryName.toLowerCase(), this.peerWriter)
     }
 
@@ -1144,7 +1143,7 @@ class ManyFilesOHOSVisitor extends OHOSVisitor {
         this.dependecyCollector.collect(decl, fileName)
         let writer = this.peerWriters.get(fileName)
         if (!writer) {
-            writer = createLanguageWriter(this.library.language, this.library)
+            writer = this.library.createLanguageWriter()
             this.peerWriters.set(fileName, writer)
         }
         return writer

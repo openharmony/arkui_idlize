@@ -18,13 +18,13 @@ import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstruc
 } from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
-import { createLanguageWriter, ExpressionStatement } from "../LanguageWriters";
+import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
 
 class BridgeCcVisitor {
-    readonly generatedApi = createLanguageWriter(Language.CPP, this.library)
-    readonly customApi = createLanguageWriter(Language.CPP, this.library)
+    readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
+    readonly customApi = this.library.createLanguageWriter(Language.CPP)
     private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
 
     constructor(

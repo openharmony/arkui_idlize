@@ -25,7 +25,6 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
-    createLanguageWriter
 } from "../LanguageWriters";
 import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerFile, PeerMethod,
     getInternalClassName, MaterializedMethod, PeerLibrary
@@ -231,7 +230,7 @@ class PeerFileVisitor {
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.language, this.library)
+        const printer = this.library.createLanguageWriter()
         const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 
@@ -301,7 +300,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): void {
         this.file.peers.forEach(peer => {
-            let printer = createLanguageWriter(this.library.language, this.library)
+            let printer = this.library.createLanguageWriter()
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
 
@@ -345,7 +344,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
-        const printer = createLanguageWriter(this.library.language, this.library)
+        const printer = this.library.createLanguageWriter()
         const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 

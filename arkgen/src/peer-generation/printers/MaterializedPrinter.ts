@@ -17,7 +17,6 @@ import * as idl from '@idlizer/core/idl'
 import { capitalize, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
-    createLanguageWriter,
     FieldModifier,
     LanguageStatement,
     Method,
@@ -53,9 +52,8 @@ const FinalizableType = idl.maybeOptional(createReferenceType("Finalizable"), tr
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected readonly collector = new ImportsCollector()
-    protected readonly printer = createLanguageWriter(this.library.language, this.library)
-
-    protected readonly internalPrinter: LanguageWriter = createLanguageWriter(this.printerContext.language, this.library)
+    protected readonly printer = this.library.createLanguageWriter()
+    protected readonly internalPrinter = this.library.createLanguageWriter(this.printerContext.language)
     protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false)
 
     constructor(

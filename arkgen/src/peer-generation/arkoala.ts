@@ -58,7 +58,6 @@ import { printBridgeCcCustom, printBridgeCcGenerated } from "./printers/BridgeCc
 import { Language, IndentedPrinter, PeerLibrary } from '@idlizer/core'
 import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
 import { printDeclarations, printEnumsImpl } from "./printers/DeclarationPrinter"
-import { createLanguageWriter } from "./LanguageWriters"
 import { printManagedCaller } from "./printers/CallbacksPrinter"
 import { NativeModule } from "./NativeModule"
 import { printArkUIGeneratedNativeModule, printArkUILibrariesLoader, printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions, printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule, printTSPredefinedEmptyNativeModule } from "./printers/NativeModulePrinter"
@@ -225,7 +224,7 @@ export function generateArkoalaFromIdl(config: {
     )
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
-        let enumImpls = createLanguageWriter(peerLibrary.language, peerLibrary)
+        let enumImpls = peerLibrary.createLanguageWriter()
         printEnumsImpl(peerLibrary, enumImpls)
         enumImpls.printTo(arkoala.interface(new TargetFile('EnumsImpl' + peerLibrary.language.extension)),)
     }

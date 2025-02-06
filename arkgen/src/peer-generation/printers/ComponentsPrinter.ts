@@ -20,7 +20,6 @@ import { convertPeerFilenameToModule, ImportsCollector } from "@idlizer/libohos"
 import { componentToPeerClass } from "./PeersPrinter";
 import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import {
-    createLanguageWriter,
     Method,
     MethodModifier,
     MethodSignature,
@@ -54,7 +53,7 @@ interface ComponentFileVisitor {
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
     private readonly language = this.library.language
-    private readonly printer = createLanguageWriter(this.language, this.library)
+    private readonly printer = this.library.createLanguageWriter(this.language)
     private readonly overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language)
 
     constructor(
@@ -244,7 +243,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
         const peerClassName = componentToPeerClass(peer.componentName)
 
-        const result = createLanguageWriter(Language.JAVA, this.library)
+        const result = this.library.createLanguageWriter(Language.JAVA)
         result.print(`package ${ARKOALA_PACKAGE};\n`)
         const imports = collectJavaImports(peer.methods.flatMap(method => method.method.signature.args))
         printJavaImports(result, imports)

@@ -15,7 +15,6 @@
 
 import { ImportsCollector } from "@idlizer/libohos"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
-import { createLanguageWriter } from "../LanguageWriters";
 import { PrinterResult } from "../LayoutManager";
 import { LayoutNodeRole, PeerLibrary, isMaterialized } from "@idlizer/core";
 import * as idl from '@idlizer/core'
@@ -69,7 +68,7 @@ function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, print
 }
 
 function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterResult {
-    const printer = createLanguageWriter(library.language, library)
+    const printer = library.createLanguageWriter()
     const collector = new ImportsCollector()
 
     collectDeclDependencies(library, entry, collector)
@@ -102,7 +101,7 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
 }
 
 function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
-    const printer = createLanguageWriter(library.language, library)
+    const printer = library.createLanguageWriter()
     const collector = new ImportsCollector()
 
     collectDeclDependencies(library, entry, collector)

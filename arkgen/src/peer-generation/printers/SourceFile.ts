@@ -15,13 +15,13 @@
 
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "@idlizer/libohos"
-import { CppLanguageWriter, createLanguageWriter } from "../LanguageWriters"
-import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, ReferenceResolver } from "@idlizer/core"
+import { CppLanguageWriter } from "../LanguageWriters"
+import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, PeerLibrary } from "@idlizer/core"
 
 export abstract class SourceFile {
     public readonly content: LanguageWriter
 
-    public static make(name: string, language: Language, resolver: ReferenceResolver): SourceFile {
+    public static make(name: string, language: Language, resolver: PeerLibrary): SourceFile {
         if (language === Language.CPP) {
             return new CppSourceFile(name, resolver)
         } else if (language === Language.TS) {
@@ -38,15 +38,15 @@ export abstract class SourceFile {
     }
 
     public static makeSameAs<T extends SourceFile>(file: T): T {
-        return SourceFile.make(file.name, file.language, file.resolver) as T
+        return SourceFile.make(file.name, file.language, file.library) as T
     }
 
     constructor (
         public readonly name: string,
         public readonly language: Language,
-        protected readonly resolver: ReferenceResolver // TODO try to avoid this dependency
+        protected readonly library: PeerLibrary // TODO try to avoid this dependency
     ) {
-        this.content = createLanguageWriter(language, resolver)
+        this.content = library.createLanguageWriter(language)
     }
 
     public merge(file: this) {
@@ -69,8 +69,8 @@ export class CppSourceFile extends SourceFile {
     public readonly includes: Set<string> = new Set();
     public readonly globalIncludes: Set<string> = new Set();
 
-    constructor(name: string, resolver: ReferenceResolver) {
-        super(name, Language.CPP, resolver)
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.CPP, library)
     }
 
     public addInclude(...includes: string[]) {
@@ -91,7 +91,7 @@ export class CppSourceFile extends SourceFile {
     }
 
     public printToString(): string {
-        let fileWriter = createLanguageWriter(Language.CPP, this.resolver) as CppLanguageWriter
+        let fileWriter = this.library.createLanguageWriter(Language.CPP) as CppLanguageWriter
         let includeGuard = ""
 
         fileWriter.writeLines(cStyleCopyright);
@@ -140,7 +140,7 @@ abstract class TsLikeSourceFile extends SourceFile {
     }
 
     public printToString(): string {
-        let fileWriter = createLanguageWriter(this.language, this.resolver) as TSLanguageWriter
+        let fileWriter = this.library.createLanguageWriter(this.language) as TSLanguageWriter
         fileWriter.print(cStyleCopyright)
         this.printImports(fileWriter)
         fileWriter.print("")
@@ -159,8 +159,8 @@ abstract class TsLikeSourceFile extends SourceFile {
 export class TsSourceFile extends TsLikeSourceFile {
     declare public readonly content: TSLanguageWriter
 
-    constructor(name: string, resolver: ReferenceResolver) {
-        super(name, Language.TS, resolver)
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.TS, library)
     }
 
     protected override supportsWriter(writer: LanguageWriter) {
@@ -171,8 +171,8 @@ export class TsSourceFile extends TsLikeSourceFile {
 export class ArkTSSourceFile extends TsLikeSourceFile {
     declare public readonly content: ETSLanguageWriter
 
-    constructor(name: string, resolver: ReferenceResolver) {
-        super(name, Language.ARKTS, resolver)
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.ARKTS, library)
     }
 
     protected override supportsWriter(writer: LanguageWriter) {
@@ -183,12 +183,12 @@ export class ArkTSSourceFile extends TsLikeSourceFile {
 export class CJSourceFile extends SourceFile {
     declare public readonly content: CJLanguageWriter
 
-    constructor(name: string, resolver: ReferenceResolver) {
-        super(name, Language.CJ, resolver)
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.CJ, library)
     }
 
     public printToString(): string {
-        let fileWriter = createLanguageWriter(this.language, this.resolver) as CJLanguageWriter
+        let fileWriter = this.library.createLanguageWriter(this.language) as CJLanguageWriter
         fileWriter.print(cStyleCopyright)
         this.printImports(fileWriter)
         fileWriter.concat(this.content)
@@ -209,12 +209,12 @@ export class JavaSourceFile extends SourceFile {
     declare public readonly content: CJLanguageWriter
     public packageName: string = "org.koalaui.arkoala";
 
-    constructor(name: string, resolver: ReferenceResolver) {
-        super(name, Language.JAVA, resolver)
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.JAVA, library)
     }
 
     public printToString(): string {
-        let printer = createLanguageWriter(Language.JAVA, this.resolver)
+        let printer = this.library.createLanguageWriter(Language.JAVA)
         printer.print(cStyleCopyright)
         printer.print(`package ${this.packageName};`)
         printer.print('')
