@@ -1,59 +1,41 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
-import { capitalize, createFeatureNameConvertor, Language, convertDeclaration } from "@idlizer/core"
+import { capitalize, createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "@idlizer/libohos"
 import { renameClassToBuilderClass, renameClassToMaterialized, renameDtsToInterfaces } from "@idlizer/core"
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 import { isComponentDeclaration } from "./ComponentsCollector"
 
-export const SyntheticModule = "./SyntheticDeclarations"
-export const HandwrittenModule = "../handwritten"
-
-export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLNode): ImportFeature {
+export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
     const featureNameConvertor = createFeatureNameConvertor(library.language)
     if (idl.isReferenceType(node)) {
         const decl = library.resolveTypeReference(node)
-        if (decl) {
-            return convertDeclToFeature(library, decl)
+        if (!decl) {
+            throw new Error("Expected to have an entry")
         }
+        return convertDeclToFeature(library, decl)
     }
-    if (!idl.isEntry(node))
-        throw new Error("Expected to have an entry")
-    if (idl.isHandwritten(node))
-        return { feature: node.name, module: HandwrittenModule }
-    if (idl.isSyntheticEntry(node))
-        return { feature: node.name, module: SyntheticModule }
 
-    const originalBasename = path.basename(node.fileName!)
-    let fileName = renameDtsToInterfaces(originalBasename, library.language)
-    if (idl.isInterface(node) && !isComponentDeclaration(library, node)) {
-        if (isBuilderClass(node)) {
-            fileName = renameClassToBuilderClass(node.name, library.language)
-        } else if (isMaterialized(node, library)) {
-            fileName = renameClassToMaterialized(node.name, library.language)
-        }
-    }
     let feature = convertDeclaration(featureNameConvertor, node)
     const featureNs = idl.getNamespaceName(node)
     if ((library.language === Language.TS || library.language === Language.ARKTS) && featureNs !== '') {
         if (library.language !== Language.ARKTS || !idl.isEnum(node)) {
             feature = featureNs.split('.')[0]
         }
-        fileName = 'Ark' + featureNs.split('.').map(it => capitalize(it)).join('') + 'Namespace'
     }
 
-    const basenameNoExt = path.basename(fileName, path.extname(fileName))
+    const moduleName = library.layout.resolve(node, LayoutNodeRole.INTERFACE)
     return {
         feature,
-        module: `./${basenameNoExt}`,
+        module: `./${moduleName}`,
     }
 }
 
 export function collectDeclItself(
     library: PeerLibrary,
-    node: idl.IDLNode,
-    emitter: ImportsCollector | ((entry: idl.IDLNode) => void),
+    node: idl.IDLEntry | idl.IDLReferenceType,
+    emitter: ImportsCollector | ((entry: idl.IDLEntry | idl.IDLReferenceType) => void),
     options?: {
         includeMaterializedInternals?: boolean,
         includeTransformedCallbacks?: boolean,
@@ -93,7 +75,7 @@ export function collectDeclItself(
 export function collectDeclDependencies(
     library: PeerLibrary,
     node: idl.IDLNode,
-    emitter: ImportsCollector | ((entry: idl.IDLNode) => void),
+    emitter: ImportsCollector | ((entry: idl.IDLEntry | idl.IDLReferenceType) => void),
     options?: {
         expandTypedefs?: boolean,
         includeMaterializedInternals?: boolean,

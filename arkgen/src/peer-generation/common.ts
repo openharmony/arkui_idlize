@@ -30,89 +30,74 @@ export function writeIntegratedFile(filename: string, content: string, message?:
 
 ////////////////////////////////////////////////////////
 
+export const SyntheticModule = "./SyntheticDeclarations"
+export const HandwrittenModule = "../handwritten"
+
 function toFileName(name:string) {
-    return name.split('_').map(it => idl.capitalize(it)).join('')
+    return name.split(/[_-]/gi).map(it => idl.capitalize(it)).join('')
 }
 
 abstract class CommonLayoutBase implements LayoutManagerStrategy {
     constructor(
-        protected library: PeerLibrary
+        protected library: PeerLibrary,
+        protected prefix: string = "",
     ) {}
-    abstract resolve(node: idl.IDLNode, role: LayoutNodeRole): string
+    abstract resolve(node: idl.IDLEntry, role: LayoutNodeRole): string
 
 }
 
 class TsLayout extends CommonLayoutBase {
-    resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
+
+    private selectInterface(node: idl.IDLEntry): string {
+        if (idl.isSyntheticEntry(node)) {
+            return SyntheticModule
+        }
+        if (idl.isHandwritten(node)) {
+            return HandwrittenModule
+        }
+        const ns = idl.getNamespaceName(node)
+        if (ns !== '') {
+            return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
+        }
+        if (idl.isInterface(node) && !isComponentDeclaration(this.library, node)) {
+            if (idl.isBuilderClass(node)) {
+                return `${this.prefix}${toFileName(node.name)}Builder`
+            }
+            if (isMaterialized(node, this.library)) {
+                const name = node.name.endsWith('Internal') ? node.name.substring(0, node.name.length - 8) : node.name
+                return `${this.prefix}${toFileName(name)}Materialized`
+            }
+        }
+        let pureFileName = node.fileName
+            ?.replaceAll('.d.ts', '')
+            ?.replaceAll('.idl', '')
+        if (pureFileName) {
+            pureFileName = path.basename(pureFileName)
+        }
+        const entryName = pureFileName ?? node.name
+        return `${this.prefix}${toFileName(entryName)}Interfaces`
+    }
+
+    private selectPeer(node:idl.IDLEntry): string {
+        if (idl.isInterface(node)) {
+            if (isComponentDeclaration(this.library, node)) {
+                return `peers/${this.prefix}${toFileName(node.name)}Peer`
+            }
+        }
+        return `CommonPeer`
+    }
+
+    /////
+
+    resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
         switch (role) {
-            case LayoutNodeRole.INTERFACE: {
-                if (idl.isEntry(node)) {
-                    const ns = idl.getNamespaceName(node)
-                    if (ns !== '') {
-                        return `Ark${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
-                    }
-                }
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return `Ark${toFileName(node.name)}`
-                    }
-                    if (idl.isBuilderClass(node)) {
-                        return `Ark${toFileName(node.name)}Builder`
-                    }
-                    if (isMaterialized(node, this.library)) {
-                        return `Ark${toFileName(node.name)}Materialized`
-                    }
-                    return `Ark${toFileName(node.name)}Interfaces`
-                }
-                return `Common`
-            }
-            case LayoutNodeRole.PEER: {
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return `peers/Ark${toFileName(node.name)}Peer`
-                    }
-                }
-                return `CommonPeer`
-            }
+            case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
+            case LayoutNodeRole.PEER: return this.selectPeer(node)
         }
     }
 }
 
-class ArkTsLayout extends CommonLayoutBase {
-    resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
-        switch (role) {
-            case LayoutNodeRole.INTERFACE: {
-                if (idl.isEntry(node)) {
-                    const ns = idl.getNamespaceName(node)
-                    if (ns !== '') {
-                        return `Ark${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
-                    }
-                }
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return `Ark${toFileName(node.name)}`
-                    }
-                    if (idl.isBuilderClass(node)) {
-                        return `Ark${toFileName(node.name)}Builder`
-                    }
-                    if (isMaterialized(node, this.library)) {
-                        return `Ark${toFileName(node.name)}Materialized`
-                    }
-                    return `Ark${toFileName(node.name)}Interfaces`
-                }
-                return `Common`
-            }
-            case LayoutNodeRole.PEER: {
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return `peers/Ark${toFileName(node.name)}Peer`
-                    }
-                }
-                return `CommonPeer`
-            }
-        }
-    }
-}
+class ArkTsLayout extends TsLayout { }
 
 class JavaLayout extends CommonLayoutBase {
     private getPath(file:string):string {
@@ -200,12 +185,12 @@ class CJLayout extends CommonLayoutBase {
 
 ////////////////////////////////////////////////////////
 
-export function layout(library: PeerLibrary): LayoutManagerStrategy {
+export function layout(library: PeerLibrary, prefix:string = ''): LayoutManagerStrategy {
     switch(library.language) {
-        case idl.Language.TS: return new TsLayout(library)
-        case idl.Language.ARKTS: return new ArkTsLayout(library)
-        case idl.Language.JAVA: return new JavaLayout(library)
-        case idl.Language.CJ: return new CJLayout(library)
+        case idl.Language.TS: return new TsLayout(library, prefix)
+        case idl.Language.ARKTS: return new ArkTsLayout(library, prefix)
+        case idl.Language.JAVA: return new JavaLayout(library, prefix)
+        case idl.Language.CJ: return new CJLayout(library, prefix)
     }
     throw new Error(`Unimplemented language "${library.language}"`)
 }

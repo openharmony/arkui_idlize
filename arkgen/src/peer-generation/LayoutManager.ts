@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLNode, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/core"
+import { IDLEntry, IDLNode, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
 import { ImportsCollector } from "@idlizer/libohos"
@@ -21,7 +21,7 @@ import { tsCopyrightAndWarning } from "./FileGenerators";
 
 export interface PrinterResult {
     over: {
-        node: IDLNode
+        node: IDLEntry
         role: LayoutNodeRole
     }
     collector: ImportsCollector

@@ -30,7 +30,7 @@ class GeneratorSyntheticPrinter extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl && !idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import))
             this.onGeneratorSyntheticDependency(decl)

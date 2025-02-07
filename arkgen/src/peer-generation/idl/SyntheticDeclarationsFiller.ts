@@ -63,7 +63,7 @@ class ImportsStubsGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type) ?? this.synthesizedEntries.get(type.name)
         if (!decl || idl.isTypedef(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)) {
             this.synthesizedEntries.set(type.name, idl.createInterface(

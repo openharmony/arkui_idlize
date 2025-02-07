@@ -313,7 +313,7 @@ class ImportsAggregateCollector extends DependenciesCollector {
         super(peerLibrary)
     }
 
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
+    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const declarations = super.convertTypeReference(type)
         const syntheticDeclarations = declarations.filter(it => idl.isSyntheticEntry(it))
         const realDeclarations = declarations.filter(it => !idl.isSyntheticEntry(it))

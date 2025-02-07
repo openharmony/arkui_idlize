@@ -73,12 +73,12 @@ class TypeCheckSyntheticCollector extends DependenciesCollector {
     ) {
         super(library)
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl && (idl.isInterface(decl))) this.onSyntheticDeclaration(decl)
         return super.convertImport(type, importClause)
     }
-    convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
+    convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         if (idl.IDLContainerUtils.isSequence(type))
             this.onSyntheticDeclaration(type)
         return super.convertContainer(type)

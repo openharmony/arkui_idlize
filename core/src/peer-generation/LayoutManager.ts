@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLNode } from "../idl"
+import { IDLEntry } from "../idl";
 
 export enum LayoutNodeRole {
     PEER,
@@ -21,7 +21,7 @@ export enum LayoutNodeRole {
 }
 
 export interface LayoutManagerStrategy {
-    resolve(node:IDLNode, role:LayoutNodeRole): string
+    resolve(node:IDLEntry, role:LayoutNodeRole): string
 }
 
 export class LayoutManager {
@@ -29,7 +29,7 @@ export class LayoutManager {
         private strategy: LayoutManagerStrategy
     ) { }
 
-    resolve(node:IDLNode, role:LayoutNodeRole): string {
+    resolve(node:IDLEntry, role:LayoutNodeRole): string {
         return this.strategy.resolve(node, role)
     }
     ////////////////////////////////////////////////////////////////////

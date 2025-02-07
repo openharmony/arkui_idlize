@@ -43,7 +43,6 @@ import { BlurOptions,
     ScrollSizeMode,
     Position,
     SheetKeyboardAvoidMode,
-    Literal_Alignment_align,
     HoverModeAreaType } from "@arkoala/arkui/ArkCommonInterfaces"
 import { Dimension,
     Length,
@@ -53,6 +52,7 @@ import { Dimension,
     Position } from "@arkoala/arkui/ArkUnitsInterfaces"
 
 import { Resource } from "./ArkResourceInterfaces"
+import { Literal_Alignment_align } from './SyntheticDeclarations'
 
 import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
 

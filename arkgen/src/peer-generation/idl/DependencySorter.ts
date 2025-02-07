@@ -14,14 +14,26 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { LibraryInterface } from "@idlizer/core";
+import { convertNode, convertType, LibraryInterface, NodeConvertor } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
-import { DependenciesCollector } from "./IdlDependenciesCollector";
 
-class SorterDependenciesCollector extends DependenciesCollector {
-    constructor(public library: LibraryInterface) {
-        super(library)
+class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
+    constructor(public library: LibraryInterface) {}
+    convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
+        return convertType(this, type.type)
+    }
+    convertNamespace(decl: idl.IDLNamespace): idl.IDLNode[] {
+        return decl.members.flatMap(it => this.convert(it))
+    }
+    convertMethod(decl: idl.IDLMethod): idl.IDLNode[] {
+        return [
+            ...decl.parameters.flatMap(it => this.convert(it.type!)),
+            ...this.convert(decl.returnType),
+        ]
+    }
+    convertConstant(decl: idl.IDLConstant): idl.IDLNode[] {
+        return this.convert(decl.type)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
         return type.types.map(it => this.library.toDeclaration(it))
@@ -56,6 +68,12 @@ class SorterDependenciesCollector extends DependenciesCollector {
     }
     convertCallback(node: idl.IDLCallback): idl.IDLNode[] {
         return []
+    }
+
+    convert(node: idl.IDLNode | undefined): idl.IDLNode[] {
+        if (node === undefined)
+            return []
+        return convertNode(this, node)
     }
 }
 

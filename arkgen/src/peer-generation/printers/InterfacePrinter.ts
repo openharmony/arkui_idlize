@@ -203,13 +203,13 @@ class JavaSyntheticGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
         const typeName = this.nameConvertor.convert(type)
         this.onSyntheticDeclaration(idl.createTypedef(typeName, type))
         return super.convertUnion(type)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const generatedName = this.nameConvertor.convert(type)
         const clazz = idl.createInterface(
             generatedName,
@@ -220,7 +220,7 @@ class JavaSyntheticGenerator extends DependenciesCollector {
         return super.convertImport(type, importClause)
     }
 
-    convertTypedef(decl: idl.IDLTypedef): idl.IDLNode[] {
+    convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
         if (PeerGeneratorConfig.ignoreEntry(decl.name, Language.JAVA))
             return []
         return super.convertTypedef(decl)
@@ -754,13 +754,13 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl) this.onSyntheticDeclaration(decl)
         return super.convertImport(type, importClause)
     }
 
-    convertCallback(decl: idl.IDLCallback): idl.IDLNode[] {
+    convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
         if (decl.returnType !== idl.IDLVoidType) {
             const continuationReference = this.library.createContinuationCallbackReference(decl.returnType)
             const continuation = this.library.resolveTypeReference(continuationReference)!
@@ -780,7 +780,7 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
         return super.convertCallback(decl)
     }
 
-    convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
+    convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         if (idl.isHandwritten(decl))
             return super.convertInterface(decl)
         idl.forEachFunction(decl, function_ => {
@@ -938,12 +938,12 @@ class CJSyntheticGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
         this.onSyntheticDeclaration(idl.createTypedef(this.nameConvertor.convert(type), type))
         return super.convertUnion(type)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl) this.onSyntheticDeclaration(decl)
         return super.convertImport(type, importClause)

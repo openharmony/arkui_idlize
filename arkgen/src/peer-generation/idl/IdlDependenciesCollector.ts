@@ -18,41 +18,41 @@ import { NodeConvertor, convertNode, convertType } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language, getInternalClassName, isMaterialized } from '@idlizer/core'
 
-export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
+export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     constructor(protected readonly library: LibraryInterface) {}
 
-    convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
+    convertOptional(type: idl.IDLOptionalType): idl.IDLEntry[] {
         return convertType(this, type.type)
     }
-    convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
         return type.types.flatMap(ty => convertType(this, ty))
     }
-    convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
+    convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         return type.elementType.flatMap(ty => convertType(this, ty))
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const maybeDecl = this.library.resolveTypeReference(type)
         return maybeDecl ? [maybeDecl] : []
     }
-    convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
+    convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
-        const result: idl.IDLNode[] = !decl ? []
+        const result: idl.IDLEntry[] = !decl ? []
             : idl.isEnumMember(decl) ? [decl.parent] : [decl]
         if (type.typeArguments) {
             result.push(...type.typeArguments.flatMap(it => convertType(this, it)))
         }
         return result
     }
-    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLNode[] {
+    convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {
         return []
     }
-    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLNode[] {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): idl.IDLEntry[] {
         return []
     }
-    convertNamespace(decl: idl.IDLNamespace): idl.IDLNode[] {
+    convertNamespace(decl: idl.IDLNamespace): idl.IDLEntry[] {
         return decl.members.flatMap(it => this.convert(it))
     }
-    convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
+    convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         return [
             ...decl.inheritance
                 .filter(it => it !== idl.IDLTopType)
@@ -67,34 +67,34 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
                 ])
         ]
     }
-    protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
+    protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
         if (idl.isInterface(type)) {
             return this.convert(idl.createReferenceType(type.name, undefined, type))
         }
         return this.convert(type)
     }
-    convertEnum(decl: idl.IDLEnum): idl.IDLNode[] {
+    convertEnum(decl: idl.IDLEnum): idl.IDLEntry[] {
         return []
     }
-    convertTypedef(decl: idl.IDLTypedef): idl.IDLNode[] {
+    convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
         return this.convert(decl.type)
     }
-    convertCallback(decl: idl.IDLCallback): idl.IDLNode[] {
+    convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
         return [
             ...decl.parameters.flatMap(it => this.convert(it.type!)),
             ...this.convert(decl.returnType),
         ]
     }
-    convertMethod(decl: idl.IDLMethod): idl.IDLNode[] {
+    convertMethod(decl: idl.IDLMethod): idl.IDLEntry[] {
         return [
             ...decl.parameters.flatMap(it => this.convert(it.type!)),
             ...this.convert(decl.returnType),
         ]
     }
-    convertConstant(decl: idl.IDLConstant): idl.IDLNode[] {
+    convertConstant(decl: idl.IDLConstant): idl.IDLEntry[] {
         return this.convert(decl.type)
     }
-    convert(node: idl.IDLNode | undefined): idl.IDLNode[] {
+    convert(node: idl.IDLNode | undefined): idl.IDLEntry[] {
         if (node === undefined)
             return []
         return convertNode(this, node)
@@ -102,7 +102,7 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
 }
 
 class TSDependenciesCollector extends DependenciesCollector {
-    override convertInterface(decl: idl.IDLInterface): idl.IDLNode[] {
+    override convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         if (idl.isInterfaceSubkind(decl) && isMaterialized(decl, this.library)) {
             const name = getInternalClassName(decl.name)
             return super.convertTypeReference(idl.createReferenceType(name))
@@ -117,7 +117,7 @@ class TSDependenciesCollector extends DependenciesCollector {
 }
 
 class ArkTSDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
+    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl && idl.isSyntheticEntry(decl)) {
             return [
