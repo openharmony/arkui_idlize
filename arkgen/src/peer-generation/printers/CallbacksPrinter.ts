@@ -173,15 +173,13 @@ class DeserializeCallbacksVisitor {
                 imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             }
 
-            if (this.writer.language === Language.ARKTS) {
-                for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
-                    collectDeclItself(this.library, callback, imports)
-                    collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
-                }
+            for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
+                collectDeclItself(this.library, callback, imports)
+                collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
+            }
 
-                for (let builder of this.library.builderClasses.keys()) {
-                    imports.addFeature(builder, `Ark${builder}Builder`)
-                }
+            for (let builder of this.library.builderClasses.keys()) {
+                imports.addFeature(builder, `Ark${builder}Builder`)
             }
             if (this.writer.language === Language.TS && this.library.name !== 'arkoala') {
                 for (const callback of collectUniqueCallbacks(this.library)) {

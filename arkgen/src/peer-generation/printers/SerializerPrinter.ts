@@ -579,31 +579,15 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
 export function printSerializerImports(library: PeerLibrary, destFile: SourceFile, declarationPath?: string) {
     const serializerDeclarations = getSerializerDeclarations(library,
         createSerializerDependencyFilter(destFile.language))
-    if (destFile.language === Language.TS) {
-        const collector = (destFile as TsSourceFile).imports
-
+    if (destFile.language === Language.TS || destFile.language === Language.ARKTS) {
+        const collector = (destFile as (TsSourceFile | ArkTSSourceFile)).imports
         if (!declarationPath) {
-            for (let builder of library.builderClasses.keys()) {
-                collector.addFeature(builder, `Ark${builder}Builder`)
+            if (destFile.language === Language.TS) {
+                collector.addFeature('Finalizable', '@koalaui/interop')
+            } else {
+                collector.addFeature("TypeChecker", "#components")
+                collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
             }
-            collector.addFeature('Finalizable', '@koalaui/interop')
-            if (library.name === 'arkoala') {
-                collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
-            }
-            collectMaterializedImports(collector, library)
-        } else {
-            // Add TypeChecker import for OhosGenerator
-            collector.addFeature("TypeChecker", "./type_check")
-        }
-
-        if (declarationPath) { // This is used for OHOS library generation only
-            collectOhosImports(collector, true)
-        }
-    } else if (destFile.language === Language.ARKTS) {
-        const collector = (destFile as ArkTSSourceFile).imports
-        if (!declarationPath) {
-            collector.addFeature("TypeChecker", "#components")
-            collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
             if (library.name === 'arkoala') {
                 collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             }

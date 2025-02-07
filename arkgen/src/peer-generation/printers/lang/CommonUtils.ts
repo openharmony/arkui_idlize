@@ -36,7 +36,3 @@ export abstract class IdlSyntheticTypeBase implements IdlSyntheticType {
     }
     abstract print(writer: LanguageWriter): void
 }
-
-export function createInterfaceDeclName(name: string): string {
-    return `INTERFACE_${name}`
-}

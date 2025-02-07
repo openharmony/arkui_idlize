@@ -3,6 +3,7 @@
 /build/
 /lib/
 /core/build/
+/libohos/build/
 /generated/
 /.packages/
 /idl/

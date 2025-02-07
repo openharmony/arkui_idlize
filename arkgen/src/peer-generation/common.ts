@@ -1,6 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
-import { isMaterialized, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration } from './ComponentsCollector'
 import { ARKOALA_PACKAGE_PATH } from './printers/lang/Java'
@@ -31,7 +31,13 @@ export function writeIntegratedFile(filename: string, content: string, message?:
 ////////////////////////////////////////////////////////
 
 export const SyntheticModule = "./SyntheticDeclarations"
-export const HandwrittenModule = "../handwritten"
+export function HandwrittenModule(language: Language) {
+    switch (language) {
+        case Language.TS: return "./handwritten"
+        case Language.ARKTS: return "../handwritten"
+        default: throw new Error("Not implemented")
+    }
+}
 
 function toFileName(name:string) {
     return name.split(/[_-]/gi).map(it => idl.capitalize(it)).join('')
@@ -53,7 +59,7 @@ class TsLayout extends CommonLayoutBase {
             return SyntheticModule
         }
         if (idl.isHandwritten(node)) {
-            return HandwrittenModule
+            return HandwrittenModule(this.library.language)
         }
         const ns = idl.getNamespaceName(node)
         if (ns !== '') {

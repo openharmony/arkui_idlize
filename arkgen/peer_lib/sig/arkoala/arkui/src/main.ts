@@ -27,7 +27,7 @@ import { ArkTabContentPeer } from "@arkoala/arkui/peers/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
-import { CanvasRenderingContext2D as CanvasRenderingContext2DImpl, CanvasRenderingContext2DInternal } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
+import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
 import {
@@ -36,6 +36,7 @@ import {
     List_onScrollVisibleContentChange_event,
     TextPicker_onAccept_event
 } from "./peer_events"
+import { TouchTestInfo, BackgroundBlurStyleOptions } from "./ArkCommonInterfaces"
 // imports required interfaces (now generation is disabled)
 // import { Resource, BackgroundBlurStyleOptions, TouchTestInfo } from "@arkoala/arkui"
 
@@ -564,7 +565,7 @@ function checkCanvasRenderingContext2D() {
     let canvasRenderingContext2D: CanvasRenderingContext2D | undefined = undefined
 
     checkResult("new CanvasRenderingContext2D()",
-        () => canvasRenderingContext2D = unsafeCast<CanvasRenderingContext2D>(new CanvasRenderingContext2DImpl()),
+        () => canvasRenderingContext2D = unsafeCast<CanvasRenderingContext2D>(new CanvasRenderingContext2D()),
         `new CanvasPath()[return (CanvasPathPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderer()[return (CanvasRendererPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (CanvasRenderingContext2DPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`
     )
 

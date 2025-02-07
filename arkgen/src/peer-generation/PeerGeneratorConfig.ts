@@ -30,9 +30,6 @@ export interface CoreGeneratorConfiguration {
     get materialized(): {
         [key: string]: {}
     }
-    get interfaces(): {
-        [key: string]: {}
-    }
     get native(): {
         [key: string]: {}
     }
@@ -58,9 +55,6 @@ export const defaultCoreGeneratorConfiguration: CoreGeneratorConfiguration = {
     },
     "materialized": {
         "ignore": [],
-    },
-    "interfaces": {
-        "needInterfaces": true
     },
     "native": {
         "cppPrefix": "GENERATED_"
@@ -107,7 +101,6 @@ export function loadConfiguration(configurationFiles?: string, overrideConfigura
 export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
     readonly components: Record<string, any>
     readonly materialized: Record<string, any>
-    readonly interfaces: Record<string, any>
     readonly native: Record<string, any>
     readonly serializer: Record<string, any>
     readonly dummy: Record<string, any>
@@ -115,7 +108,6 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
 
         this.components = this.data?.components
         this.materialized = this.data?.materialized
-        this.interfaces = this.data?.interfaces
         this.native = this.data?.native
         this.serializer = this.data?.serializer
         this.dummy = this.data?.dummy
@@ -173,11 +165,6 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
         }
         if (this.materialized?.["ignoredReturnTypes"]) {
             this.ignoreReturnTypes = Object.values(this.materialized["ignoredReturnTypes"])
-        }
-
-        // interfaces
-        if (this.interfaces?.["needInterfaces"]) {
-            this.needInterfaces = this.interfaces["needInterfaces"] as boolean
         }
 
         // native
@@ -251,7 +238,6 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
     readonly cppPrefix: string = "GENERATED_"
     readonly typePrefix: string = ""
     readonly optionalTypePrefix: string = ""
-    public needInterfaces: boolean = true
     private ignoredEntriesCommon: string[] = []
     private ignoredEntriesJava: string[] = []
     readonly ignoreComponents: string[] = []

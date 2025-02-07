@@ -35,7 +35,6 @@ import {
     ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
     ARKOALA_PACKAGE,
 } from "./lang/Java";
-import { createInterfaceDeclName } from './lang/CommonUtils';
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
@@ -117,9 +116,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         if (clazz.isInterface && this.library.name === 'arkoala') {
             // generate interface declarations for ArkTS only
-            if (Language.ARKTS == this.printerContext.language) {
-                writeInterface(clazz.decl, printer);
-            }
+            writeInterface(clazz.decl, printer);
         }
 
         const implementationClassName = clazz.getImplementationName()
@@ -347,34 +344,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     protected collectImports(imports: ImportsCollector) {
         const decl = this.library.resolveTypeReference(idl.createReferenceType(this.clazz.className))!
-        if (PeerGeneratorConfig.needInterfaces && this.library.language !== Language.TS) {
-            collectDeclDependencies(this.library, decl, imports, {
-                expandTypedefs: true,
-                includeTransformedCallbacks: true,
-                includeMaterializedInternals: true,
-            })
-            if (!this.clazz.isGlobalScope()) {
-                imports.addFeature(
-                    createInterfaceDeclName(this.clazz.className),
-                    SyntheticModule,
-                )
-            }
-        } else {
-            collectDeclDependencies(this.library, decl, (it) => {
-                if (idl.isInterface(it) && isMaterialized(it, this.library)) {
-                    if (idl.isClassSubkind(it) || this.library.language !== Language.TS) {
-                        collectDeclItself(this.library, it, imports)
-                    }
-                }
-            })
-            if (this.clazz.superClass) {
-                let name = this.clazz.superClass.name
-                if (this.clazz.isInterface) {
-                    name = getInternalClassName(name)
-                }
-                collectDeclItself(this.library, idl.createReferenceType(name), imports)
-            }
-        }
+        collectDeclDependencies(this.library, decl, imports, {
+            expandTypedefs: true,
+            includeTransformedCallbacks: true,
+            includeMaterializedInternals: true,
+        })
     }
 
     override printImports() {

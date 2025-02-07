@@ -41,10 +41,10 @@ export function collectDeclItself(
         includeTransformedCallbacks?: boolean,
     },
 ) {
+    if (idl.isSyntheticEntry(node) && Language.TS === library.language)
+        return
     if (emitter instanceof ImportsCollector) {
-        if (
-            idl.isSyntheticEntry(node) && library.language === Language.TS // ts synthetic entries not printed
-            || idl.isSyntheticEntry(node) && library.language === Language.ARKTS && library.name !== 'arkoala' // or if target is not arkoala
+        if (idl.isSyntheticEntry(node) && library.language === Language.ARKTS && library.name !== 'arkoala' // or if target is not arkoala
             ) {
             return
         }
@@ -93,6 +93,17 @@ export function collectDeclDependencies(
                     deps.push(subDependency)
             }
         }
+    if (Language.TS === library.language) {
+        // expant type literals
+        for (let i = 0; i < deps.length; i++) {
+            if (!idl.isInterface(deps[i]) && !idl.isSyntheticEntry(deps[i]))
+                continue
+            for (const subDependency of collector.convert(deps[i])) {
+                if (!deps.includes(subDependency))
+                    deps.push(subDependency)
+            }
+        }
+    }
     for (const dep of deps) {
         collectDeclItself(library, dep, emitter, {
             includeMaterializedInternals: options?.includeMaterializedInternals,

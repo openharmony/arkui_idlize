@@ -39,9 +39,18 @@ const propertyTypeReplacements: ((clazz: string, property: string) => [idl.IDLTy
         if (clazz === "PluginComponentOptions" && property === "data")
             return [idl.IDLStringType]
     },
+    (clazz, property) => {
+        if (clazz === "SliderBlockStyle" && property === "shape")
+            return [idl.IDLStringType]
+    },
 ]
 
 const parameterTypeReplacements: ((clazz: string, method: string, parameter: string) => [idl.IDLType, idl.IDLEntry?] | undefined )[] = [
+    (clazz, method, parameter) => {
+        if (clazz === "AnimatorAttribute" && method === "motion" && parameter === "value")
+            return [idl.createReferenceType("SpringMotion")]
+    },
+
     (clazz, method, parameter) => {
         if (clazz === "ScrollableCommonMethod" && method === "onWillScroll" && parameter === "handler")
             return [idl.createOptionalType(idl.createReferenceType("ScrollOnWillScrollCallback"))]
@@ -68,6 +77,15 @@ const parameterTypeReplacements: ((clazz: string, method: string, parameter: str
         if (clazz === "CommonMethod" && method === "size" && parameter === "value")
             return [idl.createReferenceType("SizeOptions")]
     },
+    (clazz, method, parameter) => {
+        if (clazz === "CommonMethod" && method === "clip" && (parameter === "value" || parameter === "clip"))
+            return [idl.createOptionalType(idl.IDLBooleanType)]
+    },
+    (clazz, method, parameter) => {
+        if (clazz === "CommonMethod" && method === "mask" && (parameter === "value" || parameter === "mask"))
+            return [idl.createOptionalType(idl.createReferenceType("ProgressMask"))]
+    },
+
     (clazz, method, parameter) => {
         if (clazz === "FormComponentAttribute" && method === "size" && parameter === "value")
             return [idl.createReferenceType("SizeOptions")]
@@ -179,6 +197,7 @@ export class IDLVisitorConfig {
         "LocalizedPadding",
         "ColumnOptionsV2",
         "RowOptionsV2",
+        "StyledStringValue",
     )
 
     static readonly ConflictingDeclarationNames = [

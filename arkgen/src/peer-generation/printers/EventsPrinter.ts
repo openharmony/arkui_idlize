@@ -290,11 +290,9 @@ class TSEventsVisitor {
         if ([Language.TS].includes(this.library.language))
             imports.addFeature("Deserializer", "./peers/Deserializer")
 
-        if (PeerGeneratorConfig.needInterfaces) {
-            for (const callback of collectCallbacks(this.library)) {
-                collectDeclItself(this.library, callback.originTarget, imports)
-                collectDeclDependencies(this.library, callback.originTarget, imports)
-            }
+        for (const callback of collectCallbacks(this.library)) {
+            collectDeclItself(this.library, callback.originTarget, imports)
+            collectDeclDependencies(this.library, callback.originTarget, imports)
         }
         imports.print(this.printer, '')
     }

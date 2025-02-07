@@ -101,12 +101,10 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                         imports.addFeature("UseEventsProperties", './use_properties')
             }
 
-            if (PeerGeneratorConfig.needInterfaces) {
-                const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
-                collectDeclDependencies(this.library, component.attributeDeclaration, imports)
-                if (component.interfaceDeclaration)
-                    collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
-            }
+            const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+            collectDeclDependencies(this.library, component.attributeDeclaration, imports)
+            if (component.interfaceDeclaration)
+                collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
         })
 
         imports.print(this.printer, removeExt(this.targetBasename))

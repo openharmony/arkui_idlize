@@ -91,12 +91,10 @@ class PeerFileVisitor {
                 if (parentAttributesClass)
                     imports.addFeature(parentAttributesClass, parentModule)
             }
-            if (PeerGeneratorConfig.needInterfaces) {
-                const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
-                collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
-                if (component.interfaceDeclaration)
-                    collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
-            }
+            const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+            collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
+            if (component.interfaceDeclaration)
+                collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         })
         if (this.library.language === Language.TS) {
             imports.addFeature('GestureName', './shared/generated-utils')

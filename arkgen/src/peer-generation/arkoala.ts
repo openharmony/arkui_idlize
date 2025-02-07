@@ -202,17 +202,15 @@ export function generateArkoalaFromIdl(config: {
         })
     }
 
-    if (PeerGeneratorConfig.needInterfaces) {
-        const interfaces = printIdlInterfaces(peerLibrary, context)
-        for (const [targetFile, data] of interfaces) {
-            const outComponentFile = arkoala.interface(targetFile)
-            writeFile(outComponentFile, data, {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-                message: "producing [idl]"
-            })
-            arkuiComponentsFiles.push(outComponentFile)
-        }
+    const interfaces = printIdlInterfaces(peerLibrary, context)
+    for (const [targetFile, data] of interfaces) {
+        const outComponentFile = arkoala.interface(targetFile)
+        writeFile(outComponentFile, data, {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true,
+            message: "producing [idl]"
+        })
+        arkuiComponentsFiles.push(outComponentFile)
     }
 
     const installedFiles = install(

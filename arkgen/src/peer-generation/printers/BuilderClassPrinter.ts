@@ -50,16 +50,14 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeature('KBoolean', '@koalaui/interop')
         imports.addFeature('KStringPtr', '@koalaui/interop')
-        if (PeerGeneratorConfig.needInterfaces) {
-            collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
-            if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
-                const maybeParents = [
-                    ...CUSTOM_BUILDER_CLASSES,
-                    ...this.peerLibrary.buildersToGenerate.values()
-                ]
-                const parentDecl = maybeParents.find(it => it.name === clazz.declaration.inheritance[0].name)
-                collectDeclDependencies(this.peerLibrary, parentDecl!.declaration, imports)
-            }
+        collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
+        if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
+            const maybeParents = [
+                ...CUSTOM_BUILDER_CLASSES,
+                ...this.peerLibrary.buildersToGenerate.values()
+            ]
+            const parentDecl = maybeParents.find(it => it.name === clazz.declaration.inheritance[0].name)
+            collectDeclDependencies(this.peerLibrary, parentDecl!.declaration, imports)
         }
         const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
         imports.print(this.printer, currentModule)

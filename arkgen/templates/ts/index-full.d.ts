@@ -144,12 +144,6 @@ interface LazyForEachInterface {
 
 declare const LazyForEach: LazyForEachInterface;
 
-declare function setTimeout(handler: Function | string, delay?: number, ...arguments: any[]): number;
-
-declare function setInterval(handler: Function | string, delay: number, ...arguments: any[]): number;
-
-declare function clearInterval(intervalID?: number): void;
-
 declare class TextEncoder {
     encode(input?: string): Uint8Array;
     encodeInto(input?: string): Uint8Array;

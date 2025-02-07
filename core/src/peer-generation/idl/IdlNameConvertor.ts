@@ -45,7 +45,10 @@ export class DeclarationNameConvertor implements DeclarationConvertor<string> {
 
 export class TSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        return `${idl.getNamespacesPathFor(decl).join('')}${decl.name}`
+        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name)
+        if (namespace.length > 0)
+            return namespace[0]
+        return decl.name
     }
     static readonly I = new TSFeatureNameConvertor()
 }

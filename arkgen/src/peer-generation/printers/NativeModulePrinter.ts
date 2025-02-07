@@ -290,7 +290,11 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, 
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
         if (file.language === Language.ARKTS) {
             tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
-            if (module === NativeModule.Generated && library.name === 'arkoala')
+        }
+        if (module === NativeModule.Generated && library.name === 'arkoala') {
+            if (file.language === Language.TS)
+                tsFile.imports.addFeature('Length', './ArkUnitsInterfaces')
+            if (file.language === Language.ARKTS)
                 tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
         }
     }

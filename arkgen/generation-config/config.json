@@ -209,9 +209,6 @@
             "Promise"
         ]
     },
-    "interfaces": {
-        "needInterfaces": true
-    },
     "native": {
         "cppPrefix": "GENERATED_",
         "typePrefix": "Ark_",

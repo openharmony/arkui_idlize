@@ -30,7 +30,7 @@ import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertor
 import { JavaTypeNameConvertor } from '../LanguageWriters/convertors/JavaConvertors'
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
-import { BuilderClass } from './BuilderClass'
+import { BuilderClass, isBuilderClass } from './BuilderClass'
 import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
 import { isMaterialized, MaterializedClass } from './Materialized'
 import { PeerFile } from './PeerFile'
@@ -289,11 +289,13 @@ export class PeerLibrary implements LibraryInterface {
             if (isMaterialized(declaration, this)) {
                 return new MaterializedClassConvertor(param, declaration)
             }
+            if (isBuilderClass(declaration)) {
+                return new ClassConvertor(this, declarationName, param, declaration)
+            }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
-                    return new InterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.Class:
-                    return new ClassConvertor(this, declarationName, param, declaration)
+                        return new InterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.AnonymousInterface:
                     return new AggregateConvertor(this, param, type, declaration as idl.IDLInterface)
                 case idl.IDLInterfaceSubkind.Tuple:

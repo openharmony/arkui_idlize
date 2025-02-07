@@ -102,17 +102,32 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
 }
 
 class TSDependenciesCollector extends DependenciesCollector {
-    override convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
-        if (idl.isInterfaceSubkind(decl) && isMaterialized(decl, this.library)) {
-            const name = getInternalClassName(decl.name)
-            return super.convertTypeReference(idl.createReferenceType(name))
-                .concat(decl.methods.flatMap(it => this.convert(it)))
-                .concat(decl.properties.flatMap(it => this.convert(it.type)))
-        }
-        if (idl.isClassSubkind(decl) && isMaterialized(decl, this.library)) {
+    private static cache: Map<idl.IDLNode, idl.IDLEntry[]> = new Map()
+    override convert(node: idl.IDLNode | undefined): idl.IDLEntry[] {
+        if (!node)
             return []
+        if (!TSDependenciesCollector.cache.has(node))
+            TSDependenciesCollector.cache.set(node, super.convert(node))
+        return TSDependenciesCollector.cache.get(node)!
+    }
+    convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+        const resolved = this.library.resolveTypeReference(type)
+        if (resolved && idl.isInterface(resolved) && idl.isSyntheticEntry(resolved)) {
+            // type literal
+            return this.convert(resolved)
         }
-        return super.convertInterface(decl)
+        return super.convertTypeReference(type)
+    }
+    protected override convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
+        if (idl.isReferenceType(type)) {
+            const resolved = this.library.resolveTypeReference(type)
+            if (resolved)
+                return [
+                    resolved,
+                    ...this.convert(resolved),
+                ]
+        }
+        return this.convert(type)
     }
 }
 

@@ -22,7 +22,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from '../LanguageWriters'
-import { LanguageWriter, PeerFile } from "@idlizer/core"
+import { createLanguageWriter, LanguageWriter, PeerFile } from "@idlizer/core"
 import {
     indentedBy,
     isDefined,
@@ -49,7 +49,6 @@ import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
 import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
 import { isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
-import { createInterfaceDeclName } from './lang/CommonUtils'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { maybeTransformManagedCallback } from '@idlizer/core'
 import { isComponentDeclaration } from '../ComponentsCollector'
@@ -69,13 +68,248 @@ abstract class DefaultInterfacesVisitor implements InterfacesVisitor {
 }
 
 export class TSDeclConvertor implements DeclarationConvertor<void> {
-    private printer: CustomPrintVisitor
+    protected typeNameConvertor = createLanguageWriter(Language.TS, this.peerLibrary)
+    protected seenInterfaceNames = new Set<string>()
+
     constructor(protected readonly writer: LanguageWriter,
-                readonly peerLibrary: PeerLibrary) {
-    this.printer = new CustomPrintVisitor(type => peerLibrary.resolveTypeReference(type), writer.language)
+                readonly peerLibrary: PeerLibrary) {}
+
+    private wrapWithNamespaces(node: idl.IDLEntry, cb: () => void) {
+        if (!node.namespace) {
+            cb()
+        } else {
+            this.wrapWithNamespaces(node.namespace, () => {
+                this.writer.print(`namespace ${node.namespace!.name} {`)
+                this.writer.pushIndent()
+                cb()
+                this.writer.popIndent()
+                this.writer.print('}')
+            })
+        }
     }
-    convertCallback(node: idl.IDLCallback): void {
+    convertTypedef(node: idl.IDLTypedef) {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
+            return
+        const type = this.typeNameConvertor.getNodeName(node.type)
+        const typeParams = this.printTypeParameters(node.typeParameters)
+        this.writer.print(`export type ${node.name}${typeParams} = ${type};`)
     }
+
+    convertCallback(node: idl.IDLCallback) {
+        this.wrapWithNamespaces(node, () => {
+            this.writer.print('export ' +
+                this.printCallback(node, node.parameters, node.returnType))
+        })
+    }
+
+    convertInterface(node: idl.IDLInterface) {
+        if (this.seenInterfaceNames.has(node.name)) {
+            console.log(`interface name: '${node.name}' already exists`)
+            return;
+        }
+        this.seenInterfaceNames.add(node.name)
+        let result: string
+        if (this.isCallback(node)) {
+            result = this.printCallback(node,
+                node.callables[0].parameters,
+                node.callables[0].returnType)
+        } else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
+            result = this.printTuple(node).join("\n")
+        } else {
+            result = this.printInterface(node).join("\n")
+        }
+        this.writer.print('export ' + result)
+    }
+
+    private printIfNotSeen<T extends idl.IDLNamedNode>(
+        type: T,
+        print: (_: T) => stringOrNone[],
+        seenNames: Set<string>
+    ): stringOrNone[] | undefined {
+        if (!seenNames.has(type.name)) {
+            seenNames.add(type.name)
+            return print(type)
+        }
+        return undefined
+    }
+
+    private printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
+        idlInterface.methods.map((it: idl.IDLMethod) => {
+            let result = it.scope
+            it.scope = undefined
+            return result
+        })
+            .filter(isDefined)
+            .map(scope => {
+                idlInterface.scope ? idlInterface.scope.push(...scope) : idlInterface.scope = scope
+            })
+
+        //TODO: CommonMethod has a method onClick and a property onClick
+        const seenFields = new Set<string>()
+        return ([`interface ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
+            .concat(idlInterface.constants
+                .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
+            .concat(idlInterface.properties
+                // TODO ArkTS does not support static fields in interfaces
+                .filter(it => !it.isStatic)
+                .map(it => this.printIfNotSeen(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
+            .concat(idlInterface.methods
+                .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields) ).flat())
+            .concat(idlInterface.callables
+                .map(it => this.printIfNotSeen(it, it => this.printFunction(it), seenFields) ).flat())
+            .concat(["}"])
+    }
+
+    private printInterfaceName(idlInterface: idl.IDLInterface): string {
+        let superType = idl.getSuperType(idlInterface)
+
+        // Built-in enums cannot be used as constrained type parameters
+        const typeParameters = idlInterface.typeParameters?.map(it => {
+            const types = it.split("extends").map(it => it.trim())
+            const typeParameter = types[0]
+            const extendable = types[1]
+            if (extendable != undefined) {
+                const type = this.peerLibrary.resolveTypeReference(idl.createReferenceType(extendable))
+                if (type !== undefined && idl.isEnum(type)) {
+                    return typeParameter
+                }
+            }
+            return it
+        })
+        const parentTypeArgs = this.printTypeParameters(
+            (superType as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
+        return [idlInterface.name,
+            `${this.printTypeParameters(typeParameters)}`,
+            superType
+                ? ` extends ${idl.forceAsNamedNode(superType).name}${parentTypeArgs}`
+                : ""
+        ].join("")
+    }
+
+    private printConstant(constant: idl.IDLConstant): stringOrNone[] {
+        return [
+            ...this.printExtendedAttributes(constant),
+            indentedBy(`const ${idl.nameWithType(constant)} = ${constant.value};`, 1)
+        ]
+    }
+
+    private printProperty(prop: idl.IDLProperty, allowReadonly: boolean): stringOrNone[] {
+        const staticMod = prop.isStatic ? "static " : ""
+        // TODO stub until issue 20764 is fixed
+        const readonlyMod = prop.isReadonly && allowReadonly ? "readonly " : ""
+        return [
+            ...this.printExtendedAttributes(prop),
+            indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1)
+        ]
+    }
+
+    private printMethod(idl: idl.IDLMethod): stringOrNone[] {
+        // TODO dirty stub. We are not processing interfaces methods as a
+        // callbacks for now, so interfaces with methods can not be
+        // deserialized in ArkTS
+        return []
+        // return [
+        //     ...this.printExtendedAttributes(idl),
+        //     indentedBy(`${idl.name}${this.printTypeParameters(idl.typeParameters)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
+        // ]
+    }
+    private printFunction(idl: idl.IDLFunction): stringOrNone[] {
+        if (idl.name?.startsWith("__")) {
+            console.log(`Ignore ${idl.name}`)
+            return []
+        }
+        return [
+            ...this.printExtendedAttributes(idl),
+            indentedBy(`${idl.name}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType!)};`, 1)
+        ]
+    }
+
+    private printExtendedAttributes(idl: idl.IDLEntry): stringOrNone[] {
+        return []
+    }
+
+    private printPropNameWithType(prop: idl.IDLProperty): string {
+        const isOptional = prop.isOptional
+        const type = this.convertType(prop.type)
+        if (prop.name === "") {
+            return `${type}${isOptional ? "?" : ""}`
+        }
+        return `${prop.name}${isOptional ? "?" : ""}: ${type}`
+    }
+
+    private printParameters(parameters: idl.IDLParameter[]): string {
+        return parameters
+            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional))
+            ?.join(", ") ?? ""
+    }
+
+    private printNameWithTypeIDLParameter(
+        idl: idl.IDLVariable,
+        isVariadic: boolean = false,
+        isOptional: boolean = false): string {
+        const type = idl.type ? this.convertType(idl.type) : ""
+        const optional = isOptional ? "optional " : ""
+        return `${escapeIDLKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
+    }
+
+    private printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
+    }
+
+    private convertType(idlType: idl.IDLType): string {
+        return this.typeNameConvertor.getNodeName(idlType)
+    }
+
+    private isMemo(node: idl.IDLEntry): boolean {
+        if (idl.isCallback(node) && node.name == "CustomBuilder")
+            return true
+        return false
+    }
+
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
+                          parameters: idl.IDLParameter[],
+                          returnType: idl.IDLType | undefined): string {
+        const maybeMemo = this.isMemo(node) ? `\n/** @memo */\n` : ``
+        const paramsType = this.printParameters(parameters)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        return `type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${maybeMemo}(${paramsType}) => ${retType};`
+    }
+
+    private isCallback(node: idl.IDLInterface) {
+        return node.callables.length === 1
+        && [node.constants,
+            node.properties,
+            node.methods]
+            .reduce((sum, value) => value.length + sum, 0) === 0
+    }
+
+    private printTuple(tuple: idl.IDLInterface) {
+        const seenFields = new Set<string>()
+        return ([`type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
+            .concat(tuple.properties
+                .map((it, propIndex) => this.printIfNotSeen(it, it => {
+                    //TODO: use ETSConvertor.processTupleType
+                    let types: IDLType[] = []
+                    if (it.isOptional) {
+                        if (idl.isUnionType(it.type)) {
+                            types = it.type.types
+                        } else if (idl.isPrimitiveType(it.type)) {
+                            types = [it.type]
+                        } else {
+                            throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type)}`)
+                        }
+                    }
+                    let property = idl.createProperty("",
+                        it.isOptional ? idl.createUnionType([...types, idl.IDLUndefinedType]) : it.type,
+                        it.isReadonly,
+                        it.isStatic,
+                        false)
+                    const maybeComma = propIndex < tuple.properties.length - 1 ? ',' : ''
+                    return [indentedBy(`${this.printPropNameWithType(property)}${maybeComma}`, 1)]
+                }, seenFields) ).flat())
+            .concat(["]"])
+    }
+
     convertMethod(node: idl.IDLMethod): void {
         this.writer.writeMethodDeclaration(node.name, this.writer.makeSignature(node.returnType, node.parameters), node.isFree ? [MethodModifier.FREE] : [])
     }
@@ -85,22 +319,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     convertEnum(node: idl.IDLEnum): void {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, true))
     }
-    convertTypedef(node: idl.IDLTypedef): void {
-        this.writer.print(`export declare type ${node.name} = ${this.writer.getNodeName(node.type)};`)
-    }
-
     protected extendsClause(node: idl.IDLInterface): string {
         return ''
-    //     if (!node.heritageClauses?.length)
-    //         return ``
-    //     if (node.heritageClauses!.some(it => it.token !== ts.SyntaxKind.ExtendsKeyword))
-    //         throw "Expected to have only extend clauses"
-    //     if (this.peerLibrary.isComponentDeclaration(node))
-    //         // do not extend parent component interface to provide smooth integration
-    //         return ``
-
-    //     let parent = node.heritageClauses[0]!.types[0]
-    //     return `extends ${parent.getText()}`
     }
 
     convertNamespace(node: idl.IDLNamespace): void {
@@ -108,32 +328,20 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         node.members.forEach(it => convertDeclaration(this, it))
         this.writer.popNamespace();
     }
+}
 
-    convertInterface(node: idl.IDLInterface): void {
-        if (!isComponentDeclaration(this.peerLibrary, (node))) {
-            this.printer.output = []
-            this.printer.printInterface(node)
-            this.writer.print('export ' + this.printer.output.join("\n"))
-            return
-        }
-        let printer = new IndentedPrinter()
-        let extendsClause = this.extendsClause(node)
+class TSSyntheticGenerator extends DependenciesCollector {
+    constructor(
+        library: PeerLibrary,
+        private readonly onSyntheticDeclaration: (entry: idl.IDLEntry) => void,
+    ) {
+        super(library)
+    }
 
-        let classOrInterface = node.subkind === idl.IDLInterfaceSubkind.Class ? `class` : `interface`
-        if (isComponentDeclaration(this.peerLibrary, node))
-            // because we write `ArkBlank implements BlankAttributes`
-            classOrInterface = `interface`
-        printer.print(`export declare ${classOrInterface} ${node.name} ${extendsClause} {`)
-        printer.pushIndent()
-        node.methods
-            .forEach(it => {
-                printer.print(`/** @memo */`)
-                printer.print(`// ${it.name}`)
-            })
-        printer.popIndent()
-        printer.print(`}`)
-
-        this.writer.print(printer.getOutput().join('\n'))
+    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl) this.onSyntheticDeclaration(decl)
+        return super.convertImport(type, importClause)
     }
 }
 
@@ -142,15 +350,15 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         super()
     }
 
-    protected generateFileBasename(originalFilename: string): string {
-        return renameDtsToInterfaces(path.basename(originalFilename), this.peerLibrary.language)
+    private generateModuleBasename(moduleName: string): string {
+        return moduleName.concat(Language.TS.extension)
     }
 
-    private printImports(writer: LanguageWriter, file: PeerFile) {
+    private printImports(writer: LanguageWriter, module: string) {
         const imports = new ImportsCollector()
         // file.importFeatures.forEach(it => imports.addFeature(it.feature, it.module))
         getCommonImports(writer.language).forEach(it => imports.addFeature(it.feature, it.module))
-        imports.print(writer, removeExt(this.generateFileBasename(file.originalFilename)))
+        imports.print(writer, module)
     }
 
     protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
@@ -168,19 +376,47 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
     }
 
     printInterfaces() {
-        for (const file of this.peerLibrary.files.values()) {
-            const writer = this.peerLibrary.createLanguageWriter()
-            this.printImports(writer, file)
-            const typeConvertor = new TSDeclConvertor(writer, this.peerLibrary)
+        const moduleToEntries = new Map<string, idl.IDLEntry[]>()
+        const registerEntry = (entry: idl.IDLEntry) => {
+            const module = convertDeclToFeature(this.peerLibrary, entry).module
+            if (!moduleToEntries.has(module))
+                moduleToEntries.set(module, [])
+            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry)))
+                return
+            moduleToEntries.get(module)!.push(entry)
+        }
+        const syntheticGenerator = new TSSyntheticGenerator(this.peerLibrary, (entry) => {
+            registerEntry(entry)
+        })
+        for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isPackage(entry))
+                if (idl.isPackage(entry) ||
+                    idl.isImport(entry) ||
+                    isPredefined(entry) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
+                    idl.isHandwritten(entry) ||
+                    PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
-                if (PeerGeneratorConfig.ignoreEntry(entry.name, writer.language))
+                syntheticGenerator.convert(entry)
+                if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
                     continue
+                registerEntry(entry)
+            }
+        }
+        for (const [module, entries] of moduleToEntries) {
+            const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+            const imports = new ImportsCollector()
+            for (const entry of entries) {
+                collectDeclDependencies(this.peerLibrary, entry, imports)
+            }
+            this.printImports(writer, module)
+            imports.print(writer, module)
+
+            const typeConvertor = new TSDeclConvertor(writer, this.peerLibrary)
+            for (const entry of entries) {
                 convertDeclaration(typeConvertor, entry)
             }
-            this.printAssignEnumsToGlobalScope(writer, file)
-            this.interfaces.set(new TargetFile(this.generateFileBasename(file.originalFilename)), writer)
+            this.interfaces.set(new TargetFile(this.generateModuleBasename(module)), writer)
         }
     }
 }
@@ -506,244 +742,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
 }
 
 export class ArkTSDeclConvertor extends TSDeclConvertor {
-    private typeNameConvertor = this.peerLibrary.createLanguageWriter(Language.ARKTS)
-    private seenInterfaceNames = new Set<string>()
-
-    private wrapWithNamespaces(node: idl.IDLEntry, cb: () => void) {
-        if (!node.namespace) {
-            cb()
-        } else {
-            this.wrapWithNamespaces(node.namespace, () => {
-                this.writer.print(`namespace ${node.namespace!.name} {`)
-                this.writer.pushIndent()
-                cb()
-                this.writer.popIndent()
-                this.writer.print('}')
-            })
-        }
-    }
-    convertTypedef(node: idl.IDLTypedef) {
-        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
-            return
-        const type = this.typeNameConvertor.getNodeName(node.type)
-        const typeParams = this.printTypeParameters(node.typeParameters)
-        this.writer.print(`export type ${node.name}${typeParams} = ${type};`)
-    }
-
-    convertCallback(node: idl.IDLCallback) {
-        this.wrapWithNamespaces(node, () => {
-            this.writer.print('export ' +
-                this.printCallback(node, node.parameters, node.returnType))
-        })
-    }
-
-    convertInterface(node: idl.IDLInterface) {
-        if (this.seenInterfaceNames.has(node.name)) {
-            console.log(`interface name: '${node.name}' already exists`)
-            return;
-        }
-        this.seenInterfaceNames.add(node.name)
-        let result: string
-        if (this.isCallback(node)) {
-            result = this.printCallback(node,
-                node.callables[0].parameters,
-                node.callables[0].returnType)
-        } else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
-            result = this.printTuple(node).join("\n")
-        } else {
-            result = this.printInterface(node).join("\n")
-        }
-        this.writer.print('export ' + result)
-    }
-
-    private printIfNotSeen<T extends idl.IDLNamedNode>(
-        type: T,
-        print: (_: T) => stringOrNone[],
-        seenNames: Set<string>
-    ): stringOrNone[] | undefined {
-        if (!seenNames.has(type.name)) {
-            seenNames.add(type.name)
-            return print(type)
-        }
-        return undefined
-    }
-
-    private printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
-        idlInterface.methods.map((it: idl.IDLMethod) => {
-            let result = it.scope
-            it.scope = undefined
-            return result
-        })
-            .filter(isDefined)
-            .map(scope => {
-                idlInterface.scope ? idlInterface.scope.push(...scope) : idlInterface.scope = scope
-            })
-
-        //TODO: CommonMethod has a method onClick and a property onClick
-        const seenFields = new Set<string>()
-        return ([`interface ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
-            .concat(idlInterface.constants
-                .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
-            .concat(idlInterface.properties
-                // TODO ArkTS does not support static fields in interfaces
-                .filter(it => !it.isStatic)
-                .map(it => this.printIfNotSeen(it, it => this.printProperty(it, isMaterialized(idlInterface, this.peerLibrary)), seenFields) ).flat())
-            .concat(idlInterface.methods
-                .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields) ).flat())
-            .concat(idlInterface.callables
-                .map(it => this.printIfNotSeen(it, it => this.printFunction(it), seenFields) ).flat())
-            .concat(["}"])
-    }
-
-    private printInterfaceName(idlInterface: idl.IDLInterface): string {
-        let superType = idl.getSuperType(idlInterface)
-
-        // Built-in enums cannot be used as constrained type parameters
-        const typeParameters = idlInterface.typeParameters?.map(it => {
-            const types = it.split("extends").map(it => it.trim())
-            const typeParameter = types[0]
-            const extendable = types[1]
-            if (extendable != undefined) {
-                const type = this.peerLibrary.resolveTypeReference(idl.createReferenceType(extendable))
-                if (type !== undefined && idl.isEnum(type)) {
-                    return typeParameter
-                }
-            }
-            return it
-        })
-        const parentTypeArgs = this.printTypeParameters(
-            (superType as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
-        return [idlInterface.name,
-            `${this.printTypeParameters(typeParameters)}`,
-            superType
-                ? ` extends ${idl.forceAsNamedNode(superType).name}${parentTypeArgs}`
-                : ""
-        ].join("")
-    }
-
-    private printConstant(constant: idl.IDLConstant): stringOrNone[] {
-        return [
-            ...this.printExtendedAttributes(constant),
-            indentedBy(`const ${idl.nameWithType(constant)} = ${constant.value};`, 1)
-        ]
-    }
-
-    private printProperty(prop: idl.IDLProperty, allowReadonly: boolean): stringOrNone[] {
-        const staticMod = prop.isStatic ? "static " : ""
-        // TODO stub until issue 20764 is fixed
-        const readonlyMod = prop.isReadonly && allowReadonly ? "readonly " : ""
-        return [
-            ...this.printExtendedAttributes(prop),
-            indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1)
-        ]
-    }
-
-    private printMethod(idl: idl.IDLMethod): stringOrNone[] {
-        // TODO dirty stub. We are not processing interfaces methods as a
-        // callbacks for now, so interfaces with methods can not be
-        // deserialized in ArkTS
-        return []
-        // return [
-        //     ...this.printExtendedAttributes(idl),
-        //     indentedBy(`${idl.name}${this.printTypeParameters(idl.typeParameters)}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType)}`, 1)
-        // ]
-    }
-    private printFunction(idl: idl.IDLFunction): stringOrNone[] {
-        if (idl.name?.startsWith("__")) {
-            console.log(`Ignore ${idl.name}`)
-            return []
-        }
-        return [
-            ...this.printExtendedAttributes(idl),
-            indentedBy(`${idl.name}(${this.printParameters(idl.parameters)}): ${this.convertType(idl.returnType!)};`, 1)
-        ]
-    }
-
-    private printExtendedAttributes(idl: idl.IDLEntry): stringOrNone[] {
-        return []
-    }
-
-    private printPropNameWithType(prop: idl.IDLProperty): string {
-        const isOptional = prop.isOptional
-        const type = this.convertType(prop.type)
-        if (prop.name === "") {
-            return `${type}${isOptional ? "?" : ""}`
-        }
-        return `${prop.name}${isOptional ? "?" : ""}: ${type}`
-    }
-
-    private printParameters(parameters: idl.IDLParameter[]): string {
-        return parameters
-            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional))
-            ?.join(", ") ?? ""
-    }
-
-    private printNameWithTypeIDLParameter(
-        idl: idl.IDLVariable,
-        isVariadic: boolean = false,
-        isOptional: boolean = false): string {
-        const type = idl.type ? this.convertType(idl.type) : ""
-        const optional = isOptional ? "optional " : ""
-        return `${escapeIDLKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
-    }
-
-    private printTypeParameters(typeParameters: string[] | undefined): string {
-        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
-    }
-
-    private convertType(idlType: idl.IDLType): string {
-        return this.typeNameConvertor.getNodeName(idlType)
-    }
-
-    private isMemo(node: idl.IDLEntry): boolean {
-        if (idl.isCallback(node) && node.name == "CustomBuilder")
-            return true
-        return false
-    }
-
-    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
-                          parameters: idl.IDLParameter[],
-                          returnType: idl.IDLType | undefined): string {
-        const maybeMemo = this.isMemo(node) ? `\n/** @memo */\n` : ``
-        const paramsType = this.printParameters(parameters)
-        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${maybeMemo}(${paramsType}) => ${retType};`
-    }
-
-    private isCallback(node: idl.IDLInterface) {
-        return node.callables.length === 1
-        && [node.constants,
-            node.properties,
-            node.methods]
-            .reduce((sum, value) => value.length + sum, 0) === 0
-    }
-
-    private printTuple(tuple: idl.IDLInterface) {
-        const seenFields = new Set<string>()
-        return ([`type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
-            .concat(tuple.properties
-                .map((it, propIndex) => this.printIfNotSeen(it, it => {
-                    //TODO: use ETSConvertor.processTupleType
-                    let types: IDLType[] = []
-                    if (it.isOptional) {
-                        if (idl.isUnionType(it.type)) {
-                            types = it.type.types
-                        } else if (idl.isPrimitiveType(it.type)) {
-                            types = [it.type]
-                        } else {
-                            throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type)}`)
-                        }
-                    }
-                    let property = idl.createProperty("",
-                        it.isOptional ? idl.createUnionType([...types, idl.IDLUndefinedType]) : it.type,
-                        it.isReadonly,
-                        it.isStatic,
-                        false)
-                    const maybeComma = propIndex < tuple.properties.length - 1 ? ',' : ''
-                    return [indentedBy(`${this.printPropNameWithType(property)}${maybeComma}`, 1)]
-                }, seenFields) ).flat())
-            .concat(["]"])
-    }
+    protected typeNameConvertor = createLanguageWriter(Language.ARKTS, this.peerLibrary)
 }
 
 class ArkTSSyntheticGenerator extends DependenciesCollector {
@@ -791,24 +790,6 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
                 this.onSyntheticDeclaration(continuation)
             }
         })
-        if (isMaterialized(decl, this.library) && !isBuilderClass(decl)) {
-            this.onSyntheticDeclaration(idl.createInterface(
-                createInterfaceDeclName(decl.name),
-                idl.IDLInterfaceSubkind.Interface,
-                [], // todo decl.inheritance
-                decl.constructors,
-                decl.constants,
-                decl.properties.filter(it => !it.isStatic),
-                decl.methods,
-                decl.callables,
-                decl.typeParameters,
-                {
-                    documentation: decl.documentation,
-                    fileName: decl.fileName,
-                    extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }],
-                }
-            ))
-        }
         return super.convertInterface(decl)
     }
 }
