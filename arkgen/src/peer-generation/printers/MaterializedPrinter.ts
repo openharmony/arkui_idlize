@@ -477,7 +477,9 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printImports(): void {
-        this.printer.print("import std.collection.*\n")
+        this.printPackage()
+        this.printer.print("import std.collection.*")
+        this.printer.print("import Interop.*\n")
     }
 
     visit(): PrinterResult {

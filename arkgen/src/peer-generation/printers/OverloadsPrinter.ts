@@ -55,7 +55,9 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             collapsedArgs,
             (maxMethod.signature as NamedMethodSignature).argsNames
         ),
-        methods[0].modifiers,
+        methods[0].modifiers?.includes(MethodModifier.PRIVATE) ?
+        methods[0].modifiers :
+        [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
         methods[0].generics,
     )
 }

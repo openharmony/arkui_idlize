@@ -20,7 +20,6 @@
 #include "callback-resource.h"
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
-#include <deque>
 #include <unordered_map>
 
 #if KOALA_USE_PANDA_VM
@@ -770,7 +769,7 @@ void deserializeAndCallCallback(OH_Int32 kind, uint8_t* thisArray, OH_Int32 this
         case 240036623/*Kind_Callback_EventType_ParseInfo_Boolean*/: return deserializeAndCallCallback_EventType_ParseInfo_Boolean(thisArray, thisLength);
         case 923368928/*Kind_Callback_String_String_Boolean*/: return deserializeAndCallCallback_String_String_Boolean(thisArray, thisLength);
     }
-    throw "Unknown callback kind";
+    printf("Unknown callback kind\n");
 }
 void deserializeAndCallCallbackSync(OH_XML_VMContext vmContext, OH_Int32 kind, uint8_t* thisArray, OH_Int32 thisLength)
 {
@@ -779,7 +778,7 @@ void deserializeAndCallCallbackSync(OH_XML_VMContext vmContext, OH_Int32 kind, u
         case 240036623/*Kind_Callback_EventType_ParseInfo_Boolean*/: return deserializeAndCallSyncCallback_EventType_ParseInfo_Boolean(vmContext, thisArray, thisLength);
         case 923368928/*Kind_Callback_String_String_Boolean*/: return deserializeAndCallSyncCallback_String_String_Boolean(vmContext, thisArray, thisLength);
     }
-    throw "Unknown callback kind";
+    printf("Unknown callback kind\n");
 }
 void callManagedCallback_Boolean_Void(OH_Int32 resourceId, OH_Boolean value)
 {

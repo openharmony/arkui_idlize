@@ -183,9 +183,6 @@ class SerializerPrinter {
         if (this.writer.language == Language.JAVA) {
             this.writer.print("import java.util.function.Supplier;")
         }
-        if (this.writer.language == Language.CJ) {
-            this.writer.print("import Interop.*")
-        }
         this.writer.writeClass(className, writer => {
             if (writer.language == Language.JAVA || writer.language == Language.CJ)
                 writer.writeFieldDeclaration('nullptr', idl.IDLPointerType, [FieldModifier.STATIC, FieldModifier.PRIVATE], false, writer.makeString('0'))
@@ -268,6 +265,8 @@ class SerializerPrinter {
 }
 
 class DeserializerPrinter {
+    private continuationValueHolders = new Set<idl.IDLType>()
+
     constructor(
         private readonly library: PeerLibrary,
         private readonly destFile: SourceFile,
@@ -370,10 +369,13 @@ class DeserializerPrinter {
             this.writer.writeStatement(
                 this.writer.makeReturn(
                     this.writer.makeMethodCall(
+                        this.writer.language == Language.CJ ?
+                        getInternalClassName(this.writer.getNodeName(target)) :
                         getInternalClassQualifiedName(target), "fromPtr", [this.writer.makeString(`ptr`)])))
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
+        this.continuationValueHolders.add(target.returnType)
         if (this.writer.language === Language.CPP)
             // callbacks in native are just CallbackResource while in managed we need to convert them to
             // target language callable
@@ -424,11 +426,15 @@ class DeserializerPrinter {
                 const returnType = target.returnType
                 const optionalReturnType = idl.createOptionalType(target.returnType)
                 continuation = [
+                    writer.language == Language.CJ ?
+                    writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(target.returnType)}Holder(None<${writer.getNodeName(target.returnType)}>)`), true, true) :
                     writer.makeAssign(continuationValueName, optionalReturnType, undefined, true, false),
                     writer.makeAssign(
                         continuationCallbackName,
                         continuationReference,
                         writer.makeLambda(new NamedMethodSignature(idl.IDLVoidType, [returnType], [`value`]), [
+                            writer.language == Language.CJ ?
+                            writer.makeAssign(`${continuationValueName}.value`, undefined, writer.makeString(`value`), false) :
                             writer.makeAssign(continuationValueName, undefined, writer.makeString(`value`), false)
                         ]),
                         true,
@@ -471,6 +477,8 @@ class DeserializerPrinter {
                 new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
                 writer.makeReturn(hasContinuation
                     ? writer.makeCast(
+                        writer.language == Language.CJ ?
+                        writer.makeString(`${continuationValueName}.value`) :
                         writer.makeString(continuationValueName),
                         target.returnType)
                     : undefined),
@@ -513,9 +521,6 @@ class DeserializerPrinter {
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))
         printSerializerImports(this.library, this.destFile, declarationPath)
-        if (this.writer.language == Language.CJ) {
-            this.writer.print("import Interop.*")
-        }
         this.writer.print("")
         this.writer.writeClass(className, writer => {
             if (ctorSignature && this.writer.language != Language.CJ) {
@@ -538,6 +543,17 @@ class DeserializerPrinter {
             }
             this.generateLengthDeserializer()
         }, superName)
+        if (this.writer.language == Language.CJ) {
+            for (let valueHolder of this.continuationValueHolders) {
+                let className = `${this.writer.getNodeName(valueHolder)}Holder`
+                this.writer.writeClass(className, (writer) => {
+                    writer.makeAssign("value", idl.maybeOptional(valueHolder, true), undefined, true, false).write(writer)
+                    writer.writeConstructorImplementation(className, new MethodSignature(idl.IDLAnyType, [idl.maybeOptional(valueHolder, true)]), () => {
+                        writer.makeAssign("this.value", idl.maybeOptional(valueHolder, true), writer.makeString('arg0'), false, false).write(writer)
+                    })
+                })
+            }
+        }
     }
 }
 

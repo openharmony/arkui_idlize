@@ -359,7 +359,7 @@ export class CJLanguageWriter extends LanguageWriter {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         name = this.escapeKeyword(name)
         let prefix = this.makeFieldModifiersList(modifiers)
-        this.printer.print(`${prefix ? prefix.concat(" ") : ""}var ${name}: ${this.getNodeName(type)}${init}`)
+        this.printer.print(`${prefix ? prefix.concat(" ") : ""}var ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
@@ -433,6 +433,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     writeNativeMethodDeclaration(name: string, signature: NamedMethodSignature): void {
         let signture = `${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.typeForeignConvertor.convert(it)}`).join(", ")}`
+        name = name.startsWith('_') ? name.slice(1) : name
         this.print(`func ${name}(${signture}): ${this.typeForeignConvertor.convert(signature.returnType)}`)
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {

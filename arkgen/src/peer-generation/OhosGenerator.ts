@@ -51,6 +51,7 @@ import {
     BaseGeneratorConfiguration,
     capitalize,
     CppInteropConvertor,
+    FunctionCallExpression,
     generateCallbackAPIArguments,
     generatorConfiguration,
     generatorTypePrefix,
@@ -92,6 +93,8 @@ import {
 import { MaterializedClass, MaterializedMethod } from '@idlizer/core'
 import { writePeerMethod } from './printers/PeersPrinter'
 import { TargetFile } from "@idlizer/libohos"
+import { printInterfaces } from './printers/InterfacePrinter'
+import { DefaultConfig } from '../main'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -298,6 +301,74 @@ class ManyFilesDependecyCollector implements DependecyCollector{
     }
 }
 
+function writeCJMethod(writer: LanguageWriter, method: {name: string, method: NamedMethodSignature}) {
+    let arrayLikeTypes = new Set(['Uint8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer'])
+    let stringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
+
+    writer.writeMethodImplementation(new Method((method.name.startsWith('_') ? '' : '_').concat(method.name), method.method, [MethodModifier.STATIC]), () => {
+        let parameters = method.method
+        let functionCallArgs: Array<string> = []
+        writer.print('unsafe {')
+        writer.pushIndent()
+        let ordinal = 0
+        for(let param of parameters.args) {
+            if (idl.isContainerType(param) || arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                functionCallArgs.push(`handle_${ordinal}.pointer`)
+                writer.print(`let handle_${ordinal} = acquireArrayRawData(${parameters.argsNames[ordinal]}.toArray())`)
+            } else if (stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                writer.print(`let ${parameters.argsNames[ordinal]} =  LibC.mallocCString(${parameters.argsNames[ordinal]})`)
+                functionCallArgs.push(parameters.argsNames[ordinal])
+            } else {
+                functionCallArgs.push(parameters.argsNames[ordinal])
+            }
+            ordinal += 1
+        }
+        const resultVarName = 'result'
+        let shouldReturn = false
+        let returnType = method.method.returnType 
+        let nativeName = method.name 
+        if (returnType === idl.IDLVoidType) {
+            writer.print(`${new FunctionCallExpression(nativeName.startsWith('_') ? nativeName.substring(1) : nativeName, functionCallArgs.map(it => writer.makeString(it))).asString()}`)
+        } else if (returnType === idl.IDLStringType) {
+            let expr = new FunctionCallExpression(nativeName.startsWith('_') ? nativeName.substring(1) : nativeName, functionCallArgs.map(it => writer.makeString(it)))
+            let final_expr = writer.makeMethodCall(expr.asString(), 'toString', [])
+            writer.writeStatement(
+                writer.makeAssign(
+                    resultVarName,
+                    undefined,
+                    final_expr,
+                    true
+                )
+            )
+            shouldReturn = true
+        } else {
+            writer.writeStatement(
+                writer.makeAssign(
+                    resultVarName,
+                    undefined,
+                    new FunctionCallExpression(nativeName.startsWith('_') ? nativeName.substring(1) : nativeName, functionCallArgs.map(it => writer.makeString(it))),
+                    true
+                )
+            )
+            shouldReturn = true
+        }
+        for(let param of parameters.args) {
+            let ordinal = parameters.args.indexOf(param)
+            if (idl.isContainerType(param) || arrayLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                writer.print(`releaseArrayRawData(handle_${ordinal})`)
+            } else if (stringLikeTypes.has(idl.forceAsNamedNode(param).name)) {
+                writer.print(`LibC.free(${parameters.argsNames[ordinal]})`)
+            }
+        }
+
+        if (shouldReturn) {
+            writer.writeStatement(writer.makeReturn(writer.makeString(resultVarName)))
+        }
+        writer.popIndent()
+        writer.print('}')
+    })    
+}
+
 abstract class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
@@ -309,6 +380,7 @@ abstract class OHOSVisitor {
     nativeWriter: LanguageWriter
     nativeFunctionsWriter: LanguageWriter
     arkUIFunctionsWriter: LanguageWriter
+    nativeFunctionsWriterCJ: LanguageWriter
 
     libraryName: string = ""
 
@@ -317,6 +389,7 @@ abstract class OHOSVisitor {
     enums = new Array<IDLEnum>()
     callbacks = new Array<IDLCallback>()
     callbackInterfaces = new Array<IDLInterface>()
+    cjInterfaces = new Map<TargetFile, string>()
 
     constructor(protected library: PeerLibrary, libraryName: string, dependencyCollector: DependecyCollector) {
         if (this.library.files.length == 0)
@@ -329,6 +402,7 @@ abstract class OHOSVisitor {
         this.nativeWriter = library.createLanguageWriter()
         this.nativeFunctionsWriter = library.createLanguageWriter()
         this.arkUIFunctionsWriter = library.createLanguageWriter()
+        this.nativeFunctionsWriterCJ = library.createLanguageWriter()
 
         const fileNamePrefix = this.libraryName.toLowerCase()
         this.implementationStubsFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
@@ -542,6 +616,18 @@ abstract class OHOSVisitor {
     private printManaged() {
         this.printNative()
         this.printPeers()
+        if (this.library.language == Language.CJ) {
+            this.printCJNative()
+            this.printInterfaces()
+        }
+    }
+
+    private printInterfaces() {
+        this.cjInterfaces = printInterfaces(this.library, {
+            language: this.library.language,
+            synthesizedTypes: undefined,
+            imports: undefined
+        })
     }
 
     private printNative() {
@@ -617,6 +703,43 @@ abstract class OHOSVisitor {
         })(this.arkUIFunctionsWriter)
     }
 
+    private printCJNative() {
+        this.nativeFunctionsWriterCJ.printer.pushIndent(this.nativeWriter.indentDepth() + 1)
+        ;((writer: LanguageWriter) => {
+            this.interfaces.forEach(it => {
+                // TODO TBD do we need to provide declaration for "fake" constructor for interfaces?
+                const ctors = it.constructors.map(it => ({ parameters: it.parameters, returnType: it.returnType }))
+                if (ctors.length === 0)
+                    ctors.push({parameters: [], returnType: undefined})
+                ctors.forEach(ctor => {
+                    const signature = makePeerCallSignature(this.library, ctor.parameters, IDLPointerType)
+                    writeCJMethod(writer, { name:`${it.name}_ctor`, method: signature })
+                })
+
+                const getFinalizerSig = makePeerCallSignature(this.library, [], IDLPointerType)
+                writeCJMethod(writer, { name: `${it.name}_getFinalizer`, method: getFinalizerSig })
+
+                const methodsWithPostfix = generatePostfixForOverloads(it.methods)
+
+                methodsWithPostfix.forEach(({ method, overloadPostfix }) => {
+                    const signature = makePeerCallSignature(this.library, method.parameters, method.returnType, method.isStatic ? undefined : "self")
+                    const name = `_${it.name}_${method.name}${overloadPostfix}`
+                    writeCJMethod(writer, { name: name, method: signature})  // TODO temporarily removed _${this.libraryName} prefix
+                })
+
+                this.getPropertiesFromInterfaces(it).concat(it.properties).forEach(property => {
+                    const getterSignature = makePeerCallSignature(this.library, [], property.type, "self")
+                    const getterName = `_${it.name}_get${capitalize(property.name)}`
+                    writeCJMethod(writer, { name: getterName, method: getterSignature})
+
+                    const setterSignature = makePeerCallSignature(this.library, [idl.createParameter("value", property.type)], idl.IDLVoidType, "self")
+                    const setterName = `_${it.name}_set${capitalize(property.name)}`
+                    writeCJMethod(writer, { name: setterName, method: setterSignature})
+                })
+            })
+        })(this.nativeFunctionsWriterCJ)
+    }
+
     private printStructsDeclarations(data: idl.IDLInterface[]) {
         data.forEach(clazz => {
             const namespaces = idl.getNamespacesPathFor(clazz);
@@ -677,7 +800,7 @@ abstract class OHOSVisitor {
                 }
                 // TODO Make peer private again
                 writer.writeFieldDeclaration('peer', createReferenceType("Finalizable"), [/* FieldModifier.PRIVATE */], false, peerInitExpr)
-                const peerPtr = "this.peer!.ptr"
+                const peerPtr = writer.language == Language.CJ ? "this.peer.ptr" : "this.peer!.ptr"
                 const fields = this.getPropertiesFromInterfaces(int).concat(int.properties.concat())
                 fields.forEach(f => {
                     const typeName = idl.isNamedNode(f.type) ? f.type.name : "UnknownType"
@@ -791,7 +914,7 @@ abstract class OHOSVisitor {
                         writer.writeStatement(writer.makeAssign(objVar, clazzRefType, writer.makeNewObject(int.name), true))
                         writer.writeStatement(
                             writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
-                                writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
+                                writer.makeNewObject('Finalizable', [writer.makeString(`${int.name}.getFinalizer()`)]), false)
                         )
                         writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
                     })
@@ -847,12 +970,12 @@ abstract class OHOSVisitor {
                         { language: this.library.language, imports: undefined, synthesizedTypes: undefined  },
                         false,
                         '_serialize',
-                        'this.peer!.ptr',
+                        writer.language == Language.CJ ? "this.peer.ptr" : "this.peer!.ptr",
                         method.returnType
                     )
                     })
 
-            }, superType?.name, isGlobalScope ? undefined : [`${int.name}Interface`])
+            }, superType?.name, isGlobalScope ? this.library.language != Language.CJ ? [`${int.name}Interface`] : undefined : undefined)
 
             // TODO Migrate to MaterializedPrinter
             if (int.constructors.length === 0) {
@@ -872,7 +995,7 @@ abstract class OHOSVisitor {
                             )
                             writer.writeStatement(
                                 writer.makeAssign(`${objVar}.peer`, createReferenceType("Finalizable"),
-                                    writer.makeString(`new Finalizable(ptr, ${int.name}.getFinalizer())`), false),
+                                    writer.makeNewObject('Finalizable', [writer.makeString('ptr'), writer.makeString(`${int.name}.getFinalizer()`)]), false),
                             )
                             writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
                         })
@@ -902,8 +1025,10 @@ abstract class OHOSVisitor {
             }
         }
 
-        this.printStructsDeclarations(this.data)
-        this.printInterfacesDeclarations([...this.interfaces, ...this.data])
+        if (this.library.language != Language.CJ) {
+            this.printStructsDeclarations(this.data)
+            this.printInterfacesDeclarations([...this.interfaces, ...this.data])
+        }
 
         this.enums.forEach(e => {
             const writer = this.getPeerWriter(e)
@@ -1026,7 +1151,7 @@ abstract class OHOSVisitor {
 
     execute(rootPath: string, outDir: string, managedOutDir: string) {
         const origGenConfig = generatorConfiguration()
-        setDefaultConfiguration(new BaseGeneratorConfiguration({
+        setDefaultConfiguration(new DefaultConfig({
             TypePrefix: "OH_",
             LibraryPrefix: `${this.libraryName}_`,
             OptionalPrefix: "Opt_",
@@ -1053,6 +1178,7 @@ abstract class OHOSVisitor {
             .replaceAll('%NATIVE_MODULE_NAME%', this.libraryName)
             .replaceAll('%NATIVE_MODULE_CONTENT%', this.nativeWriter.getOutput().join('\n'))
             .replaceAll('%NATIVE_FUNCTIONS%', this.nativeFunctionsWriter.getOutput().join('\n'))
+            .replaceAll('%CJ_NATIVE_FUNCTIONS%', this.nativeFunctionsWriterCJ ? this.nativeFunctionsWriterCJ.getOutput().join('\n') : "")
             .replaceAll('%ARKUI_FUNCTIONS%', this.arkUIFunctionsWriter.getOutput().join('\n'))
         fs.writeFileSync(path.join(rootPath, managedOutDir, `${managedCodeModuleInfo.path}${ext}`), nativeModuleText, 'utf-8')
 
@@ -1076,6 +1202,9 @@ abstract class OHOSVisitor {
                 .replaceAll('%SERIALIZER_PATH%', managedCodeModuleInfo.serializerPath)
                 .replaceAll('%FINALIZABLE_PATH%', managedCodeModuleInfo.finalizablePath)
             fs.writeFileSync(path.join(rootPath, managedOutDir, `${file}${ext}`), peerText, 'utf-8')
+        }
+        for (const [file, data] of this.cjInterfaces) {
+            fs.writeFileSync(path.join(rootPath, managedOutDir, file.name), data, 'utf-8')
         }
 
         this.hWriter.printTo(path.join(rootPath, outDir, `${fileNamePrefix}.h`))

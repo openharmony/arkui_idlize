@@ -1,6 +1,13 @@
 package idlize
 
+import Interop.*
+import std.collection.*
+
 %NATIVE_MODULE_CONTENT%
+
+foreign {
+%NATIVE_FUNCTIONS%
+}
 
 public class %NATIVE_MODULE_NAME%NativeModule {
     static func callCallbackFromNative(id: KInt, args: KPointer, length: KInt): KInt {
@@ -8,16 +15,5 @@ public class %NATIVE_MODULE_NAME%NativeModule {
         return 0
     }    
 
-%NATIVE_FUNCTIONS%
+%CJ_NATIVE_FUNCTIONS%
 }
-
-let theModule: %NATIVE_MODULE_NAME%NativeModule
-
-func function get%NATIVE_MODULE_NAME%NativeModule(): %NATIVE_MODULE_NAME%NativeModule {
-    if (theModule) {
-        return theModule
-    }
-    theModule = new %NATIVE_MODULE_NAME%NativeModule()
-    return theModule
-}
-

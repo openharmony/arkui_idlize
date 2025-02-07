@@ -16,6 +16,7 @@
 package idlize
 
 import std.collection.*
+import Interop.*
 
 public open class Serializer <: SerializerBase {
     static private var nullptr: UInt64 = 0
@@ -59,43 +60,53 @@ case _ => throw Exception("Unmatched pattern Serializer.pool")
         var valueSerializer: Serializer = this
         let value_supportDoctype = value.supportDoctype
         var value_supportDoctype_type: Int32 = RuntimeType.UNDEFINED.ordinal
-        value_supportDoctype_type = Ark_Object.getRuntimeType(value_supportDoctype).ordinal
-        valueSerializer.writeInt8(Int8(value_supportDoctype_type))
         if (let Some(value_supportDoctype) <- value_supportDoctype) {
+            valueSerializer.writeInt8(RuntimeType.OBJECT.ordinal)
             let value_supportDoctype_value = value_supportDoctype
             valueSerializer.writeBoolean(value_supportDoctype_value)
         }
+        else {
+            valueSerializer.writeInt8(RuntimeType.UNDEFINED.ordinal)
+        }
         let value_ignoreNameSpace = value.ignoreNameSpace
         var value_ignoreNameSpace_type: Int32 = RuntimeType.UNDEFINED.ordinal
-        value_ignoreNameSpace_type = Ark_Object.getRuntimeType(value_ignoreNameSpace).ordinal
-        valueSerializer.writeInt8(Int8(value_ignoreNameSpace_type))
         if (let Some(value_ignoreNameSpace) <- value_ignoreNameSpace) {
+            valueSerializer.writeInt8(RuntimeType.OBJECT.ordinal)
             let value_ignoreNameSpace_value = value_ignoreNameSpace
             valueSerializer.writeBoolean(value_ignoreNameSpace_value)
         }
+        else {
+            valueSerializer.writeInt8(RuntimeType.UNDEFINED.ordinal)
+        }
         let value_tagValueCallbackFunction = value.tagValueCallbackFunction
         var value_tagValueCallbackFunction_type: Int32 = RuntimeType.UNDEFINED.ordinal
-        value_tagValueCallbackFunction_type = Ark_Object.getRuntimeType(value_tagValueCallbackFunction).ordinal
-        valueSerializer.writeInt8(Int8(value_tagValueCallbackFunction_type))
         if (let Some(value_tagValueCallbackFunction) <- value_tagValueCallbackFunction) {
+            valueSerializer.writeInt8(RuntimeType.OBJECT.ordinal)
             let value_tagValueCallbackFunction_value = value_tagValueCallbackFunction
             valueSerializer.holdAndWriteCallback(value_tagValueCallbackFunction_value)
         }
+        else {
+            valueSerializer.writeInt8(RuntimeType.UNDEFINED.ordinal)
+        }
         let value_attributeValueCallbackFunction = value.attributeValueCallbackFunction
         var value_attributeValueCallbackFunction_type: Int32 = RuntimeType.UNDEFINED.ordinal
-        value_attributeValueCallbackFunction_type = Ark_Object.getRuntimeType(value_attributeValueCallbackFunction).ordinal
-        valueSerializer.writeInt8(Int8(value_attributeValueCallbackFunction_type))
         if (let Some(value_attributeValueCallbackFunction) <- value_attributeValueCallbackFunction) {
+            valueSerializer.writeInt8(RuntimeType.OBJECT.ordinal)
             let value_attributeValueCallbackFunction_value = value_attributeValueCallbackFunction
             valueSerializer.holdAndWriteCallback(value_attributeValueCallbackFunction_value)
         }
+        else {
+            valueSerializer.writeInt8(RuntimeType.UNDEFINED.ordinal)
+        }
         let value_tokenValueCallbackFunction = value.tokenValueCallbackFunction
         var value_tokenValueCallbackFunction_type: Int32 = RuntimeType.UNDEFINED.ordinal
-        value_tokenValueCallbackFunction_type = Ark_Object.getRuntimeType(value_tokenValueCallbackFunction).ordinal
-        valueSerializer.writeInt8(Int8(value_tokenValueCallbackFunction_type))
         if (let Some(value_tokenValueCallbackFunction) <- value_tokenValueCallbackFunction) {
+            valueSerializer.writeInt8(RuntimeType.OBJECT.ordinal)
             let value_tokenValueCallbackFunction_value = value_tokenValueCallbackFunction
             valueSerializer.holdAndWriteCallback(value_tokenValueCallbackFunction_value)
+        }
+        else {
+            valueSerializer.writeInt8(RuntimeType.UNDEFINED.ordinal)
         }
     }
     func writeParseInfo(value: ParseInfo): Unit {
@@ -122,17 +133,45 @@ public open class Deserializer <: DeserializerBase {
     Deserializer(data: Array<UInt8>, length: Int64) {
         super(data, length)
     }
+    func readXML_Callback_EventType_ParseInfo_Boolean(): ((eventType: EventType, value: ParseInfo) -> Bool) {
+        this.readXML_Callback_EventType_ParseInfo_Boolean(false)
+    }
     func readXML_Callback_EventType_ParseInfo_Boolean(isSync: Bool): ((eventType: EventType, value: ParseInfo) -> Bool) {
         let _resource: CallbackResource = this.readCallbackResource()
         let _call: UInt64 = this.readPointer()
         let _callSync: UInt64 = this.readPointer()
-        return {eventType: EventType, value: ParseInfo => let _argsSerializer: Serializer = Serializer.hold(); _argsSerializer.writeInt32(_resource.resourceId);; _argsSerializer.writePointer(_call);; _argsSerializer.writePointer(_callSync);; _argsSerializer.writeInt32(eventType.value); _argsSerializer.writeParseInfo(value);; var _continuationValue: Option<Bool>; let _continuationCallback: ((value: Bool) -> Unit) = {value: Bool => _continuationValue = value; }; _argsSerializer.holdAndWriteCallback(_continuationCallback); if (isSync) { InteropNativeModule._CallCallbackSync(240036623, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(240036623, _argsSerializer.asArray(), _argsSerializer.length()) };; _argsSerializer.release();; return match (_continuationValue as Bool) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}; }
+        return {eventType: EventType, value: ParseInfo => let _argsSerializer: Serializer = Serializer.hold();
+_argsSerializer.writeInt32(_resource.resourceId);
+_argsSerializer.writePointer(_call);
+_argsSerializer.writePointer(_callSync);
+_argsSerializer.writeInt32(eventType.value);
+_argsSerializer.writeParseInfo(value);
+let _continuationValue = BoolHolder(None<Bool>);
+let _continuationCallback: ((value: Bool) -> Unit) = {value: Bool => _continuationValue.value = value; }
+_argsSerializer.holdAndWriteCallback(_continuationCallback);
+if (isSync) { InteropNativeModule._CallCallbackSync(240036623, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(240036623, _argsSerializer.asArray(), _argsSerializer.length()) };
+_argsSerializer.release();
+return match (_continuationValue.value as Bool) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")} }
+    }
+    func readXML_Callback_String_String_Boolean(): ((name: String, value: String) -> Bool) {
+        this.readXML_Callback_String_String_Boolean(false)
     }
     func readXML_Callback_String_String_Boolean(isSync: Bool): ((name: String, value: String) -> Bool) {
         let _resource: CallbackResource = this.readCallbackResource()
         let _call: UInt64 = this.readPointer()
         let _callSync: UInt64 = this.readPointer()
-        return {name: String, value: String => let _argsSerializer: Serializer = Serializer.hold(); _argsSerializer.writeInt32(_resource.resourceId);; _argsSerializer.writePointer(_call);; _argsSerializer.writePointer(_callSync);; _argsSerializer.writeString(name); _argsSerializer.writeString(value); var _continuationValue: Option<Bool>; let _continuationCallback: ((value: Bool) -> Unit) = {value: Bool => _continuationValue = value; }; _argsSerializer.holdAndWriteCallback(_continuationCallback); if (isSync) { InteropNativeModule._CallCallbackSync(923368928, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(923368928, _argsSerializer.asArray(), _argsSerializer.length()) };; _argsSerializer.release();; return match (_continuationValue as Bool) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}; }
+        return {name: String, value: String => let _argsSerializer: Serializer = Serializer.hold();
+_argsSerializer.writeInt32(_resource.resourceId);
+_argsSerializer.writePointer(_call);
+_argsSerializer.writePointer(_callSync);
+_argsSerializer.writeString(name);
+_argsSerializer.writeString(value);
+let _continuationValue = BoolHolder(None<Bool>);
+let _continuationCallback: ((value: Bool) -> Unit) = {value: Bool => _continuationValue.value = value; }
+_argsSerializer.holdAndWriteCallback(_continuationCallback);
+if (isSync) { InteropNativeModule._CallCallbackSync(923368928, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(923368928, _argsSerializer.asArray(), _argsSerializer.length()) };
+_argsSerializer.release();
+return match (_continuationValue.value as Bool) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")} }
     }
     func readParseOptions(): ParseOptions {
         var valueDeserializer: Deserializer = this
@@ -174,11 +213,21 @@ public open class Deserializer <: DeserializerBase {
         var value: ParseOptions = ParseOptions(supportDoctype_result, ignoreNameSpace_result, tagValueCallbackFunction_result, attributeValueCallbackFunction_result, tokenValueCallbackFunction_result)
         return value
     }
+    func readXML_Callback_Boolean_Void(): ((value: Bool) -> Unit) {
+        this.readXML_Callback_Boolean_Void(false)
+    }
     func readXML_Callback_Boolean_Void(isSync: Bool): ((value: Bool) -> Unit) {
         let _resource: CallbackResource = this.readCallbackResource()
         let _call: UInt64 = this.readPointer()
         let _callSync: UInt64 = this.readPointer()
-        return {value: Bool => let _argsSerializer: Serializer = Serializer.hold(); _argsSerializer.writeInt32(_resource.resourceId);; _argsSerializer.writePointer(_call);; _argsSerializer.writePointer(_callSync);; _argsSerializer.writeBoolean(value); if (isSync) { InteropNativeModule._CallCallbackSync(313269291, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(313269291, _argsSerializer.asArray(), _argsSerializer.length()) };; _argsSerializer.release();; return; }
+        return {value: Bool => let _argsSerializer: Serializer = Serializer.hold();
+_argsSerializer.writeInt32(_resource.resourceId);
+_argsSerializer.writePointer(_call);
+_argsSerializer.writePointer(_callSync);
+_argsSerializer.writeBoolean(value);
+if (isSync) { InteropNativeModule._CallCallbackSync(313269291, _argsSerializer.asArray(), _argsSerializer.length()) } else { InteropNativeModule._CallCallback(313269291, _argsSerializer.asArray(), _argsSerializer.length()) };
+_argsSerializer.release();
+return; }
     }
     func readParseInfo(): ParseInfo {
         var valueDeserializer: Deserializer = this
@@ -186,13 +235,26 @@ public open class Deserializer <: DeserializerBase {
         return ParseInfoInternal.fromPtr(ptr)
     }
 }
-public func deserializeAndCallCallback_Boolean_Void(thisDeserializer: Deserializer) {
+public open class BoolHolder {
+    var value: Option<Bool> 
+    BoolHolder(arg0: Option<Bool>) {
+        this.value = arg0
+    }
+}
+public open class UnitHolder {
+    var value: Option<Unit> 
+    UnitHolder(arg0: Option<Unit>) {
+        this.value = arg0
+    }
+}
+public func deserializeAndCallCallback_Boolean_Void(thisDeserializer: Deserializer): Unit {
     let _resourceId: Int32 = thisDeserializer.readInt32()
     let _call = match (ResourceHolder.instance().get(_resourceId) as ((value: Bool) -> Unit)) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}
     var value: Bool = thisDeserializer.readBoolean()
     _call(value);
 }
-public func deserializeAndCallCallback_EventType_ParseInfo_Boolean(thisDeserializer: Deserializer) {
+public type Callback_Boolean_Void = (value: Bool) -> Unit
+public func deserializeAndCallCallback_EventType_ParseInfo_Boolean(thisDeserializer: Deserializer): Unit {
     let _resourceId: Int32 = thisDeserializer.readInt32()
     let _call = match (ResourceHolder.instance().get(_resourceId) as ((eventType: EventType, value: ParseInfo) -> Bool)) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}
     var eventType: EventType = match (thisDeserializer.readInt32() as EventType) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}
@@ -201,7 +263,8 @@ public func deserializeAndCallCallback_EventType_ParseInfo_Boolean(thisDeseriali
     let _callResult = _call(eventType, value)
     _continuation(_callResult);
 }
-public func deserializeAndCallCallback_String_String_Boolean(thisDeserializer: Deserializer) {
+public type Callback_EventType_ParseInfo_Boolean = (eventType: EventType, value: ParseInfo) -> Bool
+public func deserializeAndCallCallback_String_String_Boolean(thisDeserializer: Deserializer): Unit {
     let _resourceId: Int32 = thisDeserializer.readInt32()
     let _call = match (ResourceHolder.instance().get(_resourceId) as ((name: String, value: String) -> Bool)) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}
     var name: String = match (thisDeserializer.readString() as String) { case Some(x) => x; case None => throw Exception("Cast is not succeeded")}
@@ -210,7 +273,8 @@ public func deserializeAndCallCallback_String_String_Boolean(thisDeserializer: D
     let _callResult = _call(name, value)
     _continuation(_callResult);
 }
-public func deserializeAndCallCallback(thisDeserializer: Deserializer) {
+public type Callback_String_String_Boolean = (name: String, value: String) -> Bool
+public func deserializeAndCallCallback(thisDeserializer: Deserializer): Unit {
     let kind: Int32 = thisDeserializer.readInt32()
     match (kind) {
         case 313269291/*CallbackKind.Kind_Callback_Boolean_Void*/ => return deserializeAndCallCallback_Boolean_Void(thisDeserializer);

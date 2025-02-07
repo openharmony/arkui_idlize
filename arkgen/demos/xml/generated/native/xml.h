@@ -12,10 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+#ifndef OH_XML_H
+#define OH_XML_H
+
 #ifndef _INTEROP_TYPES_H_
 #define _INTEROP_TYPES_H_
 
 #include <stdint.h>
+
+#define INTEROP_FATAL(msg, ...) fprintf(stderr, msg "\n", ##__VA_ARGS__); abort();
 
 typedef enum InteropTag
 {
@@ -140,9 +146,6 @@ typedef struct InteropBuffer {
 
 #endif // _INTEROP_TYPES_H_
 
-
-#ifndef OH_XML_H
-#define OH_XML_H
 
 #define XML_API_VERSION 1
 

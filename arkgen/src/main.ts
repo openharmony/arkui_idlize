@@ -118,7 +118,7 @@ if (process.env.npm_package_version) {
 
 let didJob = false
 
-class DefaultConfig extends BaseGeneratorConfiguration {
+export class DefaultConfig extends BaseGeneratorConfiguration {
     constructor(params: Record<string, any> = {}) {
         super({
             TypePrefix: PeerGeneratorConfig.typePrefix,

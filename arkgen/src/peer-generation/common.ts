@@ -149,7 +149,7 @@ class JavaLayout extends CommonLayoutBase {
 
 class CJLayout extends CommonLayoutBase {
     private getPath(file:string):string {
-        return path.join(ARKOALA_PACKAGE_PATH, file)
+        return path.join('.', file)
     }
     resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
         switch (role) {

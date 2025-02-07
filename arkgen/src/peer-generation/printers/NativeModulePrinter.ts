@@ -163,7 +163,7 @@ class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisi
 }
 
 const cjArrayLikeTypes = new Set([
-    'Uint8Array', 'Int8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer', 'ArrayList<UInt8>', 'ArrayList<Int8>'])
+    'Uint8Array', 'Int8Array', 'KUint8ArrayPtr', 'KInt32ArrayPtr', 'KFloat32ArrayPtr', 'ArrayBuffer', 'Array<UInt8>', 'ArrayList<UInt8>', 'ArrayList<Int8>'])
 const cjStringLikeTypes = new Set(['String', 'KString', 'KStringPtr', 'string'])
 const cjMethodsIgnoreList = new Set(['_RawReturnData'])
 
@@ -182,6 +182,8 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
             let param = signature.args[ordinal]
             if (idl.isContainerType(param) || cjArrayLikeTypes.has(nativeModule.getNodeName(param))) {
                 functionCallArgs.push(`handle_${ordinal}.pointer`)
+                nativeModule.getNodeName(param) == 'Array<UInt8>' ?
+                printer.print(`let handle_${ordinal} = acquireArrayRawData(${signature.argsNames[ordinal]})`) :
                 printer.print(`let handle_${ordinal} = acquireArrayRawData(${signature.argsNames[ordinal]}.toArray())`)
             } else if (cjStringLikeTypes.has(nativeModule.getNodeName(param))) {
                 printer.print(`let ${signature.argsNames[ordinal]} =  LibC.mallocCString(${signature.argsNames[ordinal]})`)
