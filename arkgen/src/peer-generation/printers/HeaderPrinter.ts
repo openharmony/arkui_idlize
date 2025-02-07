@@ -79,7 +79,7 @@ class HeaderVisitor {
             this.api.pushIndent()
             const mDestroyPeer = createDestroyPeerMethod(clazz)
             const methods = [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods)
-            methods.forEach(method => this.printMethod(method))
+            methods.forEach(method => { if (method) this.printMethod(method) })
             this.api.popIndent()
             this.api.print(`} ${accessorName};\n`)
         }

@@ -390,8 +390,8 @@ export class IdlPeerProcessor {
         }
 
         const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
-        const mConstructor = this.makeMaterializedMethod(decl, constructor, implemenationParentName)
-        const mFinalizer = new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
+        const mConstructor = isGlobalScope ? undefined : this.makeMaterializedMethod(decl, constructor, implemenationParentName)
+        const mFinalizer = isGlobalScope ? undefined : new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = propertiesFromInterface.concat(decl.properties)
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them

@@ -472,28 +472,30 @@ abstract class OHOSVisitor {
         _c.print(`const static ${name} instance = {`)
         _c.pushIndent()
         _h.pushIndent()
-        let ctors = [...clazz.constructors]
-        if (ctors.length == 0) {
-            ctors.push(createConstructor([], undefined)) // Add empty fake constructor
-        }
-        ctors.forEach((ctor, index) => {
-            let name = `construct${(index > 0) ? index.toString() : ""}`
-            let params = ctor.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!)))
-            let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
-            let cppArgs = generateCParameters(ctor, argConvertors, _h)
-            _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
-            let implName = `${clazz.name}_${name}Impl`
-            _c.print(`&${implName},`)
-            this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs})
-        })
-        {
-            let destructName = `${clazz.name}_destructImpl`
-            let params = [new NameType("thiz", handleType)]
-            _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
-            _c.print(`&${destructName},`)
-            this.impls.set(destructName, { params, returnType: 'void'})
-        }
         let isGlobalScope = hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)
+        if (!isGlobalScope) {
+            let ctors = [...clazz.constructors]
+            if (ctors.length == 0) {
+                ctors.push(createConstructor([], undefined)) // Add empty fake constructor
+            }
+            ctors.forEach((ctor, index) => {
+                let name = `construct${(index > 0) ? index.toString() : ""}`
+                let params = ctor.parameters.map(it => new NameType(_h.escapeKeyword(it.name), this.mapType(it.type!)))
+                let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
+                let cppArgs = generateCParameters(ctor, argConvertors, _h)
+                _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
+                let implName = `${clazz.name}_${name}Impl`
+                _c.print(`&${implName},`)
+                this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs})
+            })
+            {
+                let destructName = `${clazz.name}_destructImpl`
+                let params = [new NameType("thiz", handleType)]
+                _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
+                _c.print(`&${destructName},`)
+                this.impls.set(destructName, { params, returnType: 'void'})
+            }
+        }
         generatePostfixForOverloads(clazz.methods).forEach(({method, overloadPostfix}) => {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()

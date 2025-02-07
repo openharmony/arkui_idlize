@@ -167,7 +167,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 }
             })
 
-            if (needPrintInterals) {
+            if (clazz.ctor) {
                 const pointerType = IDLPointerType
                 // makePrivate(clazz.ctor.method)
                 this.library.setCurrentContext(`${clazz.className}.constructor`)
@@ -264,9 +264,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         ))
                     })
                 }
-
-                printPeerFinalizer(clazz, writer)
             }
+            if (clazz.finalizer) printPeerFinalizer(clazz, writer)
 
             for (const grouped of groupOverloads(clazz.methods)) {
                 this.overloadsPrinter.printGroupedComponentOverloads(clazz, grouped)
@@ -421,7 +420,7 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
         writer.writeStatement(writer.makeAssign(objVar,
             clazzRefType,
             //TODO: Need to pass IDLType instead of string to makeNewObject
-            writer.makeNewObject(writer.getNodeName(clazzRefType), writer.language == Language.JAVA ? [] : clazz.ctor.method.signature.args.map(it => writer.makeNull(writer.getNodeName(it)))),
+            writer.makeNewObject(writer.getNodeName(clazzRefType), writer.language == Language.JAVA ? [] : clazz.ctor!.method.signature.args.map(it => writer.makeNull(writer.getNodeName(it)))),
             true)
         )
         writer.writeStatement(

@@ -272,7 +272,8 @@ class BridgeCcVisitor {
 
     protected printMaterializedClass(clazz: MaterializedClass) {
         for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
-            this.printMethod(method);
+            if (!method) continue
+            this.printMethod(method)
         }
     }
 }
@@ -333,6 +334,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         const isGlobal = isGlobalScope(clazz.decl);
         const modifierName = isGlobal ? capitalize(this.library.name) : "";
         for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
+            if (!method) continue
             if (isGlobal) {
                 this.printMethod(method, modifierName);
             } else {
