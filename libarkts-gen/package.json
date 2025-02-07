@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/libarkts-gen",
-  "version": "3.0.4",
+  "version": "3.0.9",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.0.20",
+    "@idlizer/core": "2.0.20+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
@@ -39,6 +39,7 @@
     "external:test": "npm run --prefix ../external/arkoala-arkts/libarkts run",
     "integrate:subset": "npm run compile && npm run external:subset && npm run external:test",
     "external:real": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges,nativeModule",
-    "integrate:real": "npm run compile && npm run external:real && npm run external:test"
+    "integrate:real": "npm run compile && npm run external:real && npm run external:test",
+    "publish": "npm publish --tag next"
   }
 }

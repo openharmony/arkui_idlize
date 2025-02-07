@@ -27,7 +27,7 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "../../Config"
-import { IDLFile } from "../../idl-utils"
+import { IDLFile, isAbstract, nodeType, parent } from "../../idl-utils"
 import { PeersConstructions } from "./PeersConstructions"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
 
@@ -45,34 +45,17 @@ export class PeerPrinter {
         { convert: (node: IDLType) => convertType(this.convertor, node) }
     )
 
-    print(): string | undefined {
+    print(): string {
         this.write()
-        if (this.writer.getOutput().length === 0) {
-            return undefined
-        }
         return this.writer.getOutput().join(`\n`)
     }
 
     private write(): void {
-        if (this.parent() === undefined) {
+        if (parent(this.node) === undefined) {
             return
         }
         this.printPeer()
         this.printTypeGuard()
-    }
-
-    private nodeType(): string | undefined {
-        return this.node.extendedAttributes
-            ?.find(it => it.name === Config.nodeTypeAttribute)
-            ?.value
-    }
-
-    private parent(): string | undefined {
-        return this.node.inheritance[0]?.name
-    }
-
-    private isAbstract(): boolean {
-        return this.nodeType() === undefined
     }
 
     private printPeer(): void {
@@ -83,7 +66,7 @@ export class PeerPrinter {
             undefined,
             undefined,
             undefined,
-            this.isAbstract()
+            isAbstract(this.node)
         )
     }
 
@@ -110,22 +93,28 @@ export class PeerPrinter {
     }
 
     private printConstructorBody(): void {
-        if (!this.isAbstract()) {
+        if (!isAbstract(this.node)) {
             this.writer.writeExpressionStatement(
                 this.writer.makeFunctionCall(
                     PeersConstructions.validatePeer,
                     [
                         this.writer.makeString(PeersConstructions.peer),
-                        this.writer.makeString(this.nodeType() ?? throwException(`somehow abstract node`))
+                        this.writer.makeString(nodeType(this.node) ?? throwException(`somehow abstract node`))
                     ]
                 )
             )
         }
-        this.writer.writeExpressionStatement(
+        this.writer.writeExpressionStatements(
             this.writer.makeFunctionCall(
                 PeersConstructions.super,
                 [
                     this.writer.makeString(PeersConstructions.peer)
+                ]
+            ),
+            this.writer.makeFunctionCall(
+                `console.warn`,
+                [
+                    this.writer.makeString(`"Warning: stub node ${this.node.name}"`)
                 ]
             )
         )

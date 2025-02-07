@@ -13,24 +13,23 @@
  * limitations under the License.
  */
 
-import { MultiFilePrinter, Result } from "../MultiFilePrinter"
 import { IDLInterface, isInterface } from "@idlizer/core"
-import { PeersConstructions } from "./PeersConstructions"
-import { Config } from "../../Config"
-import { PeerPrinter } from "./PeerPrinter"
+import { SingleFilePrinter } from "../SingleFilePrinter"
+import { createDefaultTypescriptWriter } from "../../idl-utils"
 
-export class AllPeersPrinter extends MultiFilePrinter {
-    print(): Result[] {
-        return this.idl.entries
+export class IndexPrinter extends SingleFilePrinter {
+    protected writer = createDefaultTypescriptWriter()
+
+    visit(): void {
+        this.idl.entries
             .filter(isInterface)
             .filter(it => this.typechecker.isPeer(it))
-            .map(it => this.printInterface(it))
+            .forEach(it => this.printInterface(it))
     }
 
-    private printInterface(node: IDLInterface): Result {
-        return {
-            fileName: PeersConstructions.fileName(node.name),
-            output: new PeerPrinter(this.idl, node).print()
-        }
+    private printInterface(node: IDLInterface): void {
+        this.writer.writeExpressionStatement(
+            this.writer.makeString(`export * from "./peers/${node.name}"`),
+        )
     }
 }

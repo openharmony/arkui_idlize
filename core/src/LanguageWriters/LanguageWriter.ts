@@ -524,7 +524,7 @@ export abstract class LanguageWriter {
     writeExpressionStatement(smth: LanguageExpression) {
         this.writeStatement(new ExpressionStatement(smth))
     }
-    writeExpressionStatements(statements: LanguageExpression[]): void {
+    writeExpressionStatements(...statements: LanguageExpression[]) {
         statements.forEach(it => this.writeExpressionStatement(it))
     }
     writeStaticBlock(op: (writer: this) => void) {

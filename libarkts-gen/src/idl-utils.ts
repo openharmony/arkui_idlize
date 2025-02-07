@@ -14,6 +14,7 @@
  */
 
 import {
+    createEmptyReferenceResolver,
     createInterface,
     IDLContainerUtils,
     IDLEntry,
@@ -21,10 +22,14 @@ import {
     IDLMethod,
     IDLNode,
     IDLPrimitiveType,
-    IDLType, isEnum,
+    IDLType,
+    IndentedPrinter,
+    isEnum,
     isInterface,
     isPrimitiveType,
-    isReferenceType
+    isReferenceType,
+    throwException,
+    TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "./Config"
 
@@ -87,6 +92,11 @@ export class Typechecker {
         return this.isHeir(parent.name, ancestor)
     }
 
+
+    isPeer(node: IDLInterface): boolean {
+        return this.isHeir(node.name, Config.astNodeCommonAncestor) && node.name !== Config.astNodeCommonAncestor
+    }
+
     isHollow(name: string): boolean {
         const declaration = this.findRealDeclaration(name)
         if (declaration === undefined) {
@@ -112,4 +122,26 @@ export class Typechecker {
         }
         return node.name.endsWith(Config.constPostfix)
     }
+}
+
+export function nodeType(node: IDLInterface): string | undefined {
+    return node.extendedAttributes
+        ?.find(it => it.name === Config.nodeTypeAttribute)
+        ?.value
+}
+
+export function parent(node: IDLInterface): string | undefined {
+    return node.inheritance[0]?.name
+}
+
+export function isAbstract(node: IDLInterface): boolean {
+    return nodeType(node) === undefined
+}
+
+export function createDefaultTypescriptWriter() {
+    return new TSLanguageWriter(
+        new IndentedPrinter(),
+        createEmptyReferenceResolver(),
+        { convert: (node: IDLType) => throwException(`Unexpected type conversion`) }
+    )
 }

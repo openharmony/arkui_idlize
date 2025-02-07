@@ -18,7 +18,7 @@ import * as fs from "node:fs"
 import { forceWriteFile } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
 import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
-import { EnumsPrinter } from "./visitors/EnumsPrinter"
+import { EnumsPrinter } from "./visitors/enums/EnumsPrinter"
 import { IDLFile } from "./idl-utils"
 import { Config } from "./Config"
 import { InteropTransformer } from "./transformers/InteropTransformer"
@@ -27,8 +27,10 @@ import { OptionsFilterTransformer } from "./transformers/filter/OptionsFilterTra
 import { MultipleDeclarationFilterTransformer } from "./transformers/filter/MultipleDeclarationFilterTransformer"
 import { Result } from "./visitors/MultiFilePrinter"
 import { AllPeersPrinter } from "./visitors/peers/AllPeersPrinter"
+import { NodeMapPrinter } from "./visitors/peers/NodeMapPrinter"
+import { IndexPrinter } from "./visitors/peers/IndexPrinter"
 
-class FilePrinter {
+class SingleFileEmitter {
     constructor(
         public print: (idl: IDLFile) => string,
         public path: string,
@@ -37,7 +39,7 @@ class FilePrinter {
     ) {}
 }
 
-class MultiFilePrinter {
+class MultiFileEmitter {
     constructor(
         public print: (idl: IDLFile) => Result[],
         public dir: string,
@@ -53,28 +55,42 @@ export class FileEmitter {
         private config: Config,
     ) {}
 
-    private bridgesPrinter = new FilePrinter(
+    private bridgesPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BridgesPrinter(idl).print(),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
         this.config.shouldEmitFile(`bridges`),
     )
 
-    private bindingsPrinter = new FilePrinter(
+    private bindingsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BindingsPrinter(idl).print(),
         `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
         this.config.shouldEmitFile(`nativeModule`),
     )
 
-    private enumsPrinter = new FilePrinter(
+    private enumsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new EnumsPrinter(idl).print(),
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
         this.config?.shouldEmitFile(`enums`),
     )
 
-    private peersPrinter = new MultiFilePrinter(
+    private nodeMapPrinter = new SingleFileEmitter(
+        (idl: IDLFile) => new NodeMapPrinter(idl).print(),
+        `libarkts/src/generated/node-map.ts`,
+        `node-map.ts`,
+        true
+    )
+
+    private indexPrinter = new SingleFileEmitter(
+        (idl: IDLFile) => new IndexPrinter(idl).print(),
+        `libarkts/src/generated/index.ts`,
+        `index.ts`,
+        true
+    )
+
+    private peersPrinter = new MultiFileEmitter(
         (idl: IDLFile) => new AllPeersPrinter(idl).print(),
         `libarkts/src/generated/peers`,
         `peer.ts`,
@@ -90,13 +106,15 @@ export class FileEmitter {
 
         idl = new AstNodeFilterTransformer(idl).transformed()
         this.printMultiFile(this.peersPrinter, idl)
+        this.printFile(this.nodeMapPrinter, idl)
+        this.printFile(this.indexPrinter, idl)
 
         idl = new InteropTransformer(idl).transformed()
         this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }
 
-    private printFile(filePrinter: FilePrinter, idl: IDLFile): void {
+    private printFile(filePrinter: SingleFileEmitter, idl: IDLFile): void {
         if (!filePrinter.enabled) {
             return
         }
@@ -111,7 +129,7 @@ export class FileEmitter {
         )
     }
 
-    private printMultiFile(multiFilePrinter: MultiFilePrinter, idl: IDLFile): void {
+    private printMultiFile(multiFilePrinter: MultiFileEmitter, idl: IDLFile): void {
         if (!multiFilePrinter.enabled) {
             return
         }
