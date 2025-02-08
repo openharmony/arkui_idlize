@@ -13,7 +13,85 @@
  * limitations under the License.
  */
 
+import { BaseGeneratorConfiguration } from '@idlizer/core'
+import { PeerGeneratorConfig } from './peer-generation/PeerGeneratorConfig'
+
+export * from './IDLVisitor'
+export * from './IDLVisitorConfig'
 export * from "./Install"
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
+export * from './peer-generation/PeerGeneratorConfig'
+export * from './peer-generation/ComponentsCollector'
+export * from './peer-generation/ArkPrimitiveType'
+export * from './peer-generation/common'
 export * from "./peer-generation/printers/TargetFile"
+export * from './peer-generation/printers/InterfaceDataPrinter'
+export * from './peer-generation/printers/SkoalaDeserializerPrinter'
+export * from './peer-generation/printers/OverloadsPrinter'
+export * from './peer-generation/printers/MesonPrinter'
+export * from './peer-generation/printers/EventsPrinter'
+export * from './peer-generation/printers/ConvertorsPrinter'
+export * from './peer-generation/printers/PeersPrinter'
+export * from './peer-generation/printers/PrinterContext'
+export * from './peer-generation/printers/StructPrinter'
+export * from './peer-generation/printers/NativeModuleRecorderPrinter'
+export * from './peer-generation/printers/BridgeCcPrinter'
+export * from './peer-generation/printers/TypeCheckPrinter'
+export * from './peer-generation/printers/SynthesizedTypesRegistry'
+export * from './peer-generation/printers/HeaderPrinter'
+export * from './peer-generation/printers/SerializerPrinter'
+export * from './peer-generation/printers/GlobalScopePrinter'
+export * from './peer-generation/printers/CallbacksPrinter'
+export * from './peer-generation/printers/MaterializedPrinter'
+export * from './peer-generation/printers/ModifierPrinter'
+export * from './peer-generation/printers/ImportTable'
+export * from './peer-generation/printers/DeclarationPrinter'
+export * from './peer-generation/printers/ComponentsPrinter'
+export * from './peer-generation/printers/NativeModulePrinter'
+export * from './peer-generation/printers/SkoalaPrinter'
+export * from './peer-generation/printers/SourceFile'
+export * from './peer-generation/printers/BuilderClassPrinter'
+export * from './peer-generation/printers/GniPrinter'
+export * from './peer-generation/printers/InterfacePrinter'
+export * from './peer-generation/printers/lang/Java'
+export * from './peer-generation/printers/lang/CJPrinters'
+export * from './peer-generation/printers/lang/JavaPrinters'
+export * from './peer-generation/ohos'
+export * from './peer-generation/PromiseConvertors'
+export * from './peer-generation/idl/IdlDependenciesCollector'
+export * from './peer-generation/idl/IdlPeerGeneratorVisitor'
+export * from './peer-generation/idl/DependencySorter'
+export * from './peer-generation/idl/SyntheticDeclarationsFiller'
+export * from './peer-generation/LayoutManager'
+export * from './peer-generation/DeclarationTargetCollector'
+export * from './peer-generation/plugin-api'
+export * from './peer-generation/ImportsCollectorUtils'
+export { generateOhos as generateOhosOld, suggestLibraryName } from './peer-generation/OhosGenerator'
+export * from './peer-generation/NativeModule'
+export * from './peer-generation/FileGenerators'
+export * from './TestGeneratorVisitor'
+export * from './skoala-generation/utils'
+export * from './skoala-generation/WrapperClass'
+export * from './skoala-generation/printers/WrappersPrinter'
+export * from './skoala-generation/printers/InterfacePrinter'
+export { IdlSkoalaLibrary, IldSkoalaFile, IdlWrapperProcessor } from './skoala-generation/idl/idlSkoalaLibrary'
+export * from './skoala-generation/SkoalaInstall'
+export * from './skoala-generation/SkoalaGeneration'
+
+export class DefaultConfig extends BaseGeneratorConfiguration {
+    constructor(apiVersion: number, params: Record<string, any> = {}) {
+        super({
+            TypePrefix: PeerGeneratorConfig.typePrefix,
+            LibraryPrefix: "",
+            OptionalPrefix: PeerGeneratorConfig.optionalTypePrefix,
+            GenerateUnused: false,
+            DumpSerialized: false,
+            ApiVersion: apiVersion,
+            builderClasses: [], // TODO: builderClasses, knownParameterized, ignoreMaterialized should be taken from PeerGeneratorConfig
+            knownParameterized: [],
+            ignoreMaterialized: [],
+            ...params
+        })
+    }
+}

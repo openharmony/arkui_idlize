@@ -28,7 +28,6 @@ import {
     setDefaultConfiguration,
     PeerFile,
     PeerLibrary,
-    BaseGeneratorConfiguration
 } from "@idlizer/core"
 import {
     forEachChild,
@@ -40,28 +39,14 @@ import {
     transformMethodsAsync2ReturnPromise,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { IDLVisitor } from "./IDLVisitor"
-import { loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
-import { generateTracker } from "@idlizer/libohos"
-import {
-    IDLInteropPredefinesVisitor,
-    IdlPeerProcessor,
-    IDLPredefinesVisitor,
-} from "./peer-generation/idl/IdlPeerGeneratorVisitor"
-import {
-    generateOhos as generateOhosOld,
-    suggestLibraryName
-} from "./peer-generation/OhosGenerator"
-import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./peer-generation/arkoala"
-import { loadPlugin } from "./peer-generation/plugin-api"
-import { SkoalaDeserializerPrinter } from "./peer-generation/printers/SkoalaDeserializerPrinter"
-
-import { IdlSkoalaLibrary, IldSkoalaFile } from "./skoala-generation/idl/idlSkoalaLibrary"
-import { generateIdlSkoala } from "./skoala-generation/SkoalaGeneration"
-import { IdlWrapperProcessor } from "./skoala-generation/idl/idlSkoalaLibrary"
-import { fillSyntheticDeclarations } from "./peer-generation/idl/SyntheticDeclarationsFiller"
-import { generateOhos } from "./peer-generation/ohos"
-import { ArkoalaPeerLibrary } from "./arkoala/ArkoalaPeerLibrary"
+import { IDLVisitor, loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration,
+    generateTracker, IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor,
+    generateOhos, generateOhosOld, suggestLibraryName, loadPlugin,
+    SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaFile, generateIdlSkoala,
+    IdlWrapperProcessor, fillSyntheticDeclarations, DefaultConfig,
+} from "@idlizer/libohos"
+import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
+import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -118,26 +103,9 @@ if (process.env.npm_package_version) {
 
 let didJob = false
 
-export class DefaultConfig extends BaseGeneratorConfiguration {
-    constructor(params: Record<string, any> = {}) {
-        super({
-            TypePrefix: PeerGeneratorConfig.typePrefix,
-            LibraryPrefix: "",
-            OptionalPrefix: PeerGeneratorConfig.optionalTypePrefix,
-            GenerateUnused: false,
-            DumpSerialized: false,
-            ApiVersion: apiVersion,
-            builderClasses: [], // TODO: builderClasses, knownParameterized, ignoreMaterialized should be taken from PeerGeneratorConfig
-            knownParameterized: [],
-            ignoreMaterialized: [],
-            ...params
-        })
-    }
-}
-
 class ArkoalaConfiguration extends DefaultConfig {
     constructor() {
-        super({
+        super(apiVersion, {
             rootComponents: PeerGeneratorConfig.rootComponents,
             standaloneComponents: PeerGeneratorConfig.standaloneComponents,
             knownParameterized: PeerGeneratorConfig.knownParameterized,
@@ -206,7 +174,7 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    setDefaultConfiguration(new DefaultConfig())
+    setDefaultConfiguration(new DefaultConfig(apiVersion))
 
     console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
 
@@ -424,7 +392,7 @@ if (options.dts2peer) {
                 if (options.generatorTarget == "ohos") {
                     // This setup code placed here because wrong prefix may be cached during library creation
                     // TODO find better place for setup?
-                    setDefaultConfiguration(new DefaultConfig())
+                    setDefaultConfiguration(new DefaultConfig(apiVersion))
                 }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
@@ -469,12 +437,13 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         if (options.useNewOhos) {
-            generateOhos(outDir, idlLibrary, new DefaultConfig({
+            generateOhos(outDir, idlLibrary, new DefaultConfig(
+                apiVersion, {
                 LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`,
                 GenerateUnused: true
             }))
         } else {
-            generateOhosOld(outDir, idlLibrary, options.defaultIdlPackage as string, options.splitFiles)
+            generateOhosOld(outDir, idlLibrary, apiVersion, options.defaultIdlPackage as string, options.splitFiles)
         }
     }
     if (options.plugin) {
