@@ -239,11 +239,20 @@ if (options.dts2skoala) {
 }
 
 if (options.idl2peer) {
+    const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
+
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
 
     const idlLibrary = createPeerLibrary(language)
     idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
+    scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
+        new IDLPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)
