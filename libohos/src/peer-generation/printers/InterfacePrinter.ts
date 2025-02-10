@@ -79,7 +79,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             cb()
         } else {
             this.wrapWithNamespaces(node.namespace, () => {
-                this.writer.print(`namespace ${node.namespace!.name} {`)
+                this.writer.print(`export namespace ${node.namespace!.name} {`)
                 this.writer.pushIndent()
                 cb()
                 this.writer.popIndent()
