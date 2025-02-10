@@ -10,7 +10,7 @@ IDL spec
     - [union](#union)
     - [record](#record)
 - [declarations](#declarations)
-  - [enum](#enum)
+  - [enumeration (using dictionary syntax)](#enumeration-using-dictionary-syntax)
   - [constant](#constant)
   - [function](#function)
   - [callback](#callback)
@@ -62,7 +62,6 @@ Composition of primitives:
 -   number/bigint
 -   String
 -   buffer
--   date
 
 ## containers
 
@@ -114,7 +113,7 @@ void someMethod(record<String, boolean> someParameter);
 
 Declarations introduce new entities (types, values, functions) into the current scope, accessible for reference by names.
 
-## enum
+## enumeration (using dictionary syntax)
 
 Declares an enumerated type with a domain of integer or string values. Example
 
@@ -228,38 +227,17 @@ interface File {
     static u64 deviceIdMounted();
 }
 
-[Entity=Class]
 interface TxtFile : File {
     attribute String encoding;
     constructor(String name);
 }
 ```
 
-The semantic of *class* is not explicitly implemented in IDL, but can be represented at the application level through various tools, such as
-
-- presence of the constructor
-- presence of the extended attribute Entity=Class
--   ...
+The semantic of *class* is not explicitly implemented in IDL, but can be represented at the application level through various tools, such as presence of the constructor.
 
 # extended attributes
 
 Many declarations and their parts can be supplied with additional meta-information via the mechanism of extended attributes. Most of the extended attributes are technical in nature and are not intended for application use, only a few of them can be used explicitly at the application level:
-
--   TypeParameters/TypeArguments, extend the IDL syntax to support generic types and their instances. Example:
-```
-[TypeParameters="K,V"]
-interface KeyValuePair {
-    attribute K key;
-    attribute V value;
-};
-
-void foo([TypeArguments="K,V"] KeyValuePair kvp);
-```
--   Deprecated, label for deprecated entities. Example:
-```
-[Deprecated]
-typedef String AudioState;
-```
 
 -   Documentation
 ```
