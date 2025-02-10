@@ -1380,7 +1380,11 @@ function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: 
     for (let i = 0; i < argConvertors.length; ++i) {
         const typeName = writer.getNodeName(argConvertors[i].nativeType())
         const argName = writer.escapeKeyword(argConvertors[i].param)
-        args.push(`const ${typeName}* ${argName}`)
+        if (argConvertors[i].isPointerType()) {
+            args.push(`const ${typeName}* ${argName}`)
+        } else {
+            args.push(`${typeName} ${argName}`)
+        }
     }
     return args.join(", ")
 }
