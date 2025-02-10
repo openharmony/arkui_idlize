@@ -693,3 +693,9 @@ declare module 'commonAttribute'{
         export { CommonAttribute };
     }
 }
+
+declare interface TranslateOptions {
+    x?: number | string;
+    y?: number | string;
+    z?: number | string;
+}

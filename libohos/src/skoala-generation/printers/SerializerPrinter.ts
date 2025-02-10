@@ -54,7 +54,7 @@ class IdlSerializerPrinter {
 
     private printImports(writer: LanguageWriter, serializerDeclarations?: Set<idl.IDLInterface>) {
         writer.print(`import { SerializerBase, Tags, RuntimeType, runtimeType, isInstanceOf } from "@koalaui/interop"`)
-        writer.print(`import { int32 } from "@koalaui/common"`)
+        writer.print(`import { int32, float32 } from "@koalaui/common"`)
         writer.print(`import { unsafeCast } from "./generated-utils"`)
 
         // serializerDeclarations?.forEach(decl => {

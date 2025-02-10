@@ -24059,3 +24059,9 @@ declare enum HoverModeAreaType {
    */
   BOTTOM_SCREEN = 1,
 }
+
+declare interface TranslateOptions {
+  x?: number | string;
+  y?: number | string;
+  z?: number | string;
+}

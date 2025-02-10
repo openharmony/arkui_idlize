@@ -119,7 +119,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
 export function printCallbacksKindsImports(language: Language, writer: LanguageWriter) {
     if (language === Language.ARKTS) {
         const imports = new ImportsCollector()
-        imports.addFeatures(['int32'], '@koalaui/common')
+        imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.print(writer, '')
     }
     if (language === Language.CJ) {

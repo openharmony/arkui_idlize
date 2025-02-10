@@ -98,7 +98,7 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
     const seenNames = new Set<string>()
     const enums = new Array<idl.IDLEnum>()
     const imports = new ImportsCollector()
-    imports.addFeature("int32", "@koalaui/common")
+    imports.addFeatures(['int32', 'float32'], "@koalaui/common")
     imports.print(writer, "")
     for (const file of peerLibrary.files)
         for (const decl of idl.linearizeNamespaceMembers(file.entries)) {

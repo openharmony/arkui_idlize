@@ -133,6 +133,8 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
             case idl.IDLI32Type:
                 return 'int32'
+            case idl.IDLF32Type:
+                return 'float32'
 
             case idl.IDLI8Type:
             case idl.IDLU8Type:
@@ -141,7 +143,6 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLU32Type:
             case idl.IDLI64Type:
             case idl.IDLU64Type:
-            case idl.IDLF32Type:
             case idl.IDLF64Type:
             case idl.IDLNumberType:
                 return 'number'

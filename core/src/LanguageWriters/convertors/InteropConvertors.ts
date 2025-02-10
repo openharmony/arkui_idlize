@@ -268,6 +268,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLI32Type: return "KInt"
+            case idl.IDLF32Type: return "KFloat"
             case idl.IDLNumberType: return 'number'
             case idl.IDLBigintType: return 'bigint'
             case idl.IDLBooleanType:

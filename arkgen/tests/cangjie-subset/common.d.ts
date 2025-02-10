@@ -333,3 +333,9 @@ declare interface SheetOptions extends BindOptions {
     //~onTypeDidChange?: Callback<SheetType>;
     uiContext?: UIContext;
 }
+
+declare interface TranslateOptions {
+    x?: number | string;
+    y?: number | string;
+    z?: number | string;
+}

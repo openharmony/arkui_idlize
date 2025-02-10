@@ -6,10 +6,10 @@ callback Callback_Extender_OnFinish = void ();
 [Entity=Interface]
 interface DoubleAnimationParam {
     attribute String propertyName;
-    attribute number startValue;
-    attribute number endValue;
-    attribute number duration;
-    attribute number delay;
+    attribute f32 startValue;
+    attribute f32 endValue;
+    attribute i32 duration;
+    attribute i32 delay;
     attribute (Curve or String or ICurve) curve;
 
     [Optional]
@@ -21,8 +21,9 @@ interface DoubleAnimationParam {
 
 [Entity=Class]
 interface AnimationExtender {
-  static void SetClipRect(pointer peer, number left, number top, number right, number bottom);
-  static void OpenImplicitAnimation(pointer peer, AnimateParam param);
-  static void CloseImplicitAnimation(pointer node);
-  static void StartDoubleAnimation(pointer peer, DoubleAnimationParam param);
+  static void SetClipRect(pointer node, f32 x, f32 y, f32 width, f32 height);
+  static void OpenImplicitAnimation(AnimateParam param);
+  static void CloseImplicitAnimation();
+  static void StartDoubleAnimation(pointer node, DoubleAnimationParam param);
+  static void AnimationTranslate(pointer node, TranslateOptions options);
 };
