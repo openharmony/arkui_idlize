@@ -15,7 +15,6 @@
 
 import { generatorConfiguration } from '../../config'
 import * as idl from '../../idl'
-import { Language } from '../../Language'
 import { qualifiedName } from '../../peer-generation/idl/common'
 import { PeerMethod } from '../../peer-generation/PeerMethod'
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
@@ -23,9 +22,6 @@ import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { capitalize } from '../../util'
 import { maybeTransformManagedCallback } from '../ArgConvertors'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
-import { CJInteropArgConvertor } from './CJConvertors'
-import { CppInteropArgConvertor } from './CppConvertors'
-import { JavaInteropArgConvertor } from './JavaConvertors'
 
 export interface ConvertResult {
     text: string,
@@ -194,6 +190,9 @@ export class InteropNameConvertor implements IdlNameConvertor {
 }
 
 export class InteropReturnTypeConvertor implements TypeConvertor<string> {
+    constructor(protected readonly resolver?: ReferenceResolver) {
+    }
+
     isVoid(method: PeerMethod): boolean {
         return this.convert(method.returnType) === idl.IDLVoidType.name
     }
@@ -245,6 +244,10 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
     convertTypeReference(type: idl.IDLReferenceType): string {
         if (type.name.endsWith("Attribute"))
             return idl.IDLVoidType.name
+        // Callbacks and array types return by value
+        if (this.resolver && idl.isCallback(this.resolver.toDeclaration(type))) {
+            return type.name
+        }
         return PrimitiveTypesInstance.NativePointer.getText()
     }
     convertUnion(type: idl.IDLUnionType): string {

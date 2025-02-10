@@ -13,8 +13,18 @@
  * limitations under the License.
  */
 
-import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppInteropConvertor,
-    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor
+import {
+    IndentedPrinter,
+    camelCaseToUpperSnakeCase,
+    maybeOptional,
+    Language,
+    CppInteropConvertor,
+    createConstructPeerMethod,
+    createDestroyPeerMethod,
+    PeerClass,
+    PeerMethod,
+    PeerLibrary,
+    InteropReturnTypeConvertor
 } from '@idlizer/core'
 import { getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
@@ -27,7 +37,7 @@ export function generateEventReceiverName(componentName: string) {
 }
 
 class HeaderVisitor {
-    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
+    private readonly returnTypeConvertor = new InteropReturnTypeConvertor(this.library)
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,

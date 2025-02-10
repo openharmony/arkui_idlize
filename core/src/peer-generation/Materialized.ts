@@ -102,6 +102,9 @@ export class MaterializedMethod extends PeerMethod {
             }
             return `(void*) 300`
         }
+        if (idl.isReferenceType(this.method.signature.returnType)) {
+            return "{}"
+        }
         return undefined;
     }
 

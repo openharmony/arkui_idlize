@@ -13,9 +13,22 @@
  * limitations under the License.
  */
 
-import { capitalize, dropSuffix, isDefined, Language, PeerMethod, createConstructPeerMethod,
-    ArgConvertor, MaterializedClass, PeerLibrary, LanguageWriter, InteropReturnTypeConvertor, CppInteropArgConvertor,
+import {
+    capitalize,
+    dropSuffix,
+    isDefined,
+    Language,
+    PeerMethod,
+    createConstructPeerMethod,
+    ArgConvertor,
+    MaterializedClass,
+    PeerLibrary,
+    LanguageWriter,
+    InteropReturnTypeConvertor,
+    CppInteropArgConvertor,
+    PrimitiveTypesInstance,
 } from "@idlizer/core";
+import * as idl from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
@@ -25,7 +38,7 @@ import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
 class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
-    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
+    private readonly returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -68,9 +81,20 @@ class BridgeCcVisitor {
         const args = receiver.concat(argAndOutConvertors.map(it => this.generateApiArgument(it))).join(", ")
         const apiCall = this.getApiCall(method)
         const field = this.getApiCallResultField(method)
-        const call = `${isVoid ? "" : "return "}${apiCall}->${modifier}->${peerMethod}(${args})${field};`
+        let statements: string[];
+        // TODO: It is necessary to implement value passing to vm
+        const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args})${field}`
+        if (idl.isCallback(this.library.toDeclaration(method.returnType))) {
+            statements = [
+                `[[maybe_unused]] const auto &value = ${peerMethodCall};`,
+                `// TODO: Value serialization needs to be implemented`,
+                `return {};`
+            ]
+        } else {
+            statements = [isVoid ? "" : "return ", `${peerMethodCall};`]
+        }
         if (this.callLog) this.printCallLog(method, apiCall, modifier)
-        this.generatedApi.print(call)
+        statements.forEach(it => this.generatedApi.print(it))
     }
 
     protected getApiCallResultField(method: PeerMethod): string {
@@ -369,4 +393,13 @@ export function printBridgeCcGenerated(peerLibrary: PeerLibrary, callLog: boolea
 export function printBridgeCcCustom(peerLibrary: PeerLibrary, callLog: boolean): string {
     const { custom } = printBridgeCc(peerLibrary, callLog)
     return bridgeCcCustomDeclaration(custom.getOutput())
+}
+
+class BridgeReturnTypeConvertor extends InteropReturnTypeConvertor {
+    convertTypeReference(type: idl.IDLReferenceType): string {
+        if (this.resolver != undefined && idl.isCallback(this.resolver.toDeclaration(type))) {
+            return PrimitiveTypesInstance.NativePointer.getText()
+        }
+        return super.convertTypeReference(type)
+    }
 }

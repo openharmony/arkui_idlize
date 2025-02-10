@@ -25,9 +25,22 @@ import {
     modifierStructList,
     warning
 } from "../FileGenerators";
-import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
-    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, InteropReturnTypeConvertor,
-    createLanguageWriter, createEmptyReferenceResolver, LanguageWriter, CppInteropConvertor
+import {
+    createDestroyPeerMethod,
+    MaterializedClass,
+    MaterializedMethod,
+    IndentedPrinter,
+    groupBy,
+    Language,
+    createConstructPeerMethod,
+    PeerClass,
+    PeerMethod,
+    PeerLibrary,
+    InteropReturnTypeConvertor,
+    LanguageWriter,
+    createLanguageWriter,
+    createEmptyReferenceResolver,
+    CppInteropConvertor
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
@@ -39,7 +52,7 @@ export class ModifierVisitor {
     modifiers = this.library.createLanguageWriter(Language.CPP)
     getterDeclarations = this.library.createLanguageWriter(Language.CPP)
     modifierList = this.library.createLanguageWriter(Language.CPP)
-    private readonly returnTypeConvertor = new InteropReturnTypeConvertor()
+    private readonly returnTypeConvertor = new InteropReturnTypeConvertor(this.library)
     commentedCode = true
 
     constructor(
@@ -116,20 +129,8 @@ export class ModifierVisitor {
             printer.print(`}`)
         }
         else if (!isVoid) {
-            if (this.isPointerReturnType(method.method.signature.returnType)) {
-                printer.print(`return nullptr;`)
-            }
-            else {
-                printer.print(`return 0;`)
-            }
+            printer.print(`return {};`)
         }
-    }
-
-    private isPointerReturnType(returnType: IDLType): boolean {
-        return isReferenceType(returnType) ||
-            returnType === IDLThisType ||
-            returnType === IDLPointerType ||
-            returnType === IDLAnyType
     }
 
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod,
