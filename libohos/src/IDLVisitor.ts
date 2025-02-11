@@ -1002,6 +1002,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
             const typeName = type.typeName.getText()
 
+            if (typeName == 'Required' && type.typeArguments?.length == 1) {
+                // Ugly hack to prevent SDK glitches.
+                warn(`Replacing Required<T> with T for ${type.typeArguments[0].getText()}`)
+                return this.serializeType(type.typeArguments[0])
+            }
             // Treat enum member type 'value: EnumName.MemberName`
             // as enum type 'value: EnumName`.
             if (ts.isQualifiedName(type.typeName)) {

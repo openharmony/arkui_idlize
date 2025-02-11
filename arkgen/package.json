@@ -57,7 +57,7 @@
     "setup-out": "node tools/setup/setup.mjs",
     "compile": "npm run download:sdk && npm run compile -C ../libohos && rollup -c",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out",
-    "run": "npm run compile && node . --dts2idl --input-dir ./interface_sdk-js/api/global --input-files ./interface_sdk-js/api/@internal/component/ets/common.d.ts --verify-idl --common-to-attributes --docs=opt",
+    "run": "npm run compile && node . --dts2idl --input-dir  ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/arkui,./interface_sdk-js/api/global --verify-idl --docs=none",
     "run:all": "npm run compile && node . --dts2peer --input-dir ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/arkui,./interface_sdk-js/api/global --verify-idl --common-to-attributes --docs=opt",
     "run:xml": "npm run compile && node . --use-new-ohos --generator-target ohos --dts2peer --input-files ./interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --options-file ./generation-config/ohos-generator.json",
     "run:xml:arkts": "npm run compile && node . --use-new-ohos --generator-target ohos --dts2peer --input-files ./interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --language=arkts --options-file ./generation-config/ohos-generator.json",
