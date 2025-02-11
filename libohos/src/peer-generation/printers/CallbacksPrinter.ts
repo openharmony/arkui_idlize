@@ -448,20 +448,20 @@ class ManagedCallCallbackVisitor {
             ["resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}`, signature, writer => {
-            writer.writeStatement(writer.makeAssign(`__buffer`, idl.createReferenceType(`CallbackBuffer`),
+            writer.writeStatement(writer.makeAssign(`_buffer`, idl.createReferenceType(`CallbackBuffer`),
                 writer.makeString(`{{}, {}}`), true, false))
-            writer.writeStatement(writer.makeAssign(`__callbackResource`, idl.createReferenceType(`CallbackResource`),
+            writer.writeStatement(writer.makeAssign(`_callbackResource`, idl.createReferenceType(`CallbackResource`),
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
-            writer.writeExpressionStatement(writer.makeMethodCall(`__buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&__callbackResource`)]))
+            writer.writeExpressionStatement(writer.makeMethodCall(`_buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&_callbackResource`)]))
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(__buffer.buffer, sizeof(__buffer.buffer), &(__buffer.resourceHolder))`), true, false))
+                writer.makeString(`Serializer(_buffer.buffer, sizeof(_buffer.buffer), &(_buffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
-            writer.print(`enqueueCallback(&__buffer);`)
+            writer.print(`enqueueCallback(&_buffer);`)
         })
     }
 
@@ -477,16 +477,16 @@ class ManagedCallCallbackVisitor {
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
-            writer.print('uint8_t __buffer[60 * 4];')
+            writer.print('uint8_t _buffer[60 * 4];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(__buffer, sizeof(__buffer), nullptr)`), true, false))
+                writer.makeString(`Serializer(_buffer, sizeof(_buffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
-            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(__buffer), __buffer);`)
+            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(_buffer), _buffer);`)
         })
     }
 

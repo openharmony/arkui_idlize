@@ -72,7 +72,7 @@ class ImportsStubsGenerator extends DependenciesCollector {
                 undefined,
                 undefined,
                 undefined,
-                [idl.createProperty(`__${type.name}Stub`, idl.IDLStringType)],
+                [idl.createProperty(`_${type.name}Stub`, idl.IDLStringType)],
                 undefined,
                 undefined,
                 undefined,

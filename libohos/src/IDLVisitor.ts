@@ -619,7 +619,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
                         extendedAttributes: [{name: idl.IDLExtendedAttributes.Synthetic}],
                         fileName}))
                 return idl.createMethod(
-                    `__onChangeEvent_${propName}`,
+                    `_onChangeEvent_${propName}`,
                     [idl.createParameter("callback", idl.createReferenceType(callbackName))],
                     idl.IDLVoidType
                 )})
