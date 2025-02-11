@@ -61,14 +61,6 @@ export function selectName(nameSuggestion: NameSuggestion | undefined, synthetic
     return syntheticName
 }
 
-function mangleConflictingName(name: string, sourceFile: ts.SourceFile | undefined): string {
-    if (IDLVisitorConfig.ConflictingDeclarationNames.includes(name) && sourceFile) {
-        const fileName = path.basename(sourceFile.fileName).replaceAll(".d.ts", "").replaceAll(".", "")
-        return `${name}_${fileName.replaceAll("@", "")}`
-    }
-    return name
-}
-
 const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
     ["TransitionEffect", new Map<string, idl.IDLType>([
         ["Type", idl.IDLStringType],
@@ -385,6 +377,21 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         if (ts.idText(node.name) == "MonitorDecorator") return undefined
         const nameSuggestion = NameSuggestion.make(nameOrNull(node.name) ?? "UNDEFINED_TYPE_NAME", true)
         let extendedAttributes = this.computeDeprecatedExtendAttributes(node)
+
+        let [type, syntheticEntry] = IDLVisitorConfig.checkTypedefReplacement(node)
+        if (syntheticEntry) this.addSyntheticType(syntheticEntry)
+        if (type) {
+            return idl.createTypedef(
+                nameSuggestion.name,
+                type,
+                this.collectTypeParameters(node.typeParameters),
+                {
+                    extendedAttributes: extendedAttributes,
+                    fileName: node.getSourceFile().fileName,
+                }
+            )
+        }
+
         if (ts.isImportTypeNode(node.type)) {
             const type = idl.createReferenceType(nameSuggestion.name)
             if (this.predefinedTypeResolver?.resolveTypeReference(type)) {
@@ -399,8 +406,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             return idl.createTypedef(
                 nameSuggestion.name,
                 type, undefined, {
-                extendedAttributes: extendedAttributes,
-                fileName: node.getSourceFile().fileName
+                    extendedAttributes: extendedAttributes,
+                    fileName: node.getSourceFile().fileName
             })
         }
         if (ts.isFunctionTypeNode(node.type)) {
@@ -422,8 +429,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             nameSuggestion.name,
             this.serializeType(node.type, nameSuggestion),
             this.collectTypeParameters(node.typeParameters), {
-            extendedAttributes: extendedAttributes,
-            fileName: node.getSourceFile().fileName,
+                extendedAttributes: extendedAttributes,
+                fileName: node.getSourceFile().fileName,
             })
     }
 
@@ -449,7 +456,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
             } else {
                 throw new Error(`Unsupported heritage: ${it.expression.getText()}: ${it.expression.kind}`)
             }
-            name = mangleConflictingName(name, heritage.getSourceFile())
+            name = IDLVisitorConfig.checkNameReplacement(name, heritage.getSourceFile())
             return idl.createReferenceType(escapeIDLKeyword(name), this.mapTypeArgs(it.typeArguments, name))
         })
     }
@@ -549,7 +556,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         const methods = this.pickMethods(node.members, childNameSuggestion)
             .concat(this.pickPropertyBindings(nameSuggestion.name, props, fileName))
         return idl.createInterface(
-            mangleConflictingName(nameSuggestion.name, node.getSourceFile()),
+            IDLVisitorConfig.checkNameReplacement(nameSuggestion.name, node.getSourceFile()),
             idl.IDLInterfaceSubkind.Class,
             inheritance,
             node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration, childNameSuggestion)),
@@ -665,7 +672,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         const childNameSuggestion = nameSuggestion.prependType()
         this.context.enter(nameSuggestion.name)
         return idl.createInterface(
-            mangleConflictingName(nameSuggestion.name, node.getSourceFile()),
+            IDLVisitorConfig.checkNameReplacement(nameSuggestion.name, node.getSourceFile()),
             idl.IDLInterfaceSubkind.Interface,
             inheritance,
             this.pickConstructors(node.members, childNameSuggestion),
@@ -993,15 +1000,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (ts.isTypeReferenceNode(type)) {
             const declarations = getDeclarationsByNode(this.typeChecker, type.typeName)
-            let sourceFile: ts.SourceFile|undefined = undefined
-            if (declarations.length == 0)
-                warn(`Do not know type ${type.typeName.getText()}`)
-            else if (declarations.length > 1)
-                // If there are multiple declaration select one from the same file, if possible.
-                sourceFile = declarations.find(it => it.getSourceFile() == type.getSourceFile())?.getSourceFile() ?? declarations[0].getSourceFile()
-            else
-                sourceFile = declarations[0].getSourceFile()
-            const typeName = mangleConflictingName(type.typeName.getText(), sourceFile)
+            const typeName = type.typeName.getText()
 
             // Treat enum member type 'value: EnumName.MemberName`
             // as enum type 'value: EnumName`.
