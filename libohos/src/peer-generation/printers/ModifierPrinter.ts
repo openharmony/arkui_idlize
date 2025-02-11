@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { peerGeneratorConfiguration} from '../PeerGeneratorConfig'
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
@@ -40,7 +39,8 @@ import {
     LanguageWriter,
     createLanguageWriter,
     createEmptyReferenceResolver,
-    CppInteropConvertor
+    CppInteropConvertor,
+    CppReturnTypeConvertor
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
@@ -52,7 +52,7 @@ export class ModifierVisitor {
     modifiers = this.library.createLanguageWriter(Language.CPP)
     getterDeclarations = this.library.createLanguageWriter(Language.CPP)
     modifierList = this.library.createLanguageWriter(Language.CPP)
-    private readonly returnTypeConvertor = new InteropReturnTypeConvertor(this.library)
+    private readonly returnTypeConvertor = new CppReturnTypeConvertor(this.library)
     commentedCode = true
 
     constructor(
@@ -564,3 +564,4 @@ function printApiImplFile(library: PeerLibrary, filePath: string, options: Modif
 
     writer.printTo(filePath)
 }
+

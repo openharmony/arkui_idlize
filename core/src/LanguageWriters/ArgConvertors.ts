@@ -1031,7 +1031,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     isPointerType(): boolean {
-        return true
+        return false
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (idl.isInterface(this.declaration)) {

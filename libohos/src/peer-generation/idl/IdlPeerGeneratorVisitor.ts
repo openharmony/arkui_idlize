@@ -445,7 +445,7 @@ export class IdlPeerProcessor {
 
     private makeMaterializedMethod(decl: idl.IDLInterface, method: idl.IDLConstructor | idl.IDLMethod | undefined, implemenationParentName: string) {
         let methodName = "ctor"
-        let returnType: idl.IDLType = idl.IDLPointerType
+        let returnType: idl.IDLType = idl.createReferenceType(decl.name)
         let outArgConvertor = undefined
         if (method && !idl.isConstructor(method)) {
             methodName = method.name

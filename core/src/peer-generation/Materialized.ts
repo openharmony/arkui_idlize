@@ -100,7 +100,7 @@ export class MaterializedMethod extends PeerMethod {
             if (this.method.signature.returnType === idl.IDLBooleanType) {
                 return '0'
             }
-            return `(void*) 300`
+            return `(${this.originalParentName}Peer*) 300`
         }
         if (idl.isReferenceType(this.method.signature.returnType)) {
             return "{}"

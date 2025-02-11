@@ -840,7 +840,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    Ark_NativePointer CtorImpl()
+    Ark_LazyForEachOps CtorImpl()
     {
         if (!needGroupedLog(1))
             return (LazyForEachOpsPeer*) 100;

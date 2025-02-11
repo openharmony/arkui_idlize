@@ -37,7 +37,7 @@ export function generateEventReceiverName(componentName: string) {
 }
 
 class HeaderVisitor {
-    private readonly returnTypeConvertor = new InteropReturnTypeConvertor(this.library)
+    private readonly returnTypeConvertor = new CppReturnTypeConvertor(this.library)
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,
@@ -84,7 +84,6 @@ class HeaderVisitor {
         if (clazz) {
             let peerName = `${name}Peer`
             let accessorName = `${peerGeneratorConfiguration().cppPrefix}ArkUI${name}Accessor`
-            this.api.print(`typedef struct ${peerName} ${peerName};`)
             this.api.print(`typedef struct ${accessorName} {`)
             this.api.pushIndent()
             const mDestroyPeer = createDestroyPeerMethod(clazz)

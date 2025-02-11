@@ -97,7 +97,7 @@ class SerializerPrinter {
         this.declareSerializer(writer)
         if (writer.language === Language.CPP) {
             writer.writeExpressionStatement(
-                writer.makeMethodCall(`valueSerializer`, `writePointer`, [writer.makeString(`value.ptr`)]))
+                writer.makeMethodCall(`valueSerializer`, `writePointer`, [writer.makeString(`value`)]))
             return
         }
         const baseType = idl.createReferenceType("MaterializedBase")
@@ -364,7 +364,7 @@ class DeserializerPrinter {
                 this.writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
         if (this.writer.language === Language.CPP)
             this.writer.writeStatement(
-                this.writer.makeReturn(this.writer.makeString(`{ ptr }`)))
+                this.writer.makeReturn(this.writer.makeCast(this.writer.makeString(`ptr`), idl.createReferenceType(target.name))))
         else
             this.writer.writeStatement(
                 this.writer.makeReturn(
@@ -585,6 +585,8 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     return collectDeclarationTargets(library)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it))
+        .filter(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.GlobalScope))
+        .filter(it => !it.typeParameters?.length)
         .filter(it => {
             const seen = seenNames.has(it.name!)
             seenNames.add(it.name!)

@@ -46,6 +46,7 @@ export class StructPrinter {
             return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "Length", "CustomObject"].includes(target.name)
         if (idl.isEnum(target)) return false
         if (idl.isReferenceType(target) && target.name === "GestureType") return false
+        if (idl.isInterface(target) && isMaterialized(target, this.library)) return false
         return true
     }
 
@@ -165,7 +166,11 @@ export class StructPrinter {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else if (isAccessor) {
-                forwardDeclarations.print(`typedef ${ArkPrimitiveTypesInstance.Materialized.getText()} ${nameAssigned};`)
+                const peerName = cleanPrefix(`${nameAssigned}Peer`, PeerGeneratorConfig.typePrefix)
+                forwardDeclarations.print(`typedef struct ${peerName} ${peerName};`)
+                forwardDeclarations.print(`typedef struct ${peerName}* ${nameAssigned};`)
+                this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)
+                this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else {
                 if (!noBasicDecl && !idl.isPrimitiveType(target))
@@ -244,7 +249,7 @@ export class StructPrinter {
         } else if (idl.isEnum(target)) {
             result = writer.makeRuntimeType(RuntimeType.NUMBER)
         } else if (idl.isInterface(target) && isMaterialized(target, this.library)) {
-            return undefined
+            result = writer.makeRuntimeType(RuntimeType.OBJECT)
         } else if (idl.isUnionType(target)) {
             return writer => {
                 writer.print("switch (value.selector) {")
@@ -433,6 +438,8 @@ inline void WriteToString(std::string* result, const ${name}* value) {
                     printer.print(`}`)
                 })
                 printer.print(`result->append("}");`);
+            } else if (idl.isInterface(target) && isMaterialized(target, this.library)) {
+                printer.print(`WriteToString(result, static_cast<InteropNativePointer>(value));`)
             } else if (idl.isInterface(target) && target.subkind === idl.IDLInterfaceSubkind.Tuple) {
                 printer.print(`result->append("{");`)
                 collectProperties(target, this.library)

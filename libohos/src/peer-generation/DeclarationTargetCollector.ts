@@ -29,6 +29,8 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
             if (idl.isInterface(entry)) {
                 if (isComponentDeclaration(library, entry) ||
                     isMaterialized(entry, library)) {
+                    if (isMaterialized(entry, library))
+                        orderer.addDep(entry)
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().ignorePeerMethod.includes(property.name))
                             continue

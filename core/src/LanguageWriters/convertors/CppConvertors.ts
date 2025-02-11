@@ -16,9 +16,11 @@
 import * as idl from '../../idl'
 import { generatorConfiguration } from "../../config"
 import { IdlNameConvertor } from "../nameConvertor"
-import { ConvertResult, InteropConvertor } from './InteropConvertors'
+import { ConvertResult, InteropConvertor, InteropReturnTypeConvertor } from './InteropConvertors'
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { InteropArgConvertor } from './InteropConvertors'
+import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { isMaterialized } from '../../peer-generation/Materialized'
 
 export class CppInteropConvertor extends InteropConvertor implements IdlNameConvertor {
     private unwrap(type: idl.IDLNode, result: ConvertResult): string {
@@ -59,5 +61,16 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
         }
         return super.convertPrimitiveType(type)
+    }
+}
+
+export class CppReturnTypeConvertor extends InteropReturnTypeConvertor {
+    constructor(protected resolver: ReferenceResolver) { super() }
+
+    convertTypeReference(type: idl.IDLReferenceType): string {
+        const resolved = this.resolver.resolveTypeReference(type)
+        if (resolved && idl.isInterface(resolved) && isMaterialized(resolved, this.resolver))
+            return generatorConfiguration().param("TypePrefix") + type.name
+        return super.convertTypeReference(type)
     }
 }
