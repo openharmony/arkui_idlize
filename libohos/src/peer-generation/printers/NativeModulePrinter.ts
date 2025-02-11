@@ -513,6 +513,7 @@ function getReturnValue(type: idl.IDLType): string {
         case idl.IDLAnyType: return `""`
         case idl.IDLObjectType: return "new Object()"
         case idl.IDLBufferType: return "new ArrayBuffer(8)"
+        case idl.IDLBigintType: return "BigInt(0)"
     }
 
     throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)

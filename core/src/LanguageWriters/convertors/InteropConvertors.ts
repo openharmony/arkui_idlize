@@ -148,6 +148,7 @@ export class InteropConvertor implements NodeConvertor<ConvertResult> {
             case idl.IDLNumberType: return this.make(`Number`)
             case idl.IDLStringType: return this.make(`String`)
             case idl.IDLBooleanType: return this.make(`Boolean`)
+            case idl.IDLBigintType: return this.make(`UInt64`) // TODO add arbitrary precision numeric type
             case idl.IDLPointerType: return this.make('NativePointer')
             case idl.IDLUnknownType:
             case idl.IDLCustomObjectType:
@@ -227,6 +228,7 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             case idl.IDLF64Type:
             case idl.IDLNumberType: return PrimitiveTypesInstance.Int32.getText()
             case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
+            case idl.IDLBigintType: return PrimitiveTypesInstance.Int64.getText()
             case idl.IDLAnyType:
             case idl.IDLBufferType:
             case idl.IDLStringType:

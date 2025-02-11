@@ -36,6 +36,7 @@ typedef InteropFloat64 OH_Float64;
 typedef InteropInt32 OH_Int32;
 typedef InteropUInt32 OH_UInt32;
 typedef InteropInt64 OH_Int64;
+typedef InteropUInt64 OH_UInt64;
 typedef InteropInt8 OH_Int8;
 typedef InteropBoolean OH_Boolean;
 typedef InteropCharPtr OH_CharPtr;

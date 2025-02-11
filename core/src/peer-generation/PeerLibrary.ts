@@ -21,7 +21,7 @@ import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
 import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
-         ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor,
+         ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
 } from "../LanguageWriters/ArgConvertors"
 import { InteropNameConvertor } from '../LanguageWriters/convertors/InteropConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -223,6 +223,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLF16Type: return new NumericConvertor(param, type)
                 case idl.IDLF32Type: return new NumericConvertor(param, type)
                 case idl.IDLF64Type: return new NumericConvertor(param, type)
+                case idl.IDLBigintType: return new BigIntToU64Convertor(param)
                 case idl.IDLPointerType: return new PointerConvertor(param)
 
                 case idl.IDLBufferType: return new BufferConvertor(param)
