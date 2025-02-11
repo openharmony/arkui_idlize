@@ -16,173 +16,55 @@
 import {
     Language,
     isDefined,
-    deepMergeConfig,
-    warn
+    generatorConfiguration
 } from '@idlizer/core'
+import {
+    DefaultConfiguration,
+    parseConfigFiles
+} from "../DefaultConfiguration"
 
-import * as fs from "fs"
-import * as path from "path"
+export interface PeerGeneratorConfiguration extends DefaultConfiguration {
+    cppPrefix: string
+    ignoreComponents: string[]
+    ignorePeerMethod: string[]
+    invalidAttributes: string[]
+    customNodeTypes: string[]
+    ignoreSerialization: string[]
+    ignoreReturnTypes: string[]
 
-export interface CoreGeneratorConfiguration {
-    get components(): {
-        [key: string]: {}
-    }
-    get materialized(): {
-        [key: string]: {}
-    }
-    get native(): {
-        [key: string]: {}
-    }
-    get serializer(): {
-        [key: string]: {}
-    }
-    get dummy(): {
-        [key: string]: {}
-    }
+    mapComponentName(originalName: string): string 
+    ignoreEntry(name: string, language: Language): boolean
+    ignoreMethod(name: string, language: Language) : boolean
+    isMaterializedIgnored(name: string): boolean
+    isHandWritten(component: string): boolean
+    isKnownParametrized(name: string | undefined): boolean
+    isShouldReplaceThrowingError(name: string) : boolean
+    noDummyGeneration(component: string, method?: string) : boolean
 }
 
-export const defaultCoreGeneratorConfiguration: CoreGeneratorConfiguration = {
-    "components": {
-        "custom": [],
-        "handWritten": [],
-        "ignore": [],
-        "ignoreJava": [],
-        "parameterized": [],
-        "inheritanceRole": {
-            "rootComponents": [],
-            "standaloneComponents": []
-        }
-    },
-    "materialized": {
-        "ignore": [],
-    },
-    "native": {
-        "cppPrefix": "GENERATED_"
-    },
-    "serializer": {
-        "ignore": []
-    },
-    "dummy": {
-        "ignoreMethods": {
-            "LazyForEachOps": ["*"],
-            "CommonMethod": ["onClick"]
-        }
+export class PeerGeneratorConfigurationImpl extends DefaultConfiguration implements PeerGeneratorConfiguration {
+    constructor(data: Record<string, any> = {}) {
+        super(data)  
     }
-}
 
-export function loadConfigurationFromFile(configurationFile: string): CoreGeneratorConfiguration | undefined {
-    if (!fs.existsSync(configurationFile)) return undefined
+    get cppPrefix(): string { return this.paramByKeys<string>("native", "cppPrefix") }
+    get ignoreComponents(): string[] { return this.paramByKeys<string[]>("components", "ignoreComponents") }
+    get ignorePeerMethod(): string[] { return this.paramByKeys<string[]>("components", "ignorePeerMethod") }
+    get invalidAttributes(): string[] { return this.paramByKeys<string[]>("components", "invalidAttributes") }
+    get customNodeTypes(): string[] { return this.paramByKeys<string[]>("components", "customTypes") }
+    get ignoreSerialization(): string[] { return this.paramByKeys<string[]>("serializer", "ignore") }
+    get ignoreReturnTypes(): string[] { return this.paramByKeys<string[]>("materialized", "ignoredReturnTypes") }
 
-    const data = fs.readFileSync(path.resolve(configurationFile)).toString()
-    return JSON.parse(data) as CoreGeneratorConfiguration
-}
-
-export function loadConfiguration(configurationFiles?: string, overrideConfigurationFiles?: string): CoreGeneratorConfiguration {
-    let files = [path.join(__dirname, "..", "generation-config", "config.json")]
-    if (configurationFiles) files.push(...configurationFiles.split(","))
-
-    let configuration = defaultCoreGeneratorConfiguration
-
-    if (overrideConfigurationFiles) {
-        files = overrideConfigurationFiles.split(",")
-    }
-    files.forEach(file => {
-        const nextConfiguration = loadConfigurationFromFile(file)
-        if (nextConfiguration) {
-            console.log(`Using options from ${file}`)
-            configuration = deepMergeConfig(configuration, nextConfiguration)
-        } else {
-            throw new Error(`file ${file} does not exist or cannot parse`)
+    private paramByKeys<T>(...keys: string[]): T {
+        let result = this.params
+        for (const key of keys) {
+            if (key in result) {
+                result = result[key]
+            } else {
+                throw new Error(`${key} is unknown (keys: ${keys})`)
+            }
         }
-    })
-    return configuration
-}
-
-export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
-    readonly components: Record<string, any>
-    readonly materialized: Record<string, any>
-    readonly native: Record<string, any>
-    readonly serializer: Record<string, any>
-    readonly dummy: Record<string, any>
-    constructor(private data: CoreGeneratorConfiguration) {
-
-        this.components = this.data?.components
-        this.materialized = this.data?.materialized
-        this.native = this.data?.native
-        this.serializer = this.data?.serializer
-        this.dummy = this.data?.dummy
-
-
-        // components
-        if (this.components?.["custom"]) {
-            this.customComponents = Object.values(this.components["custom"])
-        }
-        if (this.components?.["customTypes"]) {
-            this.customNodeTypes = Object.values(this.components["customTypes"])
-        }
-        if (this.components?.["handWritten"]) {
-            this.handWritten = Object.values(this.components["handWritten"])
-        }
-        if (this.components?.["ignoreEntry"]) {
-            this.ignoredEntriesCommon = Object.values(this.components["ignoreEntry"])
-        }
-        if (this.components?.["ignoreEntryJava"]) {
-            this.ignoredEntriesJava = Object.values(this.components["ignoreEntryJava"])
-        }
-        if (this.components?.["ignoreComponents"]) {
-            this.ignoreComponents = Object.values(this.components["ignoreComponents"])
-        }
-        if (this.components?.["ignorePeerMethod"]) {
-            this.ignorePeerMethod = Object.values(this.components["ignorePeerMethod"])
-        }
-        if (this.components?.["ignoreMethodArkts"]) {
-            this.ignoreMethodArkts = Object.values(this.components["ignoreMethodArkts"])
-        }
-        if (this.components?.["invalidAttributes"]) {
-            this.invalidAttributes = Object.values(this.components["invalidAttributes"])
-        }
-        if (this.components?.["replaceThrowErrorReturn"]) {
-            this.replaceThrowErrorReturn = Object.values(this.components["replaceThrowErrorReturn"])
-        }
-        if (this.components?.["parameterized"]) {
-            this.knownParameterized = Object.values(this.components["parameterized"])
-        }
-        if (this.components?.["builderClasses"]) {
-            this.builderClasses = Object.values(this.components["builderClasses"])
-        }
-        if (this.components?.["inheritanceRole"]) {
-            const inheritanceRole = new Map<string, string[]>(Object.entries(this.components["inheritanceRole"]))
-            this.rootComponents = inheritanceRole.get("rootComponents") ?? []
-            this.standaloneComponents = inheritanceRole.get("standaloneComponents") ?? []
-        }
-        if (this.components?.["boundProperties"]) {
-            this.boundProperties = new Map<string, string[]>(Object.entries(this.components["boundProperties"]))
-        }
-
-        // materialized
-        if (this.materialized?.["ignoredSuffixes"]) {
-            this.ignoreMaterialized = Object.values(this.materialized["ignoredSuffixes"])
-        }
-        if (this.materialized?.["ignoredReturnTypes"]) {
-            this.ignoreReturnTypes = Object.values(this.materialized["ignoredReturnTypes"])
-        }
-
-        // native
-        if (this.native?.["cppPrefix"]) {
-            this.cppPrefix = this.native["cppPrefix"] as string
-            this.typePrefix = this.native["typePrefix"] as string
-            this.optionalTypePrefix = this.native["optionalTypePrefix"] as string
-        }
-
-        // serializer
-        if (this.serializer?.["ignore"]) {
-            this.ignoreSerialization = Object.values(this.serializer["ignore"])
-        }
-
-        // dummy
-        if (this.dummy?.["ignoreMethods"]) {
-            this.noDummyComponents = new Map<string, string[]>(Object.entries(this.dummy["ignoreMethods"]))
-        }
+        return result as T
     }
 
     mapComponentName(originalName: string): string {
@@ -190,78 +72,51 @@ export class PeerGeneratorConfigImpl implements CoreGeneratorConfiguration {
             return originalName.substring(0, originalName.length - 9)
         return originalName
     }
-
-    ignoreEntry(name: string, language: Language) {
-        return this.ignoredEntriesCommon.includes(name) ||
-            language === Language.JAVA && this.ignoredEntriesJava.concat(this.customComponents).includes(name)
+    ignoreEntry(name: string, language: Language): boolean {
+        return this.paramByKeys<string[]>("components", "ignoreEntry").includes(name) ||
+            language === Language.JAVA && this.paramByKeys<string[]>("components", "ignoreEntryJava").concat(this.paramByKeys<string[]>("components", "custom")).includes(name)
     }
-
-    ignoreMethod(name: string, language: Language) {
-        return language === Language.ARKTS && this.ignoreMethodArkts.includes(name)
+    ignoreMethod(name: string, language: Language): boolean {
+        return language === Language.ARKTS && this.paramByKeys<string[]>("components", "ignoreMethodArkts").includes(name)
     }
-
     isMaterializedIgnored(name: string): boolean {
         for (const ignore of this.ignoreMaterialized) {
             if (name.endsWith(ignore)) return true
         }
         return false
     }
-
-    isHandWritten(component: string) {
-        return this.handWritten.concat(this.customComponents).includes(component)
+    isHandWritten(component: string): boolean {
+        return this.paramByKeys<string[]>("components", "handWritten").concat(this.paramByKeys<string[]>("components", "custom")).includes(component)
     }
-
     isKnownParametrized(name: string | undefined): boolean {
-        return name != undefined && this.knownParameterized.includes(name)
+        return name != undefined && this.parameterized.includes(name)
     }
-
-    isShouldReplaceThrowingError(name: string) {
-        for (const ignore of this.replaceThrowErrorReturn) {
+    isShouldReplaceThrowingError(name: string): boolean {
+        for (const ignore of this.paramByKeys<string[]>("components", "replaceThrowErrorReturn")) {
             if (name.endsWith(ignore)) return true
         }
         return false
     }
-
-    noDummyGeneration(component: string, method = "") {
-        const ignoreMethods = this.noDummyComponents.get(component)
+    noDummyGeneration(component: string, method: string = ""): boolean {
+        const ignoreMethods = new Map<string, string[]>(Object.entries(
+            this.paramByKeys<Record<string, any>>("dummy", "ignoreMethods")
+        )).get(component)
         if (!isDefined(ignoreMethods)) return false
         if (this.isWhole(ignoreMethods)) return true
         if (ignoreMethods.includes(method)) return true
 
         return false
     }
-
     private isWhole(methods: string[]): boolean {
         return methods.includes("*")
     }
-
-    readonly cppPrefix: string = "GENERATED_"
-    readonly typePrefix: string = ""
-    readonly optionalTypePrefix: string = ""
-    private ignoredEntriesCommon: string[] = []
-    private ignoredEntriesJava: string[] = []
-    readonly ignoreComponents: string[] = []
-    readonly ignorePeerMethod: string[] = []
-    private ignoreMethodArkts: string[] = []
-    readonly invalidAttributes: string[] = []
-    private replaceThrowErrorReturn: string[] = []
-    readonly ignoreSerialization: string[] = []
-    private customComponents: string[] = []
-    readonly customNodeTypes: string[] = []
-    private handWritten: string[] = []
-    readonly builderClasses: string[] = []
-    readonly knownParameterized: string[] = []
-    readonly rootComponents: string[] = []
-    readonly standaloneComponents: string[] = []
-    readonly boundProperties: Map<string, string[]> = new Map()
-    readonly ignoreMaterialized: string[] = []
-    readonly ignoreReturnTypes: string[] = []
-    private noDummyComponents: Map<string, string[]> = new Map()
 }
 
-export let PeerGeneratorConfig = new PeerGeneratorConfigImpl(defaultCoreGeneratorConfiguration)
+export function loadPeerConfiguration(configurationFiles?: string, overrideConfigurationFiles?: string): PeerGeneratorConfigurationImpl {
+    return new PeerGeneratorConfigurationImpl(parseConfigFiles(configurationFiles, overrideConfigurationFiles))
+}
 
-export function setFileGeneratorConfiguration(config: CoreGeneratorConfiguration) {
-    PeerGeneratorConfig = new PeerGeneratorConfigImpl(config)
+export function peerGeneratorConfiguration() {
+    return generatorConfiguration() as PeerGeneratorConfigurationImpl
 }
 

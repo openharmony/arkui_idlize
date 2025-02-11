@@ -13,20 +13,24 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
-import { isDefined } from "./util"
-
-
 export interface GeneratorConfiguration {
     param<T>(name: string): T
-    paramArray<T>(name: string): T[]
+    readonly params: Record<string, any>
+
+    TypePrefix: string,
+    LibraryPrefix: string,
+    OptionalPrefix: string,
 }
 
 export class BaseGeneratorConfiguration implements GeneratorConfiguration {
-    protected params: Record<string, any> = {}
+    readonly params: Record<string, any> = {}
     constructor(params: Record<string, any> = {}) {
-        Object.assign(this.params, params);
+        Object.assign(this.params, {
+            TypePrefix: "",
+            LibraryPrefix: "",
+            OptionalPrefix: "",
+            ...params
+        });
     }
     param<T>(name: string): T {
         if (name in this.params) {
@@ -34,12 +38,10 @@ export class BaseGeneratorConfiguration implements GeneratorConfiguration {
         }
         throw new Error(`${name} is unknown`)
     }
-    paramArray<T>(name: string): T[] {
-        if (name in this.params) {
-            return this.params[name] as T[]
-        }
-        throw new Error(`${name} is unknown`)
-    }
+
+    get TypePrefix(): string { return this.param<string>("TypePrefix") }
+    get LibraryPrefix(): string { return this.param<string>("LibraryPrefix") }
+    get OptionalPrefix(): string { return this.param<string>("OptionalPrefix") }
 }
 
 let currentConfig: GeneratorConfiguration = new BaseGeneratorConfiguration()
@@ -56,4 +58,5 @@ export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.param("TypePrefix")}${conf.param("LibraryPrefix")}`
 }
+
 

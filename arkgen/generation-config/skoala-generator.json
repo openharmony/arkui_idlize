@@ -1,5 +1,3 @@
 {
-    "native": {
-        "typePrefix": ""
-    }
+    "TypePrefix": ""
 }

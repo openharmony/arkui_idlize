@@ -31,7 +31,7 @@ import { RuntimeType } from "@idlizer/core"
 import { ArkPrimitiveTypeList, ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
+import { peerGeneratorConfiguration} from "../PeerGeneratorConfig"
 import { PrintHint } from "@idlizer/core"
 import { LibraryInterface } from "@idlizer/core"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector"
@@ -122,7 +122,7 @@ export class StructPrinter {
                 forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
                 this.printStructsCHead(nameAssigned, target, concreteDeclarations)
                 if (idl.isUnionType(target)) {
-                    concreteDeclarations.print(`${generatorConfiguration().param("TypePrefix")}Int32 selector;`)
+                    concreteDeclarations.print(`${generatorConfiguration().TypePrefix}Int32 selector;`)
                     concreteDeclarations.print("union {")
                     concreteDeclarations.pushIndent()
                     target.types.forEach((it, index) =>
@@ -179,7 +179,7 @@ export class StructPrinter {
         structs.concat(concreteDeclarations)
         // TODO: hack, remove me!
         if (["arkoala", "libace"].includes(this.library.name)) { // TODO we probably don't need this typedef for any library except Ark
-            typedefs.print(`typedef ${generatorConfiguration().param("OptionalPrefix")}Length ${generatorConfiguration().param("OptionalPrefix")}Dimension;`)
+            typedefs.print(`typedef ${generatorConfiguration().OptionalPrefix}Length ${generatorConfiguration().OptionalPrefix}Dimension;`)
         }
     }
 
@@ -195,7 +195,7 @@ export class StructPrinter {
         const nameAssigned = concreteDeclarations.getNodeName(target)
         const nameOptional = idl.isType(target)
             ? concreteDeclarations.getNodeName(idl.createOptionalType(target))
-            : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorTypePrefix())
+            : generatorConfiguration().OptionalPrefix + cleanPrefix(concreteDeclarations.getNodeName(target as idl.IDLEntry), generatorTypePrefix())
         if (forceOptional || nameOptional.includes("Opt_CustomObject")) {
             if (seenNames.has(nameOptional)) {
                 return
@@ -479,7 +479,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
     }
 
     private ignoreTarget(target: idl.IDLNode): target is idl.IDLPrimitiveType | idl.IDLEnum {
-        if (idl.isNamedNode(target) && PeerGeneratorConfig.ignoreSerialization.includes(target.name)) return true
+        if (idl.isNamedNode(target) && peerGeneratorConfiguration().ignoreSerialization.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
         if (isImportAttr(target)) return true

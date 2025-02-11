@@ -1,7 +1,7 @@
 import * as idl from "@idlizer/core/idl"
 import { LibraryInterface } from "@idlizer/core"
 import { isDefined } from "@idlizer/core"
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig"
+import { peerGeneratorConfiguration } from "./PeerGeneratorConfig"
 
 export class IdlComponentDeclaration {
     constructor(
@@ -25,7 +25,7 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
             if (!idl.isInterface(entry) || !idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Component))
                 continue
             const componentName = entry.name.replace("Attribute", "")
-            if (PeerGeneratorConfig.ignoreComponents.includes(componentName) || idl.isHandwritten(entry))
+            if (peerGeneratorConfiguration().ignoreComponents.includes(componentName) || idl.isHandwritten(entry))
                 continue
             if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation))
                 continue

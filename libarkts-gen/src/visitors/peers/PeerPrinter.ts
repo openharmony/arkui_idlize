@@ -104,7 +104,7 @@ export class PeerPrinter {
                 )
             )
         }
-        this.writer.writeExpressionStatements(
+        this.writer.writeExpressionStatements([
             this.writer.makeFunctionCall(
                 PeersConstructions.super,
                 [
@@ -117,7 +117,7 @@ export class PeerPrinter {
                     this.writer.makeString(`"Warning: stub node ${this.node.name}"`)
                 ]
             )
-        )
+        ])
     }
 
     private printTypeGuard(): void {

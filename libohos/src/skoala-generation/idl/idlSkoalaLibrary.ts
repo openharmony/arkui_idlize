@@ -280,7 +280,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         printer.writeMethodCall(`${param}Serializer`, "writeWrapper", [value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const prefix = writer.language === Language.CPP ? generatorConfiguration().param("TypePrefix") : ""
+        const prefix = writer.language === Language.CPP ? generatorConfiguration().TypePrefix : ""
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `readWrapper`, []),
             idl.createReferenceType(`${prefix}${this.type.name}`, undefined, this.idlType)

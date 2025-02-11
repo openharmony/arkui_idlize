@@ -1,0 +1,21 @@
+{
+    "TypePrefix": "Ark_",
+    "LibraryPrefix": "",
+    "OptionalPrefix": "Opt_",
+    "GenerateUnused": false,
+    "rootComponents": [
+        "Root",
+        "ComponentRoot",
+        "CommonMethod",
+        "SecurityComponentMethod",
+        "CommonTransition",
+        "CalendarAttribute",
+        "ContainerSpanAttribute"
+    ],
+    "standaloneComponents": [
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog",
+        "CanvasPattern"
+    ]
+}

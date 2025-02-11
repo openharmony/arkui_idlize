@@ -33,7 +33,7 @@ import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile"
 import { PrinterContext } from "./PrinterContext";
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
@@ -221,7 +221,7 @@ class PeerFileVisitor {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
-                .filter(method => !PeerGeneratorConfig.ignoreMethod(method.overloadedName, writer.language))
+                .filter(method => !peerGeneratorConfiguration().ignoreMethod(method.overloadedName, writer.language))
                 .forEach(method => this.printPeerMethod(method, writer))
             this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))
@@ -506,7 +506,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                         }
                     }
                     let ret:LanguageExpression | undefined = undefined
-                    if (PeerGeneratorConfig.isShouldReplaceThrowingError(method.originalParentName)) {
+                    if (peerGeneratorConfiguration().isShouldReplaceThrowingError(method.originalParentName)) {
                         ret = idl.isOptionalType(returnType)
                             ? writer.makeUndefined()
                             : contType

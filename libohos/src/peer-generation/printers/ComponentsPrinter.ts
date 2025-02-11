@@ -27,7 +27,7 @@ import {
 } from "../LanguageWriters";
 import { LanguageWriter, PeerFile, PeerClass, PeerLibrary } from "@idlizer/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile"
 import { PrinterContext } from "./PrinterContext";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
@@ -141,7 +141,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 )
             )
             const filteredMethods = (peer.methods as any[]).filter(it =>
-                !PeerGeneratorConfig.ignoreMethod(it.overloadedName, this.language))
+                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.language))
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier

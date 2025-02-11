@@ -18,7 +18,7 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, crea
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer/core";
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
 import { ArkoalaInstall, LibaceInstall } from "../Install"
@@ -94,12 +94,12 @@ import {
 
 export function libraryCcDeclaration(): string {
     return readTemplate('library_template.cc')
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 }
 
 export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
     let prologue = readTemplate('bridge_generated_prologue.cc')
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 
     return prologue.concat("\n")
         .concat(generatedApi.join("\n"))
@@ -107,7 +107,7 @@ export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
 
 export function bridgeCcCustomDeclaration(customApi: string[]): string {
     let prologue = readTemplate('bridge_custom_prologue.cc')
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 
     return prologue.concat("\n")
         .concat(customApi.join("\n"))
@@ -117,7 +117,7 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let body = readTemplate('impl_prologue.cc')
 
-    body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+    body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
 
     result.writeLines(body)
     return result
@@ -130,7 +130,7 @@ export function getNodeTypes(library: PeerLibrary): string[] {
             components.push(peer.componentName)
         }
     }
-    return [...PeerGeneratorConfig.customNodeTypes, ...components.sort()]
+    return [...peerGeneratorConfiguration().customNodeTypes, ...components.sort()]
 }
 
 export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
@@ -145,7 +145,7 @@ export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
     for (const component of getNodeTypes(library)) {
         const createNodeMethod = `create${component}Node`
         createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
-        const name = `${PeerGeneratorConfig.cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(component)}`
+        const name = `${peerGeneratorConfiguration().cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(component)}`
         createNodeSwitch.print(`case ${name}: return GeneratedViewModel::${createNodeMethod}(id);`)
     }
     createNodeSwitch.popIndent(3)
@@ -153,7 +153,7 @@ export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
 
     body = body.replaceAll("%CREATE_NODE_METHODS%", createNodeMethods.getOutput().join("\n"))
     body = body.replaceAll("%CREATE_NODE_SWITCH%", createNodeSwitch.getOutput().join("\n"))
-    body = body.replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+    body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
 
     result.writeLines(body)
     return result
@@ -164,7 +164,7 @@ export function completeModifiersContent(content: PrinterLike, basicVersion: num
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
-        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+        .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
         .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
@@ -189,10 +189,10 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     prologue = prologue
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
         .replaceAll(`%API_GENERATED%`, apiGeneratedFile)
     epilogue = epilogue
-        .replaceAll("%CPP_PREFIX%", PeerGeneratorConfig.cppPrefix)
+        .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
         .replaceAll(`%ARKUI_BASIC_NODE_API_VERSION_VALUE%`, basicVersion.toString())
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
@@ -211,11 +211,11 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
 
 export function modifierStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers* ${PeerGeneratorConfig.cppPrefix}GetArkUINodeModifiers()`)
+    result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers* ${peerGeneratorConfiguration().cppPrefix}GetArkUINodeModifiers()`)
     result.print("{")
     result.pushIndent()
 
-    result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
+    result.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers modifiersImpl = {`)
     result.pushIndent()
     result.concat(lines)
     result.popIndent()
@@ -229,11 +229,11 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
 
 export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
-    result.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors* ${PeerGeneratorConfig.cppPrefix}GetArkUIAccessors()`)
+    result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors* ${peerGeneratorConfiguration().cppPrefix}GetArkUIAccessors()`)
     result.print("{")
     result.pushIndent()
 
-    result.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors accessorsImpl = {`)
+    result.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors accessorsImpl = {`)
     result.pushIndent()
     result.concat(lines)
     result.popIndent()
@@ -448,7 +448,7 @@ ${printer.getOutput().join("\n")}
 
 export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[], nodeTypes: string[]): string {
     let node_api = readTemplate('arkoala_node_api.h')
-        .replaceAll(`%CPP_PREFIX%`, PeerGeneratorConfig.cppPrefix)
+        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 
     return `
 /**
@@ -456,25 +456,25 @@ export function makeApiModifiers(modifiers: string[], accessors: string[], event
  * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
  * layout checks.
  */
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers {
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers {
 ${modifiers.join("\n")}
-} ${PeerGeneratorConfig.cppPrefix}ArkUINodeModifiers;
+} ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers;
 
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors {
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors {
 ${accessors.join("\n")}
-} ${PeerGeneratorConfig.cppPrefix}ArkUIAccessors;
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors;
 
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI {
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI {
     ${ArkPrimitiveTypesInstance.Int32.getText()} version;
-} ${PeerGeneratorConfig.cppPrefix}ArkUIGraphicsAPI;
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI;
 
-typedef struct ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI {
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI {
 ${events.join("\n")}
-} ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI;
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI;
 
-typedef enum ${PeerGeneratorConfig.cppPrefix}Ark_NodeType {
+typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
 ${nodeTypes.join(",\n")}
-} ${PeerGeneratorConfig.cppPrefix}Ark_NodeType;
+} ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
 
 ${node_api}
 `
@@ -633,9 +633,9 @@ export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: La
     writer.concat(implData)
     writer.writeMethodImplementation(new Method(
         `GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
+        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
     ), (writer) => {
-        writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
+        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
         writer.concat(receiversList)
         writer.popIndent()
@@ -656,11 +656,11 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
 
     writer.concat(implData)
 
-    writer.print(`const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
+    writer.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
     writer.writeMethodImplementation(new Method(
-        `${PeerGeneratorConfig.cppPrefix}SetArkUiEventsAPI`,
+        `${peerGeneratorConfiguration().cppPrefix}SetArkUiEventsAPI`,
         new NamedMethodSignature(idl.IDLVoidType, [
-            idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`)],
+            idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`)],
             [`api`], undefined,
             [undefined, PrintHint.AsConstPointer]),
     ), (writer) => {
@@ -668,10 +668,10 @@ export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: Prin
     })
 
     writer.writeMethodImplementation(new Method(
-        `${PeerGeneratorConfig.cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
+        `${peerGeneratorConfiguration().cppPrefix}GetArkUiEventsAPI`,
+        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
     ), (writer) => {
-        writer.print(`static const ${PeerGeneratorConfig.cppPrefix}ArkUIEventsAPI eventsImpl = {`)
+        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
         writer.pushIndent()
         writer.concat(receiversList)
         writer.popIndent()

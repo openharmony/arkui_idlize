@@ -10,7 +10,7 @@ import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor } from "@id
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration } from '@idlizer/core';
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
 import { isPredefined, isSystemEntry } from '../idl/IdlPeerGeneratorVisitor';
@@ -105,7 +105,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
                 isSystemEntry(decl)
             )
                 continue
-            if (PeerGeneratorConfig.ignoreEntry(decl.name, library.language))
+            if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
                 continue
             syntheticCollector.convert(decl)
             if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||

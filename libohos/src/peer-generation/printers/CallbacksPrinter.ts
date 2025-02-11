@@ -16,7 +16,7 @@
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
@@ -98,7 +98,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
                     return it
                 })
             // handwritten types are not serializable
-            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.isHandWritten(it.name)))
+            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().isHandWritten(it.name)))
                 return false
             // can not process callbacks with type arguments used inside
             // (value: SomeInterface<T>) => void
@@ -108,7 +108,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
             if (subtypes.some(it => idl.isTypeParameterType(it)))
                 return false
             // (value: IgnoredInterface) => void
-            if (subtypes.some(it => idl.isNamedNode(it) && PeerGeneratorConfig.ignoreEntry(it.name, library.language)))
+            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().ignoreEntry(it.name, library.language)))
                 return false
             if (subtypes.some(it => idl.isNamedNode(it) && it.name === "this"))
                 return false

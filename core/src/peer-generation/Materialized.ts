@@ -32,7 +32,7 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     {
         return false
     }
-    for (const ignore of generatorConfiguration().paramArray<string>("ignoreMaterialized")) {
+    for (const ignore of generatorConfiguration().param<string[]>("ignoreMaterialized")) {
         if (declaration.name.endsWith(ignore)) return false
     }
 

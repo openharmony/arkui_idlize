@@ -19,7 +19,7 @@ import * as ts from "typescript"
 
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { findVersion, generate, GeneratorConfiguration, setDefaultConfiguration } from "@idlizer/core"
+import { BaseGeneratorConfiguration, findVersion, generate, setDefaultConfiguration } from "@idlizer/core"
 
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
@@ -37,13 +37,10 @@ const defaultCompilerOptions: ts.CompilerOptions = {
     types: []
 }
 
-class LinterConfig implements GeneratorConfiguration {
-    param<T>(name: string): T {
-        throw new Error(`${name} is unknown`)
-    }
-    paramArray<T>(name: string): T[] {
-        switch (name) {
-            case 'rootComponents': return [
+class LinterConfig extends BaseGeneratorConfiguration {
+    constructor() {
+        super({
+            rootComponents: [
                 "Root",
                 "ComponentRoot",
                 "CommonMethod",
@@ -51,26 +48,67 @@ class LinterConfig implements GeneratorConfiguration {
                 "CommonTransition",
                 "CalendarAttribute",
                 "ContainerSpanAttribute",
-            ] as T[]
-            case 'standaloneComponents': return [
+            ],
+            standaloneComponents: [
                 "TextPickerDialog",
                 "TimePickerDialog",
                 "AlertDialog",
                 "CanvasPattern"
-            ] as T[]
-        }
-        throw new Error(`array ${name} is unknown`)
+            ]
+        })
     }
 }
 
+function processInputOption(option: string | undefined): string[] {
+    if (!option) return []
+    if (typeof option === 'string') {
+        return option.split(',')
+            .map(item => item.trim())
+            .filter(Boolean)
+    }
+    return []
+}
+
+function formatInputPaths(options: any): { inputDirs: string[]; inputFiles: string[] } {
+    if (options.inputFiles && typeof options.inputFiles === 'string') {
+        options.inputFiles = processInputOption(options.inputFiles)
+    }
+
+    if (options.inputDir && typeof options.inputDir === 'string') {
+        options.inputDir = processInputOption(options.inputDir)
+    }
+
+    const inputDirs: string[] = options.inputDir || []
+    const inputFiles: string[] = options.inputFiles || []
+
+    return { inputDirs, inputFiles }
+}
+
+function validatePaths(paths: string[], type: 'file' | 'dir'): void {
+    paths.forEach(pathItem => {
+        if (!fs.existsSync(pathItem)) {
+            console.error(`Input ${type} does not exist: ${pathItem}`)
+            process.exit(1)
+        } else {
+            console.log(`Input ${type} exists: ${pathItem}`)
+        }
+    })
+}
 
 function main() {
     console.log(`IDLize Linter version ${findVersion()}`)
-    setDefaultConfiguration(new LinterConfig())
+
+    const config = new LinterConfig()
+    setDefaultConfiguration(config!)
+
+    const { inputDirs, inputFiles } = formatInputPaths(options)
+    validatePaths(inputDirs, 'dir')
+    validatePaths(inputFiles, 'file')
+
     const allEntries = new Array<LinterMessage[]>()
     generate(
-        options.inputDir.split(','),
-        options.inputFile ?? [],
+        inputDirs,
+        inputFiles,
         options.outputDir,
         (sourceFile, typeChecker) => new LinterVisitor(sourceFile, typeChecker),
         {

@@ -25,9 +25,9 @@ import {
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
     typeOrUnion, isCommonMethodOrSubclass, generatorConfiguration
 } from "@idlizer/core"
-import { PeerGeneratorConfig } from "./peer-generation/PeerGeneratorConfig"
 import { ReferenceResolver } from "@idlizer/core"
 import { IDLVisitorConfig } from "./IDLVisitorConfig"
+import { peerGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
 
 const MaxSyntheticTypeLength = 60
 
@@ -306,11 +306,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (ts.isClassDeclaration(node)) {
             const entry = this.serializeClass(node)
-            if (!PeerGeneratorConfig.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+            if (!peerGeneratorConfiguration().ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
                 this.output.push(entry)
         } else if (ts.isInterfaceDeclaration(node)) {
             const entry = this.serializeInterface(node)
-            if (!PeerGeneratorConfig.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+            if (!peerGeneratorConfiguration().ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
                 this.output.push(entry)
         } else if (ts.isModuleDeclaration(node)) {
             if (this.isKnownAmbientModuleDeclaration(node)) {
@@ -480,11 +480,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
     computeComponentExtendedAttributes(node: ts.ClassDeclaration | ts.InterfaceDeclaration): idl.IDLExtendedAttribute[] | undefined {
         let result: idl.IDLExtendedAttribute[] = this.computeExtendedAttributes(node)
         let name = identName(node.name)
-        if (name && PeerGeneratorConfig.isHandWritten(PeerGeneratorConfig.mapComponentName(name))) {
+        if (name && peerGeneratorConfiguration().isHandWritten(peerGeneratorConfiguration().mapComponentName(name))) {
             result.push({ name: idl.IDLExtendedAttributes.HandWrittenImplementation })
         }
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
-            result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${PeerGeneratorConfig.mapComponentName(name)}"` })
+            result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${peerGeneratorConfiguration().mapComponentName(name)}"` })
         }
         this.computeExportAttribute(node, result)
         return this.computeDeprecatedExtendAttributes(node, result)
@@ -595,8 +595,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
      * List of such properties is taken from the GeneratorConfiguration.boundProperties parameter
      */
     pickPropertyBindings(className: string, props: idl.IDLProperty[], fileName: string): idl.IDLMethod[] {
-        const componentName = PeerGeneratorConfig.mapComponentName(className)
-        const boundPropsConfig: Array<[string, string[]]> = generatorConfiguration().paramArray("boundProperties")
+        const componentName = peerGeneratorConfiguration().mapComponentName(className)
+        const boundPropsConfig: Array<[string, string[]]> = Array.from(peerGeneratorConfiguration().boundProperties)
         const boundProps = boundPropsConfig.find(it => it[0] === componentName)
         return !boundProps ? []
             : boundProps[1].map(propName => {
@@ -904,7 +904,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (!parent) return false
         const name = identName(parent.name)
-        return PeerGeneratorConfig.isKnownParametrized(name)
+        return peerGeneratorConfiguration().isKnownParametrized(name)
     }
 
     isKnownAmbientModuleDeclaration(type: ts.Node): boolean {

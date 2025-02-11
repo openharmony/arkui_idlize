@@ -27,7 +27,7 @@ import {
 import { LanguageWriter } from "@idlizer/core"
 import { makeCEventsArkoalaImpl, makeCEventsLibaceImpl } from "../FileGenerators"
 import { generateEventReceiverName } from "./HeaderPrinter"
-import { PeerGeneratorConfig } from "../PeerGeneratorConfig"
+import { peerGeneratorConfiguration} from "../PeerGeneratorConfig"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector"
 import { ReferenceResolver, CppInteropConvertor } from "@idlizer/core"

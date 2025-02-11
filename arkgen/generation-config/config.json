@@ -1,4 +1,127 @@
 {
+    "TypePrefix": "Ark_",
+    "LibraryPrefix": "",
+    "OptionalPrefix": "Opt_",
+    "GenerateUnused": false,
+    "dumpSerialized": false,
+    "ignoreMaterialized": [
+        "Attribute",
+        "Interface",
+        "Method",
+        "Configuration",
+        "UIGestureEvent",
+        "GestureHandler",
+        "AnimatableArithmetic"
+    ],
+    "boundProperties": {
+        "Checkbox": [
+            "select"
+        ],
+        "CheckboxGroup": [
+            "selectAll"
+        ],
+        "DatePicker": [
+            "selected"
+        ],
+        "TimePicker": [
+            "selected"
+        ],
+        "MenuItem": [
+            "selected"
+        ],
+        "Panel": [
+            "mode"
+        ],
+        "Radio": [
+            "checked"
+        ],
+        "Rating": [
+            "rating"
+        ],
+        "Search": [
+            "value"
+        ],
+        "SideBarContainer": [
+            "showSideBar"
+        ],
+        "Slider": [
+            "value"
+        ],
+        "Stepper": [
+            "index"
+        ],
+        "Swiper": [
+            "index"
+        ],
+        "Tabs": [
+            "index"
+        ],
+        "TextArea": [
+            "text"
+        ],
+        "TextInput": [
+            "text"
+        ],
+        "TextPicker": [
+            "selected",
+            "value"
+        ],
+        "Toggle": [
+            "isOn"
+        ],
+        "AlphabetIndexer": [
+            "selected"
+        ],
+        "Select": [
+            "selected",
+            "value"
+        ],
+        "BindSheet": [
+            "isShow"
+        ],
+        "BindContentCover": [
+            "isShow"
+        ],
+        "Refresh": [
+            "refreshing"
+        ],
+        "GridItem": [
+            "selected"
+        ],
+        "ListItem": [
+            "selected"
+        ]
+    },
+    "rootComponents": [
+        "Root",
+        "ComponentRoot",
+        "CommonMethod",
+        "SecurityComponentMethod",
+        "CommonTransition",
+        "CalendarAttribute",
+        "ContainerSpanAttribute"
+    ],
+    "standaloneComponents": [
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog",
+        "CanvasPattern"
+    ],
+    "parameterized": [
+        "Indicator",
+        "AttributeModifier",
+        "AnimationRange",
+        "ContentModifier",
+        "SizeT",
+        "PositionT",
+        "Record"
+    ],
+    "builderClasses": [
+        "SubTabBarStyle",
+        "BottomTabBarStyle",
+        "DotIndicator",
+        "DigitIndicator"
+    ],
     "components": {
         "custom": [
             "BaseCustomComponent",
@@ -73,8 +196,8 @@
             "attributeModifier"
         ],
         "ignoreMethodArkts": [
-            "testTupleNumberStringEnum", 
-            "testTupleOptional", 
+            "testTupleNumberStringEnum",
+            "testTupleOptional",
             "testTupleUnion"
         ],
         "invalidAttributes": [
@@ -82,137 +205,15 @@
         ],
         "replaceThrowErrorReturn": [
             "NavPathStack"
-        ],
-        "parameterized": [
-            "Indicator",
-            "AttributeModifier",
-            "AnimationRange",
-            "ContentModifier",
-            "SizeT",
-            "PositionT",
-            "Record"
-        ],
-        "builderClasses": [
-            "SubTabBarStyle",
-            "BottomTabBarStyle",
-            "DotIndicator",
-            "DigitIndicator"
-        ],
-        "inheritanceRole": {
-            "rootComponents": [
-                "Root",
-                "ComponentRoot",
-                "CommonMethod",
-                "SecurityComponentMethod",
-                "CommonTransition",
-                "CalendarAttribute",
-                "ContainerSpanAttribute"
-            ],
-            "standaloneComponents": [
-                "TextPickerDialog",
-                "TimePickerDialog",
-                "AlertDialog",
-                "CanvasPattern"
-            ]
-        },
-        "boundProperties": {
-            "Checkbox": [
-                "select"
-            ],
-            "CheckboxGroup": [
-                "selectAll"
-            ],
-            "DatePicker": [
-                "selected"
-            ],
-            "TimePicker": [
-                "selected"
-            ],
-            "MenuItem": [
-                "selected"
-            ],
-            "Panel": [
-                "mode"
-            ],
-            "Radio": [
-                "checked"
-            ],
-            "Rating": [
-                "rating"
-            ],
-            "Search": [
-                "value"
-            ],
-            "SideBarContainer": [
-                "showSideBar"
-            ],
-            "Slider": [
-                "value"
-            ],
-            "Stepper": [
-                "index"
-            ],
-            "Swiper": [
-                "index"
-            ],
-            "Tabs": [
-                "index"
-            ],
-            "TextArea": [
-                "text"
-            ],
-            "TextInput": [
-                "text"
-            ],
-            "TextPicker": [
-                "selected",
-                "value"
-            ],
-            "Toggle": [
-                "isOn"
-            ],
-            "AlphabetIndexer": [
-                "selected"
-            ],
-            "Select": [
-                "selected",
-                "value"
-            ],
-            "BindSheet": [
-                "isShow"
-            ],
-            "BindContentCover": [
-                "isShow"
-            ],
-            "Refresh": [
-                "refreshing"
-            ],
-            "GridItem": [
-                "selected"
-            ],
-            "ListItem": [
-                "selected"
-            ]
-        }
+        ]
     },
     "materialized": {
-        "ignoredSuffixes": [
-            "Attribute",
-            "Interface",
-            "Method",
-            "Configuration",
-            "UIGestureEvent",
-            "GestureHandler",
-            "AnimatableArithmetic"
-        ],
         "ignoredReturnTypes": [
             "Promise"
         ]
     },
     "native": {
-        "cppPrefix": "GENERATED_",
-        "typePrefix": "Ark_",
-        "optionalTypePrefix": "Opt_"
+        "cppPrefix": "GENERATED_"
     },
     "serializer": {
         "ignore": [

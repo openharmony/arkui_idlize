@@ -240,7 +240,7 @@ export class CustomPrintVisitor {
         let isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
         if (isCommonMethod) {
             // TODO: not very clean, but we don't need to print these so far.
-            // if (PeerGeneratorConfig.ignorePeerMethod.includes(node.name)) return
+            // if (peerGeneratorConfiguration().ignorePeerMethod.includes(node.name)) return
             const typeParams = this.currentInterface?.typeParameters
             const returnType = typeParams && typeParams.length > 0 ? typeParams[0] : this.currentInterface!.name
             this.print(`${getName(node)}(value: ${this.printTypeForTS(node.type, undefined, undefined, isCommonMethod)}): ${returnType};`)

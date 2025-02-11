@@ -24,7 +24,6 @@ import {
     IDLI32Type,
     IDLUint8ArrayType,
     NamedMethodSignature,
-    GeneratorConfiguration,
     generatorConfiguration,
     Language,
     NativeModuleType,
@@ -45,13 +44,13 @@ import { printArkUIGeneratedNativeModule } from './printers/NativeModulePrinter'
 import { NativeModule } from './NativeModule';
 import { TargetFile } from "./printers/TargetFile"
 import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
-import { generateNativeOhos, suggestLibraryName } from './OhosGenerator';
+import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
 import { printRealAndDummyAccessors, printRealAndDummyModifiers } from './printers/ModifierPrinter';
 import { printSerializersOhos } from './printers/HeaderPrinter';
 import { install } from './LayoutManager';
 import { printInterfaceData } from './printers/InterfaceDataPrinter';
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: GeneratorConfiguration) {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: OhosConfiguration) {
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
@@ -218,7 +217,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
         writeIntegratedFile(ohos.native(file), content)
     }
 
-    const { api, serializers } = printSerializersOhos(config.param("ApiVersion"), peerLibrary)
+    const { api, serializers } = printSerializersOhos(config.ApiVersion, peerLibrary)
     writeIntegratedFile(ohos.native(new TargetFile(`Serializers.h`)), serializers)
 
     // writeIntegratedFile(ohos.native(new TargetFile(`all_events.cc`)), printEventsCArkoalaImpl(peerLibrary))
@@ -226,8 +225,8 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: G
     const modifiers = printRealAndDummyModifiers(peerLibrary, true)
     const accessors = printRealAndDummyAccessors(peerLibrary)
     const apiGenFile = peerLibrary.name.toLowerCase()
-    const modifiersDummy = dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.param("ApiVersion") , 6, apiGenFile).getOutput().join('\n')
-    const modifiersReal = dummyImplementations(modifiers.real, accessors.real, 1, config.param("ApiVersion"), 6, apiGenFile).getOutput().join('\n')
+    const modifiersDummy = dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.ApiVersion , 6, apiGenFile).getOutput().join('\n')
+    const modifiersReal = dummyImplementations(modifiers.real, accessors.real, 1, config.ApiVersion, 6, apiGenFile).getOutput().join('\n')
     writeIntegratedFile(ohos.native(new TargetFile(`dummy_impl.cc`)), modifiersDummy)
     writeIntegratedFile(ohos.native(new TargetFile(`real_impl.cc`)), modifiersReal)
 

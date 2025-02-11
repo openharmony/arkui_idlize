@@ -69,7 +69,7 @@ export class InteropConvertor implements NodeConvertor<ConvertResult> {
         return this.make(node.name)
     }
     convertCallback(node: idl.IDLCallback): ConvertResult {
-        return this.make(generatorConfiguration().param("LibraryPrefix") + node.name, true)
+        return this.make(generatorConfiguration().LibraryPrefix + node.name, true)
     }
     convertMethod(node: idl.IDLMethod): ConvertResult {
         return this.make(node.name)
@@ -111,7 +111,7 @@ export class InteropConvertor implements NodeConvertor<ConvertResult> {
             case "Object":
                 return this.make('CustomObject')
         }
-        if (generatorConfiguration().paramArray("knownParameterized").includes(refName)) {
+        if (generatorConfiguration().param<string[]>("parameterized").includes(refName)) {
             return this.make('CustomObject')
         }
         let decl = this.resolver.toDeclaration(type)

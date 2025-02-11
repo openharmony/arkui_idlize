@@ -4,13 +4,13 @@ import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { isPredefined } from "./idl/IdlPeerGeneratorVisitor";
 import { IdlNameConvertor } from "@idlizer/core";
-import { PeerGeneratorConfig } from "./PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
 export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNode[] {
 
-    const generateUnused = generatorConfiguration().param("GenerateUnused")
+    const generateUnused = peerGeneratorConfiguration().GenerateUnused
 
     if (collectDeclarationTargets_cache.has(library))
         return collectDeclarationTargets_cache.get(library)!
@@ -20,7 +20,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
     let orderer = new DependencySorter(library)
     for (const file of library.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (PeerGeneratorConfig.ignoreEntry(entry.name, library.language) ||
+            if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.CPPType ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation)
@@ -30,12 +30,12 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                 if (isComponentDeclaration(library, entry) ||
                     isMaterialized(entry, library)) {
                     for (const property of entry.properties) {
-                        if (PeerGeneratorConfig.ignorePeerMethod.includes(property.name))
+                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(property.name))
                             continue
                         orderer.addDep(library.toDeclaration(property.type))
                     }
                     for (const method of entry.methods) {
-                        if (PeerGeneratorConfig.ignorePeerMethod.includes(method.name))
+                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(method.name))
                             continue
                         for (const parameter of method.parameters)
                             orderer.addDep(parameter.type!)
@@ -51,7 +51,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                 } else if (generateUnused && !isPredefined(entry)) {
                     orderer.addDep(library.toDeclaration(entry))
                     for (const property of entry.properties) {
-                        if (PeerGeneratorConfig.ignorePeerMethod.includes(property.name))
+                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(property.name))
                             continue
                         orderer.addDep(library.toDeclaration(property.type))
                     }
@@ -104,7 +104,7 @@ export namespace DeclarationTargets {
             .filter(it => it !== idl.IDLVoidType)
             .map(it => idl.isType(it)
                 ? nativeNameConvertorInstance.convert(idl.createOptionalType(it))
-                : generatorConfiguration().param("OptionalPrefix") + cleanPrefix(nativeNameConvertorInstance.convert(it), generatorConfiguration().param("TypePrefix"))
+                : generatorConfiguration().OptionalPrefix + cleanPrefix(nativeNameConvertorInstance.convert(it), generatorConfiguration().TypePrefix)
             )
         return new Set(data)
     }

@@ -21,7 +21,7 @@ export class PrimitiveType {
     }
 
     getText(): string {
-        return generatorConfiguration().param("TypePrefix") + this.name
+        return generatorConfiguration().TypePrefix + this.name
     }
 
     toString(): string {

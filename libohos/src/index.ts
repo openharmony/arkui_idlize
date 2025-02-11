@@ -14,11 +14,12 @@
  */
 
 import { BaseGeneratorConfiguration } from '@idlizer/core'
-import { PeerGeneratorConfig } from './peer-generation/PeerGeneratorConfig'
+import { peerGeneratorConfiguration } from './peer-generation/PeerGeneratorConfig'
 
 export * from './IDLVisitor'
 export * from './IDLVisitorConfig'
 export * from "./Install"
+export * from "./DefaultConfiguration"
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
 export * from './peer-generation/PeerGeneratorConfig'
@@ -67,7 +68,7 @@ export * from './peer-generation/LayoutManager'
 export * from './peer-generation/DeclarationTargetCollector'
 export * from './peer-generation/plugin-api'
 export * from './peer-generation/ImportsCollectorUtils'
-export { generateOhos as generateOhosOld, suggestLibraryName } from './peer-generation/OhosGenerator'
+export { generateOhos as generateOhosOld, suggestLibraryName, OhosConfiguration } from './peer-generation/OhosGenerator'
 export * from './peer-generation/NativeModule'
 export * from './peer-generation/FileGenerators'
 export * from './TestGeneratorVisitor'
@@ -78,20 +79,3 @@ export * from './skoala-generation/printers/InterfacePrinter'
 export { IdlSkoalaLibrary, IldSkoalaFile, IdlWrapperProcessor } from './skoala-generation/idl/idlSkoalaLibrary'
 export * from './skoala-generation/SkoalaInstall'
 export * from './skoala-generation/SkoalaGeneration'
-
-export class DefaultConfig extends BaseGeneratorConfiguration {
-    constructor(apiVersion: number, params: Record<string, any> = {}) {
-        super({
-            TypePrefix: PeerGeneratorConfig.typePrefix,
-            LibraryPrefix: "",
-            OptionalPrefix: PeerGeneratorConfig.optionalTypePrefix,
-            GenerateUnused: false,
-            DumpSerialized: false,
-            ApiVersion: apiVersion,
-            builderClasses: [], // TODO: builderClasses, knownParameterized, ignoreMaterialized should be taken from PeerGeneratorConfig
-            knownParameterized: [],
-            ignoreMaterialized: [],
-            ...params
-        })
-    }
-}

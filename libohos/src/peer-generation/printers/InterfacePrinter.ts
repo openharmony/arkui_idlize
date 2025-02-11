@@ -46,7 +46,7 @@ import { printJavaImports } from './lang/JavaPrinters'
 import { collectJavaImports } from './lang/JavaIdlUtils'
 import { collectProperties } from './StructPrinter'
 import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
-import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
+import { peerGeneratorConfiguration} from '../PeerGeneratorConfig'
 import { isPredefined } from '../idl/IdlPeerGeneratorVisitor'
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
@@ -395,7 +395,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
                     isPredefined(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
-                    PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
+                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
                 if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
@@ -457,7 +457,7 @@ class JavaSyntheticGenerator extends DependenciesCollector {
     }
 
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
-        if (PeerGeneratorConfig.ignoreEntry(decl.name, Language.JAVA))
+        if (peerGeneratorConfiguration().ignoreEntry(decl.name, Language.JAVA))
             return []
         return super.convertTypedef(decl)
     }
@@ -728,7 +728,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
                 if (isPredefined(entry))
                     continue;
                 syntheticsGenerator.convert(entry)
-                if (PeerGeneratorConfig.ignoreEntry(entry.name, Language.JAVA))
+                if (peerGeneratorConfiguration().ignoreEntry(entry.name, Language.JAVA))
                     continue
                 if (idl.isInterface(entry) && (
                     isBuilderClass(entry) ||
@@ -843,7 +843,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
                     isPredefined(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
-                    PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
+                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
                 if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
@@ -898,7 +898,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     isPredefined(entry))
                     continue
-                if (PeerGeneratorConfig.ignoreEntry(entry.name, this.peerLibrary.language))
+                if (peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
                 if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))

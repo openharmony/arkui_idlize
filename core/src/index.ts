@@ -15,7 +15,6 @@ import { fromIDL } from "./from-idl/common"
  * limitations under the License.
  */
 export * from "./config"
-export * from "./configMerge"
 export * from "./idl"
 export * from "./visitor"
 export * from "./library"

@@ -24,15 +24,15 @@ export class CppInteropConvertor extends InteropConvertor implements IdlNameConv
     private unwrap(type: idl.IDLNode, result: ConvertResult): string {
         const conf = generatorConfiguration()
         if (idl.isType(type) && idl.isOptionalType(type)) {
-            return `${conf.param("OptionalPrefix")}${result.text}`
+            return `${conf.OptionalPrefix}${result.text}`
         }
         if (result.noPrefix) {
             return result.text
         }
-        const typePrefix = conf.param("TypePrefix")
+        const typePrefix = conf.TypePrefix
         // TODO remove this ugly hack for CustomObject's
         const convertedToCustomObject = result.text === idl.IDLCustomObjectType.name
-        const libPrefix = idl.isPrimitiveType(type) || convertedToCustomObject ? "" : conf.param("LibraryPrefix")
+        const libPrefix = idl.isPrimitiveType(type) || convertedToCustomObject ? "" : conf.LibraryPrefix
         return `${typePrefix}${libPrefix}${result.text}`
     }
 

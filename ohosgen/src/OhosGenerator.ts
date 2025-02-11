@@ -6,7 +6,8 @@ import {
     lib,
     IDLLibrary,
     QueryType,
-    BaseGeneratorConfiguration
+    GeneratorConfiguration,
+    DefaultConfiguration
 } from '@idlizer/core'
 
 class OHOSVisitor {
@@ -37,11 +38,17 @@ class OHOSVisitor {
 }
 
 export function generateOhos(outDir: string, inputFiles: string[], defaultIdlPackage?: string): void {
-    setDefaultConfiguration(new BaseGeneratorConfiguration({
-        "prefix": "XML"
-    }))
+    setDefaultConfiguration(new OhosConfiguration({ prefix: "XML" }))
     const generatedSubDir = path.join(outDir, 'generated')
     if (!fs.existsSync(generatedSubDir)) fs.mkdirSync(outDir, { recursive: true })
     const visitor = new OHOSVisitor(inputFiles /**, defaultIdlPackage */)
     visitor.execute(generatedSubDir)
+}
+
+class OhosConfiguration extends DefaultConfiguration {
+    prefix: string
+    constructor(data?: Partial<OhosConfiguration>) {
+        super(data)
+        Object.assign(this, data)
+    }
 }

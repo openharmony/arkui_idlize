@@ -39,11 +39,11 @@ import {
     transformMethodsAsync2ReturnPromise,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { IDLVisitor, loadConfiguration, PeerGeneratorConfig, setFileGeneratorConfiguration,
+import { IDLVisitor, loadPeerConfiguration, peerGeneratorConfiguration,
     generateTracker, IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor,
-    generateOhos, generateOhosOld, suggestLibraryName, loadPlugin,
+    generateOhos, generateOhosOld, OhosConfiguration, suggestLibraryName, loadPlugin,
     SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaFile, generateIdlSkoala,
-    IdlWrapperProcessor, fillSyntheticDeclarations, DefaultConfig,
+    IdlWrapperProcessor, fillSyntheticDeclarations, DefaultConfiguration,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -95,32 +95,13 @@ const options = program
 
 let apiVersion = options.apiVersion ?? 9999
 
-setFileGeneratorConfiguration(loadConfiguration(options.optionsFile, options.overrideOptionsFile))
+setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)
 }
 
 let didJob = false
-
-class ArkoalaConfiguration extends DefaultConfig {
-    constructor() {
-        super(apiVersion, {
-            rootComponents: PeerGeneratorConfig.rootComponents,
-            standaloneComponents: PeerGeneratorConfig.standaloneComponents,
-            knownParameterized: PeerGeneratorConfig.knownParameterized,
-            boundProperties: Array.from(PeerGeneratorConfig.boundProperties.entries()),
-            builderClasses: PeerGeneratorConfig.builderClasses,
-            ignoreMaterialized: PeerGeneratorConfig.ignoreMaterialized,
-        });
-    }
-    override paramArray<T>(name: string): T[] {
-        return super.paramArray(name)
-    }
-}
-
-setDefaultConfiguration(new ArkoalaConfiguration())
-
 
 if (options.dts2idl) {
 
@@ -174,7 +155,7 @@ if (options.dts2idl) {
 }
 
 if (options.dts2skoala) {
-    setDefaultConfiguration(new DefaultConfig(apiVersion))
+    setDefaultConfiguration(new DefaultConfiguration({ ApiVersion: apiVersion, TypePrefix: "", LibraryPrefix: "", OptionalPrefix: "Opt_" }))
 
     console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
 
@@ -401,7 +382,7 @@ if (options.dts2peer) {
                 if (options.generatorTarget == "ohos") {
                     // This setup code placed here because wrong prefix may be cached during library creation
                     // TODO find better place for setup?
-                    setDefaultConfiguration(new DefaultConfig(apiVersion))
+                    // setDefaultConfiguration(new DefaultConfiguration())
                 }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
@@ -446,10 +427,11 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     }
     if (options.generatorTarget == "ohos") {
         if (options.useNewOhos) {
-            generateOhos(outDir, idlLibrary, new DefaultConfig(
-                apiVersion, {
-                LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`,
-                GenerateUnused: true
+            generateOhos(outDir, idlLibrary, new OhosConfiguration({
+                ...peerGeneratorConfiguration().params,
+                LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`, 
+                GenerateUnused: true,
+                ApiVersion: apiVersion,
             }))
         } else {
             generateOhosOld(outDir, idlLibrary, apiVersion, options.defaultIdlPackage as string, options.splitFiles)

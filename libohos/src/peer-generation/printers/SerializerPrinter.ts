@@ -17,7 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { PeerGeneratorConfig } from '../PeerGeneratorConfig'
+import { peerGeneratorConfiguration } from '../PeerGeneratorConfig'
 import { ImportsCollector } from "../ImportsCollector"
 import {
     ArkTSBuiltTypesDependencyFilter,
@@ -175,7 +175,7 @@ class SerializerPrinter {
         const className = "Serializer"
         const superName = `${className}Base`
         if (prefix == "" && this.writer.language === Language.CPP)
-            prefix = generatorConfiguration().param("TypePrefix") + this.library.libraryPrefix
+            prefix = generatorConfiguration().TypePrefix + this.library.libraryPrefix
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))
         printSerializerImports(this.library, this.destFile, declarationPath)
@@ -511,7 +511,7 @@ class DeserializerPrinter {
         let ctorSignature: NamedMethodSignature | undefined = undefined
         if (this.writer.language == Language.CPP) {
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], ["data", "length"])
-            prefix = prefix === "" ? generatorConfiguration().param("TypePrefix") : prefix
+            prefix = prefix === "" ? generatorConfiguration().TypePrefix : prefix
         } else if (this.writer.language === Language.ARKTS) {
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createContainerType("sequence", [idl.IDLU8Type]), idl.IDLI32Type], ["data", "length"])
         }
@@ -693,7 +693,7 @@ export function createSerializerDependencyFilter(language: Language): Dependency
 
 class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
-        return !PeerGeneratorConfig.ignoreSerialization.includes(node.name!)
+        return !peerGeneratorConfiguration().ignoreSerialization.includes(node.name!)
             && !this.isParameterized(node)
             && this.canSerializeDependency(node)
     }

@@ -93,7 +93,7 @@ import { MaterializedClass, MaterializedMethod } from '@idlizer/core'
 import { writePeerMethod } from './printers/PeersPrinter'
 import { TargetFile } from "./printers/TargetFile"
 import { printInterfaces } from './printers/InterfacePrinter'
-import { DefaultConfig } from '../'
+import { PeerGeneratorConfigurationImpl } from './PeerGeneratorConfig'
 
 class NameType {
     constructor(public name: string, public type: string) {}
@@ -583,9 +583,9 @@ abstract class OHOSVisitor {
         // Create API.
         let api = this.libraryName
         let _c = writer
-        _c.print(`const ${generatorConfiguration().param("TypePrefix")}${api}_API* Get${api}APIImpl(int version) {`)
+        _c.print(`const ${generatorConfiguration().TypePrefix}${api}_API* Get${api}APIImpl(int version) {`)
         _c.pushIndent()
-        _c.print(`const static ${generatorConfiguration().param("TypePrefix")}${api}_API api = {`)
+        _c.print(`const static ${generatorConfiguration().TypePrefix}${api}_API api = {`)
         _c.pushIndent()
         _c.print(`1, // version`)
         this.interfaces.forEach(it => {
@@ -597,11 +597,11 @@ abstract class OHOSVisitor {
         _c.print(`return &api;`)
         _c.popIndent()
         _c.print(`}`)
-        let name = `${generatorConfiguration().param("TypePrefix")}${api}_API`
+        let name = `${generatorConfiguration().TypePrefix}${api}_API`
         let _h = this.hWriter
         _h.print(`typedef struct ${name} {`)
         _h.pushIndent()
-        _h.print(`${generatorConfiguration().param("TypePrefix")}Int32 version;`)
+        _h.print(`${generatorConfiguration().TypePrefix}Int32 version;`)
         this.interfaces.forEach(it => {
             _h.print(`const ${this.modifierName(it)}* (*${this.apiName(it)})();`)
         })
@@ -1152,11 +1152,11 @@ abstract class OHOSVisitor {
 
     execute(rootPath: string, apiVersion: number, outDir: string, managedOutDir: string) {
         const origGenConfig = generatorConfiguration()
-        setDefaultConfiguration(new DefaultConfig(
-            apiVersion, {
+        setDefaultConfiguration(new OhosConfiguration({
             TypePrefix: "OH_",
             LibraryPrefix: `${this.libraryName}_`,
             OptionalPrefix: "Opt_",
+            ApiVersion: apiVersion
         }))
 
         this.prepare()
@@ -1446,6 +1446,19 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
             overloadPostfix
         }
     })
+}
+
+export class OhosConfiguration extends PeerGeneratorConfigurationImpl {
+    constructor(data: Record<string, any> = {}) {
+        super({
+            DumpSerialized: false,
+            ApiVersion: 9999,
+            ...data
+        })
+    }
+
+    get dumpSerialized(): boolean { return this.param<boolean>("DumpSerialized") }
+    get ApiVersion(): number { return this.param<number>("ApiVersion") }
 }
 
 function getFileNameFromDeclaration(decl: idl.IDLNode): string {

@@ -37,7 +37,7 @@ export class BuilderClass {
  */
 export function isBuilderClass(declaration: IDLInterface): boolean {
     const className = declaration.name!
-    if (generatorConfiguration().paramArray("builderClasses").includes(className)) {
+    if (generatorConfiguration().param<string[]>("builderClasses").includes(className)) {
         return true
     }
     if (isCustomBuilderClass(className)) {
@@ -51,7 +51,7 @@ export function isBuilderClass(declaration: IDLInterface): boolean {
     return false
 
     /*
-    if (PeerGeneratorConfig.isStandardNameIgnored(className)) {
+    if (peerGeneratorConfiguration().isStandardNameIgnored(className)) {
         return false
     }
 
