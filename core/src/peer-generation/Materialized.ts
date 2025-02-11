@@ -16,6 +16,7 @@
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
 import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
+import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { capitalize } from '../util'
 import { isBuilderClass } from './BuilderClass'
@@ -90,7 +91,7 @@ export class MaterializedMethod extends PeerMethod {
         }
     }
 
-    override get dummyReturnValue(): string | undefined {
+    override dummyReturnValue(resolver: ReferenceResolver): string | undefined {
         if (this.method.name === "ctor") return `(${this.originalParentName}Peer*) 100`
         if (this.method.name === "getFinalizer") return `fnPtr<KNativePointer>(dummyClassFinalizer)`
         if (this.method.modifiers?.includes(MethodModifier.STATIC)) {
@@ -100,7 +101,8 @@ export class MaterializedMethod extends PeerMethod {
             if (this.method.signature.returnType === idl.IDLBooleanType) {
                 return '0'
             }
-            return `(${this.originalParentName}Peer*) 300`
+            const convertor = new CppReturnTypeConvertor(resolver)
+            return `(${convertor.convert(this.returnType)}) 300`
         }
         if (idl.isReferenceType(this.method.signature.returnType)) {
             return "{}"

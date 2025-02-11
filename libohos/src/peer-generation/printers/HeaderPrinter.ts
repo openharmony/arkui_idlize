@@ -24,7 +24,8 @@ import {
     PeerClass,
     PeerMethod,
     PeerLibrary,
-    InteropReturnTypeConvertor
+    InteropReturnTypeConvertor,
+    CppReturnTypeConvertor
 } from '@idlizer/core'
 import { getNodeTypes, makeAPI, makeApiOhos, makeConverterHeader, makeCSerializersArk, makeCSerializersOhos, readInteropTypesHeader, readLangTemplate, readTemplate } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";

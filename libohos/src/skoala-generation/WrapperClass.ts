@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ArgConvertor } from "@idlizer/core";
+import { ArgConvertor, ReferenceResolver } from "@idlizer/core";
 import { Field, Method, MethodModifier } from "../peer-generation/LanguageWriters"
 import { capitalize } from "@idlizer/core"
 import { Skoala } from './utils';
@@ -56,7 +56,7 @@ export class WrapperMethod {
         return this.method.name
     }
 
-    get dummyReturnValue(): string | undefined {
+    dummyReturnValue(resolver: ReferenceResolver): string | undefined {
         return undefined
     }
 

@@ -45,6 +45,7 @@ import {
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { LibaceInstall } from "../../Install";
 import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlizer/core/idl'
+import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 
 export class ModifierVisitor {
     dummy = this.library.createLanguageWriter(Language.CPP)
@@ -63,7 +64,7 @@ export class ModifierVisitor {
     printDummyImplFunctionBody(method: PeerMethod) {
         let _ = this.dummy
         const isVoid = this.returnTypeConvertor.isVoid(method)
-        let retVal = isVoid ? undefined : (method.dummyReturnValue ?? "0")
+        let retVal = isVoid ? undefined : (method.dummyReturnValue(this.library) ?? "0")
 
         _.writeStatement(
             _.makeCondition(

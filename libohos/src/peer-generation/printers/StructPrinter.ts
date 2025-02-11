@@ -166,7 +166,7 @@ export class StructPrinter {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else if (isAccessor) {
-                const peerName = cleanPrefix(`${nameAssigned}Peer`, PeerGeneratorConfig.typePrefix)
+                const peerName = cleanPrefix(`${nameAssigned}Peer`, peerGeneratorConfiguration().TypePrefix)
                 forwardDeclarations.print(`typedef struct ${peerName} ${peerName};`)
                 forwardDeclarations.print(`typedef struct ${peerName}* ${nameAssigned};`)
                 this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)

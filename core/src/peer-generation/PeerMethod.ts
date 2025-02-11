@@ -19,6 +19,7 @@ import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
 import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
 import { capitalize, isDefined } from "../util"
 import { PrimitiveTypesInstance } from "./PrimitiveType"
+import { ReferenceResolver } from "./ReferenceResolver"
 
 export class PeerMethod {
     private overloadIndex?: number
@@ -54,7 +55,7 @@ export class PeerMethod {
     get toStringName(): string {
         return this.method.name
     }
-    get dummyReturnValue(): string | undefined {
+    dummyReturnValue(resolver: ReferenceResolver): string | undefined {
         return undefined
     }
     get receiverType(): string {
