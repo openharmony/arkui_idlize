@@ -26,15 +26,15 @@ import { PeerMethod } from './PeerMethod'
 import { ReferenceResolver } from './ReferenceResolver'
 
 export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
-    if (idl.isHandwritten(declaration) ||
-        isBuilderClass(declaration) ||
-        declaration.subkind === idl.IDLInterfaceSubkind.AnonymousInterface ||
-        declaration.subkind === idl.IDLInterfaceSubkind.Tuple)
-    {
-        return false
+    if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false
+    if (idl.isHandwritten(declaration) || isBuilderClass(declaration)) return false
+
+    for (const forceMaterialized of generatorConfiguration().param<string[]>("forceMaterialized")) {
+        if (declaration.name == forceMaterialized) return true
     }
+
     for (const ignore of generatorConfiguration().param<string[]>("ignoreMaterialized")) {
-        if (declaration.name.endsWith(ignore)) return false
+            if (declaration.name.endsWith(ignore)) return false
     }
 
     // A materialized class is a class or an interface with methods

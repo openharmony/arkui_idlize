@@ -13,6 +13,9 @@
         "GestureHandler",
         "AnimatableArithmetic"
     ],
+    "forceMaterialized": [
+        "BaseContext"
+    ],
     "boundProperties": {
         "Checkbox": [
             "select"

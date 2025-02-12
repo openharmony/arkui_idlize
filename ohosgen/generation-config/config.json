@@ -5,6 +5,9 @@
     "GenerateUnused": false,
     "dumpSerialized": false,
     "ignoreMaterialized": [],
+    "forceMaterialized": [
+        "BaseContext"
+    ],
     "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],
