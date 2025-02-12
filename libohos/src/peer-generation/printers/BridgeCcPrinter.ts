@@ -91,7 +91,7 @@ class BridgeCcVisitor {
                 `return {};`
             ]
         } else {
-            statements = [isVoid ? "" : "return ", `${peerMethodCall};`]
+            statements = [isVoid ? `${peerMethodCall};` : `return ${peerMethodCall};`]
         }
         if (this.callLog) this.printCallLog(method, apiCall, modifier)
         statements.forEach(it => this.generatedApi.print(it))
