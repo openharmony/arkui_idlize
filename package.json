@@ -15,8 +15,10 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
+    "download:sdk": "node ./tools/download-sdk.mjs",
     "compile": "npm run compile --prefix external/incremental/compat && npm run compile --prefix external/incremental/common && npm run compile --prefix external/interop",
     "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && node tools/release.mjs",
-    "sanity": "npm run -C arkgen sanity && npm run -C linter run"
+    "sanity": "npm run -C arkgen sanity && npm run -C linter run",
+    "setup-out": "node tools/setup/setup.mjs"
   }
 }

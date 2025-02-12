@@ -13,16 +13,14 @@
  * limitations under the License.
  */
 
-import { BaseGeneratorConfiguration } from '@idlizer/core'
-import { peerGeneratorConfiguration } from './peer-generation/PeerGeneratorConfig'
+import * as fs from 'fs'
 
+export * from './launch'
 export * from './IDLVisitor'
 export * from './IDLVisitorConfig'
-export * from "./Install"
 export * from "./DefaultConfiguration"
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
-export * from './peer-generation/PeerGeneratorConfig'
 export * from './peer-generation/ComponentsCollector'
 export * from './peer-generation/ArkPrimitiveType'
 export * from './peer-generation/common'
@@ -58,7 +56,7 @@ export * from './peer-generation/printers/InterfacePrinter'
 export * from './peer-generation/printers/lang/Java'
 export * from './peer-generation/printers/lang/CJPrinters'
 export * from './peer-generation/printers/lang/JavaPrinters'
-export * from './peer-generation/ohos'
+export * from "./peer-generation/PeerGeneratorConfig"
 export * from './peer-generation/PromiseConvertors'
 export * from './peer-generation/idl/IdlDependenciesCollector'
 export * from './peer-generation/idl/IdlPeerGeneratorVisitor'
@@ -68,7 +66,6 @@ export * from './peer-generation/LayoutManager'
 export * from './peer-generation/DeclarationTargetCollector'
 export * from './peer-generation/plugin-api'
 export * from './peer-generation/ImportsCollectorUtils'
-export { generateOhos as generateOhosOld, suggestLibraryName, OhosConfiguration } from './peer-generation/OhosGenerator'
 export * from './peer-generation/NativeModule'
 export * from './peer-generation/FileGenerators'
 export * from './TestGeneratorVisitor'
@@ -79,3 +76,10 @@ export * from './skoala-generation/printers/InterfacePrinter'
 export { IdlSkoalaLibrary, IldSkoalaFile, IdlWrapperProcessor } from './skoala-generation/idl/idlSkoalaLibrary'
 export * from './skoala-generation/SkoalaInstall'
 export * from './skoala-generation/SkoalaGeneration'
+
+export class Install {
+    mkdir(path: string): string {
+        fs.mkdirSync(path, { recursive: true })
+        return path
+    }
+}

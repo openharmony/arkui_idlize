@@ -14,14 +14,14 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { Language, IndentedPrinter, PeerLibrary } from '@idlizer/core'
-import { ArkoalaInstall, LibaceInstall, 
-    copyToArkoala, copyToLibace, dummyImplementations, gniFile, libraryCcDeclaration,
+import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, CppInteropConvertor, LanguageWriter } from '@idlizer/core'
+import {
+    dummyImplementations, gniFile, libraryCcDeclaration,
     makeArkuiModule, makeCallbacksKinds, makeTSDeserializer, makeArkTSDeserializer,
     makeTSSerializer, makeTypeChecker, mesonBuildFile, tsCopyrightAndWarning,
     makeDeserializeAndCall, readLangTemplate, makeCJDeserializer, makeCJSerializer,
     makeJavaArkComponents, makeJavaSerializer, printRealAndDummyAccessors,
-    printRealAndDummyModifiers, printRealModifiersAsMultipleFiles, printComponents, printPeers,
+    printRealAndDummyModifiers, printComponents, printPeers,
     createMaterializedPrinter, printSerializers, printUserConverter,
     printEvents, printEventsCArkoalaImpl, printEventsCLibaceImpl,
     printGniSources, printMesonBuild, printInterfaces as printIdlInterfaces,
@@ -31,8 +31,21 @@ import { ArkoalaInstall, LibaceInstall,
     NativeModule, printArkUIGeneratedNativeModule, printArkUILibrariesLoader,
     printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions,
     printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule,
-    printTSPredefinedEmptyNativeModule, printGlobal, layout, writeFile, writeIntegratedFile, install
+    printTSPredefinedEmptyNativeModule, printGlobal, layout, writeFile, writeIntegratedFile, install,
+    copyDir,
+    ModifierFileOptions,
+    MultiFileModifiersVisitor,
+    MultiFileModifiersVisitorState,
+    modifierStructList,
+    accessorStructList,
+    ArkPrimitiveTypesInstance,
+    cStyleCopyright,
+    warning,
+    appendModifiersCommonPrologue,
+    completeModifiersContent,
+    appendViewModelBridge
 } from "@idlizer/libohos"
+import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -84,7 +97,6 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/use_properties.ts',
         'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
         'sig/arkoala-arkts/arkui/src/generated/ComponentBase.ts',
-        'sig/arkoala-arkts/arkui/src/generated/MaterializedBase.ts',
         'sig/arkoala-arkts/arkui/src/generated/PeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/NativePeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/Events.ts',
@@ -98,8 +110,20 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/peers/CallbackTransformer.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
-        'sig/arkoala-arkts/arkui/src/generated/shared/generated-utils.ts',
     ])
+    const templates = path.join(__dirname, '../../libohos/templates')
+    fs.copyFileSync(
+        path.join(templates, 'ts/MaterializedBase.ts'),
+        path.join(arkoala.sig, 'arkoala/arkui/src/MaterializedBase.ts'))
+    fs.copyFileSync(
+        path.join(templates, 'ts/shared/generated-utils.ts'),
+        path.join(arkoala.sig, 'arkoala/arkui/src/shared/generated-utils.ts'))
+    fs.copyFileSync(
+        path.join(templates, 'arkts/MaterializedBase.ts'),
+        path.join(arkoala.sig, 'arkoala-arkts/arkui/src/generated/MaterializedBase.ts'))
+    fs.copyFileSync(
+        path.join(templates, 'arkts/shared/generated-utils.ts'),
+        path.join(arkoala.sig, 'arkoala-arkts/arkui/src/generated/shared/generated-utils.ts'))
 }
 
 export function generateArkoalaFromIdl(config: {
@@ -517,4 +541,131 @@ function selectOutDir(arkoala:ArkoalaInstall, lang:Language) {
         case Language.CJ: return arkoala.cjDir
     }
     return ''
+}
+
+function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
+    filters = filters?.map(it => path.join(from, it))
+    copyDir(path.join(from, 'sig'), arkoala.sig, true, filters)
+}
+
+function copyToLibace(from: string, libace: LibaceInstall) {
+    const macros = path.join(from, 'shared', 'arkoala-macros.h')
+    fs.copyFileSync(macros, libace.arkoalaMacros)
+}
+
+class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
+    emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
+        const modifierList = library.createLanguageWriter(Language.CPP)
+        const accessorList = library.createLanguageWriter(Language.CPP)
+        const getterDeclarations = library.createLanguageWriter(Language.CPP)
+
+        for (const [slug, state] of this.stateByFile) {
+            if (state.hasModifiers)
+                printModifiersImplFile(libace.modifierCpp(slug), state, options)
+            if (state.hasAccessors)
+                printModifiersImplFile(libace.accessorCpp(slug), state, options)
+            modifierList.concat(state.modifierList)
+            accessorList.concat(state.accessorList)
+            getterDeclarations.concat(state.getterDeclarations)
+        }
+
+        const commonFilePath = libace.allModifiers
+        const commonFileContent = getterDeclarations
+            .concat(modifierStructList(modifierList))
+            .concat(accessorStructList(accessorList))
+
+        printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
+        printApiImplFile(library, libace.viewModelBridge, options)
+    }
+}
+
+function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    writer.writeLines(cStyleCopyright)
+
+    writer.writeInclude(`core/components_ng/base/frame_node.h`)
+    writer.writeInclude(`core/interfaces/native/utility/converter.h`)
+    writer.writeInclude(`arkoala_api_generated.h`)
+    writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.generated, false)
+    }
+
+    writer.concat(state.real)
+    writer.concat(state.modifiers)
+    writer.concat(state.accessors)
+
+    if (options.namespaces) {
+        writer.popNamespace(false)
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
+}
+
+function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    writer.writeInclude('arkoala-macros.h')
+    writer.writeInclude('arkoala_api_generated.h')
+    writer.writeInclude('node_api.h')
+    writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.base, false)
+    }
+    writer.concat(appendModifiersCommonPrologue())
+
+    if (options.namespaces) {
+        writer.popNamespace(false)
+    }
+
+    writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.generated, false)
+    }
+
+    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
+
+    if (options.namespaces) {
+        writer.popNamespace(false)
+    }
+
+    writer.print("")
+    writer.printTo(filePath)
+}
+
+function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+    writer.writeLines(cStyleCopyright)
+    writer.writeMultilineCommentBlock(warning)
+    writer.print("")
+
+    writer.writeInclude('arkoala_api_generated.h')
+    writer.writeInclude('base/utils/utils.h')
+    writer.writeInclude('core/pipeline/base/element_register.h')
+    writer.print("")
+
+    if (options.namespaces) {
+        writer.pushNamespace(options.namespaces.base, false)
+    }
+    writer.concat(appendViewModelBridge(library))
+
+    if (options.namespaces) {
+        writer.popNamespace(false)
+    }
+
+    writer.printTo(filePath)
+}
+
+function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
+    const visitor = new ArkoalaMultiFileModifiersVisitor(library)
+    visitor.commentedCode = options.commentedCode
+    visitor.printRealAndDummyModifiers()
+    visitor.emitRealSync(library, libace, options)
 }

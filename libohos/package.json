@@ -10,7 +10,9 @@
   },
   "files": [
     "build/lib/**/*.js",
-    "build/lib/**/*.d.ts"
+    "build/lib/**/*.d.ts",
+    "peer_lib/**/*",
+    "templates/**/*"
   ],
   "type": "module",
   "engines": {
@@ -24,6 +26,8 @@
   },
   "scripts": {
     "clean": "rimraf -g build",
-    "compile": "npm run -C ../core compile && tsc -b ."
+    "compile": "npm run -C ../core compile && tsc -b .",
+    "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --input-dir  ./interface_sdk-js/api/@internal/component/ets/,./interface_sdk-js/api/arkui,./interface_sdk-js/api/global --verify-idl --docs=none",
+    "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl"
   }
 }

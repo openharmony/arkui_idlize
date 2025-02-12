@@ -21,12 +21,11 @@ import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer
 import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
 import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
-import { ArkoalaInstall, LibaceInstall } from "../Install"
 import { ImportsCollector } from "./ImportsCollector"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
 import * as idl from "@idlizer/core/idl"
-import { createEmptyReferenceResolver, ReferenceResolver } from "@idlizer/core"
+import { ReferenceResolver } from "@idlizer/core"
 import { PrintHint } from "@idlizer/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
@@ -485,7 +484,7 @@ const TEMPLATES_CACHE = new Map<string, string>()
 export function readTemplate(name: string): string {
     let template = TEMPLATES_CACHE.get(name);
     if (template == undefined) {
-        template = fs.readFileSync(path.join(__dirname, `../templates/${name}`), 'utf8')
+        template = fs.readFileSync(path.join(__dirname, `../../libohos/templates/${name}`), 'utf8')
         TEMPLATES_CACHE.set(name, template)
     }
     return template
@@ -507,12 +506,12 @@ function useLangExtIfNeeded(file: string, lang: Language): string {
 
 export function readLangTemplate(name: string, lang: Language): string {
     name = useLangExtIfNeeded(name, lang)
-    return fs.readFileSync(path.join(__dirname, `../templates/${lang.directory}/${name}`), 'utf8')
+    return fs.readFileSync(path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`), 'utf8')
 }
 
 export function maybeReadLangTemplate(name: string, lang: Language): string | undefined {
     name = useLangExtIfNeeded(name, lang)
-    const file = path.join(__dirname, `../templates/${lang.directory}/${name}`)
+    const file = path.join(__dirname, `../../libohos/templates/${lang.directory}/${name}`)
     if (!fs.existsSync(file))
         return undefined
     return fs.readFileSync(file, 'utf8')
@@ -547,17 +546,7 @@ ${headers.join("\n")}
 `
 }
 
-export function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
-    filters = filters?.map(it => path.join(from, it))
-    copyDir(path.join(from, 'sig'), arkoala.sig, true, filters)
-}
-
-export function copyToLibace(from: string, libace: LibaceInstall) {
-    const macros = path.join(from, 'shared', 'arkoala-macros.h')
-    fs.copyFileSync(macros, libace.arkoalaMacros)
-}
-
-function copyDir(from: string, to: string, recursive: boolean, filters?: string[]) {
+export function copyDir(from: string, to: string, recursive: boolean, filters?: string[]) {
     fs.readdirSync(from).forEach(it => {
         const sourcePath = path.join(from, it)
         const targetPath = path.join(to, it)

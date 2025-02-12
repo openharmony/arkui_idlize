@@ -28,8 +28,19 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
-    "compile:core": "npm run --prefix ../libohos compile",
-    "compile": "npm run compile:core && rollup -c",
-    "run:xml": "npm run compile && node . --idl2bridges --input-files ./@ohos.xml.idl --output-dir ./out/xml"
+    "compile": "npm run --prefix .. download:sdk && npm run --prefix ../libohos compile && rollup -c",
+    "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
+    "run:xml": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml",
+    "run:xml:arkts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --language=arkts",
+    "run:xml:cj": "npm run compile && node . --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --language=cangjie",
+    "run:ohos:mediaquery:ts": "npm run compile && node . --use-new-ohos --language=ts --default-idl-package mediaquery --input-files ./tests/ohos-subset/ets/api/@ohos.mediaquery.d.ts --output-dir ./out/ts-ohos-mediaquery --dts2peer",
+    "run:ohos:mediaquery:arkts": "npm run compile && node . --use-new-ohos --language=arkts --default-idl-package mediaquery --input-files ./tests/ohos-subset/ets/api/@ohos.mediaquery.d.ts --output-dir ./out/ts-ohos-mediaquery --dts2peer",
+    "run:ohos:context:ts": "npm run compile && node . --use-new-ohos --language=ts --default-idl-package context --input-dir ./tests/ohos-subset/ets/api/application --output-dir ./out/ohos-context --dts2peer",
+    "run:ohos:context:arkts": "npm run compile && node . --use-new-ohos --language=arkts --default-idl-package context --input-dir ./tests/ohos-subset/ets/api/application --output-dir ./out/ohos-context --dts2peer",
+    "check:ohos:context": "npm run setup-out -C .. -- --out ohosgen/out/ohos-context --template ts_ohos && npm run run:ohos:context:ts && cp tests/ohos-subset/main/*.ts out/ohos-context/generated/ts && cp -r tests/ohos-subset/ets/api/application out/ohos-context/generated/sdk && cd out/ohos-context && tsc -p .",
+    "rollup:host:ohos:context": "npm run check:ohos:context && cd out/ohos-context && rollup -c",
+    "check:ohos:context:run": "npm run rollup:host:ohos:context && npm run compile:native-node-host-ts-ohos-context && node out/ohos-context/lib/main.js",
+    "configure:native-node-host-ts-ohos-context": "cd ./native && meson setup -Dsource_set=ohos-context build-node-host-ts-ohos-context",
+    "compile:native-node-host-ts-ohos-context": "npm run configure:native-node-host-ts-ohos-context && cd native && meson compile --verbose -C build-node-host-ts-ohos-context && meson install -C build-node-host-ts-ohos-context"
   }
 }

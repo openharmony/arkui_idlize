@@ -16,35 +16,25 @@
 import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
-    appendModifiersCommonPrologue,
-    appendViewModelBridge,
-    completeModifiersContent,
-    cStyleCopyright,
     makeFileNameFromClassName,
     modifierStructList,
-    warning
 } from "../FileGenerators";
 import {
     createDestroyPeerMethod,
     MaterializedClass,
     MaterializedMethod,
-    IndentedPrinter,
     groupBy,
     Language,
     createConstructPeerMethod,
     PeerClass,
     PeerMethod,
     PeerLibrary,
-    InteropReturnTypeConvertor,
     LanguageWriter,
     createLanguageWriter,
-    createEmptyReferenceResolver,
-    CppInteropConvertor,
     CppReturnTypeConvertor
 } from '@idlizer/core'
-import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { LibaceInstall } from "../../Install";
-import { IDLAnyType, IDLBooleanType, IDLFunctionType, IDLPointerType, IDLStringType, IDLThisType, IDLType, isOptionalType, isReferenceType } from '@idlizer/core/idl'
+import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
+import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from '@idlizer/core/idl'
 import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 
 export class ModifierVisitor {
@@ -358,7 +348,7 @@ class AccessorVisitor extends ModifierVisitor {
     }
 }
 
-class MultiFileModifiersVisitorState {
+export class MultiFileModifiersVisitorState {
     dummy = createLanguageWriter(Language.CPP)
     real = createLanguageWriter(Language.CPP)
     accessorList = createLanguageWriter(Language.CPP)
@@ -370,8 +360,8 @@ class MultiFileModifiersVisitorState {
     hasAccessors = false
 }
 
-class MultiFileModifiersVisitor extends AccessorVisitor {
-    private stateByFile = new Map<string, MultiFileModifiersVisitorState>()
+export class MultiFileModifiersVisitor extends AccessorVisitor {
+    protected stateByFile = new Map<string, MultiFileModifiersVisitorState>()
     private hasModifiers = false
     private hasAccessors = false
 
@@ -413,30 +403,6 @@ class MultiFileModifiersVisitor extends AccessorVisitor {
         super.printRealAndDummyAccessor(clazz)
         this.onFileEnd(clazz.className)
     }
-
-    emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
-        const modifierList = library.createLanguageWriter(Language.CPP)
-        const accessorList = library.createLanguageWriter(Language.CPP)
-        const getterDeclarations = library.createLanguageWriter(Language.CPP)
-
-        for (const [slug, state] of this.stateByFile) {
-            if (state.hasModifiers)
-                printModifiersImplFile(libace.modifierCpp(slug), state, options)
-            if (state.hasAccessors)
-                printModifiersImplFile(libace.accessorCpp(slug), state, options)
-            modifierList.concat(state.modifierList)
-            accessorList.concat(state.accessorList)
-            getterDeclarations.concat(state.getterDeclarations)
-        }
-
-        const commonFilePath = libace.allModifiers
-        const commonFileContent = getterDeclarations
-            .concat(modifierStructList(modifierList))
-            .concat(accessorStructList(accessorList))
-
-        printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
-        printApiImplFile(library, libace.viewModelBridge, options)
-    }
 }
 
 export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: boolean = false): {dummy: LanguageWriter, real: LanguageWriter} {
@@ -474,95 +440,3 @@ export interface ModifierFileOptions {
 
     namespaces?: Namespaces
 }
-
-export function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions) {
-    const visitor = new MultiFileModifiersVisitor(library)
-    visitor.commentedCode = options.commentedCode
-    visitor.printRealAndDummyModifiers()
-    visitor.emitRealSync(library, libace, options)
-}
-
-function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-
-    writer.writeInclude(`core/components_ng/base/frame_node.h`)
-    writer.writeInclude(`core/interfaces/native/utility/converter.h`)
-    writer.writeInclude(`arkoala_api_generated.h`)
-    writer.print("")
-
-    if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, false)
-    }
-
-    writer.concat(state.real)
-    writer.concat(state.modifiers)
-    writer.concat(state.accessors)
-
-    if (options.namespaces) {
-        writer.popNamespace(false)
-    }
-
-    writer.print("")
-    writer.printTo(filePath)
-}
-
-function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-    writer.writeMultilineCommentBlock(warning)
-    writer.print("")
-
-    writer.writeInclude('arkoala-macros.h')
-    writer.writeInclude('arkoala_api_generated.h')
-    writer.writeInclude('node_api.h')
-    writer.print("")
-
-    if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, false)
-    }
-    writer.concat(appendModifiersCommonPrologue())
-
-    if (options.namespaces) {
-        writer.popNamespace(false)
-    }
-
-    writer.print("")
-
-    if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, false)
-    }
-
-    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
-
-    if (options.namespaces) {
-        writer.popNamespace(false)
-    }
-
-    writer.print("")
-    writer.printTo(filePath)
-}
-
-function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-    writer.writeMultilineCommentBlock(warning)
-    writer.print("")
-
-    writer.writeInclude('arkoala_api_generated.h')
-    writer.writeInclude('base/utils/utils.h')
-    writer.writeInclude('core/pipeline/base/element_register.h')
-    writer.print("")
-
-    if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, false)
-    }
-    writer.concat(appendViewModelBridge(library))
-
-    if (options.namespaces) {
-        writer.popNamespace(false)
-    }
-
-    writer.printTo(filePath)
-}
-

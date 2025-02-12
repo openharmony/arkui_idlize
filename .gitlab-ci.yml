@@ -18,4 +18,5 @@ include:
     - gitlab/setup.yml
     - gitlab/npm.yml
     - arkgen/.gitlab-ci.yml
+    - ohosgen/.gitlab-ci.yml
     - libarkts-gen/.gitlab-ci.yml

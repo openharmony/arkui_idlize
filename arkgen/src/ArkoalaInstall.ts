@@ -13,17 +13,9 @@
  * limitations under the License.
  */
 
-import * as fs from 'fs'
 import * as path from 'path'
 import { Language } from '@idlizer/core'
-import { TargetFile } from './peer-generation/printers/TargetFile'
-
-export class Install {
-    mkdir(path: string): string {
-        fs.mkdirSync(path, { recursive: true })
-        return path
-    }
-}
+import { Install, TargetFile } from '@idlizer/libohos'
 
 export class ArkoalaInstall extends Install {
     constructor (private outDir: string, private lang: Language, private test: boolean) {
@@ -140,47 +132,5 @@ export class LibaceInstall extends Install {
     }
     delegateCpp(component: string) {
         return this.implementation(`${component}_delegate.cpp`)
-    }
-}
-
-export class OhosInstall extends Install {
-    constructor(private outDir: string, private lang: Language) { super() }
-
-    targetDir = this.mkdir(path.join(this.outDir, 'generated'))
-
-    support(filePath:string) {
-        const dir = path.dirname(filePath)
-        if (!fs.existsSync(dir)) {
-            fs.mkdirSync(dir, { recursive: true })
-        }
-        return filePath
-    }
-
-    managedDir() {
-        return this.mkdir(path.join(this.targetDir, this.lang.directory))
-    }
-    nativeDir() {
-        return path.join(this.targetDir, 'native')
-    }
-
-    tsTypes(file:TargetFile) {
-        return this.support(path.join(this.managedDir(), file.path ?? '', file.name))
-    }
-    arktsTypes(file:TargetFile) {
-        return this.support(path.join(this.managedDir(), file.path ?? '', file.name))
-    }
-
-    materialized(file:TargetFile) {
-        return this.support(path.join(this.managedDir(), file.path ?? '', file.name))
-    }
-    peer(file:TargetFile) {
-        return this.support(path.join(this.managedDir(), 'peers', file.path ?? '', file.name + this.lang.extension))
-    }
-    globalFile(file: TargetFile): string {
-        return this.support(path.join(this.managedDir(), file.path ?? '', file.name))
-    }
-
-    native(file:TargetFile) {
-        return this.support(path.join(this.nativeDir(), file.path ?? '', file.name))
     }
 }

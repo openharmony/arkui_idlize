@@ -13,22 +13,202 @@
  * limitations under the License.
  */
 
+
 import { program } from "commander"
-import { generateOhos } from "./OhosGenerator"
+import * as fs from "fs"
+import * as path from "path"
+import {
+    generate,
+    defaultCompilerOptions,
+    Language,
+    findVersion,
+    setDefaultConfiguration,
+    PeerFile,
+    PeerLibrary,
+} from "@idlizer/core"
+import {
+    IDLEntry,
+    isEnum,
+    isInterface,
+    isSyntheticEntry,
+    transformMethodsAsync2ReturnPromise,
+} from "@idlizer/core/idl"
+import { IDLVisitor, loadPeerConfiguration,
+    IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor,
+    loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
+    scanPredefinedDirectory, scanNotPredefinedDirectory,
+} from "@idlizer/libohos"
+import { generateOhos } from "./ohos"
+import { generateOhos as generateOhosOld, OhosConfiguration, suggestLibraryName } from "./OhosGenerator"
 
 const options = program
+    .option('--dts2peer', 'Convert .d.ts to peer drafts')
+    .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
-    .option('--input-files <path>', 'Path to file(s) to generate from')
-    .option('--idl2bridges', 'Convert IDL files to bridges')
+    .option('--input-files <files...>', 'Comma-separated list of specific files to process')
+    .option('--idl2peer', 'Convert IDL to peer drafts')
+    .option('--verbose', 'Verbose processing')
+    .option('--verify-idl', 'Verify produced IDL')
+    .option('--api-version <version>', "API version for generated peers")
+    .option('--dump-serialized', "Dump serialized data")
+    .option('--call-log', "Call log")
+    .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
+    .option('--language [ts|ts|java|cangjie]', 'Output language')
+    .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
+    .option('--version')
+    .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
+    .option('--no-commented-code', 'Do not generate commented code in modifiers')
+    .option('--use-new-ohos', 'Use new ohos generator')
+    .option('--enable-log', 'Enable logging')
+    .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
+    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
+    .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
     .parse()
     .opts()
 
-function main() {
-    const outDir = options.outputDir ?? `./out`
-    const inputFiles = options.inputFiles.split(",")
-    if (options.idl2bridges)
-        generateOhos(outDir, inputFiles, options.defaultIdlPackage as string)
+let didJob = false
+let apiVersion = options.apiVersion ?? 9999
+
+setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
+
+if (process.env.npm_package_version) {
+    console.log(`IDLize version ${findVersion()}`)
 }
 
-main()
+if (options.idl2peer) {
+    const outDir = options.outputDir ?? "./out"
+    const language = Language.fromString(options.language ?? "ts")
+
+    const idlLibrary = new PeerLibrary(language)
+    idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
+    new IdlPeerProcessor(idlLibrary).process()
+
+    generateTarget(idlLibrary, outDir, language)
+
+    didJob = true
+}
+
+if (options.dts2peer) {
+    const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
+    const lang = Language.fromString(options.language ?? "ts")
+
+    const PREDEFINED_PATH = path.join(__dirname, "..", "..", "predefined")
+
+    if (options.inputFiles && typeof options.inputFiles === 'string') {
+        options.inputFiles = options.inputFiles
+            .split(',')
+            .map(file => file.trim())
+            .filter(Boolean)
+    }
+
+    if (options.inputDir && typeof options.inputDir === 'string') {
+        options.inputDir = options.inputDir.split(',')
+            .map(dir => dir.trim())
+            .filter(Boolean)
+    }
+
+    const inputDirs: string[] = options.inputDir || []
+    inputDirs.forEach(dir => {
+        if (!fs.existsSync(dir)) {
+            console.error(`Input directory does not exist: ${dir}`)
+            process.exit(1)
+        } else {
+            console.log(`Input directory exists: ${dir}`)
+        }
+    })
+
+    const inputFiles: string[] = options.inputFiles || []
+    inputFiles.forEach(file => {
+        if (!fs.existsSync(file)) {
+            console.error(`Input file does not exist: ${file}`)
+            process.exit(1)
+        } else {
+            console.log(`Input file exists: ${file}`)
+        }
+    })
+
+    options.docs = "all"
+    const idlLibrary = new PeerLibrary(lang)
+    // collect predefined files
+    scanPredefinedDirectory(PREDEFINED_PATH, "interop").forEach(file => {
+        new IDLInteropPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
+
+    scanPredefinedDirectory(PREDEFINED_PATH).forEach(file => {
+        new IDLPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
+
+    generate(
+        inputDirs,
+        inputFiles,
+        generatedPeersDir,
+        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
+        {
+            compilerOptions: defaultCompilerOptions,
+            onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
+                entries = entries.filter(newEntry =>
+                    !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
+                        if (([newEntry, entry].every(isInterface)
+                            || [newEntry, entry].every(isEnum)
+                            || [newEntry, entry].every(isSyntheticEntry))) {
+                            if (newEntry.name === entry.name) {
+                                return true
+                            }
+                        }
+                        return false
+                    }))
+                )
+                entries.forEach(it => {
+                    transformMethodsAsync2ReturnPromise(it)
+                })
+
+                const baseFileName = path.resolve(sourceFile.fileName)
+                const peerFile = new PeerFile(baseFileName, entries)
+
+                idlLibrary.files.push(peerFile)
+            },
+            onEnd(outDir) {
+                fillSyntheticDeclarations(idlLibrary)
+                const peerProcessor = new IdlPeerProcessor(idlLibrary)
+                peerProcessor.process()
+
+                generateTarget(idlLibrary, outDir, lang)
+            }
+        }
+    )
+    didJob = true
+}
+
+if (!didJob) {
+    program.help()
+}
+
+function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
+    if (options.useNewOhos) {
+        generateOhos(outDir, idlLibrary, new OhosConfiguration({
+            ...peerGeneratorConfiguration().params,
+            LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`, 
+            GenerateUnused: true,
+            ApiVersion: apiVersion,
+        }))
+    } else {
+        generateOhosOld(outDir, idlLibrary, apiVersion, options.defaultIdlPackage as string, options.splitFiles)
+    }
+    if (options.plugin) {
+        loadPlugin(options.plugin)
+            .then(plugin => plugin.process({outDir: outDir}, idlLibrary))
+            .then(result => {
+                console.log(`Plugin ${options.plugin} process returned ${result}`)
+            })
+            .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
+    }
+}

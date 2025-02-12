@@ -14,11 +14,7 @@
  */
 
 import * as path from 'node:path'
-
-import { layout, writeIntegratedFile } from "./common";
-import { OhosInstall } from "../Install"
-import { createMaterializedPrinter } from "./printers/MaterializedPrinter";
-import { printGlobal } from "./printers/GlobalScopePrinter";
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import {
     IDLBufferType,
     IDLI32Type,
@@ -31,6 +27,10 @@ import {
     PeerLibrary,
 } from "@idlizer/core";
 import {
+    layout,
+    writeIntegratedFile,
+    createMaterializedPrinter,
+    printGlobal,
     dummyImplementations,
     makeCallbacksKinds,
     makeDeserializeAndCall,
@@ -39,16 +39,17 @@ import {
     makeTSSerializer,
     makeTypeChecker,
     readLangTemplate,
-} from "./FileGenerators";
-import { printArkUIGeneratedNativeModule } from './printers/NativeModulePrinter';
-import { NativeModule } from './NativeModule';
-import { TargetFile } from "./printers/TargetFile"
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+    printArkUIGeneratedNativeModule,
+    NativeModule,
+    TargetFile,
+    printRealAndDummyAccessors,
+    printRealAndDummyModifiers,
+    printSerializersOhos,
+    install,
+    printInterfaceData,
+} from '@idlizer/libohos';
+import { OhosInstall } from "./OhosInstall"
 import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
-import { printRealAndDummyAccessors, printRealAndDummyModifiers } from './printers/ModifierPrinter';
-import { printSerializersOhos } from './printers/HeaderPrinter';
-import { install } from './LayoutManager';
-import { printInterfaceData } from './printers/InterfaceDataPrinter';
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: OhosConfiguration) {
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
@@ -233,36 +234,18 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     setDefaultConfiguration(origGenConfig)
 }
 
-const PEER_LIB_CONFIG = new Map<Language, [string, string][]>()
-
-PEER_LIB_CONFIG.set(Language.TS, [
-    [
-        path.join('sig', 'arkoala', 'arkui', 'src', 'MaterializedBase.ts'),
-        'MaterializedBase.ts'
-    ],
-    [
-        path.join('sig', 'arkoala', 'arkui', 'src', 'shared', 'generated-utils.ts'),
-        path.join('shared', 'generated-utils.ts')
-    ],
-])
-PEER_LIB_CONFIG.set(Language.ARKTS, [
-    [
-        path.join('sig', 'arkoala-arkts', 'arkui', 'src', 'generated', 'MaterializedBase.ts'),
-        'MaterializedBase.ts'
-    ],
-    [
-        path.join('sig', 'arkoala-arkts', 'arkui', 'src', 'generated', 'shared', 'generated-utils.ts'),
-        path.join('shared', 'generated-utils.ts')
-    ]
+const PEER_LIB_CONFIG = new Map<Language, string[]>([
+    [Language.TS, ['MaterializedBase.ts', 'shared/generated-utils.ts']],
+    [Language.ARKTS, ['MaterializedBase.ts', 'shared/generated-utils.ts']]
 ])
 
 function copyPeerLib(lang: Language, rootDir: string) {
     const list = PEER_LIB_CONFIG.get(lang)
-    const peerLibDir = path.resolve(__dirname, '..', 'peer_lib')
     if (list) {
-        for (const [src, dst] of list) {
-            const resolvedSrc = path.join(peerLibDir, src)
-            const resolvedDst = path.join(rootDir, dst)
+        const peerLibDir = path.resolve(__dirname, '../..', 'libohos', 'templates', lang.toString().toLowerCase())
+        for (const file of list) {
+            const resolvedSrc = path.join(peerLibDir, file)
+            const resolvedDst = path.join(rootDir, file)
             const resolvedDstDir = path.dirname(resolvedDst)
             if (!existsSync(resolvedDstDir)) {
                 mkdirSync(resolvedDstDir, { recursive: true })

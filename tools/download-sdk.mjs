@@ -24,7 +24,7 @@ const setup = JSON.parse(fs.readFileSync(__setupFile))
 console.log("use setup:", setup)
 const repoUrl = setup.url
 const repoRef = setup.ref
-const repoDir = `${path.dirname(__thisScript)}/interface_sdk-js`
+const repoDir = `${path.dirname(__thisScript)}/../interface_sdk-js`
 const gitDir = `${repoDir}/.git`
 
 // utilities
@@ -93,12 +93,12 @@ if (repoRefKind === 'local') {
 // repo ready
 
 // link to project
-let sdk = "./sdk"
+let sdk = "./arkgen/sdk"
 let components = "./interface_sdk-js/api/\@internal/component/ets"
 if (!fs.existsSync(sdk)) {
     fs.mkdirSync(sdk)
     try {
-      fs.symlinkSync("." + components, sdk + "/component")
+      fs.symlinkSync("../." + components, sdk + "/component")
     } catch (e) {
       console.log("Symlink failed, try to copy")
       fs.cpSync(components, sdk + "/component", { recursive: true })

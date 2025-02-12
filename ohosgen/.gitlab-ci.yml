@@ -1,0 +1,68 @@
+image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
+
+stages:
+  - build
+  - test
+  - pre-deploy
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+include:
+    - gitlab/setup.yml
+    - gitlab/npm.yml
+    - libarkts-gen/.gitlab-ci.yml
+
+check generated XML demo:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    before_script:
+      - !reference [.setup, script]
+      - cd $CI_PROJECT_DIR/ohosgen
+      - PANDA_SDK_VERSION=next npm run panda:sdk:install
+      - npm run compile --prefix ../external/interop
+      - npm run compile --prefix ../external/incremental/common
+      - npm run compile --prefix ../external/incremental/compat
+      - npm run compile --prefix ../external/incremental/runtime
+      - npm run build:interop:inc --prefix ../external/interop
+      - npm run build:incremental:inc --prefix ../external/incremental/runtime
+    script:
+      - npm run run:xml
+      - npm run run:xml:arkts
+      - cd demos/xml
+      - rm -rf generated
+      - cp -r ../../out/xml/generated generated
+      - npm run compile:node
+      - npm start
+      - npm run compile:panda
+      - npm run start:panda
+
+check ohos demos:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/ohosgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - npm run compile --prefix ../external/interop
+    - npm run compile --prefix ../external/incremental/common
+    - npm run compile --prefix ../external/incremental/compat
+    - npm run compile --prefix ../external/incremental/runtime
+    - npm run build:interop:inc --prefix ../external/interop
+    - npm run build:incremental:inc --prefix ../external/incremental/runtime
+  script:
+    - cd demos/mediaquery
+    - npm run check:ts
+    - npm run check:arkts
+#   - npm run run:ohos:context:ts
+#   - npm run check:ohos:context:run
