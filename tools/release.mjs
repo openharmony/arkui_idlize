@@ -17,7 +17,6 @@ import fs from "fs"
 import path from "path"
 import { Version, Git, IDLIZE_HOME, EXTERNAL_HOME, all_packages } from "./utils.mjs"
 
-//const files = all_packages.map(it => path.join(it.path, "package.json"))
 
 const CURRENT_VERSION = readVersion()
 const CURRENT_EXTERNAL_VERSION = readExternalVersion().toString()
@@ -40,16 +39,9 @@ function readExternalVersion() {
 const autoPromote = false
 
 function run() {
-    const currentBranch = git.branch()
-
-    console.log(`> Current branch: ${currentBranch}`)
-    if (currentBranch !== 'master' && false) {
-        throw new Error("You must be on master branch!")
-    }
 
     const old = CURRENT_VERSION
     const next = autoPromote ? new Version(old.toString()).up() : old
-    const newBranch = `release-${next.toString()}`
     const oldString = old.toString()
     const nextString = next.toString()
 
@@ -72,8 +64,6 @@ function run() {
         })
     })
 
-    if (git.checkBranch(newBranch)) git.deleteBranch(newBranch)
-
     try {
 
         all_packages.forEach(module => {
@@ -91,11 +81,7 @@ function run() {
             })
         })
 
-        console.log(`> Checkout to ${newBranch}`)
-        git.checkout(`release-${next.toString()}`)
-        git.add('.')
-        git.commit(`Release version ${next.toString()}`)
-        console.log(`> Create commit`)
+        console.log(`> Your packages was published successfully`)
 
     } catch(e) {
         writeVersion(old)
