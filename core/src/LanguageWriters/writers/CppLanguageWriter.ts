@@ -169,7 +169,7 @@ class CppEnumEntityStatement implements LanguageStatement {
 class CPPThrowErrorStatement implements LanguageStatement {
     constructor(public message: string) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw "${this.message}";`)
+        writer.print(`INTEROP_FATAL("${this.message}");`)
     }
 }
 

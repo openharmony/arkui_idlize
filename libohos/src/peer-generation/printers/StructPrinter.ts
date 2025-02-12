@@ -257,7 +257,7 @@ export class StructPrinter {
                 for (let i = 0; i < target.types.length; i++) {
                     writer.print(`case ${i}: return runtimeType(value.value${i});`)
                 }
-                writer.print(`default: throw "Bad selector in ${writer.getNodeName(targetType)}: " + std::to_string(value.selector);`)
+                writer.print(`default: INTEROP_FATAL("Bad selector in ${writer.getNodeName(targetType)}: %d", value.selector);`)
                 writer.popIndent()
                 writer.print("}")
             }
