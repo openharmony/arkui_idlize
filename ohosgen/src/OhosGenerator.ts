@@ -1172,6 +1172,7 @@ abstract class OHOSVisitor {
     execute(rootPath: string, apiVersion: number, outDir: string, managedOutDir: string) {
         const origGenConfig = generatorConfiguration()
         setDefaultConfiguration(new OhosConfiguration({
+            ...origGenConfig.params,
             TypePrefix: "OH_",
             LibraryPrefix: `${this.libraryName}_`,
             OptionalPrefix: "Opt_",

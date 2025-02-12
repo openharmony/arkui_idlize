@@ -6,7 +6,8 @@
   "bin": "lib/index.js",
   "files": [
     "lib/*.js",
-    "whitelist.json"
+    "whitelist.json",
+    "generation-config/**/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],
