@@ -603,10 +603,9 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
      */
     pickPropertyBindings(className: string, props: idl.IDLProperty[], fileName: string): idl.IDLMethod[] {
         const componentName = peerGeneratorConfiguration().mapComponentName(className)
-        const boundPropsConfig: Array<[string, string[]]> = Array.from(peerGeneratorConfiguration().boundProperties)
-        const boundProps = boundPropsConfig.find(it => it[0] === componentName)
+        const boundProps = peerGeneratorConfiguration().boundProperties[componentName]
         return !boundProps ? []
-            : boundProps[1].map(propName => {
+            : boundProps.map(propName => {
                 let propType = props.find(it => it.name === propName)?.type
                 if (!propType) {
                     // Property not found in `Component`, look in `ComponentOptions`

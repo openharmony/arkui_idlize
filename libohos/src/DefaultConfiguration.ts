@@ -33,7 +33,7 @@ export class DefaultConfiguration extends BaseGeneratorConfiguration {
     get parameterized(): string[] { return this.param<string[]>("parameterized") }
     get ignoreMaterialized(): string[] { return this.param<string[]>("ignoreMaterialized") }
     get builderClasses(): string[] { return this.param<string[]>("builderClasses") }
-    get boundProperties(): Map<string, string[]> { return this.param<Map<string, string[]>>("boundProperties") }
+    get boundProperties(): Record<string, string[]> { return this.param("boundProperties") }
 }
 
 function parseConfigFile(configurationFile: string): Record<string, any> | undefined {
