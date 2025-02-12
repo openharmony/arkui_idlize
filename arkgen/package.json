@@ -9,7 +9,8 @@
     "stdlib.d.ts",
     "whitelist.json",
     "predefined/**/*",
-    "generation-config/**/*"
+    "generation-config/**/*",
+    "peer_lib/**/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],
