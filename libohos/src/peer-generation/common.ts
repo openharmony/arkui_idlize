@@ -157,15 +157,15 @@ class CJLayout extends CommonLayoutBase {
                 if (idl.isEntry(node)) {
                     const ns = idl.getNamespaceName(node)
                     if (ns !== '') {
-                        return this.getPath(`Ark${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
+                        return this.getPath(`${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
                     }
                 }
                 if (idl.isInterface(node)) {
                     if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`Ark${toFileName(node.name)}`)
+                        return this.getPath(`${this.prefix}${toFileName(node.name)}`)
                     }
                     if (idl.isBuilderClass(node)) {
-                        return this.getPath(`Ark${toFileName(node.name)}Builder`)
+                        return this.getPath(`${this.prefix}${toFileName(node.name)}Builder`)
                     }
                     if (isMaterialized(node, this.library)) {
                         if (idl.isInterfaceSubkind(node)) {
@@ -173,14 +173,14 @@ class CJLayout extends CommonLayoutBase {
                         }
                         return this.getPath(toFileName(node.name))
                     }
-                    return this.getPath(`Ark${toFileName(node.name)}Interfaces`)
+                    return this.getPath(`${this.prefix}${toFileName(node.name)}Interfaces`)
                 }
                 return this.getPath(`Common`)
             }
             case LayoutNodeRole.PEER: {
                 if (idl.isInterface(node)) {
                     if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`peers/Ark${toFileName(node.name)}Peer`)
+                        return this.getPath(`peers/${this.prefix}${toFileName(node.name)}Peer`)
                     }
                 }
                 return this.getPath(`CommonPeer`)

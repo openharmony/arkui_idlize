@@ -1083,7 +1083,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeEnum(alias: string, enumDecl: idl.IDLEnum): CJDeclaration {
-      const writer = this.peerLibrary.createLanguageWriter(Language.CJ)
+        const writer = this.peerLibrary.createLanguageWriter(Language.CJ)
         this.printPackage(writer)
 
         writer.print('import Interop.*\n')

@@ -453,10 +453,22 @@ export function generateArkoalaFromIdl(config: {
         // const arkComponents = makeJavaArkComponents(peerLibrary, context)
         // arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
 
-        const serializer = makeCJSerializer(peerLibrary)
-        serializer.writer.printTo(arkoala.cjLib(serializer.targetFile))
-        const deserializer = makeCJDeserializer(peerLibrary)
-        deserializer.writer.printTo(arkoala.cjLib(deserializer.targetFile))
+        writeFile(arkoala.cjLib(new TargetFile('Serializer')),
+            makeCJSerializer(peerLibrary).getOutput().join('\n'),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
+            }
+        )
+        writeFile(arkoala.cjLib(new TargetFile('Deserializer')),
+            makeCJDeserializer(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+                message: "producing [idl]"
+            }
+        )
     }
 
     // native code

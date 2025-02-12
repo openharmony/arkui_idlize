@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLEntry, IDLNode, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
+import { IDLEntry, IDLNode, Language, LanguageWriter, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
 import { ImportsCollector } from "./ImportsCollector"
@@ -60,6 +60,9 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[]):
         for (const record of results) {
             imports.merge(record.collector)
             content = content.concat(record.content.getOutput())
+        }
+        if (library.language == Language.CJ) {
+            content = ['package idlize', 'import std.collection.*', 'import Interop.*'].concat(content)
         }
 
         const text = tsCopyrightAndWarning(

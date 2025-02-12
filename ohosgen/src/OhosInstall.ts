@@ -51,7 +51,7 @@ export class OhosInstall extends Install {
         return this.support(path.join(this.managedDir(), file.path ?? '', file.name))
     }
     peer(file:TargetFile) {
-        return this.support(path.join(this.managedDir(), 'peers', file.path ?? '', file.name + this.lang.extension))
+        return this.support(path.join(this.managedDir(), this.lang == Language.CJ ? '' : 'peers', file.path ?? '', file.name + this.lang.extension))
     }
     globalFile(file: TargetFile): string {
         return this.support(path.join(this.managedDir(), file.path ?? '', file.name))

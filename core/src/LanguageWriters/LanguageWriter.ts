@@ -17,7 +17,7 @@ import { Language } from "../Language"
 import { IndentedPrinter } from "../IndentedPrinter"
 
 import * as idl from "../idl"
-import { stringOrNone } from "../util";
+import { indentedBy, stringOrNone } from "../util";
 import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
@@ -303,10 +303,10 @@ export abstract class LambdaExpression implements LanguageExpression {
             }
         }
 
-        return writer.getOutput()
+        return (this.body ? this.body?.length > 1 ? '\n' : '' : '').concat(writer.getOutput()
             .filter(line => line !== "")
-            .map(line => line.endsWith('{') || line.endsWith('}') || line.endsWith(';') ? line : `${line};`)
-            .join("\n")
+            .map(line => indentedBy(line.endsWith('{') || line.endsWith('}') || line.endsWith(';') ? line : `${line};`, 1))
+            .join("\n"))
     }
 }
 

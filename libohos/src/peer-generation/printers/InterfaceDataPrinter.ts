@@ -18,6 +18,7 @@ import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
 import { LayoutNodeRole, PeerLibrary, isMaterialized } from "@idlizer/core";
 import * as idl from '@idlizer/core'
+import { collectProperties } from "./StructPrinter";
 
 /**
  * Printer for OHOS interfaces
@@ -67,6 +68,99 @@ function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, print
     })
 }
 
+class CJDeclConvertor {
+    public static makeInterface(library: PeerLibrary, type: idl.IDLInterface, writer: idl.LanguageWriter) {
+        const members = type.properties.map(it => {
+            return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [idl.FieldModifier.PUBLIC]}
+        })
+        let constructorMembers: idl.IDLProperty[] = collectProperties(type, library)
+
+        let superName = undefined as string | undefined
+        const superType = idl.getSuperType(type)
+            if (superType) {
+            if (idl.isReferenceType(superType)) {
+                const superDecl = library.resolveTypeReference(superType)
+                if (superDecl) {
+                    superName = superDecl.name
+                }
+            } else {
+                superName = idl.forceAsNamedNode(superType).name
+            }
+        }
+
+        writer.writeClass(type.name, () => {
+            members.forEach(it => {
+                writer.writeProperty(it.name, it.type, true)
+            })
+            writer.writeConstructorImplementation(type.name,
+                new idl.NamedMethodSignature(idl.IDLVoidType,
+                    constructorMembers.map(it =>
+                        idl.maybeOptional(it.type, it.isOptional)
+                    ),
+                    constructorMembers.map(it =>
+                        writer.escapeKeyword(it.name)
+                    )), () => {
+                        const superType = idl.getSuperType(type)
+                        const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
+                        let superProperties = superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []
+                        writer.print(`super(${superProperties.map(it => writer.escapeKeyword(it.name)).join(', ')})`)
+
+                        for(let i of members) {
+                            writer.print(`this.${i.name}_container = ${i.name}`)
+                        }
+                    })
+        }, superName)
+    }
+
+    public static makeEnum(enumDecl: idl.IDLEnum, writer: idl.LanguageWriter) {
+        const alias = enumDecl.name
+        const initializers = enumDecl.elements.map(it => {
+            return {name: it.name, id: it.initializer}
+        })
+
+        const isStringEnum = initializers.every(it => typeof it.id == 'string')
+
+        let memberValue = 0
+        const members: {
+            name: string,
+            stringId: string | undefined,
+            numberId: number,
+        }[] = []
+        for (const initializer of initializers) {
+            if (typeof initializer.id == 'string') {
+                members.push({name: initializer.name, stringId: initializer.id, numberId: memberValue})
+            }
+            else if (typeof initializer.id == 'number') {
+                memberValue = initializer.id
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            else {
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            memberValue += 1
+        }
+        writer.writeClass(alias, () => {
+            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
+            members.forEach(it => {
+                writer.writeFieldDeclaration(it.name, enumType, [idl.FieldModifier.PUBLIC, idl.FieldModifier.STATIC, idl.FieldModifier.FINAL], false,
+                    writer.makeString(`${alias}(${it.numberId})`)
+                )
+            })
+
+            const value = 'value'
+            const intType = idl.IDLI32Type
+            writer.writeFieldDeclaration(value, intType, [idl.FieldModifier.PUBLIC, idl.FieldModifier.FINAL], false)
+
+            const signature = new idl.MethodSignature(idl.IDLVoidType, [intType])
+            writer.writeConstructorImplementation(alias, signature, () => {
+                writer.writeStatement(
+                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
+                )
+            })
+        })
+    }
+}
+
 function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterResult {
     const printer = library.createLanguageWriter()
     const collector = new ImportsCollector()
@@ -77,14 +171,18 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
     if (ns !== '') {
         printer.pushNamespace(ns)
     }
-    if (idl.isInterfaceSubkind(entry)) {
-        printer.writeInterface(entry.name, w => {
-            printInterfaceBody(library, entry, w)
-        })
-    } else if (idl.isClassSubkind(entry)) {
-        printer.writeClass(entry.name, w => {
-            printInterfaceBody(library, entry, w)
-        })
+    if (library.language == idl.Language.CJ) {
+        CJDeclConvertor.makeInterface(library, entry, printer)
+    } else {
+        if (idl.isInterfaceSubkind(entry)) {
+            printer.writeInterface(entry.name, w => {
+                printInterfaceBody(library, entry, w)
+            })
+        } else if (idl.isClassSubkind(entry)) {
+            printer.writeClass(entry.name, w => {
+                printInterfaceBody(library, entry, w)
+            })
+        }
     }
     if (ns !== '') {
         printer.popNamespace()
@@ -130,6 +228,9 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
             numberId: typeof it.initializer === 'number' ? it.initializer : idx,
             stringId: typeof it.initializer === 'string' ? it.initializer : undefined
         })))
+    }
+    if (library.language === idl.Language.CJ) {
+        CJDeclConvertor.makeEnum(entry, printer)
     }
 
     return {

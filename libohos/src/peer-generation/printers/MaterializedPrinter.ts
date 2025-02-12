@@ -114,10 +114,25 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             printer.pushNamespace(ns)
         }
 
-        if (clazz.isInterface && this.library.name === 'arkoala') {
-            // generate interface declarations for ArkTS only
-            if (this.library.language !== Language.JAVA) {
-                writeInterface(clazz.decl, printer);
+        if (clazz.isInterface) {
+            if (printer.language == Language.CJ || printer.language == Language.JAVA) {
+                printer.writeInterface(clazz.className, writer => {})
+            } else {
+                writeInterface(clazz.decl, printer)
+            }
+        }
+        else {
+            if (needPrintInterals) {
+                // Write internal Materialized class with fromPtr(ptr) method
+                printer.writeClass(
+                    getInternalClassName(clazz.className),
+                    writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    false
+                )
             }
         }
 
@@ -316,26 +331,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
 
-        if (needPrintInterals) {
-            if (!clazz.isInterface) {
-                // Write internal Materialized class with fromPtr(ptr) method
-                printer.writeClass(
-                    getInternalClassName(clazz.className),
-                    writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    false
-                )
-            } else {
-                if (printer.language == Language.CJ || printer.language == Language.JAVA) {
-                    // TODO: fill interface fields
-                    printer.writeInterface(clazz.className, writer => { }, undefined, undefined)
-                }
-            }
-        }
-
         if (ns !== '') {
             printer.popNamespace()
         }
@@ -473,15 +468,7 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
 }
 
 class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    private printPackage(): void {
-        this.printer.print(`package idlize\n`)
-    }
-
-    override printImports(): void {
-        this.printPackage()
-        this.printer.print("import std.collection.*")
-        this.printer.print("import Interop.*\n")
-    }
+    override printImports(): void {}
 
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
@@ -525,13 +512,6 @@ class MaterializedVisitor implements PrinterClass {
         }
 
         return visitor.visit()
-    }
-
-    printMaterialized(): void {
-        console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        for (const clazz of this.library.materializedToGenerate) {
-            this.printContent(clazz)
-        }
     }
 
     print(): PrinterResult[] {

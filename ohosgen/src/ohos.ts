@@ -36,7 +36,7 @@ import {
     makeDeserializeAndCall,
     makeDeserializer,
     makeOhosModule,
-    makeTSSerializer,
+    makeSerializer,
     makeTypeChecker,
     readLangTemplate,
     printArkUIGeneratedNativeModule,
@@ -47,6 +47,7 @@ import {
     printSerializersOhos,
     install,
     printInterfaceData,
+    printCJArkUIGeneratedNativeFunctions,
 } from '@idlizer/libohos';
 import { OhosInstall } from "./OhosInstall"
 import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
@@ -84,7 +85,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     // managed-interop-serializers
 
     writeIntegratedFile(ohos.peer(new TargetFile('Serializer')),
-        makeTSSerializer(peerLibrary).getOutput().join('\n')
+        makeSerializer(peerLibrary)
     )
     const deserializerFilePath = ohos.peer(new TargetFile('Deserializer'))
     writeIntegratedFile(deserializerFilePath,
@@ -106,6 +107,10 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     const nativeModuleFileName = NativeModule.Generated.name + peerLibrary.language.extension
     writeIntegratedFile(
         ohos.materialized(new TargetFile(nativeModuleFileName)),
+        peerLibrary.language == Language.CJ ?
+        printCJArkUIGeneratedNativeFunctions(peerLibrary, NativeModule.Generated).printToString().concat(
+            printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).content.getOutput().join('\n')
+        ) :
         printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated, w => {
             // add method for arkts buffer stubs
             if (peerLibrary.language === Language.ARKTS) {
@@ -237,6 +242,10 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
 const PEER_LIB_CONFIG = new Map<Language, string[]>([
     [Language.TS, ['MaterializedBase.ts', 'shared/generated-utils.ts']],
     [Language.ARKTS, ['MaterializedBase.ts', 'shared/generated-utils.ts']]
+])
+PEER_LIB_CONFIG.set(Language.ARKTS, [
+        path.join('sig', 'arkoala-arkts', 'arkui', 'src', 'generated', 'MaterializedBase.ts'),
+        'MaterializedBase.cj'
 ])
 
 function copyPeerLib(lang: Language, rootDir: string) {

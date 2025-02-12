@@ -30,6 +30,7 @@ import { PrintHint } from "@idlizer/core"
 import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
+import { makeCJDeserializer, makeCJSerializer } from "./printers/lang/CJPrinters"
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -245,6 +246,15 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
+export function makeSerializer(library: PeerLibrary): string {
+    switch (library.language) {
+        case Language.ARKTS: return makeTSSerializer(library).getOutput().join("\n")
+        case Language.TS: return makeTSSerializer(library).getOutput().join("\n")
+        case Language.CJ: return makeCJSerializer(library).getOutput().join("\n")
+    }
+    throw new Error(`Unsupported language "${library.language}"`)
+}
+
 export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     let printer = library.createLanguageWriter()
     printer.writeLines(cStyleCopyright)
@@ -423,6 +433,7 @@ export function makeDeserializer(library: PeerLibrary): string {
     switch (library.language) {
         case Language.ARKTS: return makeArkTSDeserializer(library)
         case Language.TS: return makeTSDeserializer(library)
+        case Language.CJ: return makeCJDeserializer(library)
     }
     throw new Error(`Unsupported language "${library.language}"`)
 }

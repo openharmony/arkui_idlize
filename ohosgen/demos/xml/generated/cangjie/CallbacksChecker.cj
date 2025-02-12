@@ -1,7 +1,7 @@
 package idlize
 
-import std.collection.*
 import Interop.*
+import std.collection.*
 
 class CallbackEventKind {
     public static var Event_CallCallback: CallbackEventKind = CallbackEventKind(0)
