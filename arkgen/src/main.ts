@@ -38,6 +38,7 @@ import { IDLVisitor, loadPeerConfiguration,
     SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaFile, generateIdlSkoala,
     IdlWrapperProcessor, fillSyntheticDeclarations, DefaultConfiguration,
     scanPredefinedDirectory, scanNotPredefinedDirectory,
+    scanCommonPredefined,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -159,14 +160,21 @@ if (options.dts2skoala) {
 }
 
 if (options.idl2peer) {
-    const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
-
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
 
     const idlLibrary = new ArkoalaPeerLibrary(language)
     idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
-    scanPredefinedDirectory(PREDEFINED_PATH, "src").forEach(file => {
+    const { interop, root } = scanCommonPredefined()
+    interop.forEach(file => {
+        new IDLInteropPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
+
+    root.forEach(file => {
         new IDLPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
@@ -220,7 +228,8 @@ if (options.dts2peer) {
     options.docs = "all"
     const idlLibrary = new ArkoalaPeerLibrary(lang)
     // collect predefined files
-    scanPredefinedDirectory(__dirname, "../../predefined/interop").forEach(file => {
+    const { interop, root } = scanCommonPredefined()
+    interop.forEach(file => {
         new IDLInteropPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
@@ -228,7 +237,7 @@ if (options.dts2peer) {
         }).visitWholeFile()
     })
 
-    scanPredefinedDirectory(__dirname, "../../predefined").forEach(file => {
+    root.forEach(file => {
         new IDLPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,

@@ -37,6 +37,7 @@ import { IDLVisitor, loadPeerConfiguration,
     IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor,
     loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
     scanPredefinedDirectory, scanNotPredefinedDirectory,
+    scanCommonPredefined,
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
 import { generateOhos as generateOhosOld, OhosConfiguration, suggestLibraryName } from "./OhosGenerator"
@@ -93,8 +94,6 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    const PREDEFINED_PATH = path.join(__dirname, "..", "..", "predefined")
-
     if (options.inputFiles && typeof options.inputFiles === 'string') {
         options.inputFiles = options.inputFiles
             .split(',')
@@ -130,8 +129,9 @@ if (options.dts2peer) {
 
     options.docs = "all"
     const idlLibrary = new PeerLibrary(lang)
+    const { interop, root } = scanCommonPredefined()
     // collect predefined files
-    scanPredefinedDirectory(PREDEFINED_PATH, "interop").forEach(file => {
+    interop.forEach(file => {
         new IDLInteropPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,
@@ -139,7 +139,7 @@ if (options.dts2peer) {
         }).visitWholeFile()
     })
 
-    scanPredefinedDirectory(PREDEFINED_PATH).forEach(file => {
+    root.forEach(file => {
         new IDLPredefinesVisitor({
             sourceFile: file.originalFilename,
             peerLibrary: idlLibrary,

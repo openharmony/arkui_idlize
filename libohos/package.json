@@ -12,6 +12,7 @@
     "build/lib/**/*.js",
     "build/lib/**/*.d.ts",
     "peer_lib/**/*",
+    "predefined/**/*",
     "templates/**/*"
   ],
   "type": "module",

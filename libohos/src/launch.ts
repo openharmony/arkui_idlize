@@ -71,3 +71,16 @@ export function validatePaths(paths: string[], type: 'file' | 'dir'): void {
         }
     })
 }
+
+export interface PredefinedFiles {
+    interop: PeerFile[]
+    root: PeerFile[]
+}
+
+const PREDEFINED_PATH = path.resolve(require.resolve('@idlizer/libohos'), '..', '..', '..', '..', 'predefined')
+export function scanCommonPredefined(): PredefinedFiles {
+    return {
+        root: scanPredefinedDirectory(PREDEFINED_PATH),
+        interop: scanPredefinedDirectory(PREDEFINED_PATH, 'interop'),
+    }
+}
