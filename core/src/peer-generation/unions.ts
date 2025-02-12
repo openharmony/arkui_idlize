@@ -17,7 +17,7 @@ import { convertType, TypeConvertor } from "../LanguageWriters";
 import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
 import { typeOrUnion } from "./idl/common"
 import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
-import { ArgConvertor } from "../LanguageWriters/ArgConvertors";
+import { ArgConvertor, CustomTypeConvertor } from "../LanguageWriters/ArgConvertors";
 import { RuntimeType } from "../LanguageWriters/common";
 import { LibraryInterface } from "../LibraryInterface";
 import { ReferenceResolver } from "./ReferenceResolver";
@@ -100,11 +100,20 @@ export class UnionRuntimeTypeChecker {
                     convertorIndex,
                     runtimeTypeIndex)])))
     }
-    reportConflicts(context: string | undefined) {
+    reportConflicts(context: string | undefined, writer: LanguageWriter) {
         if (this.discriminators.filter(([discriminator, _, __]) => discriminator === undefined).length > 1) {
-            this.discriminators.forEach(([discr, conv, n]) =>
-                console.log(`   ${n} : ${conv.constructor.name} : ${discr ? discr.asString() : "<undefined>"}`))
-            throw new Error(`runtime type conflict in \`${context}\``)
+            let report = `Union discrimination code can not be generated for \`${context}\`.\n`
+            report += `Possible reasons for that are too similar or unresolved types in union (see below).\n`
+            report += ` #  | type                          | duplicated properties         | resolved | discriminator expression\n`
+            const properties = Array.from(this.duplicateMembers).join(",").padEnd(30)
+            this.discriminators.forEach(([discr, conv, n]) => {
+                const num = n.toString().padEnd(3)
+                const typename = conv.targetType(writer).padEnd(30)
+                const resolved = (conv instanceof CustomTypeConvertor ? "no" : "yes").padEnd(9)
+                const discriminator = discr ? discr.asString() : "<undefined>"
+                report += ` ${num}| ${typename}| ${properties}| ${resolved}| ${discriminator}\n`
+            })
+            throw new Error(report)
         }
     }
 }

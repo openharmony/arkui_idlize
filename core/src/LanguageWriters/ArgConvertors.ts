@@ -924,7 +924,7 @@ export class UnionConvertor extends BaseArgConvertor { //
             printer.popIndent()
             printer.print(`}`)
         })
-        this.unionChecker.reportConflicts(this.library.getCurrentContext() ?? "<unknown context>")
+        this.unionChecker.reportConflicts(this.library.getCurrentContext() ?? "<unknown context>", printer)
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const statements: LanguageStatement[] = []
