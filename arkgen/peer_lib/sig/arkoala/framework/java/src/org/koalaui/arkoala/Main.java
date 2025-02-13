@@ -171,7 +171,7 @@ public class Main {
         // materialized classes
         TestUtils.checkResult("[Materialized] ctor",
             () -> { new ClassWithConstructorAndAllOptionalParamsDTS(new Opt_Number(10), null); },
-            "new ClassWithConstructorAndAllOptionalParamsDTS({.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=10}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (ClassWithConstructorAndAllOptionalParamsDTSPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]"
+            "new ClassWithConstructorAndAllOptionalParamsDTS({.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=10}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (Ark_ClassWithConstructorAndAllOptionalParamsDTS) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]"
             );
         TestUtils.checkResult("[Materialized] of",
             () -> { ClassWithConstructorAndAllOptionalParamsDTS.of(null, "test"); },

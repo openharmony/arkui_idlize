@@ -46,8 +46,6 @@ function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): 
     //         ))
     //     })
     // }
-    if (entry.scope)
-        res.push(...entry.scope.flatMap(it => collectEntryCallbacks(library, it)))
     return res
 }
 

@@ -1148,10 +1148,6 @@ abstract class OHOSVisitor {
                 } else if(isImport(entry)) {
                     this.dependecyCollector.parseImport(entry)
                 }
-                entry.scope?.forEach(it => {
-                    if (isCallback(it))
-                        this.callbacks.push(it)
-                })
             })
         })
 

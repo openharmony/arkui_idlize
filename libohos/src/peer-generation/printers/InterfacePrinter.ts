@@ -134,16 +134,6 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     private printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
-        idlInterface.methods.map((it: idl.IDLMethod) => {
-            let result = it.scope
-            it.scope = undefined
-            return result
-        })
-            .filter(isDefined)
-            .map(scope => {
-                idlInterface.scope ? idlInterface.scope.push(...scope) : idlInterface.scope = scope
-            })
-
         //TODO: CommonMethod has a method onClick and a property onClick
         const seenFields = new Set<string>()
         return ([`interface ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])

@@ -114,7 +114,6 @@ export interface IDLNamedNode extends IDLNode {
 export interface IDLEntry extends IDLNode, IDLNamedNode {
     _idlEntryBrand: any
     comment?: string
-    scope?: IDLEntry[] // TODO: cascade remove as useless
     namespace?: IDLNamespace
 }
 
@@ -294,7 +293,6 @@ export function forEachChild(node: IDLNode, cbEnter: (entry: IDLNode) => void, c
             concrete.properties.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             concrete.methods.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             concrete.callables.forEach((value) => forEachChild(value, cbEnter, cbLeave))
-            concrete.scope?.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             break
         }
         case IDLKind.Method:
@@ -1168,14 +1166,6 @@ export function printScoped(idl: IDLEntry): PrintedLine[] {
 }
 
 export function printInterface(idl: IDLInterface): PrintedLine[] {
-    idl.methods
-        .map(it => {
-            let result = it.scope
-            it.scope = undefined
-            return result
-        })
-        .filter(isDefined)
-        .forEach(scope => idl.scope ? idl.scope.push(...scope) : idl.scope = scope)
     return [
         ...printExtendedAttributes(idl, 0),
         `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0]) : ""} {`,
@@ -1275,7 +1265,6 @@ export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOption
     let indent = 0
     const generatedIdl = entries
         .map(it => printIDL(it, options))
-        .concat(printScopes(entries))
         .flat()
         .filter(isDefined)
         .filter(it => it.length > 0)
@@ -1295,14 +1284,6 @@ export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOption
 export function verifyIDLString(source: string): true {
     webidl2.validate(webidl2.parse(source))
     return true
-}
-
-
-function printScopes(entries: IDLEntry[]) {
-    return entries
-        .map((it: IDLEntry) => it.scope)
-        .filter(isDefined)
-        .flatMap((it: IDLEntry[]) => it.map(printScoped))
 }
 
 export function hasExtAttribute(node: IDLNode, attribute: IDLExtendedAttributes): boolean {
