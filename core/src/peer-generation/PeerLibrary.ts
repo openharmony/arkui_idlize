@@ -66,6 +66,7 @@ export class PeerLibrary implements LibraryInterface {
 
     constructor(
         public language: Language,
+        public libraryPackages: string[] | undefined,
     ) {}
 
     public name: string = ""
@@ -202,6 +203,21 @@ export class PeerLibrary implements LibraryInterface {
         }// end of block to remove
 
         return undefined // empty result
+    }
+    resolvePackageName(entry: idl.IDLEntry): string {
+        if (this._syntheticEntries.includes(entry))
+            return this.libraryPackages?.length ? this.libraryPackages[0] : this.files[0].packageName()
+        while (entry.namespace) {
+            entry = entry.namespace
+        }
+        for (const file of this.files) {
+            if (file.entries.includes(entry))
+                return file.packageName()
+        }
+        throw new Error(`Package name for entry ${entry.name} was not found`)
+    }
+    hasInLibrary(entry: idl.IDLEntry): boolean {
+        return !this.libraryPackages?.length || this.libraryPackages?.includes(this.resolvePackageName(entry))
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {

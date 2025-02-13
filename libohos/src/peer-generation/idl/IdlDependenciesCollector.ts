@@ -142,6 +142,20 @@ class ArkTSDependenciesCollector extends DependenciesCollector {
         }
         return super.convertTypeReference(type);
     }
+    protected override convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
+        if (idl.isReferenceType(type)) {
+            const resolved = this.library.resolveTypeReference(type)
+            if (resolved && idl.isInterface(resolved))
+                return this.convertSupertype(resolved)
+        }
+        if (idl.isInterface(type)) {
+            return [
+                type,
+                ...this.convert(type),
+            ]
+        }
+        return super.convertSupertype(type)
+    }
 }
 
 class CJDependenciesCollector extends DependenciesCollector {

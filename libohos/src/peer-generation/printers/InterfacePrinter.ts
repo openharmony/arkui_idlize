@@ -398,7 +398,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
                 syntheticGenerator.convert(entry)
-                if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry)))
+                if (idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) && entry.subkind == idl.IDLInterfaceSubkind.Class || isBuilderClass(entry)))
                     continue
                 registerEntry(entry)
             }
@@ -838,6 +838,8 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             registerEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
+            if (this.peerLibrary?.libraryPackages?.length && !this.peerLibrary.libraryPackages.includes(file.packageName()))
+                continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isPackage(entry) ||
                     isPredefined(entry) ||

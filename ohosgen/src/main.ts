@@ -38,6 +38,8 @@ import { IDLVisitor, loadPeerConfiguration,
     loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
     scanPredefinedDirectory, scanNotPredefinedDirectory,
     scanCommonPredefined,
+    formatInputPaths,
+    validatePaths,
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
 import { generateOhos as generateOhosOld, OhosConfiguration, suggestLibraryName } from "./OhosGenerator"
@@ -47,6 +49,8 @@ const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-files <files...>', 'Comma-separated list of specific files to process')
+    .option('--file-to-package <fileToPackage>', 'Comma-separated list of pairs, what package name should be used for file in format <fileName:packageName>')
+    .option('--library-packages <packages>', 'Comma separated list of packages included into library')
     .option('--idl2peer', 'Convert IDL to peer drafts')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
@@ -81,8 +85,12 @@ if (options.idl2peer) {
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
 
-    const idlLibrary = new PeerLibrary(language)
-    idlLibrary.files.push(...scanNotPredefinedDirectory(options.inputDir))
+    const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
+    validatePaths(inputDirs, "dir")
+    validatePaths(inputFiles, "file")
+
+    const idlLibrary = new PeerLibrary(language, libraryPackages)
+    idlLibrary.files.push(...scanNotPredefinedDirectory(inputDirs[0]))
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)
@@ -94,41 +102,12 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    if (options.inputFiles && typeof options.inputFiles === 'string') {
-        options.inputFiles = options.inputFiles
-            .split(',')
-            .map(file => file.trim())
-            .filter(Boolean)
-    }
-
-    if (options.inputDir && typeof options.inputDir === 'string') {
-        options.inputDir = options.inputDir.split(',')
-            .map(dir => dir.trim())
-            .filter(Boolean)
-    }
-
-    const inputDirs: string[] = options.inputDir || []
-    inputDirs.forEach(dir => {
-        if (!fs.existsSync(dir)) {
-            console.error(`Input directory does not exist: ${dir}`)
-            process.exit(1)
-        } else {
-            console.log(`Input directory exists: ${dir}`)
-        }
-    })
-
-    const inputFiles: string[] = options.inputFiles || []
-    inputFiles.forEach(file => {
-        if (!fs.existsSync(file)) {
-            console.error(`Input file does not exist: ${file}`)
-            process.exit(1)
-        } else {
-            console.log(`Input file exists: ${file}`)
-        }
-    })
+    const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
+    validatePaths(inputDirs, "dir")
+    validatePaths(inputFiles, "file")
 
     options.docs = "all"
-    const idlLibrary = new PeerLibrary(lang)
+    const idlLibrary = new PeerLibrary(lang, libraryPackages)
     const { interop, root } = scanCommonPredefined()
     // collect predefined files
     interop.forEach(file => {

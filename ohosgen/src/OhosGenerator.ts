@@ -1133,7 +1133,9 @@ abstract class OHOSVisitor {
 
     prepare() {
         this.library.files.forEach(file => {
-            if (file.isPredefined) return
+            if (file.isPredefined ||
+                this.library.libraryPackages?.length && !this.library.libraryPackages.includes(file.packageName()))
+                return
             linearizeNamespaceMembers(file.entries).forEach(entry => {
                 if (isInterface(entry)) {
                     if (isMaterialized(entry, this.library)) {

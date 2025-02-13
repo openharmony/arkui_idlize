@@ -371,6 +371,9 @@ export class IdlPeerProcessor {
     }
 
     private processMaterialized(decl: idl.IDLInterface, isGlobalScope = false) {
+        if (!this.library.hasInLibrary(decl)) {
+            return
+        }
         const name = decl.name
         if (this.library.materializedClasses.has(name)) {
             return

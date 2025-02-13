@@ -131,7 +131,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         private options: OptionValues,
         private predefinedTypeResolver?: ReferenceResolver,
     ) {
-        this.defaultPackage = options.defaultIdlPackage as string ?? "arkui"
+        const sourceFilePath = path.resolve(sourceFile.fileName)
+        const suggestedPackage = (options.fileToPackage as string[] | undefined)
+            ?.map(it => it.split(":"))
+            ?.find(it => path.resolve(it[0]) === sourceFilePath)?.[1]
+        this.defaultPackage = suggestedPackage ?? options.defaultIdlPackage as string ?? "arkui"
     }
 
     visitWholeFile(): idl.IDLEntry[] {
