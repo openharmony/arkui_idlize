@@ -9,6 +9,9 @@
             "Signature": [
                 "ProtectionFlagConst", // u8
             ],
+            "es2panda_Signature": [ // data class
+                "*"
+            ],
             "Type": [
                 "IdConst", // u64
                 "*"
@@ -19,6 +22,7 @@
             "ETSReExportDeclaration": [
                 "Create", // sequence<String>
                 "Update", // sequence<String>
+                "GetUserPathsConst" // sequence<String>
             ],
             "CharLiteral": [
                 "Create1", // KShort,

@@ -13,13 +13,16 @@
  * limitations under the License.
  */
 
+import { BindingsConstructions } from "../interop/bindings/BindingsConstructions"
+import { InteropConstructions } from "../interop/InteropConstructions"
+
 export class PeersConstructions {
     static fileName(node: string): string {
         return `${node}.ts`
     }
 
-    static get peer(): string {
-        return `peer`
+    static get pointerParameter(): string {
+        return `pointer`
     }
 
     static get validatePeer(): string {
@@ -38,5 +41,45 @@ export class PeersConstructions {
             returnType: (type: string) => `${parameter} is ${type}`,
             body: (type: string) => `${parameter} instanceof ${type}`
         }
+    }
+
+    static get pointerToPeer(): string {
+        return `unpackNonNullableNode`
+    }
+
+    static get arrayOfPointersToArrayOfPeers(): string {
+        return `unpackNonNullableNode`
+    }
+
+    static get context(): string {
+        return `global.context`
+    }
+
+    static get pointerUsage(): string {
+        return `this.peer`
+    }
+
+    static callBinding(iface: string, method: string): string {
+        return `global.generatedEs2panda.${
+            BindingsConstructions.method(
+                InteropConstructions.method(iface, method)
+            )
+        }`
+    }
+
+    static get warn(): string {
+        return `console.warn`
+    }
+
+    static stubNodeMessage(node: string): string {
+        return `"Warning: stub node ${node}"`
+    }
+
+    static import(what: string, from: string): string {
+        return `import { ${what} } from "./${from}"`
+    }
+
+    static importEnum(what: string): string {
+        return PeersConstructions.import(what, `../Es2pandaEnums`)
     }
 }

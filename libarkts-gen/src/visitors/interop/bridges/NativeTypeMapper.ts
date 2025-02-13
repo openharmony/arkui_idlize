@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLFile, isSequence, isString, Typechecker } from "../../../idl-utils"
+import { IDLFile, isSequence, isString, Typechecker } from "../../../utils/idl"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import {
     convertType,

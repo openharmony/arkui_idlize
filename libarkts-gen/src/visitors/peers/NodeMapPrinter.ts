@@ -15,7 +15,7 @@
 
 import { IDLInterface, isInterface } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { createDefaultTypescriptWriter, IDLFile, nodeType } from "../../idl-utils"
+import { createDefaultTypescriptWriter, IDLFile, nodeType } from "../../utils/idl"
 
 export class NodeMapPrinter extends SingleFilePrinter {
     constructor(idl: IDLFile) {
@@ -28,7 +28,7 @@ export class NodeMapPrinter extends SingleFilePrinter {
     visit(): void {
         this.idl.entries
             .filter(isInterface)
-            .filter(it => this.typechecker.isPeer(it))
+            .filter(it => this.typechecker.isPeer(it.name))
             .forEach(this.printInterface, this)
     }
 

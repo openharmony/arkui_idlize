@@ -15,7 +15,7 @@
 
 import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
 import { Config } from "../../Config"
-import { IDLFile } from "../../idl-utils"
+import { IDLFile } from "../../utils/idl"
 
 export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(

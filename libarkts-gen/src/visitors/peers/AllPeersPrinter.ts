@@ -23,7 +23,7 @@ export class AllPeersPrinter extends MultiFilePrinter {
     print(): Result[] {
         return this.idl.entries
             .filter(isInterface)
-            .filter(it => this.typechecker.isPeer(it))
+            .filter(it => this.typechecker.isPeer(it.name))
             .map(it => this.printInterface(it))
     }
 

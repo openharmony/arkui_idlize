@@ -13,21 +13,6 @@
  * limitations under the License.
  */
 
-import { IDLFile, Typechecker } from "../utils/idl"
-import { LanguageWriter } from "@idlizer/core"
-
-export abstract class SingleFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-    protected abstract writer: LanguageWriter
-
-    print(): string {
-        this.visit()
-        return this.writer.getOutput().join(`\n`)
-    }
-
-    abstract visit(): void
+export function pascalToCamel(value: string) {
+    return value.charAt(0).toLowerCase() + value.slice(1);
 }

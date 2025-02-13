@@ -14,8 +14,8 @@
  */
 
 import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlizer/core"
-import { IDLEntry, IDLEnum, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
-import { IDLFile } from "../../idl-utils"
+import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
+import { IDLFile } from "../../utils/idl"
 
 export abstract class InteropPrinter {
     constructor(

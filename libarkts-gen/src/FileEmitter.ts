@@ -19,7 +19,7 @@ import { forceWriteFile } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
 import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
 import { EnumsPrinter } from "./visitors/enums/EnumsPrinter"
-import { IDLFile } from "./idl-utils"
+import { IDLFile } from "./utils/idl"
 import { Config } from "./Config"
 import { InteropTransformer } from "./transformers/InteropTransformer"
 import { AstNodeFilterTransformer } from "./transformers/filter/AstNodeFilterTransformer"
@@ -105,7 +105,7 @@ export class FileEmitter {
         this.printFile(this.enumsPrinter, idl)
 
         idl = new AstNodeFilterTransformer(idl).transformed()
-        this.printMultiFile(this.peersPrinter, idl)
+        this.printFiles(this.peersPrinter, idl)
         this.printFile(this.nodeMapPrinter, idl)
         this.printFile(this.indexPrinter, idl)
 
@@ -129,7 +129,7 @@ export class FileEmitter {
         )
     }
 
-    private printMultiFile(multiFilePrinter: MultiFileEmitter, idl: IDLFile): void {
+    private printFiles(multiFilePrinter: MultiFileEmitter, idl: IDLFile): void {
         if (!multiFilePrinter.enabled) {
             return
         }

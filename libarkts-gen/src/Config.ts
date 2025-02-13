@@ -38,6 +38,10 @@ export class Config {
         return `Es2pandaAstNodeType`
     }
 
+    static get getterAttribute(): string {
+        return `get`
+    }
+
     static get astNodeCommonAncestor(): string {
         return `AstNode`
     }

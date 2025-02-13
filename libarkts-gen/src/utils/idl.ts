@@ -31,7 +31,7 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { Config } from "./Config"
+import { Config } from "../Config"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === "String"
@@ -93,8 +93,8 @@ export class Typechecker {
     }
 
 
-    isPeer(node: IDLInterface): boolean {
-        return this.isHeir(node.name, Config.astNodeCommonAncestor) && node.name !== Config.astNodeCommonAncestor
+    isPeer(node: string): boolean {
+        return this.isHeir(node, Config.astNodeCommonAncestor) && node !== Config.astNodeCommonAncestor
     }
 
     isHollow(name: string): boolean {
@@ -138,10 +138,20 @@ export function isAbstract(node: IDLInterface): boolean {
     return nodeType(node) === undefined
 }
 
+export function isGetter(node: IDLMethod): boolean {
+    return node.extendedAttributes?.find(it => it.name === Config.getterAttribute) !== undefined
+}
+
 export function createDefaultTypescriptWriter() {
     return new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert: (node: IDLType) => throwException(`Unexpected type conversion`) }
     )
+}
+
+export function signatureTypes(node: IDLMethod): IDLType[] {
+    return node.parameters
+        .map(it => it.type)
+        .concat(node.returnType)
 }

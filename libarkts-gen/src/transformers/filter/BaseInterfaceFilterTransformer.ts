@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { createUpdatedInterface, IDLFile, Typechecker } from "../../idl-utils"
+import { createUpdatedInterface, IDLFile, Typechecker } from "../../utils/idl"
 import { IDLMethod, isContainerType, isInterface, isReferenceType } from "@idlizer/core"
 
 export abstract class BaseInterfaceFilterTransformer {

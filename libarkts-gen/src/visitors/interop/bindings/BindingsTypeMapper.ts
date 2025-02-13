@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLFile, isSequence, Typechecker } from "../../../idl-utils"
+import { IDLFile, isSequence, Typechecker } from "../../../utils/idl"
 import { convertType, IDLPointerType, IDLType } from "@idlizer/core"
 import { BindingsTypeConvertor } from "./BindingsTypeConvertor"
 

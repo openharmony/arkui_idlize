@@ -34,7 +34,7 @@ import {
     throwException
 } from "@idlizer/core"
 import { BaseConvertor } from "../BaseConvertor"
-import { isSequence } from "../../../idl-utils"
+import { isSequence } from "../../../utils/idl"
 
 export class NativeTypeConvertor extends BaseConvertor {
     constructor(idl: IDLEntry[]) {

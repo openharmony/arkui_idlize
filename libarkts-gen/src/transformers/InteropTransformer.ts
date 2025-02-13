@@ -25,7 +25,7 @@ import {
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { createUpdatedInterface, IDLFile } from "../idl-utils"
+import { createUpdatedInterface, IDLFile } from "../utils/idl"
 
 export class InteropTransformer {
     constructor(

@@ -27,7 +27,7 @@ import {
 import { IDLType } from "@idlizer/core/idl"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { InteropPrinter } from "../InteropPrinter"
-import { isSequence, isString } from "../../../idl-utils"
+import { isSequence, isString } from "../../../utils/idl"
 import { NativeTypeMapper } from "./NativeTypeMapper"
 
 export class BridgesPrinter extends InteropPrinter {

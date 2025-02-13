@@ -60,7 +60,7 @@ export class BindingsTypeConvertor extends BaseConvertor {
             case IDLF64Type: return `KDouble`
             case IDLBooleanType: return `KBoolean`
             case IDLStringType: return `KStringPtr`
-            case IDLVoidType: return `KNativePointer`
+            case IDLVoidType: return `void`
             case IDLPointerType: return `KNativePointer`
         }
         throwException(`Unsupported primitive type: ${JSON.stringify(type)}`)

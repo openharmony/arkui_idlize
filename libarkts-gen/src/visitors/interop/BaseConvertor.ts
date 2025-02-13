@@ -23,7 +23,7 @@ import {
     IDLUnionType,
     TypeConvertor
 } from "@idlizer/core"
-import { Typechecker } from "../../idl-utils"
+import { Typechecker } from "../../utils/idl"
 
 export abstract class BaseConvertor implements TypeConvertor<string> {
     constructor(

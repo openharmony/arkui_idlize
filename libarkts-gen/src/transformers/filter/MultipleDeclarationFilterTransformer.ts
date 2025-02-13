@@ -14,7 +14,7 @@
  */
 
 import { isInterface } from "@idlizer/core"
-import { IDLFile } from "../../idl-utils"
+import { IDLFile } from "../../utils/idl"
 
 export class MultipleDeclarationFilterTransformer {
     constructor(

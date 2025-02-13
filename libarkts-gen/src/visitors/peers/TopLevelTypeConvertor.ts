@@ -28,13 +28,25 @@ import {
     IDLReferenceType,
     IDLStringType,
     IDLU32Type,
-    IDLVoidType,
+    IDLVoidType, isPrimitiveType, isReferenceType,
     throwException
 } from "@idlizer/core"
+import { isSequence, isString } from "../../utils/idl"
+import { CachedLogger } from "../../CachedLogger"
 
 export class TopLevelTypeConvertor extends BaseConvertor {
     override convertContainer(type: IDLContainerType): string {
-        throwException(`Unexpected conversion`)
+        if (isSequence(type)) {
+            const inner = type.elementType[0]
+            if (isReferenceType(inner)) {
+                return `readonly ${this.convertTypeReference(inner)}[]`
+            }
+            if (isPrimitiveType(inner)) {
+                CachedLogger.warn(`sketchy string array`)
+                return `readonly ${this.convertPrimitiveType(inner)}[]`
+            }
+        }
+        throwException(`Unexpected conversion: ${JSON.stringify(type)}`)
     }
 
     override convertTypeReference(type: IDLReferenceType): string {
