@@ -566,7 +566,7 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("new CanvasRenderingContext2D()",
         () => canvasRenderingContext2D = unsafeCast<CanvasRenderingContext2D>(new CanvasRenderingContext2D()),
-        `new CanvasPath()[return (CanvasPathPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderer()[return (CanvasRendererPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (CanvasRenderingContext2DPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`
+        `new CanvasPath()[return (Ark_CanvasPath) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderer()[return (Ark_CanvasRenderer) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]new CanvasRenderingContext2D({.tag=INTEROP_TAG_UNDEFINED, .value={}})[return (Ark_CanvasRenderingContext2D) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]`
     )
 
     checkResult("CanvasRenderingContext2D width",
@@ -788,7 +788,7 @@ function checkPassToNativeBuffer() {
         const buffer = new ArrayBuffer(256)
         const pm = new PixelMapInternal()
         pm.readPixelsToBufferSync(buffer)
-    }, "new PixelMap()[return (PixelMapPeer*) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]readPixelsToBufferSync({.data=nullptr, .length=256})")
+    }, "new PixelMap()[return (Ark_PixelMap) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]readPixelsToBufferSync({.data=nullptr, .length=256})")
 }
 
 function checkReadAndMutateBuffer() {
