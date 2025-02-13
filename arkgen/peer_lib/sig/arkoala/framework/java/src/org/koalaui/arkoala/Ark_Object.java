@@ -36,6 +36,11 @@ public interface Ark_Object {
         return RuntimeType.STRING;
     }
 
+    public static RuntimeType getRuntimeType(byte[] object) {
+        if (object == null) { return RuntimeType.UNDEFINED; }
+        return RuntimeType.OBJECT;
+    }
+
     public static RuntimeType getRuntimeType(double[] object) {
         if (object == null) { return RuntimeType.UNDEFINED; }
         return RuntimeType.OBJECT;

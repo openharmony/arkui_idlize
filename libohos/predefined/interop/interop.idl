@@ -24,4 +24,5 @@ interface Interop {
     void CallCallbackSync(i32 callbackKind, sequence<u8> args, i32 argsSize);
     void CallCallbackResourceHolder(pointer holder, i32 resourceId);
     void CallCallbackResourceReleaser(pointer releaser, i32 resourceId);
+    i32 CallForeignVM(pointer foreignContext, i32 kind, sequence<u8> data, i32 length);
 };

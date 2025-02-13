@@ -44,6 +44,10 @@ public class InteropNativeModule {
     static native void   _CallCallbackSync(int callbackKind, byte[] args, int argsSize);
     static native void   _CallCallbackResourceHolder(long holder, int resourceId);
     static native void   _CallCallbackResourceReleaser(long releaser, int resourceId);
+    static native int    _CallForeignVM(long context, int kind, byte[] data, int length);
+    static native int    _CheckCallbackEvent(byte[] data, int length);
+    static native void   _ReleaseCallbackResource(int id);
+    static native void   _HoldCallbackResource(int id);
 
     // loader
     static native int     _LoadVirtualMachine(int arg0, String arg1, String arg2);

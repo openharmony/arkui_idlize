@@ -165,5 +165,4 @@ public class SerializerBase {
         this.writePointer(0);
         this.writePointer(0);
     }
-
 }

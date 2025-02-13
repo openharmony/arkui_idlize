@@ -70,14 +70,21 @@ public class Application {
         return new Application(view);
     }
 
-    public boolean enter(int arg0, int arg1) {
-        return loopIteration(arg0, arg1);
+    public boolean enter(int arg0, int arg1, long vmContext) {
+        ForeignFunctions.enter(vmContext);
+        boolean rv = loopIteration(arg0, arg1);
+        ForeignFunctions.leave();
+        return rv;
     }
 
     public boolean loopIteration(int arg0, int arg1) {
         checkEvents(arg0);
         updateState();
         render();
+
+        ForeignFunctions.setTimeout(() -> {
+            System.out.println("Callback called");
+        }, 100);
         return exitApp;
     }
 
