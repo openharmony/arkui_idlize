@@ -17,7 +17,8 @@
         "compile:panda": "npm run compile:native:panda && npm run compile:arkts:panda",
         "start": "node build/node/index.js",
         "start:panda": "bash scripts/run-panda.sh",
-        "start:cj": "npm run compile:native:cj && LD_LIBRARY_PATH=./build/native/cangjie/:$LD_LIBRARY_PATH && cjpm run"
+        "start:cj": "npm run compile:native:cj && LD_LIBRARY_PATH=./build/native/cangjie/:$LD_LIBRARY_PATH && cjpm run",
+        "oneclick:cj": "cd ../.. && npm run run:xml:cj && cd demos/xml/generated/cangjie && find . -type f ! -name 'main.cj' -exec rm -f {} + && cp -r ../../../../out/xml/generated/cangjie/* . && rm -rf ../native/* && cp -r ../../../../out/xml/generated/native/* ../native/ && npm run start:cj"
     },
     "dependencies": {
         "@koalaui/interop": "next",

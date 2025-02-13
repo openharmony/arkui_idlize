@@ -310,11 +310,6 @@ public open class EventType {
         value = arg0
     }
 }
-// public open class ParseInfo {
-//     ParseInfo() {
-//         super()
-//     }
-// }
 public open class ParseOptions {
     private var supportDoctype_container: Option<Bool>
     mut prop supportDoctype: Option<Bool> {

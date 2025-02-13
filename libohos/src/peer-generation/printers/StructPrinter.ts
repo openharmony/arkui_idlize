@@ -87,6 +87,9 @@ export class StructPrinter {
             if (target === idl.IDLVoidType) {
                 continue
             }
+            if (idl.isTypeParameterType(target)) {
+                continue
+            }
             const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name, undefined, target)
             let nameAssigned = structs.getNodeName(target)
             if (nameAssigned === 'Tag')
