@@ -51,7 +51,7 @@ if is_clang
     cflags += [
         '-Wall', '-Werror', '-Wno-unused-variable', '-Wno-unused-but-set-variable',
         '-Wno-extern-c-compat', '-Wno-error=deprecated-declarations',
-        '-Wno-unknown-warning-option', '-Wno-parentheses-equality', '-Wno-unused-function', '-Wno-macro-redefined',
+        '-Wno-unknown-warning-option', '-Wno-unused-function', '-Wno-macro-redefined',
         '-Wno-enum-compare', '-Wno-tautological-constant-out-of-range-compare'
     ]
 elif is_msvc
