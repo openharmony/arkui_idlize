@@ -1,9 +1,23 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration } from './ComponentsCollector'
-import { ARKOALA_PACKAGE_PATH } from './printers/lang/Java'
 
 export function writeFile(filename: string, content: string, config: { // TODO make content a string or a writer only
         onlyIntegrated: boolean,
@@ -106,8 +120,11 @@ class TsLayout extends CommonLayoutBase {
 class ArkTsLayout extends TsLayout { }
 
 class JavaLayout extends CommonLayoutBase {
+    constructor(library: PeerLibrary, prefix: string, private packagePath: string) {
+        super(library, prefix)
+    }
     private getPath(file:string):string {
-        return path.join(ARKOALA_PACKAGE_PATH, file)
+        return path.join(this.packagePath, file)
     }
     resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
         switch (role) {
@@ -115,15 +132,15 @@ class JavaLayout extends CommonLayoutBase {
                 if (idl.isEntry(node)) {
                     const ns = idl.getNamespaceName(node)
                     if (ns !== '') {
-                        return this.getPath(`Ark${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
+                        return this.getPath(`${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
                     }
                 }
                 if (idl.isInterface(node)) {
                     if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`Ark${toFileName(node.name)}`)
+                        return this.getPath(`${this.prefix}${toFileName(node.name)}`)
                     }
                     if (idl.isBuilderClass(node)) {
-                        return this.getPath(`Ark${toFileName(node.name)}Builder`)
+                        return this.getPath(`${this.prefix}${toFileName(node.name)}Builder`)
                     }
                     if (isMaterialized(node, this.library)) {
                         if (idl.isInterfaceSubkind(node)) {
@@ -131,14 +148,14 @@ class JavaLayout extends CommonLayoutBase {
                         }
                         return this.getPath(node.name)
                     }
-                    return this.getPath(`Ark${toFileName(node.name)}Interfaces`)
+                    return this.getPath(`${this.prefix}${toFileName(node.name)}Interfaces`)
                 }
                 return this.getPath(`Common`)
             }
             case LayoutNodeRole.PEER: {
                 if (idl.isInterface(node)) {
                     if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`peers/Ark${toFileName(node.name)}Peer`)
+                        return this.getPath(`peers/${this.prefix}${toFileName(node.name)}Peer`)
                     }
                 }
                 return this.getPath(`CommonPeer`)
@@ -191,11 +208,11 @@ class CJLayout extends CommonLayoutBase {
 
 ////////////////////////////////////////////////////////
 
-export function layout(library: PeerLibrary, prefix:string = ''): LayoutManagerStrategy {
+export function layout(library: PeerLibrary, prefix: string = '', packagePath: string = ''): LayoutManagerStrategy {
     switch(library.language) {
         case idl.Language.TS: return new TsLayout(library, prefix)
         case idl.Language.ARKTS: return new ArkTsLayout(library, prefix)
-        case idl.Language.JAVA: return new JavaLayout(library, prefix)
+        case idl.Language.JAVA: return new JavaLayout(library, prefix, packagePath)
         case idl.Language.CJ: return new CJLayout(library, prefix)
     }
     throw new Error(`Unimplemented language "${library.language}"`)

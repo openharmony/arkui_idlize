@@ -29,7 +29,6 @@ import {
     PrimitiveTypesInstance,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
-import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
@@ -160,7 +159,7 @@ class BridgeCcVisitor {
 
         this.generatedApi.print(`_logData.append("  ${api}->${modifier}->${this.getPeerMethodName(method)}(");`)
         if (method.hasReceiver()) {
-            this.generatedApi.print(`_logData.append("(${ArkPrimitiveTypesInstance.NativePointer})");`)
+            this.generatedApi.print(`_logData.append("(${PrimitiveTypesInstance.NativePointer})");`)
             this.generatedApi.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
             if (method.argAndOutConvertors.length > 0)
                 this.generatedApi.print(`_logData.append(", ");`)
@@ -200,7 +199,7 @@ class BridgeCcVisitor {
 
     private generateCParameters(method: PeerMethod): [string, string][] {
         const maybeReceiver: [string, string][] = method.hasReceiver()
-            ? [[ArkPrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []
+            ? [[PrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []
         let ptrCreated = false;
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
@@ -337,7 +336,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
             const modifier = this.generateApiCall(method, modifierName)
             const peerMethod = this.getPeerMethodName(method)
             const apiCall = this.getApiCall(method)
-            const call = `return (${ArkPrimitiveTypesInstance.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
+            const call = `return (${PrimitiveTypesInstance.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
             this.generatedApi.print(call)
         } else {
             super.printAPICall(method, modifierName)

@@ -27,6 +27,6 @@ export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.Emp
 export const INT_VALUE_GETTER = 'IntValueGetter'
 export const COMPONENT_BASE = 'ComponentBase'
 
-function getPackagePath(javaPackage: string): string {
+export function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')
 }

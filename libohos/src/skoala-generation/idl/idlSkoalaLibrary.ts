@@ -30,9 +30,9 @@ import {
     generatorConfiguration,
     LibraryInterface,
     LibraryFileInterface,
-    InterfaceConvertor
+    InterfaceConvertor,
+    PrimitiveTypesInstance
 } from '@idlizer/core'
-import { ArkPrimitiveTypesInstance } from "../../peer-generation/ArkPrimitiveType";
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlizer/core";
@@ -584,8 +584,8 @@ export class IdlWrapperProcessor {
 function mapCInteropRetType(type: idl.IDLType): string {
     if (idl.isPrimitiveType(type)) {
         switch (type) {
-            case idl.IDLBooleanType: return ArkPrimitiveTypesInstance.Boolean.getText()
-            case idl.IDLNumberType: return ArkPrimitiveTypesInstance.Int32.getText()
+            case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
+            case idl.IDLNumberType: return PrimitiveTypesInstance.Int32.getText()
             case idl.IDLStringType:
             case idl.IDLAnyType:
                 /* HACK, fix */
@@ -597,20 +597,20 @@ function mapCInteropRetType(type: idl.IDLType): string {
         }
     }
     if (idl.isReferenceType(type)) {
-        return ArkPrimitiveTypesInstance.NativePointer.getText()
+        return PrimitiveTypesInstance.NativePointer.getText()
     }
     if (idl.isTypeParameterType(type))
         /* ANOTHER HACK, fix */
         return "void"
     if (idl.isUnionType(type))
-        return ArkPrimitiveTypesInstance.NativePointer.getText()
+        return PrimitiveTypesInstance.NativePointer.getText()
     if (idl.isContainerType(type)) {
         if (idl.IDLContainerUtils.isSequence(type)) {
             /* HACK, fix */
             // return array by some way
             return "void"
         } else
-            return ArkPrimitiveTypesInstance.NativePointer.getText()
+            return PrimitiveTypesInstance.NativePointer.getText()
     }
     throw new Error(`mapCInteropType failed for ${idl.IDLKind[type.kind]}`)
 }

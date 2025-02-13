@@ -18,7 +18,7 @@ import {
     Language, LanguageExpression, LanguageStatement, LanguageWriter, ExpressionAssigner,
     RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor
 } from "@idlizer/core";
-import { ArkPrimitiveTypesInstance } from '@idlizer/libohos'
+import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType";
 
 export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {

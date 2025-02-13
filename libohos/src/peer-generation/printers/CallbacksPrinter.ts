@@ -15,14 +15,13 @@
 
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter, PeerLibrary } from "@idlizer/core"
+import { generatorTypePrefix, LanguageWriter, PeerLibrary, PrimitiveTypesInstance } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
 import { PrintHint } from "@idlizer/core";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
-import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 
 function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
@@ -502,7 +501,7 @@ class ManagedCallCallbackVisitor {
                 writer.print(`switch (kind) {`)
                 writer.pushIndent()
                 for (const callback of callbacks) {
-                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
                 }
                 writer.popIndent()
                 writer.print(`}`)
@@ -514,7 +513,7 @@ class ManagedCallCallbackVisitor {
                 writer.print(`switch (kind) {`)
                 writer.pushIndent()
                 for (const callback of callbacks) {
-                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${ArkPrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
                 }
                 writer.popIndent()
                 writer.print(`}`)

@@ -26,11 +26,11 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor
 } from "@idlizer/core";
-import { ArkPrimitiveTypesInstance } from '@idlizer/libohos'
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
     ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
 } from './ArkoalaTypeNameConvertors';
+import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
     override createLanguageWriter(language?: Language): LanguageWriter {

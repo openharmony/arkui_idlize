@@ -25,6 +25,10 @@ import {
     NativeModuleType,
     setDefaultConfiguration,
     PeerLibrary,
+    IndentedPrinter,
+    CppLanguageWriter,
+    CppInteropConvertor,
+    PrimitiveTypesInstance,
 } from "@idlizer/core";
 import {
     layout,
@@ -35,7 +39,6 @@ import {
     makeCallbacksKinds,
     makeDeserializeAndCall,
     makeDeserializer,
-    makeOhosModule,
     makeSerializer,
     makeTypeChecker,
     readLangTemplate,
@@ -44,7 +47,8 @@ import {
     TargetFile,
     printRealAndDummyAccessors,
     printRealAndDummyModifiers,
-    printSerializersOhos,
+    makeCSerializers,
+    HeaderVisitor,
     install,
     printInterfaceData,
     printCJArkUIGeneratedNativeFunctions,
@@ -56,9 +60,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
-    peerLibrary.setFileLayout(layout(peerLibrary))
-
-    peerLibrary.setFileLayout(layout(peerLibrary, "OH"))
+    peerLibrary.setFileLayout(layout(peerLibrary, "OH", `org/openharmony/${config.LibraryPrefix}`))
 
     const ohos = new OhosInstall(outDir, peerLibrary.language)
 
@@ -223,7 +225,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
         writeIntegratedFile(ohos.native(file), content)
     }
 
-    const { api, serializers } = printSerializersOhos(config.ApiVersion, peerLibrary)
+    const serializers = printSerializers(peerLibrary)
     writeIntegratedFile(ohos.native(new TargetFile(`Serializers.h`)), serializers)
 
     // writeIntegratedFile(ohos.native(new TargetFile(`all_events.cc`)), printEventsCArkoalaImpl(peerLibrary))
@@ -243,10 +245,6 @@ const PEER_LIB_CONFIG = new Map<Language, string[]>([
     [Language.TS, ['MaterializedBase.ts', 'shared/generated-utils.ts']],
     [Language.ARKTS, ['MaterializedBase.ts', 'shared/generated-utils.ts']]
 ])
-PEER_LIB_CONFIG.set(Language.ARKTS, [
-        path.join('sig', 'arkoala-arkts', 'arkui', 'src', 'generated', 'MaterializedBase.ts'),
-        'MaterializedBase.cj'
-])
 
 function copyPeerLib(lang: Language, rootDir: string) {
     const list = PEER_LIB_CONFIG.get(lang)
@@ -262,4 +260,35 @@ function copyPeerLib(lang: Language, rootDir: string) {
             copyFileSync(resolvedSrc, resolvedDst)
         }
     }
+}
+
+function printSerializers(peerLibrary: PeerLibrary): string {
+    const apiHeader = new IndentedPrinter()
+    const modifierList = new IndentedPrinter()
+    const accessorList = new IndentedPrinter()
+    const eventsList = new IndentedPrinter()
+    const nodeTypesList = new IndentedPrinter()
+
+    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
+    visitor.printApiAndDeserializer()
+
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), PrimitiveTypesInstance)
+    const typedefs = new IndentedPrinter()
+
+    return `
+#include "SerializerBase.h"
+#include "DeserializerBase.h"
+#include "callbacks.h"
+#include "ohos_api_generated.h"
+#include <string>
+
+${makeCSerializers(peerLibrary, structs, typedefs)}
+`
+}
+
+function makeOhosModule(componentsFiles: string[]): string {
+    return componentsFiles.map(file => {
+        const fileNameNoExt = file.replaceAll(path.extname(file), "")
+        return `export * from "./${fileNameNoExt}"`
+    }).join("\n")
 }

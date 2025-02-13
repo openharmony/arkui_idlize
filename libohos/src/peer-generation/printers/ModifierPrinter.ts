@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import { ArkPrimitiveTypesInstance } from "../ArkPrimitiveType"
 import {
     accessorStructList,
     makeFileNameFromClassName,
@@ -31,7 +30,8 @@ import {
     PeerLibrary,
     LanguageWriter,
     createLanguageWriter,
-    CppReturnTypeConvertor
+    CppReturnTypeConvertor,
+    PrimitiveTypesInstance
 } from '@idlizer/core'
 import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from '@idlizer/core/idl'
@@ -129,7 +129,7 @@ export class ModifierVisitor {
         const apiParameters = method.generateAPIParameters(
             this.library.createTypeNameConvertor(Language.CPP)
         )
-        if (apiParameters.at(0)?.includes(ArkPrimitiveTypesInstance.NativePointer.getText())) {
+        if (apiParameters.at(0)?.includes(PrimitiveTypesInstance.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
             if (method.argAndOutConvertors.length === 1

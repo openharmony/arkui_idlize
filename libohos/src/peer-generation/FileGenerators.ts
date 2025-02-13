@@ -14,20 +14,15 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter } from "@idlizer/core"
-import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
-import { CppLanguageWriter, CppInteropConvertor, LanguageWriter } from "@idlizer/core";
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, PrimitiveTypesInstance } from "@idlizer/core"
+import { PrinterLike } from "./LanguageWriters"
+import { LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
-import { writeDeserializer, writeDeserializerFile, writeSerializer, writeSerializerFile } from "./printers/SerializerPrinter"
-import { SELECTOR_ID_PREFIX, writeConvertors } from "./printers/ConvertorsPrinter"
+import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { ImportsCollector } from "./ImportsCollector"
 import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
 import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
-import * as idl from "@idlizer/core/idl"
-import { ReferenceResolver } from "@idlizer/core"
-import { PrintHint } from "@idlizer/core"
-import { SourceFile, TsSourceFile, CJSourceFile } from "./printers/SourceFile"
+import { SourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
 import { makeCJDeserializer, makeCJSerializer } from "./printers/lang/CJPrinters"
@@ -280,46 +275,6 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     return printer
 }
 
-export function makeSerializerForOhos(library: PeerLibrary, nativeModule: { name: string, path: string, materializedBasePath: string }, declarationPath?: string): SourceFile {
-    const lang = library.language
-    // TODO Add Java and migrate arkoala code
-    // TODO Complete refactoring to SourceFiles
-    if (lang === Language.TS || lang === Language.ARKTS) {
-        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as TsSourceFile
-        writeSerializerFile(library, destFile, "", declarationPath)
-        writeDeserializerFile(library, destFile, "", declarationPath)
-        // destFile.imports.clear() // TODO fix dependencies
-        destFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
-        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr",
-            "InteropNativeModule", "SerializerBase", "RuntimeType", "runtimeType", "CallbackResource",
-            "DeserializerBase", "wrapSystemCallback", "Finalizable"
-        ], "@koalaui/interop")
-        destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
-        destFile.imports.addFeatures(["MaterializedBase"], nativeModule.materializedBasePath)
-        if (lang === Language.TS) {
-            destFile.imports.addFeature("unsafeCast", "@koalaui/interop")
-        }
-
-        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
-        printDeserializeAndCall('ohos', library, deserializeCallImpls)
-        deserializeCallImpls.imports.clear() // TODO fix dependencies
-        deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
-        destFile.merge(deserializeCallImpls)
-        return destFile
-    } if (lang === Language.CJ) {
-        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as CJSourceFile
-        // destFile.content.nativeModuleAccessor = nativeModule.name
-        writeSerializerFile(library, destFile, "", declarationPath)
-        writeDeserializerFile(library, destFile, "", declarationPath)
-        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
-        printDeserializeAndCall('ohos', library, deserializeCallImpls)
-        destFile.merge(deserializeCallImpls)
-        return destFile
-    } else {
-        throw new Error(`unsupported language ${library.language}`)
-    }
-}
-
 export function makeTypeChecker(library: PeerLibrary, language: Language): string {
     if (language === Language.ARKTS) {
     let arktsPrinter = createLanguageWriter(Language.ARKTS)
@@ -336,65 +291,7 @@ export function makeTypeChecker(library: PeerLibrary, language: Language): strin
     throw new Error("Only TS/ARKTS are allowed here")
 }
 
-export function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
-    const converter = new CppLanguageWriter(new IndentedPrinter(), library,
-        new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
-    converter.writeLines(cStyleCopyright)
-    converter.writeLines(`/*
- * ${warning}
- */
-`)
-    const includeGuardDefine = makeIncludeGuardDefine(path)
-    converter.print(`#ifndef ${includeGuardDefine}`)
-    converter.print(`#define ${includeGuardDefine}`)
-    converter.print("")
-
-    converter.writeGlobalInclude('optional')
-    converter.writeGlobalInclude('cstdlib')
-    converter.writeInclude('arkoala_api_generated.h')
-    converter.writeInclude('base/log/log_wrapper.h')
-    converter.print("")
-
-    const MAX_SELECTORS_IDS = 16
-    for(let i = 0; i < MAX_SELECTORS_IDS; i++) {
-        converter.print(`#define ${SELECTOR_ID_PREFIX}${i} ${i}`)
-    }
-    converter.print("")
-
-    converter.pushNamespace(namespace, false)
-    converter.print("")
-    writeConvertors(library, converter)
-    converter.popNamespace(false)
-    converter.print(`\n#endif // ${includeGuardDefine}`)
-    converter.print("")
-    return converter
-}
-
-export function makeCSerializersArk(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
-    return `
-#include "SerializerBase.h"
-#include "DeserializerBase.h"
-#include "callbacks.h"
-#include "arkoala_api_generated.h"
-#include <string>
-
-${makeCSerializers(library, structs, typedefs)}
-`
-}
-
-export function makeCSerializersOhos(libraryName:string, library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
-    return `
-#include "SerializerBase.h"
-#include "DeserializerBase.h"
-#include "callbacks.h"
-#include "${libraryName}_api_generated.h"
-#include <string>
-
-${makeCSerializers(library, structs, typedefs)}
-`
-}
-
-function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
+export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = library.createLanguageWriter(Language.CPP)
     const writeToString = library.createLanguageWriter(Language.CPP)
@@ -456,7 +353,7 @@ ${printer.getOutput().join("\n")}
 `
 }
 
-export function makeApiModifiers(modifiers: string[], accessors: string[], events: string[], nodeTypes: string[]): string {
+function makeApiModifiers(modifiers: string[], accessors: string[], events: string[], nodeTypes: string[]): string {
     let node_api = readTemplate('arkoala_node_api.h')
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 
@@ -475,7 +372,7 @@ ${accessors.join("\n")}
 } ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors;
 
 typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI {
-    ${ArkPrimitiveTypesInstance.Int32.getText()} version;
+    ${PrimitiveTypesInstance.Int32.getText()} version;
 } ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI;
 
 typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI {
@@ -545,7 +442,7 @@ ${makeApiModifiers(modifiers, accessors, events, nodeTypes)}
 `
 }
 
-export function makeApiOhos(
+function makeApiOhos(
     headers: string[], structs: LanguageWriter, typedefs: IndentedPrinter,
 ): string {
     return `
@@ -589,13 +486,6 @@ export function makeArkuiModule(componentsFiles: string[]): string {
     )
 }
 
-export function makeOhosModule(componentsFiles: string[]): string {
-    return componentsFiles.map(file => {
-        const fileNameNoExt = file.replaceAll(path.extname(file), "")
-        return `export * from "./${fileNameNoExt}"`
-    }).join("\n")
-}
-
 export function makeMaterializedPrologue(lang: Language): string {
     let prologue = readLangTemplate('materialized_class_prologue' + lang.extension, lang)
     return `
@@ -619,72 +509,6 @@ export function makeDeserializeAndCall(library: PeerLibrary, language: Language,
     const writer = SourceFile.make(fileName, language, library)
     printDeserializeAndCall(library.name, library, writer)
     return writer
-}
-
-export function makeCEventsArkoalaImpl(resolver: ReferenceResolver, implData: LanguageWriter, receiversList: LanguageWriter): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver, new CppInteropConvertor(resolver), ArkPrimitiveTypesInstance)
-    writer.print(cStyleCopyright)
-    writer.writeInclude("arkoala_api_generated.h")
-    writer.writeInclude("events.h")
-    writer.writeInclude("Serializers.h")
-    writer.print("")
-
-    writer.pushNamespace("Generated")
-    writer.concat(implData)
-    writer.writeMethodImplementation(new Method(
-        `GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
-        writer.pushIndent()
-        writer.concat(receiversList)
-        writer.popIndent()
-        writer.print(`};`)
-        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
-    })
-    writer.popNamespace()
-    return writer.getOutput().join('\n')
-}
-
-export function makeCEventsLibaceImpl(implData: PrinterLike, receiversList: PrinterLike, namespace: string, resolver: ReferenceResolver): string {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), resolver, new CppInteropConvertor(resolver), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-    writer.print("")
-    writer.writeInclude(`arkoala_api_generated.h`)
-    writer.print("")
-    writer.pushNamespace(namespace, false)
-
-    writer.concat(implData)
-
-    writer.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
-    writer.writeMethodImplementation(new Method(
-        `${peerGeneratorConfiguration().cppPrefix}SetArkUiEventsAPI`,
-        new NamedMethodSignature(idl.IDLVoidType, [
-            idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`)],
-            [`api`], undefined,
-            [undefined, PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
-    })
-
-    writer.writeMethodImplementation(new Method(
-        `${peerGeneratorConfiguration().cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
-        writer.pushIndent()
-        writer.concat(receiversList)
-        writer.popIndent()
-        writer.print(`};`)
-        writer.writeStatement(writer.makeCondition(
-            writer.makeNaryOp("!=", [writer.makeString(`g_OverriddenEventsImpl`), writer.makeString(`nullptr`)]),
-            writer.makeReturn(writer.makeString(`g_OverriddenEventsImpl`)),
-        ))
-        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
-    })
-
-    writer.popNamespace(false)
-    return writer.getOutput().join('\n')
 }
 
 export function makeCallbacksKinds(library: PeerLibrary, language: Language): string {

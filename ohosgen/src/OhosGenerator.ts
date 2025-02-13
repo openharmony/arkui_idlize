@@ -87,13 +87,12 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    PrimitiveTypesInstance,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
-    ArkPrimitiveTypesInstance,
     getInteropRootPath,
     makeDeserializeAndCall,
-    makeSerializerForOhos,
     readLangTemplate,
     getUniquePropertiesFromSuperTypes,
     printBridgeCcForOHOS,
@@ -112,6 +111,12 @@ import {
     printInterfaces,
     collapseSameMethodsIDL,
     PeerGeneratorConfigurationImpl,
+    SourceFile,
+    TsSourceFile,
+    writeSerializerFile,
+    writeDeserializerFile,
+    printDeserializeAndCall,
+    CJSourceFile,
 } from '@idlizer/libohos'
 
 class NameType {
@@ -390,8 +395,8 @@ function writeCJMethod(writer: LanguageWriter, method: {name: string, method: Na
 abstract class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
-    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
-    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
+    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
+    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
 
     dependecyCollector: DependecyCollector
 
@@ -1107,7 +1112,7 @@ abstract class OHOSVisitor {
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
 
-        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
+        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
@@ -1236,7 +1241,7 @@ abstract class OHOSVisitor {
             this.implementationStubsFile.printToString()
         )
 
-        const serializerText = makeSerializerForOhos(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
+        const serializerText = makeSerializer(this.library, managedCodeModuleInfo, fileNamePrefix).printToString()
         // fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}${ext}`), peerText, 'utf-8')
         fs.writeFileSync(path.join(rootPath, managedOutDir, `${fileNamePrefix}Serializer${ext}`), serializerText, 'utf-8')
         fs.writeFileSync(path.join(rootPath, managedOutDir, `CallbacksChecker${ext}`),
@@ -1396,7 +1401,7 @@ function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgCon
 
 // TODO drop this method
 function generateCParameters(method: IDLMethod | IDLConstructor, argConvertors: ArgConvertor[], writer: LanguageWriter): string {
-    let args = isConstructor(method) || method.isStatic ? [] : [`${ArkPrimitiveTypesInstance.NativePointer} thisPtr`]
+    let args = isConstructor(method) || method.isStatic ? [] : [`${PrimitiveTypesInstance.NativePointer} thisPtr`]
     for (let i = 0; i < argConvertors.length; ++i) {
         const typeName = writer.getNodeName(argConvertors[i].nativeType())
         const argName = writer.escapeKeyword(argConvertors[i].param)
@@ -1494,4 +1499,44 @@ export function suggestLibraryName(library: PeerLibrary) {
     let libraryName = library.files.filter(f => !f.isPredefined)[0].packageName()
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
+}
+
+function makeSerializer(library: PeerLibrary, nativeModule: { name: string, path: string, materializedBasePath: string }, declarationPath?: string): SourceFile {
+    const lang = library.language
+    // TODO Add Java and migrate arkoala code
+    // TODO Complete refactoring to SourceFiles
+    if (lang === Language.TS || lang === Language.ARKTS) {
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as TsSourceFile
+        writeSerializerFile(library, destFile, "", declarationPath)
+        writeDeserializerFile(library, destFile, "", declarationPath)
+        // destFile.imports.clear() // TODO fix dependencies
+        destFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
+        destFile.imports.addFeatures(["KPointer", "KInt", "KStringPtr", "KUint8ArrayPtr", "nullptr",
+            "InteropNativeModule", "SerializerBase", "RuntimeType", "runtimeType", "CallbackResource",
+            "DeserializerBase", "wrapSystemCallback", "Finalizable"
+        ], "@koalaui/interop")
+        destFile.imports.addFeatures([nativeModule.name, "CallbackKind"], nativeModule.path)
+        destFile.imports.addFeatures(["MaterializedBase"], nativeModule.materializedBasePath)
+        if (lang === Language.TS) {
+            destFile.imports.addFeature("unsafeCast", "@koalaui/interop")
+        }
+
+        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
+        printDeserializeAndCall('ohos', library, deserializeCallImpls)
+        deserializeCallImpls.imports.clear() // TODO fix dependencies
+        deserializeCallImpls.imports.addFeatures(["ResourceHolder"], "@koalaui/interop")
+        destFile.merge(deserializeCallImpls)
+        return destFile
+    } if (lang === Language.CJ) {
+        const destFile = SourceFile.make("Serializer" + lang.extension, lang, library) as CJSourceFile
+        // destFile.content.nativeModuleAccessor = nativeModule.name
+        writeSerializerFile(library, destFile, "", declarationPath)
+        writeDeserializerFile(library, destFile, "", declarationPath)
+        const deserializeCallImpls = SourceFile.makeSameAs(destFile)
+        printDeserializeAndCall('ohos', library, deserializeCallImpls)
+        destFile.merge(deserializeCallImpls)
+        return destFile
+    } else {
+        throw new Error(`unsupported language ${library.language}`)
+    }
 }
