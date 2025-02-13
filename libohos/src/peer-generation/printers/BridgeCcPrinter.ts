@@ -90,7 +90,12 @@ class BridgeCcVisitor {
                 `return {};`
             ]
         } else {
-            statements = [isVoid ? `${peerMethodCall};` : `return ${peerMethodCall};`]
+            if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
+                // TODO: real serialization here
+                statements = [`${peerMethodCall};`, "return {};"]
+            } else {
+                statements = [isVoid ? `${peerMethodCall};` : `return ${peerMethodCall};`]
+            }
         }
         if (this.callLog) this.printCallLog(method, apiCall, modifier)
         statements.forEach(it => this.generatedApi.print(it))
@@ -182,19 +187,20 @@ class BridgeCcVisitor {
     }
 
     private generateCMacroSuffix(method: PeerMethod): string {
-        let counter = method.hasReceiver() ? 1 : 0
+        let argumentsCount = method.hasReceiver() ? 1 : 0
         let arrayAdded = false
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!arrayAdded) {
-                    counter += 2
+                    argumentsCount += 2
                     arrayAdded = true
                 }
             } else {
-                counter += 1
+                argumentsCount += 1
             }
         })
-        return `${this.returnTypeConvertor.isVoid(method) ? 'V' : ''}${counter}`
+        const returnsVoid = this.returnTypeConvertor.isVoid(method);
+        return `${returnsVoid ? 'V' : ''}${argumentsCount}`
     }
 
     private generateCParameters(method: PeerMethod): [string, string][] {

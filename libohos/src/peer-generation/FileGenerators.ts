@@ -14,9 +14,9 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, PrimitiveTypesInstance } from "@idlizer/core"
-import { PrinterLike } from "./LanguageWriters"
-import { LanguageWriter } from "@idlizer/core";
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, CppConvertor, PrimitiveTypesInstance } from "@idlizer/core"
+import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
+import { CppLanguageWriter, LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
 import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { ImportsCollector } from "./ImportsCollector"

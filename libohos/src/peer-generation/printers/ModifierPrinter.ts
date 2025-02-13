@@ -18,24 +18,72 @@ import {
     makeFileNameFromClassName,
     modifierStructList,
 } from "../FileGenerators";
-import {
-    createDestroyPeerMethod,
-    MaterializedClass,
-    MaterializedMethod,
-    groupBy,
-    Language,
-    createConstructPeerMethod,
-    PeerClass,
-    PeerMethod,
-    PeerLibrary,
-    LanguageWriter,
-    createLanguageWriter,
+import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
+    groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary,
+    createLanguageWriter, createEmptyReferenceResolver, LanguageWriter, CppConvertor,
     CppReturnTypeConvertor,
+    TypeConvertor,
+    convertType,
+    ReferenceResolver,
+    isMaterialized,
     PrimitiveTypesInstance
 } from '@idlizer/core'
-import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { IDLBooleanType, IDLFunctionType, IDLStringType, isOptionalType } from '@idlizer/core/idl'
+import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
+import { DebugUtils, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
 import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
+
+class ReturnValueConvertor implements TypeConvertor<string | undefined> {
+    constructor(
+        private retTypeConverter: CppReturnTypeConvertor,
+        private resolver: ReferenceResolver
+    ) {}
+    private mkObject(): string {
+        return '{}'
+    }
+    convertOptional(_: IDLOptionalType): string | undefined {
+        return this.mkObject()
+    }
+    convertUnion(_: IDLUnionType): string | undefined {
+        return this.mkObject()
+    }
+    convertContainer(type: IDLContainerType): string | undefined {
+        if (IDLContainerUtils.isPromise(type)) {
+            return undefined
+        }
+        return "{}"
+    }
+    convertImport(type: IDLReferenceType, importClause: string): string | undefined {
+        throw new Error('Can not return import');
+    }
+    convertTypeReference(type: IDLReferenceType): string | undefined {
+        const decl = this.resolver.resolveTypeReference(type)
+        if (decl && isInterface(decl) && isMaterialized(decl, this.resolver)) {
+            return `(${this.retTypeConverter.convert(type)}) 300`
+        }
+        return this.mkObject()
+    }
+    convertTypeParameter(_: IDLTypeParameterType): string | undefined {
+        // TODO: type parameter here?
+        return '{}'
+    }
+    convertPrimitiveType(type: IDLPrimitiveType): string | undefined {
+        switch (type) {
+            case IDLUndefinedType: return undefined
+            case IDLBufferType: return this.mkObject()
+            case IDLStringType: return this.mkObject()
+            case IDLPointerType: return 'nullptr'
+            case IDLBooleanType: return '0'
+            case IDLAnyType: return "{}"
+        }
+        return '0'
+    }
+
+    convert(type:IDLType): string | undefined {
+        return this.retTypeConverter.isVoid(type)
+            ? undefined
+            : convertType(this, type)
+    }
+}
 
 export class ModifierVisitor {
     dummy = this.library.createLanguageWriter(Language.CPP)
@@ -53,15 +101,18 @@ export class ModifierVisitor {
 
     printDummyImplFunctionBody(method: PeerMethod) {
         let _ = this.dummy
-        const isVoid = this.returnTypeConvertor.isVoid(method)
-        let retVal = isVoid ? undefined : (method.dummyReturnValue(this.library) ?? "0")
-
+        const returnType = method.returnType
+        const isVoid = this.returnTypeConvertor.isVoid(returnType)
+        const returnValueConvertor = new ReturnValueConvertor(this.returnTypeConvertor, this.library)
+        const returnValue = isVoid
+            ? undefined
+            : method.dummyReturnValue(this.library) ?? returnValueConvertor.convert(returnType)
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
                 method.toStringName == "construct"
                     ? this.makeConstructReturnStatement(_, method)
-                    : _.makeReturn(retVal ? _.makeString(retVal) : undefined)
+                    : _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)
             )
         )
         _.print(`string out("${method.toStringName}(");`)
@@ -70,14 +121,14 @@ export class ModifierVisitor {
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
         _.print(`out.append(") \\n");`)
-        if (retVal !== undefined) {
-            _.print(`out.append("[return ${retVal}] \\n");`)
+        if (returnValue !== undefined) {
+            _.print(`out.append("[return ${returnValue}] \\n");`)
         }
         _.print(`appendGroupedLog(1, out);`)
         if (method.toStringName == "construct") {
             _.writeStatement(this.makeConstructReturnStatement(_, method))
         } else {
-            this.printReturnStatement(this.dummy, method, true, retVal)
+            this.printReturnStatement(this.dummy, method, true, returnValue)
         }
     }
 
@@ -93,7 +144,7 @@ export class ModifierVisitor {
     }
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy?: boolean, returnValue: string | undefined = undefined) {
-        const isVoid = this.returnTypeConvertor.isVoid(method)
+        const isVoid = this.returnTypeConvertor.isVoid(method.returnType)
         if (isDummy) {
             if (returnValue) {
                 printer.print(`return ${returnValue};`)
@@ -291,7 +342,7 @@ class AccessorVisitor extends ModifierVisitor {
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass) {
-        this.printMaterializedClassProlog(clazz) 
+        this.printMaterializedClassProlog(clazz)
         // Materialized class methods share the same namespace
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)

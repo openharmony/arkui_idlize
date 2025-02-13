@@ -27,7 +27,7 @@ import {
     PeerLibrary,
     IndentedPrinter,
     CppLanguageWriter,
-    CppInteropConvertor,
+    CppConvertor,
     PrimitiveTypesInstance,
 } from "@idlizer/core";
 import {
@@ -272,7 +272,7 @@ function printSerializers(peerLibrary: PeerLibrary): string {
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), PrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), PrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     return `

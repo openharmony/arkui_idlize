@@ -25,34 +25,6 @@ import { PeerClassBase } from './PeerClass'
 import { PeerMethod } from './PeerMethod'
 import { ReferenceResolver } from './ReferenceResolver'
 
-export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
-    if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false
-    if (idl.isHandwritten(declaration) || isBuilderClass(declaration)) return false
-
-    for (const forceMaterialized of generatorConfiguration().param<string[]>("forceMaterialized")) {
-        if (declaration.name == forceMaterialized) return true
-    }
-
-    for (const ignore of generatorConfiguration().param<string[]>("ignoreMaterialized")) {
-            if (declaration.name.endsWith(ignore)) return false
-    }
-
-    // A materialized class is a class or an interface with methods
-    // excluding components and related classes
-    if (declaration.methods.length > 0 || declaration.constructors.length > 0) return true
-
-    // Or a class or an interface derived from materialized class
-    if (idl.hasSuperType(declaration)) {
-        const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
-        if (!superType || !idl.isInterface(superType)) {
-            console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
-            return false
-        }
-        return isMaterialized(superType, resolver)
-    }
-    return false
-}
-
 export class MaterializedField {
     constructor(
         public field: Field,
@@ -94,19 +66,6 @@ export class MaterializedMethod extends PeerMethod {
     override dummyReturnValue(resolver: ReferenceResolver): string | undefined {
         if (this.method.name === "ctor") return `(${this.originalParentName}Peer*) 100`
         if (this.method.name === "getFinalizer") return `fnPtr<KNativePointer>(dummyClassFinalizer)`
-        if (this.method.modifiers?.includes(MethodModifier.STATIC)) {
-            if (this.method.signature.returnType === idl.IDLNumberType) {
-                return '100'
-            }
-            if (this.method.signature.returnType === idl.IDLBooleanType) {
-                return '0'
-            }
-            const convertor = new CppReturnTypeConvertor(resolver)
-            return `(${convertor.convert(this.returnType)}) 300`
-        }
-        if (idl.isReferenceType(this.method.signature.returnType)) {
-            return "{}"
-        }
         return undefined;
     }
 

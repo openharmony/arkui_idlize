@@ -86,6 +86,10 @@ class CachedTransformer {
             this.cache.set(node, maybeTransformManagedCallback(node) ?? node)
             return this.cache.get(node)!
         }
+        if (idl.isContainerType(node) && idl.IDLContainerUtils.isPromise(node)) {
+            this.cache.set(node, node.elementType[0])
+            return this.cache.get(node)!
+        }
         return node
     }
 }

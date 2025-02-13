@@ -52,6 +52,7 @@ export class PrimitiveTypeList {
     readonly Tag = new PrimitiveType(`Tag`)
     readonly Materialized = new PrimitiveType(`Materialized`, true)
     readonly CustomObject = new PrimitiveType(`CustomObject`, true)
+    readonly String = new PrimitiveType(`String`)
 }
 
 export const PrimitiveTypesInstance = new PrimitiveTypeList()

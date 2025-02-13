@@ -64,7 +64,6 @@ import {
 import {
     ArgConvertor,
     capitalize,
-    CppInteropConvertor,
     FunctionCallExpression,
     generateCallbackAPIArguments,
     generatorConfiguration,
@@ -88,6 +87,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
     PrimitiveTypesInstance,
+    CppConvertor,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
@@ -395,8 +395,8 @@ function writeCJMethod(writer: LanguageWriter, method: {name: string, method: Na
 abstract class OHOSVisitor {
     implementationStubsFile: CppSourceFile
 
-    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
-    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
+    hWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), PrimitiveTypesInstance)
+    cppWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), PrimitiveTypesInstance)
 
     dependecyCollector: DependecyCollector
 
@@ -1112,7 +1112,7 @@ abstract class OHOSVisitor {
         writeSerializer(this.library, this.cppWriter, prefix)
         writeDeserializer(this.library, this.cppWriter, prefix)
 
-        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), PrimitiveTypesInstance)
+        let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), PrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
@@ -1390,8 +1390,13 @@ function adjustSignature(library: PeerLibrary, parameters: IDLParameter[], retur
     return {
         convertors,
         parameters,
-        returnType: isPrimitiveType(returnType) ? returnType : IDLPointerType,
+        returnType: isPrimitiveType(returnType) || isStructureType(returnType, library) ? returnType : IDLPointerType,
     }
+}
+
+function isStructureType(type: IDLType, library: PeerLibrary): boolean {
+    const resolved = isReferenceType(type) && library.resolveTypeReference(type)
+    return !!resolved && !isMaterialized(resolved as IDLInterface, library)
 }
 
 function generateArgConvertor(library: PeerLibrary, param: IDLParameter): ArgConvertor {

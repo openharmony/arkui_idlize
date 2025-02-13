@@ -30,9 +30,9 @@ import { generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
 import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
-import { InteropNameConvertor } from "./convertors/InteropConvertors";
+import { CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { CppInteropConvertor } from "./convertors/CppConvertors";
+import { CppConvertor } from "./convertors/CppConvertors";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 
 export interface ArgConvertor {
@@ -274,7 +274,7 @@ export class NumberConvertor extends BaseArgConvertor {
 }
 
 export class NumericConvertor extends BaseArgConvertor {
-    private readonly interopNameConvertor = new InteropNameConvertor(createEmptyReferenceResolver())
+    private readonly interopNameConvertor = new CppNameConvertor(createEmptyReferenceResolver())
     constructor(param: string, type: idl.IDLPrimitiveType) {
         // check numericPrimitiveTypes.include(type)
         super(type, [RuntimeType.NUMBER], false, false, param)
@@ -774,10 +774,10 @@ export class TypeAliasConvertor extends ProxyConvertor {
 export class CustomTypeConvertor extends BaseArgConvertor {
     constructor(param: string,
                 public readonly customTypeName: string,
-                private readonly isGenericType: boolean = false,
-                tsType?: string) {
+                private readonly isGenericType: boolean,
+                tsType: string) {
         super(idl.createReferenceType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
-        warnCustomObject(`${tsType}`)
+        warnCustomObject(`${customTypeName}: ${tsType}`)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -1177,7 +1177,7 @@ export function generateCallbackKindValue(callback: idl.IDLCallback): number {
 }
 
 export function generateCallbackAPIArguments(library: LibraryInterface, callback: idl.IDLCallback): string[] {
-    const nameConvertor = new CppInteropConvertor(library)
+    const nameConvertor = new CppConvertor(library)
     const args: string[] = [`const ${PrimitiveTypesInstance.Int32.getText()} resourceId`]
     args.push(...callback.parameters.map(it => {
         const target = library.toDeclaration(it.type!)

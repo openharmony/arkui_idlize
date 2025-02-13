@@ -23,18 +23,19 @@ import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, Pointe
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
          ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
 } from "../LanguageWriters/ArgConvertors"
-import { InteropNameConvertor } from '../LanguageWriters/convertors/InteropConvertors'
+import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
-import { CppInteropConvertor } from '../LanguageWriters/convertors/CppConvertors'
+import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
 import { JavaTypeNameConvertor } from '../LanguageWriters/convertors/JavaConvertors'
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
 import { BuilderClass, isBuilderClass } from './BuilderClass'
 import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
-import { isMaterialized, MaterializedClass } from './Materialized'
+import { MaterializedClass } from './Materialized'
 import { PeerFile } from './PeerFile'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
+import { isMaterialized } from './isMaterialized'
 
 export class PeerLibrary implements LibraryInterface {
 
@@ -74,20 +75,20 @@ export class PeerLibrary implements LibraryInterface {
     createLanguageWriter(language?: Language): LanguageWriter {
         return createLanguageWriter(language ?? this.language, this)
     }
-    
+
     createTypeNameConvertor(language: Language): IdlNameConvertor {
         switch (language) {
             case Language.TS: return new TSTypeNameConvertor(this)
             case Language.ARKTS: return new ETSTypeNameConvertor(this)
             case Language.JAVA: return new JavaTypeNameConvertor(this)
             case Language.CJ: return new CJTypeNameConvertor(this)
-            case Language.CPP: return new CppInteropConvertor(this)
+            case Language.CPP: return new CppConvertor(this)
         }
         throw new Error(`IdlNameConvertor for ${language} is not implemented`)
     }
 
     protected readonly targetNameConvertorInstance: IdlNameConvertor = this.createTypeNameConvertor(this.language)
-    private readonly interopNameConvertorInstance: IdlNameConvertor = new InteropNameConvertor(this)
+    private readonly interopNameConvertorInstance: IdlNameConvertor = new CppNameConvertor(this)
 
     get libraryPrefix(): string {
         return this.name ? this.name + "_" : ""
@@ -233,7 +234,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLUndefinedType: return new UndefinedConvertor(param)
                 case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
-                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
+                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any", false, "Object")
                 default: throw new Error(`Unconverted primitive ${idl.DebugUtils.debugPrintType(type)}`)
             }
         }
@@ -254,7 +255,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isTypeParameterType(type)) {
             // TODO: unlikely correct.
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), true)
+            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), true, `<${type.name}>`)
         }
         throw new Error(`Cannot convert: ${type.kind}`)
     }
@@ -309,7 +310,7 @@ export class PeerLibrary implements LibraryInterface {
     private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
             case `Object`:
-                return new CustomTypeConvertor(param, "Object")
+                return new CustomTypeConvertor(param, "Object", false, "Object")
             case `Date`:
                 return new DateConvertor(param)
             case `Function`:

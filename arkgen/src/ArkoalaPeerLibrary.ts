@@ -19,7 +19,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     LanguageWriter,
     IndentedPrinter,
     TSLanguageWriter,
-    CppInteropConvertor,
+    CppConvertor,
     CppLanguageWriter,
     JavaLanguageWriter,
     ETSLanguageWriter,
@@ -40,11 +40,11 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
             case Language.TS: return new TSLanguageWriter(printer, this,
                 new ArkoalaTSTypeNameConvertor(this))
             case Language.ARKTS: return new ETSLanguageWriter(printer, this,
-                new ArkoalaETSTypeNameConvertor(this), new CppInteropConvertor(this))
+                new ArkoalaETSTypeNameConvertor(this), new CppConvertor(this))
             case Language.JAVA: return new JavaLanguageWriter(printer, this,
                 new ArkoalaJavaTypeNameConvertor(this))
             case Language.CPP: return new CppLanguageWriter(printer, this,
-                new CppInteropConvertor(this), ArkPrimitiveTypesInstance)
+                new CppConvertor(this), ArkPrimitiveTypesInstance)
             case Language.CJ: return new CJLanguageWriter(printer, this,
                 new ArkoalaCJTypeNameConvertor(this), new CJIDLTypeToForeignStringConvertor(this))
             default: return super.createLanguageWriter(language)

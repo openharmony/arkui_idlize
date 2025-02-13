@@ -25,7 +25,7 @@ import {
 import { LanguageWriter } from "@idlizer/core"
 import { collapseIdlPeerMethods, groupOverloads } from "./OverloadsPrinter"
 import { ImportsCollector } from "../ImportsCollector"
-import { ReferenceResolver } from "@idlizer/core"
+import { ReferenceResolver, CppConvertor } from "@idlizer/core"
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils"
 
 export const PeerEventsProperties = "PeerEventsProperties"

@@ -36,7 +36,7 @@ import {
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
 import { Field, FieldModifier, LanguageExpression, LanguageStatement, LanguageWriter, Method, MethodModifier, NamedMethodSignature, NumberConvertor } from "@idlizer/core";
-import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, InteropNameConvertor,
+import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, CppNameConvertor,
     ArgConvertor, BooleanConvertor, BaseArgConvertor, EnumConvertor, ExpressionAssigner, RuntimeType, UndefinedConvertor,
     convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor, generateSyntheticFunctionName
 } from "@idlizer/core"
@@ -72,7 +72,7 @@ export class IldSkoalaFile implements LibraryFileInterface {
 export class IdlSkoalaLibrary implements LibraryInterface {
     public readonly serializerDeclarations: Set<idl.IDLInterface> = new Set()
     readonly nameConvertorInstance: IdlNameConvertor = new TSSkoalaTypeNameConvertor(this)
-    readonly interopNameConvertorInstance: IdlNameConvertor = new InteropNameConvertor(this)
+    readonly interopNameConvertorInstance: IdlNameConvertor = new CppNameConvertor(this)
     readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
 
@@ -152,7 +152,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false, maybeCallback: boolean = false, processor?: IdlWrapperProcessor): ArgConvertor {
         if (idl.isPrimitiveType(type)) {
             switch (type) {
-                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any")
+                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any", false, "Object")
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)
                 case idl.IDLBigintType:
@@ -169,7 +169,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
         if (idl.isReferenceType(type)) {
             if (type == idl.IDLObjectType)
-                return new CustomTypeConvertor(param, "Object")
+                return new CustomTypeConvertor(param, "Object", false, "Object")
             if (isImport(type)) {
                 // return new ImportTypeConvertor(param, type)
                 console.log('todo: type converter for import')
@@ -180,7 +180,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
             const decl = this.resolveTypeReference(type)
             return this.declarationConvertor(param, type, decl, maybeCallback, processor)
         }
-        return new CustomTypeConvertor(param, this.nameConvertorInstance.convert(type))
+        return new CustomTypeConvertor(param, this.nameConvertorInstance.convert(type), false, "Object")
     }
 
     declarationConvertor(param: string, type: idl.IDLReferenceType,

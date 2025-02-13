@@ -15,7 +15,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as idl from "@idlizer/core/idl"
-import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, CppInteropConvertor, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration } from '@idlizer/core'
+import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
     makeArkuiModule, makeCallbacksKinds, makeTSDeserializer, makeArkTSDeserializer,
@@ -42,11 +42,11 @@ import {
     appendModifiersCommonPrologue,
     completeModifiersContent,
     appendViewModelBridge,
-    HeaderVisitor,
     makeAPI,
     makeIncludeGuardDefine,
     SELECTOR_ID_PREFIX,
     writeConvertors,
+    HeaderVisitor,
     makeCSerializers,
     readTemplate,
     peerGeneratorConfiguration,
@@ -606,7 +606,7 @@ class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
 }
 
 function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
 
     writer.writeInclude(`core/components_ng/base/frame_node.h`)
@@ -631,7 +631,7 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
 }
 
 function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppInteropConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
@@ -667,7 +667,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
 }
 
 function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
@@ -708,7 +708,7 @@ function printUserConverter(headerPath: string, namespace: string, apiVersion: n
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
@@ -728,7 +728,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): {api: s
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppInteropConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializer(peerLibrary, structs, typedefs)
@@ -739,7 +739,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): {api: s
 
 function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
     const converter = new CppLanguageWriter(new IndentedPrinter(), library,
-        new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+        new CppConvertor(library), ArkPrimitiveTypesInstance)
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}
@@ -809,7 +809,7 @@ function printEventsCArkoalaImpl(library: PeerLibrary): string {
     const visitor = new CEventsVisitor(library, false)
     visitor.print()
 
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.print(cStyleCopyright)
     writer.writeInclude("arkoala_api_generated.h")
     writer.writeInclude("events.h")
@@ -837,7 +837,7 @@ function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: stri
     const visitor = new CEventsVisitor(library, true)
     visitor.print()
 
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppInteropConvertor(library), ArkPrimitiveTypesInstance)
+    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.print("")
     writer.writeInclude(`arkoala_api_generated.h`)
@@ -878,8 +878,8 @@ function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: stri
 }
 
 export class CEventsVisitor {
-    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
-    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppInteropConvertor(this.library), ArkPrimitiveTypesInstance)
+    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), ArkPrimitiveTypesInstance)
+    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), ArkPrimitiveTypesInstance)
 
     constructor(
         protected readonly library: PeerLibrary,

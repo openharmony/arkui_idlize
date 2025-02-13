@@ -13,17 +13,8 @@
  * limitations under the License.
  */
 
-import {
-    IndentedPrinter,
-    camelCaseToUpperSnakeCase,
-    maybeOptional,
-    Language,
-    createConstructPeerMethod,
-    createDestroyPeerMethod,
-    PeerClass,
-    PeerMethod,
-    PeerLibrary,
-    CppReturnTypeConvertor,
+import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppConvertor,
+    createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
@@ -35,7 +26,6 @@ export function generateEventReceiverName(componentName: string) {
 }
 
 export class HeaderVisitor {
-    private readonly returnTypeConvertor = new CppReturnTypeConvertor(this.library)
     constructor(
         private library: PeerLibrary,
         private api: IndentedPrinter,
@@ -44,6 +34,7 @@ export class HeaderVisitor {
         private eventsList: IndentedPrinter,
         private nodeTypesList: IndentedPrinter,
     ) {}
+    private readonly returnTypeConvertor = new CppReturnTypeConvertor(this.library)
 
     private apiModifierHeader(clazz: PeerClass) {
         return `typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUI${clazz.componentName}Modifier {`

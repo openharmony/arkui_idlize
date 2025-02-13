@@ -41,6 +41,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                             continue
                         for (const parameter of method.parameters)
                             orderer.addDep(parameter.type!)
+                        orderer.addDep(method.returnType)
                     }
                     for (const constructor of entry.constructors) {
                         for (const parameter of constructor.parameters)

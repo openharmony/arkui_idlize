@@ -3,7 +3,7 @@ import { Language } from "../Language"
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType"
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver"
 import { CJIDLTypeToForeignStringConvertor, CJInteropArgConvertor, CJTypeNameConvertor } from "./convertors/CJConvertors"
-import { CppInteropArgConvertor, CppInteropConvertor } from "./convertors/CppConvertors"
+import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors"
 import { ETSTypeNameConvertor } from "./convertors/ETSConvertors"
 import { InteropArgConvertor } from "./convertors/InteropConvertors"
 import { JavaInteropArgConvertor, JavaTypeNameConvertor } from "./convertors/JavaConvertors"
@@ -24,11 +24,11 @@ export function createLanguageWriter(language: Language, resolver?: ReferenceRes
         case Language.TS: return new TSLanguageWriter(printer, resolver,
             new TSTypeNameConvertor(resolver))
         case Language.ARKTS: return new ETSLanguageWriter(printer, resolver,
-            new ETSTypeNameConvertor(resolver), new CppInteropConvertor(resolver))
+            new ETSTypeNameConvertor(resolver), new CppConvertor(resolver))
         case Language.JAVA: return new JavaLanguageWriter(printer, resolver,
             new JavaTypeNameConvertor(resolver))
         case Language.CPP: return new CppLanguageWriter(printer, resolver,
-            new CppInteropConvertor(resolver), PrimitiveTypesInstance)
+            new CppConvertor(resolver), PrimitiveTypesInstance)
         case Language.CJ: return new CJLanguageWriter(printer, resolver,
             new CJTypeNameConvertor(resolver), new CJIDLTypeToForeignStringConvertor(resolver))
         default: throw new Error(`Language ${language.toString()} is not supported`)
