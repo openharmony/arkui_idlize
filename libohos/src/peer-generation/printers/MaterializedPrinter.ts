@@ -117,7 +117,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         if (clazz.isInterface) {
             if (printer.language == Language.CJ || printer.language == Language.JAVA) {
                 printer.writeInterface(clazz.className, writer => {})
-            } else {
+            } else if (this.library.name === 'arkoala') {
                 writeInterface(clazz.decl, printer)
             }
         }
