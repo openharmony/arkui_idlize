@@ -48,7 +48,7 @@ export class PeersConstructions {
     }
 
     static get arrayOfPointersToArrayOfPeers(): string {
-        return `unpackNonNullableNode`
+        return `unpackNodeArray`
     }
 
     static get context(): string {
@@ -59,13 +59,22 @@ export class PeersConstructions {
         return `this.peer`
     }
 
-    static callBinding(iface: string, method: string): string {
+    static callBinding(iface: string, method: string, namespace: string): string {
         return `global.generatedEs2panda.${
             BindingsConstructions.method(
-                InteropConstructions.method(iface, method)
+                InteropConstructions.method(iface, method, namespace)
             )
         }`
     }
+
+    static callCreateOrUpdate(iface: string, method: string, namespace: string): string {
+        return `global.generatedEs2panda.${
+            BindingsConstructions.method(
+                InteropConstructions.createOrUpdate(iface, method, namespace)
+            )
+        }`
+    }
+
 
     static get warn(): string {
         return `console.warn`

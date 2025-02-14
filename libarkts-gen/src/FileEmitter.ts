@@ -15,7 +15,7 @@
 
 import * as path from "node:path"
 import * as fs from "node:fs"
-import { forceWriteFile } from "@idlizer/core"
+import { forceWriteFile, printIDL } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
 import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
 import { EnumsPrinter } from "./visitors/enums/EnumsPrinter"
@@ -102,6 +102,7 @@ export class FileEmitter {
 
         idl = new OptionsFilterTransformer(this.config, idl).transformed()
         idl = new MultipleDeclarationFilterTransformer(idl).transformed()
+        console.log(idl.entries.forEach(it => printIDL(it)))
         this.printFile(this.enumsPrinter, idl)
 
         idl = new AstNodeFilterTransformer(idl).transformed()

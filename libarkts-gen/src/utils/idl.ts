@@ -130,6 +130,20 @@ export function nodeType(node: IDLInterface): string | undefined {
         ?.value
 }
 
+export function nodeNamespace(node: IDLInterface): string | undefined {
+    return node.extendedAttributes
+        ?.find(it => it.name === Config.nodeNamespaceAttribute)
+        ?.value
+}
+
+export function dropNamespace(node: IDLInterface) {
+    const index = node.extendedAttributes
+        ?.findIndex(it => it.name === Config.nodeNamespaceAttribute)
+    if (index == undefined || index == -1) return
+
+    node.extendedAttributes?.splice(index, 1)
+}
+
 export function parent(node: IDLInterface): string | undefined {
     return node.inheritance[0]?.name
 }

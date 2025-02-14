@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { isInterface } from "@idlizer/core"
-import { IDLFile } from "../../utils/idl"
+import { IDLEntity, capitalize, isInterface } from "@idlizer/core"
+import { IDLFile, dropNamespace, nodeNamespace } from "../../utils/idl"
 
 export class MultipleDeclarationFilterTransformer {
     constructor(
@@ -22,17 +22,23 @@ export class MultipleDeclarationFilterTransformer {
     ) {}
 
     transformed(): IDLFile {
-        const seen = new Set<string>()
+        const seen = new Map<string, number>()
+        this.file.entries.forEach(it => {
+            const oldValue = seen.get(it.name) ?? 0
+            seen.set(it.name, oldValue+1)
+        })
         return new IDLFile(
             this.file.entries.filter(it => {
                 if (!isInterface(it)) {
-                    return true
+                    return it
                 }
-                if (seen.has(it.name)) {
-                    return false
+                const occurence = seen.get(it.name) ?? 0
+                if (occurence < 2) {
+                    dropNamespace(it)
                 }
-                seen.add(it.name)
-                return true
+                if (occurence > 1 && nodeNamespace(it) != "ir") return undefined
+
+                return it
             })
         )
     }

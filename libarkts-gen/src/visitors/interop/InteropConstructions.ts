@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
+import { IDLPointerType, IDLPrimitiveType, IDLU32Type, capitalize } from "@idlizer/core"
 
 export class InteropConstructions {
     static get receiver(): string {
@@ -36,8 +36,12 @@ export class InteropConstructions {
         return `${parameter}SequenceLength`
     }
 
-    static method(interfaceName: string, methodName: string): string {
-        return `${interfaceName}${methodName}`
+    static method(interfaceName: string, methodName: string, namespaceName: string = ""): string {
+        return `${interfaceName}${capitalize(namespaceName)}${methodName}`
+    }
+
+    static createOrUpdate(interfaceName: string, methodName: string, namespaceName: string = ""): string {
+        return `${methodName}${interfaceName}${capitalize(namespaceName)}`
     }
 
     static get keywords(): string[] {

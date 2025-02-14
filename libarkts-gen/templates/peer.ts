@@ -16,6 +16,7 @@
 import {
     global,
     passNode,
+    passNodeArray,
     unpackNonNullableNode,
     unpackNodeArray,
     assertValidPeer,

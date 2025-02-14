@@ -25,7 +25,7 @@ import {
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { Config } from "../Config"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { createUpdatedInterface, IDLFile } from "../utils/idl"
+import { createUpdatedInterface, IDLFile, nodeNamespace } from "../utils/idl"
 
 export class InteropTransformer {
     constructor(
@@ -120,14 +120,14 @@ export class InteropTransformer {
     private withQualifiedName(node: IDLMethod, parent: IDLInterface): IDLMethod {
         if (InteropTransformer.isCreateOrUpdate(node)) {
             return createMethod(
-                `${InteropConstructions.method(node.name, parent.name)}`,
+                `${InteropConstructions.createOrUpdate(parent.name, node.name, nodeNamespace(parent))}`,
                 node.parameters,
                 node.returnType
             )
         }
 
         return createMethod(
-            `${InteropConstructions.method(parent.name, node.name)}`,
+            `${InteropConstructions.method(parent.name, node.name, nodeNamespace(parent))}`,
             node.parameters,
             node.returnType
         )
