@@ -31,9 +31,7 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths } from "./launch"
-import { loadPeerConfiguration } from "./peer-generation/PeerGeneratorConfig"
-import { IDLVisitor } from "./IDLVisitor"
+import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor } from "@idlizer/libohos"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
