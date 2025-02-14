@@ -54,7 +54,7 @@ import {
     printCJArkUIGeneratedNativeFunctions,
 } from '@idlizer/libohos';
 import { OhosInstall } from "./OhosInstall"
-import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosGenerator';
+import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosNativeVisitor';
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: OhosConfiguration) {
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
@@ -190,53 +190,10 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     // NATIVE
     /////////////////////////////////////////
 
-    /*
-    const API_VERSION = 0
-    const { api, serializers } = printSerializersOhos(API_VERSION, peerLibrary)
-
-    // native-api-generated
-
-    writeIntegratedFile(ohos.native(new TargetFile(`ohos_api_generated.h`)), api)
-
-    // native-bridge
-
-    writeIntegratedFile(
-        ohos.native(new TargetFile('bridge_generated.cc')),
-        printBridgeCcGenerated(peerLibrary, config?.callLog ?? false)
-    )
-
-    writeIntegratedFile(ohos.native(new TargetFile('Serializers.h')), serializers)
-
-    // native-callbacks
-
-    writeIntegratedFile(ohos.native(new TargetFile('callback_kind.h')), makeCallbacksKinds(peerLibrary, Language.CPP))
-    writeIntegratedFile(
-        ohos.native(new TargetFile('callback_deserialize_call.cc')),
-        makeDeserializeAndCall('ohos', peerLibrary, Language.CPP, 'callback_deserialize_call.cc').printToString()
-    )
-    writeIntegratedFile(
-        ohos.native(new TargetFile('callback_managed_caller.cc')),
-        printManagedCaller('ohos', peerLibrary).printToString()
-    )
-    */
-
     const native = generateNativeOhos(peerLibrary)
     for (const [ file, content ] of native) {
         writeIntegratedFile(ohos.native(file), content)
     }
-
-    const serializers = printSerializers(peerLibrary)
-    writeIntegratedFile(ohos.native(new TargetFile(`Serializers.h`)), serializers)
-
-    // writeIntegratedFile(ohos.native(new TargetFile(`all_events.cc`)), printEventsCArkoalaImpl(peerLibrary))
-
-    const modifiers = printRealAndDummyModifiers(peerLibrary, true)
-    const accessors = printRealAndDummyAccessors(peerLibrary)
-    const apiGenFile = peerLibrary.name.toLowerCase()
-    const modifiersDummy = dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.ApiVersion , 6, apiGenFile).getOutput().join('\n')
-    const modifiersReal = dummyImplementations(modifiers.real, accessors.real, 1, config.ApiVersion, 6, apiGenFile).getOutput().join('\n')
-    writeIntegratedFile(ohos.native(new TargetFile(`dummy_impl.cc`)), modifiersDummy)
-    writeIntegratedFile(ohos.native(new TargetFile(`real_impl.cc`)), modifiersReal)
 
     setDefaultConfiguration(origGenConfig)
 }
