@@ -221,6 +221,9 @@ export class PeerPrinter {
     }
 
     private modifiers(node: IDLMethod): MethodModifier[] {
+        if (node.name.startsWith(Config.createPrefix)) {
+            return [MethodModifier.STATIC]
+        }
         if (node.parameters.length === 1) {
             return [MethodModifier.GETTER]
         }
@@ -353,7 +356,8 @@ export class PeerPrinter {
                             }
                             return it
                         })
-                )
+                ),
+                this.modifiers(create)
             ),
             () => {
                 this.writer.writeStatement(
@@ -362,7 +366,13 @@ export class PeerPrinter {
                             this.node.name,
                             [
                                 this.writer.makeFunctionCall(
-                                    this.writer.makeString(PeersConstructions.callCreateOrUpdate(this.node.name, create.name, nodeNamespace(this.node) ?? "")),
+                                    this.writer.makeString(
+                                        PeersConstructions.callCreateOrUpdate(
+                                            this.node.name,
+                                            create.name,
+                                            nodeNamespace(this.node) ?? ""
+                                        )
+                                    ),
                                     create.parameters
                                         .map(it => {
                                             if (InteropConstructions.keywords.includes(it.name)) {
