@@ -13,6 +13,7 @@
     "@idlizer/core": "2.0.27+devel",
     "@idlizer/libohos": "2.0.27+devel",
     "@types/node": "^18.0.0",
+    "commander": "^10.0.0",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
