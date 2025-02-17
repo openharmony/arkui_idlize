@@ -20,7 +20,6 @@ import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSig
 } from "@idlizer/core"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
-import { PrinterContext } from "../PrinterContext"
 import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
 import { IdlSyntheticTypeBase } from "./CommonUtils"
@@ -44,7 +43,7 @@ export function printJavaImports(printer: LanguageWriter, imports: ImportFeature
     printer.print('')
 }
 
-export function makeJavaArkComponents(library: PeerLibrary, printerContext: PrinterContext): { targetFile: TargetFile, writer: LanguageWriter } {
+export function makeJavaArkComponents(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
     const ark = 'Ark'
     const receiver = 'receiver'
     const create = 'create'

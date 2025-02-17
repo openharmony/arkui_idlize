@@ -29,7 +29,6 @@ import { LanguageWriter, PeerFile, PeerClass, PeerLibrary } from "@idlizer/core"
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { TargetFile } from "./TargetFile"
-import { PrinterContext } from "./PrinterContext";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
@@ -224,7 +223,6 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
     constructor(
         private readonly library: PeerLibrary,
         private readonly file: PeerFile,
-        private readonly printerContext: PrinterContext,
     ) { }
 
     visit(): void {
@@ -277,11 +275,10 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
 class ComponentsVisitor {
     readonly components: Map<TargetFile, LanguageWriter> = new Map()
-    private readonly language = this.printerContext.language
+    private readonly language = this.peerLibrary.language
 
     constructor(
         private readonly peerLibrary: PeerLibrary,
-        private readonly printerContext: PrinterContext,
     ) { }
 
     printComponents(): void {
@@ -296,7 +293,7 @@ class ComponentsVisitor {
                 visitor = new ArkTsComponentFileVisitor(this.peerLibrary, file)
             }
             else if (this.language == Language.JAVA) {
-                visitor = new JavaComponentFileVisitor(this.peerLibrary, file, this.printerContext)
+                visitor = new JavaComponentFileVisitor(this.peerLibrary, file)
             }
             else {
                 throw new Error(`ComponentsVisitor not implemented for ${this.language.toString()}`)
@@ -307,12 +304,12 @@ class ComponentsVisitor {
     }
 }
 
-export function printComponents(peerLibrary: PeerLibrary, printerContext: PrinterContext): Map<TargetFile, string> {
+export function printComponents(peerLibrary: PeerLibrary): Map<TargetFile, string> {
     // TODO: support other output languages
     if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
         return new Map()
 
-    const visitor = new ComponentsVisitor(peerLibrary, printerContext)
+    const visitor = new ComponentsVisitor(peerLibrary)
     visitor.printComponents()
     const result = new Map<TargetFile, string>()
     for (const [key, writer] of visitor.components) {

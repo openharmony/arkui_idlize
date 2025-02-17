@@ -51,7 +51,6 @@ export interface PeerGeneratorConfiguration extends OhosBaseConfiguration {
     mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
     ignoreMethod(name: string, language: Language) : boolean
-    isMaterializedIgnored(name: string): boolean
     isHandWritten(component: string): boolean
     isKnownParametrized(name: string | undefined): boolean
     isShouldReplaceThrowingError(name: string) : boolean
@@ -93,12 +92,6 @@ export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
     },
     ignoreMethod(name: string, language: Language): boolean {
         return language === Language.ARKTS && this.components.ignoreMethodArkts.includes(name)
-    },
-    isMaterializedIgnored(name: string): boolean {
-        for (const ignore of this.ignoreMaterialized) {
-            if (name.endsWith(ignore)) return true
-        }
-        return false
     },
     isHandWritten(component: string): boolean {
         return this.components.handWritten.concat(this.components.custom).includes(component)

@@ -149,14 +149,9 @@ export function generateArkoalaFromIdl(config: {
     peerLibrary.name = 'arkoala'
     peerLibrary.setFileLayout(layout(peerLibrary, 'Ark', ARKOALA_PACKAGE_PATH))
 
-    const context = {
-        language: config.lang,
-        synthesizedTypes: undefined,
-        imports: undefined
-    }
     const arkuiComponentsFiles: string[] = []
 
-    const peers = printPeers(peerLibrary, context, config.dumpSerialized ?? false)
+    const peers = printPeers(peerLibrary, config.dumpSerialized ?? false)
     for (const [targetFile, peer] of peers) {
         const outPeerFile = arkoala.peer(targetFile)
         writeFile(outPeerFile, peer, {
@@ -165,7 +160,7 @@ export function generateArkoalaFromIdl(config: {
             message: "producing [idl]"
         })
     }
-    const components = printComponents(peerLibrary, context)
+    const components = printComponents(peerLibrary)
     for (const [targetFile, component] of components) {
         const outComponentFile = arkoala.component(targetFile)
         if (config.verbose) console.log(component)
@@ -176,7 +171,7 @@ export function generateArkoalaFromIdl(config: {
         })
         arkuiComponentsFiles.push(outComponentFile)
     }
-    const builderClasses = printBuilderClasses(peerLibrary, context, config.dumpSerialized)
+    const builderClasses = printBuilderClasses(peerLibrary, config.dumpSerialized)
     for (const [targetFile, builderClass] of builderClasses) {
         const outBuilderFile = arkoala.builderClass(targetFile)
         writeFile(outBuilderFile, builderClass, {
@@ -186,7 +181,7 @@ export function generateArkoalaFromIdl(config: {
         })
     }
 
-    const interfaces = printIdlInterfaces(peerLibrary, context)
+    const interfaces = printIdlInterfaces(peerLibrary)
     for (const [targetFile, data] of interfaces) {
         const outComponentFile = arkoala.interface(targetFile)
         writeFile(outComponentFile, data, {
@@ -201,7 +196,7 @@ export function generateArkoalaFromIdl(config: {
         selectOutDir(arkoala, peerLibrary.language),
         peerLibrary,
         [
-            createMaterializedPrinter(context, config.dumpSerialized),
+            createMaterializedPrinter(config.dumpSerialized),
             printGlobal
         ]
     )
@@ -396,7 +391,7 @@ export function generateArkoalaFromIdl(config: {
             printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).printToString()
         )
 
-        const arkComponents = makeJavaArkComponents(peerLibrary, context)
+        const arkComponents = makeJavaArkComponents(peerLibrary)
         arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
 
         const serializer = makeJavaSerializer(peerLibrary)

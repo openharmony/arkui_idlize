@@ -32,7 +32,6 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile"
-import { PrinterContext } from "./PrinterContext";
 import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
@@ -59,7 +58,6 @@ class PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly file: PeerFile,
-        protected readonly printerContext: PrinterContext,
         protected readonly dumpSerialized: boolean,
     ) { }
 
@@ -195,7 +193,7 @@ class PeerFileVisitor {
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-        writePeerMethod(printer, method, true, this.printerContext, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        writePeerMethod(printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
 
@@ -268,10 +266,9 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly file: PeerFile,
-        printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
-        super(library, file, printerContext, dumpSerialized)
+        super(library, file, dumpSerialized)
     }
 
     private printPackage(printer: LanguageWriter): void {
@@ -326,10 +323,9 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly file: PeerFile,
-        printerContext: PrinterContext,
         dumpSerialized: boolean,
     ) {
-        super(library, file, printerContext, dumpSerialized)
+        super(library, file, dumpSerialized)
     }
 
     private printPackage(printer: LanguageWriter): void {
@@ -361,7 +357,6 @@ class PeersVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) { }
 
@@ -369,11 +364,11 @@ class PeersVisitor {
         for (const file of this.library.files.values()) {
             if (!file.peersToGenerate.length)
                 continue
-            const visitor = this.printerContext.language == Language.JAVA
-                ? new JavaPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
-                : this.printerContext.language == Language.CJ
-                    ? new CJPeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
-                    : new PeerFileVisitor(this.library, file, this.printerContext, this.dumpSerialized)
+            const visitor = this.library.language == Language.JAVA
+                ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)
+                : this.library.language == Language.CJ
+                    ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
+                    : new PeerFileVisitor(this.library, file, this.dumpSerialized)
             visitor.printFile()
             visitor.printers.forEach((printer, targetFile) => {
                 this.peers.set(targetFile, printer.getOutput())
@@ -384,8 +379,8 @@ class PeersVisitor {
 
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
-export function printPeers(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
-    const visitor = new PeersVisitor(peerLibrary, printerContext, dumpSerialized)
+export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<TargetFile, string> {
+    const visitor = new PeersVisitor(peerLibrary, dumpSerialized)
     visitor.printPeers()
     const result = new Map<TargetFile, string>()
     for (const [key, content] of visitor.peers) {
@@ -410,7 +405,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     })
 }
 
-export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isIDL: boolean, printerContext: PrinterContext, dumpSerialized: boolean,
+export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
 ) {
     const signature = method.method.signature as NamedMethodSignature

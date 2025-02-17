@@ -20,7 +20,6 @@ import { LanguageWriter, PeerLibrary,
 } from "@idlizer/core";
 import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TargetFile } from "./TargetFile"
-import { PrinterContext } from "./PrinterContext";
 import { ImportsCollector } from "../ImportsCollector"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
@@ -125,11 +124,10 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
 class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = this.library.createLanguageWriter(this.printerContext.language)
+    private readonly printer: LanguageWriter = this.library.createLanguageWriter(this.library.language)
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly printerContext: PrinterContext,
         private readonly builderClass: BuilderClass,
         private readonly dumpSerialized: boolean,
     ) { }
@@ -301,7 +299,7 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     getTargetFile(): TargetFile {
-        return new TargetFile(this.builderClass.name + this.printerContext.language.extension, ARKOALA_PACKAGE_PATH)
+        return new TargetFile(this.builderClass.name + this.library.language.extension, ARKOALA_PACKAGE_PATH)
     }
 
     getOutput(): string[] {
@@ -314,7 +312,6 @@ class BuilderClassVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private printerContext: PrinterContext,
         private readonly dumpSerialized: boolean,
     ) { }
 
@@ -329,14 +326,14 @@ class BuilderClassVisitor {
         ]
         console.log(`Builder classes: ${builderClasses.length}`)
 
-        const language = this.printerContext.language
+        const language = this.library.language
         for (const clazz of builderClasses) {
             let visitor: BuilderClassFileVisitor
             if ([Language.ARKTS, Language.TS].includes(language)) {
                 visitor = new TSBuilderClassFileVisitor(language, clazz, this.dumpSerialized, this.library)
             }
             else if ([Language.JAVA].includes(language)) {
-                visitor = new JavaBuilderClassFileVisitor(this.library, this.printerContext, clazz, this.dumpSerialized)
+                visitor = new JavaBuilderClassFileVisitor(this.library, clazz, this.dumpSerialized)
             }
             else {
                 throw new Error(`Unsupported language ${language.toString()} in BuilderClassPrinter`)
@@ -349,13 +346,13 @@ class BuilderClassVisitor {
     }
 }
 
-export function printBuilderClasses(peerLibrary: PeerLibrary, printerContext: PrinterContext, dumpSerialized: boolean): Map<TargetFile, string> {
+export function printBuilderClasses(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<TargetFile, string> {
     // TODO: support other output languages
-    if (printerContext.language != Language.TS && printerContext.language != Language.ARKTS && printerContext.language != Language.JAVA) {
+    if (peerLibrary.language != Language.TS && peerLibrary.language != Language.ARKTS && peerLibrary.language != Language.JAVA) {
         return new Map()
     }
 
-    const visitor = new BuilderClassVisitor(peerLibrary, printerContext, dumpSerialized)
+    const visitor = new BuilderClassVisitor(peerLibrary, dumpSerialized)
     visitor.printBuilderClasses()
     const result = new Map<TargetFile, string>()
     for (const [key, content] of visitor.builderClasses) {

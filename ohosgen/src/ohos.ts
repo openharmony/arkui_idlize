@@ -57,12 +57,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
 
     NativeModule.Generated = new NativeModuleType(suggestLibraryName(peerLibrary) + 'NativeModule')
 
-    const context = {
-        language: peerLibrary.language,
-        synthesizedTypes: undefined,
-        imports: undefined
-    }
-
     const ohosManagedFiles: string[] = []
 
     // MANAGED
@@ -146,7 +140,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
         ohos.managedDir(),
         peerLibrary,
         [
-            createMaterializedPrinter(context, false),
+            createMaterializedPrinter(false),
             printInterfaceData,
             printGlobal,
         ]

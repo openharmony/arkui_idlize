@@ -39,7 +39,6 @@ import {
 } from '@idlizer/core'
 import { ImportFeature, ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
-import { PrinterContext } from './PrinterContext'
 import { convertDeclaration, DeclarationConvertor } from "@idlizer/core";
 import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, INT_VALUE_GETTER } from './lang/Java'
 import { printJavaImports } from './lang/JavaPrinters'
@@ -1183,24 +1182,24 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 }
 
 
-function getVisitor(peerLibrary: PeerLibrary, context: PrinterContext): InterfacesVisitor | undefined {
-    if (context.language == Language.TS) {
+function getVisitor(peerLibrary: PeerLibrary): InterfacesVisitor | undefined {
+    if (peerLibrary.language == Language.TS) {
         return new TSInterfacesVisitor(peerLibrary)
     }
-    if (context.language == Language.JAVA) {
+    if (peerLibrary.language == Language.JAVA) {
         return new JavaInterfacesVisitor(peerLibrary)
     }
-    if (context.language == Language.ARKTS) {
+    if (peerLibrary.language == Language.ARKTS) {
         return new ArkTSInterfacesVisitor(peerLibrary)
     }
-    if (context.language == Language.CJ) {
+    if (peerLibrary.language == Language.CJ) {
         return new CJInterfacesVisitor(peerLibrary)
     }
-    throwException(`Need to implement InterfacesVisitor for ${context.language} language`)
+    throwException(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }
 
-export function printInterfaces(peerLibrary: PeerLibrary, context: PrinterContext): Map<TargetFile, string> {
-    const visitor = getVisitor(peerLibrary, context)
+export function printInterfaces(peerLibrary: PeerLibrary): Map<TargetFile, string> {
+    const visitor = getVisitor(peerLibrary)
     if (!visitor) {
         return new Map()
     }
