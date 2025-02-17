@@ -271,7 +271,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         const args = ctorSig.argsNames.map(it => writer.makeString(it))
                         writer.writeStatement(
                             writer.makeAssign('ctorPtr', IDLPointerType,
-                                writer.makeMethodCall(implementationClassName, 'ctor', args),
+                                writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`, args),
                                 true))
 
                         writer.writeStatement(writer.makeAssign(
