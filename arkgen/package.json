@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/arkgen",
-  "version": "2.0.27+devel",
+  "version": "2.0.28+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -15,9 +15,9 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@koalaui/interop": "1.5.2",
-    "@idlizer/core": "2.0.27+devel",
-    "@idlizer/libohos": "2.0.27+devel",
+    "@koalaui/interop": "1.5.3",
+    "@idlizer/core": "2.0.28+devel",
+    "@idlizer/libohos": "2.0.28+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",

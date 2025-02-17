@@ -146,7 +146,7 @@ export function publishToOpenlab(tag, dryRun = false) {
     if (dryRun) {
         execSync(`npm publish --dry-run --tag ${tag}`)
     } else {
-        execSync(`npm publish --tag ${tag}`)
+        execSync(`npm publish --tag ${tag} --access public`)
     }
 }
 
