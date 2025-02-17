@@ -528,6 +528,7 @@ export const IDLUint8ArrayType = createContainerType('sequence', [IDLU8Type])
 export const IDLFunctionType = createPrimitiveType('Function')
 export const IDLLengthType = createPrimitiveType('Length')
 export const IDLCustomObjectType = createPrimitiveType('CustomObject')
+export const IDLInteropReturnBufferType = createPrimitiveType('InteropReturnBuffer')
 
 export type IDLNodeInitializer = {
     extendedAttributes?: IDLExtendedAttribute[]

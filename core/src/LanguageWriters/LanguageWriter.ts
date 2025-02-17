@@ -437,7 +437,7 @@ export interface PrinterLike {
 export abstract class LanguageWriter {
     constructor(
         public printer: IndentedPrinter,
-        protected resolver: ReferenceResolver,
+        public resolver: ReferenceResolver, // TODO make protected again
         public language: Language,
     ) {}
 
@@ -682,7 +682,7 @@ export abstract class LanguageWriter {
     makeNativeMethodNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {
         return this.makeNamedSignature(returnType, parameters)
     }
-    makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
+    makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
         return undefined
     }
     mapFieldModifier(modifier: FieldModifier): string {

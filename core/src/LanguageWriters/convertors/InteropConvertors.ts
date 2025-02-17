@@ -41,13 +41,13 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             // TODO return array by some way
             return "void"
         }
-        return KInteropReturnBuffer
+        return "void"
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         throw new Error(`Cannot pass import type ${type.name} through interop`)
     }
     convertOptional(type: idl.IDLOptionalType): string {
-        return 'KInteropReturnBuffer'
+        return 'void'
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
@@ -95,7 +95,7 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
                 return KInteropReturnBuffer
             }
         }
-        return KInteropReturnBuffer
+        return "void"
     }
     convertUnion(type: idl.IDLUnionType): string {
         return KInteropReturnBuffer

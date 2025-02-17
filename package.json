@@ -5,8 +5,8 @@
   "description": "idlize hash of head: acf352e",
   "workspaces": [
     "core/webidl2.js",
-    "demos/*",
     "arkgen",
+    "ohosgen/demos/*",
     "ohosgen",
     "core",
     "libohos",

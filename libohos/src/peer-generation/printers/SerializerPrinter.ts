@@ -247,10 +247,12 @@ class SerializerPrinter {
                     writer.writeStatement(writer.makeThrowError(("Only last serializer should be released")))
                 })
             }
-            const ctorSignature = this.writer.makeSerializerConstructorSignature()
-            if (ctorSignature) {
-                writer.writeConstructorImplementation(className, ctorSignature, writer => {},
-                    new Method(superName, ctorSignature))
+            const ctorSignatures = this.writer.makeSerializerConstructorSignatures()
+            if (ctorSignatures) {
+                for (const ctorSignature of ctorSignatures) {
+                    writer.writeConstructorImplementation(className, ctorSignature, writer => {},
+                        new Method(superName, ctorSignature))
+                }
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {

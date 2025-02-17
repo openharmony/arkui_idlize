@@ -483,16 +483,26 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return this.getNodeName(type)
     }
-    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
-        return new NamedMethodSignature(IDLVoidType, [
+    override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
+        const fromBufferCtor =  new NamedMethodSignature(IDLVoidType, [
                 IDLUint8ArrayType,
                 IDLU32Type,
-                createReferenceType("CallbackResourceHolder" /* ast */)
+                createReferenceType("CallbackResourceHolder")
             ],
             ["data", "dataLength", "resourceHolder"],
             [undefined, `0`, `nullptr`],
             [undefined, undefined, undefined, PrintHint.AsPointer]
         )
+
+        const ownedDataCtor = new NamedMethodSignature(IDLVoidType, [
+                createReferenceType("CallbackResourceHolder")
+            ],
+            ["resourceHolder"],
+            [`nullptr`],
+            [undefined, PrintHint.AsPointer]
+        )
+
+        return [ownedDataCtor, fromBufferCtor]
     }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
         return  undefined

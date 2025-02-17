@@ -27,6 +27,7 @@ import {
     InteropReturnTypeConvertor,
     CppInteropArgConvertor,
     PrimitiveTypesInstance,
+    CppNameConvertor,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
@@ -38,6 +39,7 @@ class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
     private readonly returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
+    private readonly interopNameConvertor = new CppNameConvertor(this.library)
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -92,7 +94,12 @@ class BridgeCcVisitor {
         } else {
             if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
                 // TODO: real serialization here
-                statements = [`${peerMethodCall};`, "return {};"]
+                const serilializerMethodName = "write" + this.interopNameConvertor.convert(method.returnType)
+                statements = [
+                    `Serializer _retSerializer {};`,
+                    `_retSerializer.${serilializerMethodName}(${peerMethodCall});`,
+                    `return _retSerializer.toReturnBuffer();`,
+                ]
             } else {
                 statements = [isVoid ? `${peerMethodCall};` : `return ${peerMethodCall};`]
             }

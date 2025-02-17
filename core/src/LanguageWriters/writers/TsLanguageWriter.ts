@@ -445,7 +445,7 @@ export class TSLanguageWriter extends LanguageWriter {
         ])
     }
 
-    override makeSerializerConstructorSignature(): NamedMethodSignature | undefined {
-        return new NamedMethodSignature(idl.IDLVoidType, [], [])
+    override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
+        return [new NamedMethodSignature(idl.IDLVoidType, [], [])]
     }
 }

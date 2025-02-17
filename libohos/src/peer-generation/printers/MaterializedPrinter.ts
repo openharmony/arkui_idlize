@@ -371,6 +371,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         this.collector.addFeatures(['int32', 'float32'], '@koalaui/common')
         if (this.library.language === Language.ARKTS) {
             this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+            this.collector.addFeatures(['Deserializer'], './peers/Deserializer')
         }
         if (this.library.language === Language.TS) {
             this.collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')

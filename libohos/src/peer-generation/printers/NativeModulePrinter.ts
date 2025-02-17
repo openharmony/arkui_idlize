@@ -16,7 +16,7 @@ import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
-    createInteropArgConvertor, NativeModuleType, CJLanguageWriter,
+    createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, InteropReturnTypeConvertor,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -88,6 +88,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
     private readonly interopConvertor = createInteropArgConvertor(this.language)
+    private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
 
     constructor(
         library: PeerLibrary,
@@ -108,14 +109,15 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                this.printPeerMethod(method, returnType && idl.isPrimitiveType(returnType) ? returnType : idl.IDLPointerType)
+                const returnAsValue = returnType && (idl.isPrimitiveType(returnType) || isStructureType(returnType, this.library))
+                this.printPeerMethod(method, returnAsValue ? returnType : idl.IDLPointerType)
             })
         })
     }
 
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
         const component = method.originalParentName
-        const parameters = makeInteropSignature(method, returnType, this.interopConvertor)
+        const parameters = makeInteropSignature(method, returnType, this.interopConvertor, this.interopRetConvertor)
         let name = `_${component}_${method.overloadedName}`
 
         if (parameters.returnType === idl.IDLThisType) {
@@ -135,9 +137,13 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
     }
 }
 
-function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWriter) {
+function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWriter, throwTodo = false) {
     writer.writeMethodImplementation(method, writer => {
         writer.writePrintLog(method.name)
+        if (throwTodo) {
+            writer.writeStatement(writer.makeThrowError("default structure value is not implemented"))
+            return
+        }
         if (method.signature.returnType !== undefined && method.signature.returnType !== idl.IDLVoidType) {
             writer.writeStatement(writer.makeReturn(writer.makeString(getReturnValue(method.signature.returnType))))
         }
@@ -149,7 +155,8 @@ class TSNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
 
     protected printMethod(method: Method): void {
         super.printMethod(method)
-        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty)
+        const isUnsupportedStructType = isStructureType(method.signature.returnType, this.library)
+        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty, isUnsupportedStructType)
     }
 }
 
@@ -158,7 +165,8 @@ class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisi
 
     protected printMethod(method: Method): void {
         super.printMethod(method)
-        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty)
+        const isUnsupportedStructType = isStructureType(method.signature.returnType, this.library)
+        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty, isUnsupportedStructType)
     }
 }
 
@@ -287,7 +295,8 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, 
             "KInt32ArrayPtr",
             "KUint8ArrayPtr",
             "KFloat32ArrayPtr",
-            "pointer"
+            "pointer",
+            "KInteropReturnBuffer",
         ], "@koalaui/interop")
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
         if (file.language === Language.ARKTS) {
@@ -450,7 +459,7 @@ export function collectPredefinedNativeModuleEntries(library: PeerLibrary, modul
     }
 }
 
-export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: InteropArgConvertor): NamedMethodSignature {
+export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: InteropArgConvertor, retConvertor: InteropReturnTypeConvertor): NamedMethodSignature {
     const maybeReceiver: ({name: string, type: idl.IDLType})[] = method.hasReceiver()
         ? [{ name: 'ptr', type: idl.createReferenceType('KPointer') }] : []
     let serializerArgCreated = false
@@ -467,6 +476,9 @@ export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType
             })
         }
     })
+    if (returnType && retConvertor.isReturnInteropBuffer(returnType)) {
+        returnType = idl.IDLInteropReturnBufferType
+    }
     return NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver)
 }
 
@@ -514,6 +526,7 @@ function getReturnValue(type: idl.IDLType): string {
         case idl.IDLObjectType: return "new Object()"
         case idl.IDLBufferType: return "new ArrayBuffer(8)"
         case idl.IDLBigintType: return "BigInt(0)"
+        case idl.IDLInteropReturnBufferType: return "new Uint8Array()"
     }
 
     throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)

@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot } from '@idlizer/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, MaterializedClassConvertor, isStructureType } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
@@ -516,12 +516,19 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                             writer.print(`console.log("Object deserialization is not implemented for type: ${contType}, return default value.")`)
                         }
                     }
-                    result = [
-                        ret
-                            ? writer.makeReturn(ret)
-                            : writer.makeThrowError("Object deserialization is not implemented.")
-                    ]
-
+                    if (ret) {
+                        result = [writer.makeReturn(ret)]
+                    } else if (isStructureType(returnType, writer.resolver)) {
+                        const deserializerMethod = `read${writer.getNodeName(returnType).split(/\./).slice(-1)[0]}` // TODO Remove this hacky name conversion
+                        const instance = makeDeserializerInstance(returnValName, writer.language)
+                        result = [
+                            writer.makeStatement(writer.makeString(
+                                `return ${instance}.${deserializerMethod}()`
+                            ))
+                        ]
+                    } else {
+                        result = [writer.makeThrowError("Object deserialization is not implemented.")]
+                    }
                 }
             }
             for (const stmt of result) {
@@ -529,6 +536,18 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
             }
         }
     })
+}
+
+function makeDeserializerInstance(returnValName: string, language: Language) {
+    if (language === Language.TS) {
+        return `new Deserializer(${returnValName}, ${returnValName}.byteLength)`
+    } else if (language === Language.ARKTS) {
+        return `new Deserializer(${returnValName}, ${returnValName}.length)`
+    } else if (language === Language.JAVA) {
+        return `new Deserializer(${returnValName}, ${returnValName}.length)`
+    } else {
+        throw "not implemented"
+    } 
 }
 
 function returnsThis(method: PeerMethod, returnType: IDLType) {

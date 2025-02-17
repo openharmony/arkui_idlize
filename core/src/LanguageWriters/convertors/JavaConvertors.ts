@@ -125,6 +125,7 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
             case idl.IDLVoidType: return 'void'
             case idl.IDLDate: return 'Date'
             case idl.IDLBufferType: return 'byte[]'
+            case idl.IDLInteropReturnBufferType: return 'byte[]'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }

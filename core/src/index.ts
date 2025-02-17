@@ -54,6 +54,7 @@ export * from "./peer-generation/PeerMethod"
 export * from "./peer-generation/BuilderClass"
 export * from "./peer-generation/Materialized"
 export * from "./peer-generation/isMaterialized"
+export * from "./peer-generation/isStructureType"
 export * from "./peer-generation/unions"
 
 export * from "./LanguageWriters"
