@@ -13,19 +13,11 @@
  * limitations under the License.
  */
 
-import {
-    createMethod,
-    createParameter,
-    createReferenceType,
-    IDLKind,
-    IDLMethod,
-    isTypedef,
-    throwException
-} from "@idlizer/core"
-import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
-import { Config } from "../Config"
+import { createMethod, createParameter, createReferenceType, IDLMethod } from "@idlizer/core"
+import { IDLInterface, isInterface, } from "@idlizer/core/idl"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
 import { createUpdatedInterface, IDLFile, nodeNamespace } from "../utils/idl"
+import { Config } from "../Config"
 
 export class InteropTransformer {
     constructor(
@@ -34,22 +26,14 @@ export class InteropTransformer {
 
     transformed(): IDLFile {
         return new IDLFile(
-            this.file.entries.map(it => this.transformEntry(it))
+            this.file.entries
+                .map(it => {
+                    if (isInterface(it)) {
+                        return this.transformInterface(it)
+                    }
+                    return it
+                })
         )
-    }
-
-    private transformEntry(node: IDLEntry): IDLEntry {
-        if (isInterface(node)) {
-            return this.transformInterface(node)
-        }
-        if (isEnum(node)) {
-            return node
-        }
-        if (isTypedef(node)) {
-            return node
-        }
-
-        throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
     }
 
     private transformInterface(node: IDLInterface): IDLInterface {
@@ -67,14 +51,13 @@ export class InteropTransformer {
 
     private transformMethod(node: IDLMethod, parent: IDLInterface): IDLMethod {
         node = this.withInsertedReceiver(node, parent)
-        node = this.withSplitSequenceParameter(node)
         node = this.withQualifiedName(node, parent)
         node = this.withKeywordsReplaced(node)
         return node
     }
 
     private withInsertedReceiver(node: IDLMethod, parent: IDLInterface): IDLMethod {
-        if (InteropTransformer.isCreateOrUpdate(node)) {
+        if (Config.isCreateOrUpdate(node.name)) {
             return node
         }
         const copy = createMethod(
@@ -93,39 +76,7 @@ export class InteropTransformer {
         return copy
     }
 
-    private withSplitSequenceParameter(node: IDLMethod): IDLMethod {
-        return node
-        // const parameters = node.parameters
-        //     .flatMap(it =>
-        //         isSequence(it.type)
-        //             ? [
-        //                 createParameter(
-        //                     InteropConstructions.sequenceParameterPointer(it.name),
-        //                     Config.sequencePointerType
-        //                 ),
-        //                 createParameter(
-        //                     InteropConstructions.sequenceParameterLength(it.name),
-        //                     Config.sequenceLengthType
-        //                 )
-        //             ]
-        //             : it
-        //     )
-        // return createMethod(
-        //     node.name,
-        //     parameters,
-        //     node.returnType
-        // )
-    }
-
     private withQualifiedName(node: IDLMethod, parent: IDLInterface): IDLMethod {
-        if (InteropTransformer.isCreateOrUpdate(node)) {
-            return createMethod(
-                `${InteropConstructions.createOrUpdate(parent.name, node.name, nodeNamespace(parent))}`,
-                node.parameters,
-                node.returnType
-            )
-        }
-
         return createMethod(
             `${InteropConstructions.method(parent.name, node.name, nodeNamespace(parent))}`,
             node.parameters,
@@ -151,31 +102,7 @@ export class InteropTransformer {
     }
 
     private withOverloadsRenamed(node: IDLInterface): IDLInterface {
+        // TODO
         return node
-        // const findOverloaded = (): Set<string> => {
-        //     const seen = new Set<string>()
-        //     const result = new Set<string>()
-        //     node.methods.forEach(it => {
-        //         if (seen.has(it.name)) {
-        //             result.add(it.name)
-        //         }
-        //         seen.add(it.name)
-        //     })
-        //     return result
-        // }
-
-        // const overloaded = new Set<string>()
-        // const methods = new Map<string, IDLMethod>(
-        //     node.methods.map(it => [it.name, it])
-        // )
-        //
-        // return createInterfaceWithUpdatedMethods(
-        //     node,
-        //     Array.from(methods.values())
-        // )
-    }
-
-    private static isCreateOrUpdate(node: IDLMethod): boolean {
-        return node.name.startsWith(Config.createPrefix) || node.name.startsWith(Config.updatePrefix)
     }
 }

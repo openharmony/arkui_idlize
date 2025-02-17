@@ -13,6 +13,25 @@
  * limitations under the License.
  */
 
+import { Config } from "../Config"
+import { throwException } from "@idlizer/core"
+
 export function pascalToCamel(value: string) {
     return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+export function splitCreateOrUpdate(fullName: string): { createOrUpdate: string, rest: string } {
+    let createOrUpdate: string
+    let index: string
+    if (fullName.startsWith(Config.createPrefix)) {
+        createOrUpdate = Config.createPrefix
+        index = fullName.slice(Config.createPrefix.length)
+        return { createOrUpdate, rest: index }
+    }
+    if (fullName.startsWith(Config.updatePrefix)) {
+        createOrUpdate = Config.updatePrefix
+        index = fullName.slice(Config.updatePrefix.length)
+        return { createOrUpdate, rest: index }
+    }
+    throwException(`method name doesn't start neither with ${Config.createPrefix} nor with ${Config.updatePrefix}`)
 }

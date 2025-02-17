@@ -98,7 +98,7 @@ export class PeerPrinter {
 
     private printBody(): void {
         this.printConstructor()
-        this.printCreate()
+        this.printCreates()
         this.printMethods()
     }
 
@@ -207,7 +207,7 @@ export class PeerPrinter {
                                 .slice(1)
                                 .map(it => it.name)
                         ),
-                        this.modifiers(it)
+                        [MethodModifier.GETTER]
                     ),
                     () => {
                         this.writer.writeStatement(
@@ -218,16 +218,6 @@ export class PeerPrinter {
                     }
                 )
             })
-    }
-
-    private modifiers(node: IDLMethod): MethodModifier[] {
-        if (node.name.startsWith(Config.createPrefix)) {
-            return [MethodModifier.STATIC]
-        }
-        if (node.parameters.length === 1) {
-            return [MethodModifier.GETTER]
-        }
-        return []
     }
 
     private makeReturnExpression(node: IDLMethod): LanguageExpression {
@@ -275,16 +265,13 @@ export class PeerPrinter {
         throwException(`couldn't emit return expression while generating peer: ${this.node.name}.${node.name}`)
     }
 
-    private printCreate(): void {
-        const create = this.node.methods.find(it => it.name.startsWith(Config.createPrefix))
-        if (create === undefined) {
-            return
-        }
+    private printCreates(): void {
         if (isAbstract(this.node)) {
             return
         }
-        if (
-            create.parameters
+        this.node.methods
+            .filter(it => Config.isCreateOrUpdate(it.name))
+            .filter(create => !create.parameters
                 .map(it => it.type)
                 .concat(create.returnType)
                 .map(it => {
@@ -299,10 +286,11 @@ export class PeerPrinter {
                 .filter(it => !it.name.startsWith(`es2panda_Context`))
                 .filter(it => !it.name.startsWith(`es2panda_AstNode`))
                 .some(it => this.typechecker.isHollow(it.name))
-        ) {
-            return
-        }
+            )
+            .forEach(it => this.printCreateOrUpdates(it))
+    }
 
+    private printCreateOrUpdates(create: IDLMethod): void {
         create.parameters
             .map(it => {
                 if (isContainerType(it.type)) {
@@ -331,7 +319,10 @@ export class PeerPrinter {
 
         this.writer.writeMethodImplementation(
             new Method(
-                `create${this.node.name}`,
+                PeersConstructions.createOrUpdate(
+                    this.node.name,
+                    create.name
+                ),
                 new MethodSignature(
                     create.returnType,
                     create.parameters
@@ -357,7 +348,7 @@ export class PeerPrinter {
                             return it
                         })
                 ),
-                this.modifiers(create)
+                [MethodModifier.STATIC]
             ),
             () => {
                 this.writer.writeStatement(

@@ -153,7 +153,12 @@ export function isAbstract(node: IDLInterface): boolean {
 }
 
 export function isGetter(node: IDLMethod): boolean {
-    return node.extendedAttributes?.find(it => it.name === Config.getterAttribute) !== undefined
+    if (node.parameters.length !== 0) {
+        return false
+    }
+    return node.extendedAttributes
+        ?.some(it => it.name === Config.getterAttribute)
+        ?? false
 }
 
 export function createDefaultTypescriptWriter() {

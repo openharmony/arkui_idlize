@@ -22,7 +22,6 @@ export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
     }
 
     protected shouldFilterOutMethod(node: string, name: string): boolean {
-        return name.startsWith(Config.createPrefix) && name.length > Config.createPrefix.length
-            || name.startsWith(Config.updatePrefix) && name.length > Config.updatePrefix.length
+        return false
     }
 }
