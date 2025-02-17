@@ -93,12 +93,12 @@ interface I1 {
 }
 ```
 
-If it is necessary to make a type optional, you can use a union with *void*. 
+If it is necessary to make a type optional, you can use `?` suffix.
 
- **Example:** 
+ **Example:**
 
 ```
-typedef (number or void) OptNumber;
+typedef number? OptNumber;
 ```
 
 ### sequence
