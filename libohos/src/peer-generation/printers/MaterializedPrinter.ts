@@ -184,11 +184,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 }
             })
 
+            const ctorPostfix = `_${clazz.className.toLowerCase()}`
             if (clazz.ctor) {
                 const pointerType = IDLPointerType
                 // makePrivate(clazz.ctor.method)
                 this.library.setCurrentContext(`${clazz.className}.constructor`)
-                writePeerMethod(writer, clazz.ctor, true, this.printerContext, this.dumpSerialized, "", "", pointerType)
+                writePeerMethod(writer, clazz.ctor, true, this.printerContext, this.dumpSerialized, ctorPostfix, "", pointerType)
                 this.library.setCurrentContext(undefined)
 
                 const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
@@ -221,7 +222,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         }
                         let ctorStatements: LanguageStatement = writer.makeBlock([
                             writer.makeAssign("ctorPtr", IDLPointerType,
-                                writer.makeMethodCall(implementationClassName, "ctor",
+                                writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`,
                                     ctorSig.args.map((it, index) => writer.makeString(ctorSig.argsNames[index]))),
                                 true),
                             writer.makeAssign(

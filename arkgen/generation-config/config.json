@@ -166,8 +166,6 @@
             "IDataSource",
             "LazyForEachInterface",
             "LocalStorage",
-            "OffscreenCanvas",
-            "OffscreenCanvasRenderingContext2D",
             "PersistentStorage",
             "PositionT",
             "SizeT",
