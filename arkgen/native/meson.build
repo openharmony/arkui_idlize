@@ -21,6 +21,7 @@ is_node = true
 is_arkts = true
 is_cj = (source_set == 'cangjie-subset')
 is_jni = java_home != 'undefined'
+is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
 
 compile_events_test = get_option('events_test')
@@ -141,6 +142,7 @@ endif
 
 node_library_name = 'NativeBridgeNapi'
 arkts_library_name = 'ArkoalaNative_ark'
+ani_library_name = 'ArkoalaNative_ani'
 jni_library_name = 'NativeBridgeJni'
 cj_library_name = 'NativeBridgeCJ'
 ohos_library_name = 'NativeBridge_ohos'
@@ -200,14 +202,23 @@ arkts_sources = [
     external_interop_dir / 'types/signatures.cc',
 ]
 
+ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
+ani_include_dirs = [
+    external_interop_dir / 'ani',
+]
+ani_sources = [
+    external_interop_dir / 'ani/convertors-ani.cc',
+    external_interop_dir / 'types/signatures.cc',
+]
+
 cj_include_dirs = [
     external_interop_dir / 'cangjie',
-    external_incremental_cj_dir / 'runtime/src/' 
+    external_incremental_cj_dir / 'runtime/src/'
 ]
 cj_sources = [
     external_interop_dir / 'cangjie/convertors-cj.cc',
     external_interop_dir / 'cangjie/convertors-cj.h',
-    external_incremental_cj_dir / 'runtime/src/core/CallsiteKey.c' 
+    external_incremental_cj_dir / 'runtime/src/core/CallsiteKey.c'
 ]
 
 if is_jni
@@ -292,6 +303,21 @@ shared_library(arkts_library_name,
     include_directories: include_dirs + arkts_include_dirs,
     install_dir: meson.current_source_dir(),
     cpp_args: cflags + arkts_cflags,
+    link_args: ldflags,
+    dependencies: []
+)
+endif
+
+if is_ani
+shared_library(ani_library_name,
+    sources + ani_sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    include_directories: include_dirs + ani_include_dirs,
+    install_dir: meson.current_source_dir(),
+    cpp_args: cflags + ani_cflags,
     link_args: ldflags,
     dependencies: []
 )

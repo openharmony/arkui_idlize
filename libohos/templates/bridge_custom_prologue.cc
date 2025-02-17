@@ -459,7 +459,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
         return nullptr;
     }
     return (KVMObjectHandle)result;
-#elif KOALA_USE_PANDA_VM
+#elif KOALA_ETS_NAPI
     EtsEnv* env = reinterpret_cast<EtsEnv*>(vm);
     std:: string className(viewClass.c_str());
     // TODO: hack, fix it!
@@ -497,6 +497,9 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
         return nullptr;
     }
     return (KVMObjectHandle)result;
+#elif KOALA_ANI
+    fprintf(stderr, "LoadUserView() is not implemented yet\n");
+    return nullptr;
 #else
     fprintf(stderr, "LoadUserView() is not implemented yet\n");
     return nullptr;
