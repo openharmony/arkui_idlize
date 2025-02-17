@@ -13,50 +13,45 @@
  * limitations under the License.
  */
 
-export interface GeneratorConfiguration {
-    param<T>(name: string): T
-    readonly params: Record<string, any>
+export interface CoreConfiguration {
+    readonly TypePrefix: string
+    readonly LibraryPrefix: string
+    readonly OptionalPrefix: string
 
-    TypePrefix: string,
-    LibraryPrefix: string,
-    OptionalPrefix: string,
+    readonly rootComponents: string[]
+    readonly standaloneComponents: string[]
+    readonly parameterized: string[]
+    readonly ignoreMaterialized: string[]
+    readonly builderClasses: string[]
+    readonly forceMaterialized: string[]
 }
 
-export class BaseGeneratorConfiguration implements GeneratorConfiguration {
-    readonly params: Record<string, any> = {}
-    constructor(params: Record<string, any> = {}) {
-        Object.assign(this.params, {
-            TypePrefix: "",
-            LibraryPrefix: "",
-            OptionalPrefix: "",
-            ...params
-        });
-    }
-    param<T>(name: string): T {
-        if (name in this.params) {
-            return this.params[name] as T;
-        }
-        throw new Error(`${name} is unknown`)
-    }
+export const defaultCoreConfuguration: CoreConfiguration = {
+    TypePrefix: "",
+    LibraryPrefix: "",
+    OptionalPrefix: "",
 
-    get TypePrefix(): string { return this.param<string>("TypePrefix") }
-    get LibraryPrefix(): string { return this.param<string>("LibraryPrefix") }
-    get OptionalPrefix(): string { return this.param<string>("OptionalPrefix") }
+    rootComponents: [],
+    standaloneComponents: [],
+    parameterized: [],
+    ignoreMaterialized: [],
+    builderClasses: [],
+    forceMaterialized: [],
 }
 
-let currentConfig: GeneratorConfiguration = new BaseGeneratorConfiguration()
+let currentConfig: CoreConfiguration = defaultCoreConfuguration
 
-export function setDefaultConfiguration(config: GeneratorConfiguration): void {
+export function setDefaultConfiguration<T extends CoreConfiguration>(config: T): void {
     currentConfig = config
 }
 
-export function generatorConfiguration(): GeneratorConfiguration {
-    return currentConfig
+export function generatorConfiguration<T extends CoreConfiguration>(): T {
+    return currentConfig as T
 }
 
 export function generatorTypePrefix() {
     const conf = generatorConfiguration()
-    return `${conf.param("TypePrefix")}${conf.param("LibraryPrefix")}`
+    return `${conf.TypePrefix}${conf.LibraryPrefix}`
 }
 
 

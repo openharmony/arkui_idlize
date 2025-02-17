@@ -36,11 +36,13 @@ import {
 import { IDLVisitor, loadPeerConfiguration,
     generateTracker, IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor, loadPlugin,
     SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaFile, generateIdlSkoala,
-    IdlWrapperProcessor, fillSyntheticDeclarations, DefaultConfiguration,
+    IdlWrapperProcessor, fillSyntheticDeclarations,
     scanPredefinedDirectory, scanNotPredefinedDirectory,
     scanCommonPredefined,
     formatInputPaths,
     validatePaths,
+    PeerGeneratorConfiguration,
+    defaultPeerGeneratorConfiguration,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -99,7 +101,13 @@ if (process.env.npm_package_version) {
 let didJob = false
 
 if (options.dts2skoala) {
-    setDefaultConfiguration(new DefaultConfiguration({ ApiVersion: apiVersion, TypePrefix: "", LibraryPrefix: "", OptionalPrefix: "Opt_" }))
+    setDefaultConfiguration<PeerGeneratorConfiguration>({
+        ...defaultPeerGeneratorConfiguration,
+        ApiVersion: apiVersion,
+        TypePrefix: "",
+        LibraryPrefix: "",
+        OptionalPrefix: "Opt_",
+    })
 
     console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
 

@@ -305,11 +305,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (ts.isClassDeclaration(node)) {
             const entry = this.serializeClass(node)
-            if (!peerGeneratorConfiguration().ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+            if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
                 this.output.push(entry)
         } else if (ts.isInterfaceDeclaration(node)) {
             const entry = this.serializeInterface(node)
-            if (!peerGeneratorConfiguration().ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
+            if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
                 this.output.push(entry)
         } else if (ts.isModuleDeclaration(node)) {
             if (this.isKnownAmbientModuleDeclaration(node)) {
@@ -610,7 +610,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
      */
     pickPropertyBindings(className: string, props: idl.IDLProperty[], fileName: string): idl.IDLMethod[] {
         const componentName = peerGeneratorConfiguration().mapComponentName(className)
-        const boundProps = peerGeneratorConfiguration().boundProperties[componentName]
+        const boundProps = peerGeneratorConfiguration().boundProperties.get(componentName)
         return !boundProps ? []
             : boundProps.map(propName => {
                 let propType = props.find(it => it.name === propName)?.type

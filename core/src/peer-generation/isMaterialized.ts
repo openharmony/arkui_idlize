@@ -22,11 +22,11 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false
     if (idl.isHandwritten(declaration) || isBuilderClass(declaration)) return false
 
-    for (const forceMaterialized of generatorConfiguration().param<string[]>("forceMaterialized")) {
+    for (const forceMaterialized of generatorConfiguration().forceMaterialized) {
         if (declaration.name == forceMaterialized) return true
     }
 
-    for (const ignore of generatorConfiguration().param<string[]>("ignoreMaterialized")) {
+    for (const ignore of generatorConfiguration().ignoreMaterialized) {
             if (declaration.name.endsWith(ignore)) return false
     }
 

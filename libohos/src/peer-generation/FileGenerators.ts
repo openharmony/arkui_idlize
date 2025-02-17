@@ -125,7 +125,7 @@ export function getNodeTypes(library: PeerLibrary): string[] {
             components.push(peer.componentName)
         }
     }
-    return [...peerGeneratorConfiguration().customNodeTypes, ...components.sort()]
+    return [...peerGeneratorConfiguration().components.customNodeTypes, ...components.sort()]
 }
 
 export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {

@@ -34,12 +34,12 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                     if (isMaterialized(entry, library))
                         orderer.addDep(entry)
                     for (const property of entry.properties) {
-                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(property.name))
+                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))
                             continue
                         orderer.addDep(library.toDeclaration(property.type))
                     }
                     for (const method of entry.methods) {
-                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(method.name))
+                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name))
                             continue
                         for (const parameter of method.parameters)
                             orderer.addDep(parameter.type!)
@@ -56,7 +56,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                 } else if (generateUnused && !isPredefined(entry)) {
                     orderer.addDep(library.toDeclaration(entry))
                     for (const property of entry.properties) {
-                        if (peerGeneratorConfiguration().ignorePeerMethod.includes(property.name))
+                        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))
                             continue
                         orderer.addDep(library.toDeclaration(property.type))
                     }

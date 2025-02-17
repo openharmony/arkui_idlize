@@ -112,7 +112,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case "Object":
                 return this.make('CustomObject')
         }
-        if (generatorConfiguration().param<string[]>("parameterized").includes(refName)) {
+        if (generatorConfiguration().parameterized.includes(refName)) {
             return this.make('CustomObject')
         }
         let decl = this.resolver.toDeclaration(type)
@@ -260,7 +260,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         if (type == idl.IDLUndefinedType) return 'void'
         if (type == idl.IDLStringType) return 'void'
-        if (type == idl.IDLNumberType) return generatorConfiguration().param("TypePrefix") + 'Int32' // :(
+        if (type == idl.IDLNumberType) return generatorConfiguration().TypePrefix + 'Int32' // :(
         return this.convertor.convert(type)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
@@ -269,7 +269,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     convertTypeReference(type: idl.IDLReferenceType): string {
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return generatorConfiguration().param("TypePrefix") + decl.name
+            return generatorConfiguration().TypePrefix + decl.name
         }
         return this.convertor.convert(type)
     }

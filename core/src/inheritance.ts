@@ -39,8 +39,8 @@ export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.C
 }
 
 export function determineInheritanceRole(name: string): InheritanceRole {
-    if (generatorConfiguration().param<string[]>("rootComponents").includes(name)) return InheritanceRole.Root
-    if (generatorConfiguration().param<string[]>("standaloneComponents").includes(name)) return InheritanceRole.Standalone
+    if (generatorConfiguration().rootComponents.includes(name)) return InheritanceRole.Root
+    if (generatorConfiguration().standaloneComponents.includes(name)) return InheritanceRole.Standalone
     return InheritanceRole.Heir
 }
 

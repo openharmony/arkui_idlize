@@ -42,7 +42,7 @@ import { IDLVisitor, loadPeerConfiguration,
     validatePaths,
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
-import { OhosConfiguration, suggestLibraryName } from "./OhosNativeVisitor"
+import { suggestLibraryName } from "./OhosNativeVisitor"
 
 const options = program
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
@@ -172,12 +172,12 @@ if (!didJob) {
 }
 
 function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
-    generateOhos(outDir, idlLibrary, new OhosConfiguration({
-        ...peerGeneratorConfiguration().params,
+    generateOhos(outDir, idlLibrary, {
+        ...peerGeneratorConfiguration(),
         LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`,
         GenerateUnused: true,
         ApiVersion: apiVersion,
-    }))
+    })
     if (options.plugin) {
         loadPlugin(options.plugin)
             .then(plugin => plugin.process({outDir: outDir}, idlLibrary))

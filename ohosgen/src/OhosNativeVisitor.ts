@@ -76,7 +76,6 @@ import {
     CppSourceFile,
     StructPrinter,
     TargetFile,
-    PeerGeneratorConfigurationImpl,
 } from '@idlizer/libohos'
 
 class NameType {
@@ -482,19 +481,6 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
             overloadPostfix
         }
     })
-}
-
-export class OhosConfiguration extends PeerGeneratorConfigurationImpl {
-    constructor(data: Record<string, any> = {}) {
-        super({
-            DumpSerialized: false,
-            ApiVersion: 9999,
-            ...data
-        })
-    }
-
-    get dumpSerialized(): boolean { return this.param<boolean>("DumpSerialized") }
-    get ApiVersion(): number { return this.param<number>("ApiVersion") }
 }
 
 export function suggestLibraryName(library: PeerLibrary) {

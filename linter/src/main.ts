@@ -19,7 +19,7 @@ import * as ts from "typescript"
 
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { BaseGeneratorConfiguration, findVersion, generate, setDefaultConfiguration } from "@idlizer/core"
+import { CoreConfiguration, defaultCoreConfuguration, findVersion, generate, setDefaultConfiguration } from "@idlizer/core"
 
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
@@ -37,26 +37,23 @@ const defaultCompilerOptions: ts.CompilerOptions = {
     types: []
 }
 
-class LinterConfig extends BaseGeneratorConfiguration {
-    constructor() {
-        super({
-            rootComponents: [
-                "Root",
-                "ComponentRoot",
-                "CommonMethod",
-                "SecurityComponentMethod",
-                "CommonTransition",
-                "CalendarAttribute",
-                "ContainerSpanAttribute",
-            ],
-            standaloneComponents: [
-                "TextPickerDialog",
-                "TimePickerDialog",
-                "AlertDialog",
-                "CanvasPattern"
-            ]
-        })
-    }
+const defaultLinterConfiguration: CoreConfiguration = {
+    ...defaultCoreConfuguration,
+    rootComponents: [
+        "Root",
+        "ComponentRoot",
+        "CommonMethod",
+        "SecurityComponentMethod",
+        "CommonTransition",
+        "CalendarAttribute",
+        "ContainerSpanAttribute",
+    ],
+    standaloneComponents: [
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog",
+        "CanvasPattern"
+    ]
 }
 
 function processInputOption(option: string | undefined): string[] {
@@ -98,8 +95,7 @@ function validatePaths(paths: string[], type: 'file' | 'dir'): void {
 function main() {
     console.log(`IDLize Linter version ${findVersion()}`)
 
-    const config = new LinterConfig()
-    setDefaultConfiguration(config!)
+    setDefaultConfiguration(defaultLinterConfiguration)
 
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')

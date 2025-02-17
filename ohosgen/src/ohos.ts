@@ -42,11 +42,12 @@ import {
     install,
     printInterfaceData,
     printCJArkUIGeneratedNativeFunctions,
+    PeerGeneratorConfiguration,
 } from '@idlizer/libohos';
 import { OhosInstall } from "./OhosInstall"
-import { generateNativeOhos, OhosConfiguration, suggestLibraryName } from './OhosNativeVisitor';
+import { generateNativeOhos, suggestLibraryName } from './OhosNativeVisitor';
 
-export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: OhosConfiguration) {
+export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: PeerGeneratorConfiguration) {
     peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)

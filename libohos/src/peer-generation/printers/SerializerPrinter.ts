@@ -695,7 +695,7 @@ export function createSerializerDependencyFilter(language: Language): Dependency
 
 class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
-        return !peerGeneratorConfiguration().ignoreSerialization.includes(node.name!)
+        return !peerGeneratorConfiguration().serializer.ignore.includes(node.name!)
             && !this.isParameterized(node)
             && this.canSerializeDependency(node)
     }

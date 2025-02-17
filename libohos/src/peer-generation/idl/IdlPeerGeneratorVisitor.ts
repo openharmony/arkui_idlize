@@ -189,7 +189,7 @@ class PeersGenerator {
     ) {}
 
     private processProperty(prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
-        if (peerGeneratorConfiguration().ignorePeerMethod.includes(prop.name))
+        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(prop.name))
             return
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)
@@ -203,7 +203,7 @@ class PeersGenerator {
     }
 
     private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable, peer: PeerClass, parentName?: string): PeerMethod | undefined {
-        if (peerGeneratorConfiguration().ignorePeerMethod.includes(method.name!))
+        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name!))
             return
         // Some method have other parents as part of their names
         // Such as the ones coming from the friend interfaces
@@ -225,7 +225,7 @@ class PeersGenerator {
     }
 
     private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: PeerClass) {
-        if (peerGeneratorConfiguration().invalidAttributes.includes(peer.componentName)) {
+        if (peerGeneratorConfiguration().components.invalidAttributes.includes(peer.componentName)) {
             return
         }
         const seenAttributes = new Set<string>()
@@ -404,7 +404,7 @@ export class IdlPeerProcessor {
         const mMethods = decl.methods
             // TODO: Properly handle methods with return Promise<T> type
             .map(method => this.makeMaterializedMethod(decl, method, implemenationParentName))
-            .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !peerGeneratorConfiguration().ignoreReturnTypes.includes(it.method.signature.returnType.name))
+            .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !peerGeneratorConfiguration().materialized.ignoreReturnTypes.includes(it.method.signature.returnType.name))
 
         const taggedMethods = decl.methods.filter(m => m.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.DtsTag))
 

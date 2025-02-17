@@ -131,7 +131,7 @@
             "CustomComponent",
             "CustomComponentV2"
         ],
-        "customTypes": [
+        "customNodeTypes": [
             "CustomNode"
         ],
         "handWritten": [
@@ -211,13 +211,11 @@
         ]
     },
     "materialized": {
-        "ignoredReturnTypes": [
+        "ignoreReturnTypes": [
             "Promise"
         ]
     },
-    "native": {
-        "cppPrefix": "GENERATED_"
-    },
+    "cppPrefix": "GENERATED_",
     "serializer": {
         "ignore": [
             "Array",

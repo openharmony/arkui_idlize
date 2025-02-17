@@ -13,15 +13,7 @@
  * limitations under the License.
  */
 
-function isObject(i: any): i is object {
-    if (typeof i !== 'object')
-        return false
-    if (Array.isArray(i))
-        return false
-    return true
-}
-
-export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T>): T {
+export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T>, parentKeys?: string[]): T {
     if (custom === undefined)
         return defaults
     const result = Object.assign({}, defaults)
@@ -29,12 +21,49 @@ export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T
         if (Object.prototype.hasOwnProperty.call(custom, key)) {
             const defaultValue = result[key]
             const customValue = custom[key]
-            if (isObject(defaultValue) && isObject(customValue)) {
-                Object.assign(result, { [key]: deepMergeConfig(defaultValue, customValue) })
-            } else {
-                if (isObject(defaultValue))
-                    throw new Error("Replacing default object value with custom non-object")
+            const keys = parentKeys?.concat(key) ?? [key]
+            if (Array.isArray(defaultValue)) {
+                if (!Array.isArray(customValue))
+                    throw new Error(`Merge ${keys.join(".")}. Expected Array, actual ${customValue}`)
                 Object.assign(result, { [key]: customValue })
+            } else if (defaultValue instanceof Map) {
+                if (typeof customValue === 'object') {
+                    Object.assign(result, { [key]: new Map(Object.entries(customValue as Object)) })
+                } else if (customValue instanceof Map) {
+                    Object.assign(result, { [key]: customValue })
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Expected Map or Object, actual ${customValue}`)
+                }
+            } else if (typeof defaultValue === 'string') {
+                if (typeof customValue === 'string') {
+                    Object.assign(result, { [key]: customValue })
+                } else if (typeof customValue === 'number') {
+                    Object.assign(result, { [key]: customValue.toString() })
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Expected string, actual ${customValue}`)
+                }
+            } else if (typeof defaultValue === 'number') {
+                if (typeof customValue === 'number') {
+                    Object.assign(result, { [key]: customValue })
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Expected number, actual ${customValue}`)
+                }
+            } else if (typeof defaultValue === 'object') {
+                if (typeof customValue === 'object') {
+                    Object.assign(result, { [key]: deepMergeConfig(defaultValue as object, customValue as object, keys) })
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Expected Object, actual ${customValue}`)
+                }
+            } else if (typeof defaultValue === 'boolean') {
+                if (typeof customValue === 'boolean') {
+                    Object.assign(result, { [key]: customValue })
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Expected Boolean, actual ${customValue}`)
+                }
+            } else {
+                if (typeof defaultValue === 'undefined')
+                    throw new Error(`Merge ${keys.join(".")}. Key is not found in template`)
+                throw new Error(`Merge ${keys.join(".")}. Unknown default value type, can not merge`)
             }
         }
     }

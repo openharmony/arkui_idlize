@@ -15,7 +15,7 @@
     "builderClasses": [],
     "components": {
         "custom": [],
-        "customTypes": [],
+        "customNodeTypes": [],
         "handWritten": [],
         "ignoreEntry": [],
         "ignoreEntryJava": [],
@@ -26,11 +26,9 @@
         "replaceThrowErrorReturn": []
     },
     "materialized": {
-        "ignoredReturnTypes": []
+        "ignoreReturnTypes": []
     },
-    "native": {
-        "cppPrefix": "GENERATED_"
-    },
+    "cppPrefix": "GENERATED_",
     "serializer": {
         "ignore": []
     },
