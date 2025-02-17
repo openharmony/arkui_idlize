@@ -408,6 +408,7 @@ export function readInteropTypesHeader() {
 function useLangExtIfNeeded(file: string, lang: Language): string {
     if (path.extname(file))
         return file
+    if (lang == Language.ARKTS) return `${file}${Language.TS.extension}` // todo: Dirty. Please refactor.
     return `${file}${lang.extension}`
 }
 

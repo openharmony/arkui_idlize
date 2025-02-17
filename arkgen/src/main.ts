@@ -86,11 +86,13 @@ const options = program
     .option('--enable-log', 'Enable logging')
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
     .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
+    .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
 
     .parse()
     .opts()
 
 let apiVersion = options.apiVersion ?? 9999
+Language.ARKTS.extension = options.arktsExtension as string
 
 setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
 
