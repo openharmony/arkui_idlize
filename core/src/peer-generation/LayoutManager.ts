@@ -18,6 +18,7 @@ import { IDLEntry } from "../idl";
 export enum LayoutNodeRole {
     PEER,
     INTERFACE,
+    GLOBAL,
 }
 
 export interface LayoutManagerStrategy {

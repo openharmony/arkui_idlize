@@ -39,7 +39,7 @@ export const CJKeywords = new Set([
     /*'false', */'static', 'public', 'private',
     'protected', 'override', 'redef', 'abstract',
     'open', 'operator', 'foreign', 'inout',
-    'prop', 'mut', 'unsafe', 'get', 'set'
+    'prop', 'mut', 'unsafe', 'get', 'set', 'type'
 ])
 
 export const IDLKeywords = new Set<string>([

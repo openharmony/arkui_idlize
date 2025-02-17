@@ -114,12 +114,17 @@ class TsLayout extends CommonLayoutBase {
         return `CommonPeer`
     }
 
+    private selectGlobal(_:idl.IDLEntry): string {
+        return `GlobalScope`
+    }
+
     /////
 
     resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
         switch (role) {
             case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
             case LayoutNodeRole.PEER: return this.selectPeer(node)
+            case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
         }
     }
 }
@@ -167,6 +172,9 @@ class JavaLayout extends CommonLayoutBase {
                 }
                 return this.getPath(`CommonPeer`)
             }
+            case LayoutNodeRole.GLOBAL: {
+                return 'GlobalScope'
+            }
         }
     }
 }
@@ -208,6 +216,9 @@ class CJLayout extends CommonLayoutBase {
                     }
                 }
                 return this.getPath(`CommonPeer`)
+            }
+            case LayoutNodeRole.GLOBAL: {
+                return 'GlobalScope'
             }
         }
     }

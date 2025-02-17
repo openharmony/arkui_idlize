@@ -134,9 +134,8 @@ function concat<A, R1, R2>(f:LibraryQuery<A, R1>, g:LibraryQuery<A, R2>): Librar
 }
 
 class LensBuilder<R> {
-    
     private constructor(
-        private req: LibraryReducer<R>
+        public req: LibraryReducer<R>
     ) {}
 
     static make<R>(r:LibraryReducer<R>) {
@@ -206,6 +205,9 @@ const select = {
     },
     interfaces(): LibraryQuery<idl.IDLNode[], idl.IDLInterface[]> {
         return req('interfaces', it => it.filter(idl.isInterface))
+    },
+    hasExt<T extends idl.IDLNode>(attr:idl.IDLExtendedAttributes): LibraryQuery<T[], T[]> {
+        return req('with_attr=' + serializeParam(attr), it => it.filter(x => idl.hasExtAttribute(x, attr)))
     },
     names(): LibraryQuery<idl.IDLNode[], string[]> {
         return req('names', xs => xs.flatMap(x => idl.isNamedNode(x) ? [x.name] : []))

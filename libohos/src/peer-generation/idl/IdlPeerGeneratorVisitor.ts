@@ -497,9 +497,6 @@ export class IdlPeerProcessor {
         for (const dep of allDeclarations) {
             if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
                 continue
-            if (idl.isInterface(dep) && idl.hasExtAttribute(dep, idl.IDLExtendedAttributes.GlobalScope)) {
-                this.library.globalScopeInterfaces.push(dep)
-            }
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
                 if (isGlobalScope(dep)) {

@@ -339,7 +339,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print('}')
     }
     private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
-        const args = signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`)
+        const args = signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`)
         return `public func ${name}(${args.join(", ")}): ${this.getNodeName(signature.returnType)}`
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
@@ -426,7 +426,7 @@ export class CJLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
+        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
     }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)

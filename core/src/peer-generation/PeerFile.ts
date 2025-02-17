@@ -27,7 +27,7 @@ export class PeerFile implements LibraryFileInterface {
     ) {}
 
     public packageName(): string {
-        let packageTag = this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage
+        const packageTag = this.package()
         if (packageTag === undefined) {
             return ""
         }
@@ -35,6 +35,10 @@ export class PeerFile implements LibraryFileInterface {
             return packageTag.name.slice(1, packageTag.name.length - 1)
         }
         return packageTag.name
+    }
+
+    public package(): idl.IDLPackage | undefined {
+        return this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage | undefined
     }
 
     get peersToGenerate(): PeerClass[] {

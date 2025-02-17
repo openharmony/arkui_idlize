@@ -35,9 +35,33 @@ import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
 import { MaterializedClass } from './Materialized'
 import { PeerFile } from './PeerFile'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
+import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
 
+export const lenses = {
+    globals: lib.lens(lib.select.files())
+        .pipe(lib.select.nodes({ expandNamespaces: true }))
+        .pipe(lib.select.interfaces())
+        .pipe(lib.select.hasExt(idl.IDLExtendedAttributes.GlobalScope))
+}
+
 export class PeerLibrary implements LibraryInterface {
+    private _cachedIdlLibrary?: IDLLibrary
+    asIDLLibrary(): IDLLibrary {
+        if (this._cachedIdlLibrary) {
+            return this._cachedIdlLibrary
+        }
+        this._cachedIdlLibrary = {
+            files: this.files.map(file => ({
+                fileName: file.originalFilename,
+                entities: file.entries,
+                package: file.package()
+            }))
+        }
+        return this._cachedIdlLibrary
+    }
+
+    public get globalScopeInterfaces() { return query(this.asIDLLibrary(), lenses.globals) }
 
     public layout: LayoutManager = LayoutManager.Empty()
 
@@ -61,8 +85,6 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     public readonly predefinedDeclarations: idl.IDLInterface[] = []
-
-    public readonly globalScopeInterfaces: idl.IDLInterface[] = []
 
     constructor(
         public language: Language,
@@ -161,17 +183,17 @@ export class PeerLibrary implements LibraryInterface {
             let entries = pointOfViewNamespace
                 ? [...pointOfViewNamespace.members]
                 : [...rootEntries]
-            for(let qualifiedNamePart = 0; qualifiedNamePart < qualifiedName.length; ++qualifiedNamePart) {
+            for (let qualifiedNamePart = 0; qualifiedNamePart < qualifiedName.length; ++qualifiedNamePart) {
                 const candidates = entries.filter(it => it.name === qualifiedName[qualifiedNamePart])
                 if (!candidates.length)
                     break
-                if (qualifiedNamePart === qualifiedName.length-1) {
+                if (qualifiedNamePart === qualifiedName.length - 1) {
                     return candidates.length == 1
                         ? candidates[0]
                         : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import)) // probably the wrong logic here
                 }
                 entries = []
-                for(const candidate of candidates) {
+                for (const candidate of candidates) {
                     if (idl.isNamespace(candidate))
                         entries.push(...candidate.members)
                     else if (idl.isEnum(candidate))
@@ -313,7 +335,7 @@ export class PeerLibrary implements LibraryInterface {
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:
                 case idl.IDLInterfaceSubkind.Class:
-                        return new InterfaceConvertor(this, declarationName, param, declaration)
+                    return new InterfaceConvertor(this, declarationName, param, declaration)
                 case idl.IDLInterfaceSubkind.AnonymousInterface:
                     return new AggregateConvertor(this, param, type, declaration as idl.IDLInterface)
                 case idl.IDLInterfaceSubkind.Tuple:
@@ -386,7 +408,7 @@ export class PeerLibrary implements LibraryInterface {
             }
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
-                : decl
+                    : decl
         }
         return type
     }

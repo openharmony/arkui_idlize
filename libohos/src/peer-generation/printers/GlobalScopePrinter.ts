@@ -13,90 +13,53 @@
  * limitations under the License.
  */
 
-import { tsCopyrightAndWarning } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { LanguageWriter, NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
-import { TargetFile } from "./TargetFile"
+import { NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter"
+import { PrinterResult } from "../LayoutManager"
 
-const MODULE_NAME = 'GlobalScope'
-class GlobalScopePrinter {
-
-    private writer: LanguageWriter
-    constructor(
-        private library: PeerLibrary
-    ) {
-        this.writer = library.createLanguageWriter()
-    }
-
-    static create(library: PeerLibrary) {
-        return new GlobalScopePrinter(library)
-    }
-
-    ///////////////////////////////////////////////
-
-    private collectImports(entries:idl.IDLInterface[], imports:ImportsCollector) {
-        entries.forEach(entry => {
-            collectDeclItself(this.library, entry, imports)
-            entry.methods.forEach(it => {
-                if (it.isStatic) {
-                    collectDeclDependencies(this.library, it, decl => {
-                        if (this.library.language !== idl.Language.TS
-                         || idl.isInterface(decl) && idl.isMaterialized(decl, this.library)
-                        ) {
-                            collectDeclItself(this.library, decl, imports)
-                        }
-                    })
-                }
-            })
-        })
-    }
-
-    private printImports(entries:idl.IDLInterface[]) {
+export function printGlobal(library: PeerLibrary): PrinterResult[] {
+    return library.globalScopeInterfaces.map(entry => {
+        // collect
         const imports = new ImportsCollector()
-        this.collectImports(entries, imports)
-        for (const entry of entries) {
-            imports.addFeatures([ entry.name ], `./${getMaterializedFileName(entry.name)}`)
-        }
-        imports.print(this.writer, MODULE_NAME)
-    }
-
-    visit(): string {
-        if ([idl.Language.TS, idl.Language.ARKTS].includes(this.library.language)) {
-            this.printImports(this.library.globalScopeInterfaces)
-        }
-        this.library.globalScopeInterfaces.forEach(entry => {
-            const groupedMethods = groupOverloadsIDL(entry.methods)
-            groupedMethods.forEach(methods => {
-                const method = collapseSameMethodsIDL(methods)
-                const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
-                this.writer.writeFunctionImplementation(method.name, signature, w => {
-                    const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
-                    const statement = method.returnType !== idl.IDLVoidType
-                        ? w.makeReturn(call)
-                        : w.makeStatement(call)
-                    w.writeStatement(statement)
+        collectDeclItself(library, entry, imports)
+        entry.methods.forEach(it => {
+            if (it.isStatic) {
+                collectDeclDependencies(library, it, decl => {
+                    if (library.language !== idl.Language.TS
+                        || idl.isInterface(decl) && idl.isMaterialized(decl, library)
+                    ) {
+                        collectDeclItself(library, decl, imports)
+                    }
                 })
+            }
+        })
+        imports.addFeatures([entry.name], `./${getMaterializedFileName(entry.name)}`)
+
+        // write
+        const writer = library.createLanguageWriter()
+        const groupedMethods = groupOverloadsIDL(entry.methods)
+        groupedMethods.forEach(methods => {
+            const method = collapseSameMethodsIDL(methods)
+            const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
+            writer.writeFunctionImplementation(method.name, signature, w => {
+                const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
+                const statement = method.returnType !== idl.IDLVoidType
+                    ? w.makeReturn(call)
+                    : w.makeStatement(call)
+                w.writeStatement(statement)
             })
         })
 
-        return this.writer.getOutput().join('\n')
-    }
-}
-
-export function printGlobal(peerLibrary: PeerLibrary): Map<TargetFile, string> {
-
-    if (peerLibrary.globalScopeInterfaces.flatMap(x => x.methods).length === 0) {
-        return new Map([])
-    }
-
-    const content = GlobalScopePrinter
-        .create(peerLibrary)
-        .visit()
-
-    return new Map([
-        [new TargetFile(MODULE_NAME + peerLibrary.language.extension), tsCopyrightAndWarning(content)]
-    ])
+        return {
+            collector: imports,
+            content: writer,
+            over: {
+                node: entry,
+                role: idl.LayoutNodeRole.GLOBAL
+            }
+        }
+    })
 }

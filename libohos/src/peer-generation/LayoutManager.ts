@@ -61,7 +61,8 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[]):
             imports.merge(record.collector)
             content = content.concat(record.content.getOutput())
         }
-        if (library.language == Language.CJ) {
+        if (library.language === Language.CJ) {
+            imports.clear()
             content = ['package idlize', 'import std.collection.*', 'import Interop.*'].concat(content)
         }
 
