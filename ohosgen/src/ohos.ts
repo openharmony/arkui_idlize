@@ -14,7 +14,6 @@
  */
 
 import * as path from 'node:path'
-import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import {
     IDLBufferType,
     IDLI32Type,
@@ -25,17 +24,12 @@ import {
     NativeModuleType,
     setDefaultConfiguration,
     PeerLibrary,
-    IndentedPrinter,
-    CppLanguageWriter,
-    CppConvertor,
-    PrimitiveTypesInstance,
 } from "@idlizer/core";
 import {
     layout,
     writeIntegratedFile,
     createMaterializedPrinter,
     printGlobal,
-    dummyImplementations,
     makeCallbacksKinds,
     makeDeserializeAndCall,
     makeDeserializer,
@@ -45,10 +39,6 @@ import {
     printArkUIGeneratedNativeModule,
     NativeModule,
     TargetFile,
-    printRealAndDummyAccessors,
-    printRealAndDummyModifiers,
-    makeCSerializers,
-    HeaderVisitor,
     install,
     printInterfaceData,
     printCJArkUIGeneratedNativeFunctions,
@@ -130,10 +120,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
         }).printToString()
     )
 
-    // managed-copies
-
-    copyPeerLib(peerLibrary.language, ohos.managedDir())
-
     // managed-utils
 
     if (peerLibrary.language === Language.ARKTS) {
@@ -196,51 +182,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: O
     }
 
     setDefaultConfiguration(origGenConfig)
-}
-
-const PEER_LIB_CONFIG = new Map<Language, string[]>([
-    [Language.TS, ['MaterializedBase.ts', 'shared/generated-utils.ts']],
-    [Language.ARKTS, ['MaterializedBase.ts', 'shared/generated-utils.ts']]
-])
-
-function copyPeerLib(lang: Language, rootDir: string) {
-    const list = PEER_LIB_CONFIG.get(lang)
-    if (list) {
-        const peerLibDir = path.resolve(__dirname, '../..', 'libohos', 'templates', lang.toString().toLowerCase())
-        for (const file of list) {
-            const resolvedSrc = path.join(peerLibDir, file)
-            const resolvedDst = path.join(rootDir, file)
-            const resolvedDstDir = path.dirname(resolvedDst)
-            if (!existsSync(resolvedDstDir)) {
-                mkdirSync(resolvedDstDir, { recursive: true })
-            }
-            copyFileSync(resolvedSrc, resolvedDst)
-        }
-    }
-}
-
-function printSerializers(peerLibrary: PeerLibrary): string {
-    const apiHeader = new IndentedPrinter()
-    const modifierList = new IndentedPrinter()
-    const accessorList = new IndentedPrinter()
-    const eventsList = new IndentedPrinter()
-    const nodeTypesList = new IndentedPrinter()
-
-    const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
-    visitor.printApiAndDeserializer()
-
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), PrimitiveTypesInstance)
-    const typedefs = new IndentedPrinter()
-
-    return `
-#include "SerializerBase.h"
-#include "DeserializerBase.h"
-#include "callbacks.h"
-#include "ohos_api_generated.h"
-#include <string>
-
-${makeCSerializers(peerLibrary, structs, typedefs)}
-`
 }
 
 function makeOhosModule(componentsFiles: string[]): string {

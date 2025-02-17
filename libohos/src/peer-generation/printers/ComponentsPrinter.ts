@@ -111,7 +111,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 
     protected populateImports(imports: ImportsCollector) {
-        imports.addFeature('unsafeCast', './shared/generated-utils')
+        imports.addFeature('unsafeCast', '@koalaui/common')
     }
 
     private printComponent(peer: PeerClass) {

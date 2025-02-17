@@ -363,9 +363,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'wrapCallback',
             'KPointer',
         ], '@koalaui/interop')
-        this.collector.addFeatures(['MaterializedBase'], './MaterializedBase')
+        this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
+        this.collector.addFeatures(['unsafeCast'], '@koalaui/common')
         this.collector.addFeatures(['Serializer'], './peers/Serializer')
-        this.collector.addFeatures(['unsafeCast'], './shared/generated-utils')
         this.collector.addFeatures(['CallbackKind'], './peers/CallbackKind')
         this.collector.addFeatures(['int32', 'float32'], '@koalaui/common')
         if (this.library.language === Language.ARKTS) {

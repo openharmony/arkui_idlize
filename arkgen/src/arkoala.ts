@@ -108,6 +108,7 @@ function copyArkoalaFiles(config: {
     copyToArkoala(path.join(__dirname, '..', 'peer_lib'), arkoala, !config.onlyIntegrated ? undefined : [
         'sig/arkoala/framework/native/src/generated/arkoala-macros.h',
         'sig/arkoala/arkui/src/peers/CallbackTransformer.ts',
+        'sig/arkoala/arkui/src/shared/generated-utils.ts',
         'sig/arkoala-arkts/arkui/src/generated/use_properties.ts',
         'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
         'sig/arkoala-arkts/arkui/src/generated/ComponentBase.ts',
@@ -125,19 +126,6 @@ function copyArkoalaFiles(config: {
         'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
         'sig/arkoala-arkts/arkui/src/generated/shared/dts-exports.ts',
     ])
-    const templates = path.join(__dirname, '../../libohos/templates')
-    fs.copyFileSync(
-        path.join(templates, 'ts/MaterializedBase.ts'),
-        path.join(arkoala.sig, 'arkoala/arkui/src/MaterializedBase.ts'))
-    fs.copyFileSync(
-        path.join(templates, 'ts/shared/generated-utils.ts'),
-        path.join(arkoala.sig, 'arkoala/arkui/src/shared/generated-utils.ts'))
-    fs.copyFileSync(
-        path.join(templates, 'arkts/MaterializedBase.ts'),
-        path.join(arkoala.sig, 'arkoala-arkts/arkui/src/generated/MaterializedBase.ts'))
-    fs.copyFileSync(
-        path.join(templates, 'arkts/shared/generated-utils.ts'),
-        path.join(arkoala.sig, 'arkoala-arkts/arkui/src/generated/shared/generated-utils.ts'))
 }
 
 export function generateArkoalaFromIdl(config: {

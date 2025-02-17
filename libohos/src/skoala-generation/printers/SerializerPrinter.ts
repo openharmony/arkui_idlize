@@ -54,8 +54,7 @@ class IdlSerializerPrinter {
 
     private printImports(writer: LanguageWriter, serializerDeclarations?: Set<idl.IDLInterface>) {
         writer.print(`import { SerializerBase, Tags, RuntimeType, runtimeType, isInstanceOf } from "@koalaui/interop"`)
-        writer.print(`import { int32, float32 } from "@koalaui/common"`)
-        writer.print(`import { unsafeCast } from "./generated-utils"`)
+        writer.print(`import { int32, float32, unsafeCast } from "@koalaui/common"`)
 
         // serializerDeclarations?.forEach(decl => {
         //     const basename = path.basename(decl.fileName ?? "")

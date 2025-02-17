@@ -15,7 +15,7 @@
 import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
-import { MaterializedBase } from "@arkoala/arkui/MaterializedBase"
+import { MaterializedBase } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"

@@ -106,7 +106,7 @@ class PeerFileVisitor {
             imports.addFeature('CallbackTransformer', './peers/CallbackTransformer')
         }
         if (printer.language == Language.TS) {
-            imports.addFeature("unsafeCast", "./shared/generated-utils")
+            imports.addFeature("unsafeCast", "@koalaui/common")
         }
         if (printer.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
@@ -116,7 +116,7 @@ class PeerFileVisitor {
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeature("createDeserializer", "./peers/Deserializer")
         }
-        imports.addFeature("MaterializedBase", "./MaterializedBase")
+        imports.addFeature("MaterializedBase", "@koalaui/interop")
         // collectMaterializedImports(imports, this.library)
         Array.from(this.library.builderClasses.keys())
             .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)

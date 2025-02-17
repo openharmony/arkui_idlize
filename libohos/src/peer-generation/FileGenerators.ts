@@ -257,16 +257,16 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
     imports.addFeatures(["int32", "float32"], "@koalaui/common")
     if (printer.language == Language.TS) {
-        imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
-        imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
+        imports.addFeatures(["MaterializedBase"], "@koalaui/interop")
+        imports.addFeatures(["unsafeCast"], "@koalaui/common")
         imports.addFeatures(["InteropNativeModule"], "@koalaui/interop")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
         imports.addFeatures(["ResourceHolder", "nullptr"], "@koalaui/interop")
         imports.addFeature('KPointer', '@koalaui/interop')
     }
     if (printer.language == Language.ARKTS) {
-        imports.addFeatures(["unsafeCast"], "../shared/generated-utils")
-        imports.addFeatures(["MaterializedBase"], "../MaterializedBase")
+        imports.addFeatures(["unsafeCast"], "@koalaui/common")
+        imports.addFeatures(["MaterializedBase"], "@koalaui/interop")
         imports.addFeatures(['nullptr', 'KPointer'], '@koalaui/interop')
         imports.addFeatures(["int64"], "@koalaui/common")
     }
@@ -314,9 +314,8 @@ export function makeTSDeserializer(library: PeerLibrary): string {
     return `${cStyleCopyright}
 import { runtimeType, Tags, RuntimeType, SerializerBase, DeserializerBase, CallbackResource } from "@koalaui/interop"
 import { KPointer, ${NativeModule.Interop.name} } from "@koalaui/interop"
-import { MaterializedBase } from "./../MaterializedBase"
-import { int32, float32 } from "@koalaui/common"
-import { unsafeCast } from "../shared/generated-utils"
+import { MaterializedBase } from "@koalaui/interop"
+import { int32, float32, unsafeCast } from "@koalaui/common"
 import { CallbackKind } from "./CallbackKind"
 import { Serializer } from "./Serializer"
 

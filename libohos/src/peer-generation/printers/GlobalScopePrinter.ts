@@ -64,7 +64,9 @@ class GlobalScopePrinter {
     }
 
     visit(): string {
-        this.printImports(this.library.globalScopeInterfaces)
+        if ([idl.Language.TS, idl.Language.ARKTS].includes(this.library.language)) {
+            this.printImports(this.library.globalScopeInterfaces)
+        }
         this.library.globalScopeInterfaces.forEach(entry => {
             const groupedMethods = groupOverloadsIDL(entry.methods)
             groupedMethods.forEach(methods => {

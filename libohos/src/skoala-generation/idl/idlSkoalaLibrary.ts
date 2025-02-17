@@ -568,7 +568,7 @@ export class IdlWrapperProcessor {
         methods.forEach(it => {
             it.argAndOutConvertors.forEach(conv => {
                 if (conv.runtimeTypes.length > 1) {
-                    importsCollector.addFeature("unsafeCast", "generated-utils")
+                    importsCollector.addFeature("unsafeCast", "@koalaui/common")
                 }
                 if (conv.runtimeTypes.indexOf(RuntimeType.OBJECT) > -1
                     || conv.runtimeTypes.indexOf(RuntimeType.MATERIALIZED) > -1
