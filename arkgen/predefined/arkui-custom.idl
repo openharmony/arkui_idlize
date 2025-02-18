@@ -123,3 +123,9 @@ interface LazyForEachOps {
     static void SetCurrentIndex(pointer node, i32 index);
     static void Prepare(pointer node);
 };
+
+[Entity=Class]
+interface SystemOps {
+    static pointer StartFrame();
+    static void EndFrame(pointer root);
+};

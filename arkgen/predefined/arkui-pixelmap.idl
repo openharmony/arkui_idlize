@@ -2,8 +2,8 @@ package "org.openharmony.arkui";
 
 [/*Namespace=image,*/ Entity=Interface]
 interface PixelMap {
-    /*readonly (TODO stub until issue 20764 is fixed)*/ attribute /*boolean (fix after retConverter fixed)*/ i32 isEditable;
-    /*readonly (TODO stub until issue 20764 is fixed)*/ attribute /*boolean (fix after retConverter fixed)*/ i32 isStrideAlignment;
+    readonly attribute boolean isEditable;
+    readonly attribute boolean isStrideAlignment;
     void readPixelsToBufferSync(buffer dst);
     void writeBufferToPixels(buffer src);
 };
