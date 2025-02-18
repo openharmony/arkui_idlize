@@ -22,6 +22,6 @@
     },
     "dependencies": {
         "@koalaui/interop": "next",
-        "@koalaui/runtime": "next"
+        "@koalaui/common": "next"
     }
 }

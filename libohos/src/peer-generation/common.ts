@@ -74,9 +74,6 @@ function suggestTSPackageName(library: PeerLibrary, node: idl.IDLEntry): string 
 class TsLayout extends CommonLayoutBase {
 
     private selectInterface(node: idl.IDLEntry): string {
-        if (idl.isSyntheticEntry(node)) {
-            return SyntheticModule
-        }
         if (!this.library.hasInLibrary(node))
             return suggestTSPackageName(this.library, node)
         if (idl.isHandwritten(node)) {
@@ -85,6 +82,9 @@ class TsLayout extends CommonLayoutBase {
         const ns = idl.getNamespaceName(node)
         if (ns !== '') {
             return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
+        }
+        if (idl.isSyntheticEntry(node)) {
+            return SyntheticModule
         }
         if (idl.isInterface(node) && !isComponentDeclaration(this.library, node)) {
             if (idl.isBuilderClass(node)) {
@@ -114,7 +114,11 @@ class TsLayout extends CommonLayoutBase {
         return `CommonPeer`
     }
 
-    private selectGlobal(_:idl.IDLEntry): string {
+    private selectGlobal(node:idl.IDLEntry): string {
+        const ns = idl.getNamespaceName(node)
+        if (ns !== '') {
+            return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
+        }
         return `GlobalScope`
     }
 

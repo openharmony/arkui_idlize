@@ -62,6 +62,8 @@ check ohos demos:
     - npm run build:incremental:inc --prefix ../external/incremental/runtime
   script:
     - cd demos/mediaquery
+    - npm show @koalaui/interop && npm show @koalaui/common
+    - npm i -d
     - npm run check:ts
     - npm run check:arkts
 #   - npm run run:ohos:context:ts

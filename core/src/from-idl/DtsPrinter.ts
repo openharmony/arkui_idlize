@@ -174,8 +174,8 @@ export class CustomPrintVisitor {
         } else {
             // restore globalScope
             if (hasExtAttribute(node,IDLExtendedAttributes.GlobalScope)) {
-                node.methods.map(it => this.visit(it, true))
-                node.constants.map(it => this.visit(it, true))
+                node.methods.map(it => this.printMethod(it, true))
+                node.constants.map(it => this.printConstant(it))
                 return
             }
             let interfaces = node.inheritance

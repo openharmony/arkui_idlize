@@ -36,11 +36,14 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 })
             }
         })
-        imports.addFeatures([entry.name], `./${getMaterializedFileName(entry.name)}`)
 
         // write
         const writer = library.createLanguageWriter()
+        const ns = idl.getNamespaceName(entry)
         const groupedMethods = groupOverloadsIDL(entry.methods)
+        if (ns !== '') {
+            writer.pushNamespace(ns)
+        }
         groupedMethods.forEach(methods => {
             const method = collapseSameMethodsIDL(methods)
             const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
@@ -52,6 +55,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 w.writeStatement(statement)
             })
         })
+        if (ns !== '') {
+            writer.popNamespace()
+        }
 
         return {
             collector: imports,

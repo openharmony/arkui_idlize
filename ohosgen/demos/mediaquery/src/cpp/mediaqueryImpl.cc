@@ -26,13 +26,6 @@ OH_Boolean MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr) {
 OH_String MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
     return {};
 }
-OH_MEDIAQUERY_GlobalScope_ohos_mediaqueryHandle GlobalScope_ohos_mediaquery_constructImpl() {
-    return {};
-}
-void GlobalScope_ohos_mediaquery_destructImpl(OH_MEDIAQUERY_GlobalScope_ohos_mediaqueryHandle thiz) {
-    FakeMediaQuery* fake = (FakeMediaQuery*)thiz;
-    delete fake;
-}
-OH_NativePointer GlobalScope_ohos_mediaquery_matchMediaSyncImpl(const OH_String* condition) {
+OH_NativePointer GlobalScope_mediaquery_ohos_mediaquery_matchMediaSyncImpl(const OH_String* condition) {
     return {};
 }
