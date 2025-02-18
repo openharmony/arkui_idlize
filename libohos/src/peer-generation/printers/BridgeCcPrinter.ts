@@ -85,7 +85,8 @@ class BridgeCcVisitor {
         let statements: string[];
         // TODO: It is necessary to implement value passing to vm
         const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args})${field}`
-        if (idl.isCallback(this.library.toDeclaration(method.returnType))) {
+        if (idl.isCallback(this.library.toDeclaration(method.returnType))
+            || idl.IDLContainerUtils.isSequence(method.returnType)) {
             statements = [
                 `[[maybe_unused]] const auto &value = ${peerMethodCall};`,
                 `// TODO: Value serialization needs to be implemented`,
@@ -413,5 +414,13 @@ class BridgeReturnTypeConvertor extends InteropReturnTypeConvertor {
             return PrimitiveTypesInstance.NativePointer.getText()
         }
         return super.convertTypeReference(type)
+    }
+
+    convertContainer(type: idl.IDLContainerType): string {
+        const retType = super.convertContainer(type)
+        if (idl.IDLContainerUtils.isSequence(type)) {
+            return PrimitiveTypesInstance.NativePointer.getText()
+        }
+        return retType
     }
 }
