@@ -31,7 +31,7 @@
   "scripts": {
     "compile": "npm run --prefix .. download:sdk && npm run --prefix ../libohos compile && rollup -c",
     "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
-    "run:xml": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml",
+    "run:xml": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts xmlpromises.d.ts --output-dir ./out/xml",
     "run:xml:arkts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --language=arkts",
     "run:xml:cj": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts --output-dir ./out/xml --language=cangjie",
     "run:ohos:mediaquery:ts": "npm run compile && node . --use-new-ohos --language=ts --default-idl-package mediaquery --input-files ./tests/ohos-subset/ets/api/@ohos.mediaquery.d.ts --output-dir ./out/ts-ohos-mediaquery --dts2peer",
