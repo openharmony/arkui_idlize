@@ -18,6 +18,7 @@ import {
     passNode,
     passNodeArray,
     unpackNonNullableNode,
+    unpackNode,
     unpackNodeArray,
     assertValidPeer,
     AstNode,

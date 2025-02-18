@@ -23,6 +23,7 @@ import {
     IDLI32Type,
     IDLI64Type,
     IDLI8Type,
+    IDLOptionalType,
     IDLPointerType,
     IDLPrimitiveType,
     IDLReferenceType,
@@ -51,6 +52,11 @@ export class TopLevelTypeConvertor extends BaseConvertor {
 
     override convertTypeReference(type: IDLReferenceType): string {
         return type.name
+    }
+
+    override convertOptional(type: IDLOptionalType): string {
+        if (!isReferenceType(type.type)) throwException(`Unexpected optional: ${JSON.stringify(type)}`)
+        return `${type.type.name} | undefined`
     }
 
     override convertPrimitiveType(type: IDLPrimitiveType): string {
