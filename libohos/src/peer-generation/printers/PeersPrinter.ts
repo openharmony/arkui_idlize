@@ -513,7 +513,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                     }
                     if (ret) {
                         result = [writer.makeReturn(ret)]
-                    } else if (isStructureType(returnType, writer.resolver)) {
+                    } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
                         const deserializerMethod = `read${writer.getNodeName(returnType).split(/\./).slice(-1)[0]}` // TODO Remove this hacky name conversion
                         const instance = makeDeserializerInstance(returnValName, writer.language)
                         result = [
@@ -542,7 +542,7 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
     } else {
         throw "not implemented"
-    } 
+    }
 }
 
 function returnsThis(method: PeerMethod, returnType: IDLType) {
