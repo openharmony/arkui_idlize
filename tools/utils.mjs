@@ -17,6 +17,10 @@ export class Package {
         return path.join(this.path, "package.json")
     }
 
+    name() {
+        return this.read("name")
+    }
+
     write(key, value, updater) {
         const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
         json[key] = value
@@ -29,9 +33,18 @@ export class Package {
         return json[key]
     }
 
+    compile() {
+        process.chdir(this.path)
+        try {
+            execSync(`npm run compile`)
+        } catch(e) {
+            console.log(`cannot compile package: ${this.name()}`, e)
+        }
+    }
+
     publish() {
         process.chdir(this.path)
-        publishToOpenlab("latest")
+        publish("latest")
     }
 
     externalDependencies = ["@idlizer/core", "@idlizer/libohos", "@koalaui/interop"]
@@ -127,37 +140,10 @@ export function replaceInJson(filePath, regexp, value) {
 
 }
 
-
-const keyIdlizeRegistry = "@idlizer:registry"
-const keyKoalaRegistry = "@koalaui:registry"
-const koalaRegistry = "https://rnd-gitlab-msc.huawei.com/api/v4/projects/3921/packages/npm/"
-const idlizeRegistry = "https://nexus.bz-openlab.ru:10443/repository/koala-npm/"
-
-function setRegistry(key, value) {
-    execSync(`npm config --location project set ${key} ${value}`)
-}
-
-function getRegistry(key) {
-    execSync(`npm config --location project get ${key}`)
-}
-
-export function publishToOpenlab(tag, dryRun = false) {
-
+export function publish(tag, dryRun = false) {
     if (dryRun) {
         execSync(`npm publish --dry-run --tag ${tag}`)
     } else {
         execSync(`npm publish --tag ${tag} --access public`)
     }
-}
-
-export function publishToGitlab(tag, dryRun = false) {
-    setRegistry(keyIdlizeRegistry, koalaRegistry)
-    setRegistry("strict-ssl", false)
-
-    if (dryRun) {
-        execSync(`npm publish --dry-run --tag ${tag}`)
-    } else {
-        execSync(`npm publish --tag ${tag}`)
-    }
-    setRegistry(keyIdlizeRegistry, idlizeRegistry)
 }

@@ -40,6 +40,8 @@ const autoPromote = false
 
 function run() {
 
+    all_packages.forEach(module => module.compile())
+
     const old = CURRENT_VERSION
     const next = autoPromote ? new Version(old.toString()).up() : old
     const oldString = old.toString()
