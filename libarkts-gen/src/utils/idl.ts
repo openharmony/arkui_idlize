@@ -153,7 +153,7 @@ export function isAbstract(node: IDLInterface): boolean {
 }
 
 export function isGetter(node: IDLMethod): boolean {
-    if (node.parameters.length !== 0) {
+    if (node.parameters.length !== 1) {
         return false
     }
     return node.extendedAttributes
