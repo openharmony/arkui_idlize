@@ -493,7 +493,7 @@
 |`setHyperlinkOptions`| Function | Morozov Sergey | done |  | |
 |`color`| Function | Morozov Sergey | done |  | |
 |*Image*| *Component* | Evstigneev Roman | in progress |  |  |
-|`setImageOptions`| Function | Berezin Kirill | in progress |  | |
+|`setImageOptions`| Function | Berezin Kirill | done |  | SetImageOptions2 unavailable https://gitee.com/openharmony/arkui_ace_engine/issues/IAZ229 |
 |`alt`| Function | Evstigneev Roman | done |  | UT done Lobah Mikhail https://gitee.com/nikolay-igotti/idlize/issues/IAU9UR |
 |`matchTextDirection`| Function | Evstigneev Roman | done |  | |
 |`fitOriginalSize`| Function | Evstigneev Roman | done |  | |
