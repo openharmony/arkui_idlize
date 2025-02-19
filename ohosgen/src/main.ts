@@ -135,12 +135,7 @@ if (options.dts2peer) {
         inputDirs,
         inputFiles,
         generatedPeersDir,
-        (sourceFile, typeChecker) => {
-            const visitor = new IDLVisitor(sourceFile, typeChecker, options, idlLibrary)
-            return {
-                visitWholeFile: () => visitor.visitWholeFile(),
-            }
-        },
+        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile(file, outputDir, sourceFile) {
