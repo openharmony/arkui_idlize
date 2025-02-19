@@ -106,8 +106,9 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
                 member.isStatic,
                 member.isOptional,
                 {
-                    ...member,
                     extendedAttributes: member.extendedAttributes?.filter(it => it.name != idl.IDLExtendedAttributes.Accessor),
+                    fileName: member.fileName,
+                    documentation: member.documentation,
                 }
             )
         } else {
