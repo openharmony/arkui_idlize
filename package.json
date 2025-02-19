@@ -11,6 +11,7 @@
     "core",
     "libohos",
     "linter",
+    "dtsgen",
     "libarkts-gen"
   ],
   "license": "Apache-2.0",

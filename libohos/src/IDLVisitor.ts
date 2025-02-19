@@ -319,7 +319,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             if (ts.isExportDeclaration(it))
                 return it.name?.text  || it.exportClause?.getText()
             if (ts.isModuleDeclaration(it) || ts.isNamespaceExportDeclaration(it) ||
-                ts.isClassLike(it) || ts.isInterfaceDeclaration(it) || 
+                ts.isClassLike(it) || ts.isInterfaceDeclaration(it) ||
                 ts.isEnumDeclaration(it) ||
                 ts.isTypeAliasDeclaration(it) ||
                 ts.isFunctionDeclaration(it))
@@ -451,7 +451,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         const module = node.moduleSpecifier.getText().replaceAll(/['"]/g, "")
         let moduleFileName = ts.resolveModuleName(
-            module, 
+            module,
             this.sourceFile.fileName,
             this.program.getCompilerOptions(),
             this.compilerHost).resolvedModule?.resolvedFileName
@@ -480,18 +480,19 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (namedBindings) {
             if (ts.isNamespaceImport(namedBindings)) {
                 if (name)
-                    throw new Error("what is this case?")
+                    throw new Error(`what is this case: namespace ${namedBindings.parent.getText()}`)
                 this.pushImportFor(node, modulePackage.clause, namedBindings.name.getText())
             } else if (ts.isNamedImports(namedBindings)) {
-                if (name)
-                    throw new Error("what is this case?")
+                if (name) {
+                    // throw new Error(`what is this case: import ${namedBindings.parent.getText()}`)
+
+                }
                 for(const element of namedBindings.elements) {
                     const aliasName = element.name.getText()
                     const targetEntityName = element.propertyName?.getText() || aliasName
                     this.pushImportFor(node, [...modulePackage.clause, ...targetEntityName.split(".")], aliasName)
                 }
-            } else
-                throw new Error("what is this case?")
+            }
         } else { // !namedBindings
             if (name)
                 this.pushImportFor(node, [...modulePackage.clause, ...name.getText().split(".")], name.getText())
