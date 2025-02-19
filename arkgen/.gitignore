@@ -2,6 +2,7 @@
 /build/
 /lib/
 /out/
+/idl/
 /sdk/
 
 /native/NativeBridgeNapi.node

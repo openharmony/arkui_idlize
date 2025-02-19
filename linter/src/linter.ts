@@ -16,7 +16,7 @@
 import * as ts from "typescript"
 import * as path from "path"
 import {
-    GenericVisitor, cppKeywords,
+    GenerateVisitor, cppKeywords,
     asString,
     getDeclarationsByNode,
     getLineNumberString,
@@ -43,13 +43,19 @@ function stringMessage(message: LinterMessage): string {
 
 let allInterfaces = new Map<string, string>()
 
-export class LinterVisitor implements GenericVisitor<LinterMessage[]> {
+export class LinterVisitor implements GenerateVisitor<LinterMessage[]> {
     private output: LinterMessage[] = []
 
-    constructor(private sourceFile: ts.SourceFile, private typeChecker: ts.TypeChecker) {
+    private typeChecker: ts.TypeChecker
+    constructor(
+        private sourceFile: ts.SourceFile,
+        private program: ts.Program,
+        private compilerHost: ts.CompilerHost
+    ) {
+        this.typeChecker = program.getTypeChecker()
     }
 
-    visitWholeFile(): LinterMessage[] {
+    visitPhase1(): LinterMessage[] {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         return this.output
     }

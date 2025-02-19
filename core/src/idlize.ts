@@ -16,18 +16,23 @@
 import * as ts from "typescript"
 import * as fs from "fs"
 import * as path from "path"
-import { GenerateOptions, GenericVisitor } from "./options"
+import { GenerateOptions } from "./options"
 
 function readdir(dir: string): string[] {
     return fs.readdirSync(dir)
         .map(elem => path.join(dir, elem))
 }
 
+export interface GenerateVisitor<T> {
+    visitPhase1(): T
+    visitPhase2?(siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<T>, result: T }}): T
+}
+
 export function generate<T>(
     inputDirs: string[],
     inputFiles: string[],
     outputDir: string,
-    visitorFactory: (sourceFile: ts.SourceFile, typeChecker: ts.TypeChecker) => GenericVisitor<T>,
+    visitorFactory: (sourceFile: ts.SourceFile, program: ts.Program, compilerHost: ts.CompilerHost) => GenerateVisitor<T>,
     options: GenerateOptions<T>
 ): void {
     if (options.enableLog) {
@@ -77,9 +82,11 @@ export function generate<T>(
 
     input = Array.from(new Set(input.map(p => path.resolve(p)))).sort()
 
+    let compilerHost = ts.createCompilerHost(options.compilerOptions)
     let program = ts.createProgram(
         input.concat([path.join(__dirname, "../stdlib.d.ts")]),
-        options.compilerOptions
+        options.compilerOptions,
+        compilerHost
     )
 
     if (options.enableLog) {
@@ -91,28 +98,48 @@ export function generate<T>(
     const typeChecker = program.getTypeChecker()
     options.onBegin?.(outputDir, typeChecker)
 
+    type VisitorStaff = {
+        tsSourceFile: ts.SourceFile,
+        visitor: GenerateVisitor<T>,
+        result: T
+    }
+    const dtsFileName2Visitor: { [key in string]: VisitorStaff } = {}
     for (const sourceFile of program.getSourceFiles()) {
-        const resolvedSourceFile = path.resolve(sourceFile.fileName)
+        const resolvedSourceFileName = path.resolve(sourceFile.fileName)
         
-        const isInDir = resolvedInputDirs.some(dir => resolvedSourceFile.startsWith(dir))
-        const isExplicitFile = input.some(f => path.resolve(f) === resolvedSourceFile)
+        const isInDir = resolvedInputDirs.some(dir => resolvedSourceFileName.startsWith(dir))
+        const isExplicitFile = input.some(f => path.resolve(f) === resolvedSourceFileName)
 
         if (!isInDir && !isExplicitFile) {
             if (options.enableLog) {
-                console.log(`Skipping file: ${resolvedSourceFile}`)
+                console.log(`Skipping file: ${resolvedSourceFileName}`)
             }
             continue
         }
 
         if (options.enableLog) {
-            console.log(`Processing file: ${resolvedSourceFile}`)
+            console.log(`Processing file: ${resolvedSourceFileName}`)
         }
 
         // Walk the tree to search for classes
-        const visitor = visitorFactory(sourceFile, typeChecker)
-        const output = visitor.visitWholeFile()
+        const visitor = visitorFactory(sourceFile, program, compilerHost)
+        const result = visitor.visitPhase1()
+        dtsFileName2Visitor[sourceFile.fileName] = {
+            tsSourceFile: sourceFile,
+            visitor,
+            result
+        }
+    }
 
-        options.onSingleFile?.(output, outputDir, sourceFile)
+    for (const resolvedSourceFileName in dtsFileName2Visitor) {
+        const visitorStaff = dtsFileName2Visitor[resolvedSourceFileName]
+        if (visitorStaff.visitor.visitPhase2)
+            visitorStaff.result = visitorStaff.visitor.visitPhase2(dtsFileName2Visitor)
+    }
+
+    for (const resolvedSourceFileName in dtsFileName2Visitor) {
+        const visitorStaff: VisitorStaff = dtsFileName2Visitor[resolvedSourceFileName]
+        options.onSingleFile?.(visitorStaff.result, outputDir, visitorStaff.tsSourceFile)
     }
 
     options.onEnd?.(outputDir)

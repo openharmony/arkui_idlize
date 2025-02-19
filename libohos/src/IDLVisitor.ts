@@ -19,9 +19,9 @@ import { OptionValues } from "commander"
 import * as idl from "@idlizer/core/idl"
 import {
     asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
-    isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync,
+    isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync, isExport,
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
-    snakeCaseToCamelCase, escapeIDLKeyword, GenericVisitor,
+    snakeCaseToCamelCase, escapeIDLKeyword, GenerateVisitor,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
     collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
     getOrPut
@@ -118,21 +118,27 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
     }, new Array<idl.IDLProperty>)
 }
 
-export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
-    private output: idl.IDLEntry[] = []
+export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
+    private file?: idl.IDLFile
+    private package?: idl.IDLPackage
+    private imports: idl.IDLImport[] = []
+    private entries: idl.IDLEntry[] = []
+
     private seenNames = new Set<string>()
     private context = new Context()
-    imports: idl.IDLImport[] = []
     exports: string[] = []
     private currentNamespace?: idl.IDLNamespace = undefined
     private defaultPackage: string
 
+    private typeChecker: ts.TypeChecker
     constructor(
         private sourceFile: ts.SourceFile,
-        private typeChecker: ts.TypeChecker,
+        private program: ts.Program,
+        private compilerHost: ts.CompilerHost,
         private options: OptionValues,
         private predefinedTypeResolver?: ReferenceResolver,
     ) {
+        this.typeChecker = program.getTypeChecker()
         const sourceFilePath = path.resolve(sourceFile.fileName)
         const suggestedPackage = (options.fileToPackage as string[] | undefined)
             ?.map(it => it.split(":"))
@@ -140,16 +146,29 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
         this.defaultPackage = suggestedPackage ?? options.defaultIdlPackage as string ?? "arkui"
     }
 
-    visitWholeFile(): idl.IDLFile {
+    visitPhase1(): idl.IDLFile {
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        this.addMeta()
+        this.package = idl.createPackage(this.detectPackageName(this.sourceFile))
+        this.entries.unshift(this.package!)
+        this.file = idl.createFile(this.entries, this.sourceFile.fileName)
+        return this.file
+    }
 
-        // this.output.forEach(idl.linkNamespacesBack)
-        this.output.forEach(idl.transformMethodsReturnPromise2Async)
+    visitPhase2(siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<idl.IDLFile>, result: idl.IDLFile }}): idl.IDLFile {
+        if (!this.file)
+            throw new Error("phase1 isnt processed?")
+
+        ts.forEachChild(this.sourceFile, (node) => this.visitImport(node, siblings))
+
+        if (idl.isPackage(this.entries[0]))
+            this.entries.splice(1, 0, ...this.imports)
+        else
+            this.entries.unshift(...this.imports)
+
+        this.entries.forEach(idl.transformMethodsReturnPromise2Async)
         this.collectGlobalScope()
-        const file = idl.createFile(this.output, this.sourceFile.fileName)
-        idl.linkParentBack(file)
-        return file
+        idl.linkParentBack(this.file!)
+        return this.file!
     }
 
     private makeContainerType(kind: idl.IDLContainerKind, type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion): idl.IDLContainerType {
@@ -209,14 +228,6 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
         return result
     }
 
-    addMeta(): void {
-        let header = []
-        const packageInfo = idl.createPackage(this.detectPackageName(this.sourceFile))
-        header.push(packageInfo)
-        this.imports.forEach(it => header.push(it))
-        this.output.splice(0, 0, ...header)
-    }
-
     private getGlobalScopeName(nsName:string): string {
         return `GlobalScope${nsName}_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`
     }
@@ -244,8 +255,8 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
                 return true;
             })
         }
-        this.output = filter(this.output, undefined)
-        this.output.forEach(it => idl.linkParentBack(it))
+        this.entries = filter(this.entries, undefined)
+        this.entries.forEach(it => idl.linkParentBack(it))
 
         const globals = (Array.from(groups.entries()) as [idl.IDLNamespace | undefined, [idl.IDLConstant[], idl.IDLMethod[]]][])
             .concat([[undefined, topLevel]])
@@ -268,26 +279,72 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
                 if (ns) {
                     ns.members.push(int)
                 } else {
-                    this.output.push(int)
+                    this.entries.push(int)
                 }
             }
         }
     }
 
-    detectPackageName(sourceFile: ts.SourceFile): string {
-        let ns = sourceFile.statements.find(it => ts.isModuleDeclaration(it)) as ts.ModuleDeclaration
-        if (ns) {
-            let name = ns.name.text
-            if (name.startsWith("./")) name = name.substring(2)
-            return name
+    detectPackageName(sourceFile: ts.SourceFile): string[] {
+        let baseDirs = this.options.baseDir || this.options.inputDir
+        if (!baseDirs && this.options.inputFiles) {
+            let inputFiles = this.options.inputFiles
+            if (!Array.isArray(inputFiles))
+                inputFiles = inputFiles.split(",")
+            baseDirs = inputFiles.map((it:string) => path.dirname(it))
         }
-        let sourceFileName = path.basename(sourceFile.fileName)
-        if (sourceFileName.startsWith("@ohos")) {
-            let result = sourceFileName.split(".")
-            return result.splice(0, result.length - 3).join(".")
+        if (!baseDirs)
+            throw new Error("Unable to resolve relative dts file path for `" + sourceFile.fileName + "`, check your --base-dir parameter")
+        if (!Array.isArray(baseDirs))
+            baseDirs = baseDirs.split(',')
+        baseDirs = baseDirs.map((dir:string) => path.normalize(path.resolve(dir)))
+        let relativeFileName
+        for (const baseDir of baseDirs) {
+            const rel = path.normalize(path.relative(baseDir, sourceFile.fileName))
+            if(rel.startsWith(".."))
+                continue
+            if (!relativeFileName || relativeFileName.length > rel.length)
+                relativeFileName = rel
         }
-        if (sourceFile.fileName.indexOf("\@internal/component") != -1) return "@ohos.arkui"
-        return this.defaultPackage
+        if (!relativeFileName)
+            throw new Error("Unable to resolve relative dts file path for `" + sourceFile.fileName + "`, check your --base-dir parameter")
+
+        const packageName = relativeFileName.replace(/[@#]/g, '').replace(/\.d\.[a-zA-Z]+$/, '').split(/[\/\.]/)
+        if (!packageName.length)
+            return packageName
+
+        const namesHere: string[] = sourceFile.statements.map(it => {
+            if (ts.isExportAssignment(it))
+                return it.name?.text || it.expression.getText()
+            if (ts.isExportDeclaration(it))
+                return it.name?.text  || it.exportClause?.getText()
+            if (ts.isModuleDeclaration(it) || ts.isNamespaceExportDeclaration(it) ||
+                ts.isClassLike(it) || ts.isInterfaceDeclaration(it) || 
+                ts.isEnumDeclaration(it) ||
+                ts.isTypeAliasDeclaration(it) ||
+                ts.isFunctionDeclaration(it))
+            {
+                if (isExport(it.modifiers))
+                    return it.name?.text
+            }
+        }).filter(it => it).map(it => it!)
+
+        let hasMatchedNameHere = false
+        if (1 == namesHere.length) {
+            if (packageName[packageName.length - 1].toLowerCase() === namesHere[0].toLowerCase())
+                hasMatchedNameHere = true
+        } else {
+            for (const nameHere of namesHere)
+                if (packageName[packageName.length - 1] === nameHere) {
+                    hasMatchedNameHere = true
+                    break
+                }
+        }
+
+        if (hasMatchedNameHere)
+            packageName.pop();
+
+        return packageName
     }
 
     /** visit nodes finding exported classes */
@@ -317,11 +374,11 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
                         documentation: getDocumentation(this.sourceFile, node, this.options.docs)
                     }
                 )
-                this.output.push(decl)
+                this.entries.push(decl)
                 return
             }
             if (name && IDLVisitorConfig.ReplacedDeclarations.has(name)) {
-                this.output.push({
+                this.entries.push({
                     fileName: node.getSourceFile().fileName,
                     ...IDLVisitorConfig.ReplacedDeclarations.get(name)!,
                 })
@@ -331,39 +388,38 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
         if (ts.isClassDeclaration(node)) {
             const entry = this.serializeClass(node)
             if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
-                this.output.push(entry)
+                this.entries.push(entry)
         } else if (ts.isInterfaceDeclaration(node)) {
             const entry = this.serializeInterface(node)
             if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
-                this.output.push(entry)
+                this.entries.push(entry)
         } else if (ts.isModuleDeclaration(node)) {
             if (this.isKnownAmbientModuleDeclaration(node)) {
-                this.output.push(this.serializeAmbientModuleDeclaration(node))
+                this.entries.push(this.serializeAmbientModuleDeclaration(node))
             } else {
                 // This is a namespace, visit its children
                 if (node.body) {
                     const parentNamespace = this.currentNamespace
                     this.currentNamespace = idl.createNamespace(node.name.getText(), [], node.getSourceFile().fileName)
-                    const parentOutput = this.output
-                    this.output = this.currentNamespace.members
+                    const parentOutput = this.entries
+                    this.entries = this.currentNamespace.members
                     ts.forEachChild(node.body, (node) => this.visit(node));
-                    this.output = parentOutput
-                    this.output.push(this.currentNamespace!)
+                    this.entries = parentOutput
+                    this.entries.push(this.currentNamespace!)
                     this.currentNamespace = parentNamespace
                 }
             }
         } else if (ts.isEnumDeclaration(node)) {
-            this.output.push(this.serializeEnum(node))
+            this.entries.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
             const typedef = this.serializeTypeAlias(node)
             if (typedef)
-                this.output.push(typedef)
+                this.entries.push(typedef)
         } else if (ts.isFunctionDeclaration(node)) {
-            this.output.push(this.serializeMethod(node, undefined, true))
+            this.entries.push(this.serializeMethod(node, undefined, true))
         } else if (ts.isVariableStatement(node)) {
-            this.output.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
+            this.entries.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
-            this.imports.push(this.serializeImport(node))
         } else if (ts.isExportDeclaration(node)) {
             this.exports.push(node.getText())
         } else if (ts.isExportAssignment(node)) {
@@ -375,25 +431,71 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
         }
     }
 
-    serializeImport(node: ts.ImportDeclaration): idl.IDLImport {
-        let name = node.moduleSpecifier.getText().replaceAll('"', '').replaceAll("'", "")
-        //if (name.startsWith("./")) name = name.substring(2)
-        let importClause: string[] | undefined
-        if (node.importClause?.namedBindings && ts.isNamedImports(node.importClause.namedBindings)) {
-            importClause = node.importClause.namedBindings.elements.map(it => it.getText())
-        }
+    private pushImportFor(node: ts.Node, clause: string[], name?: string) {
         const extendedAttributes:idl.IDLExtendedAttribute[] = []
         this.computeDeprecatedExtendAttributes(node, extendedAttributes)
         this.computeExportAttribute(node, extendedAttributes)
-        const result = idl.createImport(
+        this.imports.push(idl.createImport(
+            clause,
             name,
-            importClause,
             {
                 fileName: node.getSourceFile().fileName,
                 extendedAttributes: extendedAttributes,
                 documentation: getDocumentation(this.sourceFile, node, this.options.docs),
-            })
-        return result
+            }))
+    }
+
+    visitImport(node: ts.Node, siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<idl.IDLFile>, result: idl.IDLFile }}): void {
+        if (!ts.isImportDeclaration(node))
+            return
+
+        const module = node.moduleSpecifier.getText().replaceAll(/['"]/g, "")
+        let moduleFileName = ts.resolveModuleName(
+            module, 
+            this.sourceFile.fileName,
+            this.program.getCompilerOptions(),
+            this.compilerHost).resolvedModule?.resolvedFileName
+        if (!moduleFileName) {
+            warn(`Import at '${this.sourceFile.fileName}', module '${module}: unable to resolve source file path`)
+            return
+        }
+        const sibling = siblings[moduleFileName] || siblings[path.resolve(moduleFileName)]
+        if (!sibling) {
+            warn(`Import at '${this.sourceFile.fileName}', module '${module}: not in a closed set`)
+            return
+        }
+        const modulePackage = sibling.result.entries.find(it => idl.isPackage(it)) as (idl.IDLPackage | undefined)
+        if (!modulePackage) {
+            warn(`Import at '${this.sourceFile.fileName}', module '${module}: no Package entry found`)
+            return
+        }
+
+        if (!node.importClause) {
+            this.pushImportFor(node, modulePackage.clause)
+            return
+        }
+
+        const name = node.importClause.name
+        const namedBindings = node.importClause.namedBindings
+        if (namedBindings) {
+            if (ts.isNamespaceImport(namedBindings)) {
+                if (name)
+                    throw new Error("what is this case?")
+                this.pushImportFor(node, modulePackage.clause, namedBindings.name.getText())
+            } else if (ts.isNamedImports(namedBindings)) {
+                if (name)
+                    throw new Error("what is this case?")
+                for(const element of namedBindings.elements) {
+                    const aliasName = element.name.getText()
+                    const targetEntityName = element.propertyName?.getText() || aliasName
+                    this.pushImportFor(node, [...modulePackage.clause, ...targetEntityName.split(".")], aliasName)
+                }
+            } else
+                throw new Error("what is this case?")
+        } else { // !namedBindings
+            if (name)
+                this.pushImportFor(node, [...modulePackage.clause, ...name.getText().split(".")], name.getText())
+        }
     }
 
     serializeAmbientModuleDeclaration(node: ts.ModuleDeclaration): idl.IDLNamespace {
@@ -641,7 +743,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
                 let propType = props.find(it => it.name === propName)?.type
                 if (!propType) {
                     // Property not found in `Component`, look in `ComponentOptions`
-                    const options = this.output.find(it => it.name === componentName + "Options")
+                    const options = this.entries.find(it => it.name === componentName + "Options")
                     if (options && idl.isInterface(options))
                         propType = options.properties.find(it => it.name === propName)?.type
                 }
@@ -923,7 +1025,7 @@ export class IDLVisitor implements GenericVisitor<idl.IDLFile> {
         let name = entry.name
         if (!name || !this.seenNames.has(name)) {
             if (name) this.seenNames.add(name)
-            this.output.push(entry)
+                this.entries.push(entry)
         }
     }
 

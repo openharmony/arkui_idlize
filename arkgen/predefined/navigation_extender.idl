@@ -1,4 +1,4 @@
-package "org.openharmony.idlize.predefined";
+package org.openharmony.idlize.predefined;
 
 callback NavExtender_OnUpdateStack = void (String value);
 

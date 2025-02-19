@@ -106,12 +106,16 @@ function isCallable(node: webidl2.IDLInterfaceMemberType): boolean {
 }
 
 function toIDLPackage(node: webidl2.PackageType): idl.IDLPackage {
-    return idl.createPackage(node.nameValue)
+    if (node.clause.startsWith('"')) { // TODO: remove after new schema formation
+        //node.clause = node.clause.substring(1, node.clause.length - 1)
+        throw new Error("Obsolete IDL-source syntax detected")
+    }
+    return idl.createPackage(node.clause.split("."))
 }
 
 function toIDLImport(node: webidl2.ImportType): idl.IDLImport {
     // console.log(node)
-    return idl.createImport(node.nameValue)
+    return idl.createImport(node.clause.split("."), node.alias||undefined)
 }
 
 function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInterface {

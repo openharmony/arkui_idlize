@@ -267,11 +267,12 @@ export interface IDLInterface extends IDLEntry {
 
 export interface IDLPackage extends IDLEntry {
     kind: IDLKind.Package
+    clause: string[]
 }
 
 export interface IDLImport extends IDLEntry {
     kind: IDLKind.Import
-    importClause?: string[]
+    clause: string[]
 }
 
 export interface IDLNamespace extends IDLEntry {
@@ -609,28 +610,28 @@ export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
     return getFQName(a) === getFQName(b)
 }
 
-export function getPackageName(entry: IDLFile | IDLEntry): string {
+export function getPackageClause(entry: IDLFile | IDLEntry): string[] {
     let file = getFileFor(entry)
-    if (!file) return ""
+    if (!file) return []
     for (const child of file.entries)
         if (isPackage(child))
-            return child.name
+            return child.clause
     // console.warn("Expected to have one IDLPackage inside IDLFile. Using empty package name")
-    return ""
+    return []
+}
+
+export function getPackageName(entry: IDLFile | IDLEntry): string {
+    return getPackageClause(entry).join(".")
 }
 
 export function getNamespaceName(a: IDLEntry): string {
     return getNamespacesPathFor(a).map(it => it.name).join('.')
 }
 
-export function getFQName(a: IDLEntry): string {
-    // let packageName = getPackageName(a)
-    let namespaceName = getNamespaceName(a)
-    let result = a.name
-    if (namespaceName) result = `${namespaceName}.${result}`
+export function getFQName(a:IDLEntry): string {
     // TODO package name is very dirty now, waiting for Alexander Rekunkov PR
-    // if (packageName) result = `${packageName}.${result}`
-    return result
+    // return [...getPackageClause(a), ...getNamespacesPathFor(a).map(it => it.name), a.name].join('.')
+    return [...getNamespacesPathFor(a).map(it => it.name), a.name].join('.')
 }
 
 export function createVersion(value: string[], extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLVersion {
@@ -731,21 +732,22 @@ export function createFile(entries: IDLEntry[], fileName?: string): IDLFile {
     }
 }
 
-export function createPackage(name: string): IDLPackage {
+export function createPackage(clause: string[]): IDLPackage {
     return {
         kind: IDLKind.Package,
-        name,
+        name: "",
+        clause,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,
     }
 }
 
-export function createImport(name: string, importClause?: string[], nodeInitializer?: IDLNodeInitializer): IDLImport {
+export function createImport(clause: string[], name?: string, nodeInitializer?: IDLNodeInitializer): IDLImport {
     return {
         kind: IDLKind.Import,
-        name,
-        importClause: importClause,
+        name: name || "",
+        clause,
         ...nodeInitializer,
         _idlNodeBrand: innerIdlSymbol,
         _idlEntryBrand: innerIdlSymbol,
@@ -984,6 +986,7 @@ export function createTypedef(name: string, type: IDLType, typeParameters: strin
     }
 }
 
+
 export function createConstant(name: string, type: IDLType, value: string, nodeInitializer: IDLNodeInitializer = {}): IDLConstant {
     return {
         kind: IDLKind.Const,
@@ -1174,14 +1177,16 @@ export function printMethod(idl: IDLMethod): PrintedLine[] {
 }
 
 export function printPackage(idl: IDLPackage): PrintedLine[] {
+    if (!idl.clause.length)
+        return []
     return [
-        `package "${idl.name}";`
+        `package ${idl.clause.join(".")};`
     ]
 }
 
 export function printImport(idl: IDLImport): PrintedLine[] {
     return [
-        `import "${idl.name}";`
+        `import ${idl.clause.join(".")}${idl.name ? " as " : ""}${idl.name};`
     ]
 }
 

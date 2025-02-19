@@ -91,7 +91,8 @@ import {
     IDLPointerType,
     IDLInterfaceSubkind,
     escapeIDLKeyword,
-    getNamespacesPathFor
+    getNamespacesPathFor,
+    IDLBigintType
 } from "../idl"
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
@@ -311,11 +312,11 @@ export class CustomPrintVisitor {
     }
 
     printImport(node: IDLImport) {
-        this.print(`// import ${node.name}`)
+        this.print(`// import ${node.clause.join(".")}${node.name ? " as " : ""}${node.name||""}`)
     }
 
     printPackage(node: IDLPackage) {
-        this.print(`// package ${node.name}`)
+        this.print(`// package ${node.clause.join(".")}`)
     }
 
     checkVerbatim(node: IDLEntry) {
@@ -362,6 +363,7 @@ export class CustomPrintVisitor {
                 case IDLStringType: return "string"
                 case IDLVoidType: return "void"
                 case IDLThisType: return "T"
+                case IDLBigintType:
                 case IDLPointerType: return "number|bigint"
                 default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
             }

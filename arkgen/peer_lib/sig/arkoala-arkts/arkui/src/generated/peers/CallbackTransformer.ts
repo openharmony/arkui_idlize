@@ -16,7 +16,7 @@
 import { KPointer } from "@koalaui/interop"
 import { PeerNode } from "../../PeerNode"
 import { CustomBuilder } from "../ArkCommonInterfaces"
-import { CustomNodeBuilder } from "../ArkCustomBuilderInterfaces"
+import { CustomNodeBuilder } from "../SyntheticDeclarations"
 import { ArkComponentRootPeer } from "./ArkStaticComponentsPeer"
 
 // TODO need invert dependency: createUiDetachedRoot should be imported from @koalaui/arkoala same as in TS

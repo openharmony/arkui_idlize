@@ -1,4 +1,4 @@
-package "org.openharmony.idlize.predefined";
+package org.openharmony.idlize.predefined;
 
 callback Callback_Extender_OnProgress = void (f32 value);
 callback Callback_Extender_OnFinish = void ();

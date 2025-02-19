@@ -1,4 +1,4 @@
-package "org.openharmony.idlize.predefined";
+package org.openharmony.idlize.predefined;
 [Entity=Class]
 interface EventEmulator {
   static void emitClickEvent(pointer node, ClickEvent event);

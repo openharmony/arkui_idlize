@@ -54,6 +54,7 @@ const options = program
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--ets2ts', 'Convert .ets to .ts')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
+    .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-files <files...>', 'Comma-separated list of specific files to process')
     .option('--file-to-package <fileToPackage>', 'Comma-separated list of pairs, what package name should be used for file in format <fileName:packageName>')
@@ -136,7 +137,7 @@ if (options.dts2skoala) {
         inputDirs,
         inputFiles,
         outputDir,
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, skoalaLibrary),
+        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options, skoalaLibrary),
         {
             compilerOptions: {
                 ...defaultCompilerOptions,
@@ -245,7 +246,7 @@ if (options.dts2peer) {
         inputDirs,
         inputFiles,
         generatedPeersDir,
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
+        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile(file: IDLFile, outputDir, sourceFile) {

@@ -28,7 +28,7 @@ import {
 } from "@idlizer/core"
 import {
     forEachChild,
-    IDLEntry,
+    IDLFile,
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
@@ -38,10 +38,12 @@ const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
+    .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-files <files...>', 'Comma-separated list of specific files to process')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
+    .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
     .option('--api-version <version>', "API version for generated peers")
     .option('--dump-serialized', "Dump serialized data")
     .option('--call-log', "Call log")
@@ -74,10 +76,10 @@ if (options.dts2idl) {
         inputDirs,
         inputFiles,
         options.outputDir ?? "./idl",
-        (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options),
+        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile: (entries: IDLEntry[], outputDir, sourceFile) => {
+            onSingleFile: (file: IDLFile, outputDir, sourceFile) => {
                 console.log('producing', path.basename(sourceFile.fileName))
                 const outFile = path.join(
                     outputDir,
@@ -87,12 +89,12 @@ if (options.dts2idl) {
                 console.log("saved", outFile)
 
                 if (options.skipDocs) {
-                    entries.forEach(entry =>
+                    file.entries.forEach(entry =>
                         forEachChild(entry, it => (it.documentation = undefined))
                     )
                 }
 
-                const generated = toIDLString(entries, {
+                const generated = toIDLString(file.entries, {
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })
 

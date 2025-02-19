@@ -106,7 +106,7 @@ function main() {
         inputDirs,
         inputFiles,
         options.outputDir,
-        (sourceFile, typeChecker) => new LinterVisitor(sourceFile, typeChecker),
+        (sourceFile, program, compilerHost) => new LinterVisitor(sourceFile, program, compilerHost),
         {
             compilerOptions: defaultCompilerOptions,
             onSingleFile: (entries: LinterMessage[]) => allEntries.push(entries),

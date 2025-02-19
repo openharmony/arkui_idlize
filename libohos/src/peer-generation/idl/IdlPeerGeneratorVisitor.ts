@@ -79,15 +79,9 @@ export class IDLPredefinesVisitor implements GenericVisitor<void> {
     constructor(options: IdlPeerGeneratorVisitorOptions) {
         this.peerLibrary = options.peerLibrary
         this.peerFile = options.peerFile
-        const packageDeclarations = idl.linearizeNamespaceMembers(this.peerFile.entries).filter(entry => idl.isPackage(entry))
-        if (packageDeclarations.length === 1) {
-            const [ pkg ] = packageDeclarations
-            let pkgName = pkg.name ?? ''
-            if (pkgName.startsWith('"')) {
-                pkgName = pkgName.substring(1, pkgName.length - 1)
-            }
-            this.packageName = pkgName
-        }
+        const packageDeclarations = this.peerFile.entries.filter(entry => idl.isPackage(entry)).map(entry => entry as idl.IDLPackage)
+        if (packageDeclarations.length === 1)
+            this.packageName = packageDeclarations[0].clause.join(".")
     }
 
     visitWholeFile(): void {
