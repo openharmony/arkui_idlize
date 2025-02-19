@@ -24,7 +24,6 @@ export const ARK_BASE = 'ArkBase'
 export const ARK_MATERIALIZEDBASE = 'Ark_MaterializedBase'
 export const ARK_CUSTOM_OBJECT = 'Ark_CustomObject'
 export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.EmptyParameter`
-export const INT_VALUE_GETTER = 'IntValueGetter'
 export const COMPONENT_BASE = 'ComponentBase'
 
 export function getPackagePath(javaPackage: string): string {

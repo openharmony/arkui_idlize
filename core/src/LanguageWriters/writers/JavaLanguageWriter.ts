@@ -294,7 +294,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
             this.makeRuntimeTypeGetterCall(value), false))
     }
     override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {
-        return `${enumName}.getIntValue()`
+        return `${enumName}.value`
     }
     override castToBoolean(value: string): string { return value }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {

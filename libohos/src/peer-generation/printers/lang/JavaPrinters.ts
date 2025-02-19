@@ -13,17 +13,16 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLI32Type, IDLType, IDLVoidType } from "@idlizer/core/idl"
+import { createReferenceType, IDLType, IDLVoidType } from "@idlizer/core/idl"
 import { ImportFeature } from "../../ImportsCollector"
 import { LanguageWriter, NamedMethodSignature, Method, MethodModifier, MethodSignature,
-    FieldModifier, PeerMethod, PeerLibrary
+    PeerMethod, PeerLibrary
 } from "@idlizer/core"
 import { generateArkComponentName } from "../ComponentsPrinter"
 import { componentToPeerClass } from "../PeersPrinter"
 import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
-import { IdlSyntheticTypeBase } from "./CommonUtils"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_BASE, ARK_OBJECTBASE, INT_VALUE_GETTER } from "./Java"
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, ARK_BASE } from "./Java"
 import { collectJavaImports } from "./JavaIdlUtils"
 
 export function makeJavaSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
@@ -120,65 +119,4 @@ export function makeJavaArkComponents(library: PeerLibrary): { targetFile: Targe
     result.concat(writer)
 
     return { targetFile: new TargetFile(ark, ARKOALA_PACKAGE_PATH), writer: result }
-}
-
-export class JavaEnum extends IdlSyntheticTypeBase {
-    public readonly isStringEnum: boolean
-    public readonly members: {
-        name: string,
-        stringId: string | undefined,
-        numberId: number,
-    }[] = []
-    constructor(source: Object | undefined, public name: string, members: { name: string, id: string | number | undefined }[]) {
-        super(source)
-        this.isStringEnum = members.every(it => typeof it.id == 'string')
-        // TODO: string enums
-        if (this.isStringEnum) {
-            throw new Error(`String enum ${this.name} not supported yet in Java`)
-        }
-
-        let memberValue = 0
-        for (const member of members) {
-            if (typeof member.id == 'string') {
-                this.members.push({name: member.name, stringId: member.id, numberId: memberValue})
-            }
-            else if (typeof member.id == 'number') {
-                memberValue = member.id
-                this.members.push({name: member.name, stringId: undefined, numberId: memberValue})
-            }
-            else {
-                this.members.push({name: member.name, stringId: undefined, numberId: memberValue})
-            }
-            memberValue += 1
-        }
-    }
-
-    print(writer: LanguageWriter): void {
-        writer.writeClass(this.name, () => {
-            const enumType = createReferenceType(this.name)
-            this.members.forEach(it => {
-                writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
-                    writer.makeString(`new ${this.name}(${it.numberId})`)
-                )
-            })
-
-            const value = 'value'
-            const intType = IDLI32Type
-            writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-
-            const signature = new MethodSignature(IDLVoidType, [intType])
-            writer.writeConstructorImplementation(this.name, signature, () => {
-                writer.writeStatement(
-                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
-                )
-            })
-
-            const getIntValue = new Method('getIntValue', new MethodSignature(intType, []), [MethodModifier.PUBLIC])
-            writer.writeMethodImplementation(getIntValue, () => {
-                writer.writeStatement(
-                    writer.makeReturn(writer.makeString(value))
-                )
-            })
-        }, ARK_OBJECTBASE, [INT_VALUE_GETTER])
-    }
 }

@@ -13,14 +13,8 @@
  * limitations under the License.
  */
 
-import * as idl from "@idlizer/core/idl"
-import { MethodSignature, FieldModifier } from "../../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { writeDeserializer, writeSerializer } from "../SerializerPrinter"
-import { TargetFile } from "../TargetFile"
-import { IdlSyntheticTypeBase } from "./CommonUtils"
-
-const ARKOALA_PACKAGE_PATH = '.'
 
 export function makeCJSerializer(library: PeerLibrary): LanguageWriter {
     let writer = library.createLanguageWriter()
