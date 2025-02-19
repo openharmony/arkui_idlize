@@ -208,9 +208,16 @@ function processInputFiles(files: string[] | string | undefined): string[] {
 }
 
 function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
+    idlLibrary.name = options.defaultIdlPackage?.toUpperCase() ?? ""
+    if (!idlLibrary.name.length) {
+        idlLibrary.name = suggestLibraryName(idlLibrary)
+    }
+    if (!idlLibrary.name.length) {
+        throw new Error("No name can be assigned to generated package. please provide name via --default-idl-package ")
+    }
     generateOhos(outDir, idlLibrary, {
         ...peerGeneratorConfiguration(),
-        LibraryPrefix: `${suggestLibraryName(idlLibrary)}_`,
+        LibraryPrefix: `${idlLibrary.name.toUpperCase()}_`,
         GenerateUnused: true,
         ApiVersion: apiVersion,
     })

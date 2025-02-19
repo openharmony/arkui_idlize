@@ -48,14 +48,13 @@ import { OhosInstall } from "./OhosInstall"
 import { generateNativeOhos, suggestLibraryName } from './OhosNativeVisitor';
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: PeerGeneratorConfiguration) {
-    peerLibrary.name = suggestLibraryName(peerLibrary).toLowerCase()
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
     peerLibrary.setFileLayout(layout(peerLibrary, "OH", `org/openharmony/${config.LibraryPrefix}`))
 
     const ohos = new OhosInstall(outDir, peerLibrary.language)
 
-    NativeModule.Generated = new NativeModuleType(suggestLibraryName(peerLibrary) + 'NativeModule')
+    NativeModule.Generated = new NativeModuleType(peerLibrary.name + 'NativeModule')
 
     const ohosManagedFiles: string[] = []
 

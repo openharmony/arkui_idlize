@@ -134,10 +134,6 @@ class OHOSNativeVisitor {
         if (OHOSNativeVisitor.knownBasicTypes.has(typeName)) {
             return this.mangleTypeName(typeName)
         }
-        if (isReferenceType(type) || isEnum(type)) {
-            const decl = isReferenceType(type) ? this.library.resolveTypeReference(type)! : type
-            return this.mangleTypeName(qualifiedName(decl, Language.CPP)).replaceAll(".", "_")
-        }
         return this.hWriter.getNodeName(type)
     }
 
@@ -481,6 +477,9 @@ function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  
 }
 
 export function suggestLibraryName(library: PeerLibrary) {
+    if (library.name !== '') {
+        return library.name
+    }
     let libraryName = library.files.filter(f => !f.isPredefined)[0].packageName()
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
