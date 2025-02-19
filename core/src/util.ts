@@ -16,6 +16,7 @@
 import * as path from 'path'
 import * as fs from "fs"
 import * as ts from "typescript"
+import * as idl from "./idl"
 import { Language } from './Language'
 
 export interface NameWithType {
@@ -668,4 +669,8 @@ export class Lazy<T> {
 
 export function lazy<T>(factory: () => T): Lazy<T> {
     return new Lazy(factory)
+}
+
+export function isInNamespace(node: idl.IDLEntry): boolean {
+    return idl.getNamespacesPathFor(node).length > 0
 }

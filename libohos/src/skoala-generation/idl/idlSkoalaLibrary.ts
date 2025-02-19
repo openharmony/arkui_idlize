@@ -55,13 +55,11 @@ export class IldSkoalaFile implements LibraryFileInterface {
     }
 
     constructor(
-        public readonly originalFilename: string,
-        declarations?: idl.IDLEntry[]
-
+        public file: idl.IDLFile
     ) {
-        this.baseName = path.basename(this.originalFilename)
+        this.baseName = path.basename(file.fileName!)
         this.importsCollector = new ImportsCollector()
-        this.declarations = declarations ? new Set(declarations) : new Set()
+        this.declarations = new Set(file.entries)
     }
 
     addImportFeature(module: string, ...features: string[]) {
@@ -80,7 +78,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
     public readonly files: IldSkoalaFile[] = []
     findFileByOriginalFilename(filename: string): IldSkoalaFile | undefined {
-        return this.files.find(it => it.originalFilename === filename)
+        return this.files.find(it => it.file.fileName === filename)
     }
 
     get libraryPrefix(): string {
@@ -274,7 +272,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         protected table: IdlSkoalaLibrary,
         private type: idl.IDLInterface
     ) {
-        super(idl.createReferenceType(name, undefined, type), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(type), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -287,7 +285,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         const prefix = writer.language === Language.CPP ? generatorConfiguration().TypePrefix : ""
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `readWrapper`, []),
-            idl.createReferenceType(`${prefix}${this.type.name}`, undefined, this.idlType)
+            idl.createReferenceType(`${prefix}${this.type.name}`)
         )
         return assigneer(readStatement)
     }
@@ -650,7 +648,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         this.writer.print(this.printer.output.join("\n"))
     }
     convertNamespace(node: idl.IDLNamespace): void {
-        this.writer.print(`${node.namespace ? "" : "declare " }namespace ${node.name} {`)
+        this.writer.print(`${idl.fetchNamespaceFrom(node.parent) ? "" : "declare " }namespace ${node.name} {`)
         this.writer.pushIndent()
         node.members.forEach(it => convertDeclaration(this, it))
         this.writer.popIndent()

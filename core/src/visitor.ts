@@ -114,7 +114,7 @@ export class IDLDependencyCollector implements IDLConverter<idl.IDLNode[]> {
     }
     protected visitSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
         if (idl.isInterface(type)) {
-            return this.walk(idl.createReferenceType(type.name, undefined, type))
+            return this.walk(idl.createReferenceType(type))
         }
         return this.walk(type)
     }

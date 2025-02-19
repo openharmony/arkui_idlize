@@ -41,6 +41,7 @@ export enum IDLKind {
     OptionalType,
     Version,
     Namespace,
+    File,
 }
 
 export enum IDLEntity {
@@ -100,9 +101,15 @@ const innerIdlSymbol = Symbol("innerIdlSymbol")
 export interface IDLNode {
     _idlNodeBrand: any
     kind: IDLKind
+    parent?: IDLNode
     fileName?: string
     extendedAttributes?: IDLExtendedAttribute[]
     documentation?: string
+}
+
+export interface IDLFile extends IDLNode{
+    entries: IDLEntry[],
+    fileName?: string,
 }
 
 export interface IDLNamedNode extends IDLNode {
@@ -114,7 +121,6 @@ export interface IDLNamedNode extends IDLNode {
 export interface IDLEntry extends IDLNode, IDLNamedNode {
     _idlEntryBrand: any
     comment?: string
-    namespace?: IDLNamespace
 }
 
 export interface IDLType extends IDLNode {
@@ -150,7 +156,6 @@ export interface IDLContainerType extends IDLType {
 export interface IDLReferenceType extends IDLType, IDLNamedNode {
     kind: IDLKind.ReferenceType
     typeArguments?: IDLType[]
-    namespace?: IDLNamespace
 }
 
 export interface IDLUnspecifiedGenericType extends IDLType, IDLNamedNode {
@@ -282,6 +287,9 @@ export interface IDLCallback extends IDLEntry, IDLSignature {
 export function forEachChild(node: IDLNode, cbEnter: (entry: IDLNode) => void, cbLeave?: (entry: IDLNode) => void): void {
     cbEnter(node)
     switch (node.kind) {
+        case IDLKind.File:
+            (node as IDLFile).entries.forEach((value) => forEachChild(value, cbEnter, cbLeave))
+            break
         case IDLKind.Namespace:
             (node as IDLNamespace).members.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             break
@@ -369,6 +377,10 @@ export function forceAsNamedNode(type: IDLNode): IDLNamedNode {
         throw new Error(`Expected to be an IDLNamedNode, but got '${IDLKind[type.kind]}'`)
     }
     return type
+}
+
+export function isFile(node: IDLNode): node is IDLFile {
+    return node.kind === IDLKind.File
 }
 
 export function isUndefinedType(type: IDLNode): type is IDLPrimitiveType {
@@ -549,29 +561,42 @@ export function createNamespace(name:string, extendedAttributes?: IDLExtendedAtt
     }
 }
 
-export function linkNamespacesBack(node: IDLNode): void {
-    let namespacePath: IDLNamespace[] = []
-    forEachChild(node, child => {
-        if (isEntry(child) || isReferenceType(child)) {
-            if (!child.namespace)
-                child.namespace = namespacePath.length ? namespacePath[namespacePath.length-1] : undefined
-        }
-        if (isNamespace(child))
-            namespacePath.push(child)
-    }, child => {
-        if (isNamespace(child))
-            namespacePath.pop()
+export function linkParentBack<T extends IDLNode>(node: T): T {
+    const parentStack: IDLNode[] = []
+    forEachChild(node, (node) => {
+        if (isPrimitiveType(node))
+            return
+        if (parentStack.length)
+            node.parent = parentStack[parentStack.length - 1]
+        parentStack.push(node)
+    }, (node) => {
+        if (isPrimitiveType(node))
+            return
+        parentStack.pop()
     })
+    return node
 }
 
 export function getNamespacesPathFor(entry: IDLEntry): IDLNamespace[] {
-    let iterator: IDLNamespace | undefined = entry.namespace
+    let iterator: IDLNode | undefined = entry.parent
     const result: IDLNamespace[] = []
     while (iterator) {
-        result.unshift(iterator);
-        iterator = iterator.namespace
+        if (isNamespace(iterator))
+            result.unshift(iterator);
+        iterator = iterator.parent
     }
     return result
+}
+
+export function getFileFor(entry: IDLNode): IDLFile | undefined {
+    let iterator: IDLNode | undefined = entry
+    while (iterator) {
+        if (isFile(iterator))
+            return iterator
+        iterator = iterator.parent
+    }
+    console.warn(`Entry ${JSON.stringify(entry)} does not have IDLFile in parents`)
+    return undefined
 }
 
 export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
@@ -581,19 +606,31 @@ export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
         return false
     if (a.kind !== b.kind || a.name !== b.name)
         return false
-    return isEqualByQualifedName(a.namespace, b.namespace)
+    return getFQName(a) === getFQName(b)
 }
 
-export function getNamespaceName(a:IDLEntry): string {
+export function getPackageName(entry: IDLFile | IDLEntry): string {
+    let file = getFileFor(entry)
+    if (!file) return ""
+    for (const child of file.entries)
+        if (isPackage(child))
+            return child.name
+    // console.warn("Expected to have one IDLPackage inside IDLFile. Using empty package name")
+    return ""
+}
+
+export function getNamespaceName(a: IDLEntry): string {
     return getNamespacesPathFor(a).map(it => it.name).join('.')
 }
 
-export function getFQName(a:IDLEntry): string {
-    let ns = getNamespaceName(a)
-    if (ns !== '') {
-        ns += '.'
-    }
-    return ns + a.name
+export function getFQName(a: IDLEntry): string {
+    // let packageName = getPackageName(a)
+    let namespaceName = getNamespaceName(a)
+    let result = a.name
+    if (namespaceName) result = `${namespaceName}.${result}`
+    // TODO package name is very dirty now, waiting for Alexander Rekunkov PR
+    // if (packageName) result = `${packageName}.${result}`
+    return result
 }
 
 export function createVersion(value: string[], extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLVersion {
@@ -610,36 +647,31 @@ export function createVersion(value: string[], extendedAttributes?: IDLExtendedA
 }
 
 export function fetchNamespaceFrom(pointOfView?: IDLNode): IDLNamespace|undefined {
-    if (pointOfView) {
-        if (isNamespace(pointOfView))
-            return pointOfView
-        if (isEntry(pointOfView) || isReferenceType(pointOfView))
-            return pointOfView.namespace
+    let node: IDLNode | undefined = pointOfView
+    while (node) {
+        if (isNamespace(node))
+            return node
+        node = node.parent
     }
     return undefined
 }
 
-export function createReferenceType(name: string, typeArguments?: IDLType[], pointOfView?: IDLNode): IDLReferenceType
+export function createReferenceType(name: string, typeArguments?: IDLType[]): IDLReferenceType
 export function createReferenceType(source: IDLEntry, typeArguments?: IDLType[]): IDLReferenceType
 export function createReferenceType(
     nameOrSource: string | IDLEntry,
     typeArguments?: IDLType[],
-    pointOfView?: IDLNode,
 ): IDLReferenceType {
     let name: string
-    let namespace: IDLNamespace | undefined
     if (typeof nameOrSource === 'string') {
         name = nameOrSource
-        namespace = fetchNamespaceFrom(pointOfView)
     } else {
-        name = nameOrSource.name
-        namespace = fetchNamespaceFrom(nameOrSource)
+        name = getFQName(nameOrSource)
     }
     return {
         kind: IDLKind.ReferenceType,
         name,
         typeArguments,
-        namespace: namespace,
         _idlNodeBrand: innerIdlSymbol,
         _idlTypeBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,
@@ -660,9 +692,11 @@ export function createUnspecifiedGenericType(name: string, typeArguments: IDLTyp
 export function entityToType(entity:IDLNode): IDLType {
     if (isType(entity)) {
         return entity
+    } else if (isEntry(entity)) {
+        return createReferenceType(entity)
+    } else {
+        throw new Error(`Expected to have IDLType or IDLEntry, got ${entity}`)
     }
-
-    return createReferenceType(forceAsNamedNode(entity).name, undefined, entity)
 }
 
 export function createContainerType(container: IDLContainerKind, element: IDLType[]): IDLContainerType {
@@ -685,6 +719,15 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
         _idlNodeBrand: innerIdlSymbol,
         _idlTypeBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,
+    }
+}
+
+export function createFile(entries: IDLEntry[], fileName?: string): IDLFile {
+    return {
+        kind: IDLKind.File,
+        entries: entries,
+        fileName,
+        _idlNodeBrand: innerIdlSymbol,
     }
 }
 

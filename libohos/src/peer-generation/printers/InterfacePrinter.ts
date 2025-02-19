@@ -74,11 +74,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 readonly peerLibrary: PeerLibrary) {}
 
     private wrapWithNamespaces(node: idl.IDLEntry, cb: () => void) {
-        if (!node.namespace) {
+        const parentNamespace = idl.fetchNamespaceFrom(node.parent)
+        if (!parentNamespace) {
             cb()
         } else {
-            this.wrapWithNamespaces(node.namespace, () => {
-                this.writer.print(`export namespace ${node.namespace!.name} {`)
+            this.wrapWithNamespaces(parentNamespace, () => {
+                this.writer.print(`export namespace ${parentNamespace.name} {`)
                 this.writer.pushIndent()
                 cb()
                 this.writer.popIndent()
@@ -356,7 +357,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
             for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name, undefined, e.namespace))
+                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e))
                 writer.print(`${e.name}: ${usageTypeName},`)
             }
             writer.popIndent()
@@ -492,7 +493,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             }
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type, undefined, undefined) // TODO: namespace-related-to-rework
+            const target = this.peerLibrary.resolveTypeReference(type) // TODO: namespace-related-to-rework
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -631,8 +632,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
         }
 
         writer.writeClass(alias, () => {
-            // enum values
-            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
+            const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 const initializer = isStringEnum ?
                     `new ${alias}(${it.numberId}, "${it.stringId}")` :
@@ -759,13 +759,13 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
             this.onSyntheticDeclaration(continuation)
         }
 
-        const transformed = maybeTransformManagedCallback(decl)
+        const transformed = maybeTransformManagedCallback(decl, this.library)
         if (transformed) {
             this.convert(transformed)
             this.onSyntheticDeclaration(transformed)
         }
 
-        const maybeTransformed = maybeTransformManagedCallback(decl)
+        const maybeTransformed = maybeTransformManagedCallback(decl, this.library)
         if (maybeTransformed)
             this.onSyntheticDeclaration(maybeTransformed)
 
@@ -809,7 +809,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             writer.print(`Object.assign(globalThis, {`)
             writer.pushIndent()
             for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e.name, undefined, e.namespace))
+                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e))
                 writer.print(`${e.name}: ${usageTypeName},`)
             }
             writer.popIndent()
@@ -965,7 +965,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             }
         }
         if (idl.isReferenceType(type)) {
-            const target = this.peerLibrary.resolveTypeReference(type, undefined, undefined) // TODO: namespace-related-to-rework
+            const target = this.peerLibrary.resolveTypeReference(type) // TODO: namespace-related-to-rework
             this.convertTypedefTarget(name, target!)
             return
         }
@@ -1110,7 +1110,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             memberValue += 1
         }
         writer.writeClass(alias, () => {
-            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
+            const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(`${alias}(${it.numberId})`)

@@ -28,9 +28,11 @@ import {
 } from "@idlizer/core"
 import {
     IDLEntry,
+    IDLFile,
     isEnum,
     isInterface,
     isSyntheticEntry,
+    linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
@@ -135,8 +137,8 @@ if (options.dts2peer) {
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
-                entries = entries.filter(newEntry =>
+            onSingleFile(file: IDLFile, outputDir, sourceFile) {
+                file.entries = file.entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isEnum)
@@ -148,12 +150,12 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
-                entries.forEach(it => {
+                file.entries.forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
+                linkParentBack(file)
 
-                const baseFileName = path.resolve(sourceFile.fileName)
-                const peerFile = new PeerFile(baseFileName, entries)
+                const peerFile = new PeerFile(file)
 
                 idlLibrary.files.push(peerFile)
             },

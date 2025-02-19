@@ -135,7 +135,8 @@ class OHOSNativeVisitor {
             return this.mangleTypeName(typeName)
         }
         if (isReferenceType(type) || isEnum(type)) {
-            return this.mangleTypeName(qualifiedName(type, Language.CPP)).replaceAll(".", "_")
+            const decl = isReferenceType(type) ? this.library.resolveTypeReference(type)! : type
+            return this.mangleTypeName(qualifiedName(decl, Language.CPP)).replaceAll(".", "_")
         }
         return this.hWriter.getNodeName(type)
     }

@@ -52,11 +52,7 @@ export class PeerLibrary implements LibraryInterface {
             return this._cachedIdlLibrary
         }
         this._cachedIdlLibrary = {
-            files: this.files.map(file => ({
-                fileName: file.originalFilename,
-                entities: file.entries,
-                package: file.package()
-            }))
+            files: this.files.map(file => file.file)
         }
         return this._cachedIdlLibrary
     }
@@ -65,13 +61,9 @@ export class PeerLibrary implements LibraryInterface {
 
     public layout: LayoutManager = LayoutManager.Empty()
 
-    private _syntheticEntries: idl.IDLEntry[] = []
-    /** @deprecated PeerLibrary should contain only SDK entries */
-    public get syntheticEntries(): idl.IDLEntry[] {
-        return this._syntheticEntries!
-    }
-    public initSyntheticEntries(entries: idl.IDLEntry[]) {
-        this._syntheticEntries = entries
+    private _syntheticFile: idl.IDLFile = idl.createFile([])
+    public initSyntheticEntries(file: idl.IDLFile) {
+        this._syntheticFile = file
     }
     public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
@@ -137,7 +129,7 @@ export class PeerLibrary implements LibraryInterface {
             continuationParameters,
             idl.IDLVoidType,
         )
-        return idl.createReferenceType(syntheticName, undefined, continuationType)
+        return idl.createReferenceType(syntheticName)
     }
 
     private context: string | undefined
@@ -156,17 +148,18 @@ export class PeerLibrary implements LibraryInterface {
         return this.targetNameConvertorInstance.convert(type)
     }
 
-    resolveTypeReference(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
-        const entry = this.syntheticEntries.find(it => it.name === type.name)
+    resolveTypeReference(type: idl.IDLReferenceType): idl.IDLEntry | undefined {
+        return this.resolveTypeReferenceScoped(type)
+    }
+
+    private resolveTypeReferenceScoped(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
+        const entry = this._syntheticFile.entries.find(it => it.name === type.name)
         if (entry)
             return entry
 
         const qualifiedName = type.name.split(".");
 
-        pointOfView ??= type.namespace
-        let pointOfViewNamespace = !pointOfView || idl.isNamespace(pointOfView)
-            ? pointOfView
-            : pointOfView.namespace
+        let pointOfViewNamespace = idl.fetchNamespaceFrom(type.parent)
 
         rootEntries ??= this.files.flatMap(it => it.entries)
         if (1 === qualifiedName.length) {
@@ -203,7 +196,7 @@ export class PeerLibrary implements LibraryInterface {
                 }
             }
 
-            pointOfViewNamespace = pointOfViewNamespace?.namespace
+            pointOfViewNamespace = idl.fetchNamespaceFrom(pointOfViewNamespace?.parent)
         }
 
         // TODO: remove the next block after namespaces out of quarantine
@@ -212,7 +205,7 @@ export class PeerLibrary implements LibraryInterface {
             const traverseNamespaces = (entry: idl.IDLEntry) => {
                 if (entry && idl.isNamespace(entry) && entry.members.length) {
                     //console.log(`Try alien namespace '${idl.getNamespacesPathFor(entry.members[0]).map(obj => obj.name).join(".")}' to resolve name '${type.name}'`)
-                    const resolved = this.resolveTypeReference(type, entry, rootEntries)
+                    const resolved = this.resolveTypeReferenceScoped(type, entry, rootEntries)
                     if (resolved)
                         resolveds.push(resolved)
                     entry.members.forEach(traverseNamespaces)
@@ -226,20 +219,8 @@ export class PeerLibrary implements LibraryInterface {
 
         return undefined // empty result
     }
-    resolvePackageName(entry: idl.IDLEntry): string {
-        if (this._syntheticEntries.includes(entry))
-            return this.libraryPackages?.length ? this.libraryPackages[0] : this.files[0].packageName()
-        while (entry.namespace) {
-            entry = entry.namespace
-        }
-        for (const file of this.files) {
-            if (file.entries.includes(entry))
-                return file.packageName()
-        }
-        throw new Error(`Package name for entry ${entry.name} was not found`)
-    }
     hasInLibrary(entry: idl.IDLEntry): boolean {
-        return !this.libraryPackages?.length || this.libraryPackages?.includes(this.resolvePackageName(entry))
+        return !this.libraryPackages?.length || this.libraryPackages?.includes(idl.getPackageName(entry))
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {

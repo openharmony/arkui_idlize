@@ -31,7 +31,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         const types = type.name.split(".")
         if (types.length > 1) {
             // Takes only name without the namespace prefix
-            const decl = this.resolver.resolveTypeReference(idl.createReferenceType(types.slice(-1).join(), undefined, type))
+            const decl = this.resolver.resolveTypeReference(idl.createReferenceType(types.slice(-1).join()))
             if (decl !== undefined) {
                 return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
             }

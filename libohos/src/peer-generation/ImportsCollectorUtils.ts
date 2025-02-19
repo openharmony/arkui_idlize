@@ -74,7 +74,7 @@ export function collectDeclItself(
         }
         if (options?.includeTransformedCallbacks) {
             if (idl.isCallback(node)) {
-                const maybeTransformed = maybeTransformManagedCallback(node)
+                const maybeTransformed = maybeTransformManagedCallback(node, library)
                 if (maybeTransformed)
                     collectDeclItself(library, maybeTransformed, emitter, options)
             }

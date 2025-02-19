@@ -141,7 +141,7 @@ class CJDeclConvertor {
             memberValue += 1
         }
         writer.writeClass(alias, () => {
-            const enumType = idl.createReferenceType(alias, undefined, enumDecl)
+            const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [idl.FieldModifier.PUBLIC, idl.FieldModifier.STATIC, idl.FieldModifier.FINAL], false,
                     writer.makeString(`${alias}(${it.numberId})`)

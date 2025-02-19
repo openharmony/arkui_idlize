@@ -160,7 +160,7 @@ abstract class TypeCheckerPrinter {
             } else {
                 interfaces.push({
                     name: convertDeclaration(declNameConvertor, decl),
-                    type: idl.createReferenceType(decl.name, undefined, decl),
+                    type: idl.createReferenceType(decl),
                     descriptor: makeStructDescriptor(this.library, decl)
                 })
             }

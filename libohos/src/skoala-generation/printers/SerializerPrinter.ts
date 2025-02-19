@@ -36,7 +36,7 @@ class IdlSerializerPrinter {
         const methodName = target.name
         this.writer.writeMethodImplementation(
             new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name, undefined, target)], ["value"])),
+                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target)], ["value"])),
             writer => {
                 const properties = collectProperties(target, this.library)
                 if (properties.length > 0) {

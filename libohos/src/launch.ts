@@ -15,7 +15,7 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { toIDL, PeerFile } from "@idlizer/core"
+import { toIDL, PeerFile, toIDLFile } from "@idlizer/core"
 
 export function scanNotPredefinedDirectory(dir: string, ...subdirs: string[]): PeerFile[] {
     return scanDirectory(false, dir, ...subdirs)
@@ -31,8 +31,8 @@ function scanDirectory(isPredefined: boolean, dir: string, ...subdirs: string[])
         .filter(it => it.endsWith(".idl"))
         .map(it => {
             const idlFile = path.resolve(path.join(dir, it))
-            const nodes = toIDL(idlFile)
-            return new PeerFile(idlFile, nodes, isPredefined)
+            const file = toIDLFile(idlFile)
+            return new PeerFile(file, isPredefined)
         })
 }
 

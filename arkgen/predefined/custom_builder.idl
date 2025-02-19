@@ -1,0 +1,3 @@
+package "org.openharmony.arkui";
+
+callback CustomNodeBuilder = pointer (pointer parentNode);

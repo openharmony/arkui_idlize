@@ -54,7 +54,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
     const foundCallbacks: idl.IDLCallback[] = []
     const addCallback = (callback: idl.IDLCallback) => {
         if (options?.transformCallbacks)
-            callback = maybeTransformManagedCallback(callback) ?? callback
+            callback = maybeTransformManagedCallback(callback, library) ?? callback
         if (foundCallbacksNames.has(callback.name))
             return
         foundCallbacksNames.add(callback.name)
@@ -217,7 +217,7 @@ class DeserializeCallbacksVisitor {
             } else {
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder.instance()`, `get`, [writer.makeString(resourceIdName)]),
-                    idl.createReferenceType(callback.name, undefined, callback),
+                    idl.createReferenceType(callback),
                 ), true))
             }
             const argsNames = []

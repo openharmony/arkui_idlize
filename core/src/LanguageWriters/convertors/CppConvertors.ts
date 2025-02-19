@@ -117,7 +117,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         }
         let decl = this.resolver.toDeclaration(type)
         if (idl.isCallback(decl)) {
-            decl = maybeTransformManagedCallback(decl) ?? decl
+            decl = maybeTransformManagedCallback(decl, this.resolver) ?? decl
         }
         if (idl.isType(decl)) {
             if (idl.isReferenceType(decl)) {

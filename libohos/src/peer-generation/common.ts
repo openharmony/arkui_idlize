@@ -67,7 +67,7 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
 }
 
 function suggestTSPackageName(library: PeerLibrary, node: idl.IDLEntry): string {
-    const packageName = library.resolvePackageName(node)
+    const packageName = idl.getPackageName(node)
     return `@${packageName.split(".").join("/")}`
 }
 

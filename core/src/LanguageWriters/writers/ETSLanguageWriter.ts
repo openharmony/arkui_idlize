@@ -138,8 +138,7 @@ export class ETSLambdaExpression extends LambdaExpression {
         // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21333
         let isRetTypeCallback = idl.isCallback(this.signature.returnType)
         if (idl.isReferenceType(this.signature.returnType)) {
-            const resolved = this.resolver.resolveTypeReference(
-                idl.createReferenceType(this.signature.returnType.name, undefined, this.signature.returnType))
+            const resolved = this.resolver.resolveTypeReference(this.signature.returnType)
             isRetTypeCallback = resolved !== undefined && idl.isCallback(resolved)
         }
         return `(${params.join(", ")})${isRetTypeCallback
@@ -281,7 +280,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 ? (convertor.nativeType() as idl.IDLUnionType).types[runtimeTypeIndex]
                 : idl.maybeUnwrapOptionalType(convertor.nativeType())
             if (idlType !== undefined && idl.isReferenceType(idlType)) {
-                const resolved = this.resolver.resolveTypeReference(idl.createReferenceType(idlType.name, undefined, idlType))
+                const resolved = this.resolver.resolveTypeReference(idlType)
                 type = resolved != undefined && idl.isEnum(resolved) ? RuntimeType[RuntimeType.OBJECT] : type
             }
         }

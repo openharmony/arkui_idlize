@@ -31,7 +31,7 @@ import { LibraryInterface } from "../LibraryInterface";
 import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppNameConvertor } from "./convertors/CppConvertors";
-import { createEmptyReferenceResolver } from "../peer-generation/ReferenceResolver";
+import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
 import { CppConvertor } from "./convertors/CppConvertors";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 
@@ -204,7 +204,7 @@ export class StringConvertor extends BaseArgConvertor {
 
 export class EnumConvertor extends BaseArgConvertor {
     constructor(param: string, public enumEntry: idl.IDLEnum) {
-        super(idl.createReferenceType(enumEntry.name, undefined, enumEntry),
+        super(idl.createReferenceType(enumEntry),
             [idl.isStringEnum(enumEntry) ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
     }
@@ -214,19 +214,19 @@ export class EnumConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         value =
             idl.isStringEnum(this.enumEntry)
-                ? writer.ordinalFromEnum(writer.makeString(value), idl.createReferenceType(this.enumEntry.name, undefined, this.enumEntry)).asString()
+                ? writer.ordinalFromEnum(writer.makeString(value), idl.createReferenceType(this.enumEntry)).asString()
                 : writer.makeEnumCast(value, false, this)
         writer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
         const enumExpr = idl.isStringEnum(this.enumEntry)
-            ? writer.enumFromOrdinal(readExpr, idl.createReferenceType(this.enumEntry.name, undefined, this.enumEntry))
-            : writer.makeCast(readExpr, idl.createReferenceType(this.enumEntry.name, undefined, this.enumEntry))
+            ? writer.enumFromOrdinal(readExpr, idl.createReferenceType(this.enumEntry))
+            : writer.makeCast(readExpr, idl.createReferenceType(this.enumEntry))
         return assigneer(enumExpr)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.enumEntry.name, undefined, this.enumEntry)
+        return idl.createReferenceType(this.enumEntry)
     }
     interopType(): idl.IDLType {
         return idl.IDLI32Type
@@ -459,7 +459,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
         return writer.makeCast(writer.makeString(`{${content}}`), this.idlType)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.decl.name, undefined, this.decl)
+        return idl.createReferenceType(this.decl)
     }
     interopType(): idl.IDLType {
         throw new Error("Must never be used")
@@ -499,7 +499,7 @@ export class TupleConvertor extends AggregateConvertor {
         return writer.makeCast(writer.makeString(`[${fields.map(it => it[1].asString()).join(', ')}]`), this.idlType)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.decl.name, undefined, this.decl)
+        return idl.createReferenceType(this.decl)
     }
     interopType(): idl.IDLType {
         throw new Error("Must never be used")
@@ -518,7 +518,7 @@ export class TupleConvertor extends AggregateConvertor {
 
 export class InterfaceConvertor extends BaseArgConvertor {
     constructor(private library: LibraryInterface, name: string /* change to IDLReferenceType */, param: string, public declaration: idl.IDLInterface) {
-        super(idl.createReferenceType(name, undefined, declaration), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, true, param)
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -736,8 +736,8 @@ export class DateConvertor extends BaseArgConvertor {
 }
 
 export class ProxyConvertor extends BaseArgConvertor {
-    constructor(public convertor: ArgConvertor, suggestedName?: string) {
-        super(suggestedName ? idl.createReferenceType(suggestedName, undefined, convertor.idlType) : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
+    constructor(public convertor: ArgConvertor, suggestedReference?: idl.IDLReferenceType) {
+        super(suggestedReference ? suggestedReference : convertor.idlType, convertor.runtimeTypes, convertor.isScoped, convertor.useArray, convertor.param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.convertor.convertorArg(param, writer)
@@ -767,7 +767,7 @@ export class ProxyConvertor extends BaseArgConvertor {
 
 export class TypeAliasConvertor extends ProxyConvertor {
     constructor(library: LibraryInterface, param: string, typedef: idl.IDLTypedef) {
-        super(library.typeConvertor(param, typedef.type), typedef.name)
+        super(library.typeConvertor(param, typedef.type), idl.createReferenceType(typedef))
     }
 }
 
@@ -1005,7 +1005,7 @@ export class FunctionConvertor extends BaseArgConvertor { //
 
 export class MaterializedClassConvertor extends BaseArgConvertor {
     constructor(param: string, public declaration: idl.IDLInterface) {
-        super(idl.createReferenceType(declaration.name, undefined, declaration), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, true, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
@@ -1020,12 +1020,12 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `read${this.declaration.name}`, []),
-            idl.createReferenceType(this.declaration.name, undefined, this.declaration)
+            idl.createReferenceType(this.declaration)
         )
         return assigneer(readStatement)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.declaration.name, undefined, this.declaration)
+        return idl.createReferenceType(this.declaration)
     }
     interopType(): idl.IDLType {
         throw new Error("Must never be used")
@@ -1081,7 +1081,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         param: string,
         private readonly decl: idl.IDLCallback,
     ) {
-        super(idl.createReferenceType(decl.name, undefined, decl), [RuntimeType.FUNCTION], false, true, param)
+        super(idl.createReferenceType(decl), [RuntimeType.FUNCTION], false, true, param)
     }
 
     private get isTransformed(): boolean {
@@ -1089,7 +1089,7 @@ export class CallbackConvertor extends BaseArgConvertor {
     }
 
     private get transformedDecl(): idl.IDLCallback {
-        return maybeTransformManagedCallback(this.decl) ?? this.decl
+        return maybeTransformManagedCallback(this.decl, this.library) ?? this.decl
     }
 
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1140,7 +1140,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         return assigneer(result)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.transformedDecl.name, undefined, this.decl)
+        return idl.createReferenceType(this.decl)
     }
     isPointerType(): boolean {
         return true
@@ -1193,13 +1193,8 @@ export function generateCallbackAPIArguments(library: LibraryInterface, callback
     return args
 }
 
-export function maybeTransformManagedCallback(callback: idl.IDLCallback): idl.IDLCallback | undefined {
+export function maybeTransformManagedCallback(callback: idl.IDLCallback, library: ReferenceResolver): idl.IDLCallback | undefined {
     if (callback.name === "CustomBuilder")
-        return idl.createCallback(
-            "CustomNodeBuilder",
-            [idl.createParameter("parentNode", idl.IDLPointerType)],
-            idl.IDLPointerType,
-            { extendedAttributes: [{name: idl.IDLExtendedAttributes.Synthetic}] }
-        )
+        return library.resolveTypeReference(idl.createReferenceType("CustomNodeBuilder")) as idl.IDLCallback
     return undefined
 }

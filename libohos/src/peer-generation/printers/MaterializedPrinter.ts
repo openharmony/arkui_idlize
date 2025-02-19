@@ -390,7 +390,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override get namespacePrefix(): string {
-        return this.clazz.decl.namespace ? this.clazz.decl.namespace.name + "." : ""
+        const namespacePrefix = idl.getNamespaceName(this.clazz.decl)
+        return namespacePrefix.length ? `${idl.getNamespaceName(this.clazz.decl)}.` : ""
     }
 
     visit(): PrinterResult {

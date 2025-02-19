@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { convertNode, convertType, LibraryInterface, NodeConvertor } from "@idlizer/core";
+import { convertNode, convertType, LibraryInterface, NodeConvertor, ReferenceResolver } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
 
@@ -78,12 +78,13 @@ class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
 }
 
 class CachedTransformer {
+    constructor(private readonly resolver: ReferenceResolver) {}
     private cache: Map<idl.IDLNode, idl.IDLNode> = new Map()
     transofrm(node: idl.IDLNode): idl.IDLNode {
         if (this.cache.has(node))
             return this.cache.get(node)!
         if (idl.isCallback(node)) {
-            this.cache.set(node, maybeTransformManagedCallback(node) ?? node)
+            this.cache.set(node, maybeTransformManagedCallback(node, this.resolver) ?? node)
             return this.cache.get(node)!
         }
         if (idl.isContainerType(node) && idl.IDLContainerUtils.isPromise(node)) {
@@ -96,7 +97,7 @@ class CachedTransformer {
 
 export class DependencySorter {
     dependenciesCollector: SorterDependenciesCollector
-    private cachedTransformer = new CachedTransformer()
+    private cachedTransformer = new CachedTransformer(this.library)
     dependencies = new Set<idl.IDLNode>()
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
     seen = new Set<idl.IDLNode>()///one for all deps?

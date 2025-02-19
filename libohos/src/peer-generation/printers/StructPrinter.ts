@@ -90,7 +90,7 @@ export class StructPrinter {
             if (idl.isTypeParameterType(target)) {
                 continue
             }
-            const targetType  = idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name, undefined, target)
+            let targetType: idl.IDLType = idl.isEntry(target) ? idl.createReferenceType(target) : target as idl.IDLType
             let nameAssigned = structs.getNodeName(target)
             if (nameAssigned === 'Tag')
                 continue
@@ -220,7 +220,7 @@ export class StructPrinter {
             concreteDeclarations.print(`${nameAssigned} value;`)
             this.printStructsCTail(nameOptional, concreteDeclarations)
             this.writeOptional(nameOptional, writeToString, isPointer)
-            this.writeRuntimeType(target, idl.isType(target) ? target : idl.createReferenceType(idl.forceAsNamedNode(target).name, undefined, target), true, writeToString)
+            this.writeRuntimeType(target, idl.isType(target) ? target : idl.createReferenceType(target as idl.IDLEntry), true, writeToString)
         }
     }
 

@@ -28,9 +28,11 @@ import {
 } from "@idlizer/core"
 import {
     IDLEntry,
+    IDLFile,
     isEnum,
     isInterface,
     isSyntheticEntry,
+    linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
@@ -145,15 +147,15 @@ if (options.dts2skoala) {
                     "@koalaui/arkoala": ["../external/arkoala/framework/src"],
                 },
             },
-            onSingleFile: (entries: IDLEntry[], outputDirectory, sourceFile) => {
+            onSingleFile: (file: IDLFile, outputDirectory, sourceFile) => {
                 const fileName = path.basename(sourceFile.fileName, ".d.ts")
 
                 if (!generatedIDLMap.has(fileName)) {
                     generatedIDLMap.set(fileName, [])
                 }
 
-                generatedIDLMap.get(fileName)?.push(...entries)
-                skoalaLibrary.files.push(new IldSkoalaFile(sourceFile.fileName, entries))
+                generatedIDLMap.get(fileName)?.push(...file.entries)
+                skoalaLibrary.files.push(new IldSkoalaFile(file))
             },
             onEnd: (outDir) => {
                 const wrapperProcessor = new IdlWrapperProcessor(skoalaLibrary)
@@ -246,8 +248,8 @@ if (options.dts2peer) {
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
-                entries = entries.filter(newEntry =>
+            onSingleFile(file: IDLFile, outputDir, sourceFile) {
+                file.entries = file.entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isEnum)
@@ -259,12 +261,12 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
-                entries.forEach(it => {
+                file.entries.forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
+                linkParentBack(file)
 
-                const baseFileName = path.resolve(sourceFile.fileName)
-                const peerFile = new PeerFile(baseFileName, entries)
+                const peerFile = new PeerFile(file)
 
                 idlLibrary.files.push(peerFile)
             },

@@ -16,22 +16,16 @@
 import * as idl from './idl'
 
 export interface IDLLibrary {
-    readonly files: readonly IDLFile[]
+    readonly files: readonly idl.IDLFile[]
 }
 
-export interface IDLFile {
-    fileName: string
-    package?: idl.IDLPackage
-    entities: idl.IDLNode[]
-}
-
-function createLibrary(files:IDLFile[]): IDLLibrary {
+function createLibrary(files:idl.IDLFile[]): IDLLibrary {
     return {
         files
     }
 }
 
-function toLibrary(ii:Iterable<IDLFile>): IDLLibrary {
+function toLibrary(ii:Iterable<idl.IDLFile>): IDLLibrary {
     return {
         files: Array.from(ii)
     }
@@ -182,10 +176,10 @@ interface EntitiesParams {
 }
 
 const select = {
-    files(): LibraryReducer<readonly IDLFile[]> {
+    files(): LibraryReducer<readonly idl.IDLFile[]> {
         return reduce('files', x => x.files)
     },
-    nodes(params:EntitiesParams): LibraryQuery<readonly IDLFile[], idl.IDLNode[]> {
+    nodes(params:EntitiesParams): LibraryQuery<readonly idl.IDLFile[], idl.IDLNode[]> {
         const key = 'entities' + serializeParam(params)
         function go(node:idl.IDLNode): idl.IDLNode[] {
             if (idl.isNamespace(node) && params.expandNamespaces) {
@@ -197,7 +191,7 @@ const select = {
             return [node]
         }
         return req(key, xs => {
-            return xs.flatMap(x => x.entities).flatMap(go)
+            return xs.flatMap(x => x.entries).flatMap(go)
         })
     },
     entries(): LibraryQuery<idl.IDLNode[], idl.IDLEntry[]> {
@@ -215,7 +209,7 @@ const select = {
     name(name:string): LibraryReducer<idl.IDLNode[]> {
         return reduce(`select.by.name.${name}`, lib => {
             return lib.files.flatMap(it => {
-                return it.entities.flatMap(it => {
+                return it.entries.flatMap(it => {
                     if (idl.isNamedNode(it) && it.name === name) {
                         return [it]
                     }

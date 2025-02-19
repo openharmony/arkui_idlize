@@ -269,7 +269,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
 
     override makeRef(type: IDLType, options?:MakeRefOptions): IDLType {
-        return createReferenceType(`${this.stringifyTypeWithReceiver(type, options?.receiver)}&`, undefined, type)
+        return createReferenceType(`${this.stringifyTypeWithReceiver(type, options?.receiver)}&`)
     }
     override makeThis(): LanguageExpression {
         return new StringExpression("*this")

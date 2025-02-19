@@ -6,9 +6,9 @@ function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Ma
     for (const file of library.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isCallback(entry)) {
-                const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
+                const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
                 if (transformedCallback &&
-                    !library.resolveTypeReference(idl.createReferenceType(transformedCallback.name, undefined, entry)) &&
+                    !library.resolveTypeReference(idl.createReferenceType(entry)) &&
                     !synthesizedEntries.has(transformedCallback.name)) {
                     synthesizedEntries.set(transformedCallback.name, transformedCallback)
                 }
@@ -23,7 +23,7 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
         continuationParameters,
         idl.IDLVoidType,
     )
-    const continuationReference = idl.createReferenceType(syntheticName, undefined, continuationType)
+    const continuationReference = idl.createReferenceType(syntheticName)
 
     if (!library.resolveTypeReference(continuationReference) && !synthesizedEntries.has(continuationReference.name)) {
         const callback = idl.createCallback(
@@ -45,7 +45,7 @@ function createContinuationCallbacks(library: PeerLibrary, synthesizedEntries: M
     for (const file of library.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isCallback(entry)) {
-                const transformedCallback = maybeTransformManagedCallback(entry) ?? entry
+                const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
                 createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
             }
             idl.forEachFunction(entry, function_ => {
@@ -127,5 +127,5 @@ export function fillSyntheticDeclarations(library: PeerLibrary) {
     createContinuationCallbacks(library, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
     createMaterializedInternal(library, synthesizedEntries)
-    library.initSyntheticEntries([...synthesizedEntries.values()])
+    library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
 }

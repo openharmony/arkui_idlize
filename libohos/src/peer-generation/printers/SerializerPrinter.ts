@@ -53,7 +53,7 @@ class SerializerPrinter {
         this.library.setCurrentContext(`write${methodName}()`)
         this.writer.writeMethodImplementation(
             new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target.name, undefined, target)], ["value"])),
+                new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target)], ["value"])),
             writer => {
                 if (isMaterialized(target, this.library)) {
                     this.generateMaterializedBodySerializer(target, writer)
@@ -280,7 +280,7 @@ class DeserializerPrinter {
 
     private generateInterfaceDeserializer(target: idl.IDLInterface, prefix: string = "") {
         const methodName = this.library.getInteropName(target)
-        const type = idl.createReferenceType(target.name, undefined, target)
+        const type = idl.createReferenceType(target)
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(target)
@@ -348,7 +348,7 @@ class DeserializerPrinter {
             }
         } else {
             if (this.writer.language === Language.CPP) {
-                let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType((target as idl.IDLInterface).name, undefined, target), target)
+                let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType(target), target)
                 this.declareDeserializer()
                 this.writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
                    return this.writer.makeAssign(`value`, undefined, expr, false)
@@ -382,9 +382,9 @@ class DeserializerPrinter {
             // callbacks in native are just CallbackResource while in managed we need to convert them to
             // target language callable
             return
-        target = maybeTransformManagedCallback(target) ?? target
+        target = maybeTransformManagedCallback(target, this.library) ?? target
         const methodName = this.library.getInteropName(target)
-        const type = idl.createReferenceType(target.name, undefined, target)
+        const type = idl.createReferenceType(target)
         if (this.writer.language == Language.CJ) {
             this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], [])), writer => {
                 this.writer.writeMethodCall('this', `read${methodName}`, ['false'])
@@ -652,7 +652,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         const makeFeature = (node: idl.IDLEntry) => {
             let features = []
             // Enums of OHOS are accessed through namespaces, not directly
-            let ns = node.namespace ? qualifiedName(node.namespace, ".") : undefined
+            let ns = idl.getNamespaceName(node)
             if (supportsNs && ns && !forceUseByName(node)) {
                 features.push({ feature: ns, module: `./${declarationPath}` }) // TODO resolve
             } else {

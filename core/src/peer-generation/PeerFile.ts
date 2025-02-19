@@ -21,8 +21,7 @@ export class PeerFile implements LibraryFileInterface {
     readonly peers: Map<string, PeerClass> = new Map()
 
     constructor(
-        public readonly originalFilename: string,
-        public readonly entries: idl.IDLEntry[],
+        public readonly file: idl.IDLFile,
         public readonly isPredefined: boolean = false
     ) {}
 
@@ -44,5 +43,15 @@ export class PeerFile implements LibraryFileInterface {
     get peersToGenerate(): PeerClass[] {
         const peers = Array.from(this.peers.values())
         return peers
+    }
+
+    // TODO just to not refactor too much in one PR
+    get entries(): idl.IDLEntry[] {
+        return this.file.entries
+    }
+
+    // TODO just to not refactor too much in one PR
+    get originalFilename(): string {
+        return this.file.fileName!
     }
 }

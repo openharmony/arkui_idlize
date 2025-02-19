@@ -69,7 +69,7 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     }
     protected convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
         if (idl.isInterface(type)) {
-            return this.convert(idl.createReferenceType(type.name, undefined, type))
+            return this.convert(idl.createReferenceType(type))
         }
         return this.convert(type)
     }

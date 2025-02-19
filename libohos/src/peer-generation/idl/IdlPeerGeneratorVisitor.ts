@@ -458,7 +458,7 @@ export class IdlPeerProcessor {
         }
         if (method === undefined) {
             // interface or class without constructors
-            const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl.name, undefined, decl), [], []), [MethodModifier.STATIC])
+            const ctor = new Method("ctor", new NamedMethodSignature(idl.createReferenceType(decl), [], []), [MethodModifier.STATIC])
             return new MaterializedMethod(decl.name, implemenationParentName, [], returnType, false, ctor, outArgConvertor)
         }
 
