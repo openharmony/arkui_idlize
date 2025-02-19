@@ -3,6 +3,8 @@ import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModu
 import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
 import { CONTEXTNativeModule } from "../../generated/arkts"
 
+export { BaseContext, Context, ApplicationContext } from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 
 export function pullEvents() {

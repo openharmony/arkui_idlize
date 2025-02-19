@@ -20,8 +20,8 @@ include_dirs = [
 ]
 
 sources = [
-    # TODO 'generated/context.cc',
-    # TODO 'src/cpp/contextImpl.cc',
+    'generated/native/context.cc',
+    'src/cpp/contextImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',
