@@ -7,6 +7,7 @@ import { identName } from '@idlizer/core'
 namespace $ {
     export const bool = idl.IDLBooleanType
     export const num = idl.IDLNumberType
+    export const f32 = idl.IDLF32Type
     export const str = idl.IDLStringType
     export const ref = idl.createReferenceType
     export const union = (...types: idl.IDLType[]) => idl.createUnionType(types)
@@ -170,8 +171,9 @@ const parameterTypeReplacements: ((clazz: string, method: string, parameter: str
     },
 
     (clazz, method, parameter) => {
-        if (clazz === "CanvasRenderingContext2D" && method === "toDataURL" && parameter === "quality")
-            return [$.num]
+        let classes = ["CanvasRenderingContext2D", "OffscreenCanvasRenderingContext2D"]
+        if (classes.includes(clazz) && method === "toDataURL" && parameter === "quality")
+            return [$.f32]
     },
 
     (clazz, method, parameter) => {
