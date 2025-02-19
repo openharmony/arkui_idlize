@@ -107,7 +107,7 @@ public class Application {
     }
 
     // TODO: make [emitEvent] suitable to get string argument
-    public void emitEvent(int type, int target, int arg0, int arg1) {
+    public String emitEvent(int type, int target, int arg0, int arg1) {
         switch (type) {
             case EventType.Click: {
                 break;
@@ -125,6 +125,7 @@ public class Application {
                 break;
             }
         }
+        return "0";
     }
 
     public long start() {

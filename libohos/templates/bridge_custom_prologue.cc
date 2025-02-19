@@ -465,6 +465,8 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     // TODO: hack, fix it!
     if (className == "ViewLoaderApp") {
         className = "Page.App";
+    } else if (className == "EtsHarness") {
+        className = "@koalaui.ets-harness.build.unmemoized.src.Page.EtsHarness";
     } else {
         className = "@koalaui.user.build.unmemoized.src.Page." + className;
     }

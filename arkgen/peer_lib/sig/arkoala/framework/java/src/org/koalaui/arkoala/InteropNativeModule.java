@@ -53,6 +53,7 @@ public class InteropNativeModule {
     static native int     _LoadVirtualMachine(int arg0, String arg1, String arg2);
     static native boolean _RunApplication(int arg0, int arg1);
     static native long    _StartApplication(String appUrl, String appParams);
-    static native void    _EmitEvent(int type, int target, int arg0, int arg1);
+    static native String  _EmitEvent(int type, int target, int arg0, int arg1);
+    static native void    _RestartWith(String page);
 }
 
