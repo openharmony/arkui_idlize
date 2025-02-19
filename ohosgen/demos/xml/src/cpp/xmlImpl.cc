@@ -137,3 +137,9 @@ void GlobalScope_xml_xmlpromises_returnPromiseImpl(const XML_Callback_Opt_Number
         { .tag = INTEROP_TAG_UNDEFINED }
     );
 }
+OH_XML_Point GlobalScope_xml_xmlpromises_getPointImpl() {
+    return {
+        .x = { .tag = INTEROP_TAG_INT32, .i32 = 42 },
+        .y = { .tag = INTEROP_TAG_INT32, .i32 = 88 }
+    };
+}

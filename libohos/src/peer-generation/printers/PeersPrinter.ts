@@ -535,7 +535,7 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
     if (language === Language.TS) {
-        return `new Deserializer(${returnValName}, ${returnValName}.byteLength)`
+        return `new Deserializer(${returnValName}.buffer, ${returnValName}.byteLength)`
     } else if (language === Language.ARKTS) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.JAVA) {
