@@ -28,11 +28,9 @@ import {
 } from "@idlizer/core"
 import {
     IDLEntry,
-    IDLFile,
     isEnum,
     isInterface,
     isSyntheticEntry,
-    linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
@@ -50,7 +48,7 @@ const options = program
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
-    .option('--input-files <files...>', 'Comma-separated list of specific files to process')
+    .option('--input-files <files...>', 'Comma-separated list of specific files to process (space or comma separated)')
     .option('--file-to-package <fileToPackage>', 'Comma-separated list of pairs, what package name should be used for file in format <fileName:packageName>')
     .option('--library-packages <packages>', 'Comma separated list of packages included into library')
     .option('--idl2peer', 'Convert IDL to peer drafts')
@@ -89,6 +87,8 @@ if (options.idl2peer) {
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
 
+    options.inputFiles = processInputFiles(options.inputFiles)
+
     const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
@@ -105,6 +105,8 @@ if (options.idl2peer) {
 if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
+
+    options.inputFiles = processInputFiles(options.inputFiles)
 
     const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
     validatePaths(inputDirs, "dir")
@@ -137,8 +139,8 @@ if (options.dts2peer) {
         (sourceFile, typeChecker) => new IDLVisitor(sourceFile, typeChecker, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile(file: IDLFile, outputDir, sourceFile) {
-                file.entries = file.entries.filter(newEntry =>
+            onSingleFile(entries: IDLEntry[], outputDir, sourceFile) {
+                entries = entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
                             || [newEntry, entry].every(isEnum)
@@ -150,12 +152,12 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
-                file.entries.forEach(it => {
+                entries.forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
-                linkParentBack(file)
 
-                const peerFile = new PeerFile(file)
+                const baseFileName = path.resolve(sourceFile.fileName)
+                const peerFile = new PeerFile(baseFileName, entries)
 
                 idlLibrary.files.push(peerFile)
             },
@@ -173,6 +175,18 @@ if (options.dts2peer) {
 
 if (!didJob) {
     program.help()
+}
+
+function processInputFiles(files: string[] | string | undefined): string[] {
+    if (!files) return []
+    
+    if (Array.isArray(files)) {
+        return files.flatMap(file => 
+            file.includes(',') ? file.split(',').map((f: string) => f.trim()).filter(Boolean) : [file]
+        )
+    }
+    
+    return [files.trim()]
 }
 
 function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
