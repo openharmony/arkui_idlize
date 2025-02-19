@@ -14,7 +14,7 @@
  */
 
 import * as idl from '../../idl'
-import { generatorConfiguration } from "../../config"
+import { generatorConfiguration, generatorTypePrefix } from "../../config"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from "../nameConvertor"
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { InteropArgConvertor } from './InteropConvertors'
@@ -259,7 +259,6 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         if (type == idl.IDLUndefinedType) return 'void'
-        if (type == idl.IDLStringType) return 'void'
         if (type == idl.IDLNumberType) return generatorConfiguration().TypePrefix + 'Int32' // :(
         return this.convertor.convert(type)
     }
@@ -269,7 +268,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     convertTypeReference(type: idl.IDLReferenceType): string {
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return generatorConfiguration().TypePrefix + decl.name
+            return generatorTypePrefix() + decl.name
         }
         return this.convertor.convert(type)
     }
