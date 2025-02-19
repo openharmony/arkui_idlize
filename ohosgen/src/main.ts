@@ -69,7 +69,7 @@ const options = program
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--use-new-ohos', 'Use new ohos generator')
     .option('--enable-log', 'Enable logging')
-    .option('--split-files', 'Experemental feature to store declarations to different files for ohos generator')
+    .option('--split-files', 'Experimental feature to store declarations in different files for ohos generator')
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
     .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
@@ -78,7 +78,8 @@ const options = program
 
 let didJob = false
 let apiVersion = options.apiVersion ?? 9999
-Language.ARKTS.extension = options.arktsExtension as string
+
+options.inputFiles = processInputFiles(options.inputFiles)
 
 setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
 
@@ -114,7 +115,6 @@ if (options.dts2peer) {
     options.docs = "all"
     const idlLibrary = new PeerLibrary(lang, libraryPackages)
     const { interop, root } = scanCommonPredefined()
-    // collect predefined files
     interop.forEach(file => {
         new IDLInteropPredefinesVisitor({
             sourceFile: file.originalFilename,
@@ -135,10 +135,15 @@ if (options.dts2peer) {
         inputDirs,
         inputFiles,
         generatedPeersDir,
-        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options, idlLibrary),
+        (sourceFile, typeChecker) => {
+            const visitor = new IDLVisitor(sourceFile, typeChecker, options, idlLibrary)
+            return {
+                visitWholeFile: () => visitor.visitWholeFile(),
+            }
+        },
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile(file: IDLFile, outputDir, sourceFile) {
+            onSingleFile(file, outputDir, sourceFile) {
                 file.entries = file.entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
@@ -154,13 +159,14 @@ if (options.dts2peer) {
                 file.entries.forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
+
                 linkParentBack(file)
 
                 const peerFile = new PeerFile(file)
 
                 idlLibrary.files.push(peerFile)
             },
-            onEnd(outDir) {
+            onEnd(outDir: string) {
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()
@@ -176,6 +182,31 @@ if (!didJob) {
     program.help()
 }
 
+function processInputFiles(files: string[] | string | undefined): string[] {
+    if (!files) return []
+    
+    const processPath = (path: string) => {
+        const trimmedPath = path.trim()
+        if (!fs.existsSync(trimmedPath)) {
+            console.error(`Input file does not exist: ${trimmedPath}`)
+            return false
+        }
+        return true
+    }
+
+    if (Array.isArray(files) && files.length === 1 && files[0].includes(',')) {
+        const filesList = files[0].split(',').map(f => f.trim()).filter(Boolean)
+        return filesList.filter(processPath)
+    }
+    
+    if (Array.isArray(files)) {
+        return files.map(f => f.trim()).filter(Boolean).filter(processPath)
+    }
+    
+    const filesList = files.split(',').map(f => f.trim()).filter(Boolean)
+    return filesList.filter(processPath)
+}
+
 function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
     generateOhos(outDir, idlLibrary, {
         ...peerGeneratorConfiguration(),
@@ -183,9 +214,10 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
         GenerateUnused: true,
         ApiVersion: apiVersion,
     })
+
     if (options.plugin) {
         loadPlugin(options.plugin)
-            .then(plugin => plugin.process({outDir: outDir}, idlLibrary))
+            .then(plugin => plugin.process({ outDir: outDir }, idlLibrary))
             .then(result => {
                 console.log(`Plugin ${options.plugin} process returned ${result}`)
             })
