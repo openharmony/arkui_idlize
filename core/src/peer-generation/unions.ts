@@ -15,7 +15,7 @@
 
 import { convertType, TypeConvertor } from "../LanguageWriters";
 import { IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
-import { typeOrUnion } from "./idl/common"
+import { collapseTypes } from "./idl/common"
 import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
 import { ArgConvertor, CustomTypeConvertor } from "../LanguageWriters/ArgConvertors";
 import { RuntimeType } from "../LanguageWriters/common";
@@ -123,7 +123,7 @@ export function flattenUnionType(library: LibraryInterface, type: IDLType): IDLT
     if (isUnionType(type)) {
         const allTypes = type.types.flatMap(it => convertType(unionFlattener, it))
         const uniqueTypes = new Set(allTypes)
-        return uniqueTypes.size === allTypes.length ? type : typeOrUnion(Array.from(uniqueTypes))
+        return uniqueTypes.size === allTypes.length ? type : collapseTypes(Array.from(uniqueTypes))
     }
     return type
 }

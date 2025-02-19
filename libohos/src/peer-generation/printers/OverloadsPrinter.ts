@@ -23,12 +23,21 @@ import {
     StringExpression
 } from "../LanguageWriters";
 import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary } from "@idlizer/core"
-import { isDefined, Language, throwException, typeOrUnion } from '@idlizer/core'
+import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { callbackIdByInfo, convertIdlToCallback } from "./EventsPrinter";
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
 
-export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[]): Method {
+function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
+    let returnType: idl.IDLType = collapseTypes(types)
+    if (idl.isUnionType(returnType) && language && (language == Language.ARKTS || language == Language.TS)) {
+        let newTypes = returnType.types.map(it => idl.isVoidType(it) ? idl.IDLUndefinedType : it)
+        returnType = idl.createUnionType(newTypes)
+    }
+    return returnType
+}
+
+export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[], language?: Language): Method {
     if (methods.some(it => it.signature.defaults?.length))
         throw new Error("Can not process defaults in collapsed method")
     const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
@@ -44,10 +53,10 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
                 return true
             }
         })
-        return idl.maybeOptional(typeOrUnion(types, "%PROXY_BEFORE_PEER%"), optional)
+        return idl.maybeOptional(collapseTypes(types, "%PROXY_BEFORE_PEER%"), optional)
     })
 
-    const returnType = typeOrUnion(methods.map(it => it.signature.returnType))
+    const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType), language)
     return new Method(
         methods[0].name,
         new NamedMethodSignature(
@@ -69,7 +78,7 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
     const targets: idl.IDLType[] = Array.from({length: maxArgsLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
             return idl.entityToType(maxMethod.method.signature.args[argIndex])
-        return typeOrUnion(overloads.flatMap(overload => {
+        return collapseTypes(overloads.flatMap(overload => {
             if (overload.method.signature.args.length <= argIndex)
                 return []
             const target = idl.entityToType(overload.method.signature.args[argIndex])
@@ -90,10 +99,12 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
             idl.isOptionalType(method.signature.args[index])
         )
     })
+
+    const returnType = collapseReturnTypes(overloads.map(it => it.returnType), library.language)
     return new PeerMethod(
         overloads[0].originalParentName,
         typeConvertors,
-        overloads[0].returnType,
+        returnType,
         overloads[0].isCallSignature,
         method,
     )
@@ -130,7 +141,7 @@ interface CollapsedMethod {
     returnType: idl.IDLType
 }
 
-export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod {
+export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Language): CollapsedMethod {
     const parameters = zipMany(...methods.map(it => it.parameters))
         .map(it => {
             let defined: idl.IDLParameter | undefined = undefined
@@ -148,7 +159,7 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod
             return idl.createParameter(
                 defined.name,
                 idl.maybeOptional(
-                    typeOrUnion(
+                    collapseTypes(
                         it.filter(it => it !== undefined)
                             .map(it => it as idl.IDLParameter /* rollup problems */)
                             .map(it => it.type)
@@ -160,11 +171,12 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[]): CollapsedMethod
             )
         })
 
+        const returnType = collapseReturnTypes(methods.map(it => it.returnType), language)
         return {
             methods,
             parameters,
             name: methods[0]?.name ?? throwException('No method to collapse'),
-            returnType: methods[0]?.returnType ?? throwException('No method to collapse')
+            returnType: returnType
         }
 }
 
@@ -189,7 +201,7 @@ export class OverloadsPrinter {
                     .reduce((acc, it) => it.runtimeTypes.length + acc, 0)
                 return cardinalityA - cardinalityB
             })
-        const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method))
+        const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method), undefined, this.language)
         if (this.isComponent) {
             this.printer.print(`/** @memo */`)
         }

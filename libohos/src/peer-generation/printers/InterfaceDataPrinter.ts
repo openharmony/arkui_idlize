@@ -16,9 +16,10 @@
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
-import { LayoutNodeRole, PeerLibrary, isMaterialized } from "@idlizer/core";
+import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 import { collectProperties } from "./StructPrinter";
+import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter";
 
 /**
  * Printer for OHOS interfaces
@@ -57,16 +58,14 @@ function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, print
     entry.properties.forEach(prop => {
         printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional)
     })
-    entry.methods.forEach(method => {
-        printer.writeMethodDeclaration(
-            method.name,
-            idl.NamedMethodSignature.make(
-                method.returnType,
-                method.parameters
-                    .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) }))
-            ),
-            toMethodModifiers(method)
-        )
+    const groupedMethods = groupOverloadsIDL(entry.methods)
+    groupedMethods.forEach(methods => {
+        const method = collapseSameMethodsIDL(methods, library.language)
+        const signature = NamedMethodSignature.make(
+            method.returnType,
+            method.parameters
+            .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) })))
+        printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0]))
     })
 }
 

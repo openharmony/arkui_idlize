@@ -23,7 +23,7 @@ import {
     nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
     snakeCaseToCamelCase, escapeIDLKeyword, GenericVisitor,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
-    typeOrUnion, isCommonMethodOrSubclass, generatorConfiguration,
+    collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
     getOrPut
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
@@ -1209,10 +1209,10 @@ export class IDLVisitor implements GenericVisitor<idl.IDLEntry[]> {
         }
         if (types.find(it => it === idl.IDLUndefinedType)) {
             return idl.createOptionalType(
-                typeOrUnion(types.filter(it => it !== idl.IDLUndefinedType))
+                collapseTypes(types.filter(it => it !== idl.IDLUndefinedType))
             )
         }
-        return typeOrUnion(types, selectedUnionName)
+        return collapseTypes(types, selectedUnionName)
     }
 
     serializeProperty(property: ts.TypeElement | ts.ClassElement, nameSuggestion?: NameSuggestion): idl.IDLProperty {

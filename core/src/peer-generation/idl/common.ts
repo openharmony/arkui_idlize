@@ -46,7 +46,7 @@ export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|s
     return idl.forceAsNamedNode(decl).name
 }
 
-export function typeOrUnion(types: idl.IDLType[], name?: string): idl.IDLType {
+export function collapseTypes(types: idl.IDLType[], name?: string): idl.IDLType {
     const seenNames = new Set<string>()
     const uniqueTypes = types.filter(it => {
         const typeName = idl.printType(it)
