@@ -5,6 +5,7 @@ import { nullptr, pointer } from "@koalaui/interop"
 import { ArkRootPeer } from "./generated/peers/ArkStaticComponentsPeer"
 
 export const PeerNodeType = 11
+export const LazyForEachType = 13
 const InitialID = 999
 
 export class PeerNode extends IncrementalNode {
