@@ -243,8 +243,8 @@ class PeerFileVisitor {
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
             `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "@koalaui/interop"`,
             `import { Serializer } from "./Serializer"`,
-            `import { ComponentBase } from "../ComponentBase"`,
-            `import { PeerNode } from "../PeerNode"`
+            `import { ComponentBase } from "../../ComponentBase"`,
+            `import { PeerNode } from "../../PeerNode"`
         ]
         switch (lang) {
             case Language.TS: {

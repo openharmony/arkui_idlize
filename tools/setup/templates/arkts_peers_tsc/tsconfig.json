@@ -28,7 +28,7 @@
     "include": ["generated/arkoala-arkts/arkui/src/**/*.ts"],
 
     "references": [
-        { "path": "../../external/incremental/runtime" },
-        { "path": "../../external/interop" }
+        { "path": "../../../external/incremental/runtime" },
+        { "path": "../../../external/interop" }
     ]
 }

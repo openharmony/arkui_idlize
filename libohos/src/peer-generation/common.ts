@@ -47,7 +47,7 @@ export function writeIntegratedFile(filename: string, content: string, message?:
 export const SyntheticModule = "./SyntheticDeclarations"
 export function HandwrittenModule(language: Language) {
     switch (language) {
-        case Language.TS: return "./handwritten"
+        case Language.TS: return "../handwritten"
         case Language.ARKTS: return "../handwritten"
         default: throw new Error("Not implemented")
     }

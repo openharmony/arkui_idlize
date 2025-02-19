@@ -13,21 +13,21 @@
 * limitations under the License.
 */
 import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { Serializer } from "@arkoala/arkui/peers/Serializer"
-import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
+import { Serializer } from "@arkoala/arkui/generated/peers/Serializer"
+import { Deserializer } from "@arkoala/arkui/generated/peers/Deserializer"
 import { MaterializedBase } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
-import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
-import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
-import { ArkCalendarPickerPeer } from "@arkoala/arkui/peers/ArkCalendarPickerPeer"
-import { ArkFormComponentPeer } from "@arkoala/arkui/peers/ArkFormComponentPeer"
-import { ArkSideBarContainerPeer } from "@arkoala/arkui/peers/ArkSidebarPeer"
-import { ArkSideBarContainerComponent } from "@arkoala/arkui/ArkSidebar"
-import { ArkTabContentPeer } from "@arkoala/arkui/peers/ArkTabContentPeer"
-import { SubTabBarStyle } from "@arkoala/arkui/ArkSubTabBarStyleBuilder"
-import { BottomTabBarStyle } from "@arkoala/arkui/ArkBottomTabBarStyleBuilder"
+import { checkArkoalaCallbacks } from "@arkoala/arkui/generated/peers/CallbacksChecker"
+import { ArkButtonPeer } from "@arkoala/arkui/generated/peers/ArkButtonPeer"
+import { ArkCommonPeer } from "@arkoala/arkui/generated/peers/ArkCommonPeer"
+import { ArkCalendarPickerPeer } from "@arkoala/arkui/generated/peers/ArkCalendarPickerPeer"
+import { ArkFormComponentPeer } from "@arkoala/arkui/generated/peers/ArkFormComponentPeer"
+import { ArkSideBarContainerPeer } from "@arkoala/arkui/generated/peers/ArkSidebarPeer"
+import { ArkSideBarContainerComponent } from "@arkoala/arkui/generated/ArkSidebar"
+import { ArkTabContentPeer } from "@arkoala/arkui/generated/peers/ArkTabContentPeer"
+import { SubTabBarStyle } from "@arkoala/arkui/generated/ArkSubTabBarStyleBuilder"
+import { BottomTabBarStyle } from "@arkoala/arkui/generated/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
-import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/ArkCanvasRenderingContext2DMaterialized"
+import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/generated/ArkCanvasRenderingContext2DMaterialized"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
 import {
@@ -35,8 +35,8 @@ import {
     CommonMethod_onChildTouchTest_event,
     List_onScrollVisibleContentChange_event,
     TextPicker_onAccept_event
-} from "./peer_events"
-import { TouchTestInfo, BackgroundBlurStyleOptions } from "./ArkCommonInterfaces"
+} from "./generated/peer_events"
+import { TouchTestInfo, BackgroundBlurStyleOptions } from "./generated/ArkCommonInterfaces"
 // imports required interfaces (now generation is disabled)
 // import { Resource, BackgroundBlurStyleOptions, TouchTestInfo } from "@arkoala/arkui"
 
@@ -53,11 +53,11 @@ import {
     startNativeTest,
     stopNativeTest,
 } from "./test_utils"
-import { PixelMapInternal } from "@arkoala/arkui/ArkPixelMapMaterialized"
+import { PixelMapInternal } from "@arkoala/arkui/generated/ArkPixelMapMaterialized"
 import { ArkUINativeModule, TestNativeModule } from "@koalaui/arkoala"
-import { ArkUIGeneratedNativeModule } from "./ArkUIGeneratedNativeModule"
+import { ArkUIGeneratedNativeModule } from "./generated/ArkUIGeneratedNativeModule"
 import { mkdirSync, writeFileSync } from "fs"
-import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
+import { CallbackKind } from "@arkoala/arkui/generated/peers/CallbackKind"
 import { ResourceId, ResourceHolder } from "@koalaui/interop"
 
 if (!reportTestFailures) {

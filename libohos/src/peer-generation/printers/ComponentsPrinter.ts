@@ -81,7 +81,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeatures(['int32', 'float32'], '@koalaui/common')
             imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
-            imports.addFeature('ComponentBase', './ComponentBase')
+            imports.addFeature('ComponentBase', '../ComponentBase')
             this.populateImports(imports)
 
             if (peer.originalParentFilename) {

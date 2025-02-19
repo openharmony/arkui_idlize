@@ -2,7 +2,7 @@ import { int32 } from "@koalaui/common"
 import { IncrementalNode } from "@koalaui/runtime"
 import { NativePeerNode } from "./NativePeerNode"
 import { nullptr, pointer } from "@koalaui/interop"
-import { ArkRootPeer } from "./peers/ArkStaticComponentsPeer"
+import { ArkRootPeer } from "./generated/peers/ArkStaticComponentsPeer"
 
 export const PeerNodeType = 11
 const InitialID = 999

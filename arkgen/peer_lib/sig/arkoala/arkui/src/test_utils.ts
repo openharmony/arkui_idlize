@@ -1,4 +1,3 @@
-import { ArkUINativeModule } from "@koalaui/arkoala"
 import { withStringResult, InteropNativeModule } from "@koalaui/interop"
 
 export const TEST_GROUP_LOG = 1

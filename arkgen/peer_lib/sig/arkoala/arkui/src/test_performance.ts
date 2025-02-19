@@ -14,7 +14,7 @@
  */
 
 import { ArkUINativeModule } from "@koalaui/arkoala"
-import { ArkCommonPeer } from "@arkoala/arkui/peers/ArkCommonPeer"
+import { ArkCommonPeer } from "@arkoala/arkui/generated/peers/ArkCommonPeer"
 // imports required intarfaces (now generation is disabled)
 // import { NavigationTitleMode } from "@arkoala/arkui/ArkNavigationInterfaces"
 
