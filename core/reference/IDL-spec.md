@@ -68,9 +68,8 @@ Primitive types and the most common generic containers are available in their li
     3. i32 / u32  
     4. i64 / u64  
 4. **Real numbers:**  
-    1. f16  
-    2. f32  
-    3. f64  
+    1. f32
+    2. f64
 5. number / bigint  
 6. String  
 7. buffer   
