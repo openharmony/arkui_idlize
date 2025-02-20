@@ -21,25 +21,25 @@ OH_XML_XmlSerializerHandle XmlSerializer_constructImpl(const OH_Buffer* buffer, 
 }
 void XmlSerializer_destructImpl(OH_XML_XmlSerializerHandle thiz) {
 }
-void XmlSerializer_setAttributesImpl(OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+void XmlSerializer_setAttributesImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
 }
-void XmlSerializer_addEmptyElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+void XmlSerializer_addEmptyElementImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
 }
 void XmlSerializer_setDeclarationImpl(OH_NativePointer thisPtr) {
 }
-void XmlSerializer_startElementImpl(OH_NativePointer thisPtr, const OH_String* name) {
+void XmlSerializer_startElementImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
 }
 void XmlSerializer_endElementImpl(OH_NativePointer thisPtr) {
 }
-void XmlSerializer_setNamespaceImpl(OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+void XmlSerializer_setNamespaceImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
 }
-void XmlSerializer_setCommentImpl(OH_NativePointer thisPtr, const OH_String* text) {
+void XmlSerializer_setCommentImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
 }
-void XmlSerializer_setCDATAImpl(OH_NativePointer thisPtr, const OH_String* text) {
+void XmlSerializer_setCDATAImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
 }
-void XmlSerializer_setTextImpl(OH_NativePointer thisPtr, const OH_String* text) {
+void XmlSerializer_setTextImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
 }
-void XmlSerializer_setDocTypeImpl(OH_NativePointer thisPtr, const OH_String* text) {
+void XmlSerializer_setDocTypeImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
 }
 OH_XML_ParseInfoHandle ParseInfo_constructImpl() {
     return {};
@@ -91,7 +91,7 @@ void temp_release(int resId) {}
 void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
 void temp_call_sync(const OH_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
-void XmlPullParser_parseImpl(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
+void XmlPullParser_parseImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
     ExpatParser* parser = (ExpatParser*) thisPtr;
     if (option->tagValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setTagValueCallback([&](const char* name, const char* value) {
@@ -129,7 +129,7 @@ void XmlPullParser_parseImpl(OH_NativePointer thisPtr, const OH_XML_ParseOptions
     parser->parse();
     parser->reset();
 }
-void XmlPullParser_parseXmlImpl(OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
+void XmlPullParser_parseXmlImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
 }
 void GlobalScope_xml_xmlpromises_returnPromiseImpl(const XML_Callback_Opt_Number_Opt_Array_String_Void* out) {
     out->call(out->resource.resourceId,

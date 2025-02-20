@@ -330,12 +330,13 @@ export enum FieldModifier {
 export enum MethodModifier {
     PUBLIC,
     PRIVATE,
+    PROTECTED,
     STATIC,
     NATIVE,
     INLINE,
     GETTER,
     SETTER,
-    PROTECTED,
+    THROWS,
     FREE, // not a member of interface/class
 }
 

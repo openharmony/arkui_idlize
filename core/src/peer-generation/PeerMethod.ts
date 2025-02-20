@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { IDLType } from "../idl"
 import { IdlNameConvertor } from "../LanguageWriters"
 import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
@@ -81,7 +82,10 @@ export class PeerMethod {
             return `${isPointer ? "const ": ""}${converter.convert(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
         })
         const receiver = this.generateReceiver()
-        if (receiver) return [`${receiver.argType} ${receiver.argName}`, ...args]
+        if (receiver)
+            args.unshift(`${receiver.argType} ${receiver.argName}`)
+        if (this.method.modifiers?.includes(MethodModifier.THROWS))
+            args.unshift(`${generatorTypePrefix()}VMContext vmContext`)
         return args
     }
 

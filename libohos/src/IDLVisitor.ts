@@ -443,7 +443,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private pushImportFor(node: ts.Node, clause: string[], name?: string) {
         const extendedAttributes:idl.IDLExtendedAttribute[] = []
         this.computeDeprecatedExtendAttributes(node, extendedAttributes)
-        this.computeExportAttribute(node, extendedAttributes)
         this.imports.push(idl.createImport(
             clause,
             name,
@@ -567,7 +566,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 return this.serializeTupleType(node.type.type, nameSuggestion, node.typeParameters, true)
             }
         }
-        this.computeExportAttribute(node, extendedAttributes)
         return idl.createTypedef(
             nameSuggestion.name,
             this.serializeType(node.type, nameSuggestion),
@@ -622,9 +620,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             const isNamedTuple = node.elements.some(it => ts.isNamedTupleMember(it))
             entity = isNamedTuple ? idl.IDLEntity.NamedTuple : idl.IDLEntity.Tuple
         }
-        const result:idl.IDLExtendedAttribute[] = [{ name: idl.IDLExtendedAttributes.Entity, value: entity }]
-        this.computeExportAttribute(node, result)
-        return result
+        return [{ name: idl.IDLExtendedAttributes.Entity, value: entity }]
     }
 
     computeComponentExtendedAttributes(node: ts.ClassDeclaration | ts.InterfaceDeclaration): idl.IDLExtendedAttribute[] | undefined {
@@ -636,7 +632,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
             result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${peerGeneratorConfiguration().mapComponentName(name)}"` })
         }
-        this.computeExportAttribute(node, result)
         return this.computeDeprecatedExtendAttributes(node, result)
     }
 
@@ -676,11 +671,13 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return extendedAttributes
     }
 
-    computeExportAttribute(node: ts.Node, attributes: idl.IDLExtendedAttribute[] = []): idl.IDLExtendedAttribute[] {
+    computeThrowsAttribute(sourceFile: ts.SourceFile, node: ts.Node, attributes: idl.IDLExtendedAttribute[]): idl.IDLExtendedAttribute[] {
+        const docs = getComment(sourceFile, node)
+        if (docs.includes("@throws")) {
+            attributes.push({name: idl.IDLExtendedAttributes.Throws})
+        }
         return attributes
     }
-
-
 
     /** Serialize a class information */
     serializeClass(node: ts.ClassDeclaration): idl.IDLInterface {
@@ -899,9 +896,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     serializeEnum(node: ts.EnumDeclaration): idl.IDLEnum {
-        const extendedAttributes:idl.IDLExtendedAttribute[] = []
-        this.computeDeprecatedExtendAttributes(node, extendedAttributes)
-        this.computeExportAttribute(node, extendedAttributes)
+        const extendedAttributes:idl.IDLExtendedAttribute[] = this.computeDeprecatedExtendAttributes(node)
         let names = nameEnumValues(node)
         const result = idl.createEnum(
             ts.idText(node.name),
@@ -1448,11 +1443,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     /** Serialize a signature (call or construct) */
     serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, nameSuggestion: NameSuggestion | undefined, isFree: boolean = false): idl.IDLMethod {
-        const extendedAttributes: idl.IDLExtendedAttribute[] = []
-        this.computeDeprecatedExtendAttributes(method, extendedAttributes)
-        this.computeExportAttribute(method, extendedAttributes)
+        const extendedAttributes = this.computeDeprecatedExtendAttributes(method)
+        this.computeThrowsAttribute(this.sourceFile, method, extendedAttributes)
         let [methodName, escapedMethodName] = escapeName(nameOrNull(method.name) ?? "_unknown")
         let dtsNameAttributeAccounted: boolean = !!extendedAttributes.find(ea => ea.name == idl.IDLExtendedAttributes.DtsName)
+        const documentation = getDocumentation(this.sourceFile, method, this.options.docs)
         const methodParameters = method.parameters.filter((param, paramIndex) : boolean => {
             const paramName = nameOrNull(param.name)
             if (!paramName || !param.type)
@@ -1532,8 +1527,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     isAsync: false,
                     isFree,
                 }, {
-                    extendedAttributes: extendedAttributes,
-                    documentation: getDocumentation(this.sourceFile, method, this.options.docs),
+                    extendedAttributes,
+                    documentation,
                     fileName: method.getSourceFile().fileName,
                 })
         }
@@ -1548,9 +1543,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             isAsync: isAsync(method.modifiers),
             isFree,
         }, {
-            extendedAttributes: extendedAttributes,
-            documentation: getDocumentation(this.sourceFile, method, this.options.docs),
-                fileName: method.getSourceFile().fileName,
+            extendedAttributes,
+            documentation,
+            fileName: method.getSourceFile().fileName,
         }, this.collectTypeParameters(method.typeParameters))
     }
 

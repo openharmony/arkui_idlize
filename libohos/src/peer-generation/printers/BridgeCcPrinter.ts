@@ -16,6 +16,7 @@
 import {
     capitalize,
     dropSuffix,
+    generatorTypePrefix,
     isDefined,
     Language,
     PeerMethod,
@@ -33,9 +34,8 @@ import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
-import { isGlobalScope } from '../idl/IdlPeerGeneratorVisitor';
 
-class BridgeCcVisitor {
+export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
     private readonly returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
@@ -71,20 +71,22 @@ class BridgeCcVisitor {
     }
 
     protected printAPICall(method: PeerMethod, modifierName?: string) {
-        const hasReceiver = method.hasReceiver()
         const argAndOutConvertors = method.argAndOutConvertors
         const isVoid = this.returnTypeConvertor.isVoid(method)
         const modifier = this.generateApiCall(method, modifierName)
         const peerMethod = this.getPeerMethodName(method)
-        const receiver = hasReceiver ? [this.getReceiverArgName()] : []
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
-        const args = receiver.concat(argAndOutConvertors.map(it => this.generateApiArgument(it))).join(", ")
+        const args = argAndOutConvertors.map(it => this.generateApiArgument(it))
+        if (method.hasReceiver())
+            args.unshift(this.getReceiverArgName())
+        if (method.method.modifiers?.includes(idl.MethodModifier.THROWS))
+            args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(method)
         const field = this.getApiCallResultField(method)
         let statements: string[];
         // TODO: It is necessary to implement value passing to vm
-        const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args})${field}`
+        const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args.join(", ")})${field}`
         if (idl.isCallback(this.library.toDeclaration(method.returnType))
             || idl.IDLContainerUtils.isSequence(method.returnType)) {
             statements = [
@@ -207,8 +209,9 @@ class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const returnsVoid = this.returnTypeConvertor.isVoid(method);
-        return `${returnsVoid ? 'V' : ''}${argumentsCount}`
+        const ctxSuffix = method.method.modifiers?.includes(idl.MethodModifier.THROWS) ? 'CTX_' : ''
+        const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
+        return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
 
     private generateCParameters(method: PeerMethod): [string, string][] {
@@ -235,6 +238,8 @@ class BridgeCcVisitor {
         const argTypesAndNames = this.generateCParameters(method);
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
+        if (method.method.modifiers?.includes(idl.MethodModifier.THROWS))
+            argDecls.unshift("KVMContext vmContext")
         this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()
         this.printNativeBody(method, modifierName)
@@ -315,82 +320,10 @@ class BridgeCcVisitor {
     }
 }
 
-// TODO commonize this piece of code
-class OhosBridgeCcVisitor extends BridgeCcVisitor {
-    protected generateApiCall(method: PeerMethod, modifierName?: string): string {
-        // TODO: may be need some translation tables?
-        let clazz = modifierName ?? dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
-        return capitalize(clazz) + "()"
-    }
-
-    protected getApiCall(method: PeerMethod): string {
-        const libName = this.library.name;
-        return `Get${libName}APIImpl(${libName}_API_VERSION)`
-    }
-
-
-    protected getReceiverArgName(): string {
-        return "thisPtr"
-    }
-
-    protected printReceiverCastCall(method: PeerMethod) {
-        // OHOS API does not need to cast native pointer at this moment
-    }
-
-    protected getPeerMethodName(method: PeerMethod): string {
-        switch (method.peerMethodName) {
-            case "ctor": return "construct"
-            case "getFinalizer": return "destruct"
-            default: return method.peerMethodName
-        }
-    }
-
-    protected printAPICall(method: PeerMethod, modifierName?: string) {
-        if (method.peerMethodName == "getFinalizer") {
-            const modifier = this.generateApiCall(method, modifierName)
-            const peerMethod = this.getPeerMethodName(method)
-            const apiCall = this.getApiCall(method)
-            const call = `return (${PrimitiveTypesInstance.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
-            this.generatedApi.print(call)
-        } else {
-            super.printAPICall(method, modifierName)
-        }
-    }
-
-    protected getApiCallResultField(method: PeerMethod): string {
-        // TODO Remove this workaround for case when number is replaced with int32
-        if (method.method.signature.returnType === IDLNumberType) {
-            return ".i32"
-        } else {
-            return super.getApiCallResultField(method)
-        }
-
-    }
-
-    protected printMaterializedClass(clazz: MaterializedClass) {
-        const isGlobal = isGlobalScope(clazz.decl);
-        const modifierName = isGlobal ? capitalize(this.library.name) : "";
-        for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
-            if (!method) continue
-            if (isGlobal) {
-                this.printMethod(method, modifierName);
-            } else {
-                this.printMethod(method);
-            }
-        }
-    }
-}
-
-type BridgeCcApi = {
+export type BridgeCcApi = {
     generated: LanguageWriter;
     custom: LanguageWriter;
 };
-
-export function printBridgeCcForOHOS(peerLibrary: PeerLibrary): BridgeCcApi {
-    const visitor = new OhosBridgeCcVisitor(peerLibrary, false)
-    visitor.print()
-    return { generated: visitor.generatedApi, custom: visitor.customApi }
-}
 
 export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): BridgeCcApi {
     const visitor = new BridgeCcVisitor(peerLibrary, callLog)

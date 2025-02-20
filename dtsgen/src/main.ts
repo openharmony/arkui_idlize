@@ -88,12 +88,6 @@ if (options.dts2idl) {
 
                 console.log("saved", outFile)
 
-                if (options.skipDocs) {
-                    file.entries.forEach(entry =>
-                        forEachChild(entry, it => (it.documentation = undefined))
-                    )
-                }
-
                 const generated = toIDLString(file.entries, {
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })

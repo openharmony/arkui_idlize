@@ -80,6 +80,7 @@ export enum IDLExtendedAttributes {
     Predefined = "Predefined",
     Protected = "Protected",
     Synthetic = "Synthetic",
+    Throws = "Throws",
     TSType = "TSType",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",

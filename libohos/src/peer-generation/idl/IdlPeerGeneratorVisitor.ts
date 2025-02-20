@@ -204,7 +204,6 @@ class PeersGenerator {
         // E.g. ButtonInterface instead of ButtonAttribute
         const isCallSignature = idl.isCallable(method)
         const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
-        const isStatic = idl.isMethod(method) && (method.isStatic || method.isFree)
         const retType = method.returnType!
         const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
         const originalParentName = parentName ?? peer.originalClassName!
@@ -215,7 +214,7 @@ class PeersGenerator {
             argConvertors,
             isThisRet ? idl.IDLVoidType : retType,
             isCallSignature,
-            new Method(methodName!, signature, isStatic ? [MethodModifier.STATIC] : []),
+            new Method(methodName!, signature, getMethodModifiers(method)),
             createOutArgConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))
     }
 
@@ -361,8 +360,7 @@ export class IdlPeerProcessor {
             method.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
             method.parameters.map(it => it.name)
         )
-        const modifiers = isStatic ? [MethodModifier.STATIC] : []
-        return new Method(methodName, signature, modifiers/*, generics*/)
+        return new Method(methodName, signature, getMethodModifiers(method))
     }
 
     private processMaterialized(decl: idl.IDLInterface, isGlobalScope = false) {
@@ -460,12 +458,10 @@ export class IdlPeerProcessor {
         const methodTypeParams = idl.getExtAttribute(method, idl.IDLExtendedAttributes.TypeParameters)
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
-        const isStatic = idl.isConstructor(method) || (idl.isMethod(method) && (method.isStatic || method.isFree))
-        const modifiers = isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, implemenationParentName, argConvertors, returnType, false,
             new Method(methodName,
                 signature,
-                modifiers,
+                getMethodModifiers(method),
                 methodTypeParams !== undefined ? [methodTypeParams] : undefined),
             outArgConvertor
         )
@@ -643,4 +639,13 @@ function initCustomBuilderClasses() {
             ]
         )
     )
+}
+
+function getMethodModifiers(method: idl.IDLMethod | idl.IDLConstructor | idl.IDLCallable): MethodModifier[] {
+    const modifiers = []
+    if (idl.isConstructor(method) || (idl.isMethod(method) && (method.isStatic || method.isFree)))
+        modifiers.push(MethodModifier.STATIC)
+    if (idl.hasExtAttribute(method, idl.IDLExtendedAttributes.Throws))
+        modifiers.push(MethodModifier.THROWS)
+    return modifiers
 }

@@ -209,12 +209,10 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    const PREDEFINED_PATH = path.join(__dirname, "..", "predefined")
     const { inputFiles, inputDirs } = formatInputPaths(options)
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
 
-    options.docs = "all"
     const idlLibrary = new ArkoalaPeerLibrary(lang, options.libraryPackages)
     // collect predefined files
     const { interop, root } = scanCommonPredefined()
