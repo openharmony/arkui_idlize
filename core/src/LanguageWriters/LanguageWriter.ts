@@ -436,6 +436,7 @@ export interface PrinterLike {
 ////////////////////////////////////////////////////////////////
 
 export abstract class LanguageWriter {
+    protected namespaceStack: string[] = []
     constructor(
         public printer: IndentedPrinter,
         public resolver: ReferenceResolver, // TODO make protected again
@@ -844,6 +845,7 @@ export abstract class LanguageWriter {
      * Writes closing brace of namespace block and removes one level of indent
      */
     popNamespace(ident: boolean = true) { // TODO: namespace-related-to-rework
+        this.namespaceStack.pop()
         if (ident) this.popIndent()
         this.print(`}`)
     }

@@ -151,6 +151,7 @@ export class TSLanguageWriter extends LanguageWriter {
     maybeSemicolon() { return "" }
 
     pushNamespace(namespace: string, ident: boolean = true): void {
+        this.namespaceStack.push(namespace)
         this.print(`export namespace ${namespace} {`)
         if (ident) this.pushIndent()
     }
@@ -160,7 +161,14 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     getNodeName(type: idl.IDLNode): string {
-        return this.typeConvertor.convert(type)
+        // just stub.
+        // language writers and name convertors are subject to rework for namespaces
+        const row = this.typeConvertor.convert(type)
+        const nsPrefix = this.namespaceStack.join('.') + '.'
+        if (row.startsWith(nsPrefix)) {
+            return row.substring(nsPrefix.length)
+        }
+        return row
     }
 
     writeClass(
