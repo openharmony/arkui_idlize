@@ -204,6 +204,7 @@ class PeersGenerator {
         // E.g. ButtonInterface instead of ButtonAttribute
         const isCallSignature = idl.isCallable(method)
         const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
+        const isStatic = idl.isMethod(method) && (method.isStatic || method.isFree)
         const retType = method.returnType!
         const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
         const originalParentName = parentName ?? peer.originalClassName!
@@ -214,7 +215,7 @@ class PeersGenerator {
             argConvertors,
             isThisRet ? idl.IDLVoidType : retType,
             isCallSignature,
-            new Method(methodName!, signature, method.isStatic ? [MethodModifier.STATIC] : []),
+            new Method(methodName!, signature, isStatic ? [MethodModifier.STATIC] : []),
             createOutArgConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))
     }
 
@@ -353,14 +354,14 @@ export class IdlPeerProcessor {
         if (!method)
             return new Method("constructor", new NamedMethodSignature(idl.IDLVoidType))
         const methodName = idl.isConstructor(method) ? "constructor" : method.name
-        const isStatic = idl.isConstructor(method) || (idl.isMethod(method) && method.isStatic)
+        const isStatic = idl.isConstructor(method) || (idl.isMethod(method) && (method.isStatic || method.isFree))
         // const generics = method.typeParameters?.map(it => it.getText())
         const signature = new NamedMethodSignature(
             isStatic ? method.returnType! : idl.IDLThisType,
             method.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
             method.parameters.map(it => it.name)
         )
-        const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
+        const modifiers = isStatic ? [MethodModifier.STATIC] : []
         return new Method(methodName, signature, modifiers/*, generics*/)
     }
 
@@ -459,7 +460,8 @@ export class IdlPeerProcessor {
         const methodTypeParams = idl.getExtAttribute(method, idl.IDLExtendedAttributes.TypeParameters)
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
-        const modifiers = idl.isConstructor(method) || method.isStatic ? [MethodModifier.STATIC] : []
+        const isStatic = idl.isConstructor(method) || (idl.isMethod(method) && (method.isStatic || method.isFree))
+        const modifiers = isStatic ? [MethodModifier.STATIC] : []
         return new MaterializedMethod(decl.name, implemenationParentName, argConvertors, returnType, false,
             new Method(methodName,
                 signature,

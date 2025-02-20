@@ -15,6 +15,7 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import * as path from "path";
+import * as fs from "fs";
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
@@ -26,10 +27,16 @@ export default {
         format: "commonjs",
         sourcemap: ENABLE_SOURCE_MAPS,
         sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-            // For some reason Rollup adds extra ../ to relativeSourcePath, remove it
-            let absolute = path.join(sourcemapPath, relativeSourcePath);
-            let relative = path.relative(path.dirname(sourcemapPath), absolute);
-            return relative
+            const sourcemapDir = path.dirname(sourcemapPath)
+            let absolute = path.join(sourcemapDir, relativeSourcePath);
+            if(fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
+            absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
+            if(fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
+            return relativeSourcePath
         },
         plugins: [
             // terser()

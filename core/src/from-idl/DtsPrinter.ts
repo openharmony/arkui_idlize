@@ -97,6 +97,7 @@ import {
 import * as webidl2 from "webidl2"
 import { resolveSyntheticType, toIDLNode } from "./deserialize"
 import { Language } from "../Language"
+import { warn } from "../util"
 
 export class CustomPrintVisitor {
     output: string[] = []
@@ -210,8 +211,7 @@ export class CustomPrintVisitor {
         }
     }
 
-    // TODO: namespace-related-to-rework: drop 'isGlobal'
-    printMethod(node: IDLMethod | IDLConstructor | IDLCallable, isGlobal: boolean = false) {
+    printMethod(node: IDLMethod | IDLConstructor | IDLCallable, forceAsFree: boolean = false) {
         const returnType = node.returnType && !(isConstructor(node) && this.currentInterface!.subkind === IDLInterfaceSubkind.Class)
             ? `: ${this.printTypeForTS(node.returnType, true)}` : ""
         const name = isConstructor(node)
@@ -220,12 +220,14 @@ export class CustomPrintVisitor {
         const typeParams = (node.typeParameters && node.typeParameters.length > 0) ? `<${node.typeParameters.join(",")}>` : ""
         let preamble = ""
         if (!isCallable(node)) {
-            const isStatic = isMethod(node) && node.isStatic && !node.isFree
+            let isStatic = isMethod(node) && node.isStatic
             const isProtected = hasExtAttribute(node, IDLExtendedAttributes.Protected)
             const isOptional = isMethod(node) && node.isOptional
-            const isFree = isMethod(node) && node.isFree
-            if (isGlobal && !isFree) // TODO: namespace-related-to-rework
-                throw new Error("internal error")
+            let isFree = isMethod(node) && node.isFree
+            if (forceAsFree) {
+                isStatic = false
+                isFree = true
+            }
             const inNamespace = getNamespacesPathFor(node).length > 0
             preamble = `${isFree ? `${isInNamespace(node) ? "" : "declare "}function `: ""}${isProtected ? "protected " : ""}${isStatic ? "static " : ""}${name}${isOptional ?"?":""}`
         }
@@ -280,7 +282,8 @@ export class CustomPrintVisitor {
             let definition = this.resolver(createReferenceType(node))
             // TODO: handle namespace case better!
             // TODO: namespace-related-to-rework
-            throw new Error("not implemented yet")
+            //throw new Error("not implemented yet")
+            warn("Typedef-with-Import is not implemented yet")
             // if (definition && !isTypedef(definition) && !hasExtAttribute(definition, IDLExtendedAttributes.Namespace)) {
             //     console.log(`Has better definition for ${node.name}: ${definition.fileName} ${definition.kind}`)
             //     return

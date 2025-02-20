@@ -247,7 +247,16 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     bucket[0].push(entry)
                     return false;
                 } else if (idl.isMethod(entry)) {
-                    bucket[1].push(entry)
+                    const clone = idl.createMethod(
+                        entry.name,
+                        entry.parameters,
+                        entry.returnType,
+                        entry,
+                        entry,
+                        entry.typeParameters)
+                    clone.isStatic = true
+                    clone.isFree = false
+                bucket[1].push(clone)
                     return false;
                 } else if (idl.isNamespace(entry)) {
                     entry.members = filter(entry.members, entry)
@@ -484,8 +493,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 this.pushImportFor(node, modulePackage.clause, namedBindings.name.getText())
             } else if (ts.isNamedImports(namedBindings)) {
                 if (name) {
-                    // throw new Error(`what is this case: import ${namedBindings.parent.getText()}`)
-
+                    throw new Error(`what is this case: import ${namedBindings.parent.getText()}`)
                 }
                 for(const element of namedBindings.elements) {
                     const aliasName = element.name.getText()
@@ -1535,7 +1543,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             escapedMethodName,
             methodParameters.map(it => this.serializeParameter(it, nameSuggestion)),
             returnType, {
-            isStatic: isFree || isStatic(method.modifiers),
+            isStatic: isStatic(method.modifiers),
             isOptional: !!method.questionToken,
             isAsync: isAsync(method.modifiers),
             isFree,
