@@ -185,16 +185,7 @@
             "SheetDismiss",
             "SubTabBarStyle",
             "TextPickerDialog",
-            "Dimension",
-            "ScaleSymbolEffect",
-            "ReplaceSymbolEffect",
-            "BaseShape",
-            "RectShape",
-            "EllipseShape",
-            "CircleShape",
-            "BusinessError",
-            "Error",
-            "ErrorCallback"
+            "Dimension"
         ],
         "ignoreComponents": [
             "Particle",
@@ -227,6 +218,7 @@
         "ignore": [
             "Array",
             "Callback",
+            "ErrorCallback",
             "Length",
             "AttributeModifier",
             "Number",
