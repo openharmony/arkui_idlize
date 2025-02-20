@@ -23,7 +23,8 @@ import {
     assertValidPeer,
     AstNode,
     Es2pandaAstNodeType,
-    KNativePointer
+    KNativePointer,
+    nodeByType
 } from "../../reexport-for-generated"
 
 %GENERATED_PART%

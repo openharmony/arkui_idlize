@@ -83,6 +83,7 @@ export class PeerPrinter {
     private visit(): void {
         this.printPeer()
         this.printTypeGuard()
+        this.printAddToNodeMap()
     }
 
     private printPeer(): void {
@@ -336,7 +337,7 @@ export class PeerPrinter {
                     create.name
                 ),
                 new MethodSignature(
-                    this.optionalIfAst(create.returnType),
+                    create.returnType,
                     create.parameters
                         .slice(1)
                         .map(it => it.type)
@@ -421,6 +422,17 @@ export class PeerPrinter {
                     )
                 )
             }
+        )
+    }
+
+    private printAddToNodeMap(): void {
+        if (isAbstract(this.node)) {
+            return
+        }
+        this.writer.writeExpressionStatements(
+            this.writer.makeString(`if (!nodeByType.has(${nodeType(this.node)})) {`),
+            this.writer.makeString(`    nodeByType.set(${nodeType(this.node)}, ${this.node.name})`),
+            this.writer.makeString(`}`)
         )
     }
 }
