@@ -107,14 +107,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             classTypeParameters = ["T extends Object"]
         }
 
-        const ns = idl.getNamespaceName(clazz.decl)
-        if (ns !== '') {
-            printer.pushNamespace(ns)
-        }
-
+        const nsPath = idl.getNamespacesPathFor(clazz.decl)
+        nsPath.forEach(it => printer.pushNamespace(it.name))
         if (clazz.isInterface) {
             if (printer.language == Language.CJ || printer.language == Language.JAVA) {
-                printer.writeInterface(clazz.className, writer => {})
+                printer.writeInterface(clazz.className, () => {})
             } else if (this.library.name === 'arkoala') {
                 writeInterface(clazz.decl, printer)
             }
@@ -329,10 +326,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             }
 
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
-
-        if (ns !== '') {
-            printer.popNamespace()
-        }
+        nsPath.forEach(() => printer.popNamespace())
     }
 }
 
@@ -545,6 +539,9 @@ function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
             writer.writeFieldDeclaration(p.name, p.type, modifiers, p.isOptional)
         }
         for (const m of decl.methods) {
+            if (m.isStatic) {
+                continue
+            }
             writer.writeMethodDeclaration(m.name,
                 new NamedMethodSignature(
                     m.returnType,
