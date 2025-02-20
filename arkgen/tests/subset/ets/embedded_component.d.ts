@@ -27,7 +27,7 @@ declare interface TerminationInfo {
 
 declare class EmbeddedComponentAttribute extends CommonMethod<EmbeddedComponentAttribute> {
    onTerminated(callback: import('../api/@ohos.base').Callback<TerminationInfo>): EmbeddedComponentAttribute;
-   onError(callback: import('../api/@ohos.base').ErrorCallback): EmbeddedComponentAttribute;
+   onError(callback: ErrorCallback): EmbeddedComponentAttribute;
 }
 
 declare const EmbeddedComponent: EmbeddedComponentInterface;
