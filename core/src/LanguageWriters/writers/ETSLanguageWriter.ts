@@ -78,7 +78,8 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     constructor(private readonly enumEntity: IDLEnum, private readonly isExport: boolean) {}
 
     write(writer: LanguageWriter) {
-        const enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
+        let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
+        enumName = enumName.split('.').at(-1)!
         const members
             = this.enumEntity.elements
             .flatMap((member, index) => {
@@ -113,7 +114,11 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 }
                 return res
             })
+
+        const nss = idl.getNamespacesPathFor(this.enumEntity)
+        nss.forEach(it => writer.pushNamespace(it.name))
         writer.writeEnum(enumName, members)
+        nss.forEach(() => writer.popNamespace())
     }
 }
 

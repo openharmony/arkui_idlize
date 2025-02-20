@@ -43,14 +43,6 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         }
         return typeName
     }
-    convertEnum(node: idl.IDLEnum): string {
-        let ns = idl.getNamespaceName(node).split('.').join('_')
-        if (ns !== '') {
-            ns += '_'
-        }
-        return ns + node.name
-    }
-
     override convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
             switch (type.elementType[0]) {

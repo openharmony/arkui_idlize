@@ -111,7 +111,7 @@ class TsLayout extends CommonLayoutBase {
                 return `peers/${this.prefix}${toFileName(node.name)}Peer`
             }
         }
-        return `CommonPeer`
+        throw new Error(`Can not resolve`)
     }
 
     private selectGlobal(node:idl.IDLEntry): string {

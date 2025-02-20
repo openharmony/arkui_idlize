@@ -29,10 +29,10 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return node.name
+        return idl.getFQName(node)
     }
     convertEnum(node: idl.IDLEnum): string {
-        return node.name
+        return idl.getFQName(node)
     }
     convertTypedef(node: idl.IDLTypedef): string {
         return node.name

@@ -207,7 +207,7 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
 
     collectDeclDependencies(library, entry, collector)
 
-    if (library.language === idl.Language.TS) {
+    if ([idl.Language.TS, idl.Language.ARKTS].includes(library.language)) {
         const ns = idl.getNamespaceName(entry)
         if (ns !== '') {
             printer.pushNamespace(ns)
@@ -220,17 +220,6 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
         if (ns !== '') {
             printer.popNamespace()
         }
-    }
-    if (library.language === idl.Language.ARKTS) {
-        let ns = idl.getNamespaceName(entry).split('.').join('_')
-        if (ns !== '') {
-            ns += '_'
-        }
-        printer.writeEnum(`${ns}${entry.name}`, entry.elements.map((it, idx) => ({
-            name: it.name,
-            numberId: typeof it.initializer === 'number' ? it.initializer : idx,
-            stringId: typeof it.initializer === 'string' ? it.initializer : undefined
-        })))
     }
     if (library.language === idl.Language.CJ) {
         CJDeclConvertor.makeEnum(entry, printer)

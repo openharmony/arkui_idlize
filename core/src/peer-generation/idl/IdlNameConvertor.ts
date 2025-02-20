@@ -58,16 +58,17 @@ export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
         return idl.getFQName(decl)
     }
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name).join('_')
-        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+        return idl.getFQName(decl)
     }
     static readonly I = new ETSDeclarationNameConvertor()
 }
 
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
-        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name).join('')
-        return `${namespace ? `${namespace}_` : ``}${decl.name}`
+        const namespace = idl.getNamespacesPathFor(decl).map(it => it.name)
+        if (namespace.length > 0)
+            return namespace[0]
+        return decl.name
     }
     static readonly I = new ETSFeatureNameConvertor()
 }
