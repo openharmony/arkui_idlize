@@ -119,10 +119,9 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
 }
 
 export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
-    private file?: idl.IDLFile
+    private file: idl.IDLFile = idl.createFile([])
     private package?: idl.IDLPackage
     private imports: idl.IDLImport[] = []
-    private entries: idl.IDLEntry[] = []
 
     private seenNames = new Set<string>()
     private context = new Context()
@@ -147,10 +146,10 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     visitPhase1(): idl.IDLFile {
+        this.file.fileName = this.sourceFile.fileName
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         this.package = idl.createPackage(this.detectPackageName(this.sourceFile))
-        this.entries.unshift(this.package!)
-        this.file = idl.createFile(this.entries, this.sourceFile.fileName)
+        this.file.entries.unshift(this.package!)
         return this.file
     }
 
@@ -160,12 +159,12 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         ts.forEachChild(this.sourceFile, (node) => this.visitImport(node, siblings))
 
-        if (idl.isPackage(this.entries[0]))
-            this.entries.splice(1, 0, ...this.imports)
+        if (idl.isPackage(this.file.entries[0]))
+            this.file.entries.splice(1, 0, ...this.imports)
         else
-            this.entries.unshift(...this.imports)
+        this.file.entries.unshift(...this.imports)
 
-        this.entries.forEach(idl.transformMethodsReturnPromise2Async)
+        this.file.entries.forEach(idl.transformMethodsReturnPromise2Async)
         this.collectGlobalScope()
         idl.linkParentBack(this.file!)
         return this.file!
@@ -256,7 +255,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                         entry.typeParameters)
                     clone.isStatic = true
                     clone.isFree = false
-                bucket[1].push(clone)
+                    bucket[1].push(clone)
                     return false;
                 } else if (idl.isNamespace(entry)) {
                     entry.members = filter(entry.members, entry)
@@ -264,8 +263,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 return true;
             })
         }
-        this.entries = filter(this.entries, undefined)
-        this.entries.forEach(it => idl.linkParentBack(it))
+        this.file.entries = filter(this.file.entries, undefined)
+        this.file.entries.forEach(it => idl.linkParentBack(it))
 
         const globals = (Array.from(groups.entries()) as [idl.IDLNamespace | undefined, [idl.IDLConstant[], idl.IDLMethod[]]][])
             .concat([[undefined, topLevel]])
@@ -288,7 +287,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 if (ns) {
                     ns.members.push(int)
                 } else {
-                    this.entries.push(int)
+                    this.file.entries.push(int)
                 }
             }
         }
@@ -383,11 +382,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                         documentation: getDocumentation(this.sourceFile, node, this.options.docs)
                     }
                 )
-                this.entries.push(decl)
+                this.file.entries.push(decl)
                 return
             }
             if (name && IDLVisitorConfig.ReplacedDeclarations.has(name)) {
-                this.entries.push({
+                this.file.entries.push({
                     fileName: node.getSourceFile().fileName,
                     ...IDLVisitorConfig.ReplacedDeclarations.get(name)!,
                 })
@@ -397,37 +396,37 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (ts.isClassDeclaration(node)) {
             const entry = this.serializeClass(node)
             if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
-                this.entries.push(entry)
+                this.file.entries.push(entry)
         } else if (ts.isInterfaceDeclaration(node)) {
             const entry = this.serializeInterface(node)
             if (!peerGeneratorConfiguration().components.ignoreComponents.includes(idl.getExtAttribute(entry, idl.IDLExtendedAttributes.Component) ?? ""))
-                this.entries.push(entry)
+                this.file.entries.push(entry)
         } else if (ts.isModuleDeclaration(node)) {
             if (this.isKnownAmbientModuleDeclaration(node)) {
-                this.entries.push(this.serializeAmbientModuleDeclaration(node))
+                this.file.entries.push(this.serializeAmbientModuleDeclaration(node))
             } else {
                 // This is a namespace, visit its children
                 if (node.body) {
                     const parentNamespace = this.currentNamespace
                     this.currentNamespace = idl.createNamespace(node.name.getText(), [], node.getSourceFile().fileName)
-                    const parentOutput = this.entries
-                    this.entries = this.currentNamespace.members
+                    const parentOutput = this.file.entries
+                    this.file.entries = this.currentNamespace.members
                     ts.forEachChild(node.body, (node) => this.visit(node));
-                    this.entries = parentOutput
-                    this.entries.push(this.currentNamespace!)
+                    this.file.entries = parentOutput
+                    this.file.entries.push(this.currentNamespace!)
                     this.currentNamespace = parentNamespace
                 }
             }
         } else if (ts.isEnumDeclaration(node)) {
-            this.entries.push(this.serializeEnum(node))
+            this.file.entries.push(this.serializeEnum(node))
         } else if (ts.isTypeAliasDeclaration(node)) {
             const typedef = this.serializeTypeAlias(node)
             if (typedef)
-                this.entries.push(typedef)
+                this.file.entries.push(typedef)
         } else if (ts.isFunctionDeclaration(node)) {
-            this.entries.push(this.serializeMethod(node, undefined, true))
+            this.file.entries.push(this.serializeMethod(node, undefined, true))
         } else if (ts.isVariableStatement(node)) {
-            this.entries.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
+            this.file.entries.push(...this.serializeConstants(node)) // TODO: Initializers are not allowed in ambient contexts (d.ts).
         } else if (ts.isImportDeclaration(node)) {
         } else if (ts.isExportDeclaration(node)) {
             this.exports.push(node.getText())
@@ -749,7 +748,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 let propType = props.find(it => it.name === propName)?.type
                 if (!propType) {
                     // Property not found in `Component`, look in `ComponentOptions`
-                    const options = this.entries.find(it => it.name === componentName + "Options")
+                    const options = this.file.entries.find(it => it.name === componentName + "Options")
                     if (options && idl.isInterface(options))
                         propType = options.properties.find(it => it.name === propName)?.type
                 }
@@ -1029,7 +1028,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         let name = entry.name
         if (!name || !this.seenNames.has(name)) {
             if (name) this.seenNames.add(name)
-                this.entries.push(entry)
+                this.file.entries.push(entry)
         }
     }
 
