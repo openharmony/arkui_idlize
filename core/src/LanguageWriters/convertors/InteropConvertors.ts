@@ -61,8 +61,8 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             case idl.IDLU64Type:
             case idl.IDLF16Type:
             case idl.IDLF32Type:
-            case idl.IDLF64Type:
-            case idl.IDLNumberType: return PrimitiveTypesInstance.Int32.getText()
+            case idl.IDLF64Type: return PrimitiveTypesInstance.Int32.getText()
+            case idl.IDLNumberType: return PrimitiveTypesInstance.Number.getText()
             case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
             case idl.IDLBigintType: return PrimitiveTypesInstance.Int64.getText()
             case idl.IDLAnyType:

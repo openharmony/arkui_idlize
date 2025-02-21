@@ -240,6 +240,7 @@ export class BridgeCcVisitor {
     private mapToKTypes(type:idl.IDLType): string | undefined {
         switch (type) {
             case idl.IDLStringType: return 'KStringPtr'
+            case idl.IDLNumberType: return 'KInteropNumber'
         }
         return undefined
     }

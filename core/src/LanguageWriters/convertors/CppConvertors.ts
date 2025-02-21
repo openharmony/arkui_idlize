@@ -259,7 +259,6 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         if (type == idl.IDLUndefinedType) return 'void'
-        if (type == idl.IDLNumberType) return generatorConfiguration().TypePrefix + 'Int32' // :(
         return this.convertor.convert(type)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {

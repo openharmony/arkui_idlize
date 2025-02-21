@@ -48,6 +48,7 @@ export class PrimitiveTypeList {
 
     readonly Int32 = new PrimitiveType(`Int32`)
     readonly Int64 = new PrimitiveType(`Int64`)
+    readonly Number = new PrimitiveType(`Number`)
     readonly Boolean = new PrimitiveType(`Boolean`)
     readonly Function = new PrimitiveType(`Function`)
     readonly Undefined = new PrimitiveType(`Undefined`)

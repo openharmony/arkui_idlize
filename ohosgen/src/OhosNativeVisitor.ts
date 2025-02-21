@@ -450,16 +450,6 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         }
     }
 
-    protected getApiCallResultField(method: PeerMethod): string {
-        // TODO Remove this workaround for case when number is replaced with int32
-        if (method.method.signature.returnType === IDLNumberType) {
-            return ".i32"
-        } else {
-            return super.getApiCallResultField(method)
-        }
-
-    }
-
     protected printMaterializedClass(clazz: MaterializedClass) {
         const isGlobal = isGlobalScope(clazz.decl);
         const modifierName = isGlobal ? capitalize(this.library.name) : "";

@@ -571,11 +571,11 @@ function checkCanvasRenderingContext2D() {
 
     checkResult("CanvasRenderingContext2D width",
         () => canvasRenderingContext2D!.width,
-        `getWidth()[return 0]`)
+        `getWidth()[return {42}]`)
 
-    checkResult("CanvasRenderingContext2D width",
+    checkResult("CanvasRenderingContext2D height",
         () => canvasRenderingContext2D!.height,
-        `getHeight()[return 0]`)
+        `getHeight()[return {42}]`)
 
     assertEquals("CanvasRenderingContext2D width", 0, canvasRenderingContext2D!.width)
     assertEquals("CanvasRenderingContext2D height", 0, canvasRenderingContext2D!.height)

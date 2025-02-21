@@ -71,6 +71,7 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
             case IDLUndefinedType: return undefined
             case IDLBufferType: return this.mkObject()
             case IDLStringType: return this.mkObject()
+            case IDLNumberType: return "{42}"
             case IDLPointerType: return 'nullptr'
             case IDLBooleanType: return '0'
             case IDLAnyType: return "{}"
