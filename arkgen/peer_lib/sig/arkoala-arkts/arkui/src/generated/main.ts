@@ -19,37 +19,8 @@ import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
 import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
-import { BlurOptions,
-    SheetSize,
-    BlurStyle,
-    SheetType,
-    SheetDismiss,
-    DismissSheetAction,
-    SpringBackAction,
-    EdgeWidths,
-    LocalizedEdgeWidths,
-    EdgeColors,
-    LocalizedEdgeColors,
-    BorderStyle,
-    ShadowOptions,
-    ShadowStyle,
-    SheetMode,
-    Callback,
-    SheetTitleOptions,
-    SheetOptions,
-    CustomBuilder,
-    EdgeStyles,
-    UIContext,
-    ScrollSizeMode,
-    Position,
-    SheetKeyboardAvoidMode,
-    HoverModeAreaType } from "@arkoala/arkui/ArkCommonInterfaces"
-import { Dimension,
-    Length,
-    ResourceColor,
-    ResourceStr,
-    Font,
-    Position } from "@arkoala/arkui/ArkUnitsInterfaces"
+import { BlurOptions, SheetTitleOptions, CustomBuilder } from "@arkoala/arkui/ArkCommonInterfaces"
+import { ResourceStr,Font } from "@arkoala/arkui/ArkUnitsInterfaces"
 
 import { Resource } from "./ArkResourceInterfaces"
 import { Literal_Alignment_align } from './SyntheticDeclarations'
@@ -387,6 +358,10 @@ function checkTwoSidesCallbackSync() {
     assertEquals("Sync Callback 1 read&called immediately", "CALLED, value=194", callResult1)
 }
 
+function checkNumberIncrement() {
+    assertEquals("Native increment", 40, InteropNativeModule._IncrementNumber(39))
+}
+
 function checkCallbackWithReturn() {
     TestNativeModule._TestSetArkoalaCallbackCallerSync()
     wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
@@ -542,6 +517,7 @@ export function main(): void {
     registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ark")
     registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ark")
 
+    checkNumberIncrement()
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()
 
