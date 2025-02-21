@@ -15,7 +15,7 @@
 
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
-import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
+import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
 import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { capitalize } from '../util'

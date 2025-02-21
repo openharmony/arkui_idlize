@@ -14,7 +14,7 @@
  */
 
 import { IDLI32Type, IDLPointerType, IDLProperty } from "../idl"
-import { NumericConvertor } from "../LanguageWriters/ArgConvertors"
+import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors"
 import { PeerMethod } from "./PeerMethod"
 import { PeerFile } from "./PeerFile"
 import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"

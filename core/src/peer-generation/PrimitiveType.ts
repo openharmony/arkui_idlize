@@ -24,6 +24,10 @@ export class PrimitiveType {
         return generatorConfiguration().TypePrefix + this.name
     }
 
+    getInterop(): string {
+        return 'Interop' + this.name
+    }
+
     toString(): string {
         return this.getText()
     }

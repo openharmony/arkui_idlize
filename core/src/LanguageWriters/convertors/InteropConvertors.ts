@@ -41,13 +41,13 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             // TODO return array by some way
             return "void"
         }
-        return "void"
+        return KInteropReturnBuffer
     }
     convertImport(type: idl.IDLReferenceType, importClause: string): string {
         throw new Error(`Cannot pass import type ${type.name} through interop`)
     }
     convertOptional(type: idl.IDLOptionalType): string {
-        return 'void'
+        return KInteropReturnBuffer
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
@@ -70,8 +70,8 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             case idl.IDLThisType:
             case idl.IDLUndefinedType:
             case idl.IDLUnknownType:
-            case idl.IDLStringType:
             case idl.IDLVoidType: return idl.IDLVoidType.name
+            case idl.IDLStringType: return PrimitiveTypesInstance.String.getText()
             case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
@@ -129,7 +129,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLDate: return 'KLong'
             case idl.IDLUndefinedType:
             case idl.IDLVoidType: return PrimitiveTypesInstance.NativePointer.getText()
-            case idl.IDLPointerType: return "KPointer"//PrimitiveType.NativePointer.getText()
+            case idl.IDLPointerType: return 'KPointer' // return PrimitiveTypesInstance.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }

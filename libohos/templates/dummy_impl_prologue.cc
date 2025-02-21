@@ -903,7 +903,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void PrepareImpl(Ark_NativePointer node)
+    void PrepareImpl(Ark_NativePointer node, Ark_Int32 itemCount, Ark_Int32 offset)
     {
         if (!needGroupedLog(1))
             return;

@@ -27,8 +27,8 @@ import {
     LanguageWriter,
     InteropReturnTypeConvertor,
     CppInteropArgConvertor,
+    CppReturnTypeConvertor,
     PrimitiveTypesInstance,
-    CppNameConvertor,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
@@ -39,7 +39,6 @@ export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
     private readonly returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
-    private readonly interopNameConvertor = new CppNameConvertor(this.library)
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -84,31 +83,36 @@ export class BridgeCcVisitor {
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(method)
         const field = this.getApiCallResultField(method)
-        let statements: string[];
         // TODO: It is necessary to implement value passing to vm
         const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args.join(", ")})${field}`
         if (idl.isCallback(this.library.toDeclaration(method.returnType))
             || idl.IDLContainerUtils.isSequence(method.returnType)) {
-            statements = [
+            const statements = [
                 `[[maybe_unused]] const auto &value = ${peerMethodCall};`,
                 `// TODO: Value serialization needs to be implemented`,
                 `return {};`
             ]
+            statements.forEach(it => this.generatedApi.print(it))
         } else {
             if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
-                // TODO: real serialization here
-                const serilializerMethodName = "write" + this.interopNameConvertor.convert(method.returnType)
-                statements = [
-                    `Serializer _retSerializer {};`,
-                    `_retSerializer.${serilializerMethodName}(${peerMethodCall});`,
-                    `return _retSerializer.toReturnBuffer();`,
-                ]
+                this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)
+                this.generatedApi.print(`Serializer _retSerializer {};`)
+                const convertor = this.library.typeConvertor('retValue', method.returnType, false)
+                convertor.convertorSerialize('_ret', 'retValue', this.generatedApi)
+                this.generatedApi.writeStatement(
+                    this.generatedApi.makeReturn(
+                        this.generatedApi.makeMethodCall('_retSerializer', 'toReturnBuffer', [])
+                    )
+                )
             } else {
-                statements = [isVoid ? `${peerMethodCall};` : `return ${peerMethodCall};`]
+                if (isVoid) {
+                    this.generatedApi.print(`${peerMethodCall};`)
+                } else {
+                    this.generatedApi.print(`return ${peerMethodCall};`)
+                }
             }
         }
         if (this.callLog) this.printCallLog(method, apiCall, modifier)
-        statements.forEach(it => this.generatedApi.print(it))
     }
 
     protected getApiCallResultField(method: PeerMethod): string {
@@ -232,6 +236,14 @@ export class BridgeCcVisitor {
         return maybeReceiver
     }
 
+    // stub
+    private mapToKTypes(type:idl.IDLType): string | undefined {
+        switch (type) {
+            case idl.IDLStringType: return 'KStringPtr'
+        }
+        return undefined
+    }
+
     protected printMethod(method: PeerMethod, modifierName?: string) {
         const cName = `${method.originalParentName}_${method.overloadedName}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
@@ -245,7 +257,8 @@ export class BridgeCcVisitor {
         this.printNativeBody(method, modifierName)
         this.generatedApi.popIndent()
         this.generatedApi.print(`}`)
-        let macroArgs = [cName, retType === IDLVoidType.name ? undefined : retType]
+        const macroRetType = this.mapToKTypes(method.returnType) ?? retType
+        let macroArgs = [cName, retType === IDLVoidType.name ? undefined : macroRetType]
             .concat(argTypesAndNames.map(([type, _]) => type))
             .filter(isDefined)
             .join(", ")

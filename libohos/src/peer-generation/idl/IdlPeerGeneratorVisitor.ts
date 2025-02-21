@@ -22,7 +22,9 @@ import {
     Language,
     isRoot,
     MethodSignature,
-    generatorConfiguration
+    generatorConfiguration,
+    VoidConvertor,
+    PointerConvertor
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -209,10 +211,11 @@ class PeersGenerator {
         const originalParentName = parentName ?? peer.originalClassName!
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method, isThisRet ? idl.IDLThisType : retType)
+        const realRetType = isThisRet ? idl.IDLVoidType : retType
         return new PeerMethod(
             originalParentName,
             argConvertors,
-            isThisRet ? idl.IDLVoidType : retType,
+            realRetType,
             isCallSignature,
             new Method(methodName!, signature, getMethodModifiers(method)),
             createOutArgConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))

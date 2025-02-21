@@ -439,7 +439,7 @@ export abstract class LanguageWriter {
     protected namespaceStack: string[] = []
     constructor(
         public printer: IndentedPrinter,
-        public resolver: ReferenceResolver, // TODO make protected again
+        public resolver: ReferenceResolver, // TODO make protected again (or better rework LWs)
         public language: Language,
     ) {}
 
