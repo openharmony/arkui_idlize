@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/arkgen",
-  "version": "2.0.33+devel",
+  "version": "2.0.34+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -16,8 +16,8 @@
   "keywords": [],
   "dependencies": {
     "@koalaui/interop": "1.5.5",
-    "@idlizer/core": "2.0.33+devel",
-    "@idlizer/libohos": "2.0.33+devel",
+    "@idlizer/core": "2.0.34+devel",
+    "@idlizer/libohos": "2.0.34+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "comment-parser": "^1.4.1",
