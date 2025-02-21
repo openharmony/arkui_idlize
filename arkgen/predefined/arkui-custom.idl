@@ -121,7 +121,7 @@ interface LazyForEachOps {
     static void OnRangeUpdate(pointer node, i32 totalCount, Callback_RangeUpdate updater);
     // Test method to enforce current index update.
     static void SetCurrentIndex(pointer node, i32 index);
-    static void Prepare(pointer node);
+    static void Prepare(pointer node, i32 itemCount, i32 offset);
 };
 
 [Entity=Class]
