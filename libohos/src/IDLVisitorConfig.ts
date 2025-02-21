@@ -27,7 +27,7 @@ namespace $ {
                 ],
                 fileName: "IDLVisitorConfig.ts",
             }
-        )        
+        )
     }
 }
 
@@ -98,6 +98,11 @@ const propertyTypeReplacements: ((clazz: string, property: string) => [idl.IDLTy
     (clazz, property) => {
         if (clazz === "BorderImageOption" && property === "source")
             return [$.union($.str, $.ref("Resource"), $.ref("LinearGradient_common"))]
+    },
+    (clazz, property) => {
+        let props = ["scale", "hoverScale"]
+        if (clazz === "ContextMenuAnimationOptions" && props.includes(property))
+            return [$.ref("AnimationRange_Number"), $.tuple("AnimationRange_Number", [$.num, $.num])]
     },
 ]
 
@@ -273,7 +278,6 @@ export class IDLVisitorConfig {
         "DataOperation",
         "Layoutable",
         "GestureGroupGestureHandlerOptions",
-        "LocalizedPadding",
         "ColumnOptionsV2",
         "RowOptionsV2",
         "StyledStringValue",

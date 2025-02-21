@@ -211,3 +211,183 @@ interface GlobalScope_ohos_arkui_performanceMonitor {
     static void end(String scene);
     static void recordInputEventTime(PerfMonitorActionType actionType, PerfMonitorSourceType sourceType, number time);
 };
+
+/**
+ * The BusinessError<void> declaration
+ */
+[Entity=Interface]
+interface BusinessError {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+
+    attribute number code;
+    // the `data` attribute does not point with 'void' type
+};
+
+callback ErrorCallback = void (BusinessError err);
+
+/**
+ * The common shapes API declarations
+ */
+[Entity=Class]
+interface CommonShape {
+    CommonShape offset(Position offset);
+    CommonShape fill(ResourceColor color);
+    CommonShape position(Position position);
+};
+[Entity=Class]
+interface BaseShape {
+    BaseShape width(Length width);
+    BaseShape height(Length height);
+    BaseShape size(SizeOptions size);
+};
+
+/**
+ * The RectShape declaration
+ */
+[Entity=Interface]
+interface ShapeSize {
+    [Optional]
+    attribute (number or String) width;
+    [Optional]
+    attribute (number or String) height;
+};
+[Entity=Interface]
+interface RectShapeOptions: ShapeSize {
+    [Optional]
+    attribute (number or String or sequence<(number or String)>) radius;
+};
+[Entity=Interface]
+interface RoundRectShapeOptions: ShapeSize {
+    [Optional]
+    attribute (number or String) radiusWidth;
+    [Optional]
+    attribute (number or String) radiusHeight;
+};
+
+[Entity=Class]
+interface RectShape {
+    constructor(optional (RectShapeOptions or RoundRectShapeOptions) options);
+
+    // the CommonShapeMethod part
+    RectShape offset(Position offset);
+    RectShape fill(ResourceColor color);
+    RectShape position(Position position);
+
+    // the BaseShape part
+    RectShape width(Length width);
+    RectShape height(Length height);
+    RectShape size(SizeOptions size);
+
+    RectShape radiusWidth((number or String) rWidth);
+    RectShape radiusHeight((number or String) rHeight);
+    RectShape radius((number or String or sequence<(number or String)>) radius);
+};
+
+/**
+ *  The CircleShape declaration
+ */
+[Entity=Class]
+interface CircleShape {
+
+    constructor(optional ShapeSize options);
+
+    // the CommonShapeMethod part
+    CircleShape offset(Position offset);
+    CircleShape fill(ResourceColor color);
+    CircleShape position(Position position);
+
+    // the BaseShape part
+    CircleShape width(Length width);
+    CircleShape height(Length height);
+    CircleShape size(SizeOptions size);
+};
+
+/**
+ *  The EllipseShape declaration
+ */
+[Entity=Class]
+interface EllipseShape {
+    constructor(optional ShapeSize options);
+
+    // the CommonShapeMethod part
+    EllipseShape offset(Position offset);
+    EllipseShape fill(ResourceColor color);
+    EllipseShape position(Position position);
+
+    // the BaseShape part
+    EllipseShape width(Length width);
+    EllipseShape height(Length height);
+    EllipseShape size(SizeOptions size);
+};
+
+/**
+ *  The PathShape declaration
+ */
+[Entity=Interface]
+interface PathShapeOptions {
+    [Optional]
+    attribute String commands;
+};
+
+[Entity=Class]
+interface PathShape {
+    constructor(optional PathShapeOptions options);
+
+    // the CommonShapeMethod part
+    PathShape offset(Position offset);
+    PathShape fill(ResourceColor color);
+    PathShape position(Position position);
+
+    PathShape commands(String commands);
+};
+
+/**
+ * The font API declaration, part for M2 app
+ */
+[Entity=Interface]
+interface FontOptions {
+    attribute (String or Resource) familyName;
+    attribute (String or Resource) familySrc;
+};
+
+[Entity=Class]
+interface GlobalScope_ohos_font {
+    static void registerFont(FontOptions options);
+    static sequence<String> getSystemFontList();
+};
+
+/**
+ * The SymbolEffect,ReplaceSymbolEffect,ScaleSymbolEffect API declaration, part for M2 app
+ */
+dictionary EffectDirection {
+    number DOWN = 0;
+    number UP = 1;
+};
+
+dictionary EffectScope {
+    number LAYER = 0;
+    number WHOLE = 1;
+};
+
+[Entity=Class]
+interface SymbolEffect {
+};
+
+[Entity=Class]
+interface ScaleSymbolEffect: SymbolEffect {
+    constructor(optional EffectScope scope, optional EffectDirection direction);
+    [Optional]
+    attribute EffectScope scope;
+    [Optional]
+    attribute EffectDirection direction;
+};
+
+[Entity=Class]
+interface ReplaceSymbolEffect: SymbolEffect {
+    constructor(optional EffectScope scope);
+    [Optional]
+    attribute EffectScope scope;
+};

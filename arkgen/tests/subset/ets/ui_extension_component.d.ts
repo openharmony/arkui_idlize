@@ -62,7 +62,7 @@ declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComp
        callback: import('../api/@ohos.base').Callback<number>
    ): UIExtensionComponentAttribute;
    onError(
-       callback: import('../api/@ohos.base').ErrorCallback
+       callback: ErrorCallback
    ): UIExtensionComponentAttribute;
    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
 }
