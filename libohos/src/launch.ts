@@ -15,7 +15,8 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { toIDL, PeerFile, toIDLFile } from "@idlizer/core"
+import { PeerFile, toIDLFile, PeerLibrary } from "@idlizer/core"
+import { IDLInteropPredefinesVisitor, IDLPredefinesVisitor } from "./peer-generation/idl/IdlPeerGeneratorVisitor"
 
 export function scanNotPredefinedDirectory(dir: string, ...subdirs: string[]): PeerFile[] {
     return scanDirectory(false, dir, ...subdirs)
@@ -93,4 +94,23 @@ export function scanCommonPredefined(): PredefinedFiles {
         root: scanPredefinedDirectory(PREDEFINED_PATH),
         interop: scanPredefinedDirectory(PREDEFINED_PATH, 'interop'),
     }
+}
+
+export function scanAndVisitCommonPredefined(idlLibrary: PeerLibrary): void {
+    const { interop, root } = scanCommonPredefined()
+    interop.forEach(file => {
+        new IDLInteropPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
+
+    root.forEach(file => {
+        new IDLPredefinesVisitor({
+            sourceFile: file.originalFilename,
+            peerLibrary: idlLibrary,
+            peerFile: file,
+        }).visitWholeFile()
+    })
 }

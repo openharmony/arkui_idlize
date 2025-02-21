@@ -16,7 +16,6 @@
 
 import { program } from "commander"
 import * as fs from "fs"
-import * as path from "path"
 import {
     generate,
     defaultCompilerOptions,
@@ -27,8 +26,6 @@ import {
     PeerLibrary,
 } from "@idlizer/core"
 import {
-    IDLEntry,
-    IDLFile,
     isEnum,
     isInterface,
     isSyntheticEntry,
@@ -36,10 +33,10 @@ import {
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
-    IDLInteropPredefinesVisitor, IdlPeerProcessor, IDLPredefinesVisitor,
+    IdlPeerProcessor,
     loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
-    scanPredefinedDirectory, scanNotPredefinedDirectory,
-    scanCommonPredefined,
+    scanNotPredefinedDirectory,
+    scanAndVisitCommonPredefined,
     formatInputPaths,
     validatePaths,
 } from "@idlizer/libohos"
@@ -96,6 +93,7 @@ if (options.idl2peer) {
     validatePaths(inputFiles, "file")
 
     const idlLibrary = new PeerLibrary(language, libraryPackages)
+    scanAndVisitCommonPredefined(idlLibrary);
     idlLibrary.files.push(...scanNotPredefinedDirectory(inputDirs[0]))
     new IdlPeerProcessor(idlLibrary).process()
 
@@ -114,22 +112,7 @@ if (options.dts2peer) {
 
     options.docs = "all"
     const idlLibrary = new PeerLibrary(lang, libraryPackages)
-    const { interop, root } = scanCommonPredefined()
-    interop.forEach(file => {
-        new IDLInteropPredefinesVisitor({
-            sourceFile: file.originalFilename,
-            peerLibrary: idlLibrary,
-            peerFile: file,
-        }).visitWholeFile()
-    })
-
-    root.forEach(file => {
-        new IDLPredefinesVisitor({
-            sourceFile: file.originalFilename,
-            peerLibrary: idlLibrary,
-            peerFile: file,
-        }).visitWholeFile()
-    })
+    scanAndVisitCommonPredefined(idlLibrary);
 
     generate(
         inputDirs,
