@@ -408,11 +408,12 @@ export class IdlPeerProcessor {
             const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
             const isCallback = idl.isCallback(this.library.toDeclaration(f.argConvertor.idlType))
             const isContainer = idl.IDLContainerUtils.isSequence(this.library.toDeclaration(f.argConvertor.idlType))
+            const isStatic = field.modifiers.includes(FieldModifier.STATIC)
             if (isSimpleType || isCallback || isContainer) {
                 const getSignature = new NamedMethodSignature(idlType, [], [])
                 const getAccessor = new MaterializedMethod(
                     name, implemenationParentName, [], field.type, false,
-                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE]),
+                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]),
                     f.outArgConvertor)
                 mMethods.push(getAccessor)
             }
@@ -421,7 +422,7 @@ export class IdlPeerProcessor {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idlType], [field.name])
                 const setAccessor = new MaterializedMethod(
                     name, implemenationParentName, [f.argConvertor], idl.IDLVoidType, false,
-                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE]))
+                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]))
                 mMethods.push(setAccessor)
             }
         })
@@ -432,7 +433,11 @@ export class IdlPeerProcessor {
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
         const argConvertor = this.library.typeConvertor(prop.name, prop.type!)
-        const modifiers = prop.isReadonly ? [FieldModifier.READONLY] : []
+        const modifiers: FieldModifier[] = []
+        if (prop.isReadonly)
+            modifiers.push(FieldModifier.READONLY)
+        if (prop.isStatic)
+            modifiers.push(FieldModifier.STATIC)
         return new MaterializedField(
             new Field(prop.name, prop.type, modifiers),
             argConvertor,

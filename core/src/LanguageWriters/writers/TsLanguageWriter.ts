@@ -283,9 +283,9 @@ export class TSLanguageWriter extends LanguageWriter {
             .filter(it => modifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         if (modifiers?.includes(MethodModifier.GETTER)) {
-            prefix = `get ${prefix}`
+            prefix = `${prefix} get`
         } else if (modifiers?.includes(MethodModifier.SETTER)) {
-            prefix = `set ${prefix}`
+            prefix = `${prefix} set`
             needReturn = false
         } else if (modifiers?.includes(MethodModifier.FREE)) {
             prefix = `${needBracket ? "" : "declare "}function ${prefix}`

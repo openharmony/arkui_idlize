@@ -150,32 +150,44 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
                 // TBD: use deserializer to get complex type from native
                 const isSimpleType = !field.argConvertor.useArray // type needs to be deserialized from the native
-                writer.writeGetterImplementation(new Method(mField.name,
-                    new MethodSignature(this.convertToPropertyType(field), [])), writer => {
+                const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
+                writer.writeGetterImplementation(
+                    new Method(
+                        mField.name,
+                        new MethodSignature(this.convertToPropertyType(field), []),
+                        isStatic ? [MethodModifier.STATIC] : []
+                    ), writer => {
                         writer.writeStatement(
                             isSimpleType
                                 ? writer.makeReturn(writer.makeString(`this.get${capitalize(mField.name)}()`))
                                 : writer.makeThrowError("Not implemented")
                         )
-                    });
+                    }
+                );
 
                 const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
                 if (!isReadOnly) {
                     const setSignature = new NamedMethodSignature(IDLVoidType,
                         [this.convertToPropertyType(field)], [mField.name])
-                    writer.writeSetterImplementation(new Method(mField.name, setSignature), writer => {
-                        let castedNonNullArg
-                        if (field.isNullableOriginalTypeField) {
-                            castedNonNullArg = `${mField.name}_NonNull`
-                            this.printer.writeStatement(writer.makeAssign(castedNonNullArg,
-                                undefined,
-                                writer.makeCast(writer.makeString(mField.name), mField.type),
-                                true))
-                        } else {
-                            castedNonNullArg = mField.name
+                    writer.writeSetterImplementation(
+                        new Method(
+                            mField.name,
+                            setSignature,
+                            isStatic ? [MethodModifier.STATIC] : []
+                        ), writer => {
+                            let castedNonNullArg
+                            if (field.isNullableOriginalTypeField) {
+                                castedNonNullArg = `${mField.name}_NonNull`
+                                this.printer.writeStatement(writer.makeAssign(castedNonNullArg,
+                                    undefined,
+                                    writer.makeCast(writer.makeString(mField.name), mField.type),
+                                    true))
+                            } else {
+                                castedNonNullArg = mField.name
+                            }
+                            writer.writeMethodCall("this", `set${capitalize(mField.name)}`, [castedNonNullArg])
                         }
-                        writer.writeMethodCall("this", `set${capitalize(mField.name)}`, [castedNonNullArg])
-                    });
+                    );
                 }
             })
 
