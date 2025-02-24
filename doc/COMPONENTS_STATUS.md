@@ -1,4 +1,4 @@
-| Component | Function | Owner | Status (done=merged **with** UT, blocked UT=merged **without** UT, blocked=blocked by IDL)|issue/comment|
+| Component | Function | Owner | Status (done=merged **with** UT, blocked UT=merged **without** UT, blocked=blocked by IDL) | issue/comment | 
 | --------- | -------- | ----- | ------ |------|------|
 |*Root*| *Component* | | | | |
 |*ComponentRoot*| *Component* | | | | |
@@ -2516,4 +2516,4 @@
 |`getInspectorNodeById`| Function | | |  |deprecated |
 |`registerVsyncCallback`| Function | | | | |
 |`unregisterVsyncCallback`| Function | | | | |
-|`setAppBgColor`| Function | | | | | 
+|`setAppBgColor`| Function | | | | |
