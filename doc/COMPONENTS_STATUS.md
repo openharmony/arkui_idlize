@@ -2516,4 +2516,4 @@
 |`getInspectorNodeById`| Function | | |  |deprecated |
 |`registerVsyncCallback`| Function | | | | |
 |`unregisterVsyncCallback`| Function | | | | |
-|`setAppBgColor`| Function | | | | |
+|`setAppBgColor`| Function | | | | | 
