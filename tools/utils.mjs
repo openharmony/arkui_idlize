@@ -21,6 +21,10 @@ export class Package {
         return this.read("name")
     }
 
+    version() {
+        return this.read("version")
+    }
+
     write(key, value, updater) {
         const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
         json[key] = value
@@ -40,6 +44,11 @@ export class Package {
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
         }
+    }
+
+    pack(destination = '.') {
+        process.chdir(this.path)
+        execSync(`npm pack --pack-destination ${destination}`)
     }
 
     publish() {
