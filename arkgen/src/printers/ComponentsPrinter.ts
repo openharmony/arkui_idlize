@@ -15,27 +15,15 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { removeExt, renameDtsToComponent, Language, isCommonMethod } from '@idlizer/core'
-import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
-import { componentToPeerClass } from "./PeersPrinter";
-import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
-import {
+import { removeExt, renameDtsToComponent, Language, isCommonMethod,
+    LanguageWriter, PeerFile, PeerClass, PeerLibrary,
+    createReferenceType, IDLVoidType, isOptionalType,
     Method,
-    MethodModifier,
     MethodSignature,
-    NamedMethodSignature,
-} from "../LanguageWriters";
-import { LanguageWriter, PeerFile, PeerClass, PeerLibrary } from "@idlizer/core"
-import { tsCopyrightAndWarning } from "../FileGenerators";
-import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
-import { TargetFile } from "./TargetFile"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, COMPONENT_BASE } from "./lang/Java";
-import { collectJavaImports } from "./lang/JavaIdlUtils";
-import { printJavaImports } from "./lang/JavaPrinters";
-import { createReferenceType, IDLVoidType, isOptionalType } from '@idlizer/core'
-import { convertIdlToCallback } from "./EventsPrinter";
-import { collectDeclDependencies } from "../ImportsCollectorUtils";
-import { collectComponents, findComponentByType } from "../ComponentsCollector";
+    MethodModifier,
+    NamedMethodSignature
+} from '@idlizer/core'
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collapseSameNamedMethods, collectComponents, collectDeclDependencies, collectJavaImports, COMPONENT_BASE, componentToPeerClass, convertIdlToCallback, convertPeerFilenameToModule, findComponentByType, groupOverloads, ImportsCollector, OverloadsPrinter, peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning } from '@idlizer/libohos'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`

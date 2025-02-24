@@ -352,40 +352,6 @@ ${printer.getOutput().join("\n")}
 `
 }
 
-function makeApiModifiers(modifiers: string[], accessors: string[], events: string[], nodeTypes: string[]): string {
-    let node_api = readTemplate('arkoala_node_api.h')
-        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
-
-    return `
-/**
- * An API to control an implementation. When making changes modifying binary
- * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
- * layout checks.
- */
-typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers {
-${modifiers.join("\n")}
-} ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers;
-
-typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors {
-${accessors.join("\n")}
-} ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors;
-
-typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI {
-    ${PrimitiveTypesInstance.Int32.getText()} version;
-} ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI;
-
-typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI {
-${events.join("\n")}
-} ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI;
-
-typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
-${nodeTypes.join(",\n")}
-} ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
-
-${node_api}
-`
-}
-
 const TEMPLATES_CACHE = new Map<string, string>()
 
 export function readTemplate(name: string): string {
@@ -428,30 +394,6 @@ export function maybeReadLangTemplate(name: string, lang: Language): string | un
 export function getInteropRootPath() {
     const interopPackagePath = require.resolve('@koalaui/interop')
     return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
-}
-
-export function makeAPI(
-    headers: string[], modifiers: string[], accessors: string[], events: string[], nodeTypes: string[],
-    structs: LanguageWriter, typedefs: IndentedPrinter,
-): string {
-
-    return `
-${makeApiOhos(headers, structs, typedefs)}
-
-${makeApiModifiers(modifiers, accessors, events, nodeTypes)}
-`
-}
-
-function makeApiOhos(
-    headers: string[], structs: LanguageWriter, typedefs: IndentedPrinter,
-): string {
-    return `
-${structs.getOutput().join("\n")}
-
-${typedefs.getOutput().join("\n")}
-
-${headers.join("\n")}
-`
 }
 
 export function copyDir(from: string, to: string, recursive: boolean, filters?: string[]) {

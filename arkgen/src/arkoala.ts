@@ -15,15 +15,15 @@
 import * as fs from "fs"
 import * as path from "path"
 import * as idl from "@idlizer/core/idl"
-import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor } from '@idlizer/core'
+import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor, PeerMethod, MethodModifier } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
     makeArkuiModule, makeCallbacksKinds, makeTSDeserializer, makeArkTSDeserializer,
     makeTSSerializer, makeTypeChecker, mesonBuildFile, tsCopyrightAndWarning,
     makeDeserializeAndCall, readLangTemplate, makeCJDeserializer, makeCJSerializer,
-    makeJavaArkComponents, makeJavaSerializer, printRealAndDummyAccessors,
-    printRealAndDummyModifiers, printComponents, printPeers, createMaterializedPrinter, printEvents,
-    printGniSources, printMesonBuild, printInterfaces as printIdlInterfaces,
+    makeJavaSerializer, printRealAndDummyAccessors,
+    printRealAndDummyModifiers, printPeers, createMaterializedPrinter, printEvents,
+    printGniSources, printMesonBuild,
     printBuilderClasses, ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
     TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
     printDeclarations, printEnumsImpl, printManagedCaller,
@@ -42,7 +42,6 @@ import {
     appendModifiersCommonPrologue,
     completeModifiersContent,
     appendViewModelBridge,
-    makeAPI,
     makeIncludeGuardDefine,
     SELECTOR_ID_PREFIX,
     writeConvertors,
@@ -51,15 +50,13 @@ import {
     readTemplate,
     peerGeneratorConfiguration,
     readInteropTypesHeader,
-    CallbackInfo,
-    PeerEventKind,
-    callbackIdByInfo,
-    generateEventReceiverName,
-    collectCallbacks,
-    groupCallbacks,
 } from "@idlizer/libohos"
 import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
+import { printInterfaces } from "./printers/InterfacePrinter"
+import { printComponents } from "./printers/ComponentsPrinter"
+import { printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./printers/EventPrinter"
+import { makeJavaArkComponents } from "./printers/JavaPrinter"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -182,7 +179,7 @@ export function generateArkoalaFromIdl(config: {
         })
     }
 
-    const interfaces = printIdlInterfaces(peerLibrary)
+    const interfaces = printInterfaces(peerLibrary)
     for (const [targetFile, data] of interfaces) {
         const outComponentFile = arkoala.interface(targetFile)
         writeFile(outComponentFile, data, {
@@ -687,8 +684,7 @@ function printUserConverter(headerPath: string, namespace: string, apiVersion: n
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
     makeCSerializer(peerLibrary, structs, typedefs)
-    const apiText = makeAPI(apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
-    const api = makeApi(apiVersion.toString(), apiText)
+    const api = makeAPI(apiVersion, apiHeader, modifierList, accessorList, eventsList, nodeTypesList, structs, typedefs)
     return {api, converterHeader}
 }
 
@@ -706,8 +702,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): {api: s
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializer(peerLibrary, structs, typedefs)
-    const apiText = makeAPI(apiHeader.getOutput(), modifierList.getOutput(), accessorList.getOutput(), eventsList.getOutput(), nodeTypesList.getOutput(), structs, typedefs)
-    const api = makeApi(apiVersion.toString(), apiText)
+    const api = makeAPI(apiVersion, apiHeader, modifierList, accessorList, eventsList, nodeTypesList, structs, typedefs)
     return {api, serializers}
 }
 
@@ -757,194 +752,51 @@ ${makeCSerializers(library, structs, typedefs)}
 `
 }
 
-function makeApi(apiVersion: string, text: string) {
-    let prologue = readTemplate('arkoala_api_prologue.h')
-    let epilogue = readTemplate('arkoala_api_epilogue.h')
-
-    prologue = prologue
-        .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion)
-        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
-        .replaceAll(`%INTEROP_TYPES_HEADER`,
-           readInteropTypesHeader()
-        )
-    epilogue = epilogue
-        .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
-
+function makeAPI(apiVersion: number,
+    headers: PrinterLike, modifiers: PrinterLike, accessors: PrinterLike, events: PrinterLike,
+    nodeTypes: PrinterLike, structs: PrinterLike, typedefs: PrinterLike): string
+{
     return `
-${prologue}
+${readTemplate('arkoala_api_prologue.h')
+    .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion.toString())
+    .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
+    .replaceAll(`%INTEROP_TYPES_HEADER`, readInteropTypesHeader())}
 
-${text}
+${structs.getOutput().join("\n")}
 
-${epilogue}
+${typedefs.getOutput().join("\n")}
+
+${headers.getOutput().join("\n")}
+
+/**
+ * An API to control an implementation. When making changes modifying binary
+ * layout, i.e. adding new events - increase ARKUI_API_VERSION above for binary
+ * layout checks.
+ */
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers {
+${modifiers.getOutput().join("\n")}
+} ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers;
+
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors {
+${accessors.getOutput().join("\n")}
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors;
+
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI {
+    ${ArkPrimitiveTypesInstance.Int32.getText()} version;
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI;
+
+typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI {
+${events.getOutput().join("\n")}
+} ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI;
+
+typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
+${nodeTypes.getOutput().join(",\n")}
+} ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
+
+${readTemplate('arkoala_node_api.h')
+    .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
+
+${readTemplate('arkoala_api_epilogue.h')
+        .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
 `
-}
-
-function printEventsCArkoalaImpl(library: PeerLibrary): string {
-    const visitor = new CEventsVisitor(library, false)
-    visitor.print()
-
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
-    writer.print(cStyleCopyright)
-    writer.writeInclude("arkoala_api_generated.h")
-    writer.writeInclude("events.h")
-    writer.writeInclude("Serializers.h")
-    writer.print("")
-
-    writer.pushNamespace("Generated")
-    writer.concat(visitor.impl)
-    writer.writeMethodImplementation(new Method(
-        `GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
-        writer.pushIndent()
-        writer.concat(visitor.receiversList)
-        writer.popIndent()
-        writer.print(`};`)
-        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
-    })
-    writer.popNamespace()
-    return writer.getOutput().join('\n')
-}
-
-function printEventsCLibaceImpl(library: PeerLibrary, options: { namespace: string }): string {
-    const visitor = new CEventsVisitor(library, true)
-    visitor.print()
-
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-    writer.print("")
-    writer.writeInclude(`arkoala_api_generated.h`)
-    writer.print("")
-    writer.pushNamespace(options.namespace, false)
-
-    writer.concat(visitor.impl)
-
-    writer.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;`)
-    writer.writeMethodImplementation(new Method(
-        `${peerGeneratorConfiguration().cppPrefix}SetArkUiEventsAPI`,
-        new NamedMethodSignature(idl.IDLVoidType, [
-            idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`)],
-            [`api`], undefined,
-            [undefined, PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.writeStatement(writer.makeAssign(`g_OverriddenEventsImpl`, undefined, writer.makeString(`api`), false))
-    })
-
-    writer.writeMethodImplementation(new Method(
-        `${peerGeneratorConfiguration().cppPrefix}GetArkUiEventsAPI`,
-        new MethodSignature(idl.createReferenceType(`${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI`), [], undefined, [PrintHint.AsConstPointer]),
-    ), (writer) => {
-        writer.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI eventsImpl = {`)
-        writer.pushIndent()
-        writer.concat(visitor.receiversList)
-        writer.popIndent()
-        writer.print(`};`)
-        writer.writeStatement(writer.makeCondition(
-            writer.makeNaryOp("!=", [writer.makeString(`g_OverriddenEventsImpl`), writer.makeString(`nullptr`)]),
-            writer.makeReturn(writer.makeString(`g_OverriddenEventsImpl`)),
-        ))
-        writer.writeStatement(writer.makeReturn(writer.makeString(`&eventsImpl`)))
-    })
-
-    writer.popNamespace(false)
-    return writer.getOutput().join('\n')
-}
-
-export class CEventsVisitor {
-    readonly impl: CppLanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), ArkPrimitiveTypesInstance)
-    readonly receiversList: LanguageWriter = new CppLanguageWriter(new IndentedPrinter(), this.library, new CppConvertor(this.library), ArkPrimitiveTypesInstance)
-
-    constructor(
-        protected readonly library: PeerLibrary,
-        protected readonly isEmptyImplementation: boolean,
-    ) {
-    }
-
-    private printEventsKinds(callbacks: CallbackInfo[]) {
-        if (this.isEmptyImplementation)
-            return
-        this.impl.print(`enum ${PeerEventKind} {`)
-        this.impl.pushIndent()
-        callbacks.forEach((callback, index) => {
-            this.impl.print(`Kind${callbackIdByInfo(callback)} = ${index},`)
-        })
-        this.impl.popIndent()
-        this.impl.print('};\n')
-    }
-
-    private printEventImpl(namespace: string, event: CallbackInfo) {
-        this.library.setCurrentContext(`${namespace}.${event.methodName}Impl`)
-        this.printEventMethodDeclaration(event)
-        this.impl.print("{")
-        this.impl.pushIndent()
-        if (this.isEmptyImplementation) {
-            this.impl.print("// GENERATED EMPTY IMPLEMENTATION")
-        } else {
-            this.impl.print(`EventBuffer _eventBuffer;`)
-            this.impl.print(`Serializer _eventBufferSerializer(_eventBuffer.buffer, sizeof(_eventBuffer.buffer));`)
-            this.impl.print(`_eventBufferSerializer.writeInt32(Kind${callbackIdByInfo(event)});`)
-            this.impl.print(`_eventBufferSerializer.writeInt32(nodeId);`)
-            this.printSerializers(event)
-            this.impl.print(`sendEvent(&_eventBuffer);`)
-        }
-        this.impl.popIndent()
-        this.impl.print('}')
-        this.library.setCurrentContext(undefined)
-    }
-
-    private printReceiver(componentName: string, callbacks: CallbackInfo[]) {
-        const receiver = generateEventReceiverName(componentName)
-        this.impl.print(`const ${receiver}* Get${componentName}EventsReceiver()`)
-        this.impl.print("{")
-        this.impl.pushIndent()
-        this.impl.print(`static const ${receiver} ${receiver}Impl {`)
-        this.impl.pushIndent()
-        for (const callback of callbacks) {
-            this.impl.print(`${callback.componentName}::${callback.methodName}Impl,`)
-        }
-        this.impl.popIndent()
-        this.impl.print(`};\n`)
-
-        this.impl.print(`return &${receiver}Impl;`)
-        this.impl.popIndent()
-        this.impl.print(`}`)
-    }
-
-    private printReceiversList(callbacks: Map<string, CallbackInfo[]>) {
-        for (const componentName of callbacks.keys()) {
-            this.receiversList.print(`Get${componentName}EventsReceiver,`)
-        }
-    }
-
-    print() {
-        const listedCallbacks = collectCallbacks(this.library)
-        const groupedCallbacks = groupCallbacks(listedCallbacks)
-        this.printEventsKinds(listedCallbacks)
-        for (const [name, callbacks] of groupedCallbacks) {
-            this.impl.pushNamespace(name, false)
-            for (const callback of callbacks) {
-                this.printEventImpl(name, callback)
-            }
-            this.impl.popNamespace(false)
-        }
-        for (const [name, callbacks] of groupedCallbacks) {
-            this.printReceiver(name, callbacks)
-        }
-        this.printReceiversList(groupedCallbacks)
-    }
-
-    protected printEventMethodDeclaration(event: CallbackInfo) {
-        const args = ["Ark_Int32 nodeId",
-            ...event.args.map(it =>
-                `const ${this.impl.getNodeName(idl.maybeOptional(this.library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
-        printMethodDeclaration(this.impl.printer, "void", `${event.methodName}Impl`, args)
-    }
-
-    protected printSerializers(event: CallbackInfo): void {
-        for (const arg of event.args) {
-            const convertor = this.library.typeConvertor(arg.name, arg.type, arg.nullable)
-            convertor.convertorSerialize(`_eventBuffer`, arg.name, this.impl)
-        }
-    }
 }

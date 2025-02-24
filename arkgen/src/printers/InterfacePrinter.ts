@@ -14,44 +14,21 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import * as path from 'path'
-import {
-    FieldModifier,
-    Method,
-    MethodModifier,
-    MethodSignature,
-    NamedMethodSignature,
-} from '../LanguageWriters'
-import { createLanguageWriter, LanguageWriter, PeerFile } from "@idlizer/core"
-import {
-    indentedBy,
-    isDefined,
-    isBuilderClass,
-    isMaterialized,
-    removeExt,
-    renameDtsToInterfaces,
-    stringOrNone,
-    throwException,
-    IndentedPrinter,
-    Language,
-    CustomPrintVisitor,
-    PeerLibrary
+import { createLanguageWriter, LanguageWriter, PeerFile,
+    indentedBy, isBuilderClass, isMaterialized, stringOrNone, throwException, Language, PeerLibrary,
+     convertDeclaration, DeclarationConvertor, maybeTransformManagedCallback,
+     MethodModifier,
+     FieldModifier,
+     Method,
+     MethodSignature,
+     NamedMethodSignature
 } from '@idlizer/core'
-import { ImportFeature, ImportsCollector } from "../ImportsCollector"
-import { TargetFile } from "./TargetFile"
-import { convertDeclaration, DeclarationConvertor } from "@idlizer/core";
-import { ARK_CUSTOM_OBJECT, ARK_OBJECTBASE, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from './lang/Java'
-import { printJavaImports } from './lang/JavaPrinters'
-import { collectJavaImports } from './lang/JavaIdlUtils'
-import { collectProperties } from './StructPrinter'
-import { escapeIDLKeyword, IDLType } from '@idlizer/core/idl'
-import { peerGeneratorConfiguration} from '../PeerGeneratorConfig'
-import { isPredefined } from '../idl/IdlPeerGeneratorVisitor'
-import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
-import { collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
-import { maybeTransformManagedCallback } from '@idlizer/core'
-import { isComponentDeclaration } from '../ComponentsCollector'
-import { tsCopyrightAndWarning } from '../FileGenerators'
+import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
+    collectDeclDependencies, collectJavaImports, collectProperties, convertDeclToFeature,
+    DependenciesCollector, ImportFeature, ImportsCollector, isComponentDeclaration,
+    isPredefined, peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning
+} from '@idlizer/libohos'
+import { ARK_OBJECTBASE } from './JavaPrinter'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>
@@ -234,12 +211,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     private printNameWithTypeIDLParameter(
-        idl: idl.IDLVariable,
+        variable: idl.IDLVariable,
         isVariadic: boolean = false,
         isOptional: boolean = false): string {
-        const type = idl.type ? this.convertType(idl.type) : ""
+        const type = variable.type ? this.convertType(variable.type) : ""
         const optional = isOptional ? "optional " : ""
-        return `${escapeIDLKeyword(idl.name!)}${optional ? "?" : ""}: ${type}`
+        return `${idl.escapeIDLKeyword(variable.name!)}${optional ? "?" : ""}: ${type}`
     }
 
     private printTypeParameters(typeParameters: string[] | undefined): string {
@@ -279,7 +256,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(tuple.properties
                 .map((it, propIndex) => this.printIfNotSeen(it, it => {
                     //TODO: use ETSConvertor.processTupleType
-                    let types: IDLType[] = []
+                    let types: idl.IDLType[] = []
                     if (it.isOptional) {
                         if (idl.isUnionType(it.type)) {
                             types = it.type.types
