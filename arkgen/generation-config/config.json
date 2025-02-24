@@ -243,6 +243,9 @@
             ],
             "CommonMethod": [
                 "onClick"
+            ],
+            "EventEmulator": [
+                "emitClickEvent"
             ]
         }
     }

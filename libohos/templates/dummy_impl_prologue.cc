@@ -924,6 +924,15 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         WriteToString(&out, value);
         out.append(") \n");
         appendGroupedLog(1, out);
+        auto frameNode = AsNode(node);
+        auto callback = *value;
+        callback.resource.hold(callback.resource.resourceId);
+        auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+            if (callback.call) {
+                callback.call(callback.resource.resourceId, event);
+            }
+        };
+        frameNode->setClickEvent(std::move(onEvent));
     }
     void OnClick1Impl(Ark_NativePointer node,
                       const Callback_ClickEvent_Void* event,
@@ -937,8 +946,26 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         WriteToString(&out, distanceThreshold);
         out.append(") \n");
         appendGroupedLog(1, out);
+        auto frameNode = AsNode(node);
+        auto callback = *value;
+        callback.resource.hold(callback.resource.resourceId);
+        auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+            if (callback.call) {
+                callback.call(callback.resource.resourceId, event);
+            }
+        };
+        frameNode->setClickEvent(std::move(onEvent));
     }
     } // CommonMethodModifier
+
+    namespace EventEmulatorAccessor {
+    void EmitClickEventImpl(Ark_NativePointer node,
+                            Ark_ClickEvent event)
+    {
+        auto frameNode = AsNode(node);
+        frameNode->callClickEvent(event);
+    }
+    } // EventEmulatorAccessor
 }
 
 // end of handWritten implementations
