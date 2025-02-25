@@ -22,7 +22,7 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { IDLType, } from "@idlizer/core/idl"
-import { IDLFile } from "../../../utils/idl"
+import { IDLFile } from "@idlizer/core"
 import { InteropPrinter } from "../InteropPrinter"
 import { BindingsConstructions } from "./BindingsConstructions"
 import { BindingsTypeMapper } from "./BindingsTypeMapper"

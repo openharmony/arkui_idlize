@@ -19,6 +19,7 @@ import {
     createOptionalType,
     createParameter,
     createReferenceType,
+    IDLFile,
     IDLInterface,
     IDLMethod,
     IDLPointerType,
@@ -38,7 +39,6 @@ import {
 } from "@idlizer/core"
 import { Config } from "../../Config"
 import {
-    IDLFile,
     isAbstract,
     isGetter,
     isSequence,

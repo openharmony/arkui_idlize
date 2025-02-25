@@ -120,7 +120,6 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
 
 export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private file: idl.IDLFile = idl.createFile([])
-    private package?: idl.IDLPackage
     private imports: idl.IDLImport[] = []
 
     private seenNames = new Set<string>()
@@ -148,8 +147,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     visitPhase1(): idl.IDLFile {
         this.file.fileName = this.sourceFile.fileName
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
-        this.package = idl.createPackage(this.detectPackageName(this.sourceFile))
-        this.file.entries.unshift(this.package!)
+        this.file.packageClause = this.detectPackageName(this.sourceFile)
         return this.file
     }
 
@@ -159,9 +157,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         ts.forEachChild(this.sourceFile, (node) => this.visitImport(node, siblings))
 
-        if (idl.isPackage(this.file.entries[0]))
-            this.file.entries.splice(1, 0, ...this.imports)
-        else
         this.file.entries.unshift(...this.imports)
 
         this.file.entries.forEach(idl.transformMethodsReturnPromise2Async)
@@ -471,14 +466,14 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             warn(`Import at '${this.sourceFile.fileName}', module '${module}: not in a closed set`)
             return
         }
-        const modulePackage = sibling.result.entries.find(it => idl.isPackage(it)) as (idl.IDLPackage | undefined)
-        if (!modulePackage) {
+        const modulePackageClause = sibling.result.packageClause
+        if (!modulePackageClause) {
             warn(`Import at '${this.sourceFile.fileName}', module '${module}: no Package entry found`)
             return
         }
 
         if (!node.importClause) {
-            this.pushImportFor(node, modulePackage.clause)
+            this.pushImportFor(node, modulePackageClause)
             return
         }
 
@@ -488,7 +483,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             if (ts.isNamespaceImport(namedBindings)) {
                 if (name)
                     throw new Error(`what is this case: namespace ${namedBindings.parent.getText()}`)
-                this.pushImportFor(node, modulePackage.clause, namedBindings.name.getText())
+                this.pushImportFor(node, modulePackageClause, namedBindings.name.getText())
             } else if (ts.isNamedImports(namedBindings)) {
                 if (name) {
                     throw new Error(`what is this case: import ${namedBindings.parent.getText()}`)
@@ -496,12 +491,12 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 for(const element of namedBindings.elements) {
                     const aliasName = element.name.getText()
                     const targetEntityName = element.propertyName?.getText() || aliasName
-                    this.pushImportFor(node, [...modulePackage.clause, ...targetEntityName.split(".")], aliasName)
+                    this.pushImportFor(node, [...modulePackageClause, ...targetEntityName.split(".")], aliasName)
                 }
             }
         } else { // !namedBindings
             if (name)
-                this.pushImportFor(node, [...modulePackage.clause, ...name.getText().split(".")], name.getText())
+                this.pushImportFor(node, [...modulePackageClause, ...name.getText().split(".")], name.getText())
         }
     }
 

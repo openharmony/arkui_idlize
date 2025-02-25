@@ -60,7 +60,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     })
     for (const file of peerLibrary.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (idl.isPackage(entry) || idl.isImport(entry) || isPredefined(entry))
+            if (idl.isImport(entry) || isPredefined(entry))
                 continue
             syntheticsGenerator.convert(entry)
             const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)

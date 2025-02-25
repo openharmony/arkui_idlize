@@ -15,9 +15,8 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { IDLEntry } from "../idl"
-import * as webidl2 from "webidl2"
-import { toIDLNode } from "./deserialize";
+import { IDLFile } from "../idl"
+import { toIDLFile } from "./deserialize";
 import { zip } from "../util";
 
 function getFilesRecursive(dirPath: string, arrayOfFiles: string[] = []) {
@@ -78,7 +77,7 @@ export function fromIDL(
 export function scanIDL(
     inputDir: string,
     inputFile: string | undefined,
-): IDLEntry[][] {
+): IDLFile[] {
     inputDir = path.resolve(inputDir)
     const files: string[] =
         inputFile
@@ -86,12 +85,7 @@ export function scanIDL(
             : fs.readdirSync(inputDir)
                 .map((elem: string) => path.join(inputDir, elem))
 
-    return files
-        .map((file: string) => {
-            let content = fs.readFileSync(file).toString()
-            let parsed = webidl2.parse(content)
-            return parsed.filter(it => !!it.type).map(it => toIDLNode(file, it))
-        })
+    return files.map(it => toIDLFile(it))
 }
 
 export const licence =

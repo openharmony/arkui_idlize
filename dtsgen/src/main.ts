@@ -88,7 +88,7 @@ if (options.dts2idl) {
 
                 console.log("saved", outFile)
 
-                const generated = toIDLString(file.entries, {
+                const generated = toIDLString(file, {
                     disableEnumInitializers: options.disableEnumInitializers ?? false
                 })
 

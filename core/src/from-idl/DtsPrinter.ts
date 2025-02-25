@@ -43,14 +43,13 @@ import {
     isTypeParameterType,
     isTypedef,
     isUnionType,
-    isPackage,
     isImport,
     isVersion,
     isNamespace,
     IDLExtendedAttributes,
     IDLAccessorAttribute,
+    IDLFile,
     IDLImport,
-    IDLPackage,
     IDLVoidType,
     IDLStringType,
     IDLUndefinedType,
@@ -94,8 +93,7 @@ import {
     getNamespacesPathFor,
     IDLBigintType
 } from "../idl"
-import * as webidl2 from "webidl2"
-import { resolveSyntheticType, toIDLNode } from "./deserialize"
+import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
 
@@ -117,8 +115,6 @@ export class CustomPrintVisitor {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node) || isCallable(node)) {
             this.printMethod(node)
-        } else if (isPackage(node)) {
-            this.printPackage(node)
         } else if (isImport(node)) {
             this.printImport(node)
         } else if (isProperty(node)) {
@@ -318,8 +314,8 @@ export class CustomPrintVisitor {
         this.print(`// import ${node.clause.join(".")}${node.name ? " as " : ""}${node.name||""}`)
     }
 
-    printPackage(node: IDLPackage) {
-        this.print(`// package ${node.clause.join(".")}`)
+    printPackage(node: IDLFile) {
+        this.print(`// package ${node.packageClause.join(".")}`)
     }
 
     checkVerbatim(node: IDLEntry) {
@@ -429,13 +425,12 @@ export class CustomPrintVisitor {
 
 export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
-    webidl2.parse(content)
-        .filter(it => !!it.type)
-        .map(it => toIDLNode(name, it))
-        .forEach(it => {
-            transformMethodsAsync2ReturnPromise(it)
-            printer.visit(it)
-        })
+    const idlFile = toIDLFile(name, content)
+    printer.printPackage(idlFile)
+    idlFile.entries.forEach(it => {
+        transformMethodsAsync2ReturnPromise(it)
+        printer.visit(it)
+    })
     return printer.output.join("\n")
 }
 

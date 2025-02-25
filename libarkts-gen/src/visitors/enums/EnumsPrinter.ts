@@ -15,7 +15,7 @@
 
 import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter, } from "@idlizer/core"
 import { IDLEnum, IDLType, } from "@idlizer/core/idl"
-import { IDLFile } from "../../utils/idl"
+import { IDLFile } from "@idlizer/core"
 
 export class EnumsPrinter {
     constructor(

@@ -41,12 +41,6 @@ export function isSequence(node: IDLType): boolean {
     return IDLContainerUtils.isSequence(node)
 }
 
-export class IDLFile {
-    constructor(
-        public entries: IDLEntry[]
-    ) {}
-}
-
 export function createUpdatedInterface(node: IDLInterface, methods?: IDLMethod[], name?: string): IDLInterface {
     return createInterface(
         name ?? node.name,

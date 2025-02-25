@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLFile } from "../utils/idl"
 import { CachedLogger } from "../CachedLogger"
-import { isInterface, isReferenceType } from "@idlizer/core"
+import { IDLFile, isInterface, isReferenceType } from "@idlizer/core"
 
 export class VerifyVisitor {
     constructor(

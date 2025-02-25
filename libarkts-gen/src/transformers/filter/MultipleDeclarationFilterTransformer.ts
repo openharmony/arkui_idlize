@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLEntity, capitalize, isInterface } from "@idlizer/core"
-import { IDLFile, dropNamespace, nodeNamespace } from "../../utils/idl"
+import { IDLFile, createFile, IDLEntity, capitalize, isInterface } from "@idlizer/core"
+import { dropNamespace, nodeNamespace } from "../../utils/idl"
 
 export class MultipleDeclarationFilterTransformer {
     constructor(
@@ -27,7 +27,7 @@ export class MultipleDeclarationFilterTransformer {
             const oldValue = seen.get(it.name) ?? 0
             seen.set(it.name, oldValue+1)
         })
-        return new IDLFile(
+        return createFile(
             this.file.entries.filter(it => {
                 if (!isInterface(it)) {
                     return it
@@ -39,7 +39,8 @@ export class MultipleDeclarationFilterTransformer {
                 if (occurence > 1 && nodeNamespace(it) != "ir") return undefined
 
                 return it
-            })
+            }),
+            this.file.fileName
         )
     }
 }

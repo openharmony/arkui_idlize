@@ -89,9 +89,7 @@ class ImportsStubsGenerator extends DependenciesCollector {
 function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     const generator = new ImportsStubsGenerator(library, synthesizedEntries)
     for (const file of library.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (idl.isPackage(entry) || idl.isImport(entry))
-                continue
+        for (const entry of idl.linearizeNamespaceMembers(file.entries).filter(it => !idl.isImport(it))) { // TODO: process imports
             generator.convert(entry)
         }
     }

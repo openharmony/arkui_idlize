@@ -20,7 +20,6 @@ import { IDLKeywords } from "./languageSpecificKeywords";
 
 export enum IDLKind {
     Interface,
-    Package,
     Import,
     Callback,
     Const,
@@ -47,7 +46,6 @@ export enum IDLKind {
 export enum IDLEntity {
     Class = "Class",
     Interface = "Interface",
-    Package = "Package",
     Import = "Import",
     Intersection = "Intersection",
     Literal = "Literal",
@@ -109,6 +107,7 @@ export interface IDLNode {
 }
 
 export interface IDLFile extends IDLNode{
+    packageClause: string[],
     entries: IDLEntry[],
     fileName?: string,
 }
@@ -266,11 +265,6 @@ export interface IDLInterface extends IDLEntry {
     callables: IDLCallable[]
 }
 
-export interface IDLPackage extends IDLEntry {
-    kind: IDLKind.Package
-    clause: string[]
-}
-
 export interface IDLImport extends IDLEntry {
     kind: IDLKind.Import
     clause: string[]
@@ -357,7 +351,6 @@ export function forEachChild(node: IDLNode, cbEnter: (entry: IDLNode) => void, c
         case IDLKind.ReferenceType:
         case IDLKind.TypeParameterType:
         case IDLKind.EnumMember:
-        case IDLKind.Package:
         case IDLKind.Import:
         case IDLKind.PrimitiveType:
         case IDLKind.Version:
@@ -417,9 +410,6 @@ export function isTypeParameterType(type: IDLNode): type is IDLTypeParameterType
 }
 export function isInterface(node: IDLNode): node is IDLInterface {
     return node.kind === IDLKind.Interface
-}
-export function isPackage(type: IDLNode): type is IDLPackage {
-    return type.kind == IDLKind.Package
 }
 export function isImport(type: IDLNode): type is IDLImport {
     return type.kind == IDLKind.Import
@@ -613,12 +603,7 @@ export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
 
 export function getPackageClause(entry: IDLFile | IDLEntry): string[] {
     let file = getFileFor(entry)
-    if (!file) return []
-    for (const child of file.entries)
-        if (isPackage(child))
-            return child.clause
-    // console.warn("Expected to have one IDLPackage inside IDLFile. Using empty package name")
-    return []
+    return file?.packageClause || []
 }
 
 export function getPackageName(entry: IDLFile | IDLEntry): string {
@@ -724,23 +709,13 @@ export function createUnionType(types: IDLType[], name?: string): IDLUnionType {
     }
 }
 
-export function createFile(entries: IDLEntry[], fileName?: string): IDLFile {
+export function createFile(entries: IDLEntry[], fileName?: string, packageClause: string[] = []): IDLFile {
     return {
         kind: IDLKind.File,
+        packageClause,
         entries: entries,
         fileName,
         _idlNodeBrand: innerIdlSymbol,
-    }
-}
-
-export function createPackage(clause: string[]): IDLPackage {
-    return {
-        kind: IDLKind.Package,
-        name: "",
-        clause,
-        _idlNodeBrand: innerIdlSymbol,
-        _idlEntryBrand: innerIdlSymbol,
-        _idlNamedNodeBrand: innerIdlSymbol,
     }
 }
 
@@ -1177,11 +1152,11 @@ export function printMethod(idl: IDLMethod): PrintedLine[] {
     ]
 }
 
-export function printPackage(idl: IDLPackage): PrintedLine[] {
-    if (!idl.clause.length)
+export function printPackage(idl: IDLFile): PrintedLine[] {
+    if (!idl.packageClause.length)
         return []
     return [
-        `package ${idl.clause.join(".")};`
+        `package ${idl.packageClause.join(".")};`
     ]
 }
 
@@ -1292,7 +1267,6 @@ export function printIDL(idl: IDLNode, options?: Partial<IDLPrintOptions>): Prin
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
     if (idl.kind == IDLKind.Typedef) return printTypedef(idl as IDLTypedef)
     if (idl.kind == IDLKind.Callback) return printCallback(idl as IDLCallback)
-    if (idl.kind == IDLKind.Package) return printPackage(idl as IDLPackage)
     if (idl.kind == IDLKind.Import) return printImport(idl as IDLImport)
     if (idl.kind == IDLKind.Namespace) return printNamespace(idl as IDLNamespace)
     if (idl.kind == IDLKind.Method) return printMethod(idl as IDLMethod)
@@ -1311,9 +1285,11 @@ export interface IDLPrintOptions {
     allowUnknownKinds: boolean
 }
 
-export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOptions>): string {
+export function toIDLString(file: IDLFile, options: Partial<IDLPrintOptions>): string {
     let indent = 0
-    const generatedIdl = entries
+    
+    const generated = printPackage(file)
+    generated.concat(file.entries
         .map(it => printIDL(it, options))
         .flat()
         .filter(isDefined)
@@ -1325,9 +1301,9 @@ export function toIDLString(entries: IDLEntry[], options: Partial<IDLPrintOption
                 --indent
             else
                 return indentedBy(it as string, indent)
-        })
-        .join("\n")
-    return generatedIdl
+        }))
+
+    return generated.join("\n")
 }
 
 // throws validation error

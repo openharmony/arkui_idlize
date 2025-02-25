@@ -26,18 +26,11 @@ export class PeerFile implements LibraryFileInterface {
     ) {}
 
     public packageName(): string {
-        const packageTag = this.package()
-        if (packageTag === undefined) {
-            return ""
-        }
-        if (packageTag.name.startsWith('"') && packageTag.name.endsWith('"')) {
-            return packageTag.name.slice(1, packageTag.name.length - 1)
-        }
-        return packageTag.name
+        return this.packageClause().join(".")
     }
 
-    public package(): idl.IDLPackage | undefined {
-        return this.entries.find(it => idl.isPackage(it)) as idl.IDLPackage | undefined
+    public packageClause(): string[] {
+        return this.file.packageClause
     }
 
     get peersToGenerate(): PeerClass[] {

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { createUpdatedInterface, IDLFile, Typechecker } from "../../utils/idl"
-import { IDLMethod, isContainerType, isInterface, isReferenceType } from "@idlizer/core"
+import { createUpdatedInterface, Typechecker } from "../../utils/idl"
+import { IDLFile, createFile, IDLMethod, isContainerType, isInterface, isReferenceType } from "@idlizer/core"
 
 export abstract class BaseInterfaceFilterTransformer {
     constructor(
@@ -24,7 +24,7 @@ export abstract class BaseInterfaceFilterTransformer {
     protected typechecker = new Typechecker(this.file.entries)
 
     transformed(): IDLFile {
-        return new IDLFile(
+        return createFile(
             this.file.entries
                 .flatMap(entry => {
                     if (!isInterface(entry)) {
@@ -42,7 +42,8 @@ export abstract class BaseInterfaceFilterTransformer {
                                 (name: string) => this.shouldFilterOutInterface(name)
                             ))
                     )
-                })
+                }),
+            this.file.fileName
         )
     }
 

@@ -172,7 +172,6 @@ const utils = {
 
 interface EntitiesParams {
     expandNamespaces?: boolean
-    slipPackage?: boolean
 }
 
 const select = {
@@ -184,9 +183,6 @@ const select = {
         function go(node:idl.IDLNode): idl.IDLNode[] {
             if (idl.isNamespace(node) && params.expandNamespaces) {
                 return node.members.flatMap(go)
-            }
-            if (idl.isPackage(node) && params.slipPackage) {
-                return []
             }
             return [node]
         }

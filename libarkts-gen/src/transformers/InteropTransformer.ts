@@ -16,7 +16,8 @@
 import { createMethod, createParameter, createReferenceType, IDLMethod } from "@idlizer/core"
 import { IDLInterface, isInterface, } from "@idlizer/core/idl"
 import { InteropConstructions } from "../visitors/interop/InteropConstructions"
-import { createUpdatedInterface, IDLFile, nodeNamespace } from "../utils/idl"
+import { createUpdatedInterface, nodeNamespace } from "../utils/idl"
+import { IDLFile, createFile } from "@idlizer/core"
 import { Config } from "../Config"
 
 export class InteropTransformer {
@@ -25,14 +26,15 @@ export class InteropTransformer {
     ) {}
 
     transformed(): IDLFile {
-        return new IDLFile(
+        return createFile(
             this.file.entries
                 .map(it => {
                     if (isInterface(it)) {
                         return this.transformInterface(it)
                     }
                     return it
-                })
+                }),
+            this.file.fileName
         )
     }
 

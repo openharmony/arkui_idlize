@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IDLInterface, isInterface } from "@idlizer/core"
+import { IDLFile, IDLInterface, isInterface } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { createDefaultTypescriptWriter, IDLFile, nodeType } from "../../utils/idl"
+import { createDefaultTypescriptWriter, nodeType } from "../../utils/idl"
 
 export class NodeMapPrinter extends SingleFilePrinter {
     constructor(idl: IDLFile) {

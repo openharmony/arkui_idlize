@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { IDLFile, Typechecker } from "../utils/idl"
+import { Typechecker } from "../utils/idl"
+import { IDLFile } from "@idlizer/core"
 
 export type Result = { fileName: string, output: string }
 

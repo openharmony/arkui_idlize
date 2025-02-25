@@ -14,10 +14,9 @@
  */
 
 import { program } from "commander"
-import { toIDL } from "@idlizer/core"
+import { toIDLFile } from "@idlizer/core"
 import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
-import { IDLFile } from "./utils/idl"
 import { Options } from "./Options"
 import { VerifyVisitor } from "./visitors/VerifyVisitor"
 import * as path from "node:path"
@@ -39,12 +38,12 @@ const cliOptions: {
 
 function main() {
     const outDir = cliOptions.outputDir ?? `./out`
-    const idlFile = cliOptions.inputFile ?? `./input/full.idl`
+    const idlFileName = cliOptions.inputFile ?? `./input/full.idl`
     const files = cliOptions.files?.split(`,`)
     const optionsFile = cliOptions.optionsFile ?? path.join(__dirname, `../input/ignore.json5`)
     const shouldFixInput = cliOptions.transform ?? false
 
-    const idl = new IDLFile(toIDL(idlFile))
+    const idl = toIDLFile(idlFileName)
     new VerifyVisitor(idl).complain()
 
     new FileEmitter(

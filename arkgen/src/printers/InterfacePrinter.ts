@@ -357,8 +357,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         })
         for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isPackage(entry) ||
-                    idl.isImport(entry) ||
+                if (idl.isImport(entry) ||
                     isPredefined(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
@@ -693,8 +692,6 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
         })
         for (const file of this.peerLibrary.files.values()) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isPackage(entry))
-                    continue
                 if (isPredefined(entry))
                     continue;
                 syntheticsGenerator.convert(entry)
@@ -811,8 +808,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             if (this.peerLibrary?.libraryPackages?.length && !this.peerLibrary.libraryPackages.includes(file.packageName()))
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isPackage(entry) ||
-                    isPredefined(entry) ||
+                if (isPredefined(entry) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
@@ -865,8 +861,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
         })
         for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isPackage(entry) ||
-                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
+                if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
                     idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     isPredefined(entry))
                     continue
