@@ -1,0 +1,7 @@
+.cache/
+
+build/
+generated/
+node_modules/
+
+src/cpp/test_modules_simple.h

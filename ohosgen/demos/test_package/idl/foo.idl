@@ -1,0 +1,7 @@
+package foo;
+
+[Entity=Class]
+interface FooObject {
+    void echo(String str);
+    i32 toInt32();
+};

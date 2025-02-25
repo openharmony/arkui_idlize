@@ -1,0 +1,49 @@
+{
+    "name": "demo-test-modules-struct",
+    "private": true,
+    "devDependencies": {
+        "@rollup/plugin-inject": "^5.0.5",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-typescript": "^12.1.1",
+        "rollup": "^4.24.4"
+    },
+    "scripts": {
+        "clean:ts": "rm -rf generated/ts",
+        "clean:arkts": "rm -rf generated/arkts",
+        "clean:cj": "rm -rf generated/cj",
+        "clean:native": "rm -rf generated/native",
+
+        "generate": "npm run run:ohos:generate-dts-demo:${TARGET} -C ../.. -- --default-idl-package test_modules_struct --input-dir ./demos/test_modules_struct/dts --output-dir demos/test_modules_struct",
+        "generate:ts": "TARGET=ts npm run generate",
+        "generate:arkts": "TARGET=arkts npm run generate",
+        "generate:cj": "TARGET=cj npm run generate",
+
+        "compile:ts": "rollup -c",
+        "compile:arkts": "bash scripts/build-panda.sh",
+        "compile:cj": "",
+
+        "_compile:native": "echo stub compile:native:${TARGET_VM}",
+        "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
+        "compile:native:ts": "TARGET_VM=node npm run compile:native",
+        "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
+        "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
+
+        "start:ts": "node build/node/index.js",
+        "start:arkts": "bash scripts/run-panda.sh",
+        "start:cj": "bash scripts/run-cj.sh",
+
+        "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
+        "build:ts": "TARGET=ts npm run build",
+        "build:arkts": "TARGET=arkts npm run build",
+        "build:cj": "TARGET=cj npm run build",
+
+        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
+        "check:ts": "TARGET=ts npm run check",
+        "check:arkts": "TARGET=arkts npm run check",
+        "check:cj": "TARGET=cj npm run check"
+    },
+    "dependencies": {
+        "@koalaui/interop": "next",
+        "@koalaui/runtime": "next"
+    }
+}

@@ -1,0 +1,8 @@
+import foo;
+
+[Entity=Class]
+interface BarObject {
+    attribute FooObject fooObj;
+    void echo(String str);
+    i32 toInt32();
+};
