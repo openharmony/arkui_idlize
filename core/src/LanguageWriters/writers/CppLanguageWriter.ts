@@ -20,6 +20,7 @@ import {
     IDLEnum,
     IDLNode,
     IDLType,
+    IDLTypedef,
     IDLU32Type,
     IDLUint8ArrayType,
     IDLVoidType
@@ -242,6 +243,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     writeProperty(propName: string, propType: IDLType, mutable: boolean = true) {
         throw new Error("writeProperty for c++ is not implemented yet.")
     }
+    override writeTypeDeclaration(decl: IDLTypedef): void {
+        throw new Error(`writeTypeDeclaration not implemented`)
+    }
+    
 
     /**
      * Writes multiline comments decorated with stars

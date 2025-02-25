@@ -407,6 +407,9 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.print(`}`)
     }
+    override writeTypeDeclaration(decl: idl.IDLTypedef): void {
+        throw new Error(`writeTypeDeclaration not implemented`)
+    }
     writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
         this.pushIndent()

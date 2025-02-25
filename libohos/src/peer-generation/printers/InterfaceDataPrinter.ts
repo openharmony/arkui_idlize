@@ -47,6 +47,10 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
                 if (idl.isEnum(entry)) {
                     return [printEnum(library, entry)]
                 }
+                if (idl.isTypedef(entry)) {
+                    if (!idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Import))
+                        return [printTypedef(library, entry)]
+                }
                 return []
             })
     })
@@ -221,6 +225,38 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
     }
     if (library.language === idl.Language.CJ) {
         CJDeclConvertor.makeEnum(entry, printer)
+    }
+
+    return {
+        over: {
+            node: entry,
+            role: LayoutNodeRole.INTERFACE
+        },
+        collector,
+        content: printer
+    }
+}
+
+function printTypedef(library: PeerLibrary, entry: idl.IDLTypedef): PrinterResult {
+    const printer = library.createLanguageWriter()
+    const collector = new ImportsCollector()
+
+    collectDeclDependencies(library, entry, collector)
+
+    if ([idl.Language.TS, idl.Language.ARKTS].includes(library.language)) {
+        const ns = idl.getNamespaceName(entry)
+        if (ns !== '') {
+            printer.pushNamespace(ns)
+        }
+
+        printer.writeTypeDeclaration(entry)
+
+        if (ns !== '') {
+            printer.popNamespace()
+        }
+    }
+    if (library.language === idl.Language.CJ) {
+        printer.writeTypeDeclaration(entry)
     }
 
     return {

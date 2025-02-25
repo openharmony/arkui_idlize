@@ -73,7 +73,7 @@ function suggestTSPackageName(library: PeerLibrary, node: idl.IDLEntry): string 
 
 class TsLayout extends CommonLayoutBase {
 
-    private selectInterface(node: idl.IDLEntry): string {
+    protected selectInterface(node: idl.IDLEntry): string {
         if (!this.library.hasInLibrary(node))
             return suggestTSPackageName(this.library, node)
         if (idl.isHandwritten(node)) {
@@ -105,7 +105,7 @@ class TsLayout extends CommonLayoutBase {
         return `${this.prefix}${toFileName(entryName)}Interfaces`
     }
 
-    private selectPeer(node:idl.IDLEntry): string {
+    protected selectPeer(node:idl.IDLEntry): string {
         if (idl.isInterface(node)) {
             if (isComponentDeclaration(this.library, node)) {
                 return `peers/${this.prefix}${toFileName(node.name)}Peer`
@@ -114,7 +114,7 @@ class TsLayout extends CommonLayoutBase {
         throw new Error(`Can not resolve`)
     }
 
-    private selectGlobal(node:idl.IDLEntry): string {
+    protected selectGlobal(node:idl.IDLEntry): string {
         const ns = idl.getNamespaceName(node)
         if (ns !== '') {
             return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
@@ -133,7 +133,16 @@ class TsLayout extends CommonLayoutBase {
     }
 }
 
-class ArkTsLayout extends TsLayout { }
+class ArkTsLayout extends TsLayout {
+    // replace point symbol inside names, but not when it is a part of path
+    readonly replacePattern = /(\.)[^\.\/]/g
+    protected selectInterface(node: idl.IDLEntry): string {
+        return super.selectInterface(node).replaceAll('@', '').replaceAll(this.replacePattern, '_')
+    }
+    protected selectPeer(node:idl.IDLEntry): string {
+        return super.selectPeer(node).replaceAll('@', '').replaceAll(this.replacePattern, '_')
+    }
+}
 
 class JavaLayout extends CommonLayoutBase {
     constructor(library: PeerLibrary, prefix: string, private packagePath: string) {
