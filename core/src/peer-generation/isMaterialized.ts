@@ -45,3 +45,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     }
     return false
 }
+
+export function isMaterializedType(type: idl.IDLType, resolver: ReferenceResolver): boolean {
+    if (!idl.isReferenceType(type)) return false
+    const decl = resolver.resolveTypeReference(type)
+    if (!decl) return false
+    return (idl.isInterface(decl) && isMaterialized(decl, resolver))
+}

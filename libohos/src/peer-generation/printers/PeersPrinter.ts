@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, MaterializedClassConvertor, isStructureType } from '@idlizer/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
@@ -486,7 +486,8 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
             } else if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
             } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
-                if (isNamedNode(returnType) && returnType.name === method.originalParentName) {
+                if (isNamedNode(returnType)
+                    && (returnType.name === method.originalParentName || isMaterializedType(returnType, writer.resolver))) {
                     result = [
                         ...constructMaterializedObject(writer, signature, "obj", returnValName),
                         writer.makeReturn(writer.makeString("obj"))
