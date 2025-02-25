@@ -23,21 +23,26 @@ declare type AnimationRange<T> = [from: T, to: T];
 
 declare interface Callback<T> {}
 
-declare interface BaseEvent {}
-
-declare interface AnimateParam {
-    duration?: number;
+declare interface BaseEvent {
+    axisHorizontal?: number;
+    axisVertical?: number;
+    pressure: number;
+    tiltX: number;
+    sourceTool: SourceTool;
+    getModifierKeyState?(keys: Array<string>): boolean;
+    deviceId?: number;
+    targetDisplayId?: number;
 }
 
 declare interface ClickEvent extends BaseEvent {
-
     x: number;
-
     y: number;
-
     displayX: number;
-
     displayY: number;
+}
+
+declare interface AnimateParam {
+    duration?: number;
 }
 
 declare interface CommonConfiguration<T> {

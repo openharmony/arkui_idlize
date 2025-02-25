@@ -1,0 +1,3 @@
+interface BusinessError {
+    attribute number code;
+};

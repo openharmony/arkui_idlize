@@ -927,7 +927,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         auto frameNode = AsNode(node);
         auto callback = *value;
         callback.resource.hold(callback.resource.resourceId);
-        auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+        auto onEvent = [callback](Ark_ClickEvent event) {
             if (callback.call) {
                 callback.call(callback.resource.resourceId, event);
             }
@@ -947,9 +947,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
         auto frameNode = AsNode(node);
-        auto callback = *value;
+        auto callback = *event;
         callback.resource.hold(callback.resource.resourceId);
-        auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+        auto onEvent = [callback](Ark_ClickEvent event) {
             if (callback.call) {
                 callback.call(callback.resource.resourceId, event);
             }

@@ -72,25 +72,25 @@ declare interface Callback<T, V = void> {
   (data: T): V;
 }
 
-declare interface BaseEvent {}
-
-declare interface ClickEvent extends BaseEvent {
-    target: EventTarget;
-    timestamp: number;
+declare interface BaseEvent {
     source: SourceType;
     axisHorizontal?: number;
     axisVertical?: number;
     pressure: number;
+    tiltX: number;
     sourceTool: SourceTool;
+    getModifierKeyState?(keys: Array<string>): boolean;
     deviceId?: number;
+    targetDisplayId?: number;
+}
+
+declare interface ClickEvent extends BaseEvent {
     displayX: number;
     displayY: number;
     windowX: number;
     windowY: number;
     screenX: number;
     screenY: number;
-    tiltX: number;
-    tiltY: number;
     x: number;
     y: number;
     preventDefault: () => void;

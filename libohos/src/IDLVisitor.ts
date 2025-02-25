@@ -983,6 +983,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         let parameters: idl.IDLParameter[]
         if (isAsync) {
             returnType = idl.IDLVoidType
+            parameters = [idl.createParameter("error", idl.createReferenceType("BusinessError"))]
+            if (types[0] != idl.IDLVoidType)
+                parameters.push(idl.createParameter(`result`, types[0]))
             parameters = types[0] == idl.IDLVoidType ? [] : [{
                 kind: idl.IDLKind.Parameter,
                 name: `result`,

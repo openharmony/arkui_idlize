@@ -212,20 +212,6 @@ interface GlobalScope_ohos_arkui_performanceMonitor {
     static void recordInputEventTime(PerfMonitorActionType actionType, PerfMonitorSourceType sourceType, number time);
 };
 
-/**
- * The BusinessError<void> declaration
- */
-[Entity=Interface]
-interface BusinessError {
-    attribute String name;
-    attribute String message;
-    [Optional]
-    attribute String stack;
-
-    attribute number code;
-    // the `data` attribute does not point with 'void' type
-};
-
 callback ErrorCallback = void (BusinessError err);
 
 /**
