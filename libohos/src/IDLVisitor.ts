@@ -304,8 +304,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         let relativeFileName
         for (const baseDir of baseDirs) {
             const rel = path.normalize(path.relative(baseDir, sourceFile.fileName))
-            if(rel.startsWith(".."))
+            if(rel.startsWith("..")) {
                 continue
+            }
             if (!relativeFileName || relativeFileName.length > rel.length)
                 relativeFileName = rel
         }

@@ -27,7 +27,6 @@ import {
     Language,
 } from "@idlizer/core"
 import {
-    forEachChild,
     IDLFile,
     toIDLString,
     verifyIDLString
@@ -43,10 +42,6 @@ const options = program
     .option('--input-files <files...>', 'Comma-separated list of specific files to process')
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
-    .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
-    .option('--api-version <version>', "API version for generated peers")
-    .option('--dump-serialized', "Dump serialized data")
-    .option('--call-log', "Call log")
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
     .option('--language [ts|ts|java|cangjie]', 'Output language')
     .option('--version')

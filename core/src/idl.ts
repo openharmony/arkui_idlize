@@ -1262,6 +1262,7 @@ export function printTypedef(idl: IDLTypedef): PrintedLine[] {
     ]
 }
 
+// TODO: use IndentedPrinter instead!
 export function printIDL(idl: IDLNode, options?: Partial<IDLPrintOptions>): PrintedLine[] {
     if (idl.kind == IDLKind.Interface) return printInterface(idl as IDLInterface)
     if (idl.kind == IDLKind.Enum) return printEnum(idl as IDLEnum, options?.disableEnumInitializers ?? false)
@@ -1273,7 +1274,7 @@ export function printIDL(idl: IDLNode, options?: Partial<IDLPrintOptions>): Prin
     if (idl.kind == IDLKind.Const) return printConstant(idl as IDLConstant)
 
     if (options?.allowUnknownKinds) {
-        return [`${IDLKind[idl.kind]} ${"name" in idl ? idl.name : ""}`]
+        return [`${IDLKind[idl.kind]} ${"name" in idl ? (idl as any).name : ""}`]
     } else {
         throw new Error(`unexpected kind: ${idl.kind}`)
     }
@@ -1287,23 +1288,25 @@ export interface IDLPrintOptions {
 
 export function toIDLString(file: IDLFile, options: Partial<IDLPrintOptions>): string {
     let indent = 0
-    
+
     const generated = printPackage(file)
-    generated.concat(file.entries
+    return generated.concat(file.entries
         .map(it => printIDL(it, options))
         .flat()
         .filter(isDefined)
         .filter(it => it.length > 0)
         .map(it => {
-            if (it === printedIndentInc)
+            if (it === printedIndentInc) {
                 ++indent
-            else if (it === printedIndentDec)
+                return undefined
+            } else if (it === printedIndentDec) {
                 --indent
-            else
+                return undefined
+            } else
                 return indentedBy(it as string, indent)
-        }))
-
-    return generated.join("\n")
+        })
+        .filter(isDefined)
+    ).join("\n")
 }
 
 // throws validation error
