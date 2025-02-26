@@ -254,7 +254,9 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     let printer = library.createLanguageWriter()
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
-    imports.addFeatures(["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
+    imports.addFeatures(
+        ["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf", "toPeerPtr"],
+        "@koalaui/interop")
     imports.addFeatures(["int32", "float32"], "@koalaui/common")
     if (printer.language == Language.TS) {
         imports.addFeatures(["MaterializedBase"], "@koalaui/interop")

@@ -366,6 +366,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'SerializerBase',
             'registerCallback',
             'wrapCallback',
+            'toPeerPtr',
             'KPointer',
         ], '@koalaui/interop')
         this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')

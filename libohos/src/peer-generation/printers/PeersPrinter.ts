@@ -109,12 +109,11 @@ class PeerFileVisitor {
         if (printer.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
         }
-        imports.addFeature("wrapCallback", "@koalaui/interop")
         if (this.library.language !== Language.ARKTS) {
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeature("createDeserializer", "./peers/Deserializer")
         }
-        imports.addFeature("MaterializedBase", "@koalaui/interop")
+        imports.addFeatures(["MaterializedBase", "toPeerPtr", "wrapCallback"], "@koalaui/interop")
         // collectMaterializedImports(imports, this.library)
         Array.from(this.library.builderClasses.keys())
             .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)

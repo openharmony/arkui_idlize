@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../PeerGeneratorConfig'
@@ -56,7 +56,7 @@ class SerializerPrinter {
                 new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(target)], ["value"])),
             writer => {
                 if (isMaterialized(target, this.library)) {
-                    this.generateMaterializedBodySerializer(target, writer)
+                    this.generateMaterializedBodySerializer(writer)
                 } else {
                     this.generateInterfaceBodySerializer(target, writer)
                 }
@@ -93,64 +93,24 @@ class SerializerPrinter {
         })
     }
 
-    private generateMaterializedBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {
+    private generateMaterializedBodySerializer(writer: LanguageWriter) {
         this.declareSerializer(writer)
-        if (writer.language === Language.CPP) {
-            writer.writeExpressionStatement(
-                writer.makeMethodCall(`valueSerializer`, `writePointer`, [writer.makeString(`value`)]))
-            return
+        const valueExpr = writer.makeString("value")
+        let peerExpr: LanguageExpression
+        switch (writer.language) {
+            case Language.CPP:
+                peerExpr = valueExpr
+                break
+            case Language.JAVA:
+            case Language.CJ:
+                peerExpr = writer.makeMethodCall("MaterializedBase", "toPeerPtr", [valueExpr])
+                break
+            default:
+                peerExpr = writer.makeFunctionCall("toPeerPtr", [valueExpr])
+                break
         }
-        const baseType = idl.createReferenceType("MaterializedBase")
-        const unsafe = writer.language === Language.TS
-        const writePtrStmts: LanguageStatement[] = [
-            writer.makeAssign(
-                `base`,
-                baseType,
-                writer.makeTypeCast(writer.makeString(`value`), baseType, { unsafe: unsafe }),
-                true,
-                true
-            ),
-            writer.makeAssign(
-                `peer`,
-                undefined,
-                writer.makeString(`base.getPeer()`),
-                true,
-                true
-            ),
-            writer.makeAssign(
-                `ptr`,
-                idl.IDLPointerType,
-                writer.makeString(`nullptr`),
-                true,
-                false
-            ),
-            writer.makeCheckOptional(
-                writer.makeString(`peer`),
-                writer.makeAssign(
-                    `ptr`,
-                    idl.IDLPointerType,
-                    writer.makeString(`peer.ptr`),
-                    false,
-                    false,
-                )
-            ),
-            writer.makeStatement(
-                writer.makeMethodCall(`valueSerializer`, `writePointer`, [
-                    writer.makeString(`ptr`)
-                ])
-            ),
-            writer.makeReturn(),
-        ]
-
-        writer.writeStatement(
-            writer.makeCondition(
-                writer.typeInstanceOf(
-                    MATERIALIZED_BASE,
-                    "value", [MATERIALIZED_BASE.properties[0].name]),
-                writer.makeBlock(writePtrStmts),
-                writer.makeBlock([writer.makeThrowError("Value is not a MaterializedBase instance!")])
-            )
-        )
+        writer.writeExpressionStatement(
+            writer.makeMethodCall(`valueSerializer`, `writePointer`, [peerExpr]))
     }
 
     private generateLengthSerializer() {

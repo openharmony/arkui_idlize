@@ -20,4 +20,13 @@ import org.koalaui.interop.Finalizable;
 public interface MaterializedBase {
 
     public Finalizable getPeer();
+
+    static long toPeerPtr(Object value) {
+        if (value instanceof MaterializedBase) {
+            Finalizable peer = ((MaterializedBase) value).getPeer();
+            return peer == null ? 0L : peer.ptr;
+        } else {
+            throw new Error("Value is not a MaterializedBase instance");
+        }
+    }
 }

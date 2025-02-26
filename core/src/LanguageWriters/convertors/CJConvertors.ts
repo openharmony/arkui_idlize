@@ -114,7 +114,8 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLF64Type: return 'Float64'
             case idl.IDLPointerType: return 'UInt64'
             case idl.IDLVoidType: return 'Unit'
-            case idl.IDLBufferType: return 'Array<UInt8>'
+            case idl.IDLBufferType:
+            case idl.IDLInteropReturnBufferType: return 'Array<UInt8>'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }

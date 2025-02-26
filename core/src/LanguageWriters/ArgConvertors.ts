@@ -26,7 +26,7 @@ import {
     StringExpression
 } from "./LanguageWriter";
 import { RuntimeType } from "./common";
-import { generatorTypePrefix } from "../config"
+import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
 import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
@@ -1005,10 +1005,18 @@ export class FunctionConvertor extends BaseArgConvertor { //
 
 export class MaterializedClassConvertor extends BaseArgConvertor {
     constructor(param: string, public declaration: idl.IDLInterface) {
-        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, true, param)
+        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        throw new Error("Must never be used")
+        switch (writer.language) {
+            case Language.CPP:
+                return `static_cast<${generatorConfiguration().TypePrefix}${this.declaration.name}>(${param})`
+            case Language.JAVA:
+            case Language.CJ:
+                return `MaterializedBase.toPeerPtr(${param})`
+            default:
+                return `toPeerPtr(${param})`
+        }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
@@ -1028,7 +1036,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         return idl.createReferenceType(this.declaration)
     }
     interopType(): idl.IDLType {
-        throw new Error("Must never be used")
+        return idl.IDLPointerType
     }
     isPointerType(): boolean {
         return false

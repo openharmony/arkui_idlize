@@ -88,7 +88,7 @@ export class BridgeCcVisitor {
         if (idl.isCallback(this.library.toDeclaration(method.returnType))
             || idl.IDLContainerUtils.isSequence(method.returnType)) {
             const statements = [
-                `[[maybe_unused]] const auto &value = ${peerMethodCall};`,
+                `[[maybe_unused]] const auto &_api_call_result = ${peerMethodCall};`,
                 `// TODO: Value serialization needs to be implemented`,
                 `return {};`
             ]
