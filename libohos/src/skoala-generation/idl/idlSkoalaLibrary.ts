@@ -403,7 +403,7 @@ export class IdlWrapperProcessor {
                     file.wrapperClasses.set(wrapperClass.className, [wrapperClass, decl])
                     this.collectImports(file.importsCollector, wrapperClass.methods)
                     continue
-                } else {
+                } else if (!idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.GlobalScope)) {
                     this.library.serializerDeclarations.add(decl)
                 }
             }

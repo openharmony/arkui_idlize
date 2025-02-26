@@ -547,6 +547,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     return collectDeclarationTargets(library)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it))
+        .filter(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.GlobalScope))
         .filter(it => !it.typeParameters?.length)
         .filter(it => {
             const seen = seenNames.has(it.name!)
@@ -595,6 +596,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
 
     function collectMaterializedImports(imports: ImportsCollector, library: PeerLibrary) {
         for (const materialized of library.materializedClasses.values()) {
+            if (materialized.isGlobalScope()) continue
             const file = library.layout.resolve(materialized.decl, LayoutNodeRole.INTERFACE)
             const ns = idl.getNamespaceName(materialized.decl)
             const name = ns === '' ? getInternalClassName(materialized.className) : ns.split('.')[0]

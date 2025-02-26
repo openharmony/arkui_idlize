@@ -23,8 +23,7 @@ export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
 export * from './peer-generation/ComponentsCollector'
 export * from './peer-generation/common'
-export * from './peer-generation/GlobalScopeUtils'
-export * from './peer-generation/printers/TargetFile'
+export * from "./peer-generation/printers/TargetFile"
 export * from './peer-generation/printers/InterfaceDataPrinter'
 export * from './peer-generation/printers/SkoalaDeserializerPrinter'
 export * from './peer-generation/printers/OverloadsPrinter'

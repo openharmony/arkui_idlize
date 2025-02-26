@@ -32,6 +32,9 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
             .flatMap(it => idl.isNamespace(it) ? it.members : [it])
             .filter(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Predefined))
             .flatMap(entry => {
+                if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope)) {
+                    return []
+                }
                 if (idl.isInterface(entry)) {
                     if (isMaterialized(entry, library) && idl.isClassSubkind(entry)) {
                         return []

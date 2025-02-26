@@ -26,7 +26,6 @@ export interface PrinterResult {
     }
     collector: ImportsCollector
     content: LanguageWriter
-    private?: boolean
     weight?: number
 }
 
@@ -51,12 +50,8 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[]):
     })
 
     // print
-    const installedToExport: string[] = []
     Array.from(storage.entries()).forEach(([filePath, results]) => {
         const installPath = join(outDir, filePath) + library.language.extension
-        if (!results.every(it => !!it.private)) {
-            installedToExport.push(installPath)
-        }
         results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
 
         const imports = new ImportsCollector()
@@ -80,5 +75,5 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[]):
         writeIntegratedFile(installPath, text, 'producing')
     })
 
-    return installedToExport
+    return Array.from(storage.keys())
 }

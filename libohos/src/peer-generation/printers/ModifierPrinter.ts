@@ -26,13 +26,11 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     convertType,
     ReferenceResolver,
     isMaterialized,
-    PrimitiveTypesInstance,
-    throwException
+    PrimitiveTypesInstance
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { DebugUtils, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
 import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
-import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
     constructor(
@@ -342,10 +340,6 @@ class AccessorVisitor extends ModifierVisitor {
     override printRealAndDummyModifiers() {
         super.printRealAndDummyModifiers()
         this.library.materializedClasses.forEach(c => this.printRealAndDummyAccessor(c))
-        const globals = createGlobalScopeLegacy(this.library)
-        if (globals.methods.length) {
-            this.printRealAndDummyAccessor(globals)
-        }
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass) {
@@ -353,7 +347,7 @@ class AccessorVisitor extends ModifierVisitor {
         // Materialized class methods share the same namespace
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)
-        const namespaceName = (mDestroyPeer ?? clazz.ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!")).implNamespaceName
+        const namespaceName = mDestroyPeer.implNamespaceName
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
@@ -476,10 +470,6 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: bo
 export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new AccessorVisitor(peerLibrary)
     peerLibrary.materializedClasses.forEach(c => visitor.printRealAndDummyAccessor(c))
-    const globals = createGlobalScopeLegacy(peerLibrary)
-    if (globals.methods.length) {
-        visitor.printRealAndDummyAccessor(globals)
-    }
 
     const dummy =
         visitor.dummy.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))

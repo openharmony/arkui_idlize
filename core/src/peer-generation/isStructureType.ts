@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLType, isReferenceType, isInterface, isSyntheticEntry } from "../idl"
+import { IDLType, isReferenceType, isInterface } from "../idl"
 import { isMaterialized } from "./isMaterialized"
 import { ReferenceResolver } from "./ReferenceResolver"
 

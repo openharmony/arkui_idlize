@@ -210,7 +210,7 @@ export class StructPrinter {
                 return
             }
         }
-
+        
         seenNames.add(nameOptional)
 
         if (nameAssigned !== "Optional" && nameAssigned !== "RelativeIndexable") {

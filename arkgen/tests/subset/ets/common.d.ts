@@ -94,7 +94,7 @@ declare interface ClickEvent extends BaseEvent {
     x: number;
     y: number;
     preventDefault: () => void;
-  }
+}
 
 // Used for decorators
 declare interface ComponentOptions {

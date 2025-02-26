@@ -1,9 +1,5 @@
 declare namespace hilog {
-
-    interface ArgType {
-        field: number
-    }
-
+    type ArgType = number | string | bigint;
     function debug(domain: number, tag: string, format: string, ...args: ArgType[]): void;
     function info(domain: number, tag: string, format: string, ...args: ArgType[]): void;
     function warn(domain: number, tag: string, format: string, ...args: ArgType[]): void;
@@ -11,13 +7,6 @@ declare namespace hilog {
     function fatal(domain: number, tag: string, format: string, ...args: ArgType[]): void;
     function isLoggable(domain: number, tag: string, level: LogLevel): boolean;
     function setMinLogLevel(level: LogLevel): void;
-
-    namespace inner {
-        function f(): void
-        function g(): number
-        function g(x:number): number
-        function g(x:string, y:number): number
-    }
 
     enum LogLevel {
         DEBUG = 3,

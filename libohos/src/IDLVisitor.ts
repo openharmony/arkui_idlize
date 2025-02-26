@@ -160,6 +160,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         this.file.entries.unshift(...this.imports)
 
         this.file.entries.forEach(idl.transformMethodsReturnPromise2Async)
+        this.collectGlobalScope()
         idl.linkParentBack(this.file!)
         return this.file!
     }
@@ -219,6 +220,72 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         const result = idl.createEnumMember(name, parent, idl.IDLStringType, value)
         parent.elements.push(result)
         return result
+    }
+
+    private getGlobalScopeName(nsName:string): string {
+        return `GlobalScope${nsName}_${path.basename(this.sourceFile.fileName).replace(".d.ts", "").replaceAll("@", "").replaceAll(".", "_")}`
+    }
+
+    collectGlobalScope() {
+
+        const groups = new Map<idl.IDLNamespace, [idl.IDLConstant[], idl.IDLMethod[]]>()
+        const topLevel: [idl.IDLConstant[], idl.IDLMethod[]] = [[], []]
+
+        function filter(entries: idl.IDLEntry[], ns:idl.IDLNamespace | undefined) {
+            return entries.filter(entry => {
+                const bucket = ns === undefined
+                    ? topLevel
+                    : getOrPut(groups, ns, () => [[], []] as [idl.IDLConstant[], idl.IDLMethod[]])
+
+                if (idl.isConstant(entry)) {
+                    bucket[0].push(entry)
+                    return false;
+                } else if (idl.isMethod(entry)) {
+                    const clone = idl.createMethod(
+                        entry.name,
+                        entry.parameters,
+                        entry.returnType,
+                        entry,
+                        entry,
+                        entry.typeParameters)
+                    clone.isStatic = true
+                    clone.isFree = false
+                    bucket[1].push(clone)
+                    return false;
+                } else if (idl.isNamespace(entry)) {
+                    entry.members = filter(entry.members, entry)
+                }
+                return true;
+            })
+        }
+        this.file.entries = filter(this.file.entries, undefined)
+        this.file.entries.forEach(it => idl.linkParentBack(it))
+
+        const globals = (Array.from(groups.entries()) as [idl.IDLNamespace | undefined, [idl.IDLConstant[], idl.IDLMethod[]]][])
+            .concat([[undefined, topLevel]])
+
+        for (const [ns, [constants, methods]] of globals) {
+            if (constants.length || methods.length) {
+                const nsName = ns ? '_' + idl.getFQName(ns) : ''
+                const int = idl.createInterface(
+                    this.getGlobalScopeName(nsName),
+                    idl.IDLInterfaceSubkind.Interface,
+                    [],
+                    [],
+                    constants,
+                    [],
+                    methods,
+                    [], [], {
+                        extendedAttributes: [ { name: idl.IDLExtendedAttributes.GlobalScope } ],
+                        fileName: this.sourceFile.fileName
+                    })
+                if (ns) {
+                    ns.members.push(int)
+                } else {
+                    this.file.entries.push(int)
+                }
+            }
+        }
     }
 
     detectPackageName(sourceFile: ts.SourceFile): string[] {

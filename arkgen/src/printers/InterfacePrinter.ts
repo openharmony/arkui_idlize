@@ -359,6 +359,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
                     isPredefined(entry) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
@@ -808,6 +809,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (isPredefined(entry) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
@@ -860,6 +862,7 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
         for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.GlobalScope) ||
                     isPredefined(entry))
                     continue
                 if (peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))

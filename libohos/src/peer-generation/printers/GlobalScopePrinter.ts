@@ -17,140 +17,55 @@ import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
 import { NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
 import * as idl from '@idlizer/core'
-import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
+import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
-import { writePeerMethod } from "./PeersPrinter"
-import { createOutArgConvertor } from "../PromiseConvertors"
-import { NativeModule } from "../NativeModule"
-import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
+    return library.globalScopeInterfaces.map(entry => {
+        // collect
+        const imports = new ImportsCollector()
+        collectDeclItself(library, entry, imports)
+        entry.methods.forEach(it => {
+            if (it.isStatic) {
+                collectDeclDependencies(library, it, decl => {
+                    if (library.language !== idl.Language.TS
+                        || idl.isInterface(decl) && idl.isMaterialized(decl, library)
+                    ) {
+                        collectDeclItself(library, decl, imports)
+                    }
+                })
+            }
+        })
 
-    const realizationHolder = idl.createInterface(
-        GlobalScopePeerName,
-        idl.IDLInterfaceSubkind.Interface
-    )
-
-    const peerImports = new ImportsCollector()
-    const peerMethodWriter = library.createLanguageWriter()
-
-    const printed = library.globals.flatMap(scope => {
-
-        const groupedMethods = groupOverloadsIDL(scope.methods)
-        return groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
-
-            // imports
-            const imports = new ImportsCollector()
-            methods.forEach(method => {
-                collectDeclDependencies(library, method, imports, { includeMaterializedInternals: true })
-            })
-
-            peerImports.merge(imports)
-            imports.addFeatures([realizationHolder.name], library.layout.resolve(realizationHolder, idl.LayoutNodeRole.PEER))
-
-            // entities
-            const nsPath = idl.getNamespacesPathFor(methods[0])
-            const peerMethods = idlFreeMethodToLegacy(library, methods)
+        // write
+        const writer = library.createLanguageWriter()
+        const ns = idl.getNamespaceName(entry)
+        const groupedMethods = groupOverloadsIDL(entry.methods)
+        if (ns !== '') {
+            writer.pushNamespace(ns)
+        }
+        groupedMethods.forEach(methods => {
             const method = collapseSameMethodsIDL(methods)
             const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
-
-            // write
-            const writer = library.createLanguageWriter()
-            nsPath.forEach(it => writer.pushNamespace(it.name))
-
-            /* global scope export function */
             writer.writeFunctionImplementation(method.name, signature, w => {
-                const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
+                const call = w.makeMethodCall(entry.name, method.name, method.parameters.map(it => w.makeString(it.name)))
                 const statement = method.returnType !== idl.IDLVoidType
                     ? w.makeReturn(call)
                     : w.makeStatement(call)
                 w.writeStatement(statement)
             })
-
-            /* global scope peer serialize function */
-            new OverloadsPrinter(library, peerMethodWriter, library.language, false)
-                .printGroupedComponentOverloads(new idl.PeerClass(new idl.PeerFile(idl.createFile([]), false), '', ''), peerMethods)
-
-            peerMethods.forEach(peerMethod => {
-                writePeerMethod(
-                    peerMethodWriter,
-                    peerMethod,
-                    true,
-                    false,
-                    '_serialize',
-                    '',
-                    peerMethod.returnType,
-                )
-            })
-
-            nsPath.forEach(() => writer.popNamespace())
-
-            return [{
-                collector: imports,
-                content: writer,
-                over: {
-                    node: methods[0],
-                    role: idl.LayoutNodeRole.GLOBAL
-                }
-            }]
         })
-    })
-
-    if (printed.length === 0) {
-        return []
-    }
-
-    const realizationWriter = library.createLanguageWriter()
-    realizationWriter.writeClass(realizationHolder.name, w => {
-        peerMethodWriter.getOutput().forEach(it => w.print(it))
-    })
-    fillCommonImports(peerImports, library)
-    const realization: PrinterResult = {
-        collector: peerImports,
-        content: realizationWriter,
-        over: {
-            node: realizationHolder,
-            role: idl.LayoutNodeRole.PEER
-        },
-        private: true
-    }
-
-    return printed.concat(realization)
-}
-
-function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
-    collector.addFeatures([
-        'Finalizable',
-        'isResource',
-        'isInstanceOf',
-        'runtimeType',
-        'RuntimeType',
-        'SerializerBase',
-        'registerCallback',
-        'wrapCallback',
-        'KPointer',
-    ], '@koalaui/interop')
-    collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
-    collector.addFeatures(['unsafeCast'], '@koalaui/common')
-    collector.addFeatures(['Serializer'], './peers/Serializer')
-    collector.addFeatures(['CallbackKind'], './peers/CallbackKind')
-    collector.addFeatures(['int32', 'float32'], '@koalaui/common')
-    if (library.language === idl.Language.ARKTS) {
-        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
-        collector.addFeatures(['Deserializer'], './peers/Deserializer')
-    }
-    if (library.language === idl.Language.TS) {
-        collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
-    }
-    if (library.name === 'arkoala') {
-        collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
-        if (library.language === idl.Language.TS) {
-            collector.addFeatures(['ArkUIGeneratedNativeModule'], './ArkUIGeneratedNativeModule')
+        if (ns !== '') {
+            writer.popNamespace()
         }
-        if (library.language === idl.Language.ARKTS) {
-            collector.addFeatures(['ArkUIGeneratedNativeModule'], '#components')
+
+        return {
+            collector: imports,
+            content: writer,
+            over: {
+                node: entry,
+                role: idl.LayoutNodeRole.GLOBAL
+            }
         }
-    } else {
-        collector.addFeatures([NativeModule.Generated.name], `./${NativeModule.Generated.name}`)
-    }
+    })
 }

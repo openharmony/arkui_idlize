@@ -78,14 +78,13 @@ import {
     CppSourceFile,
     StructPrinter,
     TargetFile,
+    isGlobalScope,
     BridgeCcApi,
     BridgeCcVisitor,
-    createSyntheticGlobalScope,
-    isGlobalScope,
 } from '@idlizer/libohos'
 
 class NameType {
-    constructor(public name: string, public type: string) { }
+    constructor(public name: string, public type: string) {}
 }
 
 interface SignatureDescriptor {
@@ -125,6 +124,7 @@ class OHOSNativeVisitor {
     }
 
     private apiName(clazz: IDLInterface): string {
+        if (hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)) return capitalize(this.libraryName)
         return capitalize(clazz.name)
     }
 
@@ -172,7 +172,8 @@ class OHOSNativeVisitor {
         _c.print(`const static ${name} instance = {`)
         _c.pushIndent()
         _h.pushIndent()
-        if (!isGlobalScope(clazz)) {
+        let isGlobalScope = hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)
+        if (!isGlobalScope) {
             let ctors = [...clazz.constructors]
             if (ctors.length == 0) {
                 ctors.push(createConstructor([], undefined)) // Add empty fake constructor
@@ -186,20 +187,20 @@ class OHOSNativeVisitor {
                 _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
                 let implName = `${clazz.name}_${name}Impl`
                 _c.print(`&${implName},`)
-                this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs })
+                this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs})
             })
             {
                 let destructName = `${clazz.name}_destructImpl`
                 let params = [new NameType("thiz", handleType)]
                 _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
                 _c.print(`&${destructName},`)
-                this.impls.set(destructName, { params, returnType: 'void' })
+                this.impls.set(destructName, { params, returnType: 'void'})
             }
         }
-        generatePostfixForOverloads(clazz.methods).forEach(({ method, overloadPostfix }) => {
+        generatePostfixForOverloads(clazz.methods).forEach(({method, overloadPostfix}) => {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()
-            if (!method.isStatic && !method.isFree) {
+            if (!method.isStatic && !isGlobalScope) {
                 params.push(new NameType("thiz", handleType))
             }
             params = params.concat(adjustedSignature.parameters.map(it =>
@@ -227,7 +228,7 @@ class OHOSNativeVisitor {
             for (const method of accessorMethods) {
                 const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
                 let params = new Array<NameType>()
-                if (!isGlobalScope(clazz)) {
+                if (!isGlobalScope) {
                     params.push(new NameType("thiz", handleType))
                 }
                 params = params.concat(adjustedSignature.parameters.map(it =>
@@ -267,6 +268,9 @@ class OHOSNativeVisitor {
     }
 
     private modifierName(clazz: IDLInterface): string {
+        if (hasExtAttribute(clazz, IDLExtendedAttributes.GlobalScope)) {
+            return this.mangleTypeName("Modifier")
+        }
         return this.mangleTypeName(`${clazz.name}Modifier`)
     }
     private handleType(name: string): string {
@@ -389,11 +393,6 @@ class OHOSNativeVisitor {
                 }
             })
         })
-
-        const global = createSyntheticGlobalScope(this.library)
-        if (global.methods.length) {
-            this.interfaces.push(global)
-        }
     }
 
     private mangleTypeName(typeName: string): string {
@@ -452,10 +451,15 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
-        const modifierName = "";
+        const isGlobal = isGlobalScope(clazz.decl);
+        const modifierName = isGlobal ? capitalize(this.library.name) : "";
         for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
-            this.printMethod(method);
+            if (isGlobal) {
+                this.printMethod(method, modifierName);
+            } else {
+                this.printMethod(method);
+            }
         }
     }
 }
@@ -507,7 +511,7 @@ interface MethodWithPostfix {
     overloadPostfix: string
 }
 
-function generatePostfixForOverloads(methods: IDLMethod[]): MethodWithPostfix[] {
+function generatePostfixForOverloads(methods:IDLMethod[]): MethodWithPostfix[]  {
     const overloads = new Map<string, number>()
     for (const method of methods) {
         overloads.set(method.name, (overloads.get(method.name) ?? 0) + 1)

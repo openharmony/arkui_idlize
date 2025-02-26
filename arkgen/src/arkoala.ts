@@ -255,7 +255,7 @@ export function generateArkoalaFromIdl(config: {
         // )
         writeFile(
             arkoala.tsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), arkoala.tsDir),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated
             }
@@ -317,7 +317,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.arktsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), arkoala.arktsDir),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles)),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true

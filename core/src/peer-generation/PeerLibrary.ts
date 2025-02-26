@@ -38,41 +38,11 @@ import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
 import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
 
-export interface GlobalScopeDeclarations {
-    methods: idl.IDLMethod[]
-    constants: idl.IDLConstant[]
-}
-
 export const lenses = {
     globals: lib.lens(lib.select.files())
-        .pipe(lib.select.nodes())
-        .pipe(lib.req('globals', (nodes: idl.IDLNode[]): GlobalScopeDeclarations[] => {
-            const result: GlobalScopeDeclarations[] = []
-            const queue: idl.IDLNode[][] = [nodes]
-            while (queue.length) {
-                const line: GlobalScopeDeclarations= {
-                    constants: [],
-                    methods: []
-                }
-                const next = queue.pop()!
-                next.forEach(node => {
-                    if (idl.isNamespace(node)) {
-                        queue.push(node.members)
-                    }
-                    if (idl.isConstant(node)) {
-                        line.constants.push(node)
-                    }
-                    if (idl.isMethod(node)) {
-                        line.methods.push(node)
-                    }
-
-                })
-                if (line.constants.length || line.methods.length) {
-                    result.push(line)
-                }
-            }
-            return result
-        }))
+        .pipe(lib.select.nodes({ expandNamespaces: true }))
+        .pipe(lib.select.interfaces())
+        .pipe(lib.select.hasExt(idl.IDLExtendedAttributes.GlobalScope))
 }
 
 export class PeerLibrary implements LibraryInterface {
@@ -87,16 +57,13 @@ export class PeerLibrary implements LibraryInterface {
         return this._cachedIdlLibrary
     }
 
-    public get globals() { return query(this.asIDLLibrary(), lenses.globals) }
+    public get globalScopeInterfaces() { return query(this.asIDLLibrary(), lenses.globals) }
 
     public layout: LayoutManager = LayoutManager.Empty()
 
     private _syntheticFile: idl.IDLFile = idl.createFile([])
     public initSyntheticEntries(file: idl.IDLFile) {
         this._syntheticFile = file
-    }
-    public getSyntheticData() {
-        return this._syntheticFile.entries.filter(it => idl.isInterface(it)) as idl.IDLInterface[]
     }
     public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()

@@ -64,12 +64,6 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
             }
             else if (idl.isEnum(entry)) {
                 orderer.addDep(library.toDeclaration(entry))
-            } else if (idl.isMethod(entry)) {
-                for (const parameter of entry.parameters)
-                    orderer.addDep(parameter.type!)
-                orderer.addDep(entry.returnType)
-            } else if (idl.isConstant(entry)) {
-                orderer.addDep(entry.type)
             }
         }
     }

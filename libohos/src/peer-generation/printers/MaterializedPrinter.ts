@@ -81,7 +81,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const finalizableType = FinalizableType
         const superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz)) ?? (new Set([Language.JAVA]).has(printer.language) ? ARK_MATERIALIZEDBASE : undefined)
 
-        const interfaces: string[] = ["MaterializedBase"]
+        const needPrintInterals = !clazz.isGlobalScope()
+        const interfaces: string[] = needPrintInterals ? ["MaterializedBase"] : []
         if (clazz.interfaces) {
             interfaces.push(...clazz.interfaces.map(it => `${this.namespacePrefix}${it.name}`))
         }
@@ -116,21 +117,25 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             }
         }
         else {
-            // Write internal Materialized class with fromPtr(ptr) method
-            printer.writeClass(
-                getInternalClassName(clazz.className),
-                writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                false
-            )
+            if (needPrintInterals) {
+                // Write internal Materialized class with fromPtr(ptr) method
+                printer.writeClass(
+                    getInternalClassName(clazz.className),
+                    writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    false
+                )
+            }
         }
 
         const implementationClassName = clazz.getImplementationName()
         printer.writeClass(implementationClassName, writer => {
-            if ([Language.TS, Language.ARKTS, Language.JAVA].includes(writer.language)) {
+            if (needPrintInterals &&
+                (writer.language == Language.TS || writer.language == Language.ARKTS || writer.language == Language.JAVA)
+            ) {
                 writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
                 // write getPeer() method
                 const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
@@ -328,7 +333,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 this.library.setCurrentContext(undefined)
             })
 
-            if (clazz.isInterface) {
+            if (needPrintInterals && clazz.isInterface) {
                 writeFromPtrMethod(clazz, writer, classTypeParameters)
             }
 
