@@ -15,11 +15,13 @@
 
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppConvertor,
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
+    MaterializedClass,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
 import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { printMethodDeclaration } from "../LanguageWriters";
+import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -62,25 +64,27 @@ export class HeaderVisitor {
         this.api.print("// Accessors\n")
         this.accessorsList.pushIndent()
         this.library.materializedClasses.forEach(c => {
-            this.printAccessor(c.className)
+            this.printAccessor(c)
             this.accessorsList.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
         })
+        const globals = createGlobalScopeLegacy(this.library)
+        if (globals.methods.length) {
+            this.printAccessor(globals)
+            this.accessorsList.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${globals.className}Accessor* (*get${globals.className}Accessor)();`)
+        }
         this.accessorsList.popIndent()
     }
 
-    private printAccessor(name: string) {
-        const clazz = this.library.materializedClasses.get(name)
-        if (clazz) {
-            let peerName = `${name}Peer`
-            let accessorName = `${peerGeneratorConfiguration().cppPrefix}ArkUI${name}Accessor`
-            this.api.print(`typedef struct ${accessorName} {`)
-            this.api.pushIndent()
-            const mDestroyPeer = createDestroyPeerMethod(clazz)
-            const methods = [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods)
-            methods.forEach(method => { if (method) this.printMethod(method) })
-            this.api.popIndent()
-            this.api.print(`} ${accessorName};\n`)
-        }
+    private printAccessor(clazz: MaterializedClass) {
+        let peerName = `${clazz.className}Peer`
+        let accessorName = `${peerGeneratorConfiguration().cppPrefix}ArkUI${clazz.className}Accessor`
+        this.api.print(`typedef struct ${accessorName} {`)
+        this.api.pushIndent()
+        const mDestroyPeer = createDestroyPeerMethod(clazz)
+        const methods = [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods)
+        methods.forEach(method => { if (method) this.printMethod(method) })
+        this.api.popIndent()
+        this.api.print(`} ${accessorName};\n`)
     }
 
     private printEventsReceiver(componentName: string, callbacks: CallbackInfo[]) {

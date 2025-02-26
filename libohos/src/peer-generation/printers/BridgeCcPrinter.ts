@@ -34,6 +34,7 @@ import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
+import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
@@ -314,6 +315,10 @@ export class BridgeCcVisitor {
         this.generatedApi.print("\n// Accessors\n")
         for (const clazz of this.library.materializedToGenerate) {
             this.printMaterializedClass(clazz);
+        }
+        const global = createGlobalScopeLegacy(this.library)
+        if (global.methods) {
+            this.printMaterializedClass(global)
         }
 
         /*

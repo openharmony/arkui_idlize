@@ -131,13 +131,13 @@ void XmlPullParser_parseImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPt
 }
 void XmlPullParser_parseXmlImpl(OH_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_XML_ParseOptions* option) {
 }
-void GlobalScope_xml_xmlpromises_returnPromiseImpl(const XML_Callback_Opt_Number_Opt_Array_String_Void* out) {
+void GlobalScope_xml_returnPromiseImpl(const XML_Callback_Opt_Number_Opt_Array_String_Void* out) {
     out->call(out->resource.resourceId,
         { .tag = INTEROP_TAG_INT32, .value = { .tag = INTEROP_TAG_INT32, .i32 = 42 } },
         { .tag = INTEROP_TAG_UNDEFINED }
     );
 }
-OH_XML_Point GlobalScope_xml_xmlpromises_getPointImpl() {
+OH_XML_Point GlobalScope_xml_getPointImpl() {
     return {
         .x = { .tag = INTEROP_TAG_INT32, .i32 = 42 },
         .y = { .tag = INTEROP_TAG_INT32, .i32 = 88 }

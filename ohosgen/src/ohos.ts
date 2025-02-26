@@ -153,11 +153,11 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             generatedFiles.push('./' + path.relative(ohos.managedDir(), it))
         })
         if (peerLibrary.language === Language.ARKTS) {
-            generatedFiles.push('./peers/type_check.ts')
-            generatedFiles.push('./' + path.basename(nativeModuleFileName, path.extname(nativeModuleFileName)))
+            generatedFiles.push(path.join(ohos.managedDir(), 'peers/type_check.ts'))
+            generatedFiles.push(path.join(ohos.managedDir(), path.basename(nativeModuleFileName, path.extname(nativeModuleFileName))))
         }
         writeIntegratedFile(path.join(ohos.managedDir(), 'index.ts'),
-            makeOhosModule(generatedFiles)
+            makeOhosModule(ohos.managedDir(), generatedFiles)
         )
     }
 
@@ -172,9 +172,10 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
     setDefaultConfiguration(origGenConfig)
 }
 
-function makeOhosModule(componentsFiles: string[]): string {
+function makeOhosModule(root:string, componentsFiles: string[]): string {
     return componentsFiles.map(file => {
-        const fileNameNoExt = file.replaceAll(path.extname(file), "")
+        const relativePath = path.relative(root, file)
+        const fileNameNoExt = relativePath.replaceAll(path.extname(file), "")
         return `export * from "./${fileNameNoExt}"`
     }).join("\n")
 }

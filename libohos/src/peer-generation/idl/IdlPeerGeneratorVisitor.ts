@@ -492,16 +492,13 @@ export class IdlPeerProcessor {
         const curConfig = generatorConfiguration()
         const curPeerConfig = peerGeneratorConfiguration()
         console.log(curConfig.LibraryPrefix, curPeerConfig.LibraryPrefix)
-        
+
         for (const dep of allDeclarations) {
             if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
                 continue
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
-                if (isGlobalScope(dep)) {
-                    this.processGlobal(dep)
-                    continue
-                } else if (isBuilderClass(dep)) {
+                if (isBuilderClass(dep)) {
                     this.processBuilder(dep)
                     continue
                 } else if (isMaterialized(dep, this.library)) {
@@ -534,10 +531,6 @@ export function createDependencyFilter(library: PeerLibrary): DependencyFilter {
     }
     // TODO: support other languages
     return new EmptyDependencyFilter()
-}
-
-export function isGlobalScope(declaration: idl.IDLEntry): boolean {
-    return idl.isInterface(declaration) && idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.GlobalScope)
 }
 
 export function isCommonMethodOrSubclass(library: PeerLibrary, decl?: idl.IDLEntry): boolean {

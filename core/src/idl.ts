@@ -68,7 +68,6 @@ export enum IDLExtendedAttributes {
     DtsName = "DtsName",
     DtsTag = "DtsTag",
     Entity = "Entity",
-    GlobalScope = "GlobalScope", // TODO: namespace-related-to-rework
     Import = "Import",
     IndexSignature = "IndexSignature",
     Interfaces = "Interfaces",
