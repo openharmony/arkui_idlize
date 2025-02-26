@@ -71,16 +71,18 @@ export class PeerNode extends IncrementalNode {
             this.peer.insertChildAfter(peerPtr, sibling?.peer?.ptr ?? nullptr)
             }
         }
-        this.onChildRemoved = (child: IncrementalNode) => {
-            let peer = findPeerNode(child)
-            if (peer) {
-                this.peer.removeChild(peer.peer.ptr)
-            }
-        }
-
         this.name = name
     }
     applyAttributes(attrs: Object) {}
+    dispose(): void {
+        let parent = this.parent
+        if (parent != undefined && parent.isKind(PeerNodeType)) {
+            (parent as PeerNode).peer.removeChild(this.peer.ptr)
+        }
+        this.peer.close()
+        PeerNode.peerNodeMap.delete(this.id)
+        super.dispose()
+    }
 }
 
 function findPeerNode(node: IncrementalNode): PeerNode | undefined {

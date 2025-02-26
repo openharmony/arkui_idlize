@@ -14,7 +14,6 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import * as idl from "@idlizer/core/idl"
 import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor, PeerMethod, MethodModifier } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
@@ -155,7 +154,7 @@ export function generateArkoalaFromIdl(config: {
         writeFile(outPeerFile, peer, {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
-            message: "producing [idl]"
+            message: "producing"
         })
     }
     const components = printComponents(peerLibrary)
@@ -165,7 +164,7 @@ export function generateArkoalaFromIdl(config: {
         writeFile(outComponentFile, component,{
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
-            message: "producing [idl]"
+            message: "producing"
         })
         arkuiComponentsFiles.push(outComponentFile)
     }
@@ -175,7 +174,7 @@ export function generateArkoalaFromIdl(config: {
         writeFile(outBuilderFile, builderClass, {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
-            message: "producing [idl]"
+            message: "producing"
         })
     }
 
@@ -185,7 +184,7 @@ export function generateArkoalaFromIdl(config: {
         writeFile(outComponentFile, data, {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
-            message: "producing [idl]"
+            message: "producing"
         })
         arkuiComponentsFiles.push(outComponentFile)
     }
@@ -251,7 +250,7 @@ export function generateArkoalaFromIdl(config: {
         //     {
         //         onlyIntegrated: config.onlyIntegrated,
         //         integrated: true,
-        //         message: "producing [idl]"
+        //         message: "producing"
         //     }
         // )
         writeFile(
@@ -281,7 +280,7 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true,
-                message: "producing [idl]"
+                message: "producing"
             }
         )
         writeFile(arkoala.peer(new TargetFile('CallbackKind')),
@@ -345,7 +344,7 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true,
-                message: "producing [idl]"
+                message: "producing"
             }
         )
         writeFile(arkoala.peer(new TargetFile('CallbackKind')),
@@ -443,7 +442,7 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true,
-                message: "producing [idl]"
+                message: "producing"
             }
         )
         writeFile(arkoala.cjLib(new TargetFile('Deserializer')),
@@ -451,7 +450,7 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true,
-                message: "producing [idl]"
+                message: "producing"
             }
         )
     }
