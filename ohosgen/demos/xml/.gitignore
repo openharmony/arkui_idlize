@@ -1,4 +1,4 @@
-build
-node_modules
-.cache
-generated/*_template.cc
+build/
+node_modules/
+.cache/
+generated/

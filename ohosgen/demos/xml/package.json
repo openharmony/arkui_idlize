@@ -8,17 +8,38 @@
         "rollup": "^4.24.4"
     },
     "scripts": {
-        "compile:ts:node": "rollup -c",
-        "compile:arkts:panda": "bash scripts/build-panda.sh",
-        "compile:native:node": "meson setup build/native/node -Dtarget_vm=node && meson install -C build/native/node",
-        "compile:native:panda": "meson setup build/native/panda -Dtarget_vm=panda && meson install -C build/native/panda",
-        "compile:native:cj": "meson setup build/native/cangjie -Dtarget_vm=cangjie && meson install -C build/native/cangjie",
-        "compile:node": "npm run compile:native:node && npm run compile:ts:node",
-        "compile:panda": "npm run compile:native:panda && npm run compile:arkts:panda",
-        "start": "node build/node/index.js",
-        "start:panda": "bash scripts/run-panda.sh",
-        "start:cj": "npm run compile:native:cj && LD_LIBRARY_PATH=./build/native/cangjie/:$LD_LIBRARY_PATH && cjpm run",
-        "oneclick:cj": "cd ../.. && npm run run:xml:cj && cd demos/xml/generated/cangjie && find . -type f ! -name 'main.cj' -exec rm -f {} + && cp -r ../../../../out/xml/generated/cangjie/* . && rm -rf ../native/* && cp -r ../../../../out/xml/generated/native/* ../native/ && npm run start:cj"
+        "clean:ts": "rm -rf generated/ts",
+        "clean:arkts": "rm -rf generated/arkts",
+        "clean:cj": "rm -rf generated/cj",
+        "clean:native": "rm -rf generated/native",
+
+        "generate": "npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
+        "generate:ts": "TARGET=ts npm run generate",
+        "generate:arkts": "TARGET=arkts npm run generate",
+        "generate:cj": "TARGET=cj npm run generate",
+
+        "compile:ts": "rollup -c",
+        "compile:arkts": "bash scripts/build-panda.sh",
+        "compile:cj": "",
+
+        "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
+        "compile:native:ts": "TARGET_VM=node npm run compile:native",
+        "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
+        "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
+
+        "start:ts": "node build/node/index.js",
+        "start:arkts": "bash scripts/run-panda.sh",
+        "start:cj": "bash scripts/run-cj.sh",
+
+        "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
+        "build:ts": "TARGET=ts npm run build",
+        "build:arkts": "TARGET=arkts npm run build",
+        "build:cj": "TARGET=cj npm run build",
+
+        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
+        "check:ts": "TARGET=ts npm run check",
+        "check:arkts": "TARGET=arkts npm run check",
+        "check:cj": "TARGET=cj npm run check"
     },
     "dependencies": {
         "@koalaui/interop": "next",

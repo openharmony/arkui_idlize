@@ -35,15 +35,9 @@ check generated XML demo:
       - npm run build:interop:inc --prefix ../external/interop
       - npm run build:incremental:inc --prefix ../external/incremental/runtime
     script:
-      - npm run run:xml
-      - npm run run:xml:arkts
       - cd demos/xml
-      - rm -rf generated
-      - cp -r ../../out/xml/generated generated
-      - npm run compile:node
-      - npm start
-      - npm run compile:panda
-      - npm run start:panda
+      - npm run check:ts
+      - npm run check:arkts
 
 check ohos demos:
   stage: test

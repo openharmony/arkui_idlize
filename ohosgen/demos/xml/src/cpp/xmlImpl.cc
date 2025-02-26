@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+
 #include "xml.h"
 #include "parser_impl.h"
 
@@ -141,5 +143,27 @@ OH_XML_Point GlobalScope_xml_getPointImpl() {
     return {
         .x = { .tag = INTEROP_TAG_INT32, .i32 = 42 },
         .y = { .tag = INTEROP_TAG_INT32, .i32 = 88 }
+    };
+}
+
+
+class ClassStub {};
+
+OH_XML_MapTestHandle MapTest_constructImpl() {
+    return (OH_XML_MapTestHandle)(new ClassStub());
+}
+void MapTest_destructImpl(OH_XML_MapTestHandle thiz) {
+    delete (ClassStub*)thiz;
+}
+OH_Number MapTest_testSerializeImpl(OH_NativePointer thisPtr, const Map_String_Number* options) {
+    int sum = 0;
+    printf("map->size %d\n", options->size);
+    for (int i = 0; i < options->size; i++) {
+       printf("  key %s, value %d\n", options->keys[i].chars, options->values[i].i32);
+       sum += options->values[i].i32;
+    }
+    return {
+        .tag=INTEROP_TAG_INT32,
+        .i32 = (int32_t)sum,
     };
 }

@@ -70,7 +70,13 @@ export class EtsAssignStatement implements LanguageStatement {
 class ArkTSMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
-        writer.print(`// TODO: map serialization not implemented`)
+        writer.print(`for (const pair of ${this.map}) {`)
+        writer.pushIndent()
+        writer.print(`const ${this.key} = pair[0]`)
+        writer.print(`const ${this.value} = pair[1]`)
+        this.op()
+        writer.popIndent()
+        writer.print(`}`)
     }
 }
 

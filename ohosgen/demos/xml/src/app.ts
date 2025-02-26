@@ -25,4 +25,11 @@ export function run() {
             return true
         }
     })
+
+    let mt = new xml.MapTest()
+    let m = new Map<string, number>()
+    m.set("a", 1)
+    m.set("b", 2)
+    let res: number = mt.testSerialize(m)
+    console.log(`result: ${res}`)
 }
