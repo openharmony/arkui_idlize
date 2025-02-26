@@ -171,12 +171,6 @@ export class CustomPrintVisitor {
         } else if (entity === IDLEntity.NamedTuple) {
             this.print(`${isInNamespace(node) ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, true)}`)
         } else {
-            // restore globalScope
-            if (hasExtAttribute(node,IDLExtendedAttributes.GlobalScope)) {
-                node.methods.map(it => this.printMethod(it, true))
-                node.constants.map(it => this.printConstant(it))
-                return
-            }
             let interfaces = node.inheritance
             let keyword = "extends"
             if (node.subkind === IDLInterfaceSubkind.Class) {

@@ -420,11 +420,11 @@ function copyFile(from: string, to: string, filters?: string[]) {
     fs.copyFileSync(from, to)
 }
 
-export function makeArkuiModule(componentsFiles: string[]): string {
+export function makeArkuiModule(componentsFiles: string[], root:string): string {
     return tsCopyrightAndWarning(
         componentsFiles.map(file => {
-            const basename = path.basename(file)
-            const basenameNoExt = basename.replaceAll(path.extname(basename), "")
+            const relativePath = path.relative(root, file)
+            const basenameNoExt = relativePath.replaceAll(path.extname(relativePath), "")
             return `export * from "./${basenameNoExt}"`
         }).join("\n")
     )

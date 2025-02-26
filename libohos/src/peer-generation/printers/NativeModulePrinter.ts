@@ -21,6 +21,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -115,6 +116,16 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
         })
     }
 
+    private printGlobalScopeMethods() {
+        this.library.globals.forEach(entry => {
+            const peerMethods = idlFreeMethodsGroupToLegacy(this.library, entry.methods)
+            peerMethods.forEach(method => {
+                const returnAsValue = idl.isPrimitiveType(method.returnType) || isStructureType(method.returnType, this.library)
+                this.printPeerMethod(method, returnAsValue ? method.returnType : idl.IDLPointerType)
+            })
+        })
+    }
+
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
         const component = method.originalParentName
         const parameters = makeInteropSignature(method, returnType, this.interopConvertor, this.interopRetConvertor)
@@ -134,6 +145,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             }
         }
         this.printMaterializedMethods()
+        this.printGlobalScopeMethods()
     }
 }
 

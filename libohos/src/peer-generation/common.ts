@@ -79,9 +79,9 @@ class TsLayout extends CommonLayoutBase {
         if (idl.isHandwritten(node)) {
             return HandwrittenModule(this.library.language)
         }
-        const ns = idl.getNamespaceName(node)
-        if (ns !== '') {
-            return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
+        const ns = idl.getNamespacesPathFor(node)
+        if (ns.length) {
+            return `${this.prefix}${idl.capitalize(ns[0].name)}Namespace`
         }
         if (idl.isSyntheticEntry(node)) {
             return SyntheticModule
@@ -111,13 +111,13 @@ class TsLayout extends CommonLayoutBase {
                 return `peers/${this.prefix}${toFileName(node.name)}Peer`
             }
         }
-        throw new Error(`Can not resolve`)
+        return `peers/${node.name}`
     }
 
     protected selectGlobal(node:idl.IDLEntry): string {
-        const ns = idl.getNamespaceName(node)
-        if (ns !== '') {
-            return `${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`
+        const ns = idl.getNamespacesPathFor(node)
+        if (ns.length) {
+            return `${this.prefix}${idl.capitalize(ns[0].name)}Namespace`
         }
         return `GlobalScope`
     }

@@ -158,12 +158,19 @@ export class MaterializedClass implements PeerClassBase {
         return this.className
     }
 
+    private _isGlobal = false
+    setGlobalScope() {
+        this._isGlobal = true
+    }
     isGlobalScope() {
-        return idl.hasExtAttribute(this.decl, idl.IDLExtendedAttributes.GlobalScope)
+        return this._isGlobal
     }
 }
 
-export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod {
+export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod | undefined {
+    if (clazz.isGlobalScope()) {
+        return undefined
+    }
     return new MaterializedMethod(
             clazz.className,
             clazz.getImplementationName(),

@@ -552,9 +552,16 @@ function returnsThis(method: PeerMethod, returnType: IDLType) {
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,
     resultName: string, peerPtrName: string): LanguageStatement[] {
     const retType = signature.returnType
+    if (!idl.isReferenceType(retType)) {
+        throw new Error("Method returns wrong value")
+    }
     // TODO: Use "ClassNameInternal.fromPtr(ptr)"
     // once java is generated in the same way as typescript for materialized classes
-    const internalClassName = getInternalClassName(forceAsNamedNode(retType).name)
+    const decl = writer.resolver.resolveTypeReference(retType)
+    if (!decl) {
+        throw new Error("Can not resolve materialized class")
+    }
+    const internalClassName = getInternalClassName(idl.getFQName(decl))
     return [
         writer.makeAssign(
             `${resultName}`,
