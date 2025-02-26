@@ -23,25 +23,24 @@ Callback invoked From TS: x = 43
 
 # Current Issues
 
-In `main.ts`:
+**(2025.2.25 Update)** Failure during `npm run compile:arkts` with error message below:
 ```
-// import { Callback } from "../../dts/interfaces/callback";
-const cb /* : Callback<number> */ = (x: number) => {
-    console.log(`Callback invoked From TS: x = ${x}`);
+Fatal error: Failed to compile from .../idlize/ohosgen/demos/test_generic_callback_named/src/panda/main.ts to .../idlize/ohosgen/demos/test_generic_callback_named/build/panda/out/main.abc
+TypeError: Cannot infer type for cb because class composite needs an explicit target type [main.ts:6:11]
+```
+
+If we change `main.ts` as the following:
+```
+import { Callback } from "../../dts/interfaces/callback";
+const cb: Callback<string> = {
+    onSuccess: (result: string) => { /* ... */ },
+    onFailure: (errorCode: number) => { /* ... */ },
 };
 ```
-The interface `Callback` can not be imported explicitly. Error message see below:
+Then error message becomes:
 ```
-Fatal error: Failed to compile from .../idlize/ohosgen/demos/test_generic_callback/src/panda/main.ts to .../idlize/ohosgen/demos/test_generic_callback/build/panda/out/main.abc
-SyntaxError: Unexpected token, expected 'private' or identifier [callback.d.ts:2:5]
-SyntaxError: Unexpected token, expected ','. [callback.d.ts:2:10]
-SyntaxError: Unexpected token, expected 'private' or identifier [callback.d.ts:2:10]
-SyntaxError: Identifier expected [callback.d.ts:2:11]
-SyntaxError: Unexpected token, expected ','. [callback.d.ts:2:11]
-SyntaxError: Unexpected token, expected 'private' or identifier [callback.d.ts:2:11]
-SyntaxError: Interface fields must have type annotation. [callback.d.ts:2:17]
-SyntaxError: Invalid Type [callback.d.ts:3:1]
-TypeError: Type '(x: double) => void' cannot be assigned to type 'Callback<Double>' [main.ts:6:34]
-TypeError: No matching call signature for callCB(int, Callback<Double>) [main.ts:11:5]
-TypeError: Type 'Callback<Double>' is not compatible with type '(p1: Double) => void' at index 2 [main.ts:11:20]
+Fatal error: Failed to compile from .../idlize/ohosgen/demos/test_generic_callback_named/src/panda/main.ts to .../idlize/ohosgen/demos/test_generic_callback_named/build/panda/out/main.abc
+TypeError: Method 'onSuccess' cannot be used as a key of object literal. [main.ts:7:9]
+TypeError: No matching call signature for call(Callback<String>) [main.ts:16:5]
+TypeError: Type 'Callback<String>' is not compatible with type '(parameter: String) => void' at index 1 [main.ts:16:14]
 ```

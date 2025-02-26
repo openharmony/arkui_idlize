@@ -1,12 +1,11 @@
 import { registerNativeModuleLibraryName } from '@koalaui/interop';
 import { checkArkoalaCallbacks } from '../../generated/arkts/peers/CallbacksChecker';
-
-export { Foo } from '../../generated/arkts';
+import * as huks from '../../generated/arkts/GlobalScope';
 
 export function pullEvents() {
     checkArkoalaCallbacks();
 }
 
 export function init() {
-    registerNativeModuleLibraryName('InteropNativeModule', 'TEST_PROMISENativeModule');
+    registerNativeModuleLibraryName('InteropNativeModule', 'HUKSNativeModule');
 }
