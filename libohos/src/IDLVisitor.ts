@@ -1508,22 +1508,31 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }) // check
     }
 
-    // TODO here we only handle initialized constants. Do we care for uninitialized const declarations?
     serializeConstants(stmt: ts.VariableStatement): idl.IDLConstant[] {
         return stmt.declarationList.declarations
-            .filter(decl => decl.initializer) // todo: handle uninitialized declarations (d.ts).
-            .map(decl => {
+            .flatMap(decl => {
                 const name = nameOrNull(decl.name)!
-                let [type, value] = this.guessTypeAndValue(decl)
-                return idl.createConstant(name, type, value, {
+                const result = this.guessTypeAndValue(decl)
+                if (!result) {
+                    return []
+                }
+                const [type, value] = result
+                return [idl.createConstant(name, type, value, {
                     documentation: getDocumentation(this.sourceFile, decl, this.options.docs),
                     fileName: stmt.getSourceFile().fileName,
-                })
+                })]
             })
     }
 
-    private guessTypeAndValue(declaration: ts.VariableDeclaration):  [idl.IDLType, string] {
-        if (declaration.type) return [this.serializeType(declaration.type), declaration.initializer!.getText()]
+    private guessTypeAndValue(declaration: ts.VariableDeclaration):  [idl.IDLType, string] | undefined {
+        if (declaration.type && declaration.initializer) return [this.serializeType(declaration.type), declaration.initializer.getText()]
+        if (declaration.type) {
+            const value = peerGeneratorConfiguration().constants.get(declaration.name.getText())
+            if (value) {
+                return [this.serializeType(declaration.type), value]
+            }
+            return undefined
+        }
         if (declaration.initializer) {
             let value = declaration.initializer.getText()
             if (value.startsWith('"') || value.startsWith("'")) {
@@ -1546,7 +1555,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             }
             throw new Error(`Cannot infer type of ${value}`)
         }
-        throw new Error(`Cannot infer type of ${declaration.getText()}`)
     }
 
     private collectTypeParameters(typeParameters: ts.NodeArray<ts.Node> | undefined): string[] | undefined {

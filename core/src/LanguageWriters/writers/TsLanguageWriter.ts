@@ -283,6 +283,9 @@ export class TSLanguageWriter extends LanguageWriter {
         const typeParams = decl.typeParameters?.length ? `<${decl.typeParameters.join(",").replace("[]", "")}>` : ""
         this.print(`export type ${decl.name}${typeParams} = ${type};`)
     }
+    writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
+        this.print(`export const ${constName}: ${this.getNodeName(constType)}${constVal ? ' = ' + constVal : ''}`)
+    }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = !modifiers ? undefined : this.supportedModifiers
             .filter(it => modifiers.includes(it))

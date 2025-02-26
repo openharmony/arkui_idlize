@@ -246,7 +246,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override writeTypeDeclaration(decl: IDLTypedef): void {
         throw new Error(`writeTypeDeclaration not implemented`)
     }
-    
+    writeConstant(constName: string, constType: IDLType, constVal?: string): void {
+        this.print(`${this.getNodeName(constType)} ${constName}${constVal ? ' = ' + constVal : ''};`)
+    }
 
     /**
      * Writes multiline comments decorated with stars

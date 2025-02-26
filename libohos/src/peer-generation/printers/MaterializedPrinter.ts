@@ -152,9 +152,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         new MethodSignature(this.convertToPropertyType(field), []),
                         isStatic ? [MethodModifier.STATIC] : []
                     ), writer => {
+                        const receiver = isStatic ? implementationClassName : 'this'
                         writer.writeStatement(
                             isSimpleType
-                                ? writer.makeReturn(writer.makeString(`this.get${capitalize(mField.name)}()`))
+                                ? writer.makeReturn(writer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                                 : writer.makeThrowError("Not implemented")
                         )
                     }

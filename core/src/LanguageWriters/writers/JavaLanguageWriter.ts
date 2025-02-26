@@ -183,6 +183,9 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         throw new Error(`Type declarations do not exist in Java, use something else`)
     }
+    writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
+        throw new Error("writeConstant for Java is not implemented yet.")
+    }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, expr, isDeclared, isConst)
     }

@@ -37,7 +37,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     const printed = library.globals.flatMap(scope => {
 
         const groupedMethods = groupOverloadsIDL(scope.methods)
-        return groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
+        const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
 
             // imports
             const imports = new ImportsCollector()
@@ -94,6 +94,29 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 }
             }]
         })
+
+        const constantPrinterResults = scope.constants.flatMap((it):PrinterResult[] => {
+            const nsPath = idl.getNamespacesPathFor(it)
+            const writer = library.createLanguageWriter()
+
+            const imports = new ImportsCollector()
+            collectDeclDependencies(library, it.type, imports)
+
+            nsPath.forEach(it => writer.pushNamespace(it.name))
+            writer.writeConstant(it.name, it.type, it.value)
+            nsPath.forEach(() => writer.popNamespace())
+
+            return [{
+                collector: imports,
+                content: writer,
+                over: {
+                    node: it,
+                    role: idl.LayoutNodeRole.GLOBAL
+                }
+            }]
+        })
+
+        return constantPrinterResults.concat(methodPrinterResults)
     })
 
     if (printed.length === 0) {

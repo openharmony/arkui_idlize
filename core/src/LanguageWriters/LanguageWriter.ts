@@ -460,6 +460,7 @@ export abstract class LanguageWriter {
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, mutable?: boolean, getterLambda?: (writer: this) => void, setterLambda?: (writer: this) => void): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
+    abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void;
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
     abstract makeThrowError(message: string): LanguageStatement

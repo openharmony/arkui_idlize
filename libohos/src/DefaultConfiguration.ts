@@ -1,9 +1,9 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { 
+import {
     CoreConfiguration,
-    defaultCoreConfuguration, 
+    defaultCoreConfuguration,
 } from "@idlizer/core";
 import { deepMergeConfig } from "./configMerge";
 
@@ -32,16 +32,21 @@ function parseConfigFile(configurationFile: string): any {
     return JSON.parse(data)
 }
 
-export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, overrideConfigurationFiles?: string): T {
+export function readConfigFiles(configurationFiles?: string, overrideConfigurationFiles?: string): [string, unknown][] {
     let files = [path.join(__dirname, "..", "generation-config", "config.json")]
-    if (configurationFiles) files.push(...configurationFiles.split(","))    
+    if (configurationFiles) files.push(...configurationFiles.split(","))
     if (overrideConfigurationFiles) {
         files = overrideConfigurationFiles.split(",")
     }
 
+    return files.map(file => [file, parseConfigFile(file)])
+}
+
+export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, overrideConfigurationFiles?: string): T {
+    const files = readConfigFiles(configurationFiles, overrideConfigurationFiles)
+
     let result: T = defaultConfiguration
-    files.forEach(file => {
-        const nextConfiguration = parseConfigFile(file)
+    files.forEach(([file, nextConfiguration]) => {
         if (nextConfiguration) {
             console.log(`Using options from ${file}`)
             result = deepMergeConfig<T>(result, nextConfiguration)

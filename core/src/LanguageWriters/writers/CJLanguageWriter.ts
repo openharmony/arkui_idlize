@@ -37,7 +37,7 @@ import {
 } from "../LanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
 import { Language } from "../../Language";
-import { indentedBy, isDefined } from "../../util";
+import { indentedBy, isDefined, throwException } from "../../util";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
@@ -409,6 +409,10 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         throw new Error(`writeTypeDeclaration not implemented`)
+    }
+    writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
+        const namespacePrefix = this.namespaceStack.join('_')
+        this.print(`const ${namespacePrefix}${constName}: ${this.getNodeName(constType)} = ${constVal ?? ''}`)
     }
     writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, method.modifiers, " {")
