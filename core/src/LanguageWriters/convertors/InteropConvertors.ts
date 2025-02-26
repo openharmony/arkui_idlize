@@ -117,10 +117,12 @@ export class InteropArgConvertor implements TypeConvertor<string> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
+            case idl.IDLI64Type: return "KLong"
+            case idl.IDLU64Type: return "KLong"
             case idl.IDLI32Type: return "KInt"
             case idl.IDLF32Type: return "KFloat"
-            case idl.IDLNumberType: return 'number'
-            case idl.IDLBigintType: return 'bigint'
+            case idl.IDLNumberType: return 'number' // should be removed! It is KInteropNumber or smth
+            case idl.IDLBigintType: return 'bigint' // should be removed! It is KLong or smth
             case idl.IDLBooleanType:
             case idl.IDLFunctionType: return 'KInt'
             case idl.IDLStringType: return 'KStringPtr'

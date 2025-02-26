@@ -35,6 +35,7 @@ declare namespace mediaquery {
 
 
   function matchMediaSync(condition: string): MediaQueryListener;
+  function test(num:bigint): bigint
 }
 
 export default mediaquery;

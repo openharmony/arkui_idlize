@@ -15,3 +15,7 @@ export function init() {
     registerNativeModuleLibraryName("MEDIAQUERYNativeModule", "MEDIAQUERY_NativeBridgeArk")
     new MEDIAQUERYNativeModule()
 }
+
+export function getLong(): long {
+    return 2
+}

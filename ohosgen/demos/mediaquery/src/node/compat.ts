@@ -25,3 +25,7 @@ export function runEventLoop() {
         finished = true
     }, 2000);
 }
+
+export function getLong(): bigint {
+    return 2n
+}

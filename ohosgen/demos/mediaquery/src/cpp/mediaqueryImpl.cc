@@ -29,3 +29,6 @@ OH_String MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
 OH_NativePointer GlobalScope_mediaquery_ohos_mediaquery_matchMediaSyncImpl(const OH_String* condition) {
     return {};
 }
+OH_UInt64 GlobalScope_mediaquery_ohos_mediaquery_testImpl(OH_UInt64 num) {
+    return num * 2;
+}
