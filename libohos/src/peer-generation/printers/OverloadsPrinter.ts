@@ -288,14 +288,19 @@ export class OverloadsPrinter {
                     ])))
                 }
             })
-        const returnType = collapsedMethod.signature.returnType
-        if (returnType === idl.IDLThisType || returnType === idl.IDLVoidType) {
+        if (collapsedMethod.signature.returnType === idl.IDLThisType) {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
-            if (returnType === idl.IDLThisType) {
-                this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
-            } else {
-                this.printer.writeStatement(this.printer.makeReturn())
-            }
+            this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
+        } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {
+            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            this.printer.writeStatement(this.printer.makeReturn())
+        } else if (peerMethod.returnType === idl.IDLVoidType && idl.isUnionType(collapsedMethod.signature.returnType)) {
+            // handling case when there is two original functions:
+            // foo(): boolean
+            // foo(cb: (boolean) => void): void
+            // and collapsed return type is `boolean | undefined`, so we want to return `undefined` on the second overload
+            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            this.printer.writeStatement(this.printer.makeReturn(this.printer.makeUndefined()))
         } else {
             this.printer.writeStatement(
                 this.printer.makeReturn(

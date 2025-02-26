@@ -59,6 +59,8 @@ function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, print
     })
     const groupedMethods = groupOverloadsIDL(entry.methods)
     groupedMethods.forEach(methods => {
+        if (methods.some(it => it.isStatic))
+            return
         const method = collapseSameMethodsIDL(methods, library.language)
         const signature = NamedMethodSignature.make(
             method.returnType,
