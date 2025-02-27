@@ -16,6 +16,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import {
+    asPromise,
     createConstructor,
     createMethod,
     createParameter,
@@ -261,7 +262,9 @@ class OHOSNativeVisitor {
         })
         if (!isConstructor(method) && !method.isStatic)
             args.unshift(`${PrimitiveTypesInstance.NativePointer} thisPtr`)
-        if (hasExtAttribute(method, IDLExtendedAttributes.Throws))
+        if (!!asPromise(method.returnType))
+            args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_AsyncWorkerPtr asyncWorker`)
+        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_VMContext vmContext`)
         return args.join(", ")
     }

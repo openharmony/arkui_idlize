@@ -14,7 +14,7 @@
  */
 
 import { generatorConfiguration, generatorTypePrefix } from "../config"
-import { IDLType } from "../idl"
+import { asPromise, IDLType } from "../idl"
 import { IdlNameConvertor } from "../LanguageWriters"
 import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
 import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
@@ -84,7 +84,9 @@ export class PeerMethod {
         const receiver = this.generateReceiver()
         if (receiver)
             args.unshift(`${receiver.argType} ${receiver.argName}`)
-        if (this.method.modifiers?.includes(MethodModifier.THROWS))
+        if (!!asPromise(this.method.signature.returnType))
+            args.unshift(`${generatorTypePrefix()}AsyncWorkerPtr asyncWorker`)
+        if (!!asPromise(this.method.signature.returnType) || this.method.modifiers?.includes(MethodModifier.THROWS))
             args.unshift(`${generatorTypePrefix()}VMContext vmContext`)
         return args
     }

@@ -49,6 +49,8 @@ typedef InteropCustomObject OH_CustomObject;
 typedef InteropUndefined OH_Undefined;
 // typedef InteropAPIKind OH_APIKind;
 typedef InteropVMContext OH_%LIBRARY_NAME%_VMContext;
+typedef InteropAsyncWorker OH_%LIBRARY_NAME%_AsyncWorker;
+typedef InteropAsyncWorkerPtr OH_%LIBRARY_NAME%_AsyncWorkerPtr;
 typedef InteropBuffer OH_Buffer;
 typedef InteropLength OH_Length;
 typedef InteropFunction OH_Function;

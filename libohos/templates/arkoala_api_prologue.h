@@ -68,6 +68,9 @@ typedef InteropPipelineContext Ark_PipelineContext;
 typedef InteropCustomObject Ark_CustomObject;
 typedef InteropDate Ark_Date;
 typedef InteropFunction Ark_Function;
+typedef InteropAsyncWork Ark_AsyncWork;
+typedef InteropAsyncWorker Ark_AsyncWorker;
+typedef InteropAsyncWorkerPtr Ark_AsyncWorkerPtr;
 
 // TODO: generate!
 typedef struct Opt_Ark_Callback {

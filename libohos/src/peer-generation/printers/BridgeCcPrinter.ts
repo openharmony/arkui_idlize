@@ -80,7 +80,9 @@ export class BridgeCcVisitor {
         const args = argAndOutConvertors.map(it => this.generateApiArgument(it))
         if (method.hasReceiver())
             args.unshift(this.getReceiverArgName())
-        if (method.method.modifiers?.includes(idl.MethodModifier.THROWS))
+        if (!!idl.asPromise(method.returnType))
+            args.unshift(`GetAsyncWorker()`)
+        if (this.needsVMContext(method))
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(method)
         const field = this.getApiCallResultField(method)
@@ -201,6 +203,10 @@ export class BridgeCcVisitor {
         this.generatedApi.print(`}`)
     }
 
+    private needsVMContext(method: PeerMethod): boolean {
+        return !!idl.asPromise(method.returnType) || !!method.method.modifiers?.includes(idl.MethodModifier.THROWS)
+    }
+
     private generateCMacroSuffix(method: PeerMethod): string {
         let argumentsCount = method.hasReceiver() ? 1 : 0
         let arrayAdded = false
@@ -214,7 +220,7 @@ export class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const ctxSuffix = method.method.modifiers?.includes(idl.MethodModifier.THROWS) ? 'CTX_' : ''
+        const ctxSuffix = this.needsVMContext(method) ? 'CTX_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
@@ -252,7 +258,7 @@ export class BridgeCcVisitor {
         const argTypesAndNames = this.generateCParameters(method);
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
-        if (method.method.modifiers?.includes(idl.MethodModifier.THROWS))
+        if (this.needsVMContext(method))
             argDecls.unshift("KVMContext vmContext")
         this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()
