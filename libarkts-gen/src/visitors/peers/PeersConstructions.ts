@@ -52,6 +52,10 @@ export class PeersConstructions {
         return `unpackNodeArray`
     }
 
+    static get receiveString(): string {
+        return `unpackString`
+    }
+
     static passNode(name: string): string {
         return `passNode(${name})`
     }

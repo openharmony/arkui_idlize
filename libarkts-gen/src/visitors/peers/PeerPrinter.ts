@@ -45,6 +45,7 @@ import {
     isGetter,
     isReal,
     isSequence,
+    isString,
     nodeNamespace,
     nodeType,
     parent,
@@ -252,6 +253,12 @@ export class PeerPrinter {
                         })
                 )
         )
+        if (isString(node.returnType)) {
+            return this.writer.makeFunctionCall(
+                PeersConstructions.receiveString,
+                [nativeCall]
+            )
+        }
         if (isPrimitiveType(node.returnType)) {
             return nativeCall
         }
