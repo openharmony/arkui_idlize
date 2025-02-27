@@ -24,12 +24,13 @@ export class PeerImporter {
 
     private writer = createDefaultTypescriptWriter()
 
-    private seen = new Set<string>()
+    private seen = new Set<string>([
+        Config.astNodeCommonAncestor,
+        Config.defaultAncestor,
+        `Es2pandaAstNodeType` // TODO: remove once enum generation is fixed
+    ])
 
     withPeerImport(it: string): string {
-        if (it === Config.astNodeCommonAncestor) {
-            return it
-        }
         if (this.seen.has(it)) {
             return it
         }

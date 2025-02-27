@@ -24,15 +24,15 @@ import * as path from "node:path"
 const cliOptions: {
     inputFile?: string,
     outputDir?: string,
-    transform?: boolean,
     files?: string
-    optionsFile?: string
+    optionsFile?: string,
+    debug?: boolean
 } = program
     .option('--input-file <path>', 'Path to file to generate from')
     .option('--output-dir <path>', 'Path to output dir')
-    .option('--transform', 'Applies some temporary fixes on input .idl')
     .option('--files <string>', 'Types of files to be emitted [bridges|bindings|enums], comma separated, no space')
     .option('--options-file <path>', 'Path to file which determines what to generate')
+    .option('--debug', 'Generate intermediate versions of IDL IR')
     .parse()
     .opts()
 
@@ -41,7 +41,7 @@ function main() {
     const idlFileName = cliOptions.inputFile ?? `./input/full.idl`
     const files = cliOptions.files?.split(`,`)
     const optionsFile = cliOptions.optionsFile ?? path.join(__dirname, `../input/ignore.json5`)
-    const shouldFixInput = cliOptions.transform ?? false
+    const isDebug = cliOptions.debug ?? false
 
     const idl = toIDLFile(idlFileName)
     new VerifyVisitor(idl).complain()
@@ -51,9 +51,9 @@ function main() {
         idl,
         new Config(
             new Options(optionsFile),
-            shouldFixInput,
             files
         ),
+        isDebug
     ).print()
 }
 

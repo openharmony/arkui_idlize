@@ -19,7 +19,6 @@ import { splitCreateOrUpdate } from "./utils/common"
 export class Config {
     constructor(
         public options: Options,
-        private fixInput: boolean,
         private files?: string[]
     ) {}
 
@@ -51,8 +50,8 @@ export class Config {
         return `AstNode`
     }
 
-    shouldEmitEnum(name: string): boolean {
-        return true
+    static get contextType(): string {
+        return `Context`
     }
 
     shouldEmitFile(name: string): boolean {
@@ -62,18 +61,24 @@ export class Config {
         return true
     }
 
-    shouldFixInput(): boolean {
-        return this.fixInput
-    }
-
     static isCreateOrUpdate(sourceMethodName: string): boolean {
         if (!sourceMethodName.startsWith(Config.createPrefix) && !sourceMethodName.startsWith(Config.updatePrefix)) {
             return false
         }
         const { rest } = splitCreateOrUpdate(sourceMethodName)
-        if (rest.length > 1) {
-            return false
-        }
-        return true
+        return rest.length <= 1;
+
+    }
+
+    static get dataClassPrefix(): string {
+        return `es2panda_`
+    }
+
+    static get defaultAncestor(): string {
+        return `ArktsObject`
+    }
+
+    static get irNamespace(): string {
+        return `ir`
     }
 }

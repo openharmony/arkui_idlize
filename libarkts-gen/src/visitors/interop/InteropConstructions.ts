@@ -54,7 +54,8 @@ export class InteropConstructions {
             `super`,
             `arguments`,
             `implements`,
-            `interface`
+            `interface`,
+            `global`
         ]
     }
 }

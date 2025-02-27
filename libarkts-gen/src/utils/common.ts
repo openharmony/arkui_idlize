@@ -15,23 +15,47 @@
 
 import { Config } from "../Config"
 import { throwException } from "@idlizer/core"
+import { InteropConstructions } from "../visitors/interop/InteropConstructions";
 
-export function pascalToCamel(value: string) {
+function pascalToCamel(value: string): string {
     return value.charAt(0).toLowerCase() + value.slice(1);
 }
 
+function dropPostfix(value: string, toDrop: string): string {
+    if (value.endsWith(toDrop)) {
+        return value.slice(0, -toDrop.length)
+    }
+    return value
+}
+
+function dropPrefix(value: string, toDrop: string): string {
+    if (value.startsWith(toDrop)) {
+        return value.slice(toDrop.length)
+    }
+    return value
+}
+
+export function peerMethod(name: string): string {
+    return pascalToCamel(dropPostfix(name, Config.constPostfix))
+}
+
 export function splitCreateOrUpdate(fullName: string): { createOrUpdate: string, rest: string } {
-    let createOrUpdate: string
-    let index: string
     if (fullName.startsWith(Config.createPrefix)) {
-        createOrUpdate = Config.createPrefix
-        index = fullName.slice(Config.createPrefix.length)
-        return { createOrUpdate, rest: index }
+        const createOrUpdate = Config.createPrefix
+        const rest = dropPrefix(fullName, Config.createPrefix)
+        return { createOrUpdate, rest }
     }
     if (fullName.startsWith(Config.updatePrefix)) {
-        createOrUpdate = Config.updatePrefix
-        index = fullName.slice(Config.updatePrefix.length)
-        return { createOrUpdate, rest: index }
+        const createOrUpdate = Config.updatePrefix
+        const rest = dropPrefix(fullName, Config.updatePrefix)
+        return { createOrUpdate, rest }
     }
     throwException(`method name doesn't start neither with ${Config.createPrefix} nor with ${Config.updatePrefix}`)
+}
+
+export function mangleIfKeyword(name: string): string {
+    if (InteropConstructions.keywords.includes(name)) {
+        return `_${name}`
+    }
+    return name
 }

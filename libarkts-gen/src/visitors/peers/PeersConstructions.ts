@@ -15,7 +15,7 @@
 
 import { BindingsConstructions } from "../interop/bindings/BindingsConstructions"
 import { InteropConstructions } from "../interop/InteropConstructions"
-import { pascalToCamel } from "../../utils/common"
+import { peerMethod } from "../../utils/common";
 
 export class PeersConstructions {
     static fileName(node: string): string {
@@ -52,6 +52,18 @@ export class PeersConstructions {
         return `unpackNodeArray`
     }
 
+    static passNode(name: string): string {
+        return `passNode(${name})`
+    }
+
+    static passNodeArray(name: string): string {
+        return `passNodeArray(${name})`
+    }
+
+    static arrayLength(name: string): string {
+        return `${name}.length`
+    }
+
     static get context(): string {
         return `global.context`
     }
@@ -60,18 +72,18 @@ export class PeersConstructions {
         return `this.peer`
     }
 
-    static callBinding(iface: string, method: string, namespace: string): string {
+    static callBinding(iface: string, method: string, namespace: string | undefined): string {
         return `global.generatedEs2panda.${
             BindingsConstructions.method(
-                InteropConstructions.method(iface, method, namespace)
+                InteropConstructions.method(iface, method, namespace ?? ``)
             )
         }`
     }
 
-    static callCreateOrUpdate(iface: string, method: string, namespace: string): string {
+    static callCreateOrUpdate(iface: string, method: string, namespace: string | undefined): string {
         return `global.generatedEs2panda.${
             BindingsConstructions.method(
-                InteropConstructions.method(iface, method, namespace)
+                InteropConstructions.method(iface, method, namespace ?? ``)
             )
         }`
     }
@@ -93,6 +105,6 @@ export class PeersConstructions {
     }
 
     static createOrUpdate(iface: string, method: string): string {
-        return pascalToCamel(`${method}${iface}`)
+        return peerMethod(`${method}${iface}`)
     }
 }

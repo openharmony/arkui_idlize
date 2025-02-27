@@ -24,7 +24,8 @@ import {
     AstNode,
     Es2pandaAstNodeType,
     KNativePointer,
-    nodeByType
+    nodeByType,
+    ArktsObject,
 } from "../../reexport-for-generated"
 
 %GENERATED_PART%

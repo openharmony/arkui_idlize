@@ -2,22 +2,16 @@
     "ignore": {
         "interfaces": {
             "es2panda_Impl": [
-                "CreateConfig", // sequence<String>
-                "ProgramExternalSources", // sequence<sequence>
-                "ExternalSourcePrograms", // sequence<sequence>
+                "*"
+            ],
+            "es2panda_SourcePosition": [ // until idl is fixed
+                "*"
+            ],
+            "es2panda_LabelPair": [
+                "*"
             ],
             "Signature": [
                 "ProtectionFlagConst", // u8
-            ],
-            "es2panda_Signature": [ // data class
-                "*"
-            ],
-            "Type": [
-                "IdConst", // u64
-                "*"
-            ],
-            "LocalScope": [ // missing inheritance
-                "*"
             ],
             "ETSReExportDeclaration": [
                 "Create", // sequence<String>
@@ -29,11 +23,8 @@
                 "Update1", // KShort
                 "CharConst", // KShort
             ],
-            "ForUpdateStatement": [ // ??
+            "ForUpdateStatement": [ // forbidden naming
                 "Update"
-            ],
-            "StringLiteral": [
-                "Create" // differs from handwritten
             ],
             "CallExpression": [
                 "Update" // differs from handwritten

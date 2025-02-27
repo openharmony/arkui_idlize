@@ -14,16 +14,22 @@
  */
 
 import {
+    createContainerType,
     createEmptyReferenceResolver,
     createInterface,
+    createMethod,
+    IDLContainerType,
     IDLContainerUtils,
     IDLEntry,
+    IDLExtendedAttribute,
     IDLInterface,
     IDLMethod,
     IDLNode,
+    IDLParameter,
     IDLPrimitiveType,
+    IDLReferenceType,
     IDLType,
-    IndentedPrinter,
+    IndentedPrinter, isContainerType,
     isEnum,
     isInterface,
     isPrimitiveType,
@@ -34,18 +40,24 @@ import {
 import { Config } from "../Config"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
-    return isPrimitiveType(node) && node.name === "String"
+    return isPrimitiveType(node) && node.name === `String`
 }
 
 export function isSequence(node: IDLType): boolean {
     return IDLContainerUtils.isSequence(node)
 }
 
-export function createUpdatedInterface(node: IDLInterface, methods?: IDLMethod[], name?: string): IDLInterface {
+export function createUpdatedInterface(
+    node: IDLInterface,
+    methods?: IDLMethod[],
+    name?: string,
+    inheritance?: IDLReferenceType[],
+    extendedAttributes?: IDLExtendedAttribute[]
+): IDLInterface {
     return createInterface(
         name ?? node.name,
         node.subkind,
-        node.inheritance,
+        inheritance ?? node.inheritance,
         node.constructors,
         node.constants,
         node.properties,
@@ -53,10 +65,36 @@ export function createUpdatedInterface(node: IDLInterface, methods?: IDLMethod[]
         node.callables,
         node.typeParameters,
         {
-            extendedAttributes: node.extendedAttributes,
+            extendedAttributes: extendedAttributes ?? node.extendedAttributes,
             fileName: node.fileName,
             documentation: node.documentation
         }
+    )
+}
+
+export function createUpdatedMethod(
+    node: IDLMethod,
+    name?: string,
+    parameters?: IDLParameter[],
+    returnType?: IDLType,
+    extendedAttributes?: IDLExtendedAttribute[]
+): IDLMethod {
+    return createMethod(
+        name ?? node.name,
+        parameters ?? node.parameters,
+        returnType ?? node.returnType,
+        {
+            isAsync: node.isAsync,
+            isFree: node.isFree,
+            isStatic: node.isStatic,
+            isOptional: node.isOptional,
+        },
+        {
+            extendedAttributes: extendedAttributes ?? node.extendedAttributes,
+            fileName: node.fileName,
+            documentation: node.documentation,
+        },
+        node.typeParameters
     )
 }
 
@@ -86,20 +124,11 @@ export class Typechecker {
         return this.isHeir(parent.name, ancestor)
     }
 
-
     isPeer(node: string): boolean {
-        return this.isHeir(node, Config.astNodeCommonAncestor) && node !== Config.astNodeCommonAncestor
-    }
-
-    isHollow(name: string): boolean {
-        const declaration = this.findRealDeclaration(name)
-        if (declaration === undefined) {
-            return false
-        }
-        if (!isInterface(declaration)) {
-            return false
-        }
-        return declaration.methods.length === 0
+        if (node === Config.astNodeCommonAncestor) return false // TODO: is handwritten
+        if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
+        if (this.isHeir(node, Config.defaultAncestor)) return true
+        return false
     }
 
     isReferenceTo(type: IDLType, isTarget: (type: IDLNode) => boolean): boolean  {
@@ -143,7 +172,21 @@ export function parent(node: IDLInterface): string | undefined {
 }
 
 export function isAbstract(node: IDLInterface): boolean {
-    return nodeType(node) === undefined
+    if (isDataClass(node)) {
+        return false
+    }
+    if (isReal(node)) {
+        return false
+    }
+    return true
+}
+
+export function isReal(node: IDLInterface): boolean {
+    return nodeType(node) !== undefined
+}
+
+export function isDataClass(node: IDLInterface): boolean {
+    return parent(node) === Config.defaultAncestor
 }
 
 export function isGetter(node: IDLMethod): boolean {
@@ -159,7 +202,7 @@ export function createDefaultTypescriptWriter() {
     return new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => throwException(`Unexpected type conversion`) }
+        { convert: (node: IDLType) => throwException(`unexpected type conversion`) }
     )
 }
 
@@ -167,4 +210,26 @@ export function signatureTypes(node: IDLMethod): IDLType[] {
     return node.parameters
         .map(it => it.type)
         .concat(node.returnType)
+}
+
+export function isIrNamespace(node: IDLInterface): boolean {
+    return nodeNamespace(node) === Config.irNamespace
+}
+
+export function createSequence(inner: IDLType): IDLContainerType {
+    return createContainerType(
+        `sequence`,
+        [inner]
+    )
+}
+
+export function innerType(node: IDLContainerType): IDLType {
+    return node.elementType[0]
+}
+
+export function innerTypeIfContainer(node: IDLType): IDLType {
+    if (isContainerType(node)) {
+        return innerType(node)
+    }
+    return node
 }

@@ -6,4 +6,4 @@ libarkts-gen idl:
   before_script:
     - !reference [.setup, script]
   script:
-    - npm run full --prefix libarkts-gen
+    - npm run all --prefix libarkts-gen
