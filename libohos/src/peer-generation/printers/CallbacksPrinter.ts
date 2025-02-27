@@ -426,11 +426,11 @@ class ManagedCallCallbackVisitor {
     }
 
     private writeImports() {
-        this.dest.addInclude(`${this.libraryName}_api_generated.h`)
         this.dest.addInclude("callback_kind.h")
         this.dest.addInclude("Serializers.h")
         this.dest.addInclude("common-interop.h")
         this.dest.addInclude("callbacks.h")
+        this.dest.addInclude(`${this.libraryName}_api_generated.h`)
     }
 
     private writeCallbackCaller(callback: idl.IDLCallback): void {

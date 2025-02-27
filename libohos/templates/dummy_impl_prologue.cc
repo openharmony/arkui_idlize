@@ -912,6 +912,15 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
+    void NotifyChangeImpl(Ark_NativePointer node, Ark_Int32 startIndex, Ark_Int32 endIndex, Ark_Int32 count)
+    {
+        if (!needGroupedLog(1))
+            return;
+        string out("NotifyChangeImpl(");
+        WriteToString(&out, node);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
     } // LazyForEachOpsAccessor
 
     namespace CommonMethodModifier {

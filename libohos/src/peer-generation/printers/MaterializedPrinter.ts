@@ -226,7 +226,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                         let ctorStatements: LanguageStatement = writer.makeBlock([
                             writer.makeAssign("ctorPtr", IDLPointerType,
                                 writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`,
-                                    ctorSig.args.map((it, index) => writer.makeString(ctorSig.argsNames[index]))),
+                                    ctorSig.args.map((it, index) => writer.makeUnwrapOptional(writer.makeString(ctorSig.argsNames[index])))),
                                 true),
                             writer.makeAssign(
                                 "this.peer",

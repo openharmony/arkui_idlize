@@ -28,9 +28,9 @@ export function printEventsCArkoalaImpl(library: PeerLibrary): string {
 
     const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.print(cStyleCopyright)
-    writer.writeInclude("arkoala_api_generated.h")
     writer.writeInclude("events.h")
     writer.writeInclude("Serializers.h")
+    writer.writeInclude("arkoala_api_generated.h")
     writer.print("")
 
     writer.pushNamespace("Generated")
