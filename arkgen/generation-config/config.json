@@ -155,10 +155,7 @@
         "ignoreEntry": [
             "Optional",
             "AppStorage",
-            "DataAddOperation",
             "DataChangeListener",
-            "DataChangeOperation",
-            "DataReloadOperation",
             "DisturbanceFieldOptions",
             "EntryOptions",
             "Environment",

@@ -122,6 +122,7 @@ interface LazyForEachOps {
     // Test method to enforce current index update.
     static void SetCurrentIndex(pointer node, i32 index);
     static void Prepare(pointer node, i32 itemCount, i32 offset);
+    static void NotifyChange(pointer node, i32 startIndex, i32 endIndex, i32 count);
 };
 
 [Entity=Class]
