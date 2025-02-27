@@ -152,11 +152,11 @@ class DeserializeCallbacksVisitor {
     private writeImports() {
         if (this.writer.language === Language.CPP) {
             const cppFile = this.destFile as CppSourceFile
-            cppFile.addInclude(`${this.libraryName}_api_generated.h`)
             cppFile.addInclude("callback_kind.h")
             cppFile.addInclude("Serializers.h")
             cppFile.addInclude("callbacks.h")
             cppFile.addInclude("common-interop.h")
+            cppFile.addInclude(`${this.libraryName}_api_generated.h`)
         }
 
         if (this.writer.language === Language.TS || this.writer.language === Language.ARKTS) {
