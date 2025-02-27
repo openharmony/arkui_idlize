@@ -17,6 +17,10 @@ declare namespace hilog {
         function g(): number
         function g(x:number): number
         function g(x:string, y:number): number
+
+        function f1(x:number): void
+        function f2(x?:number): void
+        function f3(x?:number[]): void
     }
 
     enum LogLevel {

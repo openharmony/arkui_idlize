@@ -14,7 +14,7 @@
  */
 
 import { MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { createInterface, createMethod, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod } from "@idlizer/core/idl";
+import { createInterface, createMethod, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
 import { groupOverloadsIDL } from "./printers/OverloadsPrinter";
 import { createOutArgConvertor } from "./PromiseConvertors";
 
@@ -32,7 +32,7 @@ export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMe
 }
 
 export function idlMethodToMaterializedMethod(library: PeerLibrary, method:IDLMethod): MaterializedMethod {
-    const argConvertors = method.parameters.map(it => library.typeConvertor(it.name, it.type))
+    const argConvertors = method.parameters.map(it => library.typeConvertor(it.name, it.type, it.isOptional))
     return new MaterializedMethod(
         GlobalScopePeerName,
         GlobalScopePeerName,
@@ -41,7 +41,7 @@ export function idlMethodToMaterializedMethod(library: PeerLibrary, method:IDLMe
         true,
         new Method(
             mangledGlobalScopeName(method),
-            NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type }))),
+            NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: maybeOptional(it.type, it.isOptional) }))),
             [MethodModifier.STATIC]
         ),
         createOutArgConvertor(library, method.returnType, argConvertors.map(it => it.param)),

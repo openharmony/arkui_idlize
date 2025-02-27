@@ -52,7 +52,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             const nsPath = idl.getNamespacesPathFor(methods[0])
             const peerMethods = idlFreeMethodToLegacy(library, methods)
             const method = collapseSameMethodsIDL(methods)
-            const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: it.type })))
+            const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
 
             // write
             const writer = library.createLanguageWriter()

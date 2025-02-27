@@ -149,6 +149,7 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Langu
             for (const param of it) {
                 if (param) {
                     defined = param
+                    isOptional = isOptional || param.isOptional
                 } else {
                     isOptional = true
                 }
