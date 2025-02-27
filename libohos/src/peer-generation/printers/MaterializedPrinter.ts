@@ -239,7 +239,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             ctorStatements =
                                 writer.makeCondition(
                                     ctorSig.args.length === 0 ? writer.makeString("true") :
-                                        writer.makeNaryOp('&&', ctorSig.argsNames.map(it =>
+                                        writer.makeNaryOp('||', ctorSig.argsNames.map(it =>
                                             writer.language == Language.CJ ?
                                                 writer.makeRuntimeTypeCondition('', true, RuntimeType.OBJECT, it) :
                                                 writer.language == Language.JAVA ?

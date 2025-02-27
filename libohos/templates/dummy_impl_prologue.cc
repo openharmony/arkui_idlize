@@ -20,13 +20,13 @@
 #include <future>
 #include <thread>
 
-#include "%API_GENERATED%.h"
 #include "Serializers.h"
 #include "interop-logging.h"
 #include "arkoala-macros.h"
 #include "tree.h"
 #include "logging.h"
 #include "dynamic-loader.h"
+#include "%API_GENERATED%.h"
 
 #undef max
 
