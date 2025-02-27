@@ -8,7 +8,7 @@ import commonjs from "@rollup/plugin-commonjs"
 const outDir = path.resolve("build/node")
 
 export default defineConfig({
-    input: "src/app.ts",
+    input: "src/node/main.ts",
     output: {
         file: "build/node/index.js",
         format: "commonjs",
@@ -23,7 +23,7 @@ export default defineConfig({
         // TODO Runtime JS modules should be in ES6 format
         commonjs(),
         replace({
-            "NATIVE_LIBRARY_NAME": `"${path.join(outDir, 'Context_NativeBridgeNapi.node')}"`,
+            "NATIVE_LIBRARY_NAME": `"${path.join(outDir, 'Unit_NativeBridgeNapi.node')}"`,
             preventAssignment: true,
         }),
     ]
