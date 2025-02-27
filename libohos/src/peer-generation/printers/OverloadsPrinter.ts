@@ -27,6 +27,7 @@ import { isDefined, Language, throwException, collapseTypes } from '@idlizer/cor
 import { callbackIdByInfo, convertIdlToCallback } from "./EventsPrinter";
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
+import { peerGeneratorConfiguration } from '../PeerGeneratorConfig';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
     let returnType: idl.IDLType = collapseTypes(types)
@@ -35,6 +36,52 @@ function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
         returnType = idl.createUnionType(newTypes)
     }
     return returnType
+}
+
+export function groupSameSignatureMethodsIDL(methods: idl.IDLMethod[]): idl.IDLMethod[][] {
+    if (methods.length < 2) return methods.map(it => [it])
+    
+    // get methods args
+    let params = methods.map(it => it.parameters)
+    // cut optional args
+    params = params.map(methodParams => methodParams.filter(param => !param.isOptional))    
+    let types = params.map(methodParams => methodParams.map(param => idl.printType(param.type)))
+
+    // compare methods signatures
+    let sameSignatureGroups = new Map<string, idl.IDLMethod[]>()
+    types.forEach((methodTypes, idx) => {
+        let methodTypesStringify = methodTypes.join(":")
+        if (sameSignatureGroups.has(methodTypesStringify)) {
+            sameSignatureGroups.get(methodTypesStringify)?.push(methods[idx])
+        } else {
+            sameSignatureGroups.set(methodTypesStringify, [methods[idx]])
+        }
+    })
+
+    return Array.from(sameSignatureGroups.values())
+}
+
+function groupSameSignatureMethods(methods: PeerMethod[]): PeerMethod[][] {
+    if (methods.length < 2) return methods.map(it => [it])
+
+    // get methods args
+    let args = methods.map(it => it.method.signature.args)
+    // cut optional args
+    args = args.map(methArgs => methArgs.filter(type => !idl.isOptionalType(type)))    
+    let types = args.map(methArgs => methArgs.map(type => idl.printType(type)))
+
+    // compare methods signatures
+    let sameSignatureGroups = new Map<string, PeerMethod[]>()
+    types.forEach((methodTypes, idx) => {
+        let methodTypesStringify = methodTypes.join(":")
+        if (sameSignatureGroups.has(methodTypesStringify)) {
+            sameSignatureGroups.get(methodTypesStringify)?.push(methods[idx])
+        } else {
+            sameSignatureGroups.set(methodTypesStringify, [methods[idx]])
+        }
+    })
+
+    return Array.from(sameSignatureGroups.values())
 }
 
 export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[], language?: Language): Method {
@@ -202,29 +249,44 @@ export class OverloadsPrinter {
                     .reduce((acc, it) => it.runtimeTypes.length + acc, 0)
                 return cardinalityA - cardinalityB
             })
-        const collapsedMethod = collapseSameNamedMethods(orderedMethods.map(it => it.method), undefined, this.language)
+
+        if (this.language != Language.ARKTS || peerGeneratorConfiguration().CollapseOverloadsARKTS) {
+            this.printCollapsedOverloads(peer, orderedMethods)
+        } else {
+            // Handle special case for same name AND same signature methods.
+            // Collapse same signature methods
+            let copy = Array.from([...orderedMethods])
+            const groups = groupSameSignatureMethods([...copy])
+            for (let group of groups) {
+                this.printCollapsedOverloads(peer, group)
+            }
+        } 
+    }
+
+    private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
         if (this.isComponent) {
             this.printer.print(`/** @memo */`)
         }
+        const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             if (this.isComponent) {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
             }
-            if (orderedMethods.length > 1) {
+            if (methods.length > 1) {
                 const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                     const argName = collapsedMethod.signature.argName(argIndex)
                     this.printer.language == Language.JAVA ?
-                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
-                    this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
+                        this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
+                        this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                     return new UnionRuntimeTypeChecker(
-                        orderedMethods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
+                        methods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
                 })
-                orderedMethods.forEach((peerMethod, methodIndex) =>
+                methods.forEach((peerMethod, methodIndex) =>
                     this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers))
                 writer.makeThrowError(`Can not select appropriate overload`).write(writer)
             } else {
-                this.printPeerCallAndReturn(peer, collapsedMethod, orderedMethods[0])
+                this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
             }
             if (this.isComponent) {
                 this.printer.popIndent()
@@ -234,7 +296,7 @@ export class OverloadsPrinter {
         })
     }
 
-    printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
+    private printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
         const argsConditions: LanguageExpression[] = []
         collapsedMethod.signature.args
             .forEach((type, argIndex) => {

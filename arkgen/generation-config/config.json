@@ -245,5 +245,6 @@
                 "emitClickEvent"
             ]
         }
-    }
+    },
+    "CollapseOverloadsARKTS": true
 }

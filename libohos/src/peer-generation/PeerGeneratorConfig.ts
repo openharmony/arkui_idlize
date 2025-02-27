@@ -48,6 +48,7 @@ export interface PeerGeneratorConfiguration extends OhosBaseConfiguration {
         readonly ignore: string[]
     }
     readonly constants: Map<string, string>
+    readonly CollapseOverloadsARKTS: boolean
 
     mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
@@ -83,6 +84,7 @@ export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
         ignoreMethods: new Map(),
     },
     constants: new Map(),
+    CollapseOverloadsARKTS: true,
     mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)

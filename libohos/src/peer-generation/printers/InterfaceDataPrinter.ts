@@ -19,7 +19,8 @@ import { PrinterResult } from "../LayoutManager";
 import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 import { collectProperties } from "./StructPrinter";
-import { collapseSameMethodsIDL, groupOverloadsIDL } from "./OverloadsPrinter";
+import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
+import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 
 /**
  * Printer for OHOS interfaces
@@ -57,17 +58,35 @@ function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, print
     entry.properties.forEach(prop => {
         printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional)
     })
+
     const groupedMethods = groupOverloadsIDL(entry.methods)
-    groupedMethods.forEach(methods => {
-        if (methods.some(it => it.isStatic))
-            return
-        const method = collapseSameMethodsIDL(methods, library.language)
-        const signature = NamedMethodSignature.make(
-            method.returnType,
-            method.parameters
-            .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) })))
-        printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0]))
-    })
+    if (library.language != idl.Language.ARKTS || peerGeneratorConfiguration().CollapseOverloadsARKTS) {
+        groupedMethods.forEach(methods => {
+            printCollapsedOverloads(library, methods, printer)
+        })
+    } else {
+        // Handle special case for same name AND same signature methods.
+        // Collapse same signature methods
+        groupedMethods.forEach(sameNameGroup => {
+            let copy = Array.from([...sameNameGroup])
+            const sameSignatureMethodsGroups = groupSameSignatureMethodsIDL([...copy])
+            for (let sameSignatureGroup of sameSignatureMethodsGroups) {
+                printCollapsedOverloads(library, sameSignatureGroup, printer)
+            }
+        })
+    }
+}
+
+function printCollapsedOverloads(library: PeerLibrary, methods: idl.IDLMethod[], printer: idl.LanguageWriter) {
+    if (methods.some(it => it.isStatic))
+        return
+    const method = collapseSameMethodsIDL(methods, library.language)
+    const signature = NamedMethodSignature.make(
+        method.returnType,
+        method.parameters
+            .map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional) }))
+    )
+    printer.writeMethodDeclaration(method.name, signature, toMethodModifiers(method.methods[0]))
 }
 
 class CJDeclConvertor {

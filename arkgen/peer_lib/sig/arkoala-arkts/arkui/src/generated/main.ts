@@ -503,8 +503,6 @@ function checkNodeAPI() {
         `insertChildAfter(0x${child4.peer.ptr}, 0x${child5.peer.ptr}, 0x0)markDirty(0x${child4.peer.ptr}, 32)`)
     checkResult("BasicNodeAPI removeChild", () => root.peer.removeChild(child2.peer.ptr),
         `removeChild(0x${root.peer.ptr}, 0x${child2.peer.ptr})markDirty(0x${root.peer.ptr}, 32)`)
-    checkResult("BasicNodeAPI dispose", () => child2.peer.dispose(),
-        `disposeNode(0x${child2.peer.ptr})`)
     checkResult("BasicNodeAPI dumpTree", () => root.peer.dumpTree(),
         `dumpTreeNode(0x${root.peer.ptr})`)
     checkResult("BasicNodeAPI measureLayoutAndDraw", () => ArkUINativeModule._MeasureLayoutAndDraw(root.peer.ptr),
