@@ -275,7 +275,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         if (!idl.isEnum(decl)) {
             throwException(`Declaration type must be Enum`)
         }
-        return this.makeCast(this.makeString(`${value}${idl.isStringEnum(decl) ? "" : ".valueOf()"}`),
+        // ((value as Axis) as int) - in case when Axis was casted to Object in Map<Axis, Smth>
+        return this.makeCast(this.makeCast(this.makeString(value), convertor.idlType),
             IDLI32Type).asString()
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
