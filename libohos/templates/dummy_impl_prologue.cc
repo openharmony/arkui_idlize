@@ -131,6 +131,23 @@ constexpr TreeNode *AsNode(From ptr) {
     return reinterpret_cast<TreeNode *>(ptr);
 }
 
+void EmitOnClick(Ark_NativePointer node, Ark_ClickEvent event) {
+    LOGE("EmitOnclick %p", node);
+    auto frameNode = AsNode(node);
+    frameNode->callClickEvent(event);
+}
+void RegisterOnClick(Ark_NativePointer node, const Callback_ClickEvent_Void* event) {
+    auto frameNode = AsNode(node);
+    auto callback = *event;
+    callback.resource.hold(callback.resource.resourceId);
+    auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+        if (callback.call) {
+            callback.call(callback.resource.resourceId, event);
+        }
+    };
+    frameNode->setClickEvent(std::move(onEvent));
+}
+
 void DumpTree(TreeNode *node, Ark_Int32 indent) {
     ARKOALA_LOG("%s[%s: %d]\n", string(indent * 2, ' ').c_str(), node->namePtr(), node->id());
     for (auto child: *node->children()) {
@@ -695,11 +712,6 @@ Ark_Float32 ConvertLengthMetricsUnit(Ark_Float32 value, Ark_Int32 originUnit, Ar
     out.append(")");
     appendGroupedLog(1, out);
     return result;
-}
-
-void EmitOnClick(Ark_NativePointer node, Ark_ClickEvent event) {
-    auto frameNode = AsNode(node);
-    frameNode->callClickEvent(event);
 }
 
 void SetCustomMethodFlag(Ark_NodeHandle node, Ark_Int32 flag) {}

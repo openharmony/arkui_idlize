@@ -265,9 +265,6 @@ public class Main {
         System.out.println("Java Components tests");
 
         class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
-            protected boolean checkPriority(String name) {
-                return true;
-            }
         }
 
         var component = new ArkSideBarContainerComponentTest();

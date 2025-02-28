@@ -498,10 +498,6 @@ function checkOverloads() {
             super()
             this.setPeer(peer)
         }
-
-        override checkPriority(name: string) {
-            return true
-        }
     }
 
     const peer = ArkSideBarContainerPeer.create()

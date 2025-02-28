@@ -16,7 +16,6 @@
 import { PeerNode } from './PeerNode'
 import { ArkUINativeModule } from "#components"
 import { AnimateParam } from './generated'
-import { _animationEnd, _animationStart } from './handwritten'
 
 export class ComponentBase {
     protected peer?: PeerNode
@@ -24,21 +23,14 @@ export class ComponentBase {
     setPeer(peer: PeerNode) {
         this.peer = peer
     }
-    protected checkPriority(name: string): boolean {
-        return true
-    }
     public applyAttributesFinish(): void {
         ArkUINativeModule._ApplyModifierFinish(this.peer!.peer.ptr)
     }
     public animationStart(param: AnimateParam): this {
-        _animationStart(param, this.isFirstBuild);
         return this
     }
 
     public animationEnd(): this {
-        _animationEnd(this.isFirstBuild, () => {
-            this.isFirstBuild = false;
-        })
-        return this;
+        return this
     }
 }

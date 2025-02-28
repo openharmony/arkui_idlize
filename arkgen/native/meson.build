@@ -202,7 +202,7 @@ arkts_sources = [
 
 ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
 ani_include_dirs = [
-    external_interop_dir / 'ani',
+    external_interop_dir / 'ani'
 ]
 ani_sources = [
     external_interop_dir / 'ani/convertors-ani.cc',
@@ -307,6 +307,8 @@ shared_library(arkts_library_name,
 endif
 
 if is_ani
+ani_ldflags = []
+
 shared_library(ani_library_name,
     sources + ani_sources,
     override_options: [
@@ -316,7 +318,7 @@ shared_library(ani_library_name,
     include_directories: include_dirs + ani_include_dirs,
     install_dir: meson.current_source_dir(),
     cpp_args: cflags + ani_cflags,
-    link_args: ldflags,
+    link_args: ldflags + ani_ldflags,
     dependencies: []
 )
 endif
@@ -425,6 +427,10 @@ endif
 if is_arkts
 loader_include_dirs += arkts_include_dirs
 loader_cflags += arkts_cflags
+endif
+if is_ani
+loader_include_dirs += ani_include_dirs
+loader_cflags += ani_cflags
 endif
 if os != 'windows'
 loader_ldflags += ['-ldl']
