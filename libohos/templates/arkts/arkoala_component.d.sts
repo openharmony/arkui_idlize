@@ -1,0 +1,16 @@
+@memo
+@BuildLambda("Ark%COMPONENT_NAME%")
+export declare function Ark%COMPONENT_NAME%(
+    %FUNCTION_PARAMETERS%
+    @memo
+    _content?: () => void,
+): %COMPONENT_CLASS_NAME%
+
+@memo
+export declare function Ark%COMPONENT_NAME%Impl(
+    @memo
+    _style: ((attributes: %COMPONENT_CLASS_NAME%) => void) | undefined,
+    %FUNCTION_PARAMETERS%
+    @memo
+    _content?: () => void,
+): void

@@ -56,6 +56,7 @@ import { printInterfaces } from "./printers/InterfacePrinter"
 import { printComponents } from "./printers/ComponentsPrinter"
 import { printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./printers/EventPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
+import { printStsComponents, printStsComponentsDeclarations } from "./printers/StsComponentsPrinter"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -297,6 +298,18 @@ export function generateArkoalaFromIdl(config: {
             }
         )
     } else if (peerLibrary.language === Language.ARKTS) {
+        install(
+            path.join(selectOutDir(arkoala, peerLibrary.language), "../sts/generated"),
+            peerLibrary,
+            [printStsComponents],
+            { fileExtension: ".sts" }
+        )
+        install(
+            path.join(selectOutDir(arkoala, peerLibrary.language), "../sts/generated"),
+            peerLibrary,
+            [printStsComponentsDeclarations],
+            { fileExtension: ".d.sts" }
+        )
         const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
         writeIntegratedFile(
