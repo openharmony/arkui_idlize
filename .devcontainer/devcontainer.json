@@ -1,0 +1,11 @@
+{
+    "build": {
+        "dockerfile": "../tools/devcontainer/Dockerfile",
+        "args": {
+            "NEXUS_AUTH_TOKEN": "${localEnv:NEXUS_AUTH_TOKEN:a29hbGEtcHViOnkzdCFuMHRoZXJQ}"
+        },
+        "options": ["-t", "idlize-devcontainer"]
+    },
+    "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/idlize",
+    "workspaceFolder": "/idlize"
+}

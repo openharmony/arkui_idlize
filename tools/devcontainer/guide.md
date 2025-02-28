@@ -1,4 +1,14 @@
-Usage:
+# How to use the DevContainer
+
+## VSCode usage:
+0. \[optionally] Set NEXUS_AUTH_TOKEN environment variable:
+```bash
+export NEXUS_AUTH_TOKEN=`node -p 'btoa("<w3 login>:<password>")'`
+```
+1. Install https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers
+2. Run `Dev Containers: Reopen in container` command in vscode 
+
+## Use from terminal:
 ```bash
 docker build -t idlize-dev --build-arg NEXUS_AUTH_TOKEN='<my _auth>' tools/devcontainer
 docker run -it --mount type=bind,source=<path-to-idlize-repo>,target=/idlize idlize-dev
