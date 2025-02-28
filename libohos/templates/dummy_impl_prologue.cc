@@ -140,7 +140,7 @@ void RegisterOnClick(Ark_NativePointer node, const Callback_ClickEvent_Void* eve
     auto frameNode = AsNode(node);
     auto callback = *event;
     callback.resource.hold(callback.resource.resourceId);
-    auto onEvent = [frameNode, callback](Ark_ClickEvent event) {
+    auto onEvent = [callback](Ark_ClickEvent event) {
         if (callback.call) {
             callback.call(callback.resource.resourceId, event);
         }

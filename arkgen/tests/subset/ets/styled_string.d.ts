@@ -65,7 +65,7 @@ declare class UrlStyle {
 }
 
 
-declare type StyledStringValue = TextStyle | UrlStyle;
+declare type StyledStringValue = TextStyle | DecorationStyle | BaselineOffsetStyle | LetterSpacingStyle | TextShadowStyle | GestureStyle | ImageAttachment | ParagraphStyle | LineHeightStyle | UrlStyle | CustomSpan | UserDataSpan | BackgroundColorStyle;
 
 declare class StyledString {
 
@@ -100,3 +100,14 @@ declare interface StyleOptions {
 }
 
 declare abstract class UserDataSpan { }
+
+declare interface DecorationStyle {}
+declare interface BaselineOffsetStyle {}
+declare interface LetterSpacingStyle {}
+declare interface TextShadowStyle {}
+declare interface GestureStyle {}
+declare interface ImageAttachment {}
+declare interface ParagraphStyle {}
+declare interface LineHeightStyle {}
+declare interface CustomSpan {}
+declare interface BackgroundColorStyle {}
