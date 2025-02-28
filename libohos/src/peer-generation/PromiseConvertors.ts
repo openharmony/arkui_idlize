@@ -47,7 +47,7 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
         const serializeCallback = idl.isVoidType(this.promise.elementType[0])
             ? writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallbackForPromiseVoid`, [])
             : writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallbackForPromise<${writer.getNodeName(this.promise.elementType[0])}>`, [])
-        writer.writeStatement(writer.makeAssign(value, undefined, writer.makeTupleAccess(serializeCallback.asString(), 0), true))
+        writer.writeStatement(writer.makeAssign(value, undefined, writer.language == Language.CJ ? writer.makeString(serializeCallback.asString().concat('.promise')) : writer.makeTupleAccess(serializeCallback.asString(), 0), true))
     }
 
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {

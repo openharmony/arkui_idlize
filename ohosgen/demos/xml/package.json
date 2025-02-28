@@ -10,13 +10,13 @@
     "scripts": {
         "clean:ts": "rm -rf generated/ts",
         "clean:arkts": "rm -rf generated/arkts",
-        "clean:cj": "rm -rf generated/cj",
+        "clean:cj": "rm -rf generated/cangjie",
         "clean:native": "rm -rf generated/native",
 
         "generate": "npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate",
+        "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",

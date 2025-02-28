@@ -158,7 +158,7 @@ class CJLoopStatement implements LanguageStatement {
 class CJMapForEachStatement implements LanguageStatement {
     constructor(private map: string, private key: string, private value: string, private op: () => void) {}
     write(writer: LanguageWriter): void {
-        writer.print(`for ((key, value) in ${this.map}) {`)
+        writer.print(`for ((${this.key}, ${this.value}) in ${this.map}) {`)
         writer.pushIndent()
         this.op()
         writer.popIndent()
@@ -288,7 +288,9 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.typeForeignConvertor)
     }
     getNodeName(type: idl.IDLNode): string {
-        return this.typeConvertor.convert(type)
+        // rework for proper namespace logic
+        let name = this.typeConvertor.convert(type).split('.')
+        return name[name.length - 1]
     }
 
     writeClass(
@@ -453,7 +455,7 @@ export class CJLanguageWriter extends LanguageWriter {
         throw new Error(`makeClassInit`)
     }
     makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
-        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(${size ?? ''})`)
+        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(Int64(${size ?? ''}))`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
         throw new Error(`TBD`)
@@ -525,7 +527,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString("Option.None")
     }
     override makeUnwrapOptional(expression: LambdaExpression): LanguageExpression {
-        return new CJMatchExpression(expression, [this.makeString('Some(serializer)')], [this.makeString('serializer')], this.indentDepth())
+        return new CJMatchExpression(expression, [this.makeString(`Some(unwrap_value)`)], [this.makeString(`unwrap_value`)], this.indentDepth())
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         return this.makeString(`${value}`)

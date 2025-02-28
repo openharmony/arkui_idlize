@@ -406,12 +406,12 @@ export function generateArkoalaFromIdl(config: {
                 printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).content.getOutput().join('\n')
             )
         )
-        writeIntegratedFile(
-            arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
-            printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
-                printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
-            )
-        )
+        // writeIntegratedFile(
+        //     arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
+        //     printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
+        //         printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
+        //     )
+        // )
         writeFile(arkoala.peer(new TargetFile('CallbackKind', '')),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
             {
@@ -426,8 +426,6 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true
             }
         )
-        // const arkComponents = makeJavaArkComponents(peerLibrary, context)
-        // arkComponents.writer.printTo(arkoala.javaLib(arkComponents.targetFile))
 
         writeFile(arkoala.cjLib(new TargetFile('Serializer')),
             makeCJSerializer(peerLibrary).getOutput().join('\n'),

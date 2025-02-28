@@ -78,3 +78,7 @@ declare interface MarkStyle {
   size?: Length;
   strokeWidth?: Length;
 }
+declare interface SizeOptions {
+  width?: Length;
+  height?: Length;
+}

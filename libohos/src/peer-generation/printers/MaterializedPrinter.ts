@@ -81,7 +81,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const finalizableType = FinalizableType
         const superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz)) ?? (new Set([Language.JAVA]).has(printer.language) ? ARK_MATERIALIZEDBASE : undefined)
 
-        const interfaces: string[] = ["MaterializedBase"]
+        const interfaces: string[] = printer.language == Language.CJ ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(...clazz.interfaces.map(it => `${this.namespacePrefix}${it.name}`))
         }
@@ -130,8 +130,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const implementationClassName = clazz.getImplementationName()
         printer.writeClass(implementationClassName, writer => {
-            if ([Language.TS, Language.ARKTS, Language.JAVA].includes(writer.language)) {
-                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true)
+            if (!superClassName) {
+                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
                 // write getPeer() method
                 const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
                 writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
@@ -241,7 +241,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                                     ctorSig.args.length === 0 ? writer.makeString("true") :
                                         writer.makeNaryOp('||', ctorSig.argsNames.map(it =>
                                             writer.language == Language.CJ ?
-                                                writer.makeRuntimeTypeCondition('', true, RuntimeType.OBJECT, it) :
+                                                writer.makeDefinedCheck(it) :
                                                 writer.language == Language.JAVA ?
                                                     writer.makeNaryOp('!=', [writer.makeString(it), writer.makeUndefined()]) :
                                                     writer.makeNaryOp('!==', [writer.makeString(it), writer.makeUndefined()]))
@@ -429,6 +429,21 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
                 writer.makeNewObject('Finalizable', [writer.makeString('ptr'), writer.makeString(`${className}.getFinalizer()`)]), false),
         )
         writer.writeStatement(writer.makeReturn(writer.makeString(objVar)))
+    })
+}
+
+function writeToPeerPtrMethod(writer: LanguageWriter) {
+    const toPeerPtrSignature = new MethodSignature(idl.IDLPointerType, [])
+    writer.writeFunctionImplementation('toPeerPtr', toPeerPtrSignature, () => {
+        writer.print(`
+            let base: MaterializedBase = match (value as MaterializedBase) {
+                case Some(x) => x
+                case None => throw Exception("Value is not a MaterializedBase instance!")
+            }
+            return match (base.getPeer()) {
+                case Some(peer) => peer.ptr
+                case None => nullptr
+            }`)
     })
 }
 

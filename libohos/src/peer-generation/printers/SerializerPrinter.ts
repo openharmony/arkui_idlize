@@ -303,7 +303,7 @@ class DeserializerPrinter {
                         }
                     }
 
-                    this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeCast(this.writer.makeString(`{${propsAssignees.join(',')}}`), type), true, false))
+                    this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeCast(this.writer.makeString(`{${propsAssignees.join(', ')}}`), type), true, false))
                 }
             }
         } else {
@@ -485,16 +485,9 @@ class DeserializerPrinter {
         printSerializerImports(this.library, this.destFile, declarationPath)
         this.writer.print("")
         this.writer.writeClass(className, writer => {
-            if (ctorSignature && this.writer.language != Language.CJ) {
+            if (ctorSignature) {
                 const ctorMethod = new Method(`${className}Base`, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
-            }
-            if (this.writer.language == Language.CJ) {
-                writer.print("Deserializer(data: Array<UInt8>, length: Int64) {")
-                writer.pushIndent()
-                writer.print("super(data, length)")
-                writer.popIndent()
-                writer.print("}")
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {

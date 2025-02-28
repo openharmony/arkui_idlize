@@ -212,10 +212,23 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
                 functionCallArgs.push(signature.argsNames[ordinal])
             }
         }
-        const resultVarName = 'result'
+        let resultVarName = 'result'
         let shouldReturn = false
         if (signature.returnType === idl.IDLVoidType) {
             printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+        } else if (signature.returnType === idl.IDLInteropReturnBufferType) {
+            printer.writeStatement(
+                printer.makeAssign(
+                    resultVarName,
+                    undefined,
+                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
+                    true
+                )
+            )
+            printer.print(`let array = Array<UInt8>(Int64(result.length), repeat: 0)`)
+            printer.print(`for (i in 0..array.size) { unsafe { array[i] = result.data.read() } }`)
+            shouldReturn = true
+            resultVarName = 'array'
         } else {
             printer.writeStatement(
                 printer.makeAssign(
@@ -409,12 +422,9 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
     const entries = collectPredefinedNativeModuleEntries(library, module)
     const visitor = new CJNativeModulePredefinedVisitor(library, library.language, entries)
     visitor.visit()
-    const writer = library.createLanguageWriter(Language.CJ) as CJLanguageWriter
+    const writer = library.createLanguageWriter() as CJLanguageWriter
     writer.writeCJForeign(writer => {
         writer.concat(visitor.nativeFunctions)
-        const maybeTemplate = maybeReadLangTemplate(`${module.name}_nativeFunctions`, Language.CJ)
-        if (maybeTemplate)
-            writer.writeLines(maybeTemplate)
     })
     const file = SourceFile.make("", library.language, library)
     collectNativeModuleImports(module, file, library)

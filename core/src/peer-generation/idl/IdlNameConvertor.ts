@@ -63,6 +63,16 @@ export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
     static readonly I = new ETSDeclarationNameConvertor()
 }
 
+export class CJDeclarationNameConvertor extends DeclarationNameConvertor {
+    override convertInterface(decl: idl.IDLInterface): string {
+        return decl.name
+    }
+    override convertEnum(decl: idl.IDLEnum): string {
+        return decl.name
+    }
+    static readonly I = new CJDeclarationNameConvertor()
+}
+
 export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     override convertEnum(decl: idl.IDLEnum): string {
         const namespace = idl.getNamespacesPathFor(decl).map(it => it.name)
@@ -73,13 +83,20 @@ export class ETSFeatureNameConvertor extends DeclarationNameConvertor {
     static readonly I = new ETSFeatureNameConvertor()
 }
 
+export class CJFeatureNameConvertor extends DeclarationNameConvertor {
+    override convertEnum(decl: idl.IDLEnum): string {
+        return decl.name
+    }
+    static readonly I = new CJFeatureNameConvertor()
+}
+
 export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSDeclarationNameConvertor.I
         case Language.JAVA:
         case Language.CPP:
-        case Language.CJ:
         case Language.TS: return DeclarationNameConvertor.I
+        case Language.CJ: CJDeclarationNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }
@@ -89,8 +106,8 @@ export function createFeatureNameConvertor(language: Language): DeclarationNameC
         case Language.ARKTS: return ETSFeatureNameConvertor.I
         case Language.JAVA:
         case Language.CPP:
-        case Language.CJ:
         case Language.TS: return TSFeatureNameConvertor.I
+        case Language.CJ: return CJFeatureNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

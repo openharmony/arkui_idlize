@@ -1,8 +1,8 @@
 [dependencies]
   Interop = { path = "../../../external/interop/src/cangjie" }
 [package]
-  cjc-version = "0.56.4"
-  compile-option = "-L ./build/native/cangjie -l MEIDAQUERY_NativeBridgeCJ"
+  cjc-version = "0.58.3"
+  compile-option = "-L ./build/native/cangjie -l MEDIAQUERY_NativeBridgeCJ"
   description = "config file for cj-mediaquery build"
   link-option = ""
   name = "idlize"

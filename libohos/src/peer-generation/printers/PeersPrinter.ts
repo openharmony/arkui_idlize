@@ -181,9 +181,12 @@ class PeerFileVisitor {
             const _peer = '_peer'
             writer.writeStatement(
                 writer.makeAssign(_peer, undefined,
-                    writer.makeString(
-                        `${writer.language == Language.CJ ? ' ' : 'new '}${peerClass}(${_peerPtr}, ${peerId}, "${peer.componentName}", flags)`
-                    ), true)
+                    writer.makeNewObject(peerClass, [
+                        writer.makeString(_peerPtr), 
+                        writer.makeString(peerId), 
+                        writer.makeString(`"${peer.componentName}"`),
+                        writer.makeString('flags')]),
+                    true)
             )
             writer.writeMethodCall(signature.argName(0), 'setPeer', [_peer], true)
             writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
@@ -273,9 +276,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 
     private printPackage(printer: LanguageWriter): void {
-        if (this.library.language == Language.JAVA) {
-            printer.print(`package ${ARKOALA_PACKAGE};\n`)
-        }
+        printer.print(`package ${ARKOALA_PACKAGE};\n`)
     }
 
     protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
@@ -330,9 +331,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     private printPackage(printer: LanguageWriter): void {
-        if (this.library.language == Language.CJ) {
-            printer.print(`package idlize\n`)
-        }
+        printer.print(`package idlize\n`)
     }
 
     protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
@@ -368,8 +367,8 @@ class PeersVisitor {
             const visitor = this.library.language == Language.JAVA
                 ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)
                 : this.library.language == Language.CJ
-                    ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
-                    : new PeerFileVisitor(this.library, file, this.dumpSerialized)
+                ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
+                : new PeerFileVisitor(this.library, file, this.dumpSerialized)
             visitor.printFile()
             visitor.printers.forEach((printer, targetFile) => {
                 this.peers.set(targetFile, printer.getOutput())
@@ -561,6 +560,8 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.JAVA) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
+    } else if (language === Language.CJ) {
+        return `Deserializer(${returnValName}, Int64(${returnValName}.size))`
     } else {
         throw "not implemented"
     }

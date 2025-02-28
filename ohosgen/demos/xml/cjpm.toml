@@ -1,7 +1,7 @@
 [dependencies]
     Interop = { path = "../../../external/interop/src/cangjie" }
 [package]
-  cjc-version = "0.56.4"
+  cjc-version = "0.58.3"
   compile-option = "-L ./build/native/cangjie -l XML_NativeBridgeCJ"
   description = "config file for cj-xml build"
   link-option = ""

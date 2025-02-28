@@ -43,6 +43,9 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
             return `Map<${stringes[0]}, ${stringes[1]}>`
         }
+        if (idl.IDLContainerUtils.isPromise(type)) {
+            return `Any`
+        }
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertNamespace(node: idl.IDLNamespace): string {
@@ -114,15 +117,16 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLF64Type: return 'Float64'
             case idl.IDLPointerType: return 'UInt64'
             case idl.IDLVoidType: return 'Unit'
-            case idl.IDLBufferType:
+            case idl.IDLBufferType: return 'Array<UInt8>'
             case idl.IDLInteropReturnBufferType: return 'Array<UInt8>'
+            case idl.IDLBigintType: return 'Int64'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
 
     private callbackType(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
+            `${it.name}: ${this.convert(it.type!)}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 
@@ -137,6 +141,7 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
         if (idl.isPrimitiveType(type)) {
             switch (type) {
                 case idl.IDLStringType: return 'CString'
+                case idl.IDLInteropReturnBufferType: return 'KInteropReturnBuffer'
             }
         }
         if (idl.isContainerType(type)) {

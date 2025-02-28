@@ -14,18 +14,43 @@
  */
 
 
-declare interface BaseEvent {}
+declare enum SourceType {
+    Unknown,
+    Mouse,
+    TouchScreen,
+}
+declare enum SourceTool {
+    Unknown,
+    Finger,
+    Pen,
+    MOUSE,
+    TOUCHPAD,
+    JOYSTICK,
+}
+
+declare interface BaseEvent {
+    source: SourceType;
+    axisHorizontal?: number;
+    axisVertical?: number;
+    pressure: number;
+    tiltX: number;
+    sourceTool: SourceTool;
+    getModifierKeyState?(keys: Array<string>): boolean;
+    deviceId?: number;
+    targetDisplayId?: number;
+}
 
 declare interface ClickEvent extends BaseEvent {
-
-    x: number;
-
-    y: number;
-
     displayX: number;
-
     displayY: number;
-}
+    windowX: number;
+    windowY: number;
+    screenX: number;
+    screenY: number;
+    x: number;
+    y: number;
+    preventDefault: () => void;
+  }
 
 declare interface BlurOptions {
     grayscale: [number, number];
