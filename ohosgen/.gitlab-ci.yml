@@ -55,13 +55,16 @@ check ohos demos:
     - npm run build:interop:inc --prefix ../external/interop
     - npm run build:incremental:inc --prefix ../external/incremental/runtime
   script:
-    - cd demos/mediaquery
+    - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
     - npm i -d
     - npm run check:ts
     - npm run check:arkts
 #   - npm run run:ohos:context:ts
 #   - npm run check:ohos:context:run
+    - cd $CI_PROJECT_DIR/ohosgen/tests/unit
+    - npm run check:ts
+    - npm run check:arkts
     - |
       cd $CI_PROJECT_DIR/ohosgen
       touch $CI_PROJECT_DIR/ohosgen/summary.txt
