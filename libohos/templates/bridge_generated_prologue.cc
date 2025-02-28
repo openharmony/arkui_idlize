@@ -20,7 +20,6 @@
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
 #include "callbacks.h"
-#include "events.h"
 
 const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
@@ -36,8 +35,4 @@ static const %CPP_PREFIX%ArkUINodeModifiers* GetNodeModifiers() {
 
 static const %CPP_PREFIX%ArkUIAccessors* GetAccessors() {
     return GetFullImpl()->getAccessors();
-}
-
-namespace Generated {
-    extern const GENERATED_ArkUIEventsAPI* GetArkUiEventsAPI();
 }

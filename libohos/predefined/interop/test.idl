@@ -6,10 +6,6 @@ interface Test {
     void TestCallVoidIntArrayPrefixSum(i32 arg0, sequence<i32> arr, i32 arg2);
     i32 TestCallIntRecursiveCallback(i32 arg0, sequence<u8> arr, i32 arg2);
     i32 TestCallIntMemory(i32 arg0, i32 arg1);
-    void Test_SetEventsApi();
-    void Test_Common_OnChildTouchTest(sequence<u8> arr, i32 arg);
-    void Test_List_OnScrollVisibleContentChange(sequence<u8> arr, i32 arg);
-    void Test_TextPicker_OnAccept(sequence<u8> arr, i32 arg);
     void TestWithBuffer(buffer buffer);
     void TestSetArkoalaCallbackCaller();
     void TestSetArkoalaCallbackCallerSync();

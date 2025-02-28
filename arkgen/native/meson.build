@@ -50,7 +50,6 @@ include_dirs = [
 ]
 
 sources = [
-    arkoala_dir / 'all_events.cc',
     arkoala_dir / 'bridge_custom.cc',
     arkoala_dir / 'bridge_generated.cc',
     arkoala_dir / 'custom.cc',
@@ -60,7 +59,6 @@ sources = [
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',
-    external_framework_dir / 'events.cc',
     external_framework_dir / 'vsync.cc'
 ]
 if compile_events_test

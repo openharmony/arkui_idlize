@@ -159,9 +159,6 @@ typedef struct %CPP_PREFIX%ArkUIFullNodeAPI {
     const %CPP_PREFIX%ArkUINodeModifiers* (*getNodeModifiers)();
     const %CPP_PREFIX%ArkUIAccessors* (*getAccessors)();
     const %CPP_PREFIX%ArkUIGraphicsAPI* (*getGraphicsAPI)();
-    const %CPP_PREFIX%ArkUIEventsAPI* (*getEventsAPI)();
-    // TODO: move to service?
-    void (*setArkUIEventsAPI)(const %CPP_PREFIX%ArkUIEventsAPI* api);
 } %CPP_PREFIX%ArkUIFullNodeAPI;
 
 typedef struct %CPP_PREFIX%ArkUIAnyAPI {

@@ -819,13 +819,6 @@ void SetCurrentIndex(Ark_NativePointer nodePtr,
         data->updater.call(data->updater.resource.resourceId, index, mark, 1000);
     }
 }
-
-
-namespace GeneratedEvents {
-    const %CPP_PREFIX%ArkUIEventsAPI* g_OverriddenEventsImpl = nullptr;
-    const %CPP_PREFIX%ArkUIEventsAPI* %CPP_PREFIX%GetArkUiEventsAPI() { return g_OverriddenEventsImpl; }
-    void %CPP_PREFIX%SetArkUiEventsAPI(const %CPP_PREFIX%ArkUIEventsAPI* api) { g_OverriddenEventsImpl = api; }
-}
 }
 
 // handWritten implementations

@@ -24,7 +24,6 @@ import {
 } from "../LanguageWriters";
 import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
-import { callbackIdByInfo, convertIdlToCallback } from "./EventsPrinter";
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
 import { peerGeneratorConfiguration } from '../PeerGeneratorConfig';
@@ -339,18 +338,6 @@ export class OverloadsPrinter {
             : this.isComponent ? `this.getPeer()` : `this`
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`
-        if ([Language.TS].includes(this.language))
-            peerMethod.method.signature.args.forEach((target, index) => {
-                if (this.isComponent) { // TBD: Check for materialized classes
-                    const callback = convertIdlToCallback(this.resolver, peer, peerMethod, target)
-                    if (!callback)
-                        return
-                    const argName = argsNames[index]
-                    this.printer.writeStatement(new ExpressionStatement(this.printer.makeFunctionCall(`UseEventsProperties`,[
-                        new StringExpression(`{${callbackIdByInfo(callback)}: ${argName}}`)
-                    ])))
-                }
-            })
         if (collapsedMethod.signature.returnType === idl.IDLThisType) {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))

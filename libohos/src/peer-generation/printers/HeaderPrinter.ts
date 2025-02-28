@@ -19,7 +19,6 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, Cp
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
-import { collectCallbacks, groupCallbacks, CallbackInfo } from "./EventsPrinter";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 
@@ -87,40 +86,6 @@ export class HeaderVisitor {
         this.api.print(`} ${accessorName};\n`)
     }
 
-    private printEventsReceiver(componentName: string, callbacks: CallbackInfo[]) {
-        return this.printEventsReceiverIdl(componentName, callbacks as CallbackInfo[], this.library)
-    }
-
-    private printEventsReceiverIdl(componentName: string, callbacks: CallbackInfo[], library: PeerLibrary) {
-        const receiver = generateEventReceiverName(componentName)
-        this.api.print(`typedef struct ${receiver} {`)
-        this.api.pushIndent()
-
-        const nameConvertor = this.library.createTypeNameConvertor(Language.CPP)
-
-        for (const callback of callbacks) {
-            const args = ["Ark_Int32 nodeId",
-                ...callback.args.map(it =>
-                    `const ${nameConvertor.convert(maybeOptional(library.typeConvertor(it.name, it.type, it.nullable).nativeType(), it.nullable))} ${it.name}`)]
-            printMethodDeclaration(this.api, "void", `(*${callback.methodName})`, args, `;`)
-        }
-        this.api.popIndent()
-        this.api.print(`} ${receiver};\n`)
-    }
-
-    private printEvents() {
-        const callbacks = groupCallbacks(collectCallbacks(this.library))
-        for (const [receiver, events] of callbacks) {
-            this.printEventsReceiver(receiver, events)
-        }
-
-        this.eventsList.pushIndent()
-        for (const [receiver, _] of callbacks) {
-            this.eventsList.print(`const ${generateEventReceiverName(receiver)}* (*get${receiver}EventsReceiver)();`)
-        }
-        this.eventsList.popIndent()
-    }
-
     private printNodeTypes() {
         this.nodeTypesList.pushIndent()
         for (const nodeType of getNodeTypes(this.library)) {
@@ -143,7 +108,6 @@ export class HeaderVisitor {
             })
         })
         this.printAccessors()
-        this.printEvents()
         this.printNodeTypes()
     }
 }

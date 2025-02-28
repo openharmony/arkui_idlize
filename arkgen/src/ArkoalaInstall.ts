@@ -110,7 +110,6 @@ export class LibaceInstall extends Install {
     gniComponents = this.interface("node_interface.gni")
     viewModelBridge = this.implementation("view_model_bridge.cpp")
     allModifiers = this.implementation("all_modifiers.cpp")
-    allEvents = this.implementation("all_events.cpp")
 
     interface(name: string) {
         return path.join(this.generatedInterface, name)

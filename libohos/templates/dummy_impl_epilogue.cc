@@ -66,9 +66,6 @@ const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI()
         %CPP_PREFIX%ARKUI_FULL_API_VERSION, // version
         %CPP_PREFIX%GetArkUINodeModifiers,
         %CPP_PREFIX%GetArkUIAccessors,
-        nullptr,
-        OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%GetArkUiEventsAPI,
-        OHOS::Ace::NG::GeneratedEvents::%CPP_PREFIX%SetArkUiEventsAPI
     };
     return &fullAPIImpl;
 }

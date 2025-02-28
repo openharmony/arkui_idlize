@@ -33,7 +33,6 @@ import { getInternalClassName, isBuilderClass, MaterializedClass, MaterializedFi
 import { Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BuilderClass, CUSTOM_BUILDER_CLASSES, isCustomBuilderClass, isMaterialized } from "@idlizer/core";
 import { ImportFeature } from "../ImportsCollector"
-import { collapseIdlEventsOverloads } from "../printers/EventsPrinter"
 import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
 import { ReferenceResolver } from "@idlizer/core"
@@ -294,7 +293,9 @@ class PeersGenerator {
         }
 
         this.fillClass(peer, component.attributeDeclaration)
-        collapseIdlEventsOverloads(this.library, peer)
+        // TODO that changes ABI - some functions will not be merged. Do we want to continue with that? Or do we want to wait more
+        // accurate methods merging algorithm?
+        // collapseIdlEventsOverloads(this.library, peer)
         file.peers.set(component.name, peer)
     }
 }

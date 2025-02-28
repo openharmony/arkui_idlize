@@ -21,7 +21,7 @@ import {
     makeTSSerializer, makeTypeChecker, mesonBuildFile, tsCopyrightAndWarning,
     makeDeserializeAndCall, readLangTemplate, makeCJDeserializer, makeCJSerializer,
     makeJavaSerializer, printRealAndDummyAccessors,
-    printRealAndDummyModifiers, printPeers, createMaterializedPrinter, printEvents,
+    printRealAndDummyModifiers, printPeers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
     printBuilderClasses, ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
     TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
@@ -54,7 +54,6 @@ import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { printInterfaces } from "./printers/InterfacePrinter"
 import { printComponents } from "./printers/ComponentsPrinter"
-import { printEventsCArkoalaImpl, printEventsCLibaceImpl } from "./printers/EventPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
 import { printStsComponents, printStsComponentsDeclarations } from "./printers/StsComponentsPrinter"
 
@@ -88,8 +87,6 @@ export function generateLibaceFromIdl(config: {
     const { api, converterHeader } = printUserConverter(libace.userConverterHeader, converterNamespace, config.apiVersion, peerLibrary)
     fs.writeFileSync(libace.generatedArkoalaApi, api)
     fs.writeFileSync(libace.userConverterHeader, converterHeader)
-    const events = printEventsCLibaceImpl(peerLibrary, {namespace: "OHOS::Ace::NG::GeneratedEvents"})
-    fs.writeFileSync(libace.allEvents, events)
 
     if (!config.libaceDestination) {
         const mesonBuild = printMesonBuild(peerLibrary)
@@ -107,13 +104,11 @@ function copyArkoalaFiles(config: {
         'sig/arkoala/arkui/src/generated/peers/CallbackChecker.ts',
         'sig/arkoala/arkui/src/generated/peers/CallbackTransformer.ts',
         'sig/arkoala/arkui/src/generated/shared/generated-utils.ts',
-        'sig/arkoala/arkui/src/generated/use_properties.ts',
         'sig/arkoala-arkts/arkui/src/ComponentBase.ts',
         'sig/arkoala-arkts/arkui/src/PeerNode.ts',
         'sig/arkoala-arkts/arkui/src/NativePeerNode.ts',
         'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
         'sig/arkoala-arkts/arkui/src/generated/Events.ts',
-        'sig/arkoala-arkts/arkui/src/generated/use_properties.ts',
         'sig/arkoala-arkts/arkui/src/generated/arkts/index.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/index.ts',
         'sig/arkoala-arkts/arkui/src/generated/ts/arkts-stdlib.ts',
@@ -261,14 +256,6 @@ export function generateArkoalaFromIdl(config: {
                 onlyIntegrated: config.onlyIntegrated
             }
         )
-        writeFile(
-            arkoala.tsLib(new TargetFile("peer_events")),
-            printEvents(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
-            }
-        )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
             makeTSSerializer(peerLibrary).getOutput().join('\n'),
             {
@@ -334,14 +321,6 @@ export function generateArkoalaFromIdl(config: {
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
-            }
-        )
-        writeFile(
-            arkoala.arktsLib(new TargetFile("peer_events")),
-            printEvents(peerLibrary),
-            {
-                onlyIntegrated: config.onlyIntegrated,
-                integrated: true,
             }
         )
         writeFile(arkoala.peer(new TargetFile('Serializer')),
@@ -512,11 +491,6 @@ export function generateArkoalaFromIdl(config: {
             integrated: true,
         }
     )
-    writeFile(arkoala.native(new TargetFile('all_events.cc'),), printEventsCArkoalaImpl(peerLibrary),
-        {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-        })
     writeFile(arkoala.native(new TargetFile('library.cc')), libraryCcDeclaration(),
         {
             onlyIntegrated: config.onlyIntegrated,
@@ -796,10 +770,6 @@ ${accessors.getOutput().join("\n")}
 typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI {
     ${ArkPrimitiveTypesInstance.Int32.getText()} version;
 } ${peerGeneratorConfiguration().cppPrefix}ArkUIGraphicsAPI;
-
-typedef struct ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI {
-${events.getOutput().join("\n")}
-} ${peerGeneratorConfiguration().cppPrefix}ArkUIEventsAPI;
 
 typedef enum ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType {
 ${nodeTypes.getOutput().join(",\n")}
