@@ -1,3 +1,5 @@
+declare function $$<T>(value: T): T
+
 declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 declare const ComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
