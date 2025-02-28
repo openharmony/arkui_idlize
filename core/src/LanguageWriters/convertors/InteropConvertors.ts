@@ -66,11 +66,11 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
             case idl.IDLBigintType: return PrimitiveTypesInstance.Int64.getText()
             case idl.IDLAnyType:
-            case idl.IDLBufferType:
             case idl.IDLThisType:
             case idl.IDLUndefinedType:
             case idl.IDLUnknownType:
             case idl.IDLVoidType: return idl.IDLVoidType.name
+            case idl.IDLBufferType: return KInteropReturnBuffer /* ArkTS can not return buffer as language object yet */
             case idl.IDLStringType: return PrimitiveTypesInstance.String.getText()
             case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()
         }

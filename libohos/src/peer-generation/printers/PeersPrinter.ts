@@ -524,6 +524,15 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                     } else {
                         result = [writer.makeThrowError("Object deserialization is not implemented.")]
                     }
+                } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
+                    const instance = makeDeserializerInstance(returnValName, writer.language)
+                    result = [
+                        writer.makeReturn(
+                            writer.makeMethodCall(
+                                instance, 'readBuffer', []
+                            )
+                        )
+                    ]
                 }
             }
             for (const stmt of result) {

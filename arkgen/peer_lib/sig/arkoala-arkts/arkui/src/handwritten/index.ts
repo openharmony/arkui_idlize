@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import {AnimateParam} from '../generated'
+
 export interface PageTransitionExitInterface {}
 export interface CommonTransition {}
 export interface NavigationAttribute {}
@@ -25,3 +27,7 @@ export interface CustomComponent {}
 export interface CustomComponentV2 {}
 export interface AttributeModifier<T> {}
 export interface PageTransitionEnterInterface {}
+
+export function _animateTo(param: AnimateParam, event: (() => void)): void {}
+export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}
+export function _animationEnd(isFirstBuild: boolean, update: (() => void)): void {}
