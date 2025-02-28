@@ -11,6 +11,7 @@ namespace $ {
     export const str = idl.IDLStringType
     export const ref = idl.createReferenceType
     export const union = (...types: idl.IDLType[]) => idl.createUnionType(types)
+    export const namedUnion = (name: string, ...types: idl.IDLType[]) => idl.createUnionType(types, name)
     export const sequence = (...types: idl.IDLType[]) => idl.createContainerType("sequence", types)
     export const parameter = idl.createParameter
     export const callback = idl.createCallback
@@ -57,7 +58,7 @@ function styledStringValueType(): idl.IDLType {
     // declare type StyledStringValue = TextStyle | DecorationStyle | BaselineOffsetStyle | LetterSpacingStyle |
     // TextShadowStyle | GestureStyle | ImageAttachment | ParagraphStyle | LineHeightStyle | UrlStyle | CustomSpan |
     // UserDataSpan | BackgroundColorStyle;
-    return $.union(
+    return $.namedUnion("StyledStringValue",
         $.ref("TextStyle_styled_string"),
         $.ref("DecorationStyle"),
         $.ref("BaselineOffsetStyle"),
@@ -276,7 +277,6 @@ export class IDLVisitorConfig {
         "GestureGroupGestureHandlerOptions",
         "ColumnOptionsV2",
         "RowOptionsV2",
-        "StyledStringValue",
     )
 
     static readonly ReplacedDeclarations = new Map<string, idl.IDLEntry>([
