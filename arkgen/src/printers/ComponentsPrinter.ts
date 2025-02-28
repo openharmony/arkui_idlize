@@ -237,10 +237,17 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                 const method = new Method(peerMethod.method.name, signature, [MethodModifier.PUBLIC])
                 writer.writeMethodImplementation(method, writer => {
                     const thiz = writer.makeThis()
-                    writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.overloadedName}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
-                    writer.makeReturn(thiz)
-                })
+                    writer.writeStatement(writer.makeCondition(
+                        writer.makeString(`checkPriority("${method.name}")`),
+                        writer.makeBlock([
+                            writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.overloadedName}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
+                            writer.makeReturn(thiz),
+                        ])))
+                    writer.writeStatement(writer.makeReturn(thiz))
+                }
+                )
             })
+
             const attributesSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
             writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesSignature, [MethodModifier.PUBLIC]), (writer) => {

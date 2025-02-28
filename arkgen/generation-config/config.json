@@ -11,7 +11,8 @@
         "Configuration",
         "UIGestureEvent",
         "GestureHandler",
-        "AnimatableArithmetic"
+        "AnimatableArithmetic",
+        "DynamicNode"
     ],
     "forceMaterialized": [
         "BaseContext"

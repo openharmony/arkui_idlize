@@ -23,6 +23,11 @@ public class ComponentBase {
     public void setPeer(PeerNode peer) {
         this.peer = peer;
     }
+    protected boolean checkPriority(String name) {
+        return true;
+        //TODO
+        //throw new Error("not implemented");
+    }
     protected void applyAttributesFinish() {
         //throw new Error("not implemented");
     }

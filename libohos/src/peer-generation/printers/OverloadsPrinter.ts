@@ -39,11 +39,11 @@ function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
 
 export function groupSameSignatureMethodsIDL(methods: idl.IDLMethod[]): idl.IDLMethod[][] {
     if (methods.length < 2) return methods.map(it => [it])
-
+    
     // get methods args
     let params = methods.map(it => it.parameters)
     // cut optional args
-    params = params.map(methodParams => methodParams.filter(param => !param.isOptional))
+    params = params.map(methodParams => methodParams.filter(param => !param.isOptional))    
     let types = params.map(methodParams => methodParams.map(param => idl.printType(param.type)))
 
     // compare methods signatures
@@ -66,7 +66,7 @@ function groupSameSignatureMethods(methods: PeerMethod[]): PeerMethod[][] {
     // get methods args
     let args = methods.map(it => it.method.signature.args)
     // cut optional args
-    args = args.map(methArgs => methArgs.filter(type => !idl.isOptionalType(type)))
+    args = args.map(methArgs => methArgs.filter(type => !idl.isOptionalType(type)))    
     let types = args.map(methArgs => methArgs.map(type => idl.printType(type)))
 
     // compare methods signatures
@@ -259,7 +259,7 @@ export class OverloadsPrinter {
             for (let group of groups) {
                 this.printCollapsedOverloads(peer, group)
             }
-        }
+        } 
     }
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
@@ -268,6 +268,10 @@ export class OverloadsPrinter {
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
+            if (this.isComponent) {
+                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
+                this.printer.pushIndent()
+            }
             if (methods.length > 1) {
                 const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                     const argName = collapsedMethod.signature.argName(argIndex)
@@ -282,6 +286,11 @@ export class OverloadsPrinter {
                 writer.makeThrowError(`Can not select appropriate overload`).write(writer)
             } else {
                 this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
+            }
+            if (this.isComponent) {
+                this.printer.popIndent()
+                this.printer.print(`}`)
+                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
     }
