@@ -22,7 +22,6 @@
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 
-        "_compile:native": "echo stub compile:native:${TARGET_VM}",
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
