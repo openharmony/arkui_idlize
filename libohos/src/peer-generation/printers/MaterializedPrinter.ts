@@ -192,7 +192,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 const pointerType = IDLPointerType
                 // makePrivate(clazz.ctor.method)
                 this.library.setCurrentContext(`${clazz.className}.constructor`)
-                writePeerMethod(writer, clazz.ctor, true, this.dumpSerialized, ctorPostfix, "", pointerType)
+                writePeerMethod(this.library, writer, clazz.ctor, true, this.dumpSerialized, ctorPostfix, "", pointerType)
                 this.library.setCurrentContext(undefined)
 
                 const ctorSig = clazz.ctor.method.signature as NamedMethodSignature
@@ -320,7 +320,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 const privateMethod = method.getPrivateMethod()
                 const returnType = privateMethod.tsReturnType()
                 this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.overloadedName}`)
-                writePeerMethod(writer, privateMethod, true, this.dumpSerialized, "_serialize",
+                writePeerMethod(this.library, writer, privateMethod, true, this.dumpSerialized, "_serialize",
                     writer.language == Language.CJ ?
                         "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
                         writer.language == Language.JAVA ?

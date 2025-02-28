@@ -479,7 +479,7 @@ export abstract class LanguageWriter {
     makeUnwrapOptional(expression: LanguageExpression): LanguageExpression {
         return expression
     }
-    abstract makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression
+    abstract makeArrayInit(type: idl.IDLContainerType, size?:number|string): LanguageExpression
     abstract makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression
     abstract makeMapInit(type: idl.IDLType): LanguageExpression
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement

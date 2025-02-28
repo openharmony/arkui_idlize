@@ -110,7 +110,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
                 const returnType = method.tsReturnType()
-                const returnAsValue = returnType && (idl.isPrimitiveType(returnType) || isStructureType(returnType, this.library))
+                const returnAsValue = returnType && (idl.isPrimitiveType(returnType) || isStructureType(returnType, this.library) || idl.IDLContainerUtils.isSequence(returnType))
                 this.printPeerMethod(method, returnAsValue ? returnType : idl.IDLPointerType)
             })
         })

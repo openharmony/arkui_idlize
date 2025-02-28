@@ -592,7 +592,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
         const statements: LanguageStatement[] = []
         const arrayType = this.idlType
         statements.push(writer.makeAssign(lengthBuffer, idl.IDLI32Type, writer.makeString(`${deserializerName}.readInt32()`), true))
-        statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type), true, false))
+        statements.push(writer.makeAssign(bufferName, arrayType, writer.makeArrayInit(this.type, lengthBuffer), true, false))
         statements.push(writer.makeArrayResize(bufferName, writer.getNodeName(arrayType), lengthBuffer, deserializerName))
         statements.push(writer.makeLoop(counterBuffer, lengthBuffer,
             this.elementConvertor.convertorDeserialize(`${bufferName}_buf`, deserializerName, (expr) => {

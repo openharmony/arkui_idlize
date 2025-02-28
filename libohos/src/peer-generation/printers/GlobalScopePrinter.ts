@@ -73,6 +73,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
             peerMethods.forEach(peerMethod => {
                 writePeerMethod(
+                    library,
                     peerMethodWriter,
                     peerMethod,
                     true,

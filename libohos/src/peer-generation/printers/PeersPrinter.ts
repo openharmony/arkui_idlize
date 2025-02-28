@@ -192,7 +192,7 @@ class PeerFileVisitor {
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
-        writePeerMethod(printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        writePeerMethod(this.library, printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
 
@@ -404,7 +404,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     })
 }
 
-export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
+export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
 ) {
     const signature = method.method.signature as NamedMethodSignature
@@ -493,37 +493,28 @@ export function writePeerMethod(printer: LanguageWriter, method: PeerMethod, isI
                     ]
 
                 } else if (!isPrimitiveType(returnType)) {
-                    let contType: LanguageExpression | undefined = undefined
-                    if (idl.isContainerType(returnType) && idl.IDLContainerUtils.isSequence(returnType)) {
-                        const elemType = returnType.elementType[0]
-                        if (idl.isNamedNode(elemType)) {
-                            contType = writer.makeNewObject(writer.getNodeName(returnType))
-                        }
-                    }
-                    let ret:LanguageExpression | undefined = undefined
-                    if (peerGeneratorConfiguration().isShouldReplaceThrowingError(method.originalParentName)) {
-                        ret = idl.isOptionalType(returnType)
-                            ? writer.makeUndefined()
-                            : contType
-                                ? contType
-                                : undefined
-                        if (ret) {
-                            writer.print(`console.log("Object deserialization is not implemented for type: ${contType}, return default value.")`)
-                        }
-                    }
-                    if (ret) {
-                        result = [writer.makeReturn(ret)]
-                    } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
-                        const deserializerMethod = `read${writer.getNodeName(returnType).split(/\./).slice(-1)[0]}` // TODO Remove this hacky name conversion
-                        const instance = makeDeserializerInstance(returnValName, writer.language)
-                        result = [
-                            writer.makeStatement(writer.makeString(
-                                `return ${instance}.${deserializerMethod}()`
-                            ))
-                        ]
-                    } else {
-                        result = [writer.makeThrowError("Object deserialization is not implemented.")]
-                    }
+                    const deserializerName = `${returnValName}Deserializer`
+                    writer.writeStatement(
+                        writer.makeAssign(
+                            deserializerName,
+                            idl.createReferenceType("Deserializer"),
+                            writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
+                            true,
+                            false,
+                            { assignRef: true }
+                        )
+                    )
+
+                    const returnConvertor = library.typeConvertor(returnValName, method.returnType)
+                    const returnResultValName = "returnResult"
+                    result = [returnConvertor.convertorDeserialize(
+                        'buffer',
+                        deserializerName,
+                        (expr) => writer.makeAssign(returnResultValName, method.returnType, expr, true),
+                        writer
+                    ),
+                    writer.makeReturn(writer.makeString(returnResultValName))
+                    ]
                 } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)
                     result = [
