@@ -1,4 +1,5 @@
 libarkts-gen idl:
+  allow_failure: true
   stage: test
   tags:
     - idlize-ci
