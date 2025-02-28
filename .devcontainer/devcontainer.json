@@ -7,5 +7,6 @@
         "options": ["-t", "idlize-devcontainer"]
     },
     "workspaceMount": "type=bind,source=${localWorkspaceFolder},target=/idlize",
-    "workspaceFolder": "/idlize"
+    "workspaceFolder": "/idlize",
+    "devcontainerId": "idlizer_devcontainer"
 }
