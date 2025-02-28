@@ -20,14 +20,15 @@ native to introspect on slow runtime.
 
 So cost of operations is approximately like this:
 
+```
 Serialization:
 
 [ Runtime 1 serialization ] [ invocation cost ] [  Runtime 2 deserialization ]
 
-
 Handle passing:
 
 [ Invocation cost ] [  Runtime 2 introspection cost into Runtime 1 ]
+```
 
 Generally speaking, scheme with serialization benefits from VM optimizations and better codegeneration,
 while scheme with handle passing benefits from faster introspection APIs, which kind of contradicts to
@@ -36,6 +37,7 @@ optimizing VM behavior.
 If Runtime 1 is very slow, for example interpreting JS VM, then scheme with handle passing is preferred,
 while for highly optimizing VM serialization will provide more optimization opportunities.
 
+```
 Slow VM:
 
 [         Serialization                                      ] [ call ] [ Deserialization]
@@ -51,4 +53,4 @@ Fast VM with serialization and codegen optimizations:
 
 [ Serialization ] [ call ] [ Deserialization ]
 [ call  ]  [                   VM introspections        ]
-
+```
