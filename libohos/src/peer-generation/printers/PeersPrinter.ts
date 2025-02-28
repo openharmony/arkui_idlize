@@ -240,7 +240,7 @@ class PeerFileVisitor {
         const defaultPeerImports = [
             `import { int32, float32 } from "@koalaui/common"`,
             `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
-            `import { isResource, isInstanceOf, runtimeType, RuntimeType } from "@koalaui/interop"`,
+            `import { runtimeType, RuntimeType } from "@koalaui/interop"`,
             `import { Serializer } from "./Serializer"`,
             `import { ComponentBase } from "../../ComponentBase"`,
             `import { PeerNode } from "../../PeerNode"`
@@ -248,6 +248,8 @@ class PeerFileVisitor {
         switch (lang) {
             case Language.TS: {
                 return [...defaultPeerImports,
+                    `import { isInstanceOf } from "@koalaui/interop"`,
+                    `import { isResource, isPadding } from "../../utils"`,
                     `import { ${NativeModule.Generated.name} } from "../${NativeModule.Generated.name}"`,]
             }
             case Language.ARKTS: {

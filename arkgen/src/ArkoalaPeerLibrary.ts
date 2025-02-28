@@ -26,7 +26,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor
 } from "@idlizer/core";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor } from './ArkoalaArgConvertors';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
     ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
 } from './ArkoalaTypeNameConvertors';
@@ -70,7 +70,9 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         switch (type.name) {
             case `Dimension`:
             case `Length`:
-                return new LengthConvertor(type.name, param, this.language)
+                return new LengthConvertor(this, type.name, param, this.language)
+            case `Padding`:
+                return new PaddingConvertor(this, param, type, declaration as idl.IDLInterface)
             case `AnimationRange`:
                 return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
             case `ContentModifier`:

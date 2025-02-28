@@ -355,8 +355,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         // common runtime dependencies
         this.collector.addFeatures([
             'Finalizable',
-            'isResource',
-            'isInstanceOf',
             'runtimeType',
             'RuntimeType',
             'SerializerBase',
@@ -375,6 +373,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             this.collector.addFeatures(['Deserializer'], './peers/Deserializer')
         }
         if (this.library.language === Language.TS) {
+            this.collector.addFeature('isInstanceOf', '@koalaui/interop')
+            this.collector.addFeatures(['isResource', 'isPadding'], '../utils')
             this.collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
         }
 

@@ -67,9 +67,13 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         this.file.peersToGenerate.forEach(peer => {
             imports.addFeatures(['int32', 'float32'], '@koalaui/common')
-            imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType", "isResource", "isInstanceOf"], "@koalaui/interop")
+            imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             imports.addFeature('ComponentBase', '../ComponentBase')
+            if (this.language === Language.TS) {
+                imports.addFeature("isInstanceOf", "@koalaui/interop")
+                imports.addFeatures(["isResource", "isPadding"], "../utils")
+            }
             this.populateImports(imports)
 
             if (peer.originalParentFilename) {

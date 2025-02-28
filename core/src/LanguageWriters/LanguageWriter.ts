@@ -712,8 +712,8 @@ export abstract class LanguageWriter {
         return this.makeString(`(${this.makeNaryOp("||",
             accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
     }
-    makeCallIsResource(value: string): LanguageExpression {
-        return this.makeString(`isResource(${value})`)
+    makeIsTypeCall(value: string, decl: idl.IDLInterface): LanguageExpression {
+        return this.makeString(`is${decl.name}(${value})`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new TsEnumEntityStatement(enumEntity, isExport)
@@ -765,9 +765,6 @@ export abstract class LanguageWriter {
     castToBoolean(value: string): string { return value }
     makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`typeof ${value} === "object"`)
-    }
-    makeCallIsArrayBuffer(value: string): LanguageExpression {
-        return this.makeString(`${value} instanceof ArrayBuffer`)
     }
     instanceOf(convertor: ArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)

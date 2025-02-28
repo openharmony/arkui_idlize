@@ -251,8 +251,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return super.makeValueFromOption(value, destinationConvertor)
     }
-    makeCallIsResource(value: string): LanguageExpression {
-        return this.makeString(`isResource(${value})`)
+    override makeIsTypeCall(value: string, decl: idl.IDLInterface): LanguageExpression {
+        return makeInterfaceTypeCheckerCall(value, decl.name,
+            decl.properties.map(it => it.name), new Set(), this)
     }
     makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
         return new ArkTSEnumEntityStatement(enumEntity, isExport)
@@ -374,17 +375,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
 }
 
-const builtInInterfaceTypes = new Map<string,
-    (writer: LanguageWriter, value: string) => LanguageExpression>([
-        ["Resource",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsResource(value)],
-        ["Object",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsObject(value)],
-        ["ArrayBuffer",
-            (writer: LanguageWriter, value: string) => writer.makeCallIsArrayBuffer(value)]
-    ],
-)
-
 function makeInterfaceTypeCheckerCall(
     valueAccessor: string,
     interfaceName: string,
@@ -392,9 +382,6 @@ function makeInterfaceTypeCheckerCall(
     duplicates: Set<string>,
     writer: LanguageWriter,
 ): LanguageExpression {
-    if (builtInInterfaceTypes.has(interfaceName)) {
-        return builtInInterfaceTypes.get(interfaceName)!(writer, valueAccessor)
-    }
     return writer.makeMethodCall(
         "TypeChecker",
         generateTypeCheckerName(interfaceName), [writer.makeString(valueAccessor),

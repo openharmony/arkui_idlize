@@ -254,17 +254,18 @@ export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
     let printer = library.createLanguageWriter()
     printer.writeLines(cStyleCopyright)
     const imports = new ImportsCollector()
-    imports.addFeatures(
-        ["SerializerBase", "Tags", "RuntimeType", "runtimeType", "isResource", "isInstanceOf", "toPeerPtr"],
-        "@koalaui/interop")
+    imports.addFeatures([
+        "SerializerBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr"
+    ], "@koalaui/interop")
     imports.addFeatures(["int32", "float32"], "@koalaui/common")
     if (printer.language == Language.TS) {
-        imports.addFeatures(["MaterializedBase"], "@koalaui/interop")
+        imports.addFeatures([
+            "MaterializedBase", "InteropNativeModule", "ResourceHolder",
+            "nullptr", "KPointer", "isInstanceOf",
+        ], "@koalaui/interop")
+        imports.addFeatures(["isResource", "isPadding"], "../../utils")        
         imports.addFeatures(["unsafeCast"], "@koalaui/common")
-        imports.addFeatures(["InteropNativeModule"], "@koalaui/interop")
         imports.addFeatures(["CallbackKind"], "CallbackKind")
-        imports.addFeatures(["ResourceHolder", "nullptr"], "@koalaui/interop")
-        imports.addFeature('KPointer', '@koalaui/interop')
     }
     if (printer.language == Language.ARKTS) {
         imports.addFeatures(["unsafeCast"], "@koalaui/common")

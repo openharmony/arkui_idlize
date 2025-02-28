@@ -16,7 +16,8 @@
 import * as idl from "@idlizer/core/idl"
 import {
     Language, LanguageExpression, LanguageStatement, LanguageWriter, ExpressionAssigner,
-    RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor
+    RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor,
+    AggregateConvertor, PeerLibrary,
 } from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType";
 
@@ -47,10 +48,12 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
 }
 
 export class LengthConvertor extends BaseArgConvertor {
-    constructor(name: string, param: string, language: Language) {
+    private readonly ResourceDeclaration: idl.IDLInterface
+    constructor(library: PeerLibrary, name: string, param: string, language: Language) {
         // length convertor is only optimized for NAPI interop
         super(idl.createReferenceType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false,
             (language !== Language.TS && language !== Language.ARKTS), param)
+        this.ResourceDeclaration = library.resolveTypeReference(idl.createReferenceType("Resource")) as idl.IDLInterface
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
@@ -88,8 +91,14 @@ export class LengthConvertor extends BaseArgConvertor {
             writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.STRING), writer.makeString(`${value}_type`)]),
             writer.makeNaryOp("&&", [
                 writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeString(`${value}_type`)]),
-                writer.makeCallIsResource(value)
+                writer.makeIsTypeCall(value, this.ResourceDeclaration)
             ])])
+    }
+}
+
+export class PaddingConvertor extends AggregateConvertor {
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        return writer.makeIsTypeCall(value, this.decl)
     }
 }
 
