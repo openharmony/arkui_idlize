@@ -53,7 +53,6 @@ export class GniVisitor {
         this.gni.print(`"utility/converter.cpp",`)
         this.gni.print(`"implementation/view_model_bridge.cpp",`)
         this.gni.print(`"implementation/all_modifiers.cpp",`)
-        this.gni.print(`"implementation/all_events.cpp",`)
 
         this.gni.popIndent()
         this.gni.print("]")
