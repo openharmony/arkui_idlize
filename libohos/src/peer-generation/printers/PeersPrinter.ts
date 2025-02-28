@@ -493,28 +493,21 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     ]
 
                 } else if (!isPrimitiveType(returnType)) {
-                    const deserializerName = `${returnValName}Deserializer`
-                    writer.writeStatement(
-                        writer.makeAssign(
-                            deserializerName,
-                            idl.createReferenceType("Deserializer"),
-                            writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
-                            true,
-                            false,
-                            { assignRef: true }
-                        )
-                    )
-
-                    const returnConvertor = library.typeConvertor(returnValName, method.returnType)
-                    const returnResultValName = "returnResult"
-                    result = [returnConvertor.convertorDeserialize(
-                        'buffer',
-                        deserializerName,
-                        (expr) => writer.makeAssign(returnResultValName, method.returnType, expr, true),
-                        writer
-                    ),
-                    writer.makeReturn(writer.makeString(returnResultValName))
-                    ]
+                    if (idl.IDLContainerUtils.isSequence(returnType)) {
+                        result = makeDeserializedReturn(library, printer, returnType)
+                    } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
+                        // const deserializerMethod = `read${writer.getNodeName(returnType).split(/\./).slice(-1)[0]}` // TODO Remove this hacky name conversion
+                        // const instance = makeDeserializerInstance(returnValName, writer.language)
+                        // result = [
+                        //     writer.makeStatement(writer.makeString(
+                        //         `return ${instance}.${deserializerMethod}()`
+                        //     ))
+                        // ]
+                        result = makeDeserializedReturn(library, printer, returnType)
+                    } else {
+                        // todo: implement other types deserialization!!!!
+                        result = [writer.makeThrowError("Object deserialization is not implemented.")]
+                    }
                 } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)
                     result = [
@@ -531,6 +524,32 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
             }
         }
     })
+}
+
+function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, returnType: IDLType): LanguageStatement[] {
+    const deserializerName = `${returnValName}Deserializer`
+    writer.writeStatement(
+        writer.makeAssign(
+            deserializerName,
+            idl.createReferenceType("Deserializer"),
+            writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
+            true,
+            false,
+            { assignRef: true }
+        )
+    )
+
+    const returnConvertor = library.typeConvertor(returnValName, returnType)
+    const returnResultValName = "returnResult"
+    return [
+        returnConvertor.convertorDeserialize(
+            'buffer',
+            deserializerName,
+            (expr) => writer.makeAssign(returnResultValName, returnType, expr, true),
+            writer
+        ),
+        writer.makeReturn(writer.makeString(returnResultValName))
+    ]
 }
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
