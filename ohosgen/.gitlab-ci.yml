@@ -62,3 +62,22 @@ check ohos demos:
     - npm run check:arkts
 #   - npm run run:ohos:context:ts
 #   - npm run check:ohos:context:run
+    - |
+      cd $CI_PROJECT_DIR/ohosgen
+      touch $CI_PROJECT_DIR/ohosgen/summary.txt
+      test_status=0
+      cat demos/expected.txt |
+      while read pkg expected; do
+        cd $pkg
+        npm i -d
+        npm run check:arkts && result=PASS || result=FAIL
+        echo "$pkg: $result (expected $expected)" >> $CI_PROJECT_DIR/ohosgen/summary.txt
+        if [ "$result" != "$expected" ]; then
+          test_status=1
+        fi
+        cd $CI_PROJECT_DIR/ohosgen
+      done
+      echo "---------------RESULT-----------------"
+      cat $CI_PROJECT_DIR/ohosgen/summary.txt
+      echo "--------------------------------------"
+      exit $test_status

@@ -152,6 +152,7 @@ function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
         'registerCallback',
         'wrapCallback',
         'KPointer',
+        'toPeerPtr',
     ], '@koalaui/interop')
     collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
     collector.addFeatures(['unsafeCast'], '@koalaui/common')

@@ -62,8 +62,8 @@ void FooInt_setValueImpl(OH_NativePointer thisPtr, const OH_Number* value) {
     obj->value = *value;
 }
 
-OH_Number GlobalScope_bar_bar_getIntWithFooImpl(OH_TEST_MODULES_SIMPLE_FooInt foo) {
-    std::cout << "GlobalScope_bar_bar_getIntWithFooImpl(foo)" << std::endl;
+OH_Number GlobalScope_bar_getIntWithFooImpl(OH_TEST_MODULES_SIMPLE_FooInt foo) {
+    std::cout << "GlobalScope_bar_getIntWithFooImpl(foo)" << std::endl;
     MyFooInt* obj = reinterpret_cast<MyFooInt*>(foo);
     std::cout << "foo->value = " << DumpOHNumber(obj->value) << std::endl;
     return obj->value;
