@@ -1,14 +1,16 @@
 Requirements collection for tracing functionality
 
 Repo owner role
-As repository owner I want to know which d.ts items was generated (file path, item parent, item name) so that I manage generated API
-As repository owner I want to see generation tracability across all languages supported by generator (or selected by me) to manage API consistancy for various consumers
-As repository owner I want exact match between d.ts items and generated items to easy understanding of usage and documentation translation
-As repository owner I want to see which repository items was not generated and by which reason (file not scanned, blacklisted, generation error and so on) to manage API consistancy
-As repository owner I want to see which generated items was added manually so that I can control repository API usage
-As repository owner I want to see which generated items are covered by tests so that I can plan engineering activities and control quality
-As repository owner I want to see which generated API tests are passed and which is not so that I can plan engineering activities and control quality
-As repository owner I want to keep history of generations depending on API version or releae version so that I can track API evolution and progress
+
+1. As repository owner I want to know which d.ts items was generated (file path, item parent, item name) so that I manage generated API
+1. As repository owner I want to see generation tracability across all languages supported by generator (or selected by me) to manage API consistancy for various consumers
+1. As repository owner I want exact match between d.ts items and generated items to easy understanding of usage and documentation translation
+1. As repository owner I want to see which repository items was not generated and by which reason (file not scanned, blacklisted, generation error and so on) to manage API consistancy
+1. As repository owner I want to see which generated items was added manually so that I can control repository API usage
+1. As repository owner I want to see which generated items are covered by tests so that I can plan engineering activities and control quality
+1. As repository owner I want to see which generated API tests are passed and which is not so that I can plan engineering activities and control quality
+1. As repository owner I want to keep history of generations depending on API version or releae version so that I can track API evolution and progress
+
 
 App owner role
 1. As an app owner I want to compare list of app API calls with the list of repository API's so that I can manage application transition
