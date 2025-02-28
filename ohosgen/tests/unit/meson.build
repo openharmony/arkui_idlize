@@ -13,13 +13,16 @@ cflags = ['-DKOALA_INTEROP_MODULE=NativeModule']
 ldflags = []
 
 include_dirs = [
-   'generated/native',
-#   'src/cpp',
+  'generated/native',
+  'src/cpp',
    external_interop_dir,
    external_interop_dir / 'types',
 ]
 
 sources = [
+    'generated/native/unit.cc',
+    'src/cpp/unitImpl.cc',
+    external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
     external_interop_dir / 'interop-logging.cc',

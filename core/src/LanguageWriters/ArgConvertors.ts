@@ -1010,7 +1010,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
             case Language.CPP:
-                return `static_cast<${generatorConfiguration().TypePrefix}${this.declaration.name}>(${param})`
+                return `static_cast<${generatorTypePrefix()}${this.declaration.name}>(${param})`
             case Language.JAVA:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${param})`

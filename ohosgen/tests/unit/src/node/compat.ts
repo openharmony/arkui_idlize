@@ -1,12 +1,14 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 
+export { test_buffer } from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 
 declare const NATIVE_LIBRARY_NAME: string
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("UnitNativeModule", NATIVE_LIBRARY_NAME)
+    registerNativeModuleLibraryName("UNITNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }
