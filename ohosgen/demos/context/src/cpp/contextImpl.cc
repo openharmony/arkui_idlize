@@ -52,7 +52,7 @@ OH_NativePointer Context_createModuleContext1Impl(OH_NativePointer thisPtr, cons
 OH_NativePointer Context_getApplicationContextImpl(OH_NativePointer thisPtr) {
     return {};
 }
-void Context_getGroupDirImpl(OH_NativePointer thisPtr, const OH_String* dataGroupID, const CONTEXT_Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void Context_getGroupDirImpl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_String* dataGroupID, const CONTEXT_Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
 OH_NativePointer Context_createDisplayContextImpl(OH_NativePointer thisPtr, const OH_Number* displayId) {
     return {};
@@ -114,20 +114,19 @@ OH_CONTEXT_ApplicationContextHandle ApplicationContext_constructImpl() {
 }
 void ApplicationContext_destructImpl(OH_CONTEXT_ApplicationContextHandle thiz) {
 }
-void ApplicationContext_offAbilityLifecycleImpl(OH_NativePointer thisPtr, const OH_Number* callbackId, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_offAbilityLifecycleImpl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-void ApplicationContext_offEnvironmentImpl(OH_NativePointer thisPtr, const OH_Number* callbackId, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_offEnvironmentImpl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_Number* callbackId, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-void ApplicationContext_killAllProcesses0Impl(OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_killAllProcesses0Impl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-void ApplicationContext_killAllProcesses1Impl(OH_NativePointer thisPtr, OH_Boolean clearPageStack, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_killAllProcesses1Impl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, OH_Boolean clearPageStack, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-OH_Undefined ApplicationContext_killAllProcesses2Impl(OH_NativePointer thisPtr, const CONTEXT_AsyncCallback_Void* callback_) {
-    return {};
+void ApplicationContext_killAllProcesses2Impl(OH_NativePointer thisPtr, const CONTEXT_AsyncCallback_Void* callback_) {
 }
 void ApplicationContext_setLanguageImpl(OH_NativePointer thisPtr, const OH_String* language) {
 }
-void ApplicationContext_clearUpApplicationDataImpl(OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_clearUpApplicationDataImpl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
 void ApplicationContext_setSupportedProcessCacheImpl(OH_NativePointer thisPtr, OH_Boolean isSupported) {
 }
@@ -144,5 +143,5 @@ void ApplicationContext_setFontSizeScaleImpl(OH_NativePointer thisPtr, const OH_
 OH_String ApplicationContext_getCurrentInstanceKeyImpl(OH_NativePointer thisPtr) {
     return {};
 }
-void ApplicationContext_getAllRunningInstanceKeysImpl(OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void ApplicationContext_getAllRunningInstanceKeysImpl(OH_CONTEXT_VMContext vmContext, OH_CONTEXT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const CONTEXT_Callback_Opt_Array_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
