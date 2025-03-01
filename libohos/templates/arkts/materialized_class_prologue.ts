@@ -1,5 +1,5 @@
 import { Finalizable } from "@koalaui/interop"
 import { MaterializedBase } from "./MaterializedBase"
 import { Serializer } from "./peers/Serializer"
-import { isResource, isInstanceOf, runtimeType, RuntimeType, SerializerBase, registerCallback, wrapCallback, NativeBuffer } from "@koalaui/interop"
+import { isInstanceOf, runtimeType, RuntimeType, SerializerBase, registerCallback, wrapCallback, NativeBuffer } from "@koalaui/interop"
 import { CallbackKind } from "./peers/CallbackKind"
