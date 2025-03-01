@@ -45,7 +45,7 @@ OH_Number IFooInt_getIntImpl(OH_NativePointer thisPtr, const OH_Number* x) {
     return *x;
 }
 
-OH_Number GlobalScope_bar_bar_getIntWithFooImpl(const OH_Number* x, OH_TEST_MODULES_INTERFACE_IFooInt foo) {
+OH_Number GlobalScope_bar_getIntWithFooImpl(const OH_Number* x, OH_TEST_MODULES_INTERFACE_IFooInt foo) {
     std::cout << "GlobalScope_bar_bar_getIntWithFooImpl(x, foo)"
               << "\n  x = " << DumpOHNumber(*x) << std::endl;
     IFooIntDummy* obj = reinterpret_cast<IFooIntDummy*>(foo);

@@ -18,6 +18,7 @@ function mainBody() {
     const bar: BarInt = new BarInt();
     bar.fooA = new FooInt(142);
     bar.fooB = new FooInt(242);
+
     const resBar = baz.getIntWithBar(bar);
     console.log(`getIntWithBar(bar) = ${resBar}`);
 }

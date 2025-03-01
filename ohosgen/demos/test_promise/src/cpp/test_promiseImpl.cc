@@ -37,8 +37,8 @@ void Foo_destructImpl(OH_TEST_PROMISE_FooHandle thiz) {
     delete obj;
 }
 
-void Foo_getNumberDelayedImpl(OH_NativePointer thisPtr, const OH_Number* seconds,
-        const TEST_PROMISE_Callback_Opt_Number_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+void Foo_getNumberDelayedImpl(OH_TEST_PROMISE_VMContext vmContext, OH_TEST_PROMISE_AsyncWorkerPtr asyncWorker,
+    OH_NativePointer thisPtr, const OH_Number* seconds, const TEST_PROMISE_Callback_Opt_Number_Opt_Array_String_Void* outputArgumentForReturningPromise) {
     std::cout << "Foo_getNumberDelayedImpl(thisPtr, seconds, outputArgumentForReturningPromise)"
               << "\n  seconds = " << DumpOHNumber(*seconds) << std::endl;
     MyFoo* obj = reinterpret_cast<MyFoo*>(thisPtr);

@@ -13,7 +13,7 @@
         "clean:cj": "rm -rf generated/cj",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:ohos:generate-dts-demo:${TARGET} -C ../.. -- --default-idl-package test_generic_callback_named --input-files ./demos/test_generic_callback_named/dts/foo.d.ts --output-dir demos/test_generic_callback_named",
+        "generate": "npm run run:ohos:generate-dts-demo:${TARGET} -C ../.. -- --default-idl-package test_generic_callback_named --input-dir ./demos/test_generic_callback_named/dts --output-dir demos/test_generic_callback_named",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate",

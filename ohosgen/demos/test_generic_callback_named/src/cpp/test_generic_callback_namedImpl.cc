@@ -44,9 +44,10 @@ OH_Number Foo_getValueImpl(OH_NativePointer thisPtr) {
     return reinterpret_cast<FooObject*>(thisPtr)->value;
 }
 
-void Foo_callImpl(OH_NativePointer thisPtr, const TEST_GENERIC_CALLBACK_NAMED_Callback_String_Void* cb) {
+void Foo_callImpl(OH_NativePointer thisPtr, const OH_TEST_GENERIC_CALLBACK_NAMED_OHOSCallback_string* cb) {
     std::cout << "Foo_callImpl(thisPtr, cb)" << std::endl;
     constexpr auto message = "Well... How will this deformed C++ function behave?";
-    cb->call(cb->resource.resourceId, 
-             OH_String{.chars = message, .length = static_cast<InteropInt32>(std::strlen(message))});
+    auto& cbSuccess = cb->onSuccess;
+    cbSuccess.call(cbSuccess.resource.resourceId,
+        OH_String { .chars = message,  .length = static_cast<InteropInt32>(std::strlen(message))});
 }

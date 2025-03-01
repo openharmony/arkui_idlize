@@ -15,24 +15,41 @@
 
 #define KOALA_INTEROP_MODULE NotSpecifiedInteropModule
 #include "common-interop.h"
-#include "test_modules_struct.h"
+#include "oh_common.h"
+
+class FooInt {
+public:
+    OH_Number _num;
+    FooInt(OH_Number num): _num(num) {}
+};
 
 OH_TEST_MODULES_STRUCT_FooIntHandle FooInt_constructImpl(const OH_Number* initialValue) {
-    return {};
+    // can not return nullptr as instance!
+    FooInt* instance = new FooInt(*initialValue);
+    return reinterpret_cast<OH_TEST_MODULES_STRUCT_FooIntHandle>(instance);
 }
 void FooInt_destructImpl(OH_TEST_MODULES_STRUCT_FooIntHandle thiz) {
+    FooInt* self = reinterpret_cast<FooInt*>(thiz);
+    delete self;
 }
 OH_Number FooInt_getIntImpl(OH_NativePointer thisPtr, const OH_Number* offset) {
-    return {};
+    FooInt* self = reinterpret_cast<FooInt*>(thisPtr);
+    return addOHNumber(self->_num, *offset);
 }
 OH_Number FooInt_getValueImpl(OH_NativePointer thisPtr) {
-    return {};
+    FooInt* self = reinterpret_cast<FooInt*>(thisPtr);
+    return self->_num;
 }
 void FooInt_setValueImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    FooInt* self = reinterpret_cast<FooInt*>(thisPtr);
+    self->_num = *value;
 }
-OH_Number GlobalScope_baz_baz_getIntWithFooImpl(OH_TEST_MODULES_STRUCT_FooInt foo) {
-    return {};
+OH_Number GlobalScope_baz_getIntWithFooImpl(OH_TEST_MODULES_STRUCT_FooInt foo) {
+    FooInt* fooInt = reinterpret_cast<FooInt*>(foo);
+    return fooInt->_num;
 }
-OH_Number GlobalScope_baz_baz_getIntWithBarImpl(const OH_TEST_MODULES_STRUCT_BarInt* bar) {
-    return {};
+OH_Number GlobalScope_baz_getIntWithBarImpl(const OH_TEST_MODULES_STRUCT_BarInt* bar) {
+    FooInt* fooA = reinterpret_cast<FooInt*>(bar->fooA);
+    FooInt* fooB = reinterpret_cast<FooInt*>(bar->fooB);
+    return addOHNumber(fooA->_num, fooB->_num);
 }

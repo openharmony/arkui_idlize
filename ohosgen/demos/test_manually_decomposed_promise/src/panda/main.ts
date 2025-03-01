@@ -7,8 +7,7 @@ function asyncDemo(execIndex: number, execLimit: number) {
     let p = new Promise<number>((resolve: (v: number) => void, reject: RejectCallback) => {
         const work = new FooWork();
         work.Create();
-        const r = taskpool.execute(work.Execute, 42, "Hello world");
-        // const r = taskpool.execute(() => work.Execute(42, "Hello world"));
+        const r = taskpool.execute(():Object | null | undefined => { work.Execute(42, "Hello world"); return undefined; });
         console.log('Inner Promise r created.');
         r.then((e: Object | null | undefined) => {
             console.log('r.then(): e = ', e);

@@ -168,21 +168,21 @@ void BazInt_setBarImpl(OH_NativePointer thisPtr, OH_TEST_MODULES_MULTILEVEL_BarI
     obj->bar = *reinterpret_cast<MyBarInt*>(value);
 }
 
-OH_Number GlobalScope_qux_qux_getIntWithFooImpl(OH_TEST_MODULES_MULTILEVEL_FooInt foo) {
+OH_Number GlobalScope_qux_getIntWithFooImpl(OH_TEST_MODULES_MULTILEVEL_FooInt foo) {
     std::cout << "GlobalScope_qux_qux_getIntWithFooImpl(foo)" << std::endl;
     MyFooInt* obj = reinterpret_cast<MyFooInt*>(foo);
     std::cout << "foo->value = " << DumpOHNumber(obj->value) << std::endl;
     return obj->value;
 }
 
-OH_Number GlobalScope_qux_qux_getIntWithBarImpl(OH_TEST_MODULES_MULTILEVEL_BarInt bar, const OH_Number* offset) {
+OH_Number GlobalScope_qux_getIntWithBarImpl(OH_TEST_MODULES_MULTILEVEL_BarInt bar, const OH_Number* offset) {
     std::cout << "GlobalScope_qux_qux_getIntWithBarImpl(bar, offset)"
               << "\n  offset = " << DumpOHNumber(*offset) << std::endl;
     MyBarInt* obj = reinterpret_cast<MyBarInt*>(bar);
     return addOHNumber(addOHNumber(obj->x.value, obj->y.value), *offset);
 }
 
-OH_Number GlobalScope_qux_qux_getIntWithBazImpl(
+OH_Number GlobalScope_qux_getIntWithBazImpl(
         OH_TEST_MODULES_MULTILEVEL_BazInt baz, const OH_Number* offset, const OH_String* message) {
     std::cout << "GlobalScope_qux_qux_getIntWithBazImpl(baz, offset, message)"
               << "\n  offset = " << DumpOHNumber(*offset)
