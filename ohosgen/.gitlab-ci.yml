@@ -60,8 +60,9 @@ check ohos demos:
     - npm i -d
     - npm run check:ts
     - npm run check:arkts
-#   - npm run run:ohos:context:ts
-#   - npm run check:ohos:context:run
+    - cd $CI_PROJECT_DIR/ohosgen/demos/context
+#   - npm run check:ts
+    - npm run check:arkts
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run check:ts
     - npm run check:arkts
