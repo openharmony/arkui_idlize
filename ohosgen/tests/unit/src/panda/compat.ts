@@ -4,6 +4,12 @@ import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChec
 import { UNITNativeModule } from "../../generated/arkts"
 
 export { test_buffer } from "../../generated/arkts"
+export {
+    ForceCallbackListener,
+    ForceCallbackClass,
+    registerForceCallbackListener,
+    callForceCallbackListener
+} from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 

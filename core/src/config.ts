@@ -24,6 +24,7 @@ export interface CoreConfiguration {
     readonly ignoreMaterialized: string[]
     readonly builderClasses: string[]
     readonly forceMaterialized: string[]
+    readonly forceCallback: string[]
 }
 
 export const defaultCoreConfuguration: CoreConfiguration = {
@@ -37,6 +38,7 @@ export const defaultCoreConfuguration: CoreConfiguration = {
     ignoreMaterialized: [],
     builderClasses: [],
     forceMaterialized: [],
+    forceCallback: [],
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfuguration

@@ -26,6 +26,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
         if (declaration.name == forceMaterialized) return true
     }
 
+    if (generatorConfiguration().forceCallback.includes(declaration.name)) {
+        return false
+    }
+
     for (const ignore of generatorConfiguration().ignoreMaterialized) {
             if (declaration.name.endsWith(ignore)) return false
     }

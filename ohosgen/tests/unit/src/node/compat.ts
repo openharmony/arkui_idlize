@@ -2,6 +2,12 @@ import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loa
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 
 export { test_buffer } from "../../generated/ts"
+export {
+    ForceCallbackListener,
+    ForceCallbackClass,
+    registerForceCallbackListener,
+    callForceCallbackListener
+} from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 

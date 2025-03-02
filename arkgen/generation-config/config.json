@@ -17,6 +17,7 @@
     "forceMaterialized": [
         "BaseContext"
     ],
+    "forceCallback": [],
     "boundProperties": {
         "Checkbox": [
             "select"

@@ -645,13 +645,13 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
     pickProperties(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLProperty[] {
         const properties = members
-            .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it)) && !isPrivate(it.modifiers))
+            .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it) || this.isMethodUsedAsCallback(it)) && !isPrivate(it.modifiers))
             .map(it => this.serializeProperty(it, nameSuggestion))
         return mergeSetGetProperties(properties)
     }
     pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLMethod[] {
         return members
-            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !isPrivate(it.modifiers))
+            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !this.isMethodUsedAsCallback(it) && !isPrivate(it.modifiers))
             .map(it => this.serializeMethod(it as ts.MethodDeclaration | ts.MethodSignature, nameSuggestion))
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, nameSuggestion: NameSuggestion): idl.IDLCallable[] {
@@ -733,9 +733,10 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     // TODO: class and interface look identical, but their elements' types are different
     serializeInterface(node: ts.InterfaceDeclaration): idl.IDLInterface {
+        const name = getExportedDeclarationNameByDecl(node) ?? "UNDEFINED"
+        const nameSuggestion = NameSuggestion.make(name)
         const allMembers = node.members.filter(it => it.name && ts.isIdentifier(it.name))
         const inheritance = this.serializeInheritance(node.heritageClauses)
-        const nameSuggestion = NameSuggestion.make(getExportedDeclarationNameByDecl(node) ?? "UNDEFINED")
         const childNameSuggestion = nameSuggestion.prependType()
         this.context.enter(nameSuggestion.name)
         return idl.createInterface(
@@ -1253,29 +1254,49 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return collapseTypes(types, selectedUnionName)
     }
 
+    methodToPropertyType(property: ts.TypeElement | ts.ClassElement,
+        escapedName: string,
+        extendedAttributes: idl.IDLExtendedAttribute[],
+        nameSuggestion?: NameSuggestion): idl.IDLType {
+        if (this.isMethodUsedAsCallback(property)) {
+            const parameters = property.parameters.map(it => this.serializeParameter(it))
+            const retType = this.serializeType(property.type)
+            let name = generateSyntheticFunctionName(parameters, retType, retType !== idl.IDLVoidType)
+            const fileName = property.getSourceFile().fileName
+            const extendedAttributes: idl.IDLExtendedAttribute[] = []
+            const funcType = idl.createCallback(name, parameters, retType, { fileName, extendedAttributes })
+            this.addSyntheticType(funcType)
+            return idl.createReferenceType(funcType.name)
+        }
+        if (this.isCommonMethodUsedAsProperty(property)) {
+            let [type, syntheticEntry] = IDLVisitorConfig.checkParameterTypeReplacement(property.parameters[0])
+            if (syntheticEntry) this.addSyntheticType(syntheticEntry)
+            if (!isDefined(type)) {
+                type = this.serializeType(property.parameters[0].type, nameSuggestion?.extend(nameOrNull(property.parameters[0].name)!))
+            }
+            extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
+            return type
+        }
+        throw new Error("Not a CommonMethod or forced callback")
+    }
     serializeProperty(property: ts.TypeElement | ts.ClassElement, nameSuggestion?: NameSuggestion): idl.IDLProperty {
         const [propName, escapedName] = escapeName(this.propertyName(property.name!)!)
         nameSuggestion = nameSuggestion?.extend(escapedName)
         let extendedAttributes: idl.IDLExtendedAttribute[] = this.computeClassMemberExtendedAttributes(property, propName, escapedName)
         this.computeDeprecatedExtendAttributes(property, extendedAttributes)
         if (ts.isMethodDeclaration(property) || ts.isMethodSignature(property)) {
-            if (!this.isCommonMethodUsedAsProperty(property)) throw new Error("Wrong")
-            let [type, syntheticEntry] = IDLVisitorConfig.checkParameterTypeReplacement(property.parameters[0])
-            if (syntheticEntry) this.addSyntheticType(syntheticEntry)
-            if (!isDefined(type)) {
-                type = this.serializeType(property.parameters[0].type, nameSuggestion?.extend(nameOrNull(property.parameters[0].name)!))
+            if (this.isMethodUsedAsCallback(property) || this.isCommonMethodUsedAsProperty(property)) {
+                return idl.createProperty(
+                    escapedName,
+                    this.methodToPropertyType(property, escapedName, extendedAttributes, nameSuggestion),
+                    false,
+                    false,
+                    isDefined(property.parameters[0].questionToken), {
+                    extendedAttributes: extendedAttributes,
+                    documentation: getDocumentation(this.sourceFile, property, this.options.docs),
+                })
             }
-
-            extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
-            return idl.createProperty(
-                escapedName,
-                type,
-                false,
-                false,
-                isDefined(property.parameters[0].questionToken), {
-                extendedAttributes: extendedAttributes,
-                documentation: getDocumentation(this.sourceFile, property, this.options.docs),
-            })
+            throw new Error("Not a CommonMethod or forced callback")
         }
 
         if (ts.isPropertyDeclaration(property) || ts.isPropertySignature(property)) {
@@ -1371,7 +1392,13 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             this.isCommonAttributeMethod(member) &&
             member.parameters.length == 1 && (returnType == "T" || returnType == className)
     }
-
+    isMethodUsedAsCallback(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
+        const interfaceName = (ts.isInterfaceDeclaration(member.parent)) ? identName(member.parent.name) : undefined
+        if (interfaceName) {
+            return generatorConfiguration().forceCallback.includes(interfaceName)
+        }
+        return false
+    }
     /** Serialize a signature (call or construct) */
     serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, nameSuggestion: NameSuggestion | undefined, isFree: boolean = false): idl.IDLMethod {
         const extendedAttributes = this.computeDeprecatedExtendAttributes(method)

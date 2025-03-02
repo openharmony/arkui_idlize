@@ -20,13 +20,6 @@
 #include <iostream>
 #include <string.h>
 
-OH_UNIT_TestListenerHandle TestListener_constructImpl() {
-    return {};
-}
-void TestListener_destructImpl(OH_UNIT_TestListenerHandle thiz) {
-}
-void TestListener_onUpdateImpl(OH_NativePointer thisPtr, const UNIT_Callback_TestResult_Void* callback_) {
-}
 OH_UNIT_HelloHandle Hello_constructImpl() {
     return {};
 }
@@ -90,8 +83,6 @@ void MyPersonHandler_MyFunc21Impl(OH_NativePointer thisPtr, const OH_Number* b, 
 }
 void MyPersonHandler_MyFunc22Impl(OH_NativePointer thisPtr, const OH_Number* b, const Opt_Number* c) {
 }
-void MyPersonHandler_MyFunc3Impl(OH_NativePointer thisPtr, OH_UNIT_PersonInfo a) {
-}
 OH_UNIT_BufferGeneratorHandle BufferGenerator_constructImpl() {
     return {};
 }
@@ -102,12 +93,14 @@ OH_Buffer BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr) {
 }
 
 void stub_hold(OH_Int32 resourceId) {}
+void stub_release(OH_Int32 resourceId) {}
+
 OH_UNIT_TestValue GlobalScope_test_buffer_getBufferImpl() {
     std::cout << "Return buffer from getBufferImpl"<< std::endl;
     OH_UNIT_TestValue result{};
     result.errorCode = {.tag = INTEROP_TAG_INT32, .i32 = 123 };
     result.outData.resource.hold = stub_hold;
-    result.outData.resource.release = stub_hold;
+    result.outData.resource.release = stub_release;
     result.outData.data = strdup("1234");
     result.outData.length = strlen("1234");
     return result;
@@ -118,4 +111,37 @@ OH_Number GlobalScope_test_buffer_sumImpl(const OH_Number* v1, const OH_Number* 
     number.tag = InteropTag::INTEROP_TAG_INT32;
     number.i32 = v1->i32 + v2->i32;
     return number;
+}
+
+// Force Callback
+
+class ForceCallbackClassPeer {};
+static const OH_UNIT_ForceCallbackListener* forceCallbackListener = NULL;
+
+OH_UNIT_ForceCallbackClassHandle ForceCallbackClass_constructImpl() {
+        return (OH_UNIT_ForceCallbackClassHandle) new ForceCallbackClassPeer();
+}
+
+void ForceCallbackClass_destructImpl(OH_UNIT_ForceCallbackClassHandle thiz) {
+}
+void ForceCallbackClass_registerListenerImpl(OH_NativePointer thisPtr, const OH_UNIT_ForceCallbackListener* listener) {
+    forceCallbackListener = listener;
+    printf("[native] ForceCallbackClass hold listener: %p\n", forceCallbackListener);
+    forceCallbackListener->onStatus.resource.hold(forceCallbackListener->onStatus.resource.resourceId);
+    OH_Number number = {.tag = INTEROP_TAG_INT32, .i32 = 123};
+    forceCallbackListener->onStatus.call(forceCallbackListener->onStatus.resource.resourceId, number);
+}
+void ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr) {
+    printf("[native] ForceCallbackClass call listener: %p\n", forceCallbackListener);
+
+    // OH_Number number = {.tag = INTEROP_TAG_INT32, .i32 = 456};
+    // TBD: SIGSEGV
+    // forceCallbackListener->onStatus.call(forceCallbackListener->onStatus.resource.resourceId, number);
+    // TBD: SIGSEGV
+    // forceCallbackListener->onStatus.resource.release(forceCallbackListener->onStatus.resource.resourceId);
+}
+
+void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener* listener) {
+}
+void GlobalScope_callForceCallbackListenerImpl() {
 }
