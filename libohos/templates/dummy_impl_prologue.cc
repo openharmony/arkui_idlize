@@ -932,26 +932,19 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         void OnClick0Impl(Ark_NativePointer node,
                       const Callback_ClickEvent_Void* value)
     {
+        RegisterOnClick(node, value);
         if (!needGroupedLog(1))
             return;
         string out("onClick(");
         WriteToString(&out, value);
         out.append(") \n");
         appendGroupedLog(1, out);
-        auto frameNode = AsNode(node);
-        auto callback = *value;
-        callback.resource.hold(callback.resource.resourceId);
-        auto onEvent = [callback](Ark_ClickEvent event) {
-            if (callback.call) {
-                callback.call(callback.resource.resourceId, event);
-            }
-        };
-        frameNode->setClickEvent(std::move(onEvent));
     }
     void OnClick1Impl(Ark_NativePointer node,
                       const Callback_ClickEvent_Void* event,
                       const Ark_Number* distanceThreshold)
     {
+        RegisterOnClick(node, event);
         if (!needGroupedLog(1))
             return;
         string out("onClick(");
@@ -960,15 +953,6 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         WriteToString(&out, distanceThreshold);
         out.append(") \n");
         appendGroupedLog(1, out);
-        auto frameNode = AsNode(node);
-        auto callback = *event;
-        callback.resource.hold(callback.resource.resourceId);
-        auto onEvent = [callback](Ark_ClickEvent event) {
-            if (callback.call) {
-                callback.call(callback.resource.resourceId, event);
-            }
-        };
-        frameNode->setClickEvent(std::move(onEvent));
     }
     } // CommonMethodModifier
 
