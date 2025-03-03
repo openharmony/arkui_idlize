@@ -306,8 +306,6 @@ function enqueueCallback(
 }
 
 function checkTwoSidesCallback() {
-    TestNativeModule._TestSetArkoalaCallbackCaller()
-
     let callResult1 = "NOT_CALLED"
     let callResult2 = 0
     const call2Count = 100

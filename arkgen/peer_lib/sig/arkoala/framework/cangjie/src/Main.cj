@@ -172,8 +172,6 @@ class callResult {
 }
 
 func checkTwoSidesCallback() {
-    TestNativeModule._TestSetArkoalaCallbackCaller()
-
     let call2Count = 100
 
     enqueueCallback(
