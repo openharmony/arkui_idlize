@@ -20,6 +20,9 @@
 #include <iostream>
 #include <string.h>
 
+#define CALLBACK_HOLD(instance, callback) instance.callback.resource.hold(instance.callback.resource.resourceId);
+#define CALLBACK_RELEASE(instance, callback) instance.callback.resource.release(instance.callback.resource.resourceId);
+
 OH_UNIT_HelloHandle Hello_constructImpl() {
     return {};
 }
@@ -116,7 +119,7 @@ OH_Number GlobalScope_test_buffer_sumImpl(const OH_Number* v1, const OH_Number* 
 // Force Callback
 
 class ForceCallbackClassPeer {};
-static const OH_UNIT_ForceCallbackListener* forceCallbackListener = NULL;
+static OH_UNIT_ForceCallbackListener forceCallbackListener = {};
 
 OH_UNIT_ForceCallbackClassHandle ForceCallbackClass_constructImpl() {
         return (OH_UNIT_ForceCallbackClassHandle) new ForceCallbackClassPeer();
@@ -125,23 +128,47 @@ OH_UNIT_ForceCallbackClassHandle ForceCallbackClass_constructImpl() {
 void ForceCallbackClass_destructImpl(OH_UNIT_ForceCallbackClassHandle thiz) {
 }
 void ForceCallbackClass_registerListenerImpl(OH_NativePointer thisPtr, const OH_UNIT_ForceCallbackListener* listener) {
-    forceCallbackListener = listener;
-    printf("[native] ForceCallbackClass hold listener: %p\n", forceCallbackListener);
-    forceCallbackListener->onStatus.resource.hold(forceCallbackListener->onStatus.resource.resourceId);
-    OH_Number number = {.tag = INTEROP_TAG_INT32, .i32 = 123};
-    forceCallbackListener->onStatus.call(forceCallbackListener->onStatus.resource.resourceId, number);
-}
-void ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr) {
-    printf("[native] ForceCallbackClass call listener: %p\n", forceCallbackListener);
-
-    // OH_Number number = {.tag = INTEROP_TAG_INT32, .i32 = 456};
-    // TBD: SIGSEGV
-    // forceCallbackListener->onStatus.call(forceCallbackListener->onStatus.resource.resourceId, number);
-    // TBD: SIGSEGV
-    // forceCallbackListener->onStatus.resource.release(forceCallbackListener->onStatus.resource.resourceId);
+    forceCallbackListener = *listener;
+    CALLBACK_HOLD(forceCallbackListener, onStatus)
+    CALLBACK_HOLD(forceCallbackListener, onChange)
 }
 
+void forceCallbackOnChangeCallContinuation(const OH_Int32 resourceId, const OH_String value) {
+    printf("forceCallbackOnChangeContinuation is called!\n");
+}
+
+void forceCallbackOnChangeCallSyncContinuation(OH_UNIT_VMContext context, const OH_Int32 resourceId, const OH_String value) {
+    printf("forceCallbackOnChangeCallSyncContinuation is called!\n");
+}
+
+OH_Number ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr) {
+    OH_Number number = {.tag = INTEROP_TAG_INT32, .i32 = 123456};
+    // onStatus call
+    forceCallbackListener.onStatus.call(forceCallbackListener.onStatus.resource.resourceId, number);
+
+    // onChange call
+    OH_UNIT_CallbackResource resource = { .resourceId = 12, .hold = stub_hold, .release = stub_release};
+
+    UNIT_Callback_String_Void continuation = {
+        .resource = resource,
+        .call = forceCallbackOnChangeCallContinuation,
+        .callSync = forceCallbackOnChangeCallSyncContinuation,
+    };
+
+    forceCallbackListener.onChange.call(
+        forceCallbackListener.onChange.resource.resourceId,
+        true,
+        {.tag = INTEROP_TAG_INT32, .i32 = 78910},
+        continuation
+    );
+
+    // release callbacks
+    CALLBACK_RELEASE(forceCallbackListener, onStatus)
+    CALLBACK_RELEASE(forceCallbackListener, onChange)
+    return {.tag = INTEROP_TAG_INT32, .i32 = 101};
+}
 void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener* listener) {
 }
-void GlobalScope_callForceCallbackListenerImpl() {
+OH_Number GlobalScope_callForceCallbackListenerImpl() {
+    return {.tag = INTEROP_TAG_INT32, .i32 = 102};
 }

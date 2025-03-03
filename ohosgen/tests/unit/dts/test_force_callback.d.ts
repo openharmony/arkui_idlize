@@ -5,8 +5,8 @@ declare interface ForceCallbackListener {
 
 declare class ForceCallbackClass {
     registerListener(listener: ForceCallbackListener): void
-    callListener(): void
+    callListener(): number
 }
 
 declare function registerForceCallbackListener(listener: ForceCallbackListener): void
-declare function callForceCallbackListener(): void
+declare function callForceCallbackListener(): number
