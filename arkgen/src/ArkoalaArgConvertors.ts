@@ -34,6 +34,13 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])
         }
+        if (this.declaration.name === "GestureGroupInterface") {
+            const gestureType = "Group"
+            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
+            return writer.makeNaryOp("===", [
+                writer.makeString(`${castExpr.asString()}.type`),
+                writer.makeString(`GestureName.${gestureType}`)])
+        }
         if (this.declaration.name === "CancelButtonSymbolOptions") {
             if (writer.language === Language.ARKTS) {
                 //TODO: Need to check this in TypeChecker
