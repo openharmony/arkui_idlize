@@ -254,8 +254,6 @@ function enqueueCallback(
 }
 
 function checkCallbackWithReturn() {
-    TestNativeModule._TestSetArkoalaCallbackCallerSync()
-
     let callResult1 = "NOT_CALLED"
 
     enqueueCallback(
@@ -274,8 +272,6 @@ function checkCallbackWithReturn() {
 }
 
 function checkTwoSidesCallbackSync() {
-    TestNativeModule._TestSetArkoalaCallbackCallerSync()
-
     let callResult1 = "NOT_CALLED"
     enqueueCallback(
         createDefaultWriteCallback(CallbackKind.Kind_Callback_Number_Void, (value: number): void => {
@@ -322,8 +318,6 @@ function checkTwoSidesCallbackSync() {
 }
 
 function checkTwoSidesCallback() {
-    TestNativeModule._TestSetArkoalaCallbackCaller()
-
     let callResult1 = "NOT_CALLED"
     let callResult2 = 0
     const call2Count = 100
@@ -357,8 +351,6 @@ function checkTwoSidesCallback() {
 }
 
 function checkTwoSidesPromise() {
-    TestNativeModule._TestSetArkoalaCallbackCaller()
-
     let result1 = "PENDING"
     let result2 = "PENDING"
 

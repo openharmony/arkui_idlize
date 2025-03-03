@@ -341,7 +341,6 @@ function checkTwoSidesCallback() {
 }
 
 function checkTwoSidesCallbackSync() {
-    TestNativeModule._TestSetArkoalaCallbackCallerSync()
     wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
@@ -363,7 +362,6 @@ function checkNumberIncrement() {
 }
 
 function checkCallbackWithReturn() {
-    TestNativeModule._TestSetArkoalaCallbackCallerSync()
     wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"

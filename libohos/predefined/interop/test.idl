@@ -7,8 +7,6 @@ interface Test {
     i32 TestCallIntRecursiveCallback(i32 arg0, sequence<u8> arr, i32 arg2);
     i32 TestCallIntMemory(i32 arg0, i32 arg1);
     void TestWithBuffer(buffer buffer);
-    void TestSetArkoalaCallbackCaller();
-    void TestSetArkoalaCallbackCallerSync();
     pointer TestGetManagedCaller(i32 kind);
     pointer TestGetManagedCallerSync(i32 kind);
     pointer TestGetManagedHolder();

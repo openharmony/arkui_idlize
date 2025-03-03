@@ -368,6 +368,9 @@ class DeserializeCallbacksVisitor {
                 writer.writePrintLog(`Unknown callback kind`)
             }
         })
+        if (this.writer.language === Language.CPP) {
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
+        }
         if (this.writer.language === Language.TS) {
             this.writer.print('wrapSystemCallback(1, (buff:Uint8Array, len:int32) => { deserializeAndCallCallback(new Deserializer(buff.buffer, len)); return 0 })')
         }
@@ -395,6 +398,7 @@ class DeserializeCallbacksVisitor {
                 }
                 writer.writePrintLog(`Unknown callback kind`)
             })
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
         }
     }
 

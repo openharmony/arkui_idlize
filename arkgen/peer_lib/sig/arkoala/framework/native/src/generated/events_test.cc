@@ -32,13 +32,3 @@ KNativePointer impl_TestGetManagedReleaser() {
     return reinterpret_cast<KNativePointer>(releaseManagedCallbackResource);
 }
 KOALA_INTEROP_0(TestGetManagedReleaser, KNativePointer)
-
-void impl_TestSetArkoalaCallbackCaller() {
-    setCallbackCaller(deserializeAndCallCallback);
-}
-KOALA_INTEROP_V0(TestSetArkoalaCallbackCaller)
-
-void impl_TestSetArkoalaCallbackCallerSync() {
-    setCallbackCallerSync((Callback_Caller_Sync_t)deserializeAndCallCallbackSync);
-}
-KOALA_INTEROP_V0(TestSetArkoalaCallbackCallerSync)
