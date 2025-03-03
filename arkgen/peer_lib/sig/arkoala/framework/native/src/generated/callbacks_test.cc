@@ -34,6 +34,9 @@ KInt CallInt(KVMContext vmContext, KInt methodId, KInt length, void* args) {
 #else
 #error vm not supported
 #endif
+    // to silence false-positive check "non-void function does not return a value"
+    // actual return happens inside macro
+    return 0;
 }
 
 void CallVoidInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args) {
@@ -50,6 +53,9 @@ KInt CallIntInts32(KVMContext vmContext, KInt methodId, KInt numArgs, KInt* args
 #else
 #error vm not supported
 #endif
+    // to silence false-positive check "non-void function does not return a value"
+    // actual return happens inside macro
+    return 0;
 }
 
 KInt impl_TestCallIntNoArgs(KVMContext vmContext, KInt methodId) {
