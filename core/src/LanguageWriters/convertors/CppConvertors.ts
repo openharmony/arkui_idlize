@@ -193,8 +193,22 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
         const typePrefix = conf.TypePrefix
         // TODO remove this ugly hack for CustomObject's
         const convertedToCustomObject = result.text === idl.IDLCustomObjectType.name
-        const libPrefix = idl.isPrimitiveType(type) || convertedToCustomObject ? "" : conf.LibraryPrefix
+        const libPrefix = this.isPrimitiveOrPrimitiveAlias(type) || convertedToCustomObject ? "" : conf.LibraryPrefix
         return `${typePrefix}${libPrefix}${result.text}`
+    }
+
+    private isPrimitiveOrPrimitiveAlias(type: idl.IDLNode): boolean {
+        if (!idl.isType(type)) return false
+        
+        const { resolver } = this
+        while (type && idl.isReferenceType(type)) {
+            const resolved = resolver.resolveTypeReference(type)
+            if (!resolved) return false
+            if (!idl.isTypedef(resolved)) break
+            type = resolved.type
+        }
+    
+        return idl.isPrimitiveType(type)
     }
 
     convert(node: idl.IDLNode): string {
