@@ -1,3 +1,9 @@
 interface BusinessError {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+
     attribute number code;
+    // the `data` attribute does not point with 'void' type
 };
