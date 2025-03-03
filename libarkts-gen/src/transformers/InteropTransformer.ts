@@ -19,8 +19,9 @@ import { InteropConstructions } from "../visitors/interop/InteropConstructions"
 import { createUpdatedInterface, createUpdatedMethod, isSequence, nodeNamespace } from "../utils/idl"
 import { Config } from "../Config"
 import { mangleIfKeyword } from "../utils/common";
+import { Transformer } from "./Transformer";
 
-export class InteropTransformer {
+export class InteropTransformer implements Transformer {
     constructor(
         private file: IDLFile
     ) {}

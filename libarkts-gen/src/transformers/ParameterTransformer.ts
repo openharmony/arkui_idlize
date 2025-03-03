@@ -15,8 +15,9 @@
 
 import { createUpdatedInterface, createUpdatedMethod, isSequence } from "../utils/idl"
 import { createFile, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
+import { Transformer } from "./Transformer";
 
-export class ParameterTransformer {
+export class ParameterTransformer implements Transformer {
     constructor(
         private file: IDLFile
     ) {}

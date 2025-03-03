@@ -1,10 +1,11 @@
 libarkts-gen idl:
-  allow_failure: true
   stage: test
   tags:
     - idlize-ci
     - koala-ci
   before_script:
     - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR
+    - PANDA_SDK_VERSION=next npm run --prefix ./external/incremental/tools/panda panda:sdk:install
   script:
     - npm run all --prefix libarkts-gen

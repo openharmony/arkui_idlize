@@ -33,6 +33,7 @@ import { ParameterTransformer } from "./transformers/ParameterTransformer";
 import { ConstMergeTransformer } from "./transformers/ConstMergeTransformer";
 import { VerifyVisitor } from "./visitors/VerifyVisitor";
 import { AddContextTransformer } from "./transformers/AddContextTransformer";
+import { Transformer } from "./transformers/Transformer";
 
 class SingleFileEmitter {
     constructor(
@@ -107,53 +108,26 @@ export class FileEmitter {
     )
 
     print(): void {
-        let idl = this.withLog(
-            this.file,
-            `none`
-        )
-        idl = this.withLog(
-            new OptionsFilterTransformer(this.config, idl).transformed(),
-            `options-filter`
-        )
-        idl = this.withLog(
-            new AddContextTransformer(idl).transformed(),
-            `add-context`
-        )
-        idl = this.withLog(
-            new TwinMergeTransformer(idl).transformed(),
-            `twin-merge`
-        )
-        idl = this.withLog(
-            new MultipleDeclarationFilterTransformer(idl).transformed(),
-            `multi-declaration`
-        )
+        let idl = this.file
+        idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
+        idl = this.withLog(new AddContextTransformer(idl))
+        idl = this.withLog(new TwinMergeTransformer(idl))
+        idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
         this.printFile(this.enumsPrinter, idl)
-        idl = this.withLog(
-            new AstNodeFilterTransformer(idl).transformed(),
-            `ast-node-filter`
-        )
-        idl = this.withLog(
-            new ParameterTransformer(idl).transformed(),
-            `sequence-parameter`
-        )
+        idl = this.withLog(new AstNodeFilterTransformer(idl))
+        idl = this.withLog(new ParameterTransformer(idl),)
         this.printPeers(idl)
         this.printInterop(idl)
     }
 
     private printPeers(idl: IDLFile): void {
-        idl = this.withLog(
-            new ConstMergeTransformer(idl).transformed(),
-            `const-merge`
-        )
+        idl = this.withLog(new ConstMergeTransformer(idl))
         this.printFile(this.indexPrinter, idl)
         this.printFiles(this.peersPrinter, idl)
     }
 
     private printInterop(idl: IDLFile): void {
-        idl = this.withLog(
-            new InteropTransformer(idl).transformed(),
-            `interop`
-        )
+        idl = this.withLog(new InteropTransformer(idl))
         this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }
@@ -196,17 +170,16 @@ export class FileEmitter {
         return fs.readFileSync(path.join(__dirname, `./../templates/${name}`), `utf8`)
     }
 
-    private withLog(idl: IDLFile, afterWhat: string): IDLFile {
-        if (!this.shouldLog) {
-            return idl
+    private withLog(transformer: Transformer): IDLFile {
+        const idl = transformer.transformed()
+        if (this.shouldLog) {
+            const name = Reflect.get(transformer, `constructor`).name
+            forceWriteFile(
+                path.join(this.logDir, `${this.logCount}-after-${name}.idl`),
+                toIDLString(idl, {})
+            )
+            this.logCount += 1
         }
-        console.log(afterWhat)
-        new VerifyVisitor(idl).complain()
-        forceWriteFile(
-            path.join(this.logDir, `${this.logCount}-after-${afterWhat}.idl`),
-            toIDLString(idl, {})
-        )
-        this.logCount += 1
         return idl
     }
 }

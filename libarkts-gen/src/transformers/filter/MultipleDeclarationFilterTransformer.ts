@@ -15,8 +15,9 @@
 
 import { IDLFile, createFile, IDLEntity, capitalize, isInterface } from "@idlizer/core"
 import { dropNamespace, nodeNamespace } from "../../utils/idl"
+import { Transformer } from "../Transformer";
 
-export class MultipleDeclarationFilterTransformer {
+export class MultipleDeclarationFilterTransformer implements Transformer {
     constructor(
         private file: IDLFile
     ) {}

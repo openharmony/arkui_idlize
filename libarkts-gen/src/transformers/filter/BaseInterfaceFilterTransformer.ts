@@ -15,8 +15,9 @@
 
 import { createUpdatedInterface, innerTypeIfContainer, Typechecker } from "../../utils/idl"
 import { createFile, IDLFile, IDLMethod, isInterface, isReferenceType } from "@idlizer/core"
+import { Transformer } from "../Transformer";
 
-export abstract class BaseInterfaceFilterTransformer {
+export abstract class BaseInterfaceFilterTransformer implements Transformer {
     constructor(
         protected file: IDLFile
     ) {}

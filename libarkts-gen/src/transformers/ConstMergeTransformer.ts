@@ -16,8 +16,9 @@
 import { createUpdatedInterface } from "../utils/idl"
 import { createFile, IDLFile, IDLInterface, isInterface } from "@idlizer/core"
 import { Config } from "../Config";
+import { Transformer } from "./Transformer";
 
-export class ConstMergeTransformer {
+export class ConstMergeTransformer implements Transformer {
     constructor(
         private file: IDLFile
     ) {}

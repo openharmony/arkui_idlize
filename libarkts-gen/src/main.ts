@@ -42,11 +42,9 @@ function main() {
     const optionsFile = cliOptions.optionsFile ?? path.join(__dirname, `../input/ignore.json5`)
     const isDebug = cliOptions.debug ?? false
 
-    const idl = toIDLFile(idlFileName)
-
     new FileEmitter(
         outDir,
-        idl,
+        toIDLFile(idlFileName),
         new Config(
             new Options(optionsFile),
             files

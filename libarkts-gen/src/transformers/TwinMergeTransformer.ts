@@ -36,8 +36,9 @@ import {
     isReferenceType
 } from "@idlizer/core"
 import { Config } from "../Config";
+import { Transformer } from "./Transformer";
 
-export class TwinMergeTransformer {
+export class TwinMergeTransformer implements Transformer {
     constructor(
         private file: IDLFile
     ) {
