@@ -126,7 +126,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private context = new Context()
     exports: string[] = []
     private currentNamespace?: idl.IDLNamespace = undefined
-    private defaultPackage: string
 
     private typeChecker: ts.TypeChecker
     constructor(
@@ -137,11 +136,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         private predefinedTypeResolver?: ReferenceResolver,
     ) {
         this.typeChecker = program.getTypeChecker()
-        const sourceFilePath = path.resolve(sourceFile.fileName)
-        const suggestedPackage = (options.fileToPackage as string[] | undefined)
-            ?.map(it => it.split(":"))
-            ?.find(it => path.resolve(it[0]) === sourceFilePath)?.[1]
-        this.defaultPackage = suggestedPackage ?? options.defaultIdlPackage as string ?? "arkui"
     }
 
     visitPhase1(): idl.IDLFile {

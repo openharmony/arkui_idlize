@@ -49,7 +49,6 @@ const options = program
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
     .option('--output-dir <path>', 'Path to output dir')
     .option('--input-files <files...>', 'Comma-separated list of specific files to process')
-    .option('--file-to-package <fileToPackage>', 'Comma-separated list of pairs, what package name should be used for file in format <fileName:packageName>')
     .option('--library-packages <packages>', 'Comma separated list of packages included into library')
     .option('--idl2peer', 'Convert IDL to peer drafts')
     .option('--verbose', 'Verbose processing')
