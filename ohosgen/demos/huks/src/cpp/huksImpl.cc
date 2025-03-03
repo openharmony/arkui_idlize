@@ -18,46 +18,47 @@
 #include "huks.h"
 #include "oh_common.h"
 
-void huks_fooVoidVoidImpl() {
-    std::cout << "huks_fooVoidVoidImpl()" << std::endl;
+
+void GlobalScope_fooVoidVoidImpl() {
+    std::cout << "GlobalScope_fooVoidVoidImpl()" << std::endl;
 }
 
-void huks_fooVoidNumberImpl(const OH_Number* arg) {
-    std::cout << "huks_fooVoidNumberImpl(arg)"
+void GlobalScope_fooVoidNumberImpl(const OH_Number* arg) {
+    std::cout << "GlobalScope_fooVoidNumberImpl(arg)"
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
 }
 
-OH_Number huks_fooNumberVoidImpl() {
+OH_Number GlobalScope_fooNumberVoidImpl() {
     static int counter = 0;
-    std::cout << "huks_fooNumberVoidImpl()" << std::endl;
+    std::cout << "GlobalScope_fooNumberVoidImpl()" << std::endl;
     return OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
 }
 
-OH_Number huks_fooNumberNumberImpl(const OH_Number* arg) {
+OH_Number GlobalScope_fooNumberNumberImpl(const OH_Number* arg) {
     static int counter = 0;
-    std::cout << "huks_fooNumberNumberImpl(arg)"
+    std::cout << "GlobalScope_fooNumberNumberImpl(arg)"
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     return addOHNumber(OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter}, *arg);
 }
 
-OH_HUKS_HuksResult huks_fooResultNumberImpl(const OH_Number* arg) {
+OH_HUKS_HuksResult GlobalScope_fooResultNumberImpl(const OH_Number* arg) {
     static int counter = 0;
-    std::cout << "huks_fooResultNumberImpl(arg)"
+    std::cout << "GlobalScope_fooResultNumberImpl(arg)"
               << "\n\targ = " << DumpOHNumber(*arg) << std::endl;
     OH_HUKS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
     return result;
 }
 
-OH_Number huks_fooNumberOptionsImpl(const OH_HUKS_HuksOptions* options) {
+OH_Number GlobalScope_fooNumberOptionsImpl(const OH_HUKS_HuksOptions* options) {
     static int counter = 0;
-    std::cout << "huks_fooNumberOptionsImpl(options)" << std::endl;
+    std::cout << "GlobalScope_fooNumberOptionsImpl(options)" << std::endl;
     return OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
 }
 
-OH_HUKS_HuksResult huks_generateKeyItemSyncImpl(const OH_String* keyAlias, const OH_HUKS_HuksOptions* options) {
+OH_HUKS_HuksResult GlobalScope_generateKeyItemSyncImpl(const OH_String* keyAlias, const OH_HUKS_HuksOptions* options) {
     static int counter = 0;
-    std::cout << "huks_generateKeyItemSyncImpl(keyAlias, options)"
+    std::cout << "GlobalScope_generateKeyItemSyncImpl(keyAlias, options)"
               << "\n  keyAlias = " << DumpOHString(*keyAlias) << std::endl;
     OH_HUKS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};

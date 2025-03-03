@@ -30,14 +30,11 @@ interface HuksResult {
     attribute sequence<String> certChains;
 };
 
-[GlobalScope]
-interface huks {
-    static void fooVoidVoid();
-    static void fooVoidNumber(number arg);
-    static number fooNumberVoid();
-    static number fooNumberNumber(number arg);
-    static HuksResult fooResultNumber(number arg);
-    static number fooNumberOptions(HuksOptions options);
+void fooVoidVoid();
+void fooVoidNumber(number arg);
+number fooNumberVoid();
+number fooNumberNumber(number arg);
+HuksResult fooResultNumber(number arg);
+number fooNumberOptions(HuksOptions options);
 
-    static HuksResult generateKeyItemSync(String keyAlias, HuksOptions options);
-};
+HuksResult generateKeyItemSync(String keyAlias, HuksOptions options);
