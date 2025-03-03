@@ -143,8 +143,6 @@ function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInter
             extendedAttributes: toExtendedAttributes(node.extAttrs),
         }
     )
-    if (result.inheritance.length && idl.isReferenceType(result.inheritance[0]))
-        result.inheritance[0].typeArguments = extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.TypeArguments)
     if (node.extAttrs.find(it => it.name === "Synthetic"))
         addSyntheticType(node.name, result)
     return result
