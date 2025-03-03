@@ -16,7 +16,7 @@
 import { createUpdatedInterface, createUpdatedMethod, isSequence } from "../utils/idl"
 import { createFile, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
 
-export class SequenceParameterTransformer {
+export class ParameterTransformer {
     constructor(
         private file: IDLFile
     ) {}
@@ -36,11 +36,17 @@ export class SequenceParameterTransformer {
     private transformInterface(node: IDLInterface): IDLInterface {
         return createUpdatedInterface(
             node,
-            node.methods.map(it => this.transformMethod(it))
+            node.methods.map(it => this.transformMethod(it, node))
         )
     }
 
-    private transformMethod(node: IDLMethod): IDLMethod {
+    private transformMethod(node: IDLMethod, parent: IDLInterface): IDLMethod {
+        node = this.withSequenceLengthParameterRemoved(node)
+        node = this.withContextDropped(node)
+        return node
+    }
+
+    private withSequenceLengthParameterRemoved(node: IDLMethod): IDLMethod {
         const newParameters = []
         for (let i = 0; i < node.parameters.length; i++) {
             newParameters.push(node.parameters[i])
@@ -55,4 +61,11 @@ export class SequenceParameterTransformer {
         )
     }
 
+    private withContextDropped(node: IDLMethod): IDLMethod {
+        return createUpdatedMethod(
+            node,
+            node.name,
+            node.parameters.slice(1)
+        )
+    }
 }

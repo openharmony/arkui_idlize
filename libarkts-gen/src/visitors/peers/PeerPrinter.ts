@@ -22,6 +22,7 @@ import {
     IDLFile,
     IDLInterface,
     IDLMethod,
+    IDLParameter,
     IDLPointerType,
     IDLType,
     IDLVoidType,
@@ -40,12 +41,9 @@ import {
 import { Config } from "../../Config"
 import {
     innerTypeIfContainer,
-    isAbstract,
-    isDataClass,
-    isGetter,
-    isReal,
     isSequence,
     isString,
+    makeMethod,
     nodeNamespace,
     nodeType,
     parent,
@@ -54,8 +52,9 @@ import {
 } from "../../utils/idl"
 import { PeersConstructions } from "./PeersConstructions"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { mangleIfKeyword, peerMethod } from "../../utils/common"
+import { isAbstract, isDataClass, isGetter, isReal, isRegular, mangleIfKeyword, peerMethod } from "../../utils/common"
 import { PeerImporter } from "./PeerImporter"
+import { InteropConstructions } from "../interop/InteropConstructions";
 
 export class PeerPrinter {
     constructor(
@@ -197,6 +196,9 @@ export class PeerPrinter {
             if (isGetter(it)) {
                 return this.printGetter(it)
             }
+            if (isRegular(it)) {
+                return this.printRegular(it)
+            }
             if (Config.isCreateOrUpdate(it.name)) {
                 if (isAbstract(this.node)) {
                     return
@@ -206,52 +208,63 @@ export class PeerPrinter {
         })
     }
 
-    private printGetter(it: IDLMethod): void {
+    private printGetter(node: IDLMethod): void {
         this.writer.writeMethodImplementation(
             new Method(
-                peerMethod(it.name),
+                peerMethod(node.name),
                 new MethodSignature(
-                    this.optionalIfPeer(it.returnType),
-                    it.parameters
-                        .slice(1)
-                        .map(it => this.optionalIfPeer(it.type)),
-                    undefined,
-                    undefined,
-                    it.parameters
-                        .slice(1)
-                        .map(it => it.name)
+                    this.optionalIfPeer(node.returnType),
+                    []
                 ),
                 [MethodModifier.GETTER]
             ),
             () => {
                 this.writer.writeStatement(
                     this.writer.makeReturn(
-                        this.makeReturnExpression(it)
+                        this.makeReturnBindingCall(node)
                     )
                 )
             }
         )
     }
 
-    private makeReturnExpression(node: IDLMethod): LanguageExpression {
+    private printRegular(node: IDLMethod): void {
+        this.writer.writeExpressionStatement(
+            this.writer.makeString(`/** @deprecated */`)
+        )
+        this.writer.writeMethodImplementation(
+            makeMethod(
+                peerMethod(node.name),
+                node.parameters,
+                PeersConstructions.this.type
+            ),
+            () => {
+                this.writer.writeExpressionStatement(
+                    this.makeReturnBindingCall(node)
+                )
+                this.writer.writeStatement(
+                    this.writer.makeReturn(
+                        this.writer.makeString(
+                            PeersConstructions.this.name
+                        )
+                    )
+                )
+            }
+        )
+    }
+
+    private makeReturnBindingCall(node: IDLMethod): LanguageExpression {
         const nativeCall = this.writer.makeFunctionCall(
             PeersConstructions.callBinding(this.node.name, node.name, nodeNamespace(this.node)),
-            [
-                this.writer.makeString(PeersConstructions.context),
-                this.writer.makeString(PeersConstructions.pointerUsage)
-            ]
-                .concat(
-                    node.parameters
-                        .slice(1)
-                        .map(it => {
-                            if (isReferenceType(it.type) && this.typechecker.isPeer(it.type.name)) {
-                                return this.writer.makeString(
-                                    PeersConstructions.passNode(it.name)
-                                )
-                            }
-                            return this.writer.makeString(it.name)
-                        })
-                )
+            this.makeBindingArguments(
+                [
+                    createParameter(
+                        PeersConstructions.pointerUsage,
+                        IDLPointerType
+                    ),
+                    ...node.parameters
+                ]
+            )
         )
         if (isString(node.returnType)) {
             return this.writer.makeFunctionCall(
@@ -296,26 +309,18 @@ export class PeerPrinter {
             })
     }
 
-    private printCreateOrUpdate(create: IDLMethod): void {
+    private printCreateOrUpdate(node: IDLMethod): void {
         this.writer.writeMethodImplementation(
-            new Method(
+            makeMethod(
                 PeersConstructions.createOrUpdate(
                     this.node.name,
-                    create.name
+                    node.name
                 ),
-                new MethodSignature(
-                    create.returnType,
-                    create.parameters
-                        .slice(1)
-                        .map(it => it.type)
-                        .map(it => this.optionalIfPeer(it)),
-                    undefined,
-                    undefined,
-                    create.parameters
-                        .slice(1)
-                        .map(it => it.name)
-                        .map(mangleIfKeyword)
-                ),
+                node.parameters
+                    .map(it =>
+                        createParameter(it.name, this.optionalIfPeer(it.type))
+                    ),
+                node.returnType,
                 [MethodModifier.STATIC]
             ),
             () => {
@@ -326,40 +331,13 @@ export class PeerPrinter {
                             [
                                 this.writer.makeFunctionCall(
                                     this.writer.makeString(
-                                        PeersConstructions.callCreateOrUpdate(
+                                        PeersConstructions.callBinding(
                                             this.node.name,
-                                            create.name,
+                                            node.name,
                                             nodeNamespace(this.node)
                                         )
                                     ),
-                                    create.parameters
-                                        .map(it =>
-                                            createParameter(
-                                                mangleIfKeyword(it.name),
-                                                it.type
-                                            )
-                                        )
-                                        .flatMap(it => {
-                                            if (isReferenceType(it.type)) {
-                                                if (it.type.name === Config.contextType) {
-                                                    return PeersConstructions.context
-                                                }
-                                                if (this.typechecker.isReferenceTo(it.type, isEnum)) {
-                                                    return it.name
-                                                }
-                                                return PeersConstructions.passNode(it.name)
-                                            }
-                                            if (isContainerType(it.type)) {
-                                                if (isSequence(it.type)) {
-                                                    return [
-                                                        PeersConstructions.passNodeArray(it.name),
-                                                        PeersConstructions.arrayLength(it.name)
-                                                    ]
-                                                }
-                                            }
-                                            return it.name
-                                        })
-                                        .map(it => this.writer.makeString(it))
+                                    this.makeBindingArguments(node.parameters)
                                 )
                             ]
                         )
@@ -367,6 +345,43 @@ export class PeerPrinter {
                 )
             }
         )
+    }
+
+    private makeBindingArguments(parameters: IDLParameter[]): LanguageExpression[] {
+        return [
+            createParameter(
+                InteropConstructions.context.name,
+                InteropConstructions.context.type
+            )
+        ]
+            .concat(parameters)
+            .map(it =>
+                createParameter(
+                    mangleIfKeyword(it.name),
+                    it.type
+                )
+            )
+            .flatMap(it => {
+                if (isReferenceType(it.type)) {
+                    if (it.type.name === Config.contextType) {
+                        return PeersConstructions.context
+                    }
+                    if (this.typechecker.isReferenceTo(it.type, isEnum)) {
+                        return it.name
+                    }
+                    return PeersConstructions.passNode(it.name)
+                }
+                if (isContainerType(it.type)) {
+                    if (isSequence(it.type)) {
+                        return [
+                            PeersConstructions.passNodeArray(it.name),
+                            PeersConstructions.arrayLength(it.name)
+                        ]
+                    }
+                }
+                return it.name
+            })
+            .map(it => this.writer.makeString(it))
     }
 
     private printAddToNodeMap(): void {

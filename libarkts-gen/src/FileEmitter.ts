@@ -15,11 +15,10 @@
 
 import * as path from "node:path"
 import * as fs from "node:fs"
-import { forceWriteFile, toIDLString } from "@idlizer/core"
+import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
 import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
 import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
 import { EnumsPrinter } from "./visitors/enums/EnumsPrinter"
-import { IDLFile } from "@idlizer/core"
 import { Config } from "./Config"
 import { InteropTransformer } from "./transformers/InteropTransformer"
 import { AstNodeFilterTransformer } from "./transformers/filter/AstNodeFilterTransformer"
@@ -30,8 +29,10 @@ import { AllPeersPrinter } from "./visitors/peers/AllPeersPrinter"
 import { NodeMapPrinter } from "./visitors/peers/NodeMapPrinter"
 import { IndexPrinter } from "./visitors/peers/IndexPrinter"
 import { TwinMergeTransformer } from "./transformers/TwinMergeTransformer"
-import { SequenceParameterTransformer } from "./transformers/SequenceParameterTransformer";
+import { ParameterTransformer } from "./transformers/ParameterTransformer";
 import { ConstMergeTransformer } from "./transformers/ConstMergeTransformer";
+import { VerifyVisitor } from "./visitors/VerifyVisitor";
+import { AddContextTransformer } from "./transformers/AddContextTransformer";
 
 class SingleFileEmitter {
     constructor(
@@ -115,6 +116,10 @@ export class FileEmitter {
             `options-filter`
         )
         idl = this.withLog(
+            new AddContextTransformer(idl).transformed(),
+            `add-context`
+        )
+        idl = this.withLog(
             new TwinMergeTransformer(idl).transformed(),
             `twin-merge`
         )
@@ -128,7 +133,7 @@ export class FileEmitter {
             `ast-node-filter`
         )
         idl = this.withLog(
-            new SequenceParameterTransformer(idl).transformed(),
+            new ParameterTransformer(idl).transformed(),
             `sequence-parameter`
         )
         this.printPeers(idl)
@@ -195,9 +200,11 @@ export class FileEmitter {
         if (!this.shouldLog) {
             return idl
         }
+        console.log(afterWhat)
+        new VerifyVisitor(idl).complain()
         forceWriteFile(
             path.join(this.logDir, `${this.logCount}-after-${afterWhat}.idl`),
-            toIDLString(idl.entries, {})
+            toIDLString(idl, {})
         )
         this.logCount += 1
         return idl

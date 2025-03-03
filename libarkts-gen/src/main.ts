@@ -18,7 +18,6 @@ import { toIDLFile } from "@idlizer/core"
 import { FileEmitter } from "./FileEmitter"
 import { Config } from "./Config"
 import { Options } from "./Options"
-import { VerifyVisitor } from "./visitors/VerifyVisitor"
 import * as path from "node:path"
 
 const cliOptions: {
@@ -44,7 +43,6 @@ function main() {
     const isDebug = cliOptions.debug ?? false
 
     const idl = toIDLFile(idlFileName)
-    new VerifyVisitor(idl).complain()
 
     new FileEmitter(
         outDir,

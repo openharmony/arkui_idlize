@@ -34,10 +34,14 @@ import {
     isInterface,
     isPrimitiveType,
     isReferenceType,
+    Method,
+    MethodModifier,
+    MethodSignature,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "../Config"
+import { mangleIfKeyword } from "./common";
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
@@ -106,6 +110,12 @@ export class Typechecker {
         if (declarations.length === 1) {
             return declarations[0]
         }
+        const ir = declarations
+            .filter(isInterface)
+            .filter(it => isIrNamespace(it))
+        if (ir.length === 1) {
+            return ir[0]
+        }
         return undefined
     }
 
@@ -171,33 +181,6 @@ export function parent(node: IDLInterface): string | undefined {
     return node.inheritance[0]?.name
 }
 
-export function isAbstract(node: IDLInterface): boolean {
-    if (isDataClass(node)) {
-        return false
-    }
-    if (isReal(node)) {
-        return false
-    }
-    return true
-}
-
-export function isReal(node: IDLInterface): boolean {
-    return nodeType(node) !== undefined
-}
-
-export function isDataClass(node: IDLInterface): boolean {
-    return parent(node) === Config.defaultAncestor
-}
-
-export function isGetter(node: IDLMethod): boolean {
-    if (node.parameters.length !== 1) {
-        return false
-    }
-    return node.extendedAttributes
-        ?.some(it => it.name === Config.getterAttribute)
-        ?? false
-}
-
 export function createDefaultTypescriptWriter() {
     return new TSLanguageWriter(
         new IndentedPrinter(),
@@ -232,4 +215,26 @@ export function innerTypeIfContainer(node: IDLType): IDLType {
         return innerType(node)
     }
     return node
+}
+
+export function makeMethod(
+    name: string,
+    parameters: IDLParameter[],
+    returnType: IDLType,
+    modifiers?: MethodModifier[]
+): Method {
+    return new Method(
+        name,
+        new MethodSignature(
+            returnType,
+            parameters
+                .map(it => it.type),
+            undefined,
+            undefined,
+            parameters
+                .map(it => it.name)
+                .map(mangleIfKeyword)
+        ),
+        modifiers ?? []
+    )
 }

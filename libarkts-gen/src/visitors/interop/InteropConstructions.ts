@@ -13,13 +13,18 @@
  * limitations under the License.
  */
 
-import { IDLPointerType, IDLPrimitiveType, IDLU32Type, capitalize } from "@idlizer/core"
+import { capitalize, createReferenceType, IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
 import { Config } from "../../Config"
 import { splitCreateOrUpdate } from "../../utils/common"
 
 export class InteropConstructions {
     static get receiver(): string {
         return `receiver`
+    }
+
+    static context = {
+        type: createReferenceType(`Context`),
+        name: `context`
     }
 
     static get sequencePointerType(): IDLPrimitiveType {

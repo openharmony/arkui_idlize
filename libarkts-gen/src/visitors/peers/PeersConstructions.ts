@@ -16,6 +16,7 @@
 import { BindingsConstructions } from "../interop/bindings/BindingsConstructions"
 import { InteropConstructions } from "../interop/InteropConstructions"
 import { peerMethod } from "../../utils/common";
+import { createReferenceType } from "@idlizer/core";
 
 export class PeersConstructions {
     static fileName(node: string): string {
@@ -32,6 +33,14 @@ export class PeersConstructions {
 
     static get super(): string {
         return `super`
+    }
+
+    static get this() {
+        const name = `this`
+        return {
+            type: createReferenceType(name),
+            name: name
+        }
     }
 
     static get typeGuard() {
@@ -77,14 +86,6 @@ export class PeersConstructions {
     }
 
     static callBinding(iface: string, method: string, namespace: string | undefined): string {
-        return `global.generatedEs2panda.${
-            BindingsConstructions.method(
-                InteropConstructions.method(iface, method, namespace ?? ``)
-            )
-        }`
-    }
-
-    static callCreateOrUpdate(iface: string, method: string, namespace: string | undefined): string {
         return `global.generatedEs2panda.${
             BindingsConstructions.method(
                 InteropConstructions.method(iface, method, namespace ?? ``)

@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/libarkts-gen",
-  "version": "3.0.25",
+  "version": "3.0.29",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -12,7 +12,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.0.34+devel",
+    "@idlizer/core": "2.0.37+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
@@ -36,6 +36,6 @@
     "external:clean": "rimraf ../external/arkoala-arkts/libarkts/src/generated/peers",
     "external:generate": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges,nativeModule --debug",
     "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
-    "publish": "npm run compile && npm publish --tag next"
+    "release": "node ./tools/release.mjs"
   }
 }

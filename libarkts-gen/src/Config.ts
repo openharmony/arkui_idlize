@@ -67,7 +67,6 @@ export class Config {
         }
         const { rest } = splitCreateOrUpdate(sourceMethodName)
         return rest.length <= 1;
-
     }
 
     static get dataClassPrefix(): string {
@@ -80,5 +79,12 @@ export class Config {
 
     static get irNamespace(): string {
         return `ir`
+    }
+
+    static isAllowedPeerRegularMethod(name: string): boolean {
+        return [
+            `annotation`,
+            `optional`
+        ].some(it => name.toLowerCase().includes(it))
     }
 }

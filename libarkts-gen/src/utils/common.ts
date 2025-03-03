@@ -14,8 +14,16 @@
  */
 
 import { Config } from "../Config"
-import { throwException } from "@idlizer/core"
-import { InteropConstructions } from "../visitors/interop/InteropConstructions";
+import {
+    createParameter,
+    createReferenceType,
+    IDLInterface,
+    IDLMethod,
+    isVoidType,
+    throwException
+} from "@idlizer/core"
+import { InteropConstructions } from "../visitors/interop/InteropConstructions"
+import { createUpdatedMethod, nodeType, parent } from "./idl"
 
 function pascalToCamel(value: string): string {
     return value.charAt(0).toLowerCase() + value.slice(1);
@@ -58,4 +66,46 @@ export function mangleIfKeyword(name: string): string {
         return `_${name}`
     }
     return name
+}
+
+export function isGetter(node: IDLMethod): boolean {
+    if (node.parameters.length !== 0) {
+        return false
+    }
+    return node.extendedAttributes
+            ?.some(it => it.name === Config.getterAttribute)
+        ?? false
+}
+
+export function isRegular(node: IDLMethod): boolean {
+    if (!isVoidType(node.returnType)) {
+        return false
+    }
+    return true
+}
+
+export function isAbstract(node: IDLInterface): boolean {
+    if (isDataClass(node)) {
+        return false
+    }
+    if (isReal(node)) {
+        return false
+    }
+    return true
+}
+
+export function isReal(node: IDLInterface): boolean {
+    return nodeType(node) !== undefined
+}
+
+export function isDataClass(node: IDLInterface): boolean {
+    return parent(node) === Config.defaultAncestor
+}
+
+export function withInserted<T>(array: T[], index: number, value: T): T[] {
+    return [
+        ...array.slice(0, index),
+        value,
+        ...array.slice(index)
+    ]
 }

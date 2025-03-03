@@ -18,7 +18,6 @@ import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer
 
 export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
     protected shouldFilterOutInterface(name: string): boolean {
-        if (name === `Impl`) return true
         if (this.typechecker.isHeir(name, Config.astNodeCommonAncestor)) return false
         if (this.typechecker.isHeir(name, Config.defaultAncestor)) return false
         return true
