@@ -191,7 +191,7 @@ class OHOSNativeVisitor {
             })
             {
                 let destructName = `${clazz.name}_destructImpl`
-                let params = [new NameType("thiz", handleType)]
+                let params = [new NameType("thisPtr", handleType)]
                 _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
                 _c.print(`&${destructName},`)
                 this.impls.set(destructName, { params, returnType: 'void' })
@@ -201,7 +201,7 @@ class OHOSNativeVisitor {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
             let params = new Array<NameType>()
             if (!method.isStatic && !method.isFree) {
-                params.push(new NameType("thiz", handleType))
+                params.push(new NameType("thisPtr", handleType))
             }
             params = params.concat(adjustedSignature.parameters.map(it =>
                 new NameType(_h.escapeKeyword(it.name), this.argTypeConvertor.convert(it.type!))))
@@ -216,12 +216,18 @@ class OHOSNativeVisitor {
         const propertiesFromInterface: IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
         propertiesFromInterface.concat(clazz.properties).forEach(property => {
             let accessorMethods = []
-            let getterMethod = createMethod(`get${capitalize(property.name)}`, [], property.type)
+            let getterMethod = createMethod(
+                `get${capitalize(property.name)}`, [], property.type, {
+                isStatic: property.isStatic,
+                isAsync: false, isOptional: false, isFree: false})
             accessorMethods.push(getterMethod)
             if (!property.isReadonly) {
-                let setterMethod = createMethod(`set${capitalize(property.name)}`, [
-                    createParameter("value", property.type)
-                ], IDLVoidType)
+                let setterMethod = createMethod(
+                    `set${capitalize(property.name)}`,
+                    [createParameter("value", property.type)],
+                    IDLVoidType, {
+                    isStatic: property.isStatic,
+                    isAsync: false, isOptional: false, isFree: false})
                 accessorMethods.push(setterMethod)
             }
 
@@ -229,7 +235,7 @@ class OHOSNativeVisitor {
                 const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)
                 let params = new Array<NameType>()
                 if (!isGlobalScope(clazz)) {
-                    params.push(new NameType("thiz", handleType))
+                    params.push(new NameType("thisPtr", handleType))
                 }
                 params = params.concat(adjustedSignature.parameters.map(it =>
                     new NameType(_h.escapeKeyword(it.name), this.argTypeConvertor.convert(it.type!))))
