@@ -22,6 +22,10 @@ KNativePointer impl_TestGetManagedReleaser() {
 }
 KOALA_INTEROP_0(TestGetManagedReleaser, KNativePointer)
 
+KNativePointer impl_TestGetManagedCaller(KInt kind) {
+    return getManagedCallbackCaller(static_cast<CallbackKind>(kind));
+}
+KOALA_INTEROP_1(TestGetManagedCaller, KNativePointer, KInt)
 KNativePointer impl_TestGetManagedCallerSync(KInt kind) {
     return getManagedCallbackCallerSync(static_cast<CallbackKind>(kind));
 }

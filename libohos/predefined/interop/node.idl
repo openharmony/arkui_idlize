@@ -42,8 +42,8 @@ interface Node {
     void ShowCrash(String message);
 
     // TODO: rename to smth more sensible!
-    i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
-    i32 InjectEvent(sequence<u8> data, i32 size);
+    // i32 CheckArkoalaGeneratedEvents(sequence<u8> result, i32 size);
+    // i32 InjectEvent(sequence<u8> data, i32 size);
 
     void StartPerf(String str1);
     void EndPerf(String str1);
