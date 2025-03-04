@@ -24,6 +24,7 @@ import { CoreConfiguration, defaultCoreConfuguration, findVersion, generate, set
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--output-dir <path>', 'Path to output dir')
+    .option('-r,--recursive', 'Scan input directory recursively', false)
     .option('--input-file <name>', 'Name of file to convert, all files in input-dir if none')
     .option('--suppress-errors <suppress>', 'Error codes to suppress, comma separated, no space')
     .option('--whitelist <whitelist.json>', 'Whitelist for linter')
@@ -109,6 +110,7 @@ function main() {
         (sourceFile, program, compilerHost) => new LinterVisitor(sourceFile, program, compilerHost),
         {
             compilerOptions: defaultCompilerOptions,
+            recursive: options.recursive,
             onSingleFile: (entries: LinterMessage[]) => allEntries.push(entries),
             onBegin: () => { },
             onEnd: (outputDir) => {

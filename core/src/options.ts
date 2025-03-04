@@ -21,6 +21,7 @@ export interface GenerateOptions<T> {
     onSingleFile?: (entries: T, outDir: string, inputFile: ts.SourceFile) => void
     onEnd?: (outDir: string) => void
     enableLog?: boolean
+    recursive?: boolean
 }
 
 export interface GenericVisitor<T> {

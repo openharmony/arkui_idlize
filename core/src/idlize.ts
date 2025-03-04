@@ -18,9 +18,23 @@ import * as fs from "fs"
 import * as path from "path"
 import { GenerateOptions } from "./options"
 
-function readdir(dir: string): string[] {
-    return fs.readdirSync(dir)
-        .map(elem => path.join(dir, elem))
+function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recursive = false): string[] {
+    const dirsToVisit = [path.resolve(dir)]
+    const result = []
+    while (dirsToVisit.length > 0) {
+        let dir = dirsToVisit.pop()!
+        let dirents = fs.readdirSync(dir, { withFileTypes: true })
+        for (const entry of dirents) {
+            const fullPath = path.join(dir, entry.name)
+            if (entry.isFile()) {
+                if (fileFilter(fullPath)) { result.push(fullPath) }
+            } else if (recursive && entry.isDirectory()) {
+                dirsToVisit.push(fullPath)
+            }
+        }
+    }
+
+    return result
 }
 
 export interface GenerateVisitor<T> {
@@ -58,7 +72,8 @@ export function generate<T>(
                 if (options.enableLog) {
                     console.log(`Processing all .d.ts from directory: ${dir}`)
                 }
-                const files = readdir(dir).filter(file => file.endsWith(".d.ts"))
+                const fileFilter = (file: string) => file.endsWith(".d.ts")
+                const files = scanDirectory(dir, fileFilter, options.recursive)
                 input = input.concat(files)
             } else {
                 console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
