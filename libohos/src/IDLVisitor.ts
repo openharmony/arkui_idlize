@@ -801,8 +801,12 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     serializeIntersectionType(node: ts.IntersectionTypeNode, nameSuggestion?: NameSuggestion): idl.IDLInterface {
         const toIDLReferenceType = (type: ts.TypeNode, index: number) => {
             const result = this.serializeType(type, nameSuggestion?.extend(`intersection${index}`))
+            if (idl.isTypeParameterType(result)) {
+                warn(`Replace type parameter ${result.name} to a dangling reference, fix it`)
+                return idl.createReferenceType(result.name)
+            }
             if (!idl.isReferenceType(result))
-                throw new Error(`Can only intersect type references`)
+                throw new Error(`Can only intersect type references, got ${type.parent.getText()}`)
             return result
         }
         const inheritance = node.types.map((it, index) => toIDLReferenceType(it, index))
