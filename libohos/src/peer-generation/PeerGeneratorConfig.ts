@@ -48,6 +48,7 @@ export interface PeerGeneratorConfiguration extends OhosBaseConfiguration {
         readonly ignore: string[]
     }
     readonly constants: Map<string, string>
+    readonly patchMaterialized: Map<string, Record<string, string>>
     readonly CollapseOverloadsARKTS: boolean
 
     mapComponentName(originalName: string): string
@@ -84,6 +85,7 @@ export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
         ignoreMethods: new Map(),
     },
     constants: new Map(),
+    patchMaterialized: new Map(),
     CollapseOverloadsARKTS: true,
     mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))

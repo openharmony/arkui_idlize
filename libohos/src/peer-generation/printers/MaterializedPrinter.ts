@@ -24,8 +24,10 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, RuntimeType, getInternalClassName,
-    MaterializedClass, MaterializedField, isMaterialized, PeerLibrary, LayoutNodeRole } from "@idlizer/core"
+import {
+    LanguageWriter, RuntimeType, getInternalClassName,
+    MaterializedClass, MaterializedField, isMaterialized, PeerLibrary, LayoutNodeRole
+} from "@idlizer/core"
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
@@ -37,7 +39,7 @@ import {
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { SyntheticModule } from '../common';
@@ -73,6 +75,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
+        const config = peerGeneratorConfiguration()
         const printer = this.printer
 
         this.printImports()
@@ -110,7 +113,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         nsPath.forEach(it => printer.pushNamespace(it.name))
         if (clazz.isInterface) {
             if (printer.language == Language.CJ || printer.language == Language.JAVA) {
-                printer.writeInterface(clazz.className, () => {})
+                printer.writeInterface(clazz.className, () => { })
             } else if (this.library.name === 'arkoala') {
                 writeInterface(clazz.decl, printer)
             }
@@ -250,6 +253,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                                 )
                         }
                         writer.writeStatement(ctorStatements)
+                        const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
+                        injectPatch(writer, key, config.patchMaterialized)
                     })
                 } else {
                     // constructor with a special parameter to use in static methods
@@ -487,7 +492,7 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
 }
 
 class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    override printImports(): void {}
+    override printImports(): void { }
 
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
@@ -511,7 +516,7 @@ class MaterializedVisitor implements PrinterClass {
         private readonly dumpSerialized: boolean,
     ) { }
 
-    private printContent(clazz:MaterializedClass): PrinterResult {
+    private printContent(clazz: MaterializedClass): PrinterResult {
         let visitor: MaterializedFileVisitor
         if (Language.TS == this.library.language) {
             visitor = new TSMaterializedFileVisitor(
@@ -613,4 +618,17 @@ function methodFromTagged(method: idl.IDLMethod): idl.IDLMethod {
         },
         method.typeParameters
     )
+}
+
+function injectPatch(writer: LanguageWriter, key: string, patches: Map<string, Record<string, string>>) {
+    if (patches.has(key)) {
+        const row = patches.get(key)!
+        const record = new Map(Object.entries(row))
+        if (record.has(writer.language.name)) {
+            const text = record.get(writer.language.name)!
+            text.split('\n').forEach(line => {
+                writer.print(line)
+            })
+        }
+    }
 }

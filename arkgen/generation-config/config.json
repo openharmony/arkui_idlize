@@ -248,5 +248,11 @@
             ]
         }
     },
+    "patchMaterialized": {
+        "CustomDialogController.constructor": {
+            "TS": "value && (value.builder.buildOptions.controller = this)",
+            "ArkTS": "value && (value.builder.buildOptions.controller = this)"
+        }
+    },
     "CollapseOverloadsARKTS": true
 }
