@@ -109,13 +109,6 @@ OH_UNIT_TestValue GlobalScope_test_buffer_getBufferImpl() {
     return result;
 }
 
-OH_Number GlobalScope_test_buffer_sumImpl(const OH_Number* v1, const OH_Number* v2) {
-    OH_Number number;
-    number.tag = InteropTag::INTEROP_TAG_INT32;
-    number.i32 = v1->i32 + v2->i32;
-    return number;
-}
-
 // Force Callback
 
 class ForceCallbackClassPeer {};
@@ -171,4 +164,34 @@ void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackLi
 }
 OH_Number GlobalScope_callForceCallbackListenerImpl() {
     return {.tag = INTEROP_TAG_INT32, .i32 = 102};
+}
+
+// OH_Boolean
+OH_Boolean GlobalScope_and_valuesImpl(OH_Boolean v1, OH_Boolean v2) {
+    return v1 && v2;
+}
+
+// OH_Number
+
+OH_Number GlobalScope_sum_numbersImpl(const OH_Number* v1, const OH_Number* v2) {
+
+    switch(v1->tag) {
+        case InteropTag::INTEROP_TAG_INT32: {
+            switch(v2 -> tag) {
+                case InteropTag::INTEROP_TAG_INT32:
+                    return {.tag = InteropTag::INTEROP_TAG_INT32, .i32 = v1->i32 + v2->i32};
+                case InteropTag::INTEROP_TAG_FLOAT32:
+                    return {.tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->i32 + v2->f32};
+                }
+        case InteropTag::INTEROP_TAG_FLOAT32: {
+            switch(v2 -> tag) {
+                case InteropTag::INTEROP_TAG_INT32:
+                    return {.tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->i32};
+                case InteropTag::INTEROP_TAG_FLOAT32:
+                    return {.tag = InteropTag::INTEROP_TAG_FLOAT32, .f32 = v1->f32 + v2->f32};
+                }
+            }
+        }
+    }
+    INTEROP_FATAL("Unknown args tags v1: %d, v2: %d\n", v1->tag, v2->tag);
 }

@@ -1,6 +1,8 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 
+export { and_values } from "../../generated/ts"
+export { sum_numbers } from "../../generated/ts"
 export { test_buffer } from "../../generated/ts"
 export {
     ForceCallbackListener,

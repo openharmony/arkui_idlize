@@ -9,7 +9,5 @@ declare namespace test_buffer {
   }
 
   function getBuffer(): TestValue
-
-  function sum(v1: number, v2: number): number
 }
 
