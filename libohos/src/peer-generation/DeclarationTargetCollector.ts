@@ -4,7 +4,7 @@ import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { isPredefined } from "./idl/IdlPeerGeneratorVisitor";
 import { IdlNameConvertor } from "@idlizer/core";
-import { peerGeneratorConfiguration } from "./PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()

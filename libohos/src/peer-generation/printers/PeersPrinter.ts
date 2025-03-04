@@ -32,7 +32,7 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
 import { tsCopyrightAndWarning } from "../FileGenerators";
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { TargetFile } from "./TargetFile"
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,

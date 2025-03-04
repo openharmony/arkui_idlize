@@ -20,7 +20,7 @@ import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature } fro
 import * as idl from '@idlizer/core'
 import { collectProperties } from "./StructPrinter";
 import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
-import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 /**
  * Printer for OHOS interfaces

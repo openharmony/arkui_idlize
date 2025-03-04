@@ -39,7 +39,7 @@ import {
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
-import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { SyntheticModule } from '../common';

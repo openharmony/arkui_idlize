@@ -24,7 +24,6 @@ import { ImportsCollector } from "../ImportsCollector"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
 
 interface BuilderClassFileVisitor {
     printFile(): void

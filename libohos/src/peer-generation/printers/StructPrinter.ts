@@ -32,7 +32,7 @@ import {
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig"
+import { peerGeneratorConfiguration} from "../../DefaultConfiguration"
 import { PrintHint } from "@idlizer/core"
 import { LibraryInterface } from "@idlizer/core"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector"

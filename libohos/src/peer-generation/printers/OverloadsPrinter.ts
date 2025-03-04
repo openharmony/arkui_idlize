@@ -26,7 +26,7 @@ import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary } from "@idlizer
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
-import { peerGeneratorConfiguration } from '../PeerGeneratorConfig';
+import { peerGeneratorConfiguration } from '../../DefaultConfiguration';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
     let returnType: idl.IDLType = collapseTypes(types)

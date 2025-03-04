@@ -18,7 +18,7 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, Cp
     MaterializedClass,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 

@@ -28,7 +28,7 @@ import {
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
 import { IDLVisitorConfig } from "./IDLVisitorConfig"
-import { peerGeneratorConfiguration } from "./peer-generation/PeerGeneratorConfig"
+import { peerGeneratorConfiguration } from "./DefaultConfiguration"
 
 const MaxSyntheticTypeLength = 60
 

@@ -31,8 +31,8 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { DebugUtils, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
-import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
     constructor(

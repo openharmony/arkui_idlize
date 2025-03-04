@@ -10,7 +10,7 @@ import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor } from "@id
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration } from '@idlizer/core';
-import { peerGeneratorConfiguration} from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
 import { isPredefined, isSystemEntry } from '../idl/IdlPeerGeneratorVisitor';

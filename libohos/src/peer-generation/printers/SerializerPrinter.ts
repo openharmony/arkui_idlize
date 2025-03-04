@@ -17,7 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { peerGeneratorConfiguration } from '../PeerGeneratorConfig'
+import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
 import { ImportsCollector } from "../ImportsCollector"
 import {
     ArkTSBuiltTypesDependencyFilter,

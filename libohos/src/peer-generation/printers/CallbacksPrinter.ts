@@ -16,7 +16,7 @@
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter, PeerLibrary, PrimitiveTypesInstance } from "@idlizer/core"
-import { peerGeneratorConfiguration } from "../PeerGeneratorConfig";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
