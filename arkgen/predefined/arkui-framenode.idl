@@ -54,4 +54,5 @@ interface FrameNode {
     // void disposeTree();
     // [TypeParameters="T"]
     // void addComponentContent([TypeArguments="T"] ComponentContent content);
+    static FrameNode getFrameNodeByKey(String name);
 };
