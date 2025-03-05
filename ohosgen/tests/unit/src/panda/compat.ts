@@ -10,7 +10,8 @@ export {
     ForceCallbackListener,
     ForceCallbackClass,
     registerForceCallbackListener,
-    callForceCallbackListener
+    callForceCallbackListener,
+    ClassWithComplexPropertyType
 } from "../../generated/arkts"
 
 export { OrdinaryEnum, IntEnum, StringEnum } from "../../generated/arkts"

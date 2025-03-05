@@ -8,7 +8,8 @@ export {
     ForceCallbackListener,
     ForceCallbackClass,
     registerForceCallbackListener,
-    callForceCallbackListener
+    callForceCallbackListener,
+    ClassWithComplexPropertyType
 } from "../../generated/ts"
 export { OrdinaryEnum, IntEnum, StringEnum } from "../../generated/ts"
 

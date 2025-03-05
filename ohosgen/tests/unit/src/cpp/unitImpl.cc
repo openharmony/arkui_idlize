@@ -206,3 +206,34 @@ OH_Number GlobalScope_sum_numbersImpl(const OH_Number* v1, const OH_Number* v2) 
     }
     INTEROP_FATAL("Unknown args tags v1: %d, v2: %d\n", v1->tag, v2->tag);
 }
+
+struct UNIT_ClassWithPrimitivePropertyTypePeer {
+    OH_Boolean f;
+    OH_Number c;
+};
+
+OH_UNIT_ClassWithPrimitivePropertyTypeHandle ClassWithPrimitivePropertyType_constructImpl(OH_Boolean f, const OH_Number* c) {
+    return reinterpret_cast<OH_UNIT_ClassWithPrimitivePropertyTypeHandle>(
+        new UNIT_ClassWithPrimitivePropertyTypePeer({f, *c})
+    );
+}
+
+void ClassWithPrimitivePropertyType_destructImpl(OH_UNIT_ClassWithPrimitivePropertyTypeHandle thisPtr) {
+    delete reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr);
+}
+
+OH_Boolean ClassWithPrimitivePropertyType_getFlagImpl(OH_NativePointer thisPtr) {
+    return reinterpret_cast<const UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->f;
+}
+
+void ClassWithPrimitivePropertyType_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->f = value;
+}
+
+OH_Number ClassWithPrimitivePropertyType_getCounterImpl(OH_NativePointer thisPtr) {
+    return reinterpret_cast<const UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c;
+}
+
+void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c = *value;
+}

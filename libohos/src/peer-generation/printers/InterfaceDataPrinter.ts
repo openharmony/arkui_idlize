@@ -16,7 +16,7 @@
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
-import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature } from "@idlizer/core";
+import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 import { collectProperties } from "./StructPrinter";
 import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
@@ -56,7 +56,9 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
 
 function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, printer: idl.LanguageWriter): void {
     entry.properties.forEach(prop => {
-        printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional)
+        const defValue = peerGeneratorConfiguration().constants.get(`${entry.name}.${prop.name}`)
+        const initExpr = defValue != undefined ? printer.makeString(defValue) : undefined
+        printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional, initExpr)
     })
 
     const groupedMethods = groupOverloadsIDL(entry.methods)

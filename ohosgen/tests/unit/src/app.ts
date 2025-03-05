@@ -4,7 +4,8 @@ import {
   ForceCallbackListener,
   ForceCallbackClass,
   registerForceCallbackListener,
-  callForceCallbackListener
+  callForceCallbackListener,
+  ClassWithComplexPropertyType
 } from '#compat'
 import { OrdinaryEnum, IntEnum, StringEnum } from '#compat'
 
@@ -102,6 +103,18 @@ function checkEnum() {
     throw new Error(`Enum value is ${StringEnum.E2.valueOf()} instead of e2`)
 }
 
+function checkClassWithComplexPropertyType() {
+  let value = new ClassWithComplexPropertyType()
+  const expectedCounter: number = 10
+  if (value.prop.counter != expectedCounter) {
+    throw new Error(`checkClassWithComplexPropertyType.counter expected: ${expectedCounter}, result: ${value.prop.counter}`)
+  }
+  const expectedFlag = true
+  if (value.prop.flag != expectedFlag) {
+    throw new Error(`checkClassWithComplexPropertyType.flag expected: ${expectedCounter}, result: ${value.prop.counter}`)
+  }
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -109,5 +122,6 @@ export function run() {
   checkNumber()
   checkForceCallback()
   checkEnum()
+  checkClassWithComplexPropertyType()
 }
 

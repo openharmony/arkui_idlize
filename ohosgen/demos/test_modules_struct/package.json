@@ -13,7 +13,7 @@
         "clean:cj": "rm -rf generated/cj",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:ohos:generate-dts-demo:${TARGET} -C ../.. -- --default-idl-package test_modules_struct --input-dir ./demos/test_modules_struct/dts --output-dir demos/test_modules_struct",
+        "generate": "npm run run:ohos:generate-dts-demo:${TARGET} -C ../.. -- --default-idl-package test_modules_struct --input-dir ./demos/test_modules_struct/dts --output-dir demos/test_modules_struct --options-file ./demos/test_modules_struct/config/config.json",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate",

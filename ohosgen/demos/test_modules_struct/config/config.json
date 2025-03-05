@@ -1,0 +1,6 @@
+{
+    "constants": {
+        "BarInt.fooA": "new FooInt(142)",
+        "BarInt.fooB": "new FooInt(142)"
+    }
+}
