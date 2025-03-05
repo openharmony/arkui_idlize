@@ -35,5 +35,8 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": true
+    "CollapseOverloadsARKTS": true,
+    "linter": {
+        "checkReferencesResolved": false
+    }
 }

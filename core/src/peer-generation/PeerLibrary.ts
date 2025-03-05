@@ -290,6 +290,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
                 case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any", false, "Object")
+                case idl.IDLDate: return new DateConvertor(param)
                 default: throw new Error(`Unconverted primitive ${idl.DebugUtils.debugPrintType(type)}`)
             }
         }

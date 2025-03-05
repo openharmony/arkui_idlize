@@ -254,5 +254,8 @@
             "ArkTS": "value && (value.builder.buildOptions.controller = this)"
         }
     },
-    "CollapseOverloadsARKTS": true
+    "CollapseOverloadsARKTS": true,
+    "linter": {
+        "checkReferencesResolved": false
+    }
 }

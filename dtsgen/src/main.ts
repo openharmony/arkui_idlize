@@ -26,13 +26,16 @@ import {
     setDefaultConfiguration,
     Language,
     isDefined,
+    verifyIDLLinter,
+    PeerLibrary,
+    PeerFile,
 } from "@idlizer/core"
 import {
     IDLFile,
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor, peerGeneratorConfiguration } from "@idlizer/libohos"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -69,6 +72,7 @@ if (options.dts2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
+    const idlLibrary = new PeerLibrary(Language.TS, [])
     generate(
         inputDirs,
         inputFiles,
@@ -97,11 +101,18 @@ if (options.dts2idl) {
                     fs.mkdirSync(path.dirname(outFile), { recursive: true })
                 }
                 fs.writeFileSync(outFile, generated)
-
                 if (options.verifyIdl) {
                     verifyIDLString(generated)
                 }
-            }
+                idlLibrary.files.push(new PeerFile(file))
+            },
+            onEnd(outDir) {
+                if (options.verifyIdl) {
+                    idlLibrary.files.forEach(file => {
+                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                    })
+                }
+            },
         }
     )
     didJob = true

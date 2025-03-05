@@ -24,6 +24,7 @@ import {
     setDefaultConfiguration,
     PeerFile,
     PeerLibrary,
+    verifyIDLLinter,
 } from "@idlizer/core"
 import {
     isEnum,
@@ -94,6 +95,11 @@ if (options.idl2peer) {
     const idlLibrary = new PeerLibrary(language, libraryPackages)
     scanAndVisitCommonPredefined(idlLibrary);
     idlLibrary.files.push(...scanNotPredefinedDirectory(inputDirs[0]))
+    if (options.verifyIdl) {
+        idlLibrary.files.forEach(file => {
+            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+        })
+    }
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)
@@ -143,6 +149,11 @@ if (options.dts2peer) {
                 idlLibrary.files.push(peerFile)
             },
             onEnd(outDir: string) {
+                if (options.verifyIdl) {
+                    idlLibrary.files.forEach(file => {
+                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                    })
+                }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()

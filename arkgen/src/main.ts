@@ -25,7 +25,7 @@ import {
     setDefaultConfiguration,
     PeerFile,
     PeerLibrary,
-    isDefined,
+    verifyIDLLinter,
 } from "@idlizer/core"
 import {
     IDLEntry,
@@ -45,7 +45,8 @@ import { IDLVisitor, loadPeerConfiguration,
     formatInputPaths,
     validatePaths,
     PeerGeneratorConfiguration,
-    defaultPeerGeneratorConfiguration
+    defaultPeerGeneratorConfiguration,
+    peerGeneratorConfiguration,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -198,6 +199,11 @@ if (options.idl2peer) {
             peerFile: file,
         }).visitWholeFile()
     })
+    if (options.verifyIdl) {
+        idlLibrary.files.forEach(file => {
+            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+        })
+    }
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)
@@ -270,6 +276,11 @@ if (options.dts2peer) {
                 idlLibrary.files.push(peerFile)
             },
             onEnd(outDir) {
+                if (options.verifyIdl) {
+                    idlLibrary.files.forEach(file => {
+                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                    })
+                }
                 fillSyntheticDeclarations(idlLibrary)
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()

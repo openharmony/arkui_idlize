@@ -29,6 +29,8 @@ class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
         return []
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): ImportFeature[] {
+        if (type === idl.IDLDate)
+            return [{ feature: "java.util.Date", module: "" }]
         return []
     }
     convert(node: idl.IDLType | undefined): ImportFeature[] {

@@ -91,7 +91,8 @@ import {
     IDLInterfaceSubkind,
     escapeIDLKeyword,
     getNamespacesPathFor,
-    IDLBigintType
+    IDLBigintType,
+    IDLDate
 } from "../idl"
 import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
@@ -358,6 +359,7 @@ export class CustomPrintVisitor {
                 case IDLThisType: return "T"
                 case IDLBigintType:
                 case IDLPointerType: return "number|bigint"
+                case IDLDate: return "Date"
                 default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
             }
         }

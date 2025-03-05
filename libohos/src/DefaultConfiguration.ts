@@ -19,6 +19,8 @@ import {
     CoreConfiguration,
     defaultCoreConfuguration,
     generatorConfiguration,
+    IDLKind,
+    IDLLinterOptions,
     isDefined,
     Language,
 } from "@idlizer/core";
@@ -60,6 +62,7 @@ export interface PeerGeneratorConfiguration extends CoreConfiguration {
     readonly patchMaterialized: Map<string, Record<string, string>>
     readonly CollapseOverloadsARKTS: boolean
     readonly IDLVisitor: IDLVisitorConfiguration
+    readonly linter: IDLLinterOptions
 
     mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
@@ -108,6 +111,21 @@ export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
     constants: new Map(),
     patchMaterialized: new Map(),
     CollapseOverloadsARKTS: true,
+    linter: {
+        validEntryAttributes: new Map([
+            [IDLKind.Property, ["Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName"]],
+            [IDLKind.Interface, ["Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation"]],
+            [IDLKind.Callback, ["Async", "Synthetic"]],
+            [IDLKind.Method, ["Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected"]],
+            [IDLKind.Callable, ["CallSignature", "Deprecated"]],
+            [IDLKind.Typedef, ["Import"]],
+            [IDLKind.Enum, ["Deprecated"]],
+            [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated"]],
+            [IDLKind.Constructor, ["Deprecated", ]]
+        ]),
+        checkEnumsConsistency: true,
+        checkReferencesResolved: true,
+    },
     mapComponentName(originalName: string): string {
         if (originalName.endsWith("Attribute"))
             return originalName.substring(0, originalName.length - 9)
