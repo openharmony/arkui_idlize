@@ -6,10 +6,11 @@ import {
   registerForceCallbackListener,
   callForceCallbackListener
 } from '#compat'
+import { OrdinaryEnum, IntEnum, StringEnum } from '#compat'
 
 
 function compareNumbers(v1: number, v2: number): boolean {
-  return Math.abs(v1 - v1) < 0.1
+  return Math.abs(v2 - v1) < 0.1
 }
 
 function check_booleans() {
@@ -81,11 +82,32 @@ function checkForceCallback() {
   callForceCallbackListener()
 }
 
+function checkEnum() {
+
+  console.log(OrdinaryEnum.E1.valueOf())
+  console.log(OrdinaryEnum.E2.valueOf())
+  console.log(IntEnum.E1.valueOf())
+  console.log(IntEnum.E2.valueOf())
+  console.log(StringEnum.E1.valueOf())
+  console.log(StringEnum.E2.valueOf())
+
+  // use Enum.VALUE.valueOf() as a workaround
+  if (IntEnum.E1.valueOf() != 11)
+    throw new Error(`Enum value is ${IntEnum.E1.valueOf()} instead of 11`)
+  if (IntEnum.E2.valueOf() != 12)
+    throw new Error(`Enum value is ${IntEnum.E2.valueOf()} instead of 12`)
+  if (StringEnum.E1.valueOf() != "e1")
+    throw new Error(`Enum value is ${StringEnum.E1.valueOf()} instead of e1`)
+  if (StringEnum.E2.valueOf() != "e2")
+    throw new Error(`Enum value is ${StringEnum.E2.valueOf()} instead of e2`)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
   check_booleans()
   checkNumber()
   checkForceCallback()
+  checkEnum()
 }
 

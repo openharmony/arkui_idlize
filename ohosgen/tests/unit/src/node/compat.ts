@@ -10,6 +10,7 @@ export {
     registerForceCallbackListener,
     callForceCallbackListener
 } from "../../generated/ts"
+export { OrdinaryEnum, IntEnum, StringEnum } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 

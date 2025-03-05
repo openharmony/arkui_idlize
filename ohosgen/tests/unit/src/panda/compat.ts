@@ -13,6 +13,8 @@ export {
     callForceCallbackListener
 } from "../../generated/arkts"
 
+export { OrdinaryEnum, IntEnum, StringEnum } from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 
 export function pullEvents() {
