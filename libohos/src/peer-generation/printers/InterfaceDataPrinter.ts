@@ -204,7 +204,7 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
         if (idl.isInterfaceSubkind(entry)) {
             printer.writeInterface(entry.name, w => {
                 printInterfaceBody(library, entry, w)
-            })
+            }, undefined, entry.typeParameters)
         } else if (idl.isClassSubkind(entry)) {
             printer.writeClass(entry.name, w => {
                 printInterfaceBody(library, entry, w)

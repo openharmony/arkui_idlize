@@ -160,6 +160,17 @@ OH_Number ForceCallbackClass_callListenerImpl(OH_NativePointer thisPtr) {
     CALLBACK_RELEASE(forceCallbackListener, onChange)
     return {.tag = INTEROP_TAG_INT32, .i32 = 101};
 }
+
+OH_UNIT_GenericInterfaceHandle GenericInterface_constructImpl() {
+    return {};
+}
+void GenericInterface_destructImpl(OH_UNIT_GenericInterfaceHandle thisPtr) {
+}
+void GenericInterface_setDataImpl(OH_NativePointer thisPtr, const OH_CustomObject* data) {
+}
+void GenericInterface_callHandlerImpl(OH_NativePointer thisPtr) {
+}
+
 void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener* listener) {
 }
 OH_Number GlobalScope_callForceCallbackListenerImpl() {

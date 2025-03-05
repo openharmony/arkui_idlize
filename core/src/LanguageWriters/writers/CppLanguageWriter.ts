@@ -204,7 +204,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`};`)
     }
-    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
+    override writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[]): void {
         throw new Error("Method not implemented.")
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {

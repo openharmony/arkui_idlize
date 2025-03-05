@@ -451,7 +451,7 @@ export abstract class LanguageWriter {
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
     abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], op?: (writer: this) => void): void
-    abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], isDeclared?: boolean): void
+    abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
     abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void

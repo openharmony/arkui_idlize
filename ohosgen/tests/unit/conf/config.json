@@ -9,7 +9,8 @@
         "BaseContext"
     ],
     "forceCallback": [
-        "ForceCallbackListener"
+        "ForceCallbackListener",
+        "GenericInterfaceDataHandler"
     ],
     "boundProperties": {},
     "rootComponents": [],

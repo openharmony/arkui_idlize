@@ -89,15 +89,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             interfaces.push(...clazz.interfaces.map(it => `${this.namespacePrefix}${it.name}`))
         }
 
-        if (clazz.isInterface) {
-            interfaces.push(`${this.namespacePrefix}${this.clazz.className}`)
-            // const chunks = idl.getNamespacesPathFor(clazz.decl).map(it => it.name).join('.')
-            // const name = chunks === ''
-            //     ? clazz.decl.name
-            //     : chunks + '.' + clazz.decl.name
-            // interfaces.push(name)
-        }
-
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
         //       and the WrappedBuilder is defined as "class WrappedBuilder<Args extends Object[]>""
         let classTypeParameters = clazz.generics
@@ -107,6 +98,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         // Need to restrict generic type to the Object type
         if (hasMethodWithTypeParams) {
             classTypeParameters = ["T extends Object"]
+        }
+
+        if (clazz.isInterface) {
+            const genericsClause = clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ''
+            interfaces.push(`${this.namespacePrefix}${this.clazz.className}${genericsClause}`)
         }
 
         const nsPath = idl.getNamespacesPathFor(clazz.decl)

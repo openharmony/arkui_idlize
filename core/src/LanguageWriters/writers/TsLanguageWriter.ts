@@ -191,9 +191,10 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], isDeclared?: boolean): void {
+    override writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void {
+        const genericsClause = generics?.length ? `<${generics.join(", ")}>` : ''
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
-        this.printer.print(`export ${isDeclared ? "declare " : ""}interface ${name}${extendsClause} {`)
+        this.printer.print(`export ${isDeclared ? "declare " : ""}interface ${name}${genericsClause}${extendsClause} {`)
         this.pushIndent()
         op(this)
         this.popIndent()

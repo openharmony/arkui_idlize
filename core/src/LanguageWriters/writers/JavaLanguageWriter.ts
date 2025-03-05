@@ -145,7 +145,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[]): void {
+    override writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[]): void {
         let extendsClause = superInterfaces ? ` extends ${superInterfaces.join(",")}` : ''
         this.printer.print(`interface ${name}${extendsClause} {`)
         this.pushIndent()
