@@ -25,6 +25,7 @@ import {
     findVersion,
     setDefaultConfiguration,
     Language,
+    isDefined,
 } from "@idlizer/core"
 import {
     IDLFile,
@@ -48,14 +49,15 @@ const options = program
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--enable-log', 'Enable logging')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
-    .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
+    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+    .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
     .parse()
     .opts()
 
 Language.ARKTS.extension = options.arktsExtension as string
-setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
+
+setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)

@@ -38,7 +38,7 @@ import { IDLVisitor, loadPeerConfiguration,
     scanNotPredefinedDirectory,
     scanAndVisitCommonPredefined,
     formatInputPaths,
-    validatePaths,
+    validatePaths
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
@@ -66,8 +66,8 @@ const options = program
     .option('--use-new-ohos', 'Use new ohos generator')
     .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experimental feature to store declarations in different files for ohos generator')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
-    .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
+    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+    .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
     .parse()
     .opts()
@@ -77,7 +77,7 @@ let apiVersion = options.apiVersion ?? 9999
 
 options.inputFiles = processInputFiles(options.inputFiles)
 
-setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
+setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)

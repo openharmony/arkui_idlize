@@ -17,7 +17,6 @@ import * as fs from 'fs'
 
 export * from './launch'
 export * from './IDLVisitor'
-export * from './IDLVisitorConfig'
 export * from "./DefaultConfiguration"
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"

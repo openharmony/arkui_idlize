@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { warn } from "@idlizer/core"
+
 export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T>, parentKeys?: string[]): T {
     if (custom === undefined)
         return defaults
@@ -61,9 +63,11 @@ export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T
                     throw new Error(`Merge ${keys.join(".")}. Expected Boolean, actual ${customValue}`)
                 }
             } else {
-                if (typeof defaultValue === 'undefined')
-                    throw new Error(`Merge ${keys.join(".")}. Key is not found in template`)
-                throw new Error(`Merge ${keys.join(".")}. Unknown default value type, can not merge`)
+                if (typeof defaultValue === 'undefined') {
+                    warn(`Merge ${keys.join(".")}. Key ${key} is not found in template. Skip ${key}.`)
+                } else {
+                    throw new Error(`Merge ${keys.join(".")}. Unknown default value type, can not merge`)
+                }
             }
         }
     }

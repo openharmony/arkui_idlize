@@ -25,6 +25,7 @@ import {
     setDefaultConfiguration,
     PeerFile,
     PeerLibrary,
+    isDefined,
 } from "@idlizer/core"
 import {
     IDLEntry,
@@ -44,7 +45,7 @@ import { IDLVisitor, loadPeerConfiguration,
     formatInputPaths,
     validatePaths,
     PeerGeneratorConfiguration,
-    defaultPeerGeneratorConfiguration,
+    defaultPeerGeneratorConfiguration
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -86,8 +87,8 @@ const options = program
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--enable-log', 'Enable logging')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults)')
-    .option('--override-options-file <path>', 'Path to generator configuration options file (replaces defaults)')
+    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+    .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
 
     .parse()
@@ -96,7 +97,7 @@ const options = program
 let apiVersion = options.apiVersion ?? 9999
 Language.ARKTS.extension = options.arktsExtension as string
 
-setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.overrideOptionsFile))
+setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
 if (process.env.npm_package_version) {
     console.log(`IDLize version ${findVersion()}`)

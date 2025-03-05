@@ -1,3 +1,17 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 import * as fs from "fs"
 import * as path from "path"
@@ -9,6 +23,10 @@ import {
     Language,
 } from "@idlizer/core";
 import { deepMergeConfig } from "./configMerge";
+import { 
+    defaultIDLVisitorConfiguration, 
+    IDLVisitorConfiguration
+} from "./IDLVisitorConfig";
 
 export interface PeerGeneratorConfiguration extends CoreConfiguration {
     readonly GenerateUnused: boolean
@@ -41,6 +59,7 @@ export interface PeerGeneratorConfiguration extends CoreConfiguration {
     readonly constants: Map<string, string>
     readonly patchMaterialized: Map<string, Record<string, string>>
     readonly CollapseOverloadsARKTS: boolean
+    readonly IDLVisitor: IDLVisitorConfiguration
 
     mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
@@ -49,6 +68,10 @@ export interface PeerGeneratorConfiguration extends CoreConfiguration {
     isKnownParametrized(name: string | undefined): boolean
     isShouldReplaceThrowingError(name: string) : boolean
     noDummyGeneration(component: string, method?: string) : boolean
+}
+
+function isWhole(methods: string[]): boolean {
+    return methods.includes("*")
 }
 
 export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
@@ -116,10 +139,7 @@ export const defaultPeerGeneratorConfiguration: PeerGeneratorConfiguration = {
         if (method && ignoreMethods.includes(method)) return true
         return false
     },
-}
-
-function isWhole(methods: string[]): boolean {
-    return methods.includes("*")
+    IDLVisitor: defaultIDLVisitorConfiguration
 }
 
 function parseConfigFile(configurationFile: string): any {
@@ -129,19 +149,18 @@ function parseConfigFile(configurationFile: string): any {
     return JSON.parse(data)
 }
 
-export function readConfigFiles(configurationFiles?: string, overrideConfigurationFiles?: string): [string, unknown][] {
-    let files = [path.join(__dirname, "..", "generation-config", "config.json")]
+export function readConfigFiles(configurationFiles?: string, ignoreDefaultConfig: boolean = false): [string, unknown][] {
+    let files = ignoreDefaultConfig ? [] : [
+        path.join(__dirname, "..", "generation-config", "config.json"),
+        path.join(__dirname, "..", "generation-config", "idl-config.json")
+    ] 
     if (configurationFiles) files.push(...configurationFiles.split(","))
-    if (overrideConfigurationFiles) {
-        files = overrideConfigurationFiles.split(",")
-    }
 
     return files.map(file => [file, parseConfigFile(file)])
 }
 
-export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, overrideConfigurationFiles?: string): T {
-    const files = readConfigFiles(configurationFiles, overrideConfigurationFiles)
-
+export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, ignoreDefaultConfig = false): T {    
+    const files = readConfigFiles(configurationFiles, ignoreDefaultConfig)
     let result: T = defaultConfiguration
     files.forEach(([file, nextConfiguration]) => {
         if (nextConfiguration) {
@@ -155,10 +174,16 @@ export function parseConfigFiles<T extends object>(defaultConfiguration: T, conf
     return result
 }
 
-export function loadPeerConfiguration(configurationFiles?: string, overrideConfigurationFiles?: string): PeerGeneratorConfiguration {
-    return parseConfigFiles(defaultPeerGeneratorConfiguration, configurationFiles, overrideConfigurationFiles)
+export function loadPeerConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): PeerGeneratorConfiguration {
+    let config = parseConfigFiles(defaultPeerGeneratorConfiguration, configurationFiles, ignoreDefaultConfig)
+    config.IDLVisitor.parsePredefinedIDLFiles()
+    return config
 }
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {
     return generatorConfiguration<PeerGeneratorConfiguration>()
+}
+
+export function IDLVisitorConfiguration(): IDLVisitorConfiguration {
+    return peerGeneratorConfiguration().IDLVisitor
 }

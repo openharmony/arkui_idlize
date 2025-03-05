@@ -107,10 +107,19 @@ function toIDLImport(node: webidl2.ImportType): idl.IDLImport {
     return idl.createImport(node.clause.split("."), node.alias||undefined)
 }
 
+
+function interfaceSubkind(node: webidl2.InterfaceType): idl.IDLInterfaceSubkind {
+    const nodeIDLEntity = node.extAttrs.find(it => it.name === "Entity")?.rhs?.value
+    if (nodeIDLEntity == idl.IDLEntity.Class) return idl.IDLInterfaceSubkind.Class
+    if (nodeIDLEntity == idl.IDLEntity.Interface) return idl.IDLInterfaceSubkind.Interface
+    if (nodeIDLEntity == idl.IDLEntity.Tuple) return idl.IDLInterfaceSubkind.Tuple
+    return idl.IDLInterfaceSubkind.Interface
+}
+
 function toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInterface {
     const result = idl.createInterface(
         node.name,
-        isClass(node) ? idl.IDLInterfaceSubkind.Class : idl.IDLInterfaceSubkind.Interface,
+        interfaceSubkind(node),
         (()=>{
             if (!node.inheritance)
                 return []

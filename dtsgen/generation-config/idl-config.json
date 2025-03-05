@@ -1,0 +1,53 @@
+{
+    "IDLVisitor": {
+        "DeletedDeclarations": [
+            "WrappedBuilder",
+            "wrapBuilder",
+            "IMonitorValue",
+            "IMonitor",
+            "MethodDecorator",
+            "ParticleInterface",
+            "ParticleAttribute",
+            "ParticleModifier",
+            "Particles",
+            "ParticleColorPropertyOptions",
+            "ParticlePropertyOptions",
+            "AccelerationOptions",
+            "ParticleOptions",
+            "AccelerationOptions",
+            "EmitterOptions",
+            "ForEachInterface",
+            "ForEachAttribute",
+            "LazyForEachAttribute",
+            "LazyForEachInterface",
+            "IDataSource",
+            "DisturbanceFieldOptions",
+            "RepeatItem",
+            "RepeatItemBuilder",
+            "RepeatAttribute",
+            "TemplateTypedFunc"
+        ],
+        "StubbedDeclarations": [
+            "OnWillScrollCallback",
+            "ContentModifier",
+            "LayoutChild",
+            "EmitterProperty",
+            "Layoutable",
+            "GestureGroupGestureHandlerOptions",
+            "ColumnOptionsV2",
+            "RowOptionsV2"
+        ],
+        "NameReplacements": {
+            "common.d.ts": [
+                ["LinearGradient", "LinearGradient_common"]
+            ],
+            "alert_dialog.d.ts": [
+                ["TextStyle", "TextStyle_alert_dialog"]
+            ],
+            "styled_string.d.ts" : [
+                ["TextStyle", "TextStyle_styled_string"]
+            ]
+        },
+        "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
+    }
+}
