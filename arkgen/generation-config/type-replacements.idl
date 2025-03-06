@@ -58,7 +58,7 @@ interface AnimatorAttribute: [TypeArguments="AnimatorAttribute"] CommonMethod {
 
 [Entity=Class, TypeParameters="T"]
 interface ScrollableCommonMethod: [TypeArguments="T"] CommonMethod {
-    T onWillScroll((ScrollOnWillScrollCallback or undefined) handler);
+    T onWillScroll(optional ScrollOnWillScrollCallback handler);
     T onDidScroll(ScrollOnScrollCallback handler);
     [Deprecated]
     T onScroll(Callback_Number_Number_Void event);
@@ -66,17 +66,17 @@ interface ScrollableCommonMethod: [TypeArguments="T"] CommonMethod {
 
 [Entity=Class]
 interface ScrollAttribute: [TypeArguments="ScrollAttribute"] ScrollableCommonMethod {
-    ScrollAttribute onWillScroll((ScrollOnWillScrollCallback or undefined) handler);
+    ScrollAttribute onWillScroll(optional ScrollOnWillScrollCallback handler);
     ScrollAttribute onDidScroll(ScrollOnScrollCallback handler);
 };
 
 [Entity=Class, TypeParameters="T"]
 interface CommonMethod {
     T size(SizeOptions value);
-    T clip((boolean or undefined) value);
-    T clip((boolean or undefined) clip);
-    T mask((ProgressMask or undefined) value);
-    T mask((ProgressMask or undefined) mask);
+    T clip(optional boolean value);
+    T clip(optional boolean clip);
+    T mask(optional ProgressMask value);
+    T mask(optional ProgressMask mask);
 };
 
 [Entity=Class]
