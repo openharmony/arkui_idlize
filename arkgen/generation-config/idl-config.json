@@ -25,7 +25,8 @@
             "RepeatItem",
             "RepeatItemBuilder",
             "RepeatAttribute",
-            "TemplateTypedFunc"
+            "TemplateTypedFunc",
+            "EntryOptions"
         ],
         "StubbedDeclarations": [
             "OnWillScrollCallback",

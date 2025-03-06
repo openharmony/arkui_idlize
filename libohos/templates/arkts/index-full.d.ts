@@ -2,13 +2,15 @@ declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassD
 
 declare const ComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
+declare type LocalStorageReference = string
+
 declare interface EntryOptions {
-  routeName? : string,
-  storage? : LocalStorage,
-  useSharedStorage? : boolean,
+    routeName? : string,
+    storage? : LocalStorageReference,
+    useSharedStorage? : boolean,
 }
 
-declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
+declare const Entry: ClassDecorator & ((options?: LocalStorageReference | EntryOptions) => ClassDecorator);
 
 declare const Observed: ClassDecorator;
 
