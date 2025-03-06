@@ -37,6 +37,7 @@ import { PeerFile } from './PeerFile'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
 import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
+import { isInIdlizeInternal } from '../idlize'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -108,8 +109,6 @@ export class PeerLibrary implements LibraryInterface {
     public get materializedToGenerate(): MaterializedClass[] {
         return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
     }
-
-    public readonly predefinedDeclarations: idl.IDLInterface[] = []
 
     constructor(
         public language: Language,
@@ -196,8 +195,7 @@ export class PeerLibrary implements LibraryInterface {
 
         rootEntries ??= this.files.flatMap(it => it.entries)
         if (1 === qualifiedName.length) {
-            const predefined = rootEntries.filter(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Predefined))
-            predefined.push(...this.predefinedDeclarations)
+            const predefined = rootEntries.filter(it => isInIdlizeInternal(it))
             const found = predefined.find(it => it.name === qualifiedName[0])
             if (found)
                 return found;

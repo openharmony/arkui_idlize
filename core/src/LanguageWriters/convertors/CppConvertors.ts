@@ -23,6 +23,7 @@ import { maybeTransformManagedCallback } from '../ArgConvertors'
 import { qualifiedName } from '../../peer-generation/idl/common'
 import { capitalize } from '../../util'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
+import { isInIdlizeInternal } from '../../idlize'
 
 export interface ConvertResult {
     text: string,
@@ -53,7 +54,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
                     : this.make(this.computeTargetTypeLiteralName(node), true)
             case idl.IDLInterfaceSubkind.Interface:
             case idl.IDLInterfaceSubkind.Class:
-                if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Predefined)) {
+                if (isInIdlizeInternal(node)) {
                     return this.make(node.name, true)
                 }
                 return this.make(node.name)

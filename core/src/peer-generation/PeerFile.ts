@@ -22,7 +22,6 @@ export class PeerFile implements LibraryFileInterface {
 
     constructor(
         public readonly file: idl.IDLFile,
-        public readonly isPredefined: boolean = false
     ) {}
 
     public packageName(): string {

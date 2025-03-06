@@ -56,13 +56,10 @@ export enum IDLEntity {
 export enum IDLExtendedAttributes {
     Accessor = "Accessor",
     Async = "Async",
-    ArkTSType = "ArkTSType",
     CallSignature = "CallSignature",
-    CJType = "CJType",
     CommonMethod = "CommonMethod",
     Component = "Component",
     ComponentInterface = "ComponentInterface",
-    CPPType = "CPPType",
     Deprecated = "Deprecated",
     Documentation = "Documentation",
     DtsName = "DtsName",
@@ -78,7 +75,6 @@ export enum IDLExtendedAttributes {
     Protected = "Protected",
     Synthetic = "Synthetic",
     Throws = "Throws",
-    TSType = "TSType",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",
     VerbatimDts = "VerbatimDts",
@@ -607,6 +603,13 @@ export function getPackageClause(entry: IDLFile | IDLEntry): string[] {
 
 export function getPackageName(entry: IDLFile | IDLEntry): string {
     return getPackageClause(entry).join(".")
+}
+
+export function isInPackage(entry: IDLEntry | IDLFile, packageName: string, exactMatch = false) {
+    const entryPackageName = getPackageName(entry)
+    return exactMatch
+        ? entryPackageName === packageName
+        : entryPackageName.startsWith(packageName)
 }
 
 export function getNamespaceName(a: IDLEntry): string {

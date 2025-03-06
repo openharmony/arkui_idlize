@@ -1,3 +1,5 @@
+package internal.component.ets;
+
 interface BusinessError {
     attribute String name;
     attribute String message;

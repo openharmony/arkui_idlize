@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -539,7 +539,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
     const seenNames = new Set<string>()
     return collectDeclarationTargets(library)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
-        .filter(it => !idl.isHandwritten(it))
+        .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it))
         .filter(it => !it.typeParameters?.length)
         .filter(it => {
             const seen = seenNames.has(it.name!)
@@ -623,7 +623,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
             return features
         }
         serializerDeclarations.filter(it => it.fileName)
-            .filter(it => !idl.isCallback(it) && !(library.files.find(f => f.originalFilename == it.fileName)?.isPredefined))
+            .filter(it => !idl.isCallback(it) && !isInIdlize(it))
             .flatMap(makeFeature)
             .forEach(it => collector.addFeature(it.feature, it.module))
     }

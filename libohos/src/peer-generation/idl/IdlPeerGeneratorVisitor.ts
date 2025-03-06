@@ -24,7 +24,9 @@ import {
     MethodSignature,
     generatorConfiguration,
     VoidConvertor,
-    PointerConvertor
+    PointerConvertor,
+    isInIdlizeInternal,
+    isInIdlize
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -45,79 +47,6 @@ import * as path from "path"
  * generating serialization code. We use TS typechecker to analyze compound and union types and generate
  * universal finite automata to serialize any value of the given type.
  */
-
-interface IdlPeerGeneratorVisitorOptions {
-    sourceFile: string
-    peerFile: PeerFile
-    peerLibrary: PeerLibrary
-}
-
-const PREDEFINED_PACKAGE = 'org.openharmony.idlize.predefined'
-const PREDEFINED_PACKAGE_TYPES = `${PREDEFINED_PACKAGE}.types`
-
-export class IDLInteropPredefinesVisitor implements GenericVisitor<void> {
-    readonly peerLibrary: PeerLibrary
-    readonly peerFile: PeerFile
-
-    constructor(options: IdlPeerGeneratorVisitorOptions) {
-        this.peerLibrary = options.peerLibrary
-        this.peerFile = options.peerFile
-    }
-
-    visitWholeFile(): void {
-        idl.linearizeNamespaceMembers(this.peerFile.entries)
-            .filter(idl.isInterface)
-            .forEach(it => this.peerLibrary.predefinedDeclarations.push(it))
-    }
-}
-
-export class IDLPredefinesVisitor implements GenericVisitor<void> {
-    readonly peerLibrary: PeerLibrary
-    readonly peerFile: PeerFile
-
-    private packageName: string
-
-    constructor(options: IdlPeerGeneratorVisitorOptions) {
-        this.peerLibrary = options.peerLibrary
-        this.peerFile = options.peerFile
-        this.packageName = this.peerFile.packageName()
-    }
-
-    visitWholeFile(): void {
-        if (this.isPredefinedTypesPackage()) {
-            idl.linearizeNamespaceMembers(this.peerFile.entries).forEach(predefinedEntry => {
-                if (!predefinedEntry.extendedAttributes) {
-                    predefinedEntry.extendedAttributes = []
-                }
-                predefinedEntry.extendedAttributes!.push({ name: idl.IDLExtendedAttributes.Predefined })
-                this.peerLibrary.files.forEach(peerLibraryFile => {
-                    idl.linearizeNamespaceMembers(peerLibraryFile.entries).filter(libraryEntry => {
-                        if (libraryEntry.name !== predefinedEntry.name)
-                            return true
-                        if (!idl.isTypedef(libraryEntry))
-                            throw "Only typedefs can be replaced!"
-                        return false
-                    })
-                })
-            })
-        }
-        this.peerLibrary.files.push(this.peerFile)
-    }
-
-    private isPredefinedTypesPackage(): boolean {
-        return this.packageName === PREDEFINED_PACKAGE_TYPES
-    }
-}
-
-export function isPredefined(entry: idl.IDLEntry) {
-    return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Predefined)
-}
-
-export function isSystemEntry(entry: idl.IDLEntry) {
-    return idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.CPPType)
-        || idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType)
-        || idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ArkTSType)
-}
 
 function generateArgConvertor(library: PeerLibrary, param: idl.IDLParameter): ArgConvertor {
     if (!param.type) throw new Error("Type is needed")
@@ -479,8 +408,7 @@ export class IdlPeerProcessor {
     }
 
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
-        return idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TSType) ||
-            idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.CPPType) ||
+        return isInIdlize(decl) ||
             peerGeneratorConfiguration().ignoreEntry(decl.name!, language)
     }
 
@@ -495,7 +423,7 @@ export class IdlPeerProcessor {
         console.log(curConfig.LibraryPrefix, curPeerConfig.LibraryPrefix)
 
         for (const dep of allDeclarations) {
-            if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep))
+            if (peerGeneratorConfiguration().ignoreEntry(dep.name, this.library.language) || this.ignoreDeclaration(dep, this.library.language) || idl.isHandwritten(dep) || isInIdlizeInternal(dep))
                 continue
             const isPeerDecl = idl.isInterface(dep) && isComponentDeclaration(this.library, dep)
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {

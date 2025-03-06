@@ -65,6 +65,7 @@ import {
     PeerMethod,
     dropSuffix,
     MaterializedClass,
+    isInIdlize,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
@@ -383,7 +384,7 @@ class OHOSNativeVisitor {
 
     prepare() {
         this.library.files.forEach(file => {
-            if (file.isPredefined ||
+            if (isInIdlize(file.file) ||
                 this.library.libraryPackages?.length && !this.library.libraryPackages.includes(file.packageName()))
                 return
             linearizeNamespaceMembers(file.entries).forEach(entry => {
@@ -547,7 +548,7 @@ export function suggestLibraryName(library: PeerLibrary) {
     if (library.name !== '') {
         return library.name
     }
-    let libraryName = library.files.filter(f => !f.isPredefined)[0].packageName()
+    let libraryName = library.files.filter(f => !isInIdlize(f.file))[0].packageName()
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
 }

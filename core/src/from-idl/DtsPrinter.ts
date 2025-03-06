@@ -97,6 +97,7 @@ import {
 import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
+import { isInIdlize } from "../idlize"
 
 export class CustomPrintVisitor {
     output: string[] = []
@@ -111,7 +112,7 @@ export class CustomPrintVisitor {
             this.print(`${!isTopmost ? "" : "declare "}namespace ${namespace.name} {`);
             this.pushIndent();
         }
-        if (hasExtAttribute(node, IDLExtendedAttributes.TSType) && this.language == Language.TS) return
+        if (isInIdlize(node)) return
         if (isInterface(node)) {
             this.printInterface(node)
         } else if (isMethod(node) || isConstructor(node) || isCallable(node)) {

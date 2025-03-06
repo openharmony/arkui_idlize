@@ -17,6 +17,7 @@ import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } 
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, InteropReturnTypeConvertor,
+    isInIdlizeInterop,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -476,13 +477,16 @@ export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, modul
 }
 
 export function collectPredefinedNativeModuleEntries(library: PeerLibrary, module: NativeModuleType): idl.IDLInterface[] {
+    const interopDeclarations = library.files
+        .filter(it => isInIdlizeInterop(it.file))
+        .flatMap(it => it.file.entries.filter(idl.isInterface))
     switch (module) {
         case NativeModule.Interop:
-            return library.predefinedDeclarations.filter(it => it.name === "Interop" || it.name === "Loader")
+            return interopDeclarations.filter(it => it.name === "Interop" || it.name === "Loader")
         case NativeModule.Test:
-            return library.predefinedDeclarations.filter(it => it.name === "Test")
+            return interopDeclarations.filter(it => it.name === "Test")
         case NativeModule.ArkUI:
-            return library.predefinedDeclarations.filter(it => it.name === "Node")
+            return interopDeclarations.filter(it => it.name === "Node")
         default:
             throw new Error(`NativeModuleType.${module} is not predefined`)
     }

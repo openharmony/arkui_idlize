@@ -1,8 +1,7 @@
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, PeerFile } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, PeerFile, isInIdlize } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
-import { isPredefined } from "./idl/IdlPeerGeneratorVisitor";
 import { IdlNameConvertor } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
@@ -23,10 +22,9 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
             continue
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
-                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TSType) ||
-                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.CPPType ||
+                isInIdlize(entry) ||
                 idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation)
-                ))
+                )
                 continue
             if (idl.isInterface(entry)) {
                 if (isComponentDeclaration(library, entry) ||
@@ -53,7 +51,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                         for (const parameter of callable.parameters)
                             orderer.addDep(library.toDeclaration(parameter.type!))
                     }
-                } else if (generateUnused && !isPredefined(entry)) {
+                } else if (generateUnused && !isInIdlize(entry)) {
                     orderer.addDep(library.toDeclaration(entry))
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))

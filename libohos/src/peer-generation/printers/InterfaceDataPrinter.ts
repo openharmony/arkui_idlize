@@ -16,7 +16,7 @@
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
-import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode } from "@idlizer/core";
+import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode, isInIdlizeInternal } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 import { collectProperties } from "./StructPrinter";
 import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
@@ -31,7 +31,7 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
             return []
         return file.entries
             .flatMap(it => idl.isNamespace(it) ? it.members : [it])
-            .filter(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Predefined))
+            .filter(it => !isInIdlizeInternal(it))
             .flatMap(entry => {
                 if (idl.isInterface(entry)) {
                     if (isMaterialized(entry, library) && idl.isClassSubkind(entry)) {

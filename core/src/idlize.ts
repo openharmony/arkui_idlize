@@ -16,9 +16,10 @@
 import * as ts from "typescript"
 import * as fs from "fs"
 import * as path from "path"
+import * as idl from "./idl"
 import { GenerateOptions } from "./options"
 
-function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recursive = false): string[] {
+export function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recursive = false): string[] {
     const dirsToVisit = [path.resolve(dir)]
     const result = []
     while (dirsToVisit.length > 0) {
@@ -37,13 +38,37 @@ function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recur
     return result
 }
 
+export function scanInputDirs(inputDirs: string[]): string[]
+export function scanInputDirs(inputDirs: string[], fileExtension: string): string[]
+export function scanInputDirs(inputDirs: string[], fileFilter: (file: string) => boolean, recursive: boolean): string[]
+export function scanInputDirs(
+    inputDirs: string[],
+    fileFilter: undefined | string | ((file: string) => boolean) = undefined,
+    recursive = false,
+): string[] {
+    if (typeof fileFilter === 'undefined')
+        return scanInputDirs(inputDirs, (_) => true, recursive)
+    if (typeof fileFilter === 'string')
+        return scanInputDirs(inputDirs, (file: string) => file.endsWith(fileFilter), recursive)
+    const resolvedInputDirs = inputDirs.map(dir => path.resolve(dir))
+    console.log("Resolved input directories:", resolvedInputDirs)
+    return resolvedInputDirs.flatMap(dir => {
+        if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
+            console.log(`Processing all .d.ts from directory: ${dir}`)
+            return scanDirectory(dir, fileFilter, recursive)
+        } else {
+            console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
+            return []
+        }
+    })
+}
+
 export interface GenerateVisitor<T> {
     visitPhase1(): T
     visitPhase2?(siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<T>, result: T }}): T
 }
 
 export function generate<T>(
-    inputDirs: string[],
     inputFiles: string[],
     outputDir: string,
     visitorFactory: (sourceFile: ts.SourceFile, program: ts.Program, compilerHost: ts.CompilerHost) => GenerateVisitor<T>,
@@ -53,33 +78,12 @@ export function generate<T>(
         console.log("Starting generation process...")
     }
 
-    if (inputDirs.length === 0 && inputFiles.length === 0) {
-        console.error("Error: No input specified (no directories and no files).")
+    if (inputFiles.length === 0) {
+        console.error("Error: No input files specified.")
         process.exit(1)
     }
 
-    const resolvedInputDirs = inputDirs.map(dir => path.resolve(dir))
-
-    if (options.enableLog) {
-        console.log("Resolved input directories:", resolvedInputDirs)
-    }
-
     let input: string[] = []
-
-    if (resolvedInputDirs.length > 0) {
-        resolvedInputDirs.forEach(dir => {
-            if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-                if (options.enableLog) {
-                    console.log(`Processing all .d.ts from directory: ${dir}`)
-                }
-                const fileFilter = (file: string) => file.endsWith(".d.ts")
-                const files = scanDirectory(dir, fileFilter, options.recursive)
-                input = input.concat(files)
-            } else {
-                console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
-            }
-        })
-    }
 
     if (inputFiles.length > 0) {
         inputFiles.forEach(file => {
@@ -121,11 +125,10 @@ export function generate<T>(
     const dtsFileName2Visitor: { [key in string]: VisitorStaff } = {}
     for (const sourceFile of program.getSourceFiles()) {
         const resolvedSourceFileName = path.resolve(sourceFile.fileName)
-        
-        const isInDir = resolvedInputDirs.some(dir => resolvedSourceFileName.startsWith(dir))
+
         const isExplicitFile = input.some(f => path.resolve(f) === resolvedSourceFileName)
 
-        if (!isInDir && !isExplicitFile) {
+        if (!isExplicitFile) {
             if (options.enableLog) {
                 console.log(`Skipping file: ${resolvedSourceFileName}`)
             }
@@ -162,4 +165,21 @@ export function generate<T>(
     if (options.enableLog) {
         console.log("Generation completed.")
     }
+}
+
+
+export function isInIdlize(entry: idl.IDLEntry | idl.IDLFile): boolean {
+    return idl.isInPackage(entry, "idlize")
+}
+
+export function isInIdlizeInterop(entry: idl.IDLEntry | idl.IDLFile): boolean {
+    return idl.isInPackage(entry, "idlize.internal.interop")
+}
+
+export function isInIdlizeInternal(entry: idl.IDLEntry | idl.IDLFile): boolean {
+    return idl.isInPackage(entry, "idlize.internal")
+}
+
+export function isInIdlizeStdlib(entry: idl.IDLEntry | idl.IDLFile): boolean {
+    return idl.isInPackage(entry, "idlize.stdlib")
 }

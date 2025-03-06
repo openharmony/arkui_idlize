@@ -6,14 +6,13 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor } from "@idlizer/core"
+import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor, isInIdlize } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration } from '@idlizer/core';
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
-import { isPredefined, isSystemEntry } from '../idl/IdlPeerGeneratorVisitor';
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     imports.addFeature("TypeChecker", "#components")
@@ -100,8 +99,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
     for (const file of library.files) {
         for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isImport(decl) ||
-                isPredefined(decl) ||
-                isSystemEntry(decl)
+                isInIdlize(decl)
             )
                 continue
             if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))

@@ -19,7 +19,7 @@ import * as ts from "typescript"
 
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { CoreConfiguration, defaultCoreConfuguration, findVersion, generate, setDefaultConfiguration } from "@idlizer/core"
+import { CoreConfiguration, defaultCoreConfuguration, findVersion, generate, scanInputDirs, setDefaultConfiguration } from "@idlizer/core"
 
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
@@ -101,11 +101,11 @@ function main() {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
+    const dtsInputFiles = scanInputDirs(inputDirs).concat(inputFiles).filter(it => it.endsWith('.d.ts'))
 
     const allEntries = new Array<LinterMessage[]>()
     generate(
-        inputDirs,
-        inputFiles,
+        dtsInputFiles,
         options.outputDir,
         (sourceFile, program, compilerHost) => new LinterVisitor(sourceFile, program, compilerHost),
         {

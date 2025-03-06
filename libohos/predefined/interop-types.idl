@@ -1,4 +1,4 @@
-package org.openharmony.idlize.predefined.types;
+package idlize.internal;
 
 interface Serializer {};
 interface Deserializer {};
