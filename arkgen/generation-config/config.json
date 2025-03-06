@@ -257,8 +257,8 @@
     },
     "patchMaterialized": {
         "CustomDialogController.constructor": {
-            "TS": "value && (value.builder.buildOptions.controller = this)",
-            "ArkTS": "value && (value.builder.buildOptions.controller = this)"
+            "TS": "if (value) value.builder.buildOptions.controller = this",
+            "ArkTS": "// /*TODO: API required*/ if (value) value.builder.buildOptions.controller = this"
         }
     },
     "CollapseOverloadsARKTS": true,
