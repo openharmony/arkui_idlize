@@ -35,7 +35,8 @@ import {
     InterfaceConvertor,
     MaterializedClassConvertor,
     OptionConvertor,
-    UnionConvertor
+    UnionConvertor,
+    BufferConvertor
 } from "../ArgConvertors"
 import * as idl from '../../idl'
 import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
@@ -343,6 +344,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 this.getNodeName(convertor.idlType),
                 convertor.declaration.properties.filter(it => !it.isStatic).map(it => it.name),
                 duplicateMembers!,
+                this)
+        }
+        if (convertor instanceof BufferConvertor) {
+            return makeInterfaceTypeCheckerCall(value,
+                this.getNodeName(convertor.idlType),
+                [],
+                new Set(),
                 this)
         }
         if (convertor instanceof AggregateConvertor) {

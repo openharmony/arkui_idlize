@@ -223,6 +223,20 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                 )
             }
         )
+        this.writer.writeMethodImplementation(
+            new Method("isNativeBuffer",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType], ["value"]),
+                [MethodModifier.STATIC]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value instanceof NativeBuffer`),
+                    )
+                )
+            }
+        )
     }
 
     protected writeTypeCast(): void {
