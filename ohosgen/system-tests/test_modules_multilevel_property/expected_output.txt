@@ -1,0 +1,46 @@
+Starting demo: test_modules_multilevel_property
+BarInt_constructImpl(vx, vy)
+  vx = 1000 (int32)
+  vy = 1500 (int32)
+BazInt_constructImpl(f, bx, by)
+  f = 2000 (int32)
+  bx = 2300 (int32)
+  by = 2600 (int32)
+FooInt_constructImpl(initialValue)
+BarInt_setXImpl(thisPtr, value)
+Set property bar.x done.
+BarInt_getIntImpl(thisPtr, offset)
+  offset = 2.25 (float32)
+bar.getInt(2.25) after setting bar.x = 11502.25
+BarInt_getXImpl(thisPtr)
+Get property bar.x done.
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 10000 (int32)
+  offset = 2.25 (float32)
+bar.x.getInt(2.25) = 10002.25
+BarInt_getYImpl(thisPtr)
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 1500 (int32)
+  offset = 2.25 (float32)
+bar.y.getInt(2.25) = 1502.25
+BazInt_getFooImpl(thisPtr)
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 2000 (int32)
+  offset = 2.25 (float32)
+baz.foo.getInt(2.25) = 2002.25
+BazInt_getBarImpl(thisPtr)
+BarInt_getIntImpl(thisPtr, offset)
+  offset = 2.25 (float32)
+baz.bar.getInt(2.25) = 4902.25
+BazInt_getBarImpl(thisPtr)
+BarInt_getXImpl(thisPtr)
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 2300 (int32)
+  offset = 2.25 (float32)
+baz.bar.x.getInt(2.25) = 2302.25
+BazInt_getBarImpl(thisPtr)
+BarInt_getYImpl(thisPtr)
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 2600 (int32)
+  offset = 2.25 (float32)
+baz.bar.y.getInt(2.25) = 2602.25

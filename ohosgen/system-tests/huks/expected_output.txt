@@ -1,0 +1,18 @@
+Starting demo: huks
+GlobalScope_fooVoidVoidImpl()
+GlobalScope_fooVoidNumberImpl(arg)
+  arg = 100 (int32)
+GlobalScope_fooNumberVoidImpl()
+fooNumberVoid() = 1
+GlobalScope_fooNumberNumberImpl(arg)
+  arg = 200 (int32)
+fooNumberNumber(200) = 201
+---- Begin: fooResultNumber(300) ----
+GlobalScope_fooResultNumberImpl(arg)
+  arg = 300 (int32)
+---- Begin: fooNumberOptions({}) ----
+GlobalScope_fooNumberOptionsImpl(options)
+---- Begin: generateKeyItemSync("ASDF", {}) ----
+GlobalScope_generateKeyItemSyncImpl(keyAlias, options)
+  keyAlias = ASDF
+All cases done.

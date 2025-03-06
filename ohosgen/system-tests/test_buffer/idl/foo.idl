@@ -1,0 +1,11 @@
+[Entity=Interface]
+interface FooResult {
+    attribute number index;
+    attribute buffer inData;
+};
+
+[Entity=Class]
+interface Foo {
+    buffer getInData();
+    FooResult getResult();
+};

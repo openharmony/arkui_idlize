@@ -1,0 +1,13 @@
+[Entity=Interface]
+interface FooResult {
+    attribute number index;
+    attribute String title;
+    attribute sequence<String> list;
+};
+
+[Entity=Class]
+interface Foo {
+    String getString();
+    sequence<String> getStringList();
+    FooResult getResult();
+};

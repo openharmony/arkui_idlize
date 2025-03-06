@@ -1,0 +1,16 @@
+[
+    { "name": "huks", "inputType": "idl" },
+    { "name": "huks_with_class", "inputType": "idl" },
+    { "name": "test_buffer", "inputType": "idl" },
+    { "name": "test_generic_callback", "inputType": "dts" },
+    { "name": "test_generic_callback_named", "inputType": "dts", "ignores": true },
+    { "name": "test_manually_decomposed_promise", "inputType": "idl", "ignores": true },
+    { "name": "test_modules_multilevel", "inputType": "dts" },
+    { "name": "test_modules_multilevel_property", "inputType": "dts" },
+    { "name": "test_modules_simple", "inputType": "dts" },
+    { "name": "test_modules_struct", "inputType": "dts", "ignores": true },
+    { "name": "test_package", "inputType": "idl" },
+    { "name": "test_promise", "inputType": "dts", "ignores": true },
+    { "name": "test_record", "inputType": "idl", "ignores": true },
+    { "name": "test_string_array", "inputType": "idl", "ignores": true }
+]

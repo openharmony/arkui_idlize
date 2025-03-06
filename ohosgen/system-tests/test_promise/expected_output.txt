@@ -1,0 +1,11 @@
+Starting demo: test_promise
+Foo_constructImpl(value)
+Foo_getNumberDelayedImpl(vmContest, asyncWorker, thisPtr, seconds, outputArgumentForReturningPromise)
+  seconds = 3 (int32)
+asyncWorker->createWork() done.
+work.queue() done.
+Promise created.
+TestPromiseHandler::Execute() done.
+callback.call() done.
+callback.resource.release() done.
+Returned value = 1042

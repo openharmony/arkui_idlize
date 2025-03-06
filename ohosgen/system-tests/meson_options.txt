@@ -1,0 +1,4 @@
+option('target_vm', type: 'combo', choices: ['node', 'panda', 'cangjie'], value: 'panda',
+    description: 'Select the VM to compile for')
+option('test_case', type: 'string',
+    description: 'Select the test case to run')

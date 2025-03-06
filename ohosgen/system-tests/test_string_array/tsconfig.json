@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "outDir": "build/ts",
+        "sourceMap": true,
+        "baseUrl": ".",
+        "paths": {
+            "#compat": ["./src/node/compat.ts"]
+        }
+    },
+    "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"]
+}

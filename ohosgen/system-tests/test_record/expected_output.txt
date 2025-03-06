@@ -1,0 +1,12 @@
+Foo_constructImpl()
+FooObject() with index = 1
+Foo_getPropsImpl(thisPtr)
+foo.getProps() done. Let props be the result:
+  props["one"] = 1
+  props["two"] = 2.25
+  props["three"] = 3
+  props["four"] = 4.125
+foo.getResult() done with res.index = 42. Let res be the result:
+ res.props["ten"] = 10
+ res.props["hundred"] = 99.875
+ res.props["thousand"] = 1000

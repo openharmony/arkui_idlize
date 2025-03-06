@@ -1,0 +1,5 @@
+__temp__/
+**/.cache/
+**/build/
+**/generated/
+**/node_modules/

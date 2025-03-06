@@ -66,22 +66,23 @@ check ohos demos:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run check:ts
     - npm run check:arkts
-    - |
-      cd $CI_PROJECT_DIR/ohosgen
-      touch $CI_PROJECT_DIR/ohosgen/summary.txt
-      test_status=0
-      cat demos/expected.txt |
-      while read pkg expected; do
-        cd $pkg
-        npm i -d
-        npm run check:arkts && result=PASS || result=FAIL
-        echo "$pkg: $result (expected $expected)" >> $CI_PROJECT_DIR/ohosgen/summary.txt
-        if [ "$result" != "$expected" ]; then
-          test_status=1
-        fi
-        cd $CI_PROJECT_DIR/ohosgen
-      done
-      echo "---------------RESULT-----------------"
-      cat $CI_PROJECT_DIR/ohosgen/summary.txt
-      echo "--------------------------------------"
-      exit $test_status
+
+check ohos system tests:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/ohosgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - npm run compile --prefix ../external/interop
+    - npm run compile --prefix ../external/incremental/common
+    - npm run compile --prefix ../external/incremental/compat
+    - npm run compile --prefix ../external/incremental/runtime
+    - npm run build:interop:inc --prefix ../external/interop
+    - npm run build:incremental:inc --prefix ../external/incremental/runtime
+  script:
+    - cd $CI_PROJECT_DIR/ohosgen/system-tests
+    - npm i -d
+    - python3 run-system-tests.py

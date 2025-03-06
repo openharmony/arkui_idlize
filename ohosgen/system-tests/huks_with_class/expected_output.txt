@@ -1,0 +1,19 @@
+Starting demo: huks
+HuksClass_constructImpl()
+HuksClass_fooVoidVoidImpl(thisPtr)
+HuksClass_fooVoidNumberImpl(thisPtr, arg)
+  arg = 100 (int32)
+HuksClass_fooNumberVoidImpl(thisPtr)
+huks.fooNumberVoid() = 1
+HuksClass_fooNumberNumberImpl(thisPtr, arg)
+  arg = 200 (int32)
+huks.fooNumberNumber(200) = 201
+---- Begin: huks.fooResultNumber(300) ----
+HuksClass_fooResultNumberImpl(thisPtr, arg)
+  arg = 300 (int32)
+---- Begin: huks.fooNumberOptions({}) ----
+HuksClass_fooNumberOptionsImpl(thisPtr, options)
+---- Begin: huks.generateKeyItemSync("ASDF", {}) ----
+HuksClass_generateKeyItemSyncImpl(thisPtr, keyAlias, options)
+  keyAlias = ASDF
+All cases done.

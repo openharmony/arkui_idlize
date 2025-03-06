@@ -1,0 +1,19 @@
+Starting demo: test_string_array
+Foo_constructImpl()
+FooObject() with index = 1
+Foo_getStringImpl(thisPtr)
+foo.getString() = 'FooObject{.index = 1}' (call counter = 1)
+Foo_getResultImpl(thisPtr)
+foo.getResult() done. Let resObj be the result:
+  resObj.index = 1
+  resObj.title = 'FooObject{.index = 1}' (call counter = 2)
+  resObj.list:
+    resObj.list[0] = Red
+    resObj.list[1] = Green
+    resObj.list[2] = Blue
+    resObj.list[3] = Orange
+Foo_getStringListImpl(thisPtr)
+foo.getStringList() done. Let strList be the result:
+  strList[0] = Apple
+  strList[1] = Pineapple
+  strList[2] = Banana

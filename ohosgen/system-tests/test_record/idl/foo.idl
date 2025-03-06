@@ -1,0 +1,11 @@
+[Entity=Interface]
+interface FooResult {
+    attribute number index;
+    attribute record<String, number> props;
+};
+
+[Entity=Class]
+interface Foo {
+    record<String, number> getProps();
+    FooResult getResult();
+};

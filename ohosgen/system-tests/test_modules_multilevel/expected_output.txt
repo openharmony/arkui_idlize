@@ -1,0 +1,32 @@
+Starting demo: test_modules
+======== Foo ========
+FooInt_constructImpl(initialValue)
+GlobalScope_qux_getIntWithFooImpl(foo)
+foo->value = 42 (int32)
+getIntWithFoo(foo) = 42
+FooInt_getIntImpl(thisPtr, offset)
+  thisPtr->value = 42 (int32)
+  offset = 2.25 (float32)
+foo.getInt(2.25) = 44.25
+======== Bar ========
+BarInt_constructImpl(vx, vy)
+  vx = 1000 (int32)
+  vy = 1500 (int32)
+GlobalScope_qux_getIntWithBarImpl(bar, offset)
+  offset = 17 (int32)
+getIntWithBar(bar) = 2517
+BarInt_getIntImpl(thisPtr, offset)
+  offset = 2.25 (float32)
+bar.getInt(2.25) = 2502.25
+======== Baz ========
+BazInt_constructImpl(f, bx, by)
+  f = 2000 (int32)
+  bx = 2300 (int32)
+  by = 2600 (int32)
+GlobalScope_qux_getIntWithBazImpl(baz, offset, message)
+  offset = 34 (int32)
+  message = hello C++ from TS
+getIntWithBaz(baz) = 6934
+BazInt_getIntImpl(thisPtr, offset)
+  offset = 2.25 (float32)
+baz.getInt(2.25) = 6902.25
