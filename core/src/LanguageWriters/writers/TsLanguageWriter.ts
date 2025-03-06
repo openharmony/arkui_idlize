@@ -239,7 +239,9 @@ export class TSLanguageWriter extends LanguageWriter {
         if (prefix) prefix += " "
         this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${this.getNodeName(type)}${init}`)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
+    writeNativeMethodDeclaration(method: Method): void {
+        let name = method.name
+        let signature = method.signature
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
             const selfCallExpression = writer.makeFunctionCall(
                 `this.${name}`,
@@ -316,7 +318,7 @@ export class TSLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && isOptional[i] ? idl.maybeUnwrapOptionalType(it) : it
         )
-        this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${isOptional[index] ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""} ${needBracket ? "{" : ""}`)
+        this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${isOptional[index] ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }
     makeNull(): LanguageExpression {
         return new StringExpression("undefined")

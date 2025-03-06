@@ -1381,10 +1381,10 @@ export function forEachFunction(node: IDLNode, cb: (node: IDLFunction) => void):
 }
 
 export function asPromise(type?: IDLType): IDLContainerType | undefined {
-    if (!type) return
-    if (!isContainerType(type)) return
+    if (!type) return undefined
+    if (!isContainerType(type)) return undefined
     const container = type as IDLContainerType
-    if (!IDLContainerUtils.isPromise(container)) return
+    if (!IDLContainerUtils.isPromise(container)) return undefined
     return container
 }
 

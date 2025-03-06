@@ -652,8 +652,10 @@ export abstract class LanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature, isNative?: boolean): void {
-        this.writeMethodDeclaration(name, signature)
+    tryWriteQuick(method: Method) {}
+    writeNativeMethodDeclaration(method: Method): void {
+        this.tryWriteQuick(method)
+        this.writeMethodDeclaration(method.name, method.signature)
     }
     writeUnsafeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
         return

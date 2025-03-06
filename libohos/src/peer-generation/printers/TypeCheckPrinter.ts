@@ -140,6 +140,23 @@ abstract class TypeCheckerPrinter {
         imports.print(this.writer, 'arkts/type_check')
     }
 
+    protected writeIsNativeBuffer(): void {
+        let className = this.library.language == Language.TS ? "ArrayBuffer" : "NativeBuffer"
+        this.writer.writeMethodImplementation(
+            new Method("isNativeBuffer",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType], ["value"]),
+                    [MethodModifier.STATIC]),
+                       writer => {
+                           writer.writeStatement(
+                                writer.makeReturn(
+                                    writer.makeString(`value instanceof ${className}`),
+                                )
+                            )
+                        })
+    }
+
     protected abstract writeTypeInstanceOf(): void
     protected abstract writeTypeCast(): void
 
@@ -170,7 +187,8 @@ abstract class TypeCheckerPrinter {
         this.writeImports(importFeatures)
         this.writer.writeClass("TypeChecker", writer => {
             this.writeTypeInstanceOf();
-            this.writeTypeCast();
+            this.writeTypeCast()
+            this.writeIsNativeBuffer()
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
             for (const array of arrays) {
@@ -187,6 +205,8 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     ) {
         super(library, library.createLanguageWriter(Language.ARKTS))
     }
+
+
 
     private writeInstanceofChecker(typeName: string,
                                    checkerName: string,
@@ -219,20 +239,6 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                 writer.writeStatement(
                     writer.makeReturn(
                         writer.makeString(`value instanceof T`),
-                    )
-                )
-            }
-        )
-        this.writer.writeMethodImplementation(
-            new Method("isNativeBuffer",
-                new NamedMethodSignature(
-                    idl.IDLBooleanType,
-                    [idl.IDLObjectType], ["value"]),
-                [MethodModifier.STATIC]),
-            writer => {
-                writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeString(`value instanceof NativeBuffer`),
                     )
                 )
             }

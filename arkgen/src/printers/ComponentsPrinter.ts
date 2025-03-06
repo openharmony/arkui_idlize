@@ -183,24 +183,6 @@ class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         imports.addFeature('TypeChecker', '#components')
     }
-
-    protected printComponentFunction(componentClassName: string,
-        componentFunctionName: string,
-        mappedCallableParams: string,
-        peerClassName: string,
-        callableMethodName: string | undefined,
-        peerComponentName: string) {
-        // Error fix: Class 'ArkTest' is already defined with different type
-        // "ArkTest" - already used in ArkTS
-        if (componentFunctionName !== "ArkTest") {
-            super.printComponentFunction(componentClassName,
-                componentFunctionName,
-                mappedCallableParams,
-                peerClassName,
-                callableMethodName,
-                peerComponentName);
-        }
-    }
 }
 
 class JavaComponentFileVisitor implements ComponentFileVisitor {

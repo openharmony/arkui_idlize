@@ -34,9 +34,11 @@ class NativeModulePrinterBase {
         protected readonly language: Language,
     ) {}
 
+
     protected printMethod(method: Method) {
-        this.nativeModule.writeNativeMethodDeclaration(method.name, method.signature)
+        this.nativeModule.writeNativeMethodDeclaration(method)
     }
+
 }
 
 class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
@@ -266,7 +268,7 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
     })
     if (nativeFunctions) {
         nativeFunctions!.pushIndent()
-        nativeFunctions!.writeNativeMethodDeclaration(nativeName, signature)
+        nativeFunctions!.writeNativeMethodDeclaration(new Method(nativeName, signature))
         nativeFunctions!.popIndent()
     }
 }

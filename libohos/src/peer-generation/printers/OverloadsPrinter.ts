@@ -39,11 +39,11 @@ function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
 
 export function groupSameSignatureMethodsIDL(methods: idl.IDLMethod[]): idl.IDLMethod[][] {
     if (methods.length < 2) return methods.map(it => [it])
-    
+
     // get methods args
     let params = methods.map(it => it.parameters)
     // cut optional args
-    params = params.map(methodParams => methodParams.filter(param => !param.isOptional))    
+    params = params.map(methodParams => methodParams.filter(param => !param.isOptional))
     let types = params.map(methodParams => methodParams.map(param => idl.printType(param.type)))
 
     // compare methods signatures
@@ -66,7 +66,7 @@ function groupSameSignatureMethods(methods: PeerMethod[]): PeerMethod[][] {
     // get methods args
     let args = methods.map(it => it.method.signature.args)
     // cut optional args
-    args = args.map(methArgs => methArgs.filter(type => !idl.isOptionalType(type)))    
+    args = args.map(methArgs => methArgs.filter(type => !idl.isOptionalType(type)))
     let types = args.map(methArgs => methArgs.map(type => idl.printType(type)))
 
     // compare methods signatures
@@ -259,7 +259,7 @@ export class OverloadsPrinter {
             for (let group of groups) {
                 this.printCollapsedOverloads(peer, group)
             }
-        } 
+        }
     }
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
@@ -281,9 +281,14 @@ export class OverloadsPrinter {
                     return new UnionRuntimeTypeChecker(
                         methods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
                 })
-                methods.forEach((peerMethod, methodIndex) =>
-                    this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers))
-                writer.makeThrowError(`Can not select appropriate overload`).write(writer)
+                let shallStop = false
+                methods.forEach((peerMethod, methodIndex) => {
+                    if (!shallStop) {
+                        shallStop ||= this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers)
+                    }
+                })
+                if (!shallStop)
+                    writer.makeThrowError(`Can not select appropriate overload`).write(writer)
             } else {
                 this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
             }
@@ -295,7 +300,7 @@ export class OverloadsPrinter {
         })
     }
 
-    private printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]) {
+    private printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]): boolean {
         const argsConditions: LanguageExpression[] = []
         collapsedMethod.signature.args
             .forEach((type, argIndex) => {
@@ -310,11 +315,16 @@ export class OverloadsPrinter {
                     }
                 }
             )
-        this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
-        this.printer.pushIndent()
+        if (argsConditions.length > 0) {
+            this.printer.print(`if (${this.printer.makeNaryOp("&&", argsConditions).asString()}) {`)
+            this.printer.pushIndent()
+        }
         this.printPeerCallAndReturn(peer, collapsedMethod, peerMethod)
-        this.printer.popIndent()
-        this.printer.print('}')
+        if (argsConditions.length > 0) {
+            this.printer.popIndent()
+            this.printer.print('}')
+        }
+        return argsConditions.length == 0
     }
 
     private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {

@@ -20,6 +20,7 @@ import {
     LanguageStatement,
     LanguageWriter,
     MakeCastOptions,
+    Method,
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
@@ -193,12 +194,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
     }
-    writeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
-        if (signature.returnType === IDLThisType) {
-            throw new Error('static method can not return this!')
-        }
-        this.writeMethodDeclaration(name, signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
-    }
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
@@ -266,6 +261,33 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // ArkTS does not support - 'this.?'
         super.writeMethodCall(receiver, method, params, nullable && receiver !== "this")
     }
+    isDirectType(type: IDLType): boolean {
+        let converted = this.getNodeName(type)
+        return type == idl.IDLI32Type || type == idl.IDLPointerType || type == idl.IDLBooleanType
+            || type == idl.IDLVoidType || converted == "KPointer" || converted == "KInt"
+    }
+    isQuickType(type: IDLType): boolean {
+        return idl.asPromise(type) == undefined
+    }
+    tryWriteQuick(method: Method): void {
+        if (method.modifiers?.includes(MethodModifier.THROWS)) return
+        if (false && this.isDirectType(method.signature.returnType) && method.signature.args.every((type) => this.isDirectType(type))) {
+            this.print('@ani.unsafe.Direct')
+            return
+        }
+        if (this.isQuickType(method.signature.returnType)) {
+            this.print('@ani.unsafe.Quick')
+            return
+        }
+    }
+    writeNativeMethodDeclaration(method: Method): void {
+        if (method.signature.returnType === IDLThisType) {
+            throw new Error('static method can not return this!')
+        }
+        this.tryWriteQuick(method)
+        this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
+    }
+
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
