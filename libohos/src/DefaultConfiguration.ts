@@ -25,8 +25,8 @@ import {
     Language,
 } from "@idlizer/core";
 import { deepMergeConfig } from "./configMerge";
-import { 
-    defaultIDLVisitorConfiguration, 
+import {
+    defaultIDLVisitorConfiguration,
     IDLVisitorConfiguration
 } from "./IDLVisitorConfig";
 
@@ -171,13 +171,13 @@ export function readConfigFiles(configurationFiles?: string, ignoreDefaultConfig
     let files = ignoreDefaultConfig ? [] : [
         path.join(__dirname, "..", "generation-config", "config.json"),
         path.join(__dirname, "..", "generation-config", "idl-config.json")
-    ] 
+    ]
     if (configurationFiles) files.push(...configurationFiles.split(","))
 
     return files.map(file => [file, parseConfigFile(file)])
 }
 
-export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, ignoreDefaultConfig = false): T {    
+export function parseConfigFiles<T extends object>(defaultConfiguration: T, configurationFiles?: string, ignoreDefaultConfig = false): T {
     const files = readConfigFiles(configurationFiles, ignoreDefaultConfig)
     let result: T = defaultConfiguration
     files.forEach(([file, nextConfiguration]) => {
@@ -194,7 +194,7 @@ export function parseConfigFiles<T extends object>(defaultConfiguration: T, conf
 
 export function loadPeerConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): PeerGeneratorConfiguration {
     let config = parseConfigFiles(defaultPeerGeneratorConfiguration, configurationFiles, ignoreDefaultConfig)
-    config.IDLVisitor.parsePredefinedIDLFiles()
+    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, ".."))
     return config
 }
 

@@ -36,7 +36,7 @@ export interface IDLVisitorConfiguration {
     checkParameterTypeReplacement(parameter: ts.ParameterDeclaration): [idl.IDLType?, idl.IDLEntry?]
     checkTypedefReplacement(typedef: ts.TypeAliasDeclaration): [idl.IDLType?, idl.IDLEntry?]
     checkNameReplacement(name: string, file: ts.SourceFile): string
-    parsePredefinedIDLFiles(): void
+    parsePredefinedIDLFiles(pathBase: string): void
 
     TypeReplacementsFile: idl.IDLFile
 }
@@ -51,7 +51,7 @@ export const defaultIDLVisitorConfiguration: IDLVisitorConfiguration = {
     TypeReplacementsFilePath: "",
 
     TypeReplacementsFile: idl.createFile([]),
-    
+
     isDeletedDeclaration(name: string) {
         return this.DeletedDeclarations.includes(name)
     },
@@ -95,7 +95,7 @@ export const defaultIDLVisitorConfiguration: IDLVisitorConfiguration = {
                 syntheticEntry = findSyntheticDeclaration(this.TypeReplacementsFile, result.type.name)
             }
             console.log(`Replaced type for ${classOrInterfaceName}.${methodName}(...${parameterName}...)`)
-            return [result.type, syntheticEntry]
+            return [idl.maybeOptional(result.type, result.isOptional), syntheticEntry]
         }
 
         return []
@@ -108,6 +108,9 @@ export const defaultIDLVisitorConfiguration: IDLVisitorConfiguration = {
             let syntheticEntry: idl.IDLEntry | undefined
             if (idl.isReferenceType(result.type)) {
                 syntheticEntry = findSyntheticDeclaration(this.TypeReplacementsFile, result.type.name)
+            }
+            if (idl.isUnionType(result.type)) {
+                result.type.name = result.name
             }
             console.log(`Replaced type for typedef ${typename}`)
             return [result.type, syntheticEntry]
@@ -126,9 +129,8 @@ export const defaultIDLVisitorConfiguration: IDLVisitorConfiguration = {
         }
         return name
     },
-    parsePredefinedIDLFiles() {
-        // todo: rethink about relative filePaths
-        const typeReplacementsFile = toIDLFile(path.join(__dirname, "..", this.TypeReplacementsFilePath))
+    parsePredefinedIDLFiles(pathBase: string) {
+        const typeReplacementsFile = toIDLFile(path.resolve(path.join(pathBase, this.TypeReplacementsFilePath)))
         if (typeReplacementsFile) {
             this.TypeReplacementsFile = typeReplacementsFile
         }
