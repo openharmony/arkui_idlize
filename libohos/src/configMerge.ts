@@ -13,63 +13,45 @@
  * limitations under the License.
  */
 
-import { warn } from "@idlizer/core"
-
-export function deepMergeConfig<T extends object>(defaults: T, custom: Partial<T>, parentKeys?: string[]): T {
-    if (custom === undefined)
-        return defaults
-    const result = Object.assign({}, defaults)
-    for (const key in custom) {
-        if (Object.prototype.hasOwnProperty.call(custom, key)) {
-            const defaultValue = result[key]
-            const customValue = custom[key]
-            const keys = parentKeys?.concat(key) ?? [key]
-            if (Array.isArray(defaultValue)) {
-                if (!Array.isArray(customValue))
-                    throw new Error(`Merge ${keys.join(".")}. Expected Array, actual ${customValue}`)
-                Object.assign(result, { [key]: customValue })
-            } else if (defaultValue instanceof Map) {
-                if (typeof customValue === 'object') {
-                    Object.assign(result, { [key]: new Map(Object.entries(customValue as Object)) })
-                } else if (customValue instanceof Map) {
-                    Object.assign(result, { [key]: customValue })
+function mergeJSON(a: unknown, b: unknown): unknown {
+    if (a === undefined && b !== undefined) {
+        return b
+    }
+    if (b === undefined && a !== undefined) {
+        return a
+    }
+    if (Array.isArray(a) && Array.isArray(b)) {
+        return a.concat(b)
+    }
+    if (typeof a === 'object' && typeof b === 'object') {
+        if (a !== null && b !== null) {
+            const aObj = a as any
+            const bObj = b as any
+            const result: any = {}
+            for (const key in a) {
+                if (key in b) {
+                    result[key] = mergeJSON(aObj[key], bObj[key])
                 } else {
-                    throw new Error(`Merge ${keys.join(".")}. Expected Map or Object, actual ${customValue}`)
-                }
-            } else if (typeof defaultValue === 'string') {
-                if (typeof customValue === 'string') {
-                    Object.assign(result, { [key]: customValue })
-                } else if (typeof customValue === 'number') {
-                    Object.assign(result, { [key]: customValue.toString() })
-                } else {
-                    throw new Error(`Merge ${keys.join(".")}. Expected string, actual ${customValue}`)
-                }
-            } else if (typeof defaultValue === 'number') {
-                if (typeof customValue === 'number') {
-                    Object.assign(result, { [key]: customValue })
-                } else {
-                    throw new Error(`Merge ${keys.join(".")}. Expected number, actual ${customValue}`)
-                }
-            } else if (typeof defaultValue === 'object') {
-                if (typeof customValue === 'object') {
-                    Object.assign(result, { [key]: deepMergeConfig(defaultValue as object, customValue as object, keys) })
-                } else {
-                    throw new Error(`Merge ${keys.join(".")}. Expected Object, actual ${customValue}`)
-                }
-            } else if (typeof defaultValue === 'boolean') {
-                if (typeof customValue === 'boolean') {
-                    Object.assign(result, { [key]: customValue })
-                } else {
-                    throw new Error(`Merge ${keys.join(".")}. Expected Boolean, actual ${customValue}`)
-                }
-            } else {
-                if (typeof defaultValue === 'undefined') {
-                    warn(`Merge ${keys.join(".")}. Key ${key} is not found in template. Skip ${key}.`)
-                } else {
-                    throw new Error(`Merge ${keys.join(".")}. Unknown default value type, can not merge`)
+                    result[key] = aObj[key]
                 }
             }
+            for (const key in b) {
+                if (key in a) {
+                    result[key] = mergeJSON(aObj[key], bObj[key])
+                } else {
+                    result[key] = bObj[key]
+                }
+            }
+            return result
         }
+    }
+    return b
+}
+
+export function mergeJSONs(objects: unknown[]): unknown {
+    let result = undefined
+    for (const obj of objects) {
+        result = mergeJSON(result, obj)
     }
     return result
 }

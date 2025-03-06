@@ -1,9 +1,11 @@
 {
+    "$schema": "./schema.json",
     "TypePrefix": "OH_",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",
     "GenerateUnused": false,
     "dumpSerialized": false,
+    "ApiVersion": 9999,
     "ignoreMaterialized": [],
     "forceMaterialized": [
         "BaseContext"

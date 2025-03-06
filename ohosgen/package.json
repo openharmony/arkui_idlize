@@ -46,6 +46,7 @@
     "run:ohos:unit:ts": "npm run compile && node . --use-new-ohos --language=ts --default-idl-package unit --input-dir ./tests/unit/dts,./tests/unit/idl --output-dir ./out/ohos-unit --dts2peer",
     "run:ohos:unit:arkts": "npm run compile && node . --use-new-ohos --language=arkts --default-idl-package unit --input-dir ./tests/unit/dts,./tests/unit/idl --output-dir ./out/ohos-unit --dts2peer",
     "configure:native-node-host-ts-ohos-context": "cd ./native && meson setup -Dsource_set=ohos-context build-node-host-ts-ohos-context",
-    "compile:native-node-host-ts-ohos-context": "npm run configure:native-node-host-ts-ohos-context && cd native && meson compile --verbose -C build-node-host-ts-ohos-context && meson install -C build-node-host-ts-ohos-context"
+    "compile:native-node-host-ts-ohos-context": "npm run configure:native-node-host-ts-ohos-context && cd native && meson compile --verbose -C build-node-host-ts-ohos-context && meson install -C build-node-host-ts-ohos-context",
+    "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json"
   }
 }

@@ -620,10 +620,9 @@ function methodFromTagged(method: idl.IDLMethod): idl.IDLMethod {
     )
 }
 
-function injectPatch(writer: LanguageWriter, key: string, patches: Map<string, Record<string, string>>) {
+function injectPatch(writer: LanguageWriter, key: string, patches: Map<string, Map<string, string>>) {
     if (patches.has(key)) {
-        const row = patches.get(key)!
-        const record = new Map(Object.entries(row))
+        const record = patches.get(key)!
         if (record.has(writer.language.name)) {
             const text = record.get(writer.language.name)!
             text.split('\n').forEach(line => {

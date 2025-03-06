@@ -24,6 +24,7 @@ import {
     NativeModuleType,
     setDefaultConfiguration,
     PeerLibrary,
+    Method,
 } from "@idlizer/core";
 import {
     layout,
@@ -93,7 +94,8 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
         printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated, w => {
             // add method for arkts buffer stubs
             if (peerLibrary.language === Language.ARKTS) {
-                w.writeNativeMethodDeclaration('_AllocateNativeBuffer',
+                w.writeNativeMethodDeclaration(new Method(
+                    '_AllocateNativeBuffer',
                     NamedMethodSignature.make(
                         IDLBufferType,
                         [
@@ -102,7 +104,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
                             { name: 'init', type: IDLUint8ArrayType },
                         ]
                     )
-                )
+                ))
             }
         }).printToString()
     )

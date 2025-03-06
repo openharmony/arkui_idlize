@@ -39,15 +39,9 @@
             "RowOptionsV2"
         ],
         "NameReplacements": {
-            "common.d.ts": [
-                ["LinearGradient", "LinearGradient_common"]
-            ],
-            "alert_dialog.d.ts": [
-                ["TextStyle", "TextStyle_alert_dialog"]
-            ],
-            "styled_string.d.ts" : [
-                ["TextStyle", "TextStyle_styled_string"]
-            ]
+            "common.d.ts": ["LinearGradient", "LinearGradient_common"],
+            "alert_dialog.d.ts": ["TextStyle", "TextStyle_alert_dialog"],
+            "styled_string.d.ts" : ["TextStyle", "TextStyle_styled_string"]
         },
         "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
     }

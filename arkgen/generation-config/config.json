@@ -1,8 +1,10 @@
 {
+    "$schema": "./schema.json",
     "TypePrefix": "Ark_",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",
     "GenerateUnused": false,
+    "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [
         "Attribute",
@@ -261,8 +263,5 @@
             "ArkTS": "// /*TODO: API required*/ if (value) value.builder.buildOptions.controller = this"
         }
     },
-    "CollapseOverloadsARKTS": true,
-    "linter": {
-        "checkReferencesResolved": false
-    }
+    "CollapseOverloadsARKTS": true
 }

@@ -22,13 +22,15 @@ import {
     defaultCompilerOptions,
     Language,
     findVersion,
-    setDefaultConfiguration,
     PeerFile,
     PeerLibrary,
     verifyIDLLinter,
     isDefined,
     scanInputDirs,
     toIDLFile,
+    setDefaultConfiguration,
+    patchDefaultConfiguration,
+    D,
 } from "@idlizer/core"
 import {
     IDLEntry,
@@ -45,15 +47,16 @@ import { IDLVisitor, loadPeerConfiguration,
     IdlWrapperProcessor, fillSyntheticDeclarations,
     formatInputPaths,
     validatePaths,
-    PeerGeneratorConfiguration,
-    defaultPeerGeneratorConfiguration,
+    libohosPredefinedFiles,
+    PeerGeneratorConfigurationType,
+    PeerGeneratorConfigurationSchema,
     peerGeneratorConfiguration,
-    libohosPredefinedFiles
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 
 const options = program
+    .option('--show-config-schema', 'Prints JSON schema for config')
     .option('--dts2test', 'Generate tests from .d.ts to .h')
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--ets2ts', 'Convert .ets to .ts')
@@ -97,20 +100,25 @@ const options = program
     .parse()
     .opts()
 
+
+let didJob = false
+
+if (options.showConfigSchema) {
+    console.log(D.printJSONSchema(PeerGeneratorConfigurationSchema))
+    didJob = true
+}
+
 let apiVersion = options.apiVersion ?? 9999
 Language.ARKTS.extension = options.arktsExtension as string
 
 setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
-if (process.env.npm_package_version) {
+if (process.env.npm_package_version && !options.showConfigSchema) {
     console.log(`IDLize version ${findVersion()}`)
 }
 
-let didJob = false
-
 if (options.dts2skoala) {
-    setDefaultConfiguration<PeerGeneratorConfiguration>({
-        ...defaultPeerGeneratorConfiguration,
+    patchDefaultConfiguration<PeerGeneratorConfigurationType>({
         ApiVersion: apiVersion,
         TypePrefix: "",
         LibraryPrefix: "",

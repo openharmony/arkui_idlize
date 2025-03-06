@@ -13,21 +13,29 @@
  * limitations under the License.
  */
 
-export interface CoreConfiguration {
-    readonly TypePrefix: string
-    readonly LibraryPrefix: string
-    readonly OptionalPrefix: string
+import { D, ConfigTypeInfer } from "./configDescriber"
 
-    readonly rootComponents: string[]
-    readonly standaloneComponents: string[]
-    readonly parameterized: string[]
-    readonly ignoreMaterialized: string[]
-    readonly builderClasses: string[]
-    readonly forceMaterialized: string[]
-    readonly forceCallback: string[]
+const T = {
+    stringArray: () => D.array(D.string())
 }
 
-export const defaultCoreConfuguration: CoreConfiguration = {
+export const CoreConfigurationSchema = D.object({
+    TypePrefix: D.string(),
+    LibraryPrefix: D.string(),
+    OptionalPrefix: D.string(),
+
+    rootComponents: T.stringArray(),
+    standaloneComponents: T.stringArray(),
+    parameterized: T.stringArray(),
+    ignoreMaterialized: T.stringArray(),
+    builderClasses: T.stringArray(),
+    forceMaterialized: T.stringArray(),
+    forceCallback: T.stringArray(),
+})
+
+export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
+
+export const defaultCoreConfiguration: CoreConfiguration = {
     TypePrefix: "",
     LibraryPrefix: "",
     OptionalPrefix: "",
@@ -41,10 +49,14 @@ export const defaultCoreConfuguration: CoreConfiguration = {
     forceCallback: [],
 }
 
-let currentConfig: CoreConfiguration = defaultCoreConfuguration
+let currentConfig: CoreConfiguration = defaultCoreConfiguration
 
 export function setDefaultConfiguration<T extends CoreConfiguration>(config: T): void {
     currentConfig = config
+}
+
+export function patchDefaultConfiguration<T extends CoreConfiguration>(config: Partial<T>): void {
+    currentConfig = Object.assign({}, currentConfig, config)
 }
 
 export function generatorConfiguration<T extends CoreConfiguration>(): T {
@@ -55,5 +67,3 @@ export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.TypePrefix}${conf.LibraryPrefix}`
 }
-
-

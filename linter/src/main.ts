@@ -19,7 +19,7 @@ import * as ts from "typescript"
 
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { CoreConfiguration, defaultCoreConfuguration, findVersion, generate, scanInputDirs, setDefaultConfiguration } from "@idlizer/core"
+import { patchDefaultConfiguration, findVersion, generate, scanInputDirs } from "@idlizer/core"
 
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
@@ -36,25 +36,6 @@ const defaultCompilerOptions: ts.CompilerOptions = {
     module: ts.ModuleKind.CommonJS,
     noLib: true,
     types: []
-}
-
-const defaultLinterConfiguration: CoreConfiguration = {
-    ...defaultCoreConfuguration,
-    rootComponents: [
-        "Root",
-        "ComponentRoot",
-        "CommonMethod",
-        "SecurityComponentMethod",
-        "CommonTransition",
-        "CalendarAttribute",
-        "ContainerSpanAttribute",
-    ],
-    standaloneComponents: [
-        "TextPickerDialog",
-        "TimePickerDialog",
-        "AlertDialog",
-        "CanvasPattern"
-    ]
 }
 
 function processInputOption(option: string | undefined): string[] {
@@ -96,7 +77,23 @@ function validatePaths(paths: string[], type: 'file' | 'dir'): void {
 function main() {
     console.log(`IDLize Linter version ${findVersion()}`)
 
-    setDefaultConfiguration(defaultLinterConfiguration)
+    patchDefaultConfiguration({
+        rootComponents: [
+            "Root",
+            "ComponentRoot",
+            "CommonMethod",
+            "SecurityComponentMethod",
+            "CommonTransition",
+            "CalendarAttribute",
+            "ContainerSpanAttribute",
+        ],
+        standaloneComponents: [
+            "TextPickerDialog",
+            "TimePickerDialog",
+            "AlertDialog",
+            "CanvasPattern"
+        ]
+    })
 
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')

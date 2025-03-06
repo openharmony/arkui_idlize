@@ -27,6 +27,7 @@ import {
     verifyIDLLinter,
     toIDLFile,
     scanInputDirs,
+    D,
 } from "@idlizer/core"
 import {
     isEnum,
@@ -41,11 +42,13 @@ import { IDLVisitor, loadPeerConfiguration,
     formatInputPaths,
     validatePaths,
     libohosPredefinedFiles,
+    PeerGeneratorConfigurationSchema,
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
 
 const options = program
+    .option('--show-config-schema', 'Prints JSON schema for config')
     .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
@@ -81,8 +84,13 @@ options.inputFiles = processInputFiles(options.inputFiles)
 
 setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
-if (process.env.npm_package_version) {
+if (process.env.npm_package_version && !options.showConfigSchema) {
     console.log(`IDLize version ${findVersion()}`)
+}
+
+if (options.showConfigSchema) {
+    console.log(D.printJSONSchema(PeerGeneratorConfigurationSchema))
+    didJob = true
 }
 
 if (options.idl2peer) {
