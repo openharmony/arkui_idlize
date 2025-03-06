@@ -17,7 +17,8 @@ import { Method, NamedMethodSignature } from "../LanguageWriters";
 import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod, PeerLibrary,
     InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
     Language,
-    InteropReturnTypeConvertor
+    InteropReturnTypeConvertor,
+    TypeConvertor
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
@@ -28,7 +29,7 @@ import { makeInteropSignature } from "./NativeModulePrinter";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
-    private readonly interopConvertor: InteropArgConvertor
+    private readonly interopConvertor: TypeConvertor<string>
     private readonly interopRetConvertor: InteropReturnTypeConvertor
 
     constructor(

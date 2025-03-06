@@ -18,6 +18,8 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, InteropReturnTypeConvertor,
     isInIdlizeInterop,
+    TypeConvertor,
+    convertType,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -492,9 +494,9 @@ export function collectPredefinedNativeModuleEntries(library: PeerLibrary, modul
     }
 }
 
-export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: InteropArgConvertor, retConvertor: InteropReturnTypeConvertor): NamedMethodSignature {
+export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: TypeConvertor<string>, retConvertor: InteropReturnTypeConvertor): NamedMethodSignature {
     const maybeReceiver: ({name: string, type: idl.IDLType})[] = method.hasReceiver()
-        ? [{ name: 'ptr', type: idl.createReferenceType('KPointer') }] : []
+        ? [{ name: 'ptr', type: idl.IDLPointerType }] : []
     let serializerArgCreated = false
     method.argAndOutConvertors.forEach(it => {
         if (it.useArray) {
@@ -505,7 +507,7 @@ export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType
         } else {
             maybeReceiver.push({
                 name: `${it.param}`,
-                type: idl.createReferenceType(interopConvertor.convert(it.interopType()))
+                type: idl.createReferenceType(convertType(interopConvertor, it.interopType()))
             })
         }
     })

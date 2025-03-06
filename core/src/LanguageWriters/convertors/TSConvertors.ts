@@ -15,7 +15,7 @@
 
 import * as idl from '../../idl'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { convertNode, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
+import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -193,5 +193,49 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
     protected mapFunctionType(typeArgs: string[]): string {
         return `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
+    }
+}
+
+export class TSInteropArgConvertor implements TypeConvertor<string> {
+    convert(type: idl.IDLType): string {
+        return convertType(this, type)
+    }
+    convertContainer(type: idl.IDLContainerType): string {
+        throw new Error(`Cannot pass container types through interop`)
+    }
+    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+        throw new Error(`Cannot pass import types through interop`)
+    }
+    convertOptional(type: idl.IDLOptionalType): string {
+        return "KNativePointer"
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLI64Type: return "KLong"
+            case idl.IDLU64Type: return "KLong"
+            case idl.IDLI32Type: return "KInt"
+            case idl.IDLF32Type: return "KFloat"
+            case idl.IDLNumberType: return 'number'
+            case idl.IDLBigintType: return 'bigint'
+            case idl.IDLBooleanType:
+            case idl.IDLFunctionType: return 'KInt'
+            case idl.IDLStringType: return 'KStringPtr'
+            case idl.IDLBufferType: return `ArrayBuffer`
+            case idl.IDLLengthType: return 'Length'
+            case idl.IDLDate: return 'number'
+            case idl.IDLUndefinedType:
+            case idl.IDLVoidType:
+            case idl.IDLPointerType: return 'KPointer'
+        }
+        throw new Error(`Cannot pass primitive type ${type.name} through interop`)
+    }
+    convertTypeParameter(type: idl.IDLTypeParameterType): string {
+        throw new Error("Cannot pass type parameters through interop")
+    }
+    convertTypeReference(type: idl.IDLReferenceType): string {
+        throw new Error(`Cannot pass type references through interop`)
+    }
+    convertUnion(type: idl.IDLUnionType): string {
+        throw new Error("Cannot pass union types through interop")
     }
 }

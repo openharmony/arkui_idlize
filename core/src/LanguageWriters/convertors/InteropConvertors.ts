@@ -121,16 +121,16 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLU64Type: return "KLong"
             case idl.IDLI32Type: return "KInt"
             case idl.IDLF32Type: return "KFloat"
-            case idl.IDLNumberType: return 'number' // should be removed! It is KInteropNumber or smth
-            case idl.IDLBigintType: return 'bigint' // should be removed! It is KLong or smth
+            case idl.IDLNumberType: return 'KInteropNumber'
+            case idl.IDLBigintType: return 'KLong'
             case idl.IDLBooleanType:
             case idl.IDLFunctionType: return 'KInt'
             case idl.IDLStringType: return 'KStringPtr'
-            case idl.IDLBufferType: return `ArrayBuffer`
+            case idl.IDLBufferType: return `KInteropBuffer`
             case idl.IDLLengthType: return 'Length'
             case idl.IDLDate: return 'KLong'
             case idl.IDLUndefinedType:
-            case idl.IDLVoidType: return PrimitiveTypesInstance.NativePointer.getText()
+            case idl.IDLVoidType:
             case idl.IDLPointerType: return 'KPointer' // return PrimitiveTypesInstance.NativePointer.getText()
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
