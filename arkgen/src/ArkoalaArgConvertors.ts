@@ -18,6 +18,7 @@ import {
     Language, LanguageExpression, LanguageStatement, LanguageWriter, ExpressionAssigner,
     RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor,
     AggregateConvertor, PeerLibrary,
+    MaterializedClassConvertor,
 } from "@idlizer/core";
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType";
 
@@ -25,22 +26,6 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS)
             return writer.instanceOf(this, value, duplicates)
-
-        // First, tricky special cases
-        if (this.declaration.name.endsWith("GestureInterface")) {
-            const gestureType = this.declaration.name.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
-            return writer.makeNaryOp("===", [
-                writer.makeString(`${castExpr.asString()}.type`),
-                writer.makeString(`GestureName.${gestureType}`)])
-        }
-        if (this.declaration.name === "GestureGroupInterface") {
-            const gestureType = "Group"
-            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
-            return writer.makeNaryOp("===", [
-                writer.makeString(`${castExpr.asString()}.type`),
-                writer.makeString(`GestureName.${gestureType}`)])
-        }
         if (this.declaration.name === "CancelButtonSymbolOptions") {
             if (writer.language === Language.ARKTS) {
                 //TODO: Need to check this in TypeChecker
@@ -128,5 +113,24 @@ export class ArkoalaImportTypeConvertor extends ImportTypeConvertor {
             ? writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
                 [writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)])
             : undefined
+    }
+}
+
+export class ArkoalaMaterializedClassConvertor extends MaterializedClassConvertor {
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (writer.language === Language.ARKTS)
+            return writer.instanceOf(this, value, duplicates)
+        if (this.declaration.name === "GestureGroupInterface" ||
+            this.declaration.name.endsWith("GestureInterface"))
+        {
+            const gestureType = this.declaration.name === "GestureGroupInterface"
+                ? "Group"
+                : this.declaration.name.slice(0, -"GestureInterface".length)
+            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
+            return writer.makeNaryOp("===", [
+                writer.makeString(`${castExpr.asString()}.type`),
+                writer.makeString(`GestureName.${gestureType}`)])
+        }
+        return super.unionDiscriminator(value, index, writer, duplicates)
     }
 }

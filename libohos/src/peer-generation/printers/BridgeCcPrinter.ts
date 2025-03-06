@@ -47,8 +47,7 @@ export class BridgeCcVisitor {
     ) {}
 
     protected generateApiCall(method: PeerMethod, modifierName?: string): string {
-        // TODO: may be need some translation tables?
-        let clazz = modifierName ?? dropSuffix(dropSuffix(dropSuffix(method.originalParentName, "Method"), "Attribute"), "Interface")
+        let clazz = modifierName ?? method.originalParentName
         return `get${capitalize(clazz)}${method.apiKind}()`
     }
 

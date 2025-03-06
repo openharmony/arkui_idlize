@@ -15,6 +15,13 @@
         "DynamicNode"
     ],
     "forceMaterialized": [
+        "TapGestureInterface",
+        "LongPressGestureInterface",
+        "PanGestureInterface",
+        "SwipeGestureInterface",
+        "PinchGestureInterface",
+        "RotationGestureInterface",
+        "GestureGroupInterface",
         "BaseContext"
     ],
     "forceCallback": [],

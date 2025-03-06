@@ -24,9 +24,10 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     JavaLanguageWriter,
     ETSLanguageWriter,
     CJLanguageWriter,
-    CJIDLTypeToForeignStringConvertor
+    CJIDLTypeToForeignStringConvertor,
+    isBuilderClass
 } from "@idlizer/core";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, LengthConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor, LengthConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
     ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
 } from './ArkoalaTypeNameConvertors';
@@ -81,11 +82,16 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         if (declaration) {
             if (isImportAttr(declaration))
                 return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
-            if (idl.isInterface(declaration) &&
-                !isMaterialized(declaration, this) &&
-                declaration.subkind === idl.IDLInterfaceSubkind.Interface)
-            {
-                return new ArkoalaInterfaceConvertor(this, (declaration.name!), param, declaration)
+
+            if (idl.isInterface(declaration)) {
+                if (isMaterialized(declaration, this)) {
+                    return new ArkoalaMaterializedClassConvertor(param, declaration)
+                }
+                if (!isBuilderClass(declaration) &&
+                    declaration.subkind === idl.IDLInterfaceSubkind.Interface)
+                {
+                    return new ArkoalaInterfaceConvertor(this, (declaration.name!), param, declaration)
+                }
             }
         }
         return super.declarationConvertor(param, type, declaration)

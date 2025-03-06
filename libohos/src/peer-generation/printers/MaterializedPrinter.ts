@@ -86,7 +86,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const interfaces: string[] = printer.language == Language.CJ ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
-            interfaces.push(...clazz.interfaces.map(it => `${this.namespacePrefix}${it.name}`))
+            interfaces.push(
+                ...clazz.interfaces.map(it => {
+                    const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
+                    return `${this.namespacePrefix}${it.name}${typeArgs}`
+                }))
         }
 
         // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
