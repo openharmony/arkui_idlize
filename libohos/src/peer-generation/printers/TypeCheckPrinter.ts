@@ -140,23 +140,7 @@ abstract class TypeCheckerPrinter {
         imports.print(this.writer, 'arkts/type_check')
     }
 
-    protected writeIsNativeBuffer(): void {
-        let className = this.library.language == Language.TS ? "ArrayBuffer" : "NativeBuffer"
-        this.writer.writeMethodImplementation(
-            new Method("isNativeBuffer",
-                new NamedMethodSignature(
-                    idl.IDLBooleanType,
-                    [idl.IDLObjectType], ["value"]),
-                    [MethodModifier.STATIC]),
-                       writer => {
-                           writer.writeStatement(
-                                writer.makeReturn(
-                                    writer.makeString(`value instanceof ${className}`),
-                                )
-                            )
-                        })
-    }
-
+    protected abstract writeIsNativeBuffer(): void
     protected abstract writeTypeInstanceOf(): void
     protected abstract writeTypeCast(): void
 
@@ -207,6 +191,22 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     }
 
 
+    protected writeIsNativeBuffer(): void {
+        let className = "NativeBuffer"
+        this.writer.writeMethodImplementation(
+            new Method("isNativeBuffer",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType], ["value"]),
+                    [MethodModifier.STATIC]),
+                       writer => {
+                           writer.writeStatement(
+                                writer.makeReturn(
+                                    writer.makeString(`value instanceof ${className}`),
+                                )
+                            )
+                        })
+    }
 
     private writeInstanceofChecker(typeName: string,
                                    checkerName: string,
@@ -298,6 +298,25 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
             }
         )
     }
+
+    protected writeIsNativeBuffer(): void {
+        let className = "ArrayBuffer"
+        this.writer.writeMethodImplementation(
+            new Method("isNativeBuffer",
+                new NamedMethodSignature(
+                    idl.IDLBooleanType,
+                    [idl.IDLObjectType], ["value"]),
+                    [MethodModifier.STATIC]),
+                       writer => {
+                           writer.writeStatement(
+                                writer.makeReturn(
+                                    writer.makeString(`value instanceof ${className}`),
+                                )
+                            )
+                        })
+    }
+
+
 
     protected writeTypeCast(): void {
         this.writer.writeMethodImplementation(
