@@ -127,7 +127,8 @@ export const defaultIDLVisitorConfiguration: IDLVisitorConfiguration = {
         return name
     },
     parsePredefinedIDLFiles() {
-        const typeReplacementsFile = toIDLFile(path.resolve(this.TypeReplacementsFilePath))
+        // todo: rethink about relative filePaths
+        const typeReplacementsFile = toIDLFile(path.join(__dirname, "..", this.TypeReplacementsFilePath))
         if (typeReplacementsFile) {
             this.TypeReplacementsFile = typeReplacementsFile
         }
