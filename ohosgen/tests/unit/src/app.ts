@@ -1,3 +1,16 @@
+import {
+  // .d.ts
+  CONST_BOOLEAN_FALSE,
+  CONST_BOOLEAN_TRUE,
+  CONST_NUMBER_INT,
+  CONST_NUMBER_FLOAT,
+  // .idl
+  // IDL_CONST_BOOLEAN_FALSE,
+  // IDL_CONST_BOOLEAN_TRUE,
+  // IDL_CONST_NUMBER_INT,
+  // IDL_CONST_NUMBER_FLOAT,
+} from '#compat'
+
 import { and_values } from '#compat'
 import { sum_numbers } from '#compat'
 import {
@@ -9,9 +22,24 @@ import {
 } from '#compat'
 import { OrdinaryEnum, IntEnum, StringEnum } from '#compat'
 
-
 function compareNumbers(v1: number, v2: number): boolean {
   return Math.abs(v2 - v1) < 0.1
+}
+
+function check_constants() {
+  // Fix boolean const type generation
+  // if (CONST_BOOLEAN_FALSE != false)
+  //   throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
+  // if (CONST_BOOLEAN_TRUE != true)
+  //   throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
+
+  if (CONST_NUMBER_INT != 312) {
+    throw new Error(`CONST_NUMBER_INT is not 312!`)
+  }
+  // Fix float const value
+  // if (CONST_NUMBER_FLOAT != 312.415) {
+  //   throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
+  // }
 }
 
 function check_booleans() {
@@ -118,6 +146,7 @@ function checkClassWithComplexPropertyType() {
 export function run() {
   console.log("Run common unit tests")
 
+  check_constants()
   check_booleans()
   checkNumber()
   checkForceCallback()

@@ -1,6 +1,20 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 
+export {
+    // .d.ts
+    CONST_BOOLEAN_FALSE,
+    CONST_BOOLEAN_TRUE,
+    CONST_NUMBER_INT,
+    CONST_NUMBER_FLOAT,
+    // .idl
+    // IDL_CONST_BOOLEAN_FALSE,
+    // IDL_CONST_BOOLEAN_TRUE,
+    // IDL_CONST_NUMBER_INT,
+    // IDL_CONST_NUMBER_FLOAT,
+
+} from "../../generated/ts"
+
 export { and_values } from "../../generated/ts"
 export { sum_numbers } from "../../generated/ts"
 export { test_buffer } from "../../generated/ts"
