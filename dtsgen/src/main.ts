@@ -29,6 +29,7 @@ import {
     verifyIDLLinter,
     PeerLibrary,
     PeerFile,
+    scanInputDirs,
 } from "@idlizer/core"
 import {
     IDLFile,
@@ -68,14 +69,20 @@ if (process.env.npm_package_version) {
 
 let didJob = false
 
+const { inputFiles, inputDirs } = formatInputPaths(options)
+validatePaths(inputDirs, "dir")
+validatePaths(inputFiles, "file")
+
+options.docs = "all"
+const dtsInputFiles = scanInputDirs(inputDirs).concat(inputFiles)
+
 if (options.dts2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
     const idlLibrary = new PeerLibrary(Language.TS, [])
     generate(
-        inputDirs,
-        inputFiles,
+        dtsInputFiles,
         options.outputDir ?? "./idl",
         (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options),
         {
@@ -106,7 +113,7 @@ if (options.dts2idl) {
                 }
                 idlLibrary.files.push(new PeerFile(file))
             },
-            onEnd(outDir) {
+            onEnd(outDir: string) {
                 if (options.verifyIdl) {
                     idlLibrary.files.forEach(file => {
                         verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)

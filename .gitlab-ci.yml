@@ -20,3 +20,4 @@ include:
     - arkgen/.gitlab-ci.yml
     - ohosgen/.gitlab-ci.yml
     - libarkts-gen/.gitlab-ci.yml
+    - dtsgen/.gitlab-ci.yml
