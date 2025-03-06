@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/dtsgen",
-  "version": "2.0.40+devel",
+  "version": "2.0.42+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -11,8 +11,8 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.0.40+devel",
-    "@idlizer/libohos": "2.0.40+devel",
+    "@idlizer/core": "2.0.42+devel",
+    "@idlizer/libohos": "2.0.42+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "@rollup/plugin-commonjs": "^26.0.1",
