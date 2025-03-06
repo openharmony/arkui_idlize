@@ -20,7 +20,7 @@ import { capitalize } from "../../util"
 export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
     if (idl.isPrimitiveType(type)) return capitalize(type.name)
     if (idl.isContainerType(type)) {
-        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_")
+        const typeArgs = type.elementType.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")
         switch (type.containerKind) {
             case "sequence": return "Array_" + typeArgs
             case "record": return "Map_" + typeArgs
@@ -64,7 +64,7 @@ export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, re
 }
 
 export function generateSyntheticUnionName(types: idl.IDLType[]) {
-    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_")}`
+    return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")}`
 }
 
 export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {

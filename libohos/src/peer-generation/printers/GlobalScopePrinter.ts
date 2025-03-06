@@ -23,6 +23,7 @@ import { writePeerMethod } from "./PeersPrinter"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
+import { importTypeChecker } from "./TypeCheckPrinter"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
@@ -161,6 +162,7 @@ function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
     if (library.language === idl.Language.ARKTS) {
         collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         collector.addFeatures(['Deserializer'], './peers/Deserializer')
+        importTypeChecker(library, collector)
     }
     if (library.language === idl.Language.TS) {
         collector.addFeature('isInstanceOf', '@koalaui/interop')

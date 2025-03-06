@@ -237,3 +237,10 @@ OH_Number ClassWithPrimitivePropertyType_getCounterImpl(OH_NativePointer thisPtr
 void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
     reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c = *value;
 }
+
+OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNamespace_MyEnum2* a) {
+    return {};
+}
+OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyInterface* a) {
+    return {};
+}
