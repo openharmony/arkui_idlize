@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { IDLFile, createFile, IDLEntity, capitalize, isInterface } from "@idlizer/core"
+import { createFile, IDLFile, isInterface } from "@idlizer/core"
 import { dropNamespace, nodeNamespace } from "../../utils/idl"
-import { Transformer } from "../Transformer";
+import { Transformer } from "../Transformer"
 
 export class MultipleDeclarationFilterTransformer implements Transformer {
     constructor(

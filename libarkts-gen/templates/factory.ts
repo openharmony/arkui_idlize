@@ -13,14 +13,20 @@
  * limitations under the License.
  */
 
-export class CachedLogger {
-    private static logs = new Set<string>()
+import {
+    global,
+    passNode,
+    passNodeArray,
+    unpackNonNullableNode,
+    unpackNode,
+    unpackNodeArray,
+    assertValidPeer,
+    AstNode,
+    Es2pandaAstNodeType,
+    KNativePointer,
+    nodeByType,
+    ArktsObject,
+    unpackString
+} from "../reexport-for-generated"
 
-    static warn(message: string): void {
-        if (CachedLogger.logs.has(message)) {
-            return
-        }
-        CachedLogger.logs.add(message)
-        console.warn(`Warning: ${message}`)
-    }
-}
+%GENERATED_PART%

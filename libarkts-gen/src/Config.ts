@@ -61,6 +61,10 @@ export class Config {
         return true
     }
 
+    static isCreate(name: string): boolean {
+        return Config.isCreateOrUpdate(name) && name.startsWith(Config.createPrefix)
+    }
+
     static isCreateOrUpdate(sourceMethodName: string): boolean {
         if (!sourceMethodName.startsWith(Config.createPrefix) && !sourceMethodName.startsWith(Config.updatePrefix)) {
             return false

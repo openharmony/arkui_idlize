@@ -47,14 +47,14 @@ import {
     nodeNamespace,
     nodeType,
     parent,
-    signatureTypes,
-    Typechecker
+    signatureTypes
 } from "../../utils/idl"
 import { PeersConstructions } from "./PeersConstructions"
-import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
+import { TopLevelTypeConvertor } from "../../convertors/TopLevelTypeConvertor"
 import { isAbstract, isDataClass, isGetter, isReal, isRegular, mangleIfKeyword, peerMethod } from "../../utils/common"
 import { PeerImporter } from "./PeerImporter"
-import { InteropConstructions } from "../interop/InteropConstructions";
+import { InteropConstructions } from "../interop/InteropConstructions"
+import { Typechecker } from "../../utils/Typechecker"
 
 export class PeerPrinter {
     constructor(
@@ -74,7 +74,7 @@ export class PeerPrinter {
         { convert: (node: IDLType) => convertType(this.convertor, node) }
     )
 
-    private importer = new PeerImporter(this.node.name)
+    private importer = new PeerImporter(`.`, this.node.name)
 
     print(): string {
         this.visit()

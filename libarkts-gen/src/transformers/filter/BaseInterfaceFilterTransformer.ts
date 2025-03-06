@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { createUpdatedInterface, innerTypeIfContainer, Typechecker } from "../../utils/idl"
+import { createUpdatedInterface, innerTypeIfContainer } from "../../utils/idl"
 import { createFile, IDLFile, IDLMethod, isInterface, isReferenceType } from "@idlizer/core"
-import { Transformer } from "../Transformer";
+import { Transformer } from "../Transformer"
+import { Typechecker } from "../../utils/Typechecker"
 
 export abstract class BaseInterfaceFilterTransformer implements Transformer {
     constructor(

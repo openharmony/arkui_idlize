@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { isSequence, isString, Typechecker } from "../../../utils/idl"
-import { NativeTypeConvertor } from "./NativeTypeConvertor"
+import { innerType, isSequence, isString } from "../../../utils/idl"
+import { NativeTypeConvertor } from "../../../convertors/NativeTypeConvertor"
 import {
     convertType,
     IDLFile, IDLContainerType, IDLKind, IDLParameter, IDLPointerType, IDLReferenceType, IDLType,
@@ -25,8 +25,8 @@ import {
     throwException
 } from "@idlizer/core"
 import { BridgesConstructions } from "./BridgesConstructions"
-import { CachedLogger } from "../../../CachedLogger"
 import { Config } from "../../../Config"
+import { Typechecker } from "../../../utils/Typechecker"
 
 export class NativeTypeMapper {
     constructor(
@@ -57,17 +57,15 @@ export class NativeTypeMapper {
 
     private castToContainer(node: IDLContainerType): string {
         if (!isSequence(node)) {
-            throwException(`Unexpected container type: ${IDLKind[node.kind]}`)
+            throwException(`Unsupported container type: ${IDLKind[node.kind]}`)
         }
-        const inner = node.elementType[0]
+        const inner = innerType(node)
         if (isReferenceType(inner)) {
             return BridgesConstructions.arrayOf(
                 this.castToReference(inner)
             )
         }
-
-        CachedLogger.warn(`doing nothing for sequence of: ${IDLKind[inner.kind]}`)
-        return ``
+        throwException(`Unsupported container inner type: ${IDLKind[inner.kind]}`)
     }
 
     private castToReference(node: IDLReferenceType): string {

@@ -20,20 +20,17 @@ import {
     createMethod,
     IDLContainerType,
     IDLContainerUtils,
-    IDLEntry,
     IDLExtendedAttribute,
     IDLInterface,
     IDLMethod,
-    IDLNode,
     IDLParameter,
     IDLPrimitiveType,
+    IDLProperty,
     IDLReferenceType,
     IDLType,
-    IndentedPrinter, isContainerType,
-    isEnum,
-    isInterface,
+    IndentedPrinter,
+    isContainerType,
     isPrimitiveType,
-    isReferenceType,
     Method,
     MethodModifier,
     MethodSignature,
@@ -41,7 +38,7 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "../Config"
-import { mangleIfKeyword } from "./common";
+import { mangleIfKeyword } from "./common"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
@@ -56,7 +53,8 @@ export function createUpdatedInterface(
     methods?: IDLMethod[],
     name?: string,
     inheritance?: IDLReferenceType[],
-    extendedAttributes?: IDLExtendedAttribute[]
+    extendedAttributes?: IDLExtendedAttribute[],
+    properties?: IDLProperty[]
 ): IDLInterface {
     return createInterface(
         name ?? node.name,
@@ -64,7 +62,7 @@ export function createUpdatedInterface(
         inheritance ?? node.inheritance,
         node.constructors,
         node.constants,
-        node.properties,
+        properties ?? node.properties,
         methods ?? node.methods,
         node.callables,
         node.typeParameters,
@@ -100,61 +98,6 @@ export function createUpdatedMethod(
         },
         node.typeParameters
     )
-}
-
-export class Typechecker {
-    constructor(private idl: IDLEntry[]) {}
-
-    findRealDeclaration(name: string): IDLEntry | undefined {
-        const declarations = this.idl.filter(it => name === it.name)
-        if (declarations.length === 1) {
-            return declarations[0]
-        }
-        const ir = declarations
-            .filter(isInterface)
-            .filter(it => isIrNamespace(it))
-        if (ir.length === 1) {
-            return ir[0]
-        }
-        return undefined
-    }
-
-    isHeir(name: string, ancestor: string): boolean {
-        if (name === ancestor) {
-            return true
-        }
-        const declaration = this.findRealDeclaration(name)
-        if (declaration === undefined || !isInterface(declaration)) {
-            return false
-        }
-        const parent = declaration.inheritance[0]
-        if (parent === undefined) {
-            return declaration.name === ancestor
-        }
-        return this.isHeir(parent.name, ancestor)
-    }
-
-    isPeer(node: string): boolean {
-        if (node === Config.astNodeCommonAncestor) return false // TODO: is handwritten
-        if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
-        if (this.isHeir(node, Config.defaultAncestor)) return true
-        return false
-    }
-
-    isReferenceTo(type: IDLType, isTarget: (type: IDLNode) => boolean): boolean  {
-        if (!isReferenceType(type)) {
-            return false
-        }
-        const declaration = this.findRealDeclaration(type.name)
-        return declaration !== undefined && isTarget(declaration)
-    }
-
-    isConstReturnValue(node: IDLMethod): boolean {
-        if (isPrimitiveType(node.returnType) || this.isReferenceTo(node.returnType, isEnum)) {
-            return false
-        }
-        return node.name.endsWith(Config.constPostfix)
-    }
 }
 
 export function nodeType(node: IDLInterface): string | undefined {
@@ -225,16 +168,20 @@ export function makeMethod(
 ): Method {
     return new Method(
         name,
-        new MethodSignature(
-            returnType,
-            parameters
-                .map(it => it.type),
-            undefined,
-            undefined,
-            parameters
-                .map(it => it.name)
-                .map(mangleIfKeyword)
-        ),
+        makeSignature(parameters, returnType),
         modifiers ?? []
+    )
+}
+
+export function makeSignature(parameters: { name: string, type: IDLType }[], returnType: IDLType): MethodSignature {
+    return new MethodSignature(
+        returnType,
+        parameters
+            .map(it => it.type),
+        undefined,
+        undefined,
+        parameters
+            .map(it => it.name)
+            .map(mangleIfKeyword)
     )
 }

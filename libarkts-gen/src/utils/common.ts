@@ -109,3 +109,7 @@ export function withInserted<T>(array: T[], index: number, value: T): T[] {
         ...array.slice(index)
     ]
 }
+
+export function remove<T>(array: T[], value: T): void {
+    array.splice(array.findIndex(it => it === value), 1)
+}

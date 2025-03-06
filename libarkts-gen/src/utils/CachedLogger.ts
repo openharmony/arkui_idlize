@@ -13,17 +13,3 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../utils/Typechecker"
-import { IDLFile } from "@idlizer/core"
-
-export type Result = { fileName: string, output: string }
-
-export abstract class MultiFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-
-    abstract print(): Result[]
-}

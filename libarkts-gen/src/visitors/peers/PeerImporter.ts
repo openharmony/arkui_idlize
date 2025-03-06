@@ -16,10 +16,13 @@
 import { createDefaultTypescriptWriter } from "../../utils/idl"
 import { Config } from "../../Config"
 import { PeersConstructions } from "./PeersConstructions"
+import * as path from "node:path"
 
 export class PeerImporter {
-    constructor(self: string) {
-        this.seen.add(self)
+    constructor(private dir: string, self?: string) {
+        if (self !== undefined) {
+            this.seen.add(self)
+        }
     }
 
     private writer = createDefaultTypescriptWriter()
@@ -35,12 +38,7 @@ export class PeerImporter {
             return it
         }
         this.seen.add(it)
-
-        this.writer.writeExpressionStatement(
-            this.writer.makeString(
-                PeersConstructions.import(it, it)
-            )
-        )
+        this.import(it, it)
         return it
     }
 
@@ -49,13 +47,19 @@ export class PeerImporter {
             return it
         }
         this.seen.add(it)
+        this.import(it, `../Es2pandaEnums`)
+        return it
+    }
 
+    private import(name: string, from: string): void {
         this.writer.writeExpressionStatement(
             this.writer.makeString(
-                PeersConstructions.importEnum(it)
+                PeersConstructions.import(
+                    name,
+                    path.join(this.dir, from)
+                )
             )
         )
-        return it
     }
 
     getOutput(): string[] {

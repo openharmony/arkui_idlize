@@ -1,0 +1,96 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import {
+    convertType,
+    createEmptyReferenceResolver,
+    createReferenceType,
+    IDLInterface,
+    IDLType,
+    IndentedPrinter,
+    isEnum,
+    isInterface,
+    isReferenceType,
+    TSLanguageWriter
+} from "@idlizer/core"
+import { SingleFilePrinter } from "../SingleFilePrinter"
+import { TopLevelTypeConvertor } from "../../convertors/TopLevelTypeConvertor"
+import { PeerImporter } from "./PeerImporter"
+import { innerTypeIfContainer, makeSignature } from "../../utils/idl"
+import { mangleIfKeyword } from "../../utils/common"
+import { PeersConstructions } from "./PeersConstructions"
+
+export class FactoryPrinter extends SingleFilePrinter {
+    private convertor = new TopLevelTypeConvertor(this.idl.entries)
+
+    protected writer = new TSLanguageWriter(
+        new IndentedPrinter(),
+        createEmptyReferenceResolver(),
+        { convert: (node: IDLType) => convertType(this.convertor, node) }
+    )
+
+    protected importer = new PeerImporter(`peers`)
+
+    visit(): void {
+        this.idl.entries
+            .filter(isInterface)
+            .filter(it => this.typechecker.isPeer(it.name))
+            .forEach(this.printInterface, this)
+    }
+
+    private printInterface(node: IDLInterface): void {
+        if (node.properties.length === 0) {
+            return
+        }
+        this.printCreate(node)
+    }
+
+    private printCreate(node: IDLInterface): void {
+        this.makeImports(node)
+        this.writer.writeFunctionImplementation(
+            PeersConstructions.universalCreate(node.name),
+            makeSignature(
+                node.properties,
+                createReferenceType(node.name)
+            ),
+            () => this.writer.writeStatement(
+                this.writer.makeReturn(
+                    this.writer.makeFunctionCall(
+                        PeersConstructions.callUniversalCreate(node.name),
+                        node.properties
+                            .map(it => it.name)
+                            .map(mangleIfKeyword)
+                            .map(it => this.writer.makeString(it))
+                    )
+                )
+            )
+        )
+    }
+
+    private makeImports(node: IDLInterface): void {
+        this.importer.withPeerImport(node.name)
+        node.properties
+            .map(it => it.type)
+            .map(innerTypeIfContainer)
+            .forEach(it => {
+                if (isReferenceType(it)) {
+                    if (this.typechecker.isReferenceTo(it, isEnum)) {
+                        return this.importer.withEnumImport(it.name)
+                    }
+                    this.importer.withPeerImport(it.name)
+                }
+            })
+    }
+}

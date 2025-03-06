@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../utils/idl"
+import { Typechecker } from "../utils/Typechecker"
 import { IDLFile } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core"
+import { PeerImporter } from "./peers/PeerImporter";
 
 export abstract class SingleFilePrinter {
     constructor(
@@ -23,11 +24,18 @@ export abstract class SingleFilePrinter {
     ) { }
 
     protected typechecker = new Typechecker(this.idl.entries)
+    protected importer?: PeerImporter
     protected abstract writer: LanguageWriter
 
     print(): string {
         this.visit()
-        return this.writer.getOutput().join(`\n`)
+        return [
+            this.importer?.getOutput() ?? [],
+            this.writer.getOutput()
+        ]
+            .flat()
+            .join(`\n`)
+
     }
 
     abstract visit(): void

@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-import { isSequence, Typechecker } from "../../../utils/idl"
+import { isSequence } from "../../../utils/idl"
+import { Typechecker } from "../../../utils/Typechecker"
 import { IDLFile, convertType, IDLPointerType, IDLType } from "@idlizer/core"
-import { BindingsTypeConvertor } from "./BindingsTypeConvertor"
+import { BindingsTypeConvertor } from "../../../convertors/BindingsTypeConvertor"
 
 export class BindingsTypeMapper {
     constructor(

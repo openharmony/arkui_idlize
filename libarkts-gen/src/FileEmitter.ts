@@ -29,11 +29,12 @@ import { AllPeersPrinter } from "./visitors/peers/AllPeersPrinter"
 import { NodeMapPrinter } from "./visitors/peers/NodeMapPrinter"
 import { IndexPrinter } from "./visitors/peers/IndexPrinter"
 import { TwinMergeTransformer } from "./transformers/TwinMergeTransformer"
-import { ParameterTransformer } from "./transformers/ParameterTransformer";
-import { ConstMergeTransformer } from "./transformers/ConstMergeTransformer";
-import { VerifyVisitor } from "./visitors/VerifyVisitor";
-import { AddContextTransformer } from "./transformers/AddContextTransformer";
-import { Transformer } from "./transformers/Transformer";
+import { ParameterTransformer } from "./transformers/ParameterTransformer"
+import { ConstMergeTransformer } from "./transformers/ConstMergeTransformer"
+import { AddContextTransformer } from "./transformers/AddContextTransformer"
+import { Transformer } from "./transformers/Transformer"
+import { AttributeTransformer } from "./transformers/AttributeTransformer"
+import { FactoryPrinter } from "./visitors/peers/FactoryPrinter"
 
 class SingleFileEmitter {
     constructor(
@@ -107,6 +108,13 @@ export class FileEmitter {
         true
     )
 
+    private factoryPrinter = new SingleFileEmitter(
+        (idl: IDLFile) => new FactoryPrinter(idl).print(),
+        `libarkts/src/generated/factory.ts`,
+        `factory.ts`,
+        true
+    )
+
     print(): void {
         let idl = this.file
         idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
@@ -115,7 +123,7 @@ export class FileEmitter {
         idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
         this.printFile(this.enumsPrinter, idl)
         idl = this.withLog(new AstNodeFilterTransformer(idl))
-        idl = this.withLog(new ParameterTransformer(idl),)
+        idl = this.withLog(new ParameterTransformer(idl))
         this.printPeers(idl)
         this.printInterop(idl)
     }
@@ -124,6 +132,12 @@ export class FileEmitter {
         idl = this.withLog(new ConstMergeTransformer(idl))
         this.printFile(this.indexPrinter, idl)
         this.printFiles(this.peersPrinter, idl)
+        this.printFactory(idl)
+    }
+
+    private printFactory(idl: IDLFile): void {
+        idl = this.withLog(new AttributeTransformer(idl))
+        this.printFile(this.factoryPrinter, idl)
     }
 
     private printInterop(idl: IDLFile): void {

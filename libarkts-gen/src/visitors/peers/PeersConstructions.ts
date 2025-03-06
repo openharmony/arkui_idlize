@@ -15,8 +15,8 @@
 
 import { BindingsConstructions } from "../interop/bindings/BindingsConstructions"
 import { InteropConstructions } from "../interop/InteropConstructions"
-import { peerMethod } from "../../utils/common";
-import { createReferenceType } from "@idlizer/core";
+import { peerMethod } from "../../utils/common"
+import { createReferenceType } from "@idlizer/core"
 
 export class PeersConstructions {
     static fileName(node: string): string {
@@ -105,11 +105,15 @@ export class PeersConstructions {
         return `import { ${what} } from "./${from}"`
     }
 
-    static importEnum(what: string): string {
-        return PeersConstructions.import(what, `../Es2pandaEnums`)
-    }
-
     static createOrUpdate(iface: string, method: string): string {
         return peerMethod(`${method}${iface}`)
+    }
+
+    static universalCreate(iface: string): string {
+        return peerMethod(`create${iface}`)
+    }
+
+    static callUniversalCreate(iface: string): string {
+        return `${iface}.${PeersConstructions.universalCreate(iface)}`
     }
 }
