@@ -1,9 +1,7 @@
 import { test_buffer } from '#compat'
 
 // Panda specific code
-export function runPanda() {
-  console.log("Run ArkTS specific unit tests")
-
+function checkNativeBuffer() {
   let rlt: test_buffer.TestValue = test_buffer.getBuffer();
   console.log(rlt.errorCode);
 
@@ -19,5 +17,10 @@ export function runPanda() {
     console.log(`buffer elem[${i}]: ${buffer.readByte(i)}`)
     console.log()
   }
+}
+export function runPanda() {
+  console.log("Run ArkTS specific unit tests")
+
+  checkNativeBuffer()
 }
 
