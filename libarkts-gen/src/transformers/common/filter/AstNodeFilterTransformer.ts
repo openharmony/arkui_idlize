@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
-import { IDLFile } from "@idlizer/core"
+import { Config } from "../../../Config"
+import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
 
-export type Result = { fileName: string, output: string }
+export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
+    protected shouldFilterOutInterface(name: string): boolean {
+        if (this.typechecker.isHeir(name, Config.astNodeCommonAncestor)) return false
+        if (this.typechecker.isHeir(name, Config.defaultAncestor)) return false
+        return true
+    }
 
-export abstract class MultiFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-
-    abstract print(): Result[]
+    protected shouldFilterOutMethod(node: string, name: string): boolean {
+        return false
+    }
 }

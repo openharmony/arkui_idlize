@@ -1,0 +1,48 @@
+{
+    "ignore": {
+        "interfaces": {
+            "es2panda_Impl": [
+                "*"
+            ],
+            "es2panda_SourcePosition": [ // until idl is fixed
+                "*"
+            ],
+            "es2panda_LabelPair": [
+                "*"
+            ],
+            "Signature": [
+                "ProtectionFlagConst", // u8
+            ],
+            "ETSReExportDeclaration": [
+                "Create", // sequence<String>
+                "Update", // sequence<String>
+                "GetUserPathsConst" // sequence<String>
+            ],
+            "CharLiteral": [
+                "Create1", // KShort,
+                "Update1", // KShort
+                "CharConst", // KShort
+            ],
+            "ForUpdateStatement": [ // forbidden naming
+                "Update"
+            ],
+            "CallExpression": [
+                "Update" // differs from handwritten
+            ],
+            "TryStatement": [
+                "AddFinalizerInsertion" // idl missing const
+            ],
+        }
+    },
+    nonNullable: [
+        {
+            name : "FunctionDeclaration",
+            methods: [
+                {
+                    name: "function",
+                    types: ["returnType"]
+                }
+            ]
+        }
+    ]
+}

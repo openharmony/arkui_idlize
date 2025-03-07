@@ -13,17 +13,21 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
-import { IDLFile } from "@idlizer/core"
+export function withInserted<T>(array: T[], index: number, value: T): T[] {
+    return [
+        ...array.slice(0, index),
+        value,
+        ...array.slice(index)
+    ]
+}
 
-export type Result = { fileName: string, output: string }
+export function remove<T>(array: T[], value: T): void {
+    array.splice(array.findIndex(it => it === value), 1)
+}
 
-export abstract class MultiFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-
-    abstract print(): Result[]
+export function reversed<T>(array: T[]): T[] {
+    return array.reduce(
+        (a, b) => [b].concat(a),
+        [] as T[]
+    )
 }

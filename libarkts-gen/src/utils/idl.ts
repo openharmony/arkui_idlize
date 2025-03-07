@@ -38,7 +38,7 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { Config } from "../Config"
-import { mangleIfKeyword } from "./common"
+import { mangleIfKeyword } from "../general/common"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
@@ -174,10 +174,10 @@ export function makeMethod(
 }
 
 export function makeSignature(parameters: { name: string, type: IDLType }[], returnType: IDLType): MethodSignature {
+
     return new MethodSignature(
         returnType,
-        parameters
-            .map(it => it.type),
+        parameters.map(it => it.type),
         undefined,
         undefined,
         parameters

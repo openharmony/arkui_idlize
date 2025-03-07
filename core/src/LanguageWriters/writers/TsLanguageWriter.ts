@@ -41,9 +41,10 @@ import {
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
-import { throwException } from "../../util";
+import { rightmostIndexOf, throwException } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSKeywords } from '../../languageSpecificKeywords';
+import { isOptionalType } from "../../idl"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -211,9 +212,11 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print('}')
     }
     private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
-        const args = signature.args.map((it, index) =>
-            `${signature.argName(index)}${idl.isOptionalType(it) ? '?' : ''}: ${this.getNodeName(it)}`
-        )
+        const rightmostRegularParameterIndex = rightmostIndexOf(signature.args, it => !isOptionalType(it))
+        const args = signature.args.map((it, index) => {
+            const optionalToken = idl.isOptionalType(it) && index > rightmostRegularParameterIndex ? '?' : ''
+            return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it)}`
+        })
         const returnType = this.getNodeName(signature.returnType)
         return `export function ${name}(${args.join(", ")}): ${returnType}`
     }

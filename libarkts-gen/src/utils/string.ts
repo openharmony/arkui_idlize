@@ -13,17 +13,20 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
-import { IDLFile } from "@idlizer/core"
+export function pascalToCamel(value: string): string {
+    return value.charAt(0).toLowerCase() + value.slice(1);
+}
 
-export type Result = { fileName: string, output: string }
+export function dropPostfix(value: string, toDrop: string): string {
+    if (value.endsWith(toDrop)) {
+        return value.slice(0, -toDrop.length)
+    }
+    return value
+}
 
-export abstract class MultiFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-
-    abstract print(): Result[]
+export function dropPrefix(value: string, toDrop: string): string {
+    if (value.startsWith(toDrop)) {
+        return value.slice(toDrop.length)
+    }
+    return value
 }

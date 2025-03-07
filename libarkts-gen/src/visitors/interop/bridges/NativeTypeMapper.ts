@@ -14,7 +14,7 @@
  */
 
 import { innerType, isSequence, isString } from "../../../utils/idl"
-import { NativeTypeConvertor } from "../../../convertors/NativeTypeConvertor"
+import { NativeTypeConvertor } from "../../../type-convertors/interop/NativeTypeConvertor"
 import {
     convertType,
     IDLFile, IDLContainerType, IDLKind, IDLParameter, IDLPointerType, IDLReferenceType, IDLType,
@@ -26,15 +26,15 @@ import {
 } from "@idlizer/core"
 import { BridgesConstructions } from "./BridgesConstructions"
 import { Config } from "../../../Config"
-import { Typechecker } from "../../../utils/Typechecker"
+import { Typechecker } from "../../../general/Typechecker"
 
 export class NativeTypeMapper {
     constructor(
         private idl: IDLFile
     ) {}
 
-    private convertor = new NativeTypeConvertor(this.idl.entries)
     typechecker = new Typechecker(this.idl.entries)
+    private convertor = new NativeTypeConvertor(this.typechecker)
 
     cast(node: IDLParameter): string {
         if (isPrimitiveType(node.type)) {
@@ -44,7 +44,7 @@ export class NativeTypeMapper {
             return BridgesConstructions.primitiveTypeCast(this.toString(node.type))
         }
         if (isReferenceType(node.type)) {
-            if (this.convertor.typechecker.isReferenceTo(node.type, isEnum)) {
+            if (this.typechecker.isReferenceTo(node.type, isEnum)) {
                 return BridgesConstructions.enumCast(node.type.name)
             }
             return BridgesConstructions.referenceTypeCast(this.castToReference(node.type))
@@ -69,7 +69,7 @@ export class NativeTypeMapper {
     }
 
     private castToReference(node: IDLReferenceType): string {
-        if (this.convertor.typechecker.isHeir(node.name, Config.astNodeCommonAncestor)) {
+        if (this.typechecker.isHeir(node.name, Config.astNodeCommonAncestor)) {
             return BridgesConstructions.referenceType(Config.astNodeCommonAncestor)
         }
         return BridgesConstructions.referenceType(node.name)

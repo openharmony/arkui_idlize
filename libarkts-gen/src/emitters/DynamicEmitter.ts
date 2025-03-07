@@ -16,25 +16,26 @@
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
-import { BridgesPrinter } from "../visitors/interop/bridges/BridgesPrinter"
-import { BindingsPrinter } from "../visitors/interop/bindings/BindingsPrinter"
-import { EnumsPrinter } from "../visitors/enums/EnumsPrinter"
-import { Config } from "../Config"
-import { InteropTransformer } from "../transformers/InteropTransformer"
-import { AstNodeFilterTransformer } from "../transformers/filter/AstNodeFilterTransformer"
-import { OptionsFilterTransformer } from "../transformers/filter/OptionsFilterTransformer"
-import { MultipleDeclarationFilterTransformer } from "../transformers/filter/MultipleDeclarationFilterTransformer"
 import { Result } from "../visitors/MultiFilePrinter"
-import { AllPeersPrinter } from "../visitors/peers/AllPeersPrinter"
-import { NodeMapPrinter } from "../visitors/peers/NodeMapPrinter"
-import { IndexPrinter } from "../visitors/peers/IndexPrinter"
-import { TwinMergeTransformer } from "../transformers/TwinMergeTransformer"
-import { ParameterTransformer } from "../transformers/ParameterTransformer"
-import { ConstMergeTransformer } from "../transformers/ConstMergeTransformer"
-import { AddContextTransformer } from "../transformers/AddContextTransformer"
+import { Config } from "../Config"
+import { BridgesPrinter } from "../visitors/interop/bridges/BridgesPrinter"
+import { EnumsPrinter } from "../visitors/enums/EnumsPrinter"
+import { IndexPrinter } from "../visitors/library/IndexPrinter"
+import { NodeMapPrinter } from "../visitors/library/NodeMapPrinter"
+import { BindingsPrinter } from "../visitors/interop/bindings/BindingsPrinter"
+import { AllPeersPrinter } from "../visitors/library/AllPeersPrinter"
+import { FactoryPrinter } from "../visitors/library/factory/FactoryPrinter"
+import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
+import { AddContextDeclarationTransformer } from "../transformers/common/AddContextDeclarationTransformer"
+import { MultipleDeclarationFilterTransformer } from "../transformers/common/filter/MultipleDeclarationFilterTransformer"
+import { ParameterTransformer } from "../transformers/common/ParameterTransformer"
+import { TwinMergeTransformer } from "../transformers/common/TwinMergeTransformer"
+import { AstNodeFilterTransformer } from "../transformers/common/filter/AstNodeFilterTransformer"
+import { NullabilityTransformer } from "../transformers/peers/NullabilityTransformer"
+import { AttributeTransformer } from "../transformers/peers/factory/AttributeTransformer"
+import { InteropTransformer } from "../transformers/interop/InteropTransformer"
+import { ConstMergeTransformer } from "../transformers/peers/ConstMergeTransformer"
 import { Transformer } from "../transformers/Transformer"
-import { FactoryPrinter } from "../visitors/peers/FactoryPrinter"
-import { AttributeTransformer } from "../transformers/AttributeTransformer"
 
 class SingleFileEmitter {
     constructor(
@@ -116,12 +117,13 @@ export class DynamicEmitter {
     )
 
     emit(): void {
+        this.cleanLogDir()
         let idl = this.file
+        this.printFile(this.enumsPrinter, idl)
         idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
-        idl = this.withLog(new AddContextTransformer(idl))
+        idl = this.withLog(new AddContextDeclarationTransformer(idl))
         idl = this.withLog(new TwinMergeTransformer(idl))
         idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
-        this.printFile(this.enumsPrinter, idl)
         idl = this.withLog(new AstNodeFilterTransformer(idl))
         idl = this.withLog(new ParameterTransformer(idl))
         this.printPeers(idl)
@@ -130,6 +132,7 @@ export class DynamicEmitter {
 
     private printPeers(idl: IDLFile): void {
         idl = this.withLog(new ConstMergeTransformer(idl))
+        idl = this.withLog(new NullabilityTransformer(idl))
         this.printFile(this.indexPrinter, idl)
         this.printFiles(this.peersPrinter, idl)
         this.printFactory(idl)
@@ -195,5 +198,13 @@ export class DynamicEmitter {
             this.logCount += 1
         }
         return idl
+    }
+
+    private cleanLogDir(): void {
+        if (this.shouldLog) {
+            if (fs.existsSync(this.logDir)) {
+                fs.rmSync(this.logDir, { recursive: true })
+            }
+        }
     }
 }

@@ -38,7 +38,7 @@ export function cliOptions(): CliOptions {
     return {
         pandaSdkPath: cliOptions.pandaSdkPath ?? throwException(`panda-sdk-path is mandatory parameter`),
         outputDir: cliOptions.outputDir ?? throwException(`output-dir is mandatory parameter`),
-        optionsFile: cliOptions.optionsFile ?? path.join(__dirname, `../input/ignore.json5`),
+        optionsFile: cliOptions.optionsFile ?? path.join(__dirname, `../input/options.json5`),
         debug: cliOptions.debug ?? false,
         initialize: cliOptions.initialize ?? false
     }

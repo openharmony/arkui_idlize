@@ -15,7 +15,7 @@
 
 import { capitalize, createReferenceType, IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
 import { Config } from "../../Config"
-import { splitCreateOrUpdate } from "../../utils/common"
+import { splitCreateOrUpdate } from "../../general/common"
 
 export class InteropConstructions {
     static get receiver(): string {

@@ -14,17 +14,17 @@
  */
 
 import { isSequence } from "../../../utils/idl"
-import { Typechecker } from "../../../utils/Typechecker"
+import { Typechecker } from "../../../general/Typechecker"
 import { IDLFile, convertType, IDLPointerType, IDLType } from "@idlizer/core"
-import { BindingsTypeConvertor } from "../../../convertors/BindingsTypeConvertor"
+import { BindingsTypeConvertor } from "../../../type-convertors/interop/BindingsTypeConvertor"
 
 export class BindingsTypeMapper {
     constructor(
-        private idl: IDLFile
+        private file: IDLFile
     ) {}
 
-    private convertor = new BindingsTypeConvertor(this.idl.entries)
-    typechecker = new Typechecker(this.idl.entries)
+    typechecker = new Typechecker(this.file.entries)
+    private convertor = new BindingsTypeConvertor(this.typechecker)
 
     toString(node: IDLType): string {
         return convertType(this.convertor, node)

@@ -13,12 +13,14 @@
  * limitations under the License.
  */
 
-import { Options } from "./Options"
-import { splitCreateOrUpdate } from "./utils/common"
+import { IgnoreOptions } from "./options/IgnoreOptions"
+import { splitCreateOrUpdate } from "./general/common"
+import { NonNullableOptions } from "./options/NonNullableOptions"
 
 export class Config {
     constructor(
-        public options: Options,
+        public ignore: IgnoreOptions,
+        public nonNullable: NonNullableOptions,
     ) {}
 
     static get createPrefix(): string {
@@ -75,12 +77,5 @@ export class Config {
 
     static get irNamespace(): string {
         return `ir`
-    }
-
-    static isAllowedPeerRegularMethod(name: string): boolean {
-        return [
-            `annotation`,
-            `optional`
-        ].some(it => name.toLowerCase().includes(it))
     }
 }

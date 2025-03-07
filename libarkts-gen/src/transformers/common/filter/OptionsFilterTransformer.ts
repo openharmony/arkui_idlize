@@ -13,30 +13,23 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
+import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
+import { Config } from "../../../Config"
 import { IDLFile } from "@idlizer/core"
-import { LanguageWriter } from "@idlizer/core"
-import { PeerImporter } from "./library/PeerImporter";
 
-export abstract class SingleFilePrinter {
+export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-    protected importer?: PeerImporter
-    protected abstract writer: LanguageWriter
-
-    print(): string {
-        this.visit()
-        return [
-            this.importer?.getOutput() ?? [],
-            this.writer.getOutput()
-        ]
-            .flat()
-            .join(`\n`)
-
+        private config: Config,
+        file: IDLFile
+    ) {
+        super(file)
     }
 
-    protected abstract visit(): void
+    protected shouldFilterOutInterface(name: string): boolean {
+        return !this.config.ignore.shouldEmitInterface(name)
+    }
+
+    protected shouldFilterOutMethod(node: string, name: string): boolean {
+        return !this.config.ignore.shouldEmitMethod(node, name)
+    }
 }

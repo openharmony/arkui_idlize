@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { Typechecker } from "../general/Typechecker"
-import { IDLFile } from "@idlizer/core"
+import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
+import { InteropTypeConvertor } from "./InteropTypeConvertor"
+import { Typechecker } from "../../general/Typechecker"
 
-export type Result = { fileName: string, output: string }
-
-export abstract class MultiFilePrinter {
+export class NativeTypeConvertor extends InteropTypeConvertor {
     constructor(
-        protected idl: IDLFile,
-    ) { }
-
-    protected typechecker = new Typechecker(this.idl.entries)
-
-    abstract print(): Result[]
+        typechecker: Typechecker,
+    ) {
+        super(typechecker, {
+            sequence: (type: IDLContainerType) => `KNativePointerArray`,
+            string: (type: IDLPrimitiveType) => `KStringPtr&`,
+        })
+    }
 }

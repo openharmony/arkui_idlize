@@ -16,10 +16,11 @@
 import { toIDLFile } from "@idlizer/core"
 import { DynamicEmitter } from "./emitters/DynamicEmitter"
 import { Config } from "./Config"
+import { IgnoreOptions } from "./options/IgnoreOptions"
 import * as path from "node:path"
 import { StaticEmitter } from "./emitters/StaticEmitter"
-import { Options } from "./Options"
 import { cliOptions } from "./cli-options"
+import { NonNullableOptions } from "./options/NonNullableOptions"
 
 function main() {
     const options = cliOptions()
@@ -38,7 +39,8 @@ function main() {
         options.outputDir,
         toIDLFile(inputFile),
         new Config(
-            new Options(options.optionsFile),
+            new IgnoreOptions(options.optionsFile),
+            new NonNullableOptions(options.optionsFile),
         ),
         options.debug
     ).emit()

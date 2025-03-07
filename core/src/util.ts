@@ -674,3 +674,13 @@ export function lazy<T>(factory: () => T): Lazy<T> {
 export function isInNamespace(node: idl.IDLEntry): boolean {
     return idl.getNamespacesPathFor(node).length > 0
 }
+
+export function rightmostIndexOf<T>(array: T[], predicate: (value: T) => boolean): number {
+    let result = -1
+    array.forEach((it, index) => {
+        if (predicate(it)) {
+            result = index
+        }
+    })
+    return result
+}
