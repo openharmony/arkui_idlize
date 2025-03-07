@@ -28,7 +28,6 @@ import {
     isDefined,
     verifyIDLLinter,
     PeerLibrary,
-    PeerFile,
     scanInputDirs,
 } from "@idlizer/core"
 import {
@@ -111,12 +110,12 @@ if (options.dts2idl) {
                 if (options.verifyIdl) {
                     verifyIDLString(generated)
                 }
-                idlLibrary.files.push(new PeerFile(file))
+                idlLibrary.files.push(file)
             },
             onEnd(outDir: string) {
                 if (options.verifyIdl) {
                     idlLibrary.files.forEach(file => {
-                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                        verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
                     })
                 }
             },

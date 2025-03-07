@@ -30,7 +30,7 @@ const T = {
 export const IDLVisitorConfigurationSchema = D.object({
     DeletedDeclarations: T.stringArray(),
     StubbedDeclarations: T.stringArray(),
-    NameReplacements: D.map(D.string(), D.tuple(D.string(), D.string())),
+    NameReplacements: D.map(D.string(), D.array(D.tuple(D.string(), D.string()))),
     TypeReplacementsFilePath: D.string()
 })
 export type IDLVisitorConfigurationSchemaType = ConfigTypeInfer<typeof IDLVisitorConfigurationSchema>
@@ -117,9 +117,9 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
             const filename: string = path.basename(file.fileName)
             const replacementPair = this.NameReplacements.get(filename)
             if (replacementPair) {
-                if (replacementPair[0] === name) {
+                if (replacementPair[0][0] === name) {
                     console.log(`Replaced "${name}" with "${replacementPair[1]}" in ${filename}`)
-                    return replacementPair[1]
+                    return replacementPair[0][1]
                 }
             }
             return name
