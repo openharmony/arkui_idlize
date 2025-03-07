@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";
@@ -27,9 +27,8 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                 )
                 continue
             if (idl.isInterface(entry)) {
-                if (isComponentDeclaration(library, entry) ||
-                    isMaterialized(entry, library)) {
-                    if (isMaterialized(entry, library))
+                if (isComponentDeclaration(library, entry) || isMaterialized(entry, library)) {
+                    if (isMaterialized(entry, library) && !isStaticMaterialized(entry, library))
                         orderer.addDep(entry)
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))

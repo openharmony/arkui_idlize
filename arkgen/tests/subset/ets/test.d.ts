@@ -51,6 +51,12 @@ declare class ClassDTS {
     valBoolean: boolean
 }
 
+// Materialized class with static methods
+declare class ClassNoConstructorAndStaticMethodsDTS {
+    static method(valNumber: number, valString: string): void
+    static method2(valNumber: number, valString: string): void
+}
+
 // Non materialized class
 declare class ClassWithConstructorDTS {
 

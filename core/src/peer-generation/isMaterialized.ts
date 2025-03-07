@@ -50,6 +50,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     return false
 }
 
+export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver) {
+    return isMaterialized(declaration, resolver) && (declaration.methods.length > 0 && declaration.methods.every(it => it.isStatic)) && !declaration.properties.length && !declaration.constructors.length
+}
+
 export function isMaterializedType(type: idl.IDLType, resolver: ReferenceResolver): boolean {
     if (!idl.isReferenceType(type)) return false
     const decl = resolver.resolveTypeReference(type)

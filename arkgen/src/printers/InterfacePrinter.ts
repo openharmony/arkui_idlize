@@ -28,9 +28,9 @@ import { createLanguageWriter, LanguageWriter,
 import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
     collectDeclDependencies, collectJavaImports, collectProperties, convertDeclToFeature,
     DependenciesCollector, ImportFeature, ImportsCollector, isComponentDeclaration,
-    peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning
+    peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning,
+    ARK_OBJECTBASE
 } from '@idlizer/libohos'
-import { ARK_OBJECTBASE } from './JavaPrinter'
 
 interface InterfacesVisitor {
     getInterfaces(): Map<TargetFile, LanguageWriter>

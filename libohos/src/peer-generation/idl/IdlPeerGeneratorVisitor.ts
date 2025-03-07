@@ -26,7 +26,8 @@ import {
     VoidConvertor,
     PointerConvertor,
     isInIdlizeInternal,
-    isInIdlize
+    isInIdlize,
+    isStaticMaterialized
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -170,7 +171,7 @@ export class IdlPeerProcessor {
         return new Method(methodName, signature, getMethodModifiers(method))
     }
 
-    private processMaterialized(decl: idl.IDLInterface, isGlobalScope = false) {
+    private processMaterialized(decl: idl.IDLInterface, isStaticMaterialized: boolean = false) {
         if (!this.library.hasInLibrary(decl)) {
             return
         }
@@ -179,7 +180,7 @@ export class IdlPeerProcessor {
             return
         }
 
-        const isDeclInterface = idl.isInterfaceSubkind(decl) && !isGlobalScope
+        const isDeclInterface = idl.isInterfaceSubkind(decl) && !isStaticMaterialized
         const implemenationParentName = isDeclInterface ? getInternalClassName(name) : name
         let superType = idl.getSuperType(decl)
         const interfaces: idl.IDLReferenceType[] = []
@@ -194,8 +195,8 @@ export class IdlPeerProcessor {
         }
 
         const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
-        const mConstructor = isGlobalScope ? undefined : this.makeMaterializedMethod(decl, constructor, implemenationParentName)
-        const mFinalizer = isGlobalScope ? undefined : new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
+        const mConstructor = isStaticMaterialized ? undefined : this.makeMaterializedMethod(decl, constructor, implemenationParentName)
+        const mFinalizer = isStaticMaterialized ? undefined : new MaterializedMethod(name, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = propertiesFromInterface.concat(decl.properties)
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
@@ -234,7 +235,7 @@ export class IdlPeerProcessor {
             }
         })
         this.library.materializedClasses.set(name,
-            new MaterializedClass(decl, name, isDeclInterface, superType, interfaces, decl.typeParameters,
+            new MaterializedClass(decl, name, isDeclInterface, isStaticMaterialized, superType, interfaces, decl.typeParameters,
                 mFields, mConstructor, mFinalizer, mMethods, true, taggedMethods))
     }
 
@@ -279,10 +280,6 @@ export class IdlPeerProcessor {
         )
     }
 
-    private processGlobal(decl: idl.IDLInterface) {
-        this.processMaterialized(decl, true)
-    }
-
     private ignoreDeclaration(decl: idl.IDLEntry, language: Language): boolean {
         return isInIdlize(decl) ||
             peerGeneratorConfiguration().ignoreEntry(decl.name!, language)
@@ -302,6 +299,9 @@ export class IdlPeerProcessor {
             if (!isPeerDecl && idl.isInterface(dep) && [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)) {
                 if (isBuilderClass(dep)) {
                     this.processBuilder(dep)
+                    continue
+                } else if (isStaticMaterialized(dep, this.library)) {
+                    this.processMaterialized(dep, true)
                     continue
                 } else if (isMaterialized(dep, this.library)) {
                     this.processMaterialized(dep)

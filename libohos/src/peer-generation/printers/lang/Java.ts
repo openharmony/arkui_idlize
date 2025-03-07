@@ -23,6 +23,8 @@ export const ARK_MATERIALIZEDBASE = 'Ark_MaterializedBase'
 export const ARK_CUSTOM_OBJECT = 'Ark_CustomObject'
 export const ARK_MATERIALIZEDBASE_EMPTY_PARAMETER = `${ARK_MATERIALIZEDBASE}.EmptyParameter`
 export const COMPONENT_BASE = 'ComponentBase'
+export const ARK_BASE = 'ArkBase'
+export const ARK_OBJECTBASE = 'Ark_ObjectBase'
 
 export function getPackagePath(javaPackage: string): string {
     return javaPackage.replaceAll('.', '/')

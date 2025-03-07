@@ -836,34 +836,6 @@ void SetCurrentIndex(Ark_NativePointer nodePtr,
 // handWritten implementations
 namespace OHOS::Ace::NG::GeneratedModifier {
     namespace LazyForEachOpsAccessor {
-    void DestroyPeerImpl(LazyForEachOpsPeer* peer)
-    {
-        if (!needGroupedLog(1))
-            return;
-        string out("destroyPeer(");
-        out.append(") \n");
-        appendGroupedLog(1, out);
-    }
-    Ark_LazyForEachOps CtorImpl()
-    {
-        if (!needGroupedLog(1))
-            return (LazyForEachOpsPeer*) 100;
-        string out("new LazyForEachOps(");
-        out.append(") \n");
-        out.append("[return (LazyForEachOpsPeer*) 100] \n");
-        appendGroupedLog(1, out);
-        return (LazyForEachOpsPeer*) 100;
-    }
-    Ark_NativePointer GetFinalizerImpl()
-    {
-        if (!needGroupedLog(1))
-            return fnPtr<KNativePointer>(dummyClassFinalizer);
-        string out("getFinalizer(");
-        out.append(") \n");
-        out.append("[return fnPtr<KNativePointer>(dummyClassFinalizer)] \n");
-        appendGroupedLog(1, out);
-        return fnPtr<KNativePointer>(dummyClassFinalizer);
-    }
     Ark_NativePointer NeedMoreElementsImpl(Ark_NativePointer node,
                                            Ark_NativePointer mark,
                                            Ark_Int32 direction)

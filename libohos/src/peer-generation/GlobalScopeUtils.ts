@@ -98,6 +98,7 @@ export function createGlobalScopeLegacy(library:PeerLibrary): MaterializedClass 
         createSyntheticGlobalScope(library),
         GlobalScopePeerName,
         false,
+        false,
         undefined,
         undefined,
         undefined,

@@ -133,6 +133,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly decl: idl.IDLInterface,
         public readonly className: string,
         public readonly isInterface: boolean,
+        public readonly isStaticMaterialized: boolean,
         public readonly superClass: idl.IDLReferenceType | undefined,
         public readonly interfaces: idl.IDLReferenceType[] | undefined,
         public readonly generics: string[] | undefined,
@@ -168,7 +169,7 @@ export class MaterializedClass implements PeerClassBase {
 }
 
 export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedMethod | undefined {
-    if (clazz.isGlobalScope()) {
+    if (clazz.isGlobalScope() || clazz.isStaticMaterialized) {
         return undefined
     }
     return new MaterializedMethod(

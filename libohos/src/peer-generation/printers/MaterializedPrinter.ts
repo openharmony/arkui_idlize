@@ -35,6 +35,7 @@ import {
     ARK_MATERIALIZEDBASE,
     ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
     ARKOALA_PACKAGE,
+    ARK_OBJECTBASE,
 } from "./lang/Java";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
@@ -82,9 +83,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
         const finalizableType = FinalizableType
-        const superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz)) ?? (new Set([Language.JAVA]).has(printer.language) ? ARK_MATERIALIZEDBASE : undefined)
-
-        const interfaces: string[] = printer.language == Language.CJ ? [] : ["MaterializedBase"]
+        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz))
+        if (!superClassName && printer.language == Language.JAVA) {
+            superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
+        }
+        
+        const interfaces: string[] = (clazz.isStaticMaterialized || printer.language == Language.CJ) ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(
                 ...clazz.interfaces.map(it => {
@@ -117,8 +121,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             } else if (this.library.name === 'arkoala') {
                 writeInterface(clazz.decl, printer)
             }
-        }
-        else {
+        } else if (!clazz.isStaticMaterialized) {
             // Write internal Materialized class with fromPtr(ptr) method
             printer.writeClass(
                 getInternalClassName(clazz.className),
@@ -133,7 +136,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const implementationClassName = clazz.getImplementationName()
         printer.writeClass(implementationClassName, writer => {
-            if (!superClassName) {
+            if (!superClassName && !clazz.isStaticMaterialized) {
                 writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
                 // write getPeer() method
                 const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
