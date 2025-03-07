@@ -4,6 +4,7 @@ stages:
   - build
   - test
   - pre-deploy
+  - pre-publish
   - deploy
 
 workflow:

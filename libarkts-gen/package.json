@@ -7,7 +7,14 @@
   "files": [
     "lib/*.js",
     "input/ignore.json5",
-    "templates/*"
+    "templates/*",
+    "./libarkts-copy/src",
+    "./libarkts-copy/native",
+    "./libarkts-copy/package.json",
+    "./libarkts-copy/tsconfig.json",
+    "!./libarkts-copy/src/generated",
+    "!./libarkts-copy/native/src/generated",
+    "!./libarkts-copy/native/build"
   ],
   "license": "Apache-2.0",
   "keywords": [],
@@ -34,8 +41,10 @@
     "compile": "npm run compile:core && rollup -c",
     "external:test": "npm run --prefix ../external/arkoala-arkts/libarkts run",
     "external:clean": "rimraf ../external/arkoala-arkts/libarkts/src/generated/peers",
-    "external:generate": "npm run compile && node . --input-file ../external/incremental/tools/panda/node_modules/@panda/sdk/ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges,nativeModule --debug",
+    "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/arkoala-arkts/ --options-file ./input/ignore.json5 --files bridges,nativeModule --debug --no-initialize",
     "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
-    "release": "node ./tools/release.mjs"
+    "prepack": "npm run compile && cp -r ../external/arkoala-arkts/libarkts ./libarkts-copy",
+    "postpack": "rimraf ./libarkts-copy",
+    "release": "npm run copy:libarkts && node ./tools/release.mjs"
   }
 }

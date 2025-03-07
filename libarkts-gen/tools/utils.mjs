@@ -51,11 +51,17 @@ export class Version {
 }
 
 export function readPackageJson(dir) {
-    return JSON.parse(fs.readFileSync(path.join(dir, `package.json`), "utf-8"))
+    return JSON.parse(
+        fs.readFileSync(path.join(dir, `package.json`), `utf-8`)
+    )
 }
 
 export function writePackageJson(dir, value) {
-    return fs.writeFileSync(path.join(dir, `package.json`), JSON.stringify(value, null, 2), "utf-8")
+    return fs.writeFileSync(
+        path.join(dir, `package.json`),
+        JSON.stringify(value, null, 2) + `\n`,
+        `utf-8`
+    )
 }
 
 export function assertNoUncommitedChanges(dir) {

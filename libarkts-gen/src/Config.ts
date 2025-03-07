@@ -19,7 +19,6 @@ import { splitCreateOrUpdate } from "./utils/common"
 export class Config {
     constructor(
         public options: Options,
-        private files?: string[]
     ) {}
 
     static get createPrefix(): string {
@@ -52,13 +51,6 @@ export class Config {
 
     static get contextType(): string {
         return `Context`
-    }
-
-    shouldEmitFile(name: string): boolean {
-        if (this.files !== undefined) {
-            return this.files.includes(name)
-        }
-        return true
     }
 
     static isCreate(name: string): boolean {

@@ -17,6 +17,8 @@ node_modules
 /libarkts-gen/.rollup.cache/
 /libarkts-gen/lib/
 /libarkts-gen/out/
+/libarkts-gen/libarkts-copy/
+*.tgz
 *.rej
 *.orig
 .DS_Store

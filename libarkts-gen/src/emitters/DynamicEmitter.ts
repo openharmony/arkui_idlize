@@ -16,25 +16,25 @@
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
-import { BridgesPrinter } from "./visitors/interop/bridges/BridgesPrinter"
-import { BindingsPrinter } from "./visitors/interop/bindings/BindingsPrinter"
-import { EnumsPrinter } from "./visitors/enums/EnumsPrinter"
-import { Config } from "./Config"
-import { InteropTransformer } from "./transformers/InteropTransformer"
-import { AstNodeFilterTransformer } from "./transformers/filter/AstNodeFilterTransformer"
-import { OptionsFilterTransformer } from "./transformers/filter/OptionsFilterTransformer"
-import { MultipleDeclarationFilterTransformer } from "./transformers/filter/MultipleDeclarationFilterTransformer"
-import { Result } from "./visitors/MultiFilePrinter"
-import { AllPeersPrinter } from "./visitors/peers/AllPeersPrinter"
-import { NodeMapPrinter } from "./visitors/peers/NodeMapPrinter"
-import { IndexPrinter } from "./visitors/peers/IndexPrinter"
-import { TwinMergeTransformer } from "./transformers/TwinMergeTransformer"
-import { ParameterTransformer } from "./transformers/ParameterTransformer"
-import { ConstMergeTransformer } from "./transformers/ConstMergeTransformer"
-import { AddContextTransformer } from "./transformers/AddContextTransformer"
-import { Transformer } from "./transformers/Transformer"
-import { AttributeTransformer } from "./transformers/AttributeTransformer"
-import { FactoryPrinter } from "./visitors/peers/FactoryPrinter"
+import { BridgesPrinter } from "../visitors/interop/bridges/BridgesPrinter"
+import { BindingsPrinter } from "../visitors/interop/bindings/BindingsPrinter"
+import { EnumsPrinter } from "../visitors/enums/EnumsPrinter"
+import { Config } from "../Config"
+import { InteropTransformer } from "../transformers/InteropTransformer"
+import { AstNodeFilterTransformer } from "../transformers/filter/AstNodeFilterTransformer"
+import { OptionsFilterTransformer } from "../transformers/filter/OptionsFilterTransformer"
+import { MultipleDeclarationFilterTransformer } from "../transformers/filter/MultipleDeclarationFilterTransformer"
+import { Result } from "../visitors/MultiFilePrinter"
+import { AllPeersPrinter } from "../visitors/peers/AllPeersPrinter"
+import { NodeMapPrinter } from "../visitors/peers/NodeMapPrinter"
+import { IndexPrinter } from "../visitors/peers/IndexPrinter"
+import { TwinMergeTransformer } from "../transformers/TwinMergeTransformer"
+import { ParameterTransformer } from "../transformers/ParameterTransformer"
+import { ConstMergeTransformer } from "../transformers/ConstMergeTransformer"
+import { AddContextTransformer } from "../transformers/AddContextTransformer"
+import { Transformer } from "../transformers/Transformer"
+import { FactoryPrinter } from "../visitors/peers/FactoryPrinter"
+import { AttributeTransformer } from "../transformers/AttributeTransformer"
 
 class SingleFileEmitter {
     constructor(
@@ -54,7 +54,7 @@ class MultiFileEmitter {
     ) {}
 }
 
-export class FileEmitter {
+export class DynamicEmitter {
     constructor(
         private outDir: string,
         private file: IDLFile,
@@ -70,21 +70,21 @@ export class FileEmitter {
         (idl: IDLFile) => new BridgesPrinter(idl).print(),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
-        this.config.shouldEmitFile(`bridges`),
+        true
     )
 
     private bindingsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BindingsPrinter(idl).print(),
         `libarkts/src/generated/Es2pandaNativeModule.ts`,
         `Es2pandaNativeModule.ts`,
-        this.config.shouldEmitFile(`nativeModule`),
+        true
     )
 
     private enumsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new EnumsPrinter(idl).print(),
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
-        this.config?.shouldEmitFile(`enums`),
+        false
     )
 
     private nodeMapPrinter = new SingleFileEmitter(
@@ -115,7 +115,7 @@ export class FileEmitter {
         true
     )
 
-    print(): void {
+    emit(): void {
         let idl = this.file
         idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
         idl = this.withLog(new AddContextTransformer(idl))
