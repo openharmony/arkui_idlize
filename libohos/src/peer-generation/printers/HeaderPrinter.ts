@@ -21,6 +21,7 @@ import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
+import { collectFilePeers } from '../PeersCollector';
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -98,7 +99,7 @@ export class HeaderVisitor {
     // TODO: have a proper Peer module visitor
     printApiAndDeserializer() {
         this.library.files.forEach(file => {
-            file.peers.forEach(clazz => {
+            collectFilePeers(this.library, file).forEach(clazz => {
                 this.printClassProlog(clazz)
                 this.printMethod(createConstructPeerMethod(clazz))
                 clazz.methods.forEach(method => {

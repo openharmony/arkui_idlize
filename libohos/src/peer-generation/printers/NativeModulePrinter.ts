@@ -25,6 +25,7 @@ import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
 import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
+import { collectFilePeers } from "../PeersCollector";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -151,7 +152,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
 
     visit(): void {
         for (const file of this.library.files) {
-            for (const peer of file.peersToGenerate.values()) {
+            for (const peer of collectFilePeers(this.library, file)) {
                 this.printPeerMethods(peer)
             }
         }
@@ -482,8 +483,8 @@ export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, modul
 
 export function collectPredefinedNativeModuleEntries(library: PeerLibrary, module: NativeModuleType): idl.IDLInterface[] {
     const interopDeclarations = library.files
-        .filter(it => isInIdlizeInterop(it.file))
-        .flatMap(it => it.file.entries.filter(idl.isInterface))
+        .filter(isInIdlizeInterop)
+        .flatMap(it => it.entries.filter(idl.isInterface))
     switch (module) {
         case NativeModule.Interop:
             return interopDeclarations.filter(it => it.name === "Interop" || it.name === "Loader")

@@ -16,14 +16,14 @@
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
 import { removeExt, renameDtsToComponent, Language, isCommonMethod,
-    LanguageWriter, PeerFile, PeerClass, PeerLibrary,
+    LanguageWriter, PeerClass, PeerLibrary,
     createReferenceType, IDLVoidType, isOptionalType,
     Method,
     MethodSignature,
     MethodModifier,
     NamedMethodSignature
 } from '@idlizer/core'
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collapseSameNamedMethods, collectComponents, collectDeclDependencies, collectJavaImports, COMPONENT_BASE, componentToPeerClass, convertPeerFilenameToModule, findComponentByType, groupOverloads, ImportsCollector, OverloadsPrinter, peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning } from '@idlizer/libohos'
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collapseSameNamedMethods, collectComponents, collectDeclDependencies, collectFilePeers, collectJavaImports, COMPONENT_BASE, componentToPeerClass, convertPeerFilenameToModule, findComponentByType, groupOverloads, ImportsCollector, OverloadsPrinter, peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning } from '@idlizer/libohos'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -45,12 +45,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly file: PeerFile,
+        private readonly file: idl.IDLFile,
     ) { }
 
     visit(): void {
         this.printImports()
-        this.file.peersToGenerate.forEach(peer => {
+        collectFilePeers(this.library, this.file).forEach(peer => {
             this.printComponent(peer)
         })
     }
@@ -60,12 +60,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 
     private get targetBasename() {
-        return renameDtsToComponent(path.basename(this.file.originalFilename), this.language)
+        return renameDtsToComponent(path.basename(this.file.fileName!), this.language)
     }
 
     private printImports(): void {
         const imports = new ImportsCollector()
-        this.file.peersToGenerate.forEach(peer => {
+        collectFilePeers(this.library, this.file).forEach(peer => {
             imports.addFeatures(['int32', 'float32'], '@koalaui/common')
             imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
@@ -190,11 +190,11 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly file: PeerFile,
+        private readonly file: idl.IDLFile,
     ) { }
 
     visit(): void {
-        this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
+        collectFilePeers(this.library, this.file).forEach(peer => this.printComponent(peer))
     }
 
     getResults(): ComponentPrintResult[] {
@@ -251,7 +251,7 @@ class ComponentsVisitor {
 
     printComponents(): void {
         for (const file of this.peerLibrary.files.values()) {
-            if (!file.peersToGenerate.length)
+            if (!collectFilePeers(this.peerLibrary, file).length)
                 continue
             let visitor: ComponentFileVisitor
             if (this.language == Language.TS) {

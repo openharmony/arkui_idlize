@@ -28,7 +28,7 @@ import {
     isInIdlizeInternal,
     isInIdlize
 } from '@idlizer/core'
-import { ArgConvertor, PeerLibrary, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
+import { ArgConvertor, PeerLibrary } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { getInternalClassName, isBuilderClass, MaterializedClass, MaterializedField, MaterializedMethod } from "@idlizer/core"
@@ -102,130 +102,6 @@ class ArkTSSyntheticDependencyConfigurableFilter extends SyntheticDependencyConf
             return false
         }
         return super.shouldAdd(node)
-    }
-}
-
-class PeersGenerator {
-    constructor(
-        private readonly library: PeerLibrary,
-    ) {}
-
-    private processProperty(prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
-        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(prop.name))
-            return
-        const originalParentName = parentName ?? peer.originalClassName!
-        const argConvertor = this.library.typeConvertor("value", prop.type, prop.isOptional)
-        const signature = new NamedMethodSignature(idl.IDLThisType, [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
-        return new PeerMethod(
-            originalParentName,
-            [argConvertor],
-            idl.IDLVoidType,
-            false,
-            new Method(prop.name, signature, []))
-    }
-
-    private processMethodOrCallable(method: idl.IDLMethod | idl.IDLCallable, peer: PeerClass, parentName?: string): PeerMethod | undefined {
-        if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name!))
-            return
-        // Some method have other parents as part of their names
-        // Such as the ones coming from the friend interfaces
-        // E.g. ButtonInterface instead of ButtonAttribute
-        const isCallSignature = idl.isCallable(method)
-        const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
-        const retType = method.returnType!
-        const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
-        const originalParentName = parentName ?? peer.originalClassName!
-        const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
-        const signature = generateSignature(method, isThisRet ? idl.IDLThisType : retType)
-        const realRetType = isThisRet ? idl.IDLVoidType : retType
-        return new PeerMethod(
-            originalParentName,
-            argConvertors,
-            realRetType,
-            isCallSignature,
-            new Method(methodName!, signature, getMethodModifiers(method)),
-            createOutArgConvertor(this.library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))
-    }
-
-    private createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: PeerClass) {
-        if (peerGeneratorConfiguration().components.invalidAttributes.includes(peer.componentName)) {
-            return
-        }
-        const seenAttributes = new Set<string>()
-        clazz.properties.forEach(prop => {
-            this.processOptionAttribute(seenAttributes, prop, peer)
-        })
-    }
-
-    private processOptionAttribute(seenAttributes: Set<string>, property: idl.IDLProperty, peer: PeerClass) {
-        const propName = property.name
-        if (seenAttributes.has(propName)) {
-            warn(`ignore seen property: ${propName}`)
-            return
-        }
-        seenAttributes.add(propName)
-        // const type = this.fixTypeLiteral(propName, property.type, peer)
-        peer.attributesFields.push(property)
-    }
-
-    private fillInterface(peer: PeerClass, iface: idl.IDLInterface) {
-        peer.originalInterfaceName = iface.name
-        const peerMethods = iface.callables
-            .map(it => this.processMethodOrCallable(it, peer, iface?.name))
-            .filter(isDefined)
-        const overloadedMethods = PeerMethod.markAndGroupOverloads(peerMethods)
-        peer.methods.push(...overloadedMethods)
-    }
-
-    private fillClass(peer: PeerClass, clazz: idl.IDLInterface) {
-        peer.originalClassName = clazz.name
-        const parent = idl.getSuperType(clazz)
-        if (parent) {
-            const parentComponent = findComponentByType(this.library, parent)!
-            const parentDecl = this.library.resolveTypeReference(parent as idl.IDLReferenceType)
-            peer.originalParentName = idl.forceAsNamedNode(parent).name
-            peer.originalParentFilename = parentDecl?.fileName
-            peer.parentComponentName = parentComponent.name
-        }
-        const peerMethods = [
-            ...clazz.properties.map(it => this.processProperty(it, peer)),
-            ...clazz.methods.map(it => this.processMethodOrCallable(it, peer)),
-            ].filter(isDefined)
-        const overloadedMethods = PeerMethod.markAndGroupOverloads(peerMethods)
-        peer.methods.push(...overloadedMethods)
-
-        this.createComponentAttributesDeclaration(clazz, peer)
-    }
-
-    public generatePeer(component: IdlComponentDeclaration): void {
-
-        if (!component.attributeDeclaration.fileName) {
-            throw new Error("Expected parent of attributes to be a SourceFile, but fileName is undefined")
-        }
-
-        const originalFileName = component.attributeDeclaration.fileName
-        const baseName = path.basename(originalFileName)
-        const resolvedPath = path.resolve(originalFileName)
-
-        const file = this.library.findFileByOriginalFilename(baseName) ||
-                     this.library.findFileByOriginalFilename(resolvedPath)
-
-        if (!file) {
-            console.error("Available files in library:", this.library.files.map(f => f.originalFilename))
-            throw new Error(`Not found a file corresponding to attributes class: ${baseName} (${resolvedPath})`)
-        }
-
-        const peer = new PeerClass(file, component.name, baseName)
-
-        if (component.interfaceDeclaration) {
-            this.fillInterface(peer, component.interfaceDeclaration)
-        }
-
-        this.fillClass(peer, component.attributeDeclaration)
-        // TODO that changes ABI - some functions will not be merged. Do we want to continue with that? Or do we want to wait more
-        // accurate methods merging algorithm?
-        // collapseIdlEventsOverloads(this.library, peer)
-        file.peers.set(component.name, peer)
     }
 }
 
@@ -414,9 +290,6 @@ export class IdlPeerProcessor {
 
     process(): void {
         initCustomBuilderClasses()
-        const peerGenerator = new PeersGenerator(this.library)
-        for (const component of collectComponents(this.library))
-            peerGenerator.generatePeer(component)
         const allDeclarations = this.library.files.flatMap(file => idl.linearizeNamespaceMembers(file.entries))
         const curConfig = generatorConfiguration()
         const curPeerConfig = peerGeneratorConfiguration()
@@ -569,7 +442,7 @@ function initCustomBuilderClasses() {
     )
 }
 
-function getMethodModifiers(method: idl.IDLMethod | idl.IDLConstructor | idl.IDLCallable): MethodModifier[] {
+export function getMethodModifiers(method: idl.IDLMethod | idl.IDLConstructor | idl.IDLCallable): MethodModifier[] {
     const modifiers = []
     if (idl.isConstructor(method) || (idl.isMethod(method) && (method.isStatic || method.isFree)))
         modifiers.push(MethodModifier.STATIC)

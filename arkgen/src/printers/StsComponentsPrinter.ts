@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core"
 import { Language, LayoutNodeRole, PeerClass, PeerLibrary } from "@idlizer/core";
-import { collapseSameNamedMethods, collectComponents, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate } from "@idlizer/libohos";
+import { collapseSameNamedMethods, collectComponents, collectFilePeers, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate } from "@idlizer/libohos";
 import { ArkoalaPeerLibrary } from "../ArkoalaPeerLibrary";
 import { generateArkComponentName } from "./ComponentsPrinter";
 
@@ -31,12 +31,12 @@ function printStsComponent(library: PeerLibrary, peer: PeerClass, isDeclaration:
 
 export function printStsComponents(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap<PrinterResult>(file =>
-        file.peersToGenerate.flatMap<PrinterResult>(peer =>
+        collectFilePeers(library, file).flatMap<PrinterResult>(peer =>
             printStsComponent(library, peer, false)))
 }
 
 export function printStsComponentsDeclarations(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap<PrinterResult>(file =>
-        file.peersToGenerate.flatMap<PrinterResult>(peer =>
+        collectFilePeers(library, file).flatMap<PrinterResult>(peer =>
             printStsComponent(library, peer, true)))
 }

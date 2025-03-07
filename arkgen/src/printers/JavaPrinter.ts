@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerLibrary, PeerMethod } from "@idlizer/core"
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collectJavaImports, componentToPeerClass, printJavaImports, TargetFile } from "@idlizer/libohos"
+import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collectFilePeers, collectJavaImports, componentToPeerClass, printJavaImports, TargetFile } from "@idlizer/libohos"
 import { generateArkComponentName } from "./ComponentsPrinter"
 
 export const ARK_BASE = 'ArkBase'
@@ -35,7 +35,7 @@ export function makeJavaArkComponents(library: PeerLibrary): { targetFile: Targe
 
     writer.writeClass(ark, writer => {
         library.files.forEach(file => {
-            file.peersToGenerate.forEach(peer => {
+            collectFilePeers(library, file).forEach(peer => {
                 const arkComponent = generateArkComponentName(peer.componentName)
                 const arkPeer = componentToPeerClass(peer.componentName)
                 const arkPeerType = idl.createReferenceType(arkPeer)

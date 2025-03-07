@@ -70,7 +70,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
             /* global scope peer serialize function */
             new OverloadsPrinter(library, peerMethodWriter, library.language, false)
-                .printGroupedComponentOverloads(new idl.PeerClass(new idl.PeerFile(idl.createFile([])), '', ''), peerMethods)
+                .printGroupedComponentOverloads(new idl.PeerClass('', ''), peerMethods)
 
             peerMethods.forEach(peerMethod => {
                 writePeerMethod(

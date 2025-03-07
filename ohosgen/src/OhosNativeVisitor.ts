@@ -21,6 +21,7 @@ import {
     createMethod,
     createParameter,
     forceAsNamedNode,
+    getPackageName,
     getSuperType,
     hasExtAttribute,
     IDLCallback,
@@ -384,8 +385,8 @@ class OHOSNativeVisitor {
 
     prepare() {
         this.library.files.forEach(file => {
-            if (isInIdlize(file.file) ||
-                this.library.libraryPackages?.length && !this.library.libraryPackages.includes(file.packageName()))
+            if (isInIdlize(file) ||
+                this.library.libraryPackages?.length && !this.library.libraryPackages.includes(getPackageName(file)))
                 return
             linearizeNamespaceMembers(file.entries).forEach(entry => {
                 if (isInterface(entry)) {
@@ -548,7 +549,7 @@ export function suggestLibraryName(library: PeerLibrary) {
     if (library.name !== '') {
         return library.name
     }
-    let libraryName = library.files.filter(f => !isInIdlize(f.file))[0].packageName()
+    let libraryName = getPackageName(library.files.filter(f => !isInIdlize(f))[0])
     libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
     return libraryName
 }

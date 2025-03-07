@@ -27,7 +27,7 @@ import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
  */
 export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap(file => {
-        if (library?.libraryPackages?.length && !library.libraryPackages.includes(file.packageName()))
+        if (library?.libraryPackages?.length && !library.libraryPackages.includes(idl.getPackageName(file)))
             return []
         return file.entries
             .flatMap(it => idl.isNamespace(it) ? it.members : [it])
