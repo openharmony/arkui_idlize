@@ -239,14 +239,17 @@
                         "NameReplacements": {
                             "type": "object",
                             "additionalProperties": {
-                                "items": [
-                                    {
-                                        "type": "string"
-                                    },
-                                    {
-                                        "type": "string"
-                                    }
-                                ]
+                                "type": "array",
+                                "items": {
+                                    "items": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
                             }
                         },
                         "TypeReplacementsFilePath": {
