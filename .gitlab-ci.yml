@@ -20,5 +20,5 @@ include:
     - gitlab/npm.yml
     - arkgen/.gitlab-ci.yml
     - ohosgen/.gitlab-ci.yml
-    - libarkts-gen/.gitlab-ci.yml
+    - arktscgen/.gitlab-ci.yml
     - dtsgen/.gitlab-ci.yml

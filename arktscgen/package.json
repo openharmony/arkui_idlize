@@ -1,5 +1,5 @@
 {
-  "name": "@idlizer/libarkts-gen",
+  "name": "@idlizer/arktscgen",
   "version": "3.0.29",
   "description": "",
   "main": "lib/index.js",

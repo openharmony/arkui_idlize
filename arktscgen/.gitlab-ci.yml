@@ -1,4 +1,4 @@
-build idlize-libarktsgen:
+build idlize-arktscgen:
   stage: build
   tags:
     - idlize-ci
@@ -6,9 +6,9 @@ build idlize-libarktsgen:
   before_script:
     - !reference [.setup, script]
   script:
-    - npm run compile --prefix libarkts-gen
+    - npm run compile --prefix arktscgen
 
-test libarktsgen:
+test arktscgen:
   stage: test
   tags:
     - idlize-ci
@@ -16,19 +16,19 @@ test libarktsgen:
   before_script:
     - !reference [.setup, script]
   script:
-    - npm run all --prefix libarkts-gen
+    - npm run all --prefix arktscgen
   needs:
     - install panda sdk
 
-pack idlize-libarktsgen:
+pack idlize-arktscgen:
   extends:
     - .npm-pack
   variables:
-    PACKAGE_DIR: libarkts-gen
+    PACKAGE_DIR: arktscgen
   needs:
-    - build idlize-libarktsgen
+    - build idlize-arktscgen
 
-pre-publish test libarktsgen:
+pre-publish test arktscgen:
   stage: pre-publish
   tags:
     - idlize-ci
@@ -36,22 +36,22 @@ pre-publish test libarktsgen:
   before_script:
     - !reference [ .setup, script ]
   script:
-    - cd $CI_PROJECT_DIR/libarkts-gen
+    - cd $CI_PROJECT_DIR/arktscgen
     - npm pack
     - cd ../
-    - npx --yes ./libarkts-gen/idlizer-libarkts-gen-*.tgz --panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk --output-dir .
+    - npx --yes ./arktscgen/idlizer-arktscgen-*.tgz --panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk --output-dir .
     - cd libarkts
     - npm i
     - npm run compile
   needs:
-    - build idlize-libarktsgen
+    - build idlize-arktscgen
     - install panda sdk
 
-publish idlize-libarktsgen:
+publish idlize-arktscgen:
   extends:
     - .npm-publish
   variables:
-    PACKAGE_DIR: libarkts-gen
+    PACKAGE_DIR: arktscgen
   dependencies:
     - build idlize-arkgen
 

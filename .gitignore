@@ -14,10 +14,10 @@ node_modules
 /package-lock.json
 /.npmrc
 
-/libarkts-gen/.rollup.cache/
-/libarkts-gen/lib/
-/libarkts-gen/out/
-/libarkts-gen/libarkts-copy/
+/arktscgen/.rollup.cache/
+/arktscgen/lib/
+/arktscgen/out/
+/arktscgen/libarkts-copy/
 *.tgz
 *.rej
 *.orig
