@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Setup build dependencies
 RUN apt-get -y update &&\
     apt-get install -y --no-install-recommends curl ca-certificates xz-utils \
-        python3 python3-pip ninja-build libexpat1-dev fish \
+        python3 python3-pip ninja-build libexpat1-dev libdwarf1 fish \
         clang-14 lldb-14 pkg-config git &&\
     apt-get clean
     
