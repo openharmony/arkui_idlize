@@ -9,11 +9,13 @@ export {
     CONST_BOOLEAN_TRUE,
     CONST_NUMBER_INT,
     CONST_NUMBER_FLOAT,
+    CONST_STRING,
     // .idl
-    // IDL_CONST_BOOLEAN_FALSE,
-    // IDL_CONST_BOOLEAN_TRUE,
-    // IDL_CONST_NUMBER_INT,
-    // IDL_CONST_NUMBER_FLOAT,
+    IDL_CONST_BOOLEAN_FALSE,
+    IDL_CONST_BOOLEAN_TRUE,
+    IDL_CONST_NUMBER_INT,
+    IDL_CONST_NUMBER_FLOAT,
+    IDL_CONST_STRING
 } from "../../generated/arkts"
 
 export { and_values } from "../../generated/arkts"

@@ -82,6 +82,10 @@ export function isRecordTypeDescription(node: webidl2.IDLTypeDescription): node 
     return node.generic === "record"
 }
 
+export function isConstant(node: webidl2.IDLRootType): node is webidl2.ConstantMemberType {
+    return node.type === "const"
+}
+
 export function isUnspecifiedGenericTypeDescription(node: webidl2.IDLTypeDescription): node is webidl2.UnspecifiedGenericTypeDescription {
     switch (node.generic) {
         case "FrozenArray":

@@ -16,7 +16,7 @@
 import * as webidl2 from "webidl2"
 import * as fs from "fs"
 import {
-    isAttribute, isCallback, isClass, isConstructor, isDictionary, isEnum, isInterface, isOperation, isOptional,
+    isAttribute, isCallback, isClass, isConstant, isConstructor, isDictionary, isEnum, isInterface, isOperation, isOptional,
     isPromiseTypeDescription,
     isRecordTypeDescription,
     isSequenceTypeDescription,
@@ -78,6 +78,9 @@ function toIDLNodeForward(file: string, node: webidl2.IDLRootType): idl.IDLEntry
     }
     if (isOperation(node as webidl2.IDLNamespaceMemberType)) {
         return toIDLMethod(file, node as webidl2.OperationMemberType)
+    }
+    if (isConstant(node)) {
+        return toIDLConstant(file, node)
     }
     throw new Error(`unexpected node type: ${toString(node)}`)
 }
@@ -326,6 +329,33 @@ function toIDLTypedef(file: string, node: webidl2.TypedefType): idl.IDLTypedef {
         documentation: makeDocs(node),
         fileName: file,
     })
+}
+
+function toIDLConstant(file: string, node: webidl2.ConstantMemberType) {
+    return idl.createConstant(node.name, toIDLType(file, node.idlType), constantValue(node))
+}
+
+function constantValue(node: webidl2.ConstantMemberType): string {
+    switch (node.value.type) {
+        case "string":
+            return `"${(node.value as webidl2.ValueDescriptionString).value}"`
+        case "number":
+            return (node.value as webidl2.ValueDescriptionNumber).value
+        case "boolean":
+            return (node.value as webidl2.ValueDescriptionBoolean).value.toString()
+        case "null":
+            return "null"
+        case "Infinity":
+            return "Infinity"
+        case "NaN":
+            return "NaN"
+        case "sequence":
+            return `[${(node.value as webidl2.ValueDescriptionSequence).value.join(',')}]`
+        case "dictionary":
+            return `new Map()`
+        default:
+            return "undefined"
+    }
 }
 
 function toIDLDictionary(file: string, node: webidl2.DictionaryType): idl.IDLEnum {

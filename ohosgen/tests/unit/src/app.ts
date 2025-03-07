@@ -4,11 +4,13 @@ import {
   CONST_BOOLEAN_TRUE,
   CONST_NUMBER_INT,
   CONST_NUMBER_FLOAT,
+  CONST_STRING,
   // .idl
-  // IDL_CONST_BOOLEAN_FALSE,
-  // IDL_CONST_BOOLEAN_TRUE,
-  // IDL_CONST_NUMBER_INT,
-  // IDL_CONST_NUMBER_FLOAT,
+  IDL_CONST_BOOLEAN_FALSE,
+  IDL_CONST_BOOLEAN_TRUE,
+  IDL_CONST_NUMBER_INT,
+  IDL_CONST_NUMBER_FLOAT,
+  IDL_CONST_STRING
 } from '#compat'
 
 import { and_values } from '#compat'
@@ -27,11 +29,12 @@ function compareNumbers(v1: number, v2: number): boolean {
 }
 
 function check_constants() {
+  // 1. Check dts const value
   // Fix boolean const type generation
   // if (CONST_BOOLEAN_FALSE != false)
   //   throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
   // if (CONST_BOOLEAN_TRUE != true)
-  //   throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
+  //   throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
 
   if (CONST_NUMBER_INT != 312) {
     throw new Error(`CONST_NUMBER_INT is not 312!`)
@@ -40,6 +43,23 @@ function check_constants() {
   // if (CONST_NUMBER_FLOAT != 312.415) {
   //   throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
   // }
+
+  // 2. Check idl const values
+  if (IDL_CONST_NUMBER_INT != 312) {
+    throw new Error(`IDL_CONST_NUMBER_INT is not 312! Real value = ${IDL_CONST_NUMBER_INT}`)
+  }
+  if (IDL_CONST_NUMBER_FLOAT != 312.415) {
+    throw new Error(`IDL_CONST_NUMBER_FLOAT is not 312.415! Real value = ${IDL_CONST_NUMBER_FLOAT}`)
+  }
+  if (IDL_CONST_BOOLEAN_FALSE != false) {
+    throw new Error(`IDL_CONST_BOOLEAN_FALSE is not false! Real value = ${IDL_CONST_BOOLEAN_FALSE}`)
+  }
+  if (IDL_CONST_BOOLEAN_TRUE != true) {
+    throw new Error(`IDL_CONST_BOOLEAN_FALSE is not true! Real value = ${IDL_CONST_BOOLEAN_TRUE}`)
+  }
+  if (IDL_CONST_STRING != "hello_string") {
+    throw new Error(`IDL_CONST_STRING is not "hello_string"! Real value = ${IDL_CONST_STRING}`)
+  }
 }
 
 function check_booleans() {
