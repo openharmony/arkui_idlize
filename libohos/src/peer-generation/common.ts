@@ -137,10 +137,10 @@ class ArkTsLayout extends TsLayout {
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g
     protected selectInterface(node: idl.IDLEntry): string {
-        return super.selectInterface(node).replaceAll('@', '').replaceAll(this.replacePattern, '_')
+        return super.selectInterface(node)
     }
     protected selectPeer(node:idl.IDLEntry): string {
-        return super.selectPeer(node).replaceAll('@', '').replaceAll(this.replacePattern, '_')
+        return super.selectPeer(node)
     }
 }
 

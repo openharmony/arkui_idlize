@@ -18,7 +18,7 @@
  * @kit AbilityKit
  */
 
-// import { ApplicationInfo } from '../bundleManager/ApplicationInfo';
+import { ApplicationInfo } from '../bundleManager/ApplicationInfo';
 // import type { AsyncCallback } from '../@ohos.base';
 // import resmgr from '../@ohos.resourceManager';
 import BaseContext from './BaseContext';
@@ -32,7 +32,7 @@ type ApplicationContextAlias = typeof ApplicationContext
 export default class Context extends BaseContext {
 
   // resourceManager: resmgr.ResourceManager;
-  // applicationInfo: ApplicationInfo;
+  applicationInfo: ApplicationInfo;
   cacheDir: string;
   tempDir: string;
   filesDir: string;

@@ -107,6 +107,12 @@ OH_String Context_getProcessNameImpl(OH_NativePointer thisPtr) {
 }
 void Context_setProcessNameImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
+OH_CONTEXT_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const OH_CONTEXT_ApplicationInfo* value) {
+}
+
 // ApplicationContext
 OH_CONTEXT_ApplicationContextHandle ApplicationContext_constructImpl() {
     ApplicationContextPeer* peer = new ApplicationContextPeer();

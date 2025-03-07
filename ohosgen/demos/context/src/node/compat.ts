@@ -1,3 +1,4 @@
+import { BusinessError } from "@internal/component/ets"
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 

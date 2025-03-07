@@ -1,3 +1,4 @@
+import { BusinessError } from "@internal/component/ets"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
 import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
