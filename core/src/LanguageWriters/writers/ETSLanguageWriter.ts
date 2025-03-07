@@ -299,13 +299,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         if (!idl.isEnum(decl)) {
             throwException(`Declaration type must be Enum`)
         }
-        const enumName = this.getNodeName(convertor.idlType)
-        const valueArray = `new Array<${enumName}>(${decl.elements.map(e => `${enumName}.${e.name}`).join(", ")})`
-        // Temporary replace enum member with it's ordinal by searching in an array of values in the declaration order
-        // TODO Replace with value.getOrdinal() once it is merged to Panda
-        const valueCasted = this.makeCast(this.makeString(value), convertor.idlType).asString()
         // ((value as Axis) as int) - in case when Axis was casted to Object in Map<Axis, Smth>
-        return this.makeCast(this.makeString(`${valueArray}.indexOf(${valueCasted})`), IDLI32Type).asString()
+        return this.makeCast(this.makeCast(this.makeString(value), convertor.idlType),
+            IDLI32Type).asString()
     }
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
                               convertorIndex: number,
