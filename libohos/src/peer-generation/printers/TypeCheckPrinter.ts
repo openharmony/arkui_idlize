@@ -9,7 +9,7 @@ import {
 import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor, isInIdlize } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
-import { convertDeclaration } from '@idlizer/core';
+import { convertDeclaration, generateEnumToOrdinalName, generateEnumFromOrdinalName } from '@idlizer/core';
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
@@ -128,6 +128,7 @@ abstract class TypeCheckerPrinter {
         imports.addFeature('KStringPtr', '@koalaui/interop')
         imports.addFeature('NativeBuffer', '@koalaui/interop')
         imports.addFeature('MaterializedBase', '@koalaui/interop')
+        imports.addFeature('int32', '@koalaui/common')
         for (const feature of features) {
             imports.addFeature(feature.feature, feature.module)
         }
@@ -144,6 +145,7 @@ abstract class TypeCheckerPrinter {
     protected abstract writeTypeInstanceOf(): void
     protected abstract writeTypeCast(): void
 
+    protected abstract writeEnumOrdinal(type: idl.IDLEnum): void
     protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void
     protected abstract writeArrayChecker(typeName: string, type: idl.IDLContainerType): void
 
@@ -152,10 +154,15 @@ abstract class TypeCheckerPrinter {
         const declNameConvertor = createDeclarationNameConvertor(this.library.language)
         const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
         const arrays: idl.IDLContainerType[] = []
+        const enums: idl.IDLEnum[] = []
         collectTypeCheckDeclarations(this.library).forEach(decl => {
             if (idl.isContainerType(decl)) {
                 arrays.push(decl)
-            } else {
+            }
+            if (idl.isEnum(decl)) {
+                enums.push(decl)
+            }
+            if (idl.isEnum(decl) || idl.isInterface(decl)) {
                 interfaces.push({
                     name: convertDeclaration(declNameConvertor, decl),
                     type: idl.createReferenceType(decl),
@@ -175,6 +182,9 @@ abstract class TypeCheckerPrinter {
             this.writeIsNativeBuffer()
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
+            for (const e of enums) {
+                this.writeEnumOrdinal(e)
+            }
             for (const array of arrays) {
                 const name = this.library.getInteropName(array)
                 this.writeArrayChecker(name, array)
@@ -262,6 +272,35 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         )
     }
 
+    protected writeEnumOrdinal(type: idl.IDLEnum): void {
+        this.writer.writeMethodImplementation(
+            new Method(generateEnumToOrdinalName(this.writer.getNodeName(type)),
+                new NamedMethodSignature(
+                    idl.IDLI32Type,
+                    [idl.createReferenceType(type)], ["value"]),
+                [MethodModifier.STATIC]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value as int32`),
+                    )
+                )
+            }
+        )
+        this.writer.writeMethodImplementation(
+            new Method(generateEnumFromOrdinalName(this.writer.getNodeName(type)),
+                new NamedMethodSignature(
+                    idl.createReferenceType(type),
+                    [idl.IDLI32Type], ["ordinal"]),
+                [MethodModifier.STATIC]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeThrowError(`Waiting for possibility to convert ordinal to enum from Panda team`)
+                )
+            }
+        )
+    }
+
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
         this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length, [])
     }
@@ -329,6 +368,37 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
                 writer.writeStatement(
                     writer.makeReturn(
                         writer.makeString(`value as unknown as T`),
+                    )
+                )
+            }
+        )
+    }
+
+    protected writeEnumOrdinal(type: idl.IDLEnum): void {
+        this.writer.writeMethodImplementation(
+            new Method(generateEnumToOrdinalName(this.writer.getNodeName(type)),
+                new NamedMethodSignature(
+                    idl.IDLI32Type,
+                    [idl.createReferenceType(type)], ["value"]),
+                [MethodModifier.STATIC]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`value as int32`),
+                    )
+                )
+            }
+        )
+        this.writer.writeMethodImplementation(
+            new Method(generateEnumFromOrdinalName(this.writer.getNodeName(type)),
+                new NamedMethodSignature(
+                    idl.createReferenceType(type),
+                    [idl.IDLI32Type], ["ordinal"]),
+                [MethodModifier.STATIC]),
+            writer => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(`ordinal as ${this.writer.getNodeName(type)}`),
                     )
                 )
             }

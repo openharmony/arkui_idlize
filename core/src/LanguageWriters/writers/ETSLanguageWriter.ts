@@ -169,6 +169,16 @@ export function generateTypeCheckerName(typeName: string): string {
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
 
+export function generateEnumToOrdinalName(typeName: string): string {
+    typeName = typeName.split(".").join("_")
+    return `${typeName}_ToOrdinal`
+}
+
+export function generateEnumFromOrdinalName(typeName: string): string {
+    typeName = typeName.split(".").join("_")
+    return `${typeName}_FromOrdinal`
+}
+
 export function makeArrayTypeCheckCall(
     valueAccessor: string,
     typeName: string,
@@ -224,10 +234,11 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        return this.makeString(`${value.asString()} as ${enumName}`)
+        return this.makeMethodCall('TypeChecker', generateEnumFromOrdinalName(enumName), [this.makeString(value.asString())])
     }
-    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeCast(this.makeString(`${value.asString()}`), IDLI32Type)
+    ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+        const enumName = this.getNodeName(enumEntry)
+        return this.makeMethodCall('TypeChecker', generateEnumToOrdinalName(enumName), [this.makeString(value.asString())])
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,
