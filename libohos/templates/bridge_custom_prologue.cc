@@ -524,7 +524,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
         return nullptr;
     }
     ani_method viewClassCtor = nullptr;
-    env->Class_GetMethod(viewClassClass, "<ctor>", "Lstd/core/String;:V", &viewClassCtor);
+    env->Class_FindMethod(viewClassClass, "<ctor>", "Lstd/core/String;:V", &viewClassCtor);
     if (!viewClassCtor) {
         LOGE("Cannot find user class ctor");
         ani_boolean hasError = false;
