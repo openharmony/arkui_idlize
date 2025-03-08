@@ -33,6 +33,7 @@ import { LibraryInterface } from '../LibraryInterface'
 import { BuilderClass, isBuilderClass } from './BuilderClass'
 import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
 import { MaterializedClass } from './Materialized'
+import { PeerFile } from './PeerFile'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
 import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
@@ -82,7 +83,7 @@ export class PeerLibrary implements LibraryInterface {
             return this._cachedIdlLibrary
         }
         this._cachedIdlLibrary = {
-            files: this.files
+            files: this.files.map(file => file.file)
         }
         return this._cachedIdlLibrary
     }
@@ -98,7 +99,7 @@ export class PeerLibrary implements LibraryInterface {
     public getSyntheticData() {
         return this._syntheticFile.entries.filter(it => idl.isInterface(it)) as idl.IDLInterface[]
     }
-    public readonly files: idl.IDLFile[] = []
+    public readonly files: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
         return Array.from(this.builderClasses.values()).filter(it => it.needBeGenerated)
@@ -171,8 +172,8 @@ export class PeerLibrary implements LibraryInterface {
         this.context = context
     }
 
-    findFileByOriginalFilename(filename: string): idl.IDLFile | undefined {
-        return this.files.find(it => it.fileName === filename)
+    findFileByOriginalFilename(filename: string): PeerFile | undefined {
+        return this.files.find(it => it.originalFilename === filename)
     }
 
     mapType(type: idl.IDLType): string {

@@ -35,7 +35,6 @@ import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../File
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
-import { collectFilePeers } from "../PeersCollector";
 
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
@@ -310,7 +309,7 @@ export class BridgeCcVisitor {
 
     print(): void {
         for (const file of this.library.files) {
-            for (const peer of collectFilePeers(this.library, file)) {
+            for (const peer of file.peersToGenerate.values()) {
                 for (const method of [createConstructPeerMethod(peer)].concat(peer.methods)) {
                     this.printMethod(method, peer.componentName)
                 }

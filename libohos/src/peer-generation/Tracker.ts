@@ -18,7 +18,6 @@ import * as path from 'path'
 
 import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { IDLEnum } from '@idlizer/core/idl'
-import { collectFilePeers } from './PeersCollector'
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 
@@ -71,7 +70,7 @@ class TrackerVisitor {
         const tracked = new Set<string>()
 
         this.library.files.forEach(file => {
-            collectFilePeers(this.library, file).forEach(component => {
+            file.peers.forEach(component => {
                 const compKey = key(component.componentName, "Component")
                 this.incAllStatus(compKey, allComponents, tracked)
                 component.methods.forEach(method => {
@@ -134,7 +133,7 @@ class TrackerVisitor {
         this.out.print(`| ---- | ---- | ----- | ------ |`)
 
         this.library.files.forEach(file => {
-            collectFilePeers(this.library, file).forEach(clazz => this.printPeerClass(clazz))
+            file.peers.forEach(clazz => this.printPeerClass(clazz))
             //file.enums.forEach(enam => this.printEnum(enam))
 
         })

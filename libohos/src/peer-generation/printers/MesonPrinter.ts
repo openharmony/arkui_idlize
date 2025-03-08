@@ -15,7 +15,6 @@
 
 import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { makeFileNameFromClassName } from "../FileGenerators"
-import { collectFilePeers } from '../PeersCollector'
 
 export class MesonVisitor {
     printer = new IndentedPrinter()
@@ -44,7 +43,7 @@ export class MesonVisitor {
         this.printer.pushIndent()
         this.printer.print(`'generated/interface/all_modifiers.cpp',`)
         this.library.files.forEach(file => {
-            collectFilePeers(this.library, file).forEach(clazz => this.printPeerClassSourcePaths(clazz))
+            file.peers.forEach(clazz => this.printPeerClassSourcePaths(clazz))
         })
         this.library.materializedClasses.forEach(clazz => {
             this.printMaterializedClassSourcePaths(clazz)

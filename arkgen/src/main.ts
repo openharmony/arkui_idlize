@@ -22,6 +22,7 @@ import {
     defaultCompilerOptions,
     Language,
     findVersion,
+    PeerFile,
     PeerLibrary,
     verifyIDLLinter,
     isDefined,
@@ -165,7 +166,7 @@ if (options.dts2skoala) {
                 }
 
                 generatedIDLMap.get(fileName)?.push(...file.entries)
-                skoalaLibrary.files.push(file)
+                skoalaLibrary.files.push(new IldSkoalaFile(file))
             },
             onEnd: (outDir) => {
                 const wrapperProcessor = new IdlWrapperProcessor(skoalaLibrary)
@@ -202,11 +203,13 @@ if (options.idl2peer) {
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        idlLibrary.files.push(toIDLFile(idlFilename))
+        const file = toIDLFile(idlFilename)
+        const peerFile = new PeerFile(file)
+        idlLibrary.files.push(peerFile)
     })
     if (options.verifyIdl) {
         idlLibrary.files.forEach(file => {
-            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
         })
     }
     new IdlPeerProcessor(idlLibrary).process()
@@ -234,7 +237,9 @@ if (options.dts2peer) {
     const idlLibrary = new ArkoalaPeerLibrary(lang, options.libraryPackages)
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        idlLibrary.files.push(toIDLFile(idlFilename))
+        const file = toIDLFile(idlFilename)
+        const peerFile = new PeerFile(file)
+        idlLibrary.files.push(peerFile)
     })
 
     generate(
@@ -261,12 +266,14 @@ if (options.dts2peer) {
                 })
                 linkParentBack(file)
 
-                idlLibrary.files.push(file)
+                const peerFile = new PeerFile(file)
+
+                idlLibrary.files.push(peerFile)
             },
             onEnd(outDir) {
                 if (options.verifyIdl) {
                     idlLibrary.files.forEach(file => {
-                        verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
                     })
                 }
                 fillSyntheticDeclarations(idlLibrary)

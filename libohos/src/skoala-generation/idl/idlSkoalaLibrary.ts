@@ -29,6 +29,7 @@ import {
     CustomTypeConvertor,
     generatorConfiguration,
     LibraryInterface,
+    LibraryFileInterface,
     InterfaceConvertor,
     PrimitiveTypesInstance
 } from '@idlizer/core'
@@ -42,7 +43,7 @@ import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, Cp
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
 import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 
-export class IldSkoalaFile {
+export class IldSkoalaFile implements LibraryFileInterface {
     readonly wrapperClasses: Map<string, [WrapperClass, any|undefined]> = new Map()
     readonly baseName: string
     readonly importsCollector: ImportsCollector
@@ -75,10 +76,9 @@ export class IdlSkoalaLibrary implements LibraryInterface {
 
     public language = Language.TS
 
-    public readonly files: idl.IDLFile[] = []
-    public outFiles: IldSkoalaFile[] = []
+    public readonly files: IldSkoalaFile[] = []
     findFileByOriginalFilename(filename: string): IldSkoalaFile | undefined {
-        return this.outFiles.find(it => it.file.fileName === filename)
+        return this.files.find(it => it.file.fileName === filename)
     }
 
     get libraryPrefix(): string {
@@ -370,7 +370,7 @@ export class IdlWrapperProcessor {
 
     private generateDeclarations(): Set<idl.IDLEntry> {
         const deps: Set<idl.IDLEntry> = new Set(
-            this.library.outFiles
+            this.library.files
                 .flatMap(it => [...it.declarations])
                 .filter(it => !idl.isImport(it))
         )
@@ -388,7 +388,6 @@ export class IdlWrapperProcessor {
     }
 
     process() {
-        this.library.outFiles = this.library.files.map(it => new IldSkoalaFile(it))
         let allDeps = this.generateDeclarations()
         for (let decl of allDeps) {
             if (idl.isSyntheticEntry(decl) && (idl.isCallback(decl) || idl.isInterface(decl))) {
@@ -421,7 +420,7 @@ export class IdlWrapperProcessor {
         }
 
         // process imports
-        for (let file of this.library.outFiles) {
+        for (let file of this.library.files) {
             const importDecl = [...file.declarations].filter(it => idl.isImport(it)).map(it => it as idl.IDLImport)
             importDecl.forEach(importModule => {
                 if (importModule.name === "" && {"ohos":1,"system":1,"internal":1}[importModule.clause[0]]) {
@@ -430,7 +429,7 @@ export class IdlWrapperProcessor {
                     importModule.clause.forEach(feature => {
                         if (feature in Skoala.BaseClasses) {
                             file.addImportFeature(importModule.name, feature)
-                        } else if (this.library.outFiles.find(f => f.wrapperClasses.has(feature))) {
+                        } else if (this.library.files.find(f => f.wrapperClasses.has(feature))) {
                             file.addImportFeature(importModule.name, feature)
                         }
                     })
@@ -468,7 +467,7 @@ export class IdlWrapperProcessor {
 
     tryProcessWrapper(decl: idl.IDLInterface, file: IldSkoalaFile): WrapperClass | undefined {
         const name = decl.name
-        this.library.outFiles.forEach((file, idx) => {
+        this.library.files.forEach((file, idx) => {
             if (file.wrapperClasses.has(name)) return
         })
 

@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, PeerFile } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";
@@ -18,7 +18,7 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
 
     let orderer = new DependencySorter(library)
     for (const file of library.files) {
-        if (library.libraryPackages?.length && !library.libraryPackages.includes(idl.getPackageName(file)))
+        if (library.libraryPackages?.length && !library.libraryPackages.includes((file as PeerFile).packageName()))
             continue
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||

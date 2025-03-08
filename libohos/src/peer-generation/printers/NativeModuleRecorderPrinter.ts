@@ -26,7 +26,6 @@ import {
     IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType
 } from "@idlizer/core/idl"
 import { makeInteropSignature } from "./NativeModulePrinter";
-import { collectFilePeers } from "../PeersCollector";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -298,7 +297,7 @@ class NativeModuleRecorderVisitor {
         })
 
         for (const file of this.library.files) {
-            for (const peer of collectFilePeers(this.library, file)) {
+            for (const peer of file.peersToGenerate.values()) {
                 this.printConstructMethod(peer, this.nativeModuleRecorder)
             }
         }
@@ -338,7 +337,7 @@ class NativeModuleRecorderVisitor {
         this.printOtherField()
 
         for (const file of this.library.files) {
-            for (const peer of collectFilePeers(this.library, file)) {
+            for (const peer of file.peersToGenerate.values()) {
                 this.printInterface(peer)
             }
         }
@@ -350,7 +349,7 @@ class NativeModuleRecorderVisitor {
             this.printOtherMethods()
 
             for (const file of this.library.files) {
-                for (const peer of collectFilePeers(this.library, file)) {
+                for (const peer of file.peersToGenerate.values()) {
                     this.printPeerMethods(peer)
                 }
             }

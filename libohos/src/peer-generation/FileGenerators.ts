@@ -26,7 +26,6 @@ import { SourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
 import { makeCJDeserializer, makeCJSerializer } from "./printers/lang/CJPrinters"
-import { collectFilePeers } from "./PeersCollector";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -122,7 +121,7 @@ export function appendModifiersCommonPrologue(): LanguageWriter {
 export function getNodeTypes(library: PeerLibrary): string[] {
     const components: string[] = []
     for (const file of library.files) {
-        for (const peer of collectFilePeers(library, file)) {
+        for (const peer of file.peers.values()) {
             components.push(peer.componentName)
         }
     }

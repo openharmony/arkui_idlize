@@ -53,7 +53,7 @@ export function printSkoala(library: IdlSkoalaLibrary): Map<TargetFile, Language
     let result: Map<TargetFile, LanguageWriter> = new Map()
 
     let wrVis = new TSWrappersVisitor()
-    for (let file of library.outFiles) {
+    for (let file of library.files) {
         const writer = createLanguageWriter(Language.TS, library)
         wrVis.printImports(file, writer)
         wrVis.printWrappers(file, writer)
@@ -65,7 +65,7 @@ export function printSkoala(library: IdlSkoalaLibrary): Map<TargetFile, Language
 
     const writer = createLanguageWriter(Language.TS, library)
     let intVis = new TSInterfacesVisitor(library)
-    for (let file of library.outFiles) {
+    for (let file of library.files) {
         intVis.printInterfaces(file, writer)
     }
     result.set(

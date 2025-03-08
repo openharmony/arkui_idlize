@@ -16,6 +16,7 @@
 import { IDLI32Type, IDLPointerType, IDLProperty } from "../idl"
 import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors"
 import { PeerMethod } from "./PeerMethod"
+import { PeerFile } from "./PeerFile"
 import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"
 
 export interface PeerClassBase {
@@ -27,6 +28,7 @@ export interface PeerClassBase {
 
 export class PeerClass implements PeerClassBase {
     constructor(
+        public readonly file: PeerFile,
         public readonly componentName: string,
         public readonly originalFilename: string,
     ) { }

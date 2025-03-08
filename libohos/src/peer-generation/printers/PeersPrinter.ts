@@ -26,7 +26,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerMethod,
+import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerFile, PeerMethod,
     getInternalClassName, MaterializedMethod, PeerLibrary
 } from "@idlizer/core";
 import { tsCopyrightAndWarning } from "../FileGenerators";
@@ -41,7 +41,6 @@ import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, 
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { findComponentByType } from "../ComponentsCollector";
 import { NativeModule } from "../NativeModule";
-import { collectFilePeers } from '../PeersCollector';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -58,7 +57,7 @@ class PeerFileVisitor {
 
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: idl.IDLFile,
+        protected readonly file: PeerFile,
         protected readonly dumpSerialized: boolean,
     ) { }
 
@@ -82,7 +81,7 @@ class PeerFileVisitor {
         this.getDefaultPeerImports(this.library.language)!.forEach(it => printer.print(it))
 
         const imports = new ImportsCollector()
-        collectFilePeers(this.library, this.file).forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             if (peer.originalParentFilename) {
                 const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
                 imports.addFeature(this.generatePeerParentName(peer), parentModule)
@@ -230,11 +229,11 @@ class PeerFileVisitor {
 
     printFile(): void {
         const printer = this.library.createLanguageWriter()
-        const targetBasename = renameDtsToPeer(path.basename(this.file.fileName!), this.library.language, false)
+        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 
         this.printImports(printer, targetBasename)
-        collectFilePeers(this.library, this.file).forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer, printer)
             this.printAttributes(peer, printer)
         })
@@ -270,7 +269,7 @@ class PeerFileVisitor {
 class JavaPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: idl.IDLFile,
+        protected readonly file: PeerFile,
         dumpSerialized: boolean,
     ) {
         super(library, file, dumpSerialized)
@@ -297,7 +296,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): void {
-        collectFilePeers(this.library, this.file).forEach(peer => {
+        this.file.peers.forEach(peer => {
             let printer = this.library.createLanguageWriter()
             const peerName = componentToPeerClass(peer.componentName)
             this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
@@ -325,7 +324,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: idl.IDLFile,
+        protected readonly file: PeerFile,
         dumpSerialized: boolean,
     ) {
         super(library, file, dumpSerialized)
@@ -340,14 +339,14 @@ class CJPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): void {
         const printer = this.library.createLanguageWriter()
-        const targetBasename = renameDtsToPeer(path.basename(this.file.fileName!), this.library.language, false)
+        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
         this.printers.set(new TargetFile(targetBasename), printer)
 
         this.printPackage(printer)
 
         printer.print("import std.collection.*")
         printer.print("import Interop.*")
-        collectFilePeers(this.library, this.file).forEach(peer => {
+        this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer, printer)
         })
     }
@@ -363,7 +362,7 @@ class PeersVisitor {
 
     printPeers(): void {
         for (const file of this.library.files.values()) {
-            if (!collectFilePeers(this.library, file))
+            if (!file.peersToGenerate.length)
                 continue
             const visitor = this.library.language == Language.JAVA
                 ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)

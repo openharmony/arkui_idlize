@@ -22,6 +22,7 @@ import {
     Language,
     findVersion,
     setDefaultConfiguration,
+    PeerFile,
     PeerLibrary,
     verifyIDLLinter,
     toIDLFile,
@@ -107,11 +108,13 @@ if (options.idl2peer) {
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        idlLibrary.files.push(toIDLFile(idlFilename))
+        const file = toIDLFile(idlFilename)
+        const peerFile = new PeerFile(file)
+        idlLibrary.files.push(peerFile)
     })
     if (options.verifyIdl) {
         idlLibrary.files.forEach(file => {
-            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
         })
     }
     new IdlPeerProcessor(idlLibrary).process()
@@ -139,7 +142,9 @@ if (options.dts2peer) {
 
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        idlLibrary.files.push(toIDLFile(idlFilename))
+        const file = toIDLFile(idlFilename)
+        const peerFile = new PeerFile(file)
+        idlLibrary.files.push(peerFile)
     })
 
     generate(
@@ -165,12 +170,15 @@ if (options.dts2peer) {
                     transformMethodsAsync2ReturnPromise(it)
                 })
                 linkParentBack(file)
-                idlLibrary.files.push(file)
+
+                const peerFile = new PeerFile(file)
+
+                idlLibrary.files.push(peerFile)
             },
             onEnd(outDir: string) {
                 if (options.verifyIdl) {
                     idlLibrary.files.forEach(file => {
-                        verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
                     })
                 }
                 fillSyntheticDeclarations(idlLibrary)
