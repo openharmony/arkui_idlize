@@ -41,7 +41,7 @@ The *import* directive is intended to map the specified scope onto the current o
 ```
 import ohos;
 interface MySrv : bluetooth.Server {/*...*/}
-//  bluetooth.Server is visible as ohos.bluetooth.Server via 'import ohos'
+//  ohos.bluetooth.Server becomes visible as bluetooth.Server via 'import ohos'
 ```
 
 A  *typedef*  declaration is used to assign a new name to an existing type within the current scope.
@@ -136,7 +136,8 @@ Declarations introduce new entities (types, values, functions) into the current 
 
 ## enumeration (using dictionary syntax)
 
-Declares an enumerated type with a domain of integer or string values. 
+Declares an enumerated type with a domain of integer or string values. Within a dictionary, integer and
+string items cannot be mixed.
 
 **Example:** 
 
@@ -196,7 +197,7 @@ Declares a named callable type whose values enable the corresponding callbacks t
  **Example:** 
 
 ```
-callback Foo = number(number param1, optional String param2);
+callback Foo = number (number param1, optional String param2);
 ```
 
 Callback values can be assigned to interface attributes or passed as function/method parameters. 

@@ -32,13 +32,9 @@ We use WebIDL language with several custom extension attributes documented below
    * `Import` - complete TS import expression for inline imports
    * `IndexSignature` - marker for index signature methods
    * `Interfaces` - name of implemented interface
-   * `InterfaceTypeArguments` - concrete types used as values for implemented interface type parameters
-   * `Namespace` - namespace name for given node
    * `Optional` - if given attribute is optional
-   * `ParentTypeArguments` - concrete types used as values for extended class type parameters
    * `Protected` - if given attribute is protected
    * `Throws` - indicates that function may throw an exception
-   * `TSType` - name of standard TypeScript type for given IDL type
    * `TypeParameters` - type parameters for a parameterized type
    * `TypeArguments` - concrete types used as values for type parameters
    * `VerbatimDts` - code to add "as-is" to produced .d.ts, for language-specific features, avoid when possible
