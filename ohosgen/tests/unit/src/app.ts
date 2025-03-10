@@ -50,17 +50,17 @@ function compareNumbers(v1: number, v2: number): boolean {
 function check_constants() {
   // 1. Check dts const value
   // Fix boolean const type generation
-  // if (CONST_BOOLEAN_FALSE != false)
-  //   throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
-  // if (CONST_BOOLEAN_TRUE != true)
-  //   throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
+  if (CONST_BOOLEAN_FALSE != false)
+    throw new Error(`CONST_BOOLEAN_FALSE is not false!`)
+  if (CONST_BOOLEAN_TRUE != true)
+    throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
 
   assertEquals(312, CONST_NUMBER_INT, "CONST_NUMBER_INT")
 
-  // Fix float const value
-  // if (CONST_NUMBER_FLOAT != 312.415) {
-  //   throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
-  // }
+
+  if (CONST_NUMBER_FLOAT != 312.415) {
+    throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
+  }
 
   // 2. Check idl const values
   assertEquals(312, IDL_CONST_NUMBER_INT, "IDL_CONST_NUMBER_INT")

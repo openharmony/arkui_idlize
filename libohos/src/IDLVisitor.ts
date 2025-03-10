@@ -1574,11 +1574,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             if (value.startsWith("0x")) {
                 return [idl.IDLNumberType, parseInt(value.substring(2), 16).toString()]
             }
-            if (parseInt(value) != undefined) {
-                return [idl.IDLNumberType, parseInt(value).toString()]
-            }
-            if (parseFloat(value) != undefined) {
+            if (!isNaN(parseFloat(value))) {
                 return [idl.IDLNumberType, parseFloat(value).toString()]
+            }
+            if (value === "true" || value === "false") {
+                return [idl.IDLBooleanType, value]
             }
             throw new Error(`Cannot infer type of ${value}`)
         }
