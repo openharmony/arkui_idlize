@@ -16,7 +16,7 @@
 import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
-import { PeersConstructions } from "../../../visitors/library/PeersConstructions"
+import { PeersConstructions } from "../../../printers/library/PeersConstructions"
 import { Config } from "../../../Config"
 
 export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<

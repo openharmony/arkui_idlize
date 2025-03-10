@@ -16,7 +16,7 @@
 import { Typechecker } from "../general/Typechecker"
 import { IDLFile } from "@idlizer/core"
 
-export type Result = { fileName: string, output: string }
+export type MultiFileOutput = { fileName: string, output: string }
 
 export abstract class MultiFilePrinter {
     constructor(
@@ -25,5 +25,5 @@ export abstract class MultiFilePrinter {
 
     protected typechecker = new Typechecker(this.idl.entries)
 
-    abstract print(): Result[]
+    abstract print(): MultiFileOutput[]
 }

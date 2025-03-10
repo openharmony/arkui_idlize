@@ -114,3 +114,13 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
         return convertType(this, type)
     }
 }
+
+export function composedConvertType<T>(
+    result: BaseTypeConvertor<T>,
+    effect: BaseTypeConvertor<IDLType>,
+    type: IDLType
+): T {
+    return result.convertType(
+        effect.convertType(type)
+    )
+}

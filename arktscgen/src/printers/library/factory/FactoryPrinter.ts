@@ -14,7 +14,6 @@
  */
 
 import {
-    convertType,
     createEmptyReferenceResolver,
     createReferenceType,
     IDLInterface,
@@ -27,9 +26,10 @@ import { SingleFilePrinter } from "../../SingleFilePrinter"
 import { makeSignature } from "../../../utils/idl"
 import { mangleIfKeyword } from "../../../general/common"
 import { PeersConstructions } from "../PeersConstructions"
-import { composedConvertType, ImporterTypeConvertor } from "../../../type-convertors/top-level/ImporterTypeConvertor"
+import { ImporterTypeConvertor } from "../../../type-convertors/top-level/ImporterTypeConvertor"
 import { PeerImporter } from "../PeerImporter"
 import { LibraryTypeConvertor } from "../../../type-convertors/top-level/LibraryTypeConvertor"
+import { composedConvertType } from "../../../type-convertors/BaseTypeConvertor"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new PeerImporter(this.typechecker, `peers`)

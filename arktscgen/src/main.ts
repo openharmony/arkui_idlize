@@ -19,7 +19,7 @@ import { Config } from "./Config"
 import { IgnoreOptions } from "./options/IgnoreOptions"
 import * as path from "node:path"
 import { StaticEmitter } from "./emitters/StaticEmitter"
-import { cliOptions } from "./cli-options"
+import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"
 
 function main() {

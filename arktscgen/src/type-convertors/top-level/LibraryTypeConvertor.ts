@@ -15,7 +15,7 @@
 
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { PeerImporter } from "../../visitors/library/PeerImporter"
+import { PeerImporter } from "../../printers/library/PeerImporter"
 import { Typechecker } from "../../general/Typechecker"
 import { innerType } from "../../utils/idl"
 

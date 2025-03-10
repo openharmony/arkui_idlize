@@ -53,8 +53,12 @@ export class PeersConstructions {
         }
     }
 
-    static get pointerToPeer(): string {
+    static get unpackNullable(): string {
         return `unpackNode`
+    }
+
+    static get unpackNonNullable(): string {
+        return `unpackNonNullableNode`
     }
 
     static get arrayOfPointersToArrayOfPeers(): string {

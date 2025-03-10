@@ -15,8 +15,8 @@
 
 import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
-import { IDLOptionalType, IDLType, LanguageExpression, LanguageWriter } from "@idlizer/core"
-import { PeersConstructions } from "../../../visitors/library/PeersConstructions"
+import { IDLOptionalType, IDLType, isReferenceType, LanguageExpression, LanguageWriter } from "@idlizer/core"
+import { PeersConstructions } from "../../../printers/library/PeersConstructions"
 
 export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
     (writer: LanguageWriter, call: LanguageExpression) => LanguageExpression
@@ -34,8 +34,8 @@ export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
         super(typechecker, {
             sequence: wrap(PeersConstructions.arrayOfPointersToArrayOfPeers),
             string: wrap(PeersConstructions.receiveString),
-            reference: wrap(PeersConstructions.pointerToPeer),
-            optional: (type: IDLOptionalType) => this.convertType(type.type),
+            reference: wrap(PeersConstructions.unpackNonNullable),
+            optional: wrap(PeersConstructions.unpackNullable),
             enum: plain,
             number: plain,
             void: plain,

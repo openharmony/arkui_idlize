@@ -15,7 +15,7 @@
 
 import { Config } from "../Config"
 import { IDLInterface, IDLMethod, isVoidType, throwException } from "@idlizer/core"
-import { InteropConstructions } from "../visitors/interop/InteropConstructions"
+import { InteropConstructions } from "../printers/interop/InteropConstructions"
 import { nodeType, parent } from "../utils/idl"
 import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
 

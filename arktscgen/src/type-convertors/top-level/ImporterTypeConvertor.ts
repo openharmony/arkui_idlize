@@ -23,7 +23,7 @@ import {
     throwException
 } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { PeerImporter } from "../../visitors/library/PeerImporter"
+import { PeerImporter } from "../../printers/library/PeerImporter"
 import { Typechecker } from "../../general/Typechecker"
 import { BaseTypeConvertor } from "../BaseTypeConvertor"
 
@@ -56,14 +56,4 @@ export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
             pointer: (type: IDLPrimitiveType) => type
         })
     }
-}
-
-export function composedConvertType<T>(
-    result: BaseTypeConvertor<T>,
-    effect: BaseTypeConvertor<IDLType>,
-    type: IDLType
-): T {
-    return result.convertType(
-        effect.convertType(type)
-    )
 }

@@ -13,20 +13,20 @@
  * limitations under the License.
  */
 
-import { MultiFilePrinter, Result } from "../MultiFilePrinter"
+import { MultiFilePrinter, MultiFileOutput } from "../MultiFilePrinter"
 import { IDLInterface, isInterface } from "@idlizer/core"
 import { PeersConstructions } from "./PeersConstructions"
 import { PeerPrinter } from "./PeerPrinter"
 
 export class AllPeersPrinter extends MultiFilePrinter {
-    print(): Result[] {
+    print(): MultiFileOutput[] {
         return this.idl.entries
             .filter(isInterface)
             .filter(it => this.typechecker.isPeer(it.name))
             .map(it => this.printInterface(it))
     }
 
-    private printInterface(node: IDLInterface): Result {
+    private printInterface(node: IDLInterface): MultiFileOutput {
         return {
             fileName: PeersConstructions.fileName(node.name),
             output: new PeerPrinter(this.idl, node).print()

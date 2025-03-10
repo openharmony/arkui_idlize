@@ -15,7 +15,7 @@
 
 import { createFile, createParameter, createReferenceType, IDLFile, IDLMethod } from "@idlizer/core"
 import { IDLInterface, isInterface } from "@idlizer/core/idl"
-import { InteropConstructions } from "../../visitors/interop/InteropConstructions"
+import { InteropConstructions } from "../../printers/interop/InteropConstructions"
 import { createUpdatedInterface, createUpdatedMethod, isSequence, nodeNamespace } from "../../utils/idl"
 import { Config } from "../../Config"
 import { mangleIfKeyword } from "../../general/common";

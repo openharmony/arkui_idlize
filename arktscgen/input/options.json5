@@ -39,7 +39,7 @@
             name : "FunctionDeclaration",
             methods: [
                 {
-                    name: "function",
+                    name: "FunctionConst",
                     types: ["returnType"]
                 }
             ]

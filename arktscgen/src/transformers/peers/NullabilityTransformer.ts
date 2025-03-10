@@ -29,7 +29,8 @@ import { Typechecker } from "../../general/Typechecker"
 
 export class NullabilityTransformer implements Transformer {
     constructor(
-        private file: IDLFile
+        private file: IDLFile,
+        private config: Config,
     ) {}
 
     private typechecker = new Typechecker(this.file.entries)
@@ -50,28 +51,29 @@ export class NullabilityTransformer implements Transformer {
         return createUpdatedInterface(
             node,
             node.methods
-                .map(it => this.transformMethod(it))
+                .map(it => createUpdatedMethod(
+                    it,
+                    undefined,
+                    this.transformedParameters(it, node),
+                    this.transformedReturnType(it, node)
+                ))
         )
     }
 
-    private transformMethod(node: IDLMethod): IDLMethod {
-        return createUpdatedMethod(
-            node,
-            undefined,
-            this.transformedParameters(node),
-            this.transformedReturnType(node)
-        )
-    }
-
-    private transformedParameters(node: IDLMethod): IDLParameter[] {
+    private transformedParameters(node: IDLMethod, parent: IDLInterface): IDLParameter[] {
         return node.parameters.map(it => createParameter(
             it.name,
-            this.transformType(it.type)
+            this.config.nonNullable.isNonNullableParameter(parent.name, node.name, it.name)
+                ? it.type
+                : this.transformType(it.type)
         ))
     }
 
-    private transformedReturnType(node: IDLMethod): IDLType {
+    private transformedReturnType(node: IDLMethod, parent: IDLInterface): IDLType {
         if (Config.isCreateOrUpdate(node.name)) {
+            return node.returnType
+        }
+        if (this.config.nonNullable.isNonNullableReturnType(parent.name, node.name)) {
             return node.returnType
         }
         return this.transformType(node.returnType)

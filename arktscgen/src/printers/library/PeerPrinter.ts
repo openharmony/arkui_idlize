@@ -40,10 +40,11 @@ import { PeerImporter } from "./PeerImporter"
 import { InteropConstructions } from "../interop/InteropConstructions"
 import { Typechecker } from "../../general/Typechecker"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
-import { composedConvertType, ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
+import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
 import { BindingReturnValueTypeConvertor } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
+import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 
 export class PeerPrinter extends SingleFilePrinter {
     constructor(
@@ -60,6 +61,7 @@ export class PeerPrinter extends SingleFilePrinter {
     private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
 
     private bindingReturnValueTypeConvertor = new BindingReturnValueTypeConvertor(this.typechecker)
+
     private parent = parent(this.node) ?? throwException(`expected peer to have parent: ${this.node.name}`)
 
     protected writer = new TSLanguageWriter(
