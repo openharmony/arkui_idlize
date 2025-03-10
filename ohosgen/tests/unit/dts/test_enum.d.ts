@@ -5,10 +5,12 @@ declare enum OrdinaryEnum {
 
 declare enum IntEnum {
 	E1 = 11,
-	E2 = 12,
+	E2 = 22,
 }
 
 declare enum StringEnum {
-	E1 = "e1",
-	E2 = "e2",
+	E1 = "e11",
+	E2 = "e22",
 }
+
+declare function checkOrdinaryEnums(value1: OrdinaryEnum, value2: OrdinaryEnum): OrdinaryEnum

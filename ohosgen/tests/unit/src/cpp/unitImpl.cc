@@ -244,3 +244,20 @@ OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNam
 OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyInterface* a) {
     return {};
 }
+
+// Enums
+OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum value1, OH_UNIT_OrdinaryEnum value2) {
+    printf("value1: %d, expected: %d\n", value1, OH_UNIT_ORDINARY_ENUM_E1);
+    if (value1 != OH_UNIT_ORDINARY_ENUM_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_ORDINARY_ENUM_E1);
+    }
+    return OH_UNIT_ORDINARY_ENUM_E2;
+}
+
+OH_UNIT_IDLOrdinaryEnum GlobalScope_idlCheckOrdinaryEnumsImpl(OH_UNIT_IDLOrdinaryEnum value1, OH_UNIT_IDLOrdinaryEnum value2) {
+    printf("value1: %d, expected: %d\n", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
+    if (value1 != OH_UNIT_IDLORDINARY_ENUM_E1) {
+        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
+    }
+    return OH_UNIT_IDLORDINARY_ENUM_E2;
+}

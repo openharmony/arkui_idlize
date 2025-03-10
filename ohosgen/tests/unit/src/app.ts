@@ -22,7 +22,17 @@ import {
   callForceCallbackListener,
   ClassWithComplexPropertyType
 } from '#compat'
-import { OrdinaryEnum, IntEnum, StringEnum } from '#compat'
+import {
+  OrdinaryEnum,
+  IntEnum,
+  StringEnum,
+  checkOrdinaryEnums,
+  IDLOrdinaryEnum,
+  IDLIntEnum,
+  IDLStringEnum,
+  idlCheckOrdinaryEnums,
+}
+  from '#compat'
 
 function compareNumbers(v1: number, v2: number): boolean {
   return Math.abs(v2 - v1) < 0.1
@@ -133,6 +143,7 @@ function checkForceCallback() {
 
 function checkEnum() {
 
+  // .d.ts
   console.log(OrdinaryEnum.E1.valueOf())
   console.log(OrdinaryEnum.E2.valueOf())
   console.log(IntEnum.E1.valueOf())
@@ -143,12 +154,36 @@ function checkEnum() {
   // use Enum.VALUE.valueOf() as a workaround
   if (IntEnum.E1.valueOf() != 11)
     throw new Error(`Enum value is ${IntEnum.E1.valueOf()} instead of 11`)
-  if (IntEnum.E2.valueOf() != 12)
-    throw new Error(`Enum value is ${IntEnum.E2.valueOf()} instead of 12`)
-  if (StringEnum.E1.valueOf() != "e1")
-    throw new Error(`Enum value is ${StringEnum.E1.valueOf()} instead of e1`)
-  if (StringEnum.E2.valueOf() != "e2")
-    throw new Error(`Enum value is ${StringEnum.E2.valueOf()} instead of e2`)
+  if (IntEnum.E2.valueOf() != 22)
+    throw new Error(`Enum value is ${IntEnum.E2.valueOf()} instead of 22`)
+  if (StringEnum.E1.valueOf() != "e11")
+    throw new Error(`Enum value is ${StringEnum.E1.valueOf()} instead of e11`)
+  if (StringEnum.E2.valueOf() != "e22")
+    throw new Error(`Enum value is ${StringEnum.E2.valueOf()} instead of e22`)
+
+  // if (checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2) != OrdinaryEnum.E2)
+  //   throw new Error(`checkOrdinaryEnums returned enum differs from OrdinaryEnum.E2`)
+
+  // .idl
+  console.log(IDLOrdinaryEnum.E1.valueOf())
+  console.log(IDLOrdinaryEnum.E2.valueOf())
+  console.log(IDLIntEnum.E1.valueOf())
+  console.log(IDLIntEnum.E2.valueOf())
+  console.log(IDLStringEnum.E1.valueOf())
+  console.log(IDLStringEnum.E2.valueOf())
+
+  // use Enum.VALUE.valueOf() as a workaround
+  if (IDLIntEnum.E1.valueOf() != 111)
+    throw new Error(`Enum value is ${IDLIntEnum.E1.valueOf()} instead of 111`)
+  if (IDLIntEnum.E2.valueOf() != 222)
+    throw new Error(`Enum value is ${IDLIntEnum.E2.valueOf()} instead of 222`)
+  if (IDLStringEnum.E1.valueOf() != "e111")
+    throw new Error(`Enum value is ${IDLStringEnum.E1.valueOf()} instead of e111`)
+  if (IDLStringEnum.E2.valueOf() != "e222")
+    throw new Error(`Enum value is ${IDLStringEnum.E2.valueOf()} instead of e222`)
+
+  // if (idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2) != IDLOrdinaryEnum.E2)
+  //   throw new Error(`checkOrdinaryEnums returned enum differs from IDLOrdinaryEnum.E2`)
 }
 
 function checkClassWithComplexPropertyType() {
