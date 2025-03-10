@@ -48,9 +48,10 @@ export function isGetter(node: IDLMethod): boolean {
     if (node.parameters.length !== 0) {
         return false
     }
-    return node.extendedAttributes
-        ?.some(it => it.name === Config.getterAttribute)
-        ?? false
+    if (isVoidType(node.returnType)) {
+        return false
+    }
+    return true
 }
 
 export function isRegular(node: IDLMethod): boolean {

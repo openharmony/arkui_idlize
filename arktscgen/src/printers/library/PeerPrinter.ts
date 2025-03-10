@@ -133,12 +133,6 @@ export class PeerPrinter extends SingleFilePrinter {
                         [
                             this.writer.makeString(PeersConstructions.pointerParameter)
                         ]
-                    ),
-                    this.writer.makeFunctionCall(
-                        PeersConstructions.warn,
-                        [
-                            this.writer.makeString(PeersConstructions.stubNodeMessage(this.node.name))
-                        ]
                     )
                 )
             }
@@ -171,17 +165,17 @@ export class PeerPrinter extends SingleFilePrinter {
 
     private printMethods(): void {
         this.node.methods.forEach(it => {
-            if (isGetter(it)) {
-                return this.printGetter(it)
-            }
-            if (isRegular(it)) {
-                return this.printRegular(it)
-            }
             if (Config.isCreateOrUpdate(it.name)) {
                 if (isAbstract(this.node)) {
                     return
                 }
                 return this.printCreateOrUpdate(it)
+            }
+            if (isGetter(it)) {
+                return this.printGetter(it)
+            }
+            if (isRegular(it)) {
+                return this.printRegular(it)
             }
         })
     }

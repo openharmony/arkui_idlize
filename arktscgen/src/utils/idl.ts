@@ -162,7 +162,7 @@ export function innerTypeIfContainer(node: IDLType): IDLType {
 
 export function makeMethod(
     name: string,
-    parameters: IDLParameter[],
+    parameters: { name: string, type: IDLType }[],
     returnType: IDLType,
     modifiers?: MethodModifier[]
 ): Method {

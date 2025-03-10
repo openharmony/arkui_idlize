@@ -35,7 +35,6 @@ export abstract class SingleFilePrinter {
         ]
             .flat()
             .join(`\n`)
-
     }
 
     protected abstract visit(): void

@@ -13,34 +13,30 @@
  * limitations under the License.
  */
 
-import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter, } from "@idlizer/core"
-import { IDLEnum, IDLType, } from "@idlizer/core/idl"
-import { IDLFile } from "@idlizer/core"
+import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter } from "@idlizer/core"
+import { IDLEnum, IDLType } from "@idlizer/core/idl"
+import { SingleFilePrinter } from "../SingleFilePrinter"
+import { isNumber } from "../../utils/types"
 
-export class EnumsPrinter {
-    constructor(
-        private idl: IDLFile,
-    ) { }
-
-    private writer = new TSLanguageWriter(
+export class EnumsPrinter extends SingleFilePrinter {
+    protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
     )
 
-    print(): string {
+    visit(): void {
         this.idl.entries
             .filter(isEnum)
             .forEach(it => this.printEnum(it))
-        return this.writer.getOutput().join('\n')
     }
 
     private printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
             node.name,
             node.elements.map(it => {
-                if (typeof it.initializer !== 'number') {
-                    throwException(`Unexpected type of initializer: ${typeof it.initializer}`)
+                if (!isNumber(it.initializer)) {
+                    throwException(`unexpected initializer value: ${it.initializer}`)
                 }
                 return {
                     name: it.name,

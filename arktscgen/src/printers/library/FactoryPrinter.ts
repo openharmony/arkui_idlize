@@ -23,13 +23,14 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { makeSignature } from "../../utils/idl"
+import { makeMethod } from "../../utils/idl"
 import { mangleIfKeyword } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { Importer } from "./Importer"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
+import { id } from "../../utils/types"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
@@ -37,35 +38,52 @@ export class FactoryPrinter extends SingleFilePrinter {
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => composedConvertType(
-            new LibraryTypeConvertor(this.typechecker),
-            new ImporterTypeConvertor(
-                this.importer,
-                this.typechecker
-            ),
-            node
+        { convert: (node: IDLType) =>
+            composedConvertType(
+                new LibraryTypeConvertor(this.typechecker),
+                new ImporterTypeConvertor(
+                    this.importer,
+                    this.typechecker
+                ),
+                node
             )
         }
     )
 
-    visit(): void {
-        this.idl.entries
-            .filter(isInterface)
-            .filter(it => this.typechecker.isPeer(it.name))
-            .forEach(this.printInterface, this)
+    private withFactoryDeclaration(prints: (() => void)[]): void {
+        this.writer.writeExpressionStatements(
+            this.writer.makeString(`export const factory = {`)
+        )
+        prints.forEach(it =>
+            this.writer.printer.withIndent(
+                (printer) => {
+                    it()
+                    printer.print(`,`)
+                }
+            )
+        )
+        this.writer.writeExpressionStatements(
+            this.writer.makeString(`}`)
+        )
     }
 
-    private printInterface(node: IDLInterface): void {
-        if (node.properties.length === 0) {
-            return
-        }
-        this.printCreate(node)
+    visit(): void {
+        this.withFactoryDeclaration(
+            this.idl.entries
+                .filter(isInterface)
+                .filter(it => this.typechecker.isPeer(it.name))
+                .filter(it => it.properties.length !== 0)
+                .flatMap(it => [
+                    () => this.printCreate(it),
+                    () => this.printUpdate(it)
+                ])
+        )
     }
 
     private printCreate(node: IDLInterface): void {
-        this.writer.writeFunctionImplementation(
-            PeersConstructions.universalCreate(node.name),
-            makeSignature(
+        this.writer.writeMethodImplementation(
+            makeMethod(
+                PeersConstructions.universalCreate(node.name),
                 node.properties,
                 createReferenceType(node.name)
             ),
@@ -80,6 +98,44 @@ export class FactoryPrinter extends SingleFilePrinter {
                     )
                 )
             )
+        )
+    }
+
+    private printUpdate(node: IDLInterface): void {
+        this.writer.writeMethodImplementation(
+            makeMethod(
+                PeersConstructions.universalUpdate(node.name),
+                [{
+                    name: `original`,
+                    type: id<IDLType>(createReferenceType(node.name))
+                }]
+                    .concat(node.properties),
+                createReferenceType(node.name)
+            ),
+            () => {
+                this.writer.writeStatements(
+                    this.writer.makeCondition(
+                        this.writer.makeString(
+                            node.properties
+                                .map(it => it.name)
+                                .map(it => `${mangleIfKeyword(it)} === original.${it}`)
+                                .join(` && `)
+                        ),
+                        this.writer.makeReturn(
+                            this.writer.makeString(`original`)
+                        )
+                    ),
+                    this.writer.makeReturn(
+                        this.writer.makeFunctionCall(
+                            PeersConstructions.callUniversalCreate(node.name),
+                            node.properties
+                                .map(it => it.name)
+                                .map(mangleIfKeyword)
+                                .map(it => this.writer.makeString(it))
+                        )
+                    )
+                )
+            }
         )
     }
 }

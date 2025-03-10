@@ -117,6 +117,14 @@ export class PeersConstructions {
         return peerMethod(`create${iface}`)
     }
 
+    static universalUpdate(iface: string): string {
+        return peerMethod(`update${iface}`)
+    }
+
+    static newOf(iface: string): string {
+        return `new ${iface}`
+    }
+
     static callUniversalCreate(iface: string): string {
         return `${iface}.${PeersConstructions.universalCreate(iface)}`
     }
