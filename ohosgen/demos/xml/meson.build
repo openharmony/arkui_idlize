@@ -85,16 +85,15 @@ elif is_panda
     library_name = 'XML_NativeBridgeArk'
     platform_build_dir = 'build/panda'
 
-    cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += [
-        '-DETS_NATIVE_MODULE_CLASS_NAME=XMLNativeModule',
-        '-DETS_NATIVE_MODULE_QUALIFIED_NAME=_00040xml_generated_arkts_xmlNative',
+        '-DKOALA_USE_PANDA_VM',
+        '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name
     ]
     include_dirs += [
-        external_interop_dir / 'ets',
+        external_interop_dir / 'ani',
     ]
     sources += [
-        external_interop_dir / 'ets/convertors-ets.cc',
+        external_interop_dir / 'ani/convertors-ani.cc',
         external_interop_dir / 'types/signatures.cc',
     ]
 elif is_cj
