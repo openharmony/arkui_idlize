@@ -38,7 +38,9 @@ export {
     IDLIntEnum,
     IDLStringEnum,
     idlCheckOrdinaryEnums,
-} from "../../generated/arkts"
+    DataClass, DataInterface, IDLDataClass, IDLDataInterface,
+    testDataClass, testDataInterface, testIDLDataClass, testIDLDataInterface
+} from '../../generated/arkts'
 
 export type OHBuffer = NativeBuffer
 

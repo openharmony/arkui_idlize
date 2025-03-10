@@ -261,3 +261,39 @@ OH_UNIT_IDLOrdinaryEnum GlobalScope_idlCheckOrdinaryEnumsImpl(OH_UNIT_IDLOrdinar
     }
     return OH_UNIT_IDLORDINARY_ENUM_E2;
 }
+
+// Data object tests
+
+#define DATA_OBJECT_TEST(entityName) \
+    OH_UNIT_##entityName result; \
+    result.propBoolean = !arg->propBoolean; \
+    result.propNumber = arg->propNumber; \
+    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32) \
+        result.propNumber.i32 += 1; \
+    else \
+        result.propNumber.f32 += 1; \
+    result.propString = arg->propString; \
+    result.propString.chars++; \
+    result.propString.length--; \
+    result.propObject = arg->propObject; \
+    result.propObject.value0 = !arg->propObject.value0; \
+    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32) \
+        result.propObject.value1.i32 = -arg->propObject.value1.i32; \
+    else \
+        result.propObject.value1.f32 = -arg->propObject.value1.f32; \
+    result.propObject.value2.chars = arg->propObject.value2.chars + 6; \
+    result.propObject.value2.length = arg->propObject.value2.length - 6; \
+    return result;
+
+OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg) {
+    DATA_OBJECT_TEST(DataInterface)
+}
+OH_UNIT_DataClass GlobalScope_testDataClassImpl(const OH_UNIT_DataClass* arg) {
+    DATA_OBJECT_TEST(DataClass)
+}
+OH_UNIT_IDLDataInterface GlobalScope_testIDLDataInterfaceImpl(const OH_UNIT_IDLDataInterface* arg) {
+    DATA_OBJECT_TEST(IDLDataInterface)
+}
+OH_UNIT_IDLDataClass GlobalScope_testIDLDataClassImpl(const OH_UNIT_IDLDataClass* arg) {
+    DATA_OBJECT_TEST(IDLDataClass)
+}

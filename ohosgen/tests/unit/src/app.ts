@@ -31,8 +31,17 @@ import {
   IDLIntEnum,
   IDLStringEnum,
   idlCheckOrdinaryEnums,
+  testDataClass, testDataInterface, DataClass, DataInterface,
+  testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface
+} from '#compat'
+
+function assertEquals(expected: boolean | number | string, actual: boolean | number | string, msg?: string) {
+  if (typeof expected !== typeof actual || expected !== actual) {
+    msg = msg ? `"${msg}" ` : ""
+    const q = typeof expected === "string" ? "'" : ""
+    throw new Error(`ASSERT ${msg}failed: expected ${q}${expected}${q}, actual ${q}${actual}${q}`)
+  }
 }
-  from '#compat'
 
 function compareNumbers(v1: number, v2: number): boolean {
   return Math.abs(v2 - v1) < 0.1
@@ -46,96 +55,65 @@ function check_constants() {
   // if (CONST_BOOLEAN_TRUE != true)
   //   throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
 
-  if (CONST_NUMBER_INT != 312) {
-    throw new Error(`CONST_NUMBER_INT is not 312!`)
-  }
+  assertEquals(312, CONST_NUMBER_INT, "CONST_NUMBER_INT")
+
   // Fix float const value
   // if (CONST_NUMBER_FLOAT != 312.415) {
   //   throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
   // }
 
   // 2. Check idl const values
-  if (IDL_CONST_NUMBER_INT != 312) {
-    throw new Error(`IDL_CONST_NUMBER_INT is not 312! Real value = ${IDL_CONST_NUMBER_INT}`)
-  }
-  if (IDL_CONST_NUMBER_FLOAT != 312.415) {
-    throw new Error(`IDL_CONST_NUMBER_FLOAT is not 312.415! Real value = ${IDL_CONST_NUMBER_FLOAT}`)
-  }
-  if (IDL_CONST_BOOLEAN_FALSE != false) {
-    throw new Error(`IDL_CONST_BOOLEAN_FALSE is not false! Real value = ${IDL_CONST_BOOLEAN_FALSE}`)
-  }
-  if (IDL_CONST_BOOLEAN_TRUE != true) {
-    throw new Error(`IDL_CONST_BOOLEAN_FALSE is not true! Real value = ${IDL_CONST_BOOLEAN_TRUE}`)
-  }
-  if (IDL_CONST_STRING != "hello_string") {
-    throw new Error(`IDL_CONST_STRING is not "hello_string"! Real value = ${IDL_CONST_STRING}`)
-  }
+  assertEquals(312, IDL_CONST_NUMBER_INT, "IDL_CONST_NUMBER_INT")
+  assertEquals(312.415, IDL_CONST_NUMBER_FLOAT, "IDL_CONST_NUMBER_FLOAT")
+  assertEquals(false, IDL_CONST_BOOLEAN_FALSE, "IDL_CONST_BOOLEAN_FALSE")
+  assertEquals(true, IDL_CONST_BOOLEAN_TRUE, "IDL_CONST_BOOLEAN_TRUE");
+  assertEquals("hello_string", IDL_CONST_STRING, "IDL_CONST_STRING");
 }
 
 function check_booleans() {
-  if (and_values(false, false))
-    throw new Error(`and(false, false) returns true!`)
-  if (and_values(false, true))
-    throw new Error(`and(false, true) returns true!`)
-  if (and_values(true, false))
-    throw new Error(`and(true, false) returns true!`)
-  if (!and_values(true, true))
-    throw new Error(`and(true, true) returns false!`)
+  assertEquals(false, and_values(false, false), "and(false, false)")
+  assertEquals(false, and_values(false, true), "and(false, true)")
+  assertEquals(false, and_values(true, false), "and(true, false)")
+  assertEquals(true, and_values(true, true), "and(true, true)")
 }
 
 function checkNumber() {
   // sum numbers
   let s = sum_numbers(2, 3)
   console.log(`sum: ${s}`)
-  if (!compareNumbers(s, 5))
-    throw new Error(`The sum ${s} is not equal to 5`)
+  assertEquals(true, compareNumbers(s, 5), "2+3")
 
   s = sum_numbers(2.3, 3)
   console.log(`sum: ${s}`)
-  if (!compareNumbers(s, 5.3))
-    throw new Error(`The sum ${s} is not equal to 5.3`)
+  assertEquals(true, compareNumbers(s, 5.3), "2.3+3")
 
   s = sum_numbers(2, 3.5)
   console.log(`sum: ${s}`)
-  if (!compareNumbers(s, 5.5))
-    throw new Error(`The sum ${s} is not equal to 5.3`)
+  assertEquals(true, compareNumbers(s, 5.5), "2+3.5")
 
   s = sum_numbers(2.3, 3.5)
   console.log(`sum: ${s}`)
-  if (!compareNumbers(s, 5.8))
-    throw new Error(`The sum ${s} is not equal to 5.3`)
+  assertEquals(true, compareNumbers(s, 5.8), "2.3+3.5")
 }
 
 function checkForceCallback() {
 
   const testListener: ForceCallbackListener = {
     onStatus: (status: number) => {
-      const expected = 123456
       console.log(`TestListener onStatus: ${status}`)
-      if (status != expected) {
-        throw new Error(`ForceCallbackListener.onStatus() expected: ${expected}, status: ${status}`)
-      }
+      assertEquals(123456, status, "ForceCallbackListener.onStatus()")
     },
     onChange: (flag: boolean, count: number) => {
       console.log("OnChange called!")
-      if (!flag) {
-        throw Error(`The provided flag is not true`)
-      }
-      const expected = 78910
-      if (count != expected) {
-        throw new Error(`ForceCallbackListener.onStatus() expected: ${expected}, count: ${count}`)
-      }
+      assertEquals(true, flag, "flag")
+      assertEquals(78910, count, "ForceCallbackListener.onStatus()")
       return "OnChange"
     },
   }
 
   const forceCallbackClass = new ForceCallbackClass()
   forceCallbackClass.registerListener(testListener)
-  const res = forceCallbackClass.callListener()
-  const expected: number = 101
-  if (res != expected) {
-    throw new Error(`forceCallbackClass.callListener() expected: ${expected}, result: ${res}`)
-  }
+  assertEquals(101, forceCallbackClass.callListener(), "forceCallbackClass.callListener()")
 
   registerForceCallbackListener(testListener)
   callForceCallbackListener()
@@ -152,17 +130,12 @@ function checkEnum() {
   console.log(StringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
-  if (IntEnum.E1.valueOf() != 11)
-    throw new Error(`Enum value is ${IntEnum.E1.valueOf()} instead of 11`)
-  if (IntEnum.E2.valueOf() != 22)
-    throw new Error(`Enum value is ${IntEnum.E2.valueOf()} instead of 22`)
-  if (StringEnum.E1.valueOf() != "e11")
-    throw new Error(`Enum value is ${StringEnum.E1.valueOf()} instead of e11`)
-  if (StringEnum.E2.valueOf() != "e22")
-    throw new Error(`Enum value is ${StringEnum.E2.valueOf()} instead of e22`)
+  assertEquals(11, IntEnum.E1.valueOf(), "IntEnum.E1")
+  assertEquals(22, IntEnum.E2.valueOf(), "IntEnum.E2")
+  assertEquals("e11", StringEnum.E1.valueOf(), "StringEnum.E1")
+  assertEquals("e22", StringEnum.E2.valueOf(), "StringEnum.E2.valueOf()")
 
-  // if (checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2) != OrdinaryEnum.E2)
-  //   throw new Error(`checkOrdinaryEnums returned enum differs from OrdinaryEnum.E2`)
+  // assertEquals(OrdinaryEnum.E2, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2), "OrdinaryEnum.E2")
 
   // .idl
   console.log(IDLOrdinaryEnum.E1.valueOf())
@@ -173,29 +146,52 @@ function checkEnum() {
   console.log(IDLStringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
-  if (IDLIntEnum.E1.valueOf() != 111)
-    throw new Error(`Enum value is ${IDLIntEnum.E1.valueOf()} instead of 111`)
-  if (IDLIntEnum.E2.valueOf() != 222)
-    throw new Error(`Enum value is ${IDLIntEnum.E2.valueOf()} instead of 222`)
-  if (IDLStringEnum.E1.valueOf() != "e111")
-    throw new Error(`Enum value is ${IDLStringEnum.E1.valueOf()} instead of e111`)
-  if (IDLStringEnum.E2.valueOf() != "e222")
-    throw new Error(`Enum value is ${IDLStringEnum.E2.valueOf()} instead of e222`)
+  assertEquals(111, IDLIntEnum.E1.valueOf(), "IDLIntEnum.E1")
+  assertEquals(222, IDLIntEnum.E2.valueOf(), "IDLIntEnum.E2")
+  assertEquals("e111", IDLStringEnum.E1.valueOf(), "IDLStringEnum.E1")
+  assertEquals("e222", IDLStringEnum.E2.valueOf(), "IDLStringEnum.E2")
 
-  // if (idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2) != IDLOrdinaryEnum.E2)
-  //   throw new Error(`checkOrdinaryEnums returned enum differs from IDLOrdinaryEnum.E2`)
+  // assertEquals(IDLOrdinaryEnum.E2, idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2), "IDLOrdinaryEnum.E2")
 }
 
 function checkClassWithComplexPropertyType() {
   let value = new ClassWithComplexPropertyType()
-  const expectedCounter: number = 10
-  if (value.prop.counter != expectedCounter) {
-    throw new Error(`checkClassWithComplexPropertyType.counter expected: ${expectedCounter}, result: ${value.prop.counter}`)
-  }
-  const expectedFlag = true
-  if (value.prop.flag != expectedFlag) {
-    throw new Error(`checkClassWithComplexPropertyType.flag expected: ${expectedCounter}, result: ${value.prop.counter}`)
-  }
+  assertEquals(10, value.prop.counter, "checkClassWithComplexPropertyType.counter")
+  assertEquals(true, value.prop.flag, "checkClassWithComplexPropertyType.flag")
+}
+
+function checkDataTestResult(msg: string, expected: DataInterface,
+  actualBoolean: boolean, actualNumber: number, actualString: string, actualObject: [boolean, number, string])
+{
+  assertEquals(!expected.propBoolean, actualBoolean, msg)
+  assertEquals(expected.propNumber + 1, actualNumber, msg)
+  assertEquals(expected.propString.slice(1), actualString, msg)
+  assertEquals(!expected.propObject[0], actualObject[0], msg)
+  assertEquals(-expected.propObject[1], actualObject[1], msg)
+  assertEquals(expected.propObject[2].slice(6), actualObject[2], msg)
+}
+
+function checkDataInterfaces() {
+  const propBoolean = true
+  const propNumber = 0xc0ffee
+  const propString = "coffee"
+  const propObject: [boolean, number, string] = [false, 55, "fifty five"]
+
+  const dataIface: DataInterface = { propBoolean, propNumber, propString, propObject }
+  const r1 = testDataInterface(dataIface)
+  checkDataTestResult("interface", dataIface, r1.propBoolean, r1.propNumber, r1.propString, r1.propObject)
+
+  const dataClass: DataClass = { propBoolean, propNumber, propString, propObject }
+  const r2 = testDataClass(dataClass)
+  checkDataTestResult("class", dataIface, r2.propBoolean, r2.propNumber, r2.propString, r2.propObject)
+
+  const idlIface: IDLDataInterface = { propBoolean, propNumber, propString, propObject }
+  const r3 = testIDLDataInterface(idlIface)
+  checkDataTestResult("interface", dataIface, r3.propBoolean, r3.propNumber, r3.propString, r3.propObject)
+
+  const idlClass: IDLDataClass = { propBoolean, propNumber, propString, propObject }
+  const r4 = testIDLDataClass(idlClass)
+  checkDataTestResult("class", dataIface, r4.propBoolean, r4.propNumber, r4.propString, r4.propObject)
 }
 
 export function run() {
@@ -207,5 +203,6 @@ export function run() {
   checkForceCallback()
   checkEnum()
   checkClassWithComplexPropertyType()
+  checkDataInterfaces()
 }
 

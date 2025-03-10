@@ -1,7 +1,27 @@
 package test_data_interface;
+
+[Synthetic, Entity=Tuple]
+interface IDLDataTuple {
+    attribute boolean value0;
+    attribute number value1;
+    attribute String value2;
+};
+
 [Entity=Interface]
-interface IDLUnitDataInterface {
+interface IDLDataInterface {
     attribute boolean propBoolean;
     attribute number propNumber;
     attribute String propString;
+    attribute IDLDataTuple propObject;
 };
+
+[Entity=Class]
+interface IDLDataClass {
+    attribute boolean propBoolean;
+    attribute number propNumber;
+    attribute String propString;
+    attribute IDLDataTuple propObject;
+};
+
+IDLDataInterface testIDLDataInterface(IDLDataInterface arg);
+IDLDataClass testIDLDataClass(IDLDataClass arg);
