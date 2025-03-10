@@ -23,13 +23,13 @@ import {
     throwException
 } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { PeerImporter } from "../../printers/library/PeerImporter"
+import { Importer } from "../../printers/library/Importer"
 import { Typechecker } from "../../general/Typechecker"
 import { BaseTypeConvertor } from "../BaseTypeConvertor"
 
 export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
     constructor(
-        private importer: PeerImporter,
+        private importer: Importer,
         typechecker: Typechecker,
     ) {
         super(typechecker, {

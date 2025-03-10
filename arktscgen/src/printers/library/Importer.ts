@@ -15,11 +15,11 @@
 
 import { createDefaultTypescriptWriter } from "../../utils/idl"
 import { Config } from "../../Config"
-import { PeersConstructions } from "./PeersConstructions"
+import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import * as path from "node:path"
 import { Typechecker } from "../../general/Typechecker"
 
-export class PeerImporter {
+export class Importer {
     constructor(
         private typechecker: Typechecker,
         private dir: string,

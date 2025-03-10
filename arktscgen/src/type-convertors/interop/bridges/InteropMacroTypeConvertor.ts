@@ -14,16 +14,16 @@
  */
 
 import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
-import { InteropTypeConvertor } from "./InteropTypeConvertor"
-import { Typechecker } from "../../general/Typechecker"
+import { InteropTypeConvertor } from "../InteropTypeConvertor"
+import { Typechecker } from "../../../general/Typechecker"
 
-export class NativeTypeConvertor extends InteropTypeConvertor {
+export class InteropMacroTypeConvertor extends InteropTypeConvertor {
     constructor(
         typechecker: Typechecker,
     ) {
         super(typechecker, {
             sequence: (type: IDLContainerType) => `KNativePointerArray`,
-            string: (type: IDLPrimitiveType) => `KStringPtr&`,
+            string: (type: IDLPrimitiveType) => `KStringPtr`,
         })
     }
 }

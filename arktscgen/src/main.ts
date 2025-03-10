@@ -22,13 +22,10 @@ import { StaticEmitter } from "./emitters/StaticEmitter"
 import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"
 
+const pandaSdkIdlFilePath = `ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl`
+
 function main() {
     const options = cliOptions()
-    const inputFile = path.join(
-        options.pandaSdkPath,
-        `ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl`
-    )
-
     if (options.initialize) {
         new StaticEmitter(
             options.outputDir,
@@ -37,7 +34,12 @@ function main() {
     }
     new DynamicEmitter(
         options.outputDir,
-        toIDLFile(inputFile),
+        toIDLFile(
+            path.join(
+                options.pandaSdkPath,
+                pandaSdkIdlFilePath
+            )
+        ),
         new Config(
             new IgnoreOptions(options.optionsFile),
             new NonNullableOptions(options.optionsFile),

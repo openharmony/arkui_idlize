@@ -29,7 +29,6 @@ export function cliOptions(): CliOptions {
     const cliOptions: Partial<CliOptions> = program
         .option('--panda-sdk-path <path>', 'Path to panda sdk')
         .option('--output-dir <path>', 'Path to output dir')
-        .option('--files <string>', 'Types of files to be emitted [bridges|bindings|enums], comma separated, no space')
         .option('--options-file <path>', 'Path to file which determines what to generate')
         .option('--debug', 'Generate intermediate versions of IDL IR')
         .option('--no-initialize', 'Do not emit static part of sources')
@@ -38,7 +37,7 @@ export function cliOptions(): CliOptions {
     return {
         pandaSdkPath: cliOptions.pandaSdkPath ?? throwException(`panda-sdk-path is mandatory parameter`),
         outputDir: cliOptions.outputDir ?? throwException(`output-dir is mandatory parameter`),
-        optionsFile: cliOptions.optionsFile ?? path.join(__dirname, `../input/options.json5`),
+        optionsFile: cliOptions.optionsFile ?? throwException(`options-file is mandatory parameter`),
         debug: cliOptions.debug ?? false,
         initialize: cliOptions.initialize ?? false
     }

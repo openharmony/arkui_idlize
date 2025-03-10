@@ -16,7 +16,7 @@
 import { Typechecker } from "../general/Typechecker"
 import { IDLFile } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core"
-import { PeerImporter } from "./library/PeerImporter";
+import { Importer } from "./library/Importer";
 
 export abstract class SingleFilePrinter {
     constructor(
@@ -24,7 +24,7 @@ export abstract class SingleFilePrinter {
     ) { }
 
     protected typechecker = new Typechecker(this.idl.entries)
-    protected importer?: PeerImporter
+    protected importer?: Importer
     protected abstract writer: LanguageWriter
 
     print(): string {

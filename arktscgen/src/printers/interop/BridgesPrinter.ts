@@ -25,23 +25,32 @@ import {
     PrimitiveTypeList
 } from "@idlizer/core"
 import { IDLType } from "@idlizer/core/idl"
-import { BridgesConstructions } from "./BridgesConstructions"
-import { InteropPrinter } from "../InteropPrinter"
-import { isSequence, isString } from "../../../utils/idl"
-import { NativeTypeMapper } from "./NativeTypeMapper"
+import { BridgesConstructions } from "../../constuctions/BridgesConstructions"
+import { InteropPrinter } from "./InteropPrinter"
+import { isSequence, isString } from "../../utils/idl"
+import { ReturnTypeConvertor } from "../../type-convertors/interop/bridges/ReturnTypeConvertor"
+import { InteropMacroTypeConvertor } from "../../type-convertors/interop/bridges/InteropMacroTypeConvertor"
+import { NativeTypeConvertor } from "../../type-convertors/interop/bridges/NativeTypeConvertor"
+import { CastTypeConvertor } from "../../type-convertors/interop/bridges/CastTypeConvertor"
 
 export class BridgesPrinter extends InteropPrinter {
-    private typeMapper = new NativeTypeMapper(this.idl)
+    private castTypeConvertor = new CastTypeConvertor(this.typechecker)
+
+    private nativeTypeConvertor = new NativeTypeConvertor(this.typechecker)
 
     protected writer = new CppLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert : (node: IDLType) => this.typeMapper.toString(node) },
+        { convert : (node: IDLType) => this.nativeTypeConvertor.convertType(node) },
         new class extends PrimitiveTypeList {
             Undefined = new PrimitiveType(`undefined`)
             Void: PrimitiveType = new PrimitiveType(`void`)
         }()
     )
+
+    private returnTypeConvertor = new ReturnTypeConvertor(this.typechecker)
+
+    private interopMacroConvertor = new InteropMacroTypeConvertor(this.typechecker)
 
     private printInteropMacro(node: IDLMethod): void {
         this.writer.writeExpressionStatement(
@@ -49,16 +58,15 @@ export class BridgesPrinter extends InteropPrinter {
                 BridgesConstructions.interopMacro(isVoidType(node.returnType), node.parameters.length),
                 [node.name]
                     .concat(
-                        ((): string | never[] => {
+                        (() => {
                             if (isVoidType(node.returnType)) {
                                 return []
                             }
-                            return this.typeMapper.toString(
-                                this.typeMapper.toReturn(node.returnType)
-                            )
+                            return [this.returnTypeConvertor.convertType(node.returnType)]
                         })()
+                            .concat(node.parameters.map(it => it.type))
+                            .map(it => this.interopMacroConvertor.convertType(it))
                     )
-                    .concat(node.parameters.map(it => this.typeMapper.toInteropMacro(it.type)))
                     .map(it => this.writer.makeString(it))
             )
         )
@@ -68,7 +76,7 @@ export class BridgesPrinter extends InteropPrinter {
         this.writer.writeFunctionImplementation(
             BridgesConstructions.implFunction(node.name),
             new MethodSignature(
-                this.typeMapper.toReturn(node.returnType),
+                this.returnTypeConvertor.convertType(node.returnType),
                 node.parameters.map(it => it.type),
                 undefined,
                 undefined,
@@ -94,7 +102,7 @@ export class BridgesPrinter extends InteropPrinter {
                     BridgesConstructions.castedParameter(it.name),
                     undefined,
                     this.writer.makeFunctionCall(
-                        this.typeMapper.cast(it),
+                        this.castTypeConvertor.convertType(it.type),
                         [this.writer.makeString(it.name)]
                     )
                 )
@@ -176,7 +184,7 @@ export class BridgesPrinter extends InteropPrinter {
     }
 
     private maybeDropConst(value: string, node: IDLMethod): string {
-        if (this.typeMapper.typechecker.isConstReturnValue(node)) {
+        if (this.typechecker.isConstReturnValue(node)) {
             return BridgesConstructions.dropConstCast(value)
         }
         return value

@@ -74,7 +74,7 @@ export class IgnoreOptions {
             return known.methods.get(method) ?? this.generateByDefault
         }
 
-        throwException(`Unexpected kind of interface: ${known}`)
+        throwException(`unexpected kind of interface: ${known}`)
     }
 
     shouldEmitInterface(name: string): boolean {

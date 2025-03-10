@@ -16,16 +16,19 @@
 import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlizer/core"
 import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
+import { Typechecker } from "../../general/Typechecker"
 
 export abstract class InteropPrinter {
     constructor(
-        protected idl: IDLFile,
+        protected file: IDLFile,
     ) { }
 
     protected abstract writer: LanguageWriter
 
+    protected typechecker = new Typechecker(this.file.entries)
+
     print(): string {
-        this.idl.entries.forEach(it => this.visit(it))
+        this.file.entries.forEach(it => this.visit(it))
         return this.writer.getOutput().join('\n')
     }
 

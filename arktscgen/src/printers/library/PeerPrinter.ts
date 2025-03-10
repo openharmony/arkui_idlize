@@ -34,10 +34,10 @@ import {
 } from "@idlizer/core"
 import { Config } from "../../Config"
 import { makeMethod, nodeNamespace, nodeType, parent } from "../../utils/idl"
-import { PeersConstructions } from "./PeersConstructions"
+import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { isAbstract, isDataClass, isGetter, isReal, isRegular, mangleIfKeyword, peerMethod } from "../../general/common"
-import { PeerImporter } from "./PeerImporter"
-import { InteropConstructions } from "../interop/InteropConstructions"
+import { Importer } from "./Importer"
+import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { Typechecker } from "../../general/Typechecker"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
@@ -56,7 +56,7 @@ export class PeerPrinter extends SingleFilePrinter {
 
     protected typechecker = new Typechecker(this.idl.entries)
 
-    protected importer = new PeerImporter(this.typechecker, `.`, this.node.name)
+    protected importer = new Importer(this.typechecker, `.`, this.node.name)
 
     private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
 

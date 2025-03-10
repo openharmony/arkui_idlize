@@ -13,27 +13,17 @@
  * limitations under the License.
  */
 
-import { isSequence } from "../../../utils/idl"
+import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
+import { InteropTypeConvertor } from "../InteropTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
-import { IDLFile, convertType, IDLPointerType, IDLType } from "@idlizer/core"
-import { BindingsTypeConvertor } from "../../../type-convertors/interop/BindingsTypeConvertor"
 
-export class BindingsTypeMapper {
+export class BindingsTypeConvertor extends InteropTypeConvertor {
     constructor(
-        private file: IDLFile
-    ) {}
-
-    typechecker = new Typechecker(this.file.entries)
-    private convertor = new BindingsTypeConvertor(this.typechecker)
-
-    toString(node: IDLType): string {
-        return convertType(this.convertor, node)
-    }
-
-    toReturn(node: IDLType): IDLType {
-        if (isSequence(node)) {
-            node = IDLPointerType
-        }
-        return node
+        typechecker: Typechecker,
+    ) {
+        super(typechecker, {
+            sequence: (type: IDLContainerType) => `BigUint64Array`,
+            string: (type: IDLPrimitiveType) => `KStringPtr`,
+        })
     }
 }

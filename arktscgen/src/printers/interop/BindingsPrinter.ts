@@ -14,6 +14,7 @@
  */
 
 import {
+    convertType,
     createEmptyReferenceResolver,
     IDLMethod,
     IndentedPrinter,
@@ -23,9 +24,10 @@ import {
 } from "@idlizer/core"
 import { IDLType, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
-import { InteropPrinter } from "../InteropPrinter"
-import { BindingsConstructions } from "./BindingsConstructions"
-import { BindingsTypeMapper } from "./BindingsTypeMapper"
+import { InteropPrinter } from "./InteropPrinter"
+import { BindingsConstructions } from "../../constuctions/BindingsConstructions"
+import { BindingsTypeConvertor } from "../../type-convertors/interop/bindings/BindingsTypeConvertor"
+import { ReturnTypeConvertor } from "../../type-convertors/interop/bindings/ReturnTypeConvertor"
 
 export class BindingsPrinter extends InteropPrinter {
     constructor(idl: IDLFile) {
@@ -36,17 +38,19 @@ export class BindingsPrinter extends InteropPrinter {
     override writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => this.typeMapper.toString(node) }
+        { convert: (node: IDLType) => this.convertor.convertType(node) }
     )
 
-    private typeMapper = new BindingsTypeMapper(this.idl)
+    private convertor = new BindingsTypeConvertor(this.typechecker)
+
+    private returnConvertor = new ReturnTypeConvertor(this.typechecker)
 
     override printMethod(node: IDLMethod): void {
         this.writer.writeMethodImplementation(
             new Method(
                 BindingsConstructions.method(node.name),
                 new MethodSignature(
-                    this.typeMapper.toReturn(node.returnType),
+                    this.returnConvertor.convertType(node.returnType),
                     node.parameters.map(it => it.type),
                     undefined,
                     undefined,

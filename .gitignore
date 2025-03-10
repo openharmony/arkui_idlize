@@ -17,7 +17,7 @@ node_modules
 /arktscgen/.rollup.cache/
 /arktscgen/lib/
 /arktscgen/out/
-/arktscgen/libarkts-copy/
+/arktscgen/build/
 *.tgz
 *.rej
 *.orig

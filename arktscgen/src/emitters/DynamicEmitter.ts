@@ -18,13 +18,12 @@ import * as fs from "node:fs"
 import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
 import { MultiFileOutput } from "../printers/MultiFilePrinter"
 import { Config } from "../Config"
-import { BridgesPrinter } from "../printers/interop/bridges/BridgesPrinter"
+import { BridgesPrinter } from "../printers/interop/BridgesPrinter"
 import { EnumsPrinter } from "../printers/enums/EnumsPrinter"
 import { IndexPrinter } from "../printers/library/IndexPrinter"
-import { NodeMapPrinter } from "../printers/library/NodeMapPrinter"
-import { BindingsPrinter } from "../printers/interop/bindings/BindingsPrinter"
+import { BindingsPrinter } from "../printers/interop/BindingsPrinter"
 import { AllPeersPrinter } from "../printers/library/AllPeersPrinter"
-import { FactoryPrinter } from "../printers/library/factory/FactoryPrinter"
+import { FactoryPrinter } from "../printers/library/FactoryPrinter"
 import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
 import { AddContextDeclarationTransformer } from "../transformers/common/AddContextDeclarationTransformer"
 import { MultipleDeclarationFilterTransformer } from "../transformers/common/filter/MultipleDeclarationFilterTransformer"
@@ -86,13 +85,6 @@ export class DynamicEmitter {
         `libarkts/src/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
         false
-    )
-
-    private nodeMapPrinter = new SingleFileEmitter(
-        (idl: IDLFile) => new NodeMapPrinter(idl).print(),
-        `libarkts/src/generated/node-map.ts`,
-        `node-map.ts`,
-        true
     )
 
     private indexPrinter = new SingleFileEmitter(

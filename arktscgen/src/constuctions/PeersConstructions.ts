@@ -13,9 +13,9 @@
  * limitations under the License.
  */
 
-import { BindingsConstructions } from "../interop/bindings/BindingsConstructions"
-import { InteropConstructions } from "../interop/InteropConstructions"
-import { peerMethod } from "../../general/common"
+import { BindingsConstructions } from "./BindingsConstructions"
+import { InteropConstructions } from "./InteropConstructions"
+import { peerMethod } from "../general/common"
 import { createReferenceType } from "@idlizer/core"
 
 export class PeersConstructions {

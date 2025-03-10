@@ -16,7 +16,7 @@
 import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
 import { IDLOptionalType, IDLType, isReferenceType, LanguageExpression, LanguageWriter } from "@idlizer/core"
-import { PeersConstructions } from "../../../printers/library/PeersConstructions"
+import { PeersConstructions } from "../../../constuctions/PeersConstructions"
 
 export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
     (writer: LanguageWriter, call: LanguageExpression) => LanguageExpression

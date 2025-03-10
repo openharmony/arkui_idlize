@@ -22,17 +22,17 @@ import {
     isInterface,
     TSLanguageWriter
 } from "@idlizer/core"
-import { SingleFilePrinter } from "../../SingleFilePrinter"
-import { makeSignature } from "../../../utils/idl"
-import { mangleIfKeyword } from "../../../general/common"
-import { PeersConstructions } from "../PeersConstructions"
-import { ImporterTypeConvertor } from "../../../type-convertors/top-level/ImporterTypeConvertor"
-import { PeerImporter } from "../PeerImporter"
-import { LibraryTypeConvertor } from "../../../type-convertors/top-level/LibraryTypeConvertor"
-import { composedConvertType } from "../../../type-convertors/BaseTypeConvertor"
+import { SingleFilePrinter } from "../SingleFilePrinter"
+import { makeSignature } from "../../utils/idl"
+import { mangleIfKeyword } from "../../general/common"
+import { PeersConstructions } from "../../constuctions/PeersConstructions"
+import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
+import { Importer } from "./Importer"
+import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
+import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 
 export class FactoryPrinter extends SingleFilePrinter {
-    protected importer = new PeerImporter(this.typechecker, `peers`)
+    protected importer = new Importer(this.typechecker, `peers`)
 
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
