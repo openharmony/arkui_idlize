@@ -36,6 +36,28 @@ declare namespace mediaquery {
 
   function matchMediaSync(condition: string): MediaQueryListener;
   function test(num:bigint): bigint
+
+    function testPutString(x: string);
+    function testGetString(): string;
+    function testGetString128(): string;
+    function testGetString128Unicode(): string;
+
+    function testConcatString(x: string, y: string): string;
+
+
+    interface Option {
+      src: string;
+      dest: number;
+      files: Array<string>;
+      // maps: Record<string, number>;
+    }
+
+    function optionPrim(num: number): void
+    function optionArg1(str: string, op1: Option): void
+    function optionArg2(str: string, op1: Option, op2: Option): void
+    function optionArg3(str: string, op1: Option, op2: Option, op3: Option): void
+
+
 }
 
 export default mediaquery;

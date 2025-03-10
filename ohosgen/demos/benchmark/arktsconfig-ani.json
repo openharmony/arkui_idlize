@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "package": "ffi_benchmark_ani",
+        "baseUrl": "src/ets",
+        "outDir": "build/ets/out"
+    },
+    "include": [
+        "src/ets/ani_impl.sts",
+        "src/ets/ani_main.sts"
+    ]
+}

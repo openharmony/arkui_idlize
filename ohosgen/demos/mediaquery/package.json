@@ -29,6 +29,7 @@
 
         "start:ts": "node build/node/index.js",
         "start:arkts": "bash scripts/run-panda.sh",
+        "start-aot:arkts": "bash scripts/run-panda-aot.sh",
         "start:cj": "bash scripts/run-cj.sh",
 
         "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
@@ -36,9 +37,11 @@
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
 
-        "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
+        "check": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
+        "check-aot": "rm -rf build: npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start-aot:${TARGET}",
         "check:ts": "TARGET=ts npm run check",
         "check:arkts": "TARGET=arkts npm run check",
+        "check-aot:arkts": "TARGET=arkts npm run check-aot",
         "check:cj": "TARGET=cj npm run check"
     },
     "dependencies": {

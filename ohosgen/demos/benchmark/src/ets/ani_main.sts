@@ -1,0 +1,98 @@
+import {Chrono} from 'std/time';
+
+
+const WARM_N = 10000;
+const N = 100000;
+
+interface Option {
+    src: string;
+    dest: number;
+    files: string[];
+    // maps: Record<string, int>
+}
+
+class OptionInner {
+// class OptionInner implements Option {
+    src: string = "option";
+    dest: number = 0;
+    files: string[] = ["aa", "bb"];
+    // maps: Record<string, int> = new Record<String, int>();
+
+    // constructor() {
+    //     this.files.push("aa");
+    //     this.files.push("bb");
+    //     this.maps.set("cc", 100);
+    // }
+}
+
+export class ANIImpl {
+    native optionPrim(num: number): void
+    native optionArg1(str: string, op1: OptionInner): void
+    native optionArg2(str: string, op1: OptionInner, op2: OptionInner): void
+    native optionArg3(str: string, op1: OptionInner, op2: OptionInner, op3: OptionInner): void
+
+    native getNumberArg0(): int;
+    native getNumberArg4(x: int, y: int, z: int, w: int): int;
+
+    static {
+        loadLibrary("aniimpl");
+    }
+};
+
+export function runTestFunction(prompt: string, fn: ()=> void): void {
+    const s = Chrono.nanoNow();
+    fn();
+    const t = Chrono.nanoNow();
+    let durationMs = (t -s) / N;
+
+    console.log(`Done ${prompt}: ${durationMs} ns.`);
+}
+
+function main() {
+    console.log("main()");
+    let testTarget = new ANIImpl();
+
+    let str = "hello";
+    let op = new OptionInner();
+
+
+    for (let i = 0; i < WARM_N; i++) {
+         testTarget.optionArg1(str, op);
+    }
+
+    for (let i = 0; i < WARM_N; i++) {
+         testTarget.optionArg2(str, op, op);
+    }
+
+    for (let i = 0; i < WARM_N; i++) {
+        testTarget.optionArg3(str, op, op, op);
+    }
+
+    for (let i = 0; i < 10000; i++) {
+        testTarget.optionPrim(5);
+    }
+    
+    runTestFunction('ANIImpl.optionArg1', () => {
+                    for (let i = 0; i < N; i++) {
+                        testTarget.optionArg1(str, op);
+                    }
+    });
+
+    runTestFunction('ANIImpl.optionArg2', () => {
+                    for (let i = 0; i < N; i++) {
+                        testTarget.optionArg2(str, op, op);
+                    }
+    });
+
+    runTestFunction('ANIImpl.optionArg3', () => {
+                    for (let i = 0; i < N; i++) {
+                        testTarget.optionArg3(str, op, op, op);
+                    }
+    });
+
+    runTestFunction('ANIImpl.optionPrim', () => {
+                    for (let i = 0; i < N; i++) {
+                        testTarget.optionPrim(5);
+                    }
+    });
+}

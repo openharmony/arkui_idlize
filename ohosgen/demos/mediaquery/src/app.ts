@@ -1,4 +1,5 @@
 import { getLong, mediaquery } from '#compat'
+import { runAll } from './bench'
 
 export function run() {
     console.log(`Mediaquery test app`)
@@ -6,4 +7,5 @@ export function run() {
     listener.onChange((result) => { console.log("MESSAGE FROM NATIVE: " + result.media) })
     const n = getLong()
     console.log(`sqr of ${n} is ${mediaquery.test(n)}`)
+    runAll();
 }
