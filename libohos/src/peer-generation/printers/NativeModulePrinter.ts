@@ -555,6 +555,7 @@ function getReturnValue(type: idl.IDLType): string {
     }
 
     switch(type) {
+        case idl.IDLUnknownType :return "0"
         case idl.IDLBooleanType : return "false"
         case idl.IDLNumberType: return "1"
         case idl.IDLPointerType: return "0"

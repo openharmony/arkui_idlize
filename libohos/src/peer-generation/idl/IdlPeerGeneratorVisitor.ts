@@ -336,19 +336,13 @@ export class IdlPeerProcessor {
         mFields.forEach(f => {
             const field = f.field
             const idlType = field.type
-            // TBD: use deserializer to get complex type from native
-            const isSimpleType = !f.argConvertor.useArray // type needs to be deserialized from the native
-            const isCallback = idl.isCallback(this.library.toDeclaration(f.argConvertor.idlType))
-            const isContainer = idl.IDLContainerUtils.isSequence(this.library.toDeclaration(f.argConvertor.idlType))
             const isStatic = field.modifiers.includes(FieldModifier.STATIC)
-            if (isSimpleType || isCallback || isContainer) {
-                const getSignature = new NamedMethodSignature(idlType, [], [])
-                const getAccessor = new MaterializedMethod(
-                    name, implemenationParentName, [], field.type, false,
-                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]),
-                    f.outArgConvertor)
-                mMethods.push(getAccessor)
-            }
+            const getSignature = new NamedMethodSignature(idlType, [], [])
+            const getAccessor = new MaterializedMethod(
+                name, implemenationParentName, [], field.type, false,
+                new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]),
+                f.outArgConvertor)
+            mMethods.push(getAccessor)
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idlType], [field.name])
