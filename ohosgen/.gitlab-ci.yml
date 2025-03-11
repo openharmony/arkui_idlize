@@ -38,7 +38,7 @@ check generated XML demo:
       - npm run check:ts
       - npm run check:arkts
 
-check ohos demos:
+check ohos unit tests and demos:
   stage: test
   tags:
     - idlize-ci
@@ -54,6 +54,9 @@ check ohos demos:
     - npm run build:interop:inc --prefix ../external/interop
     - npm run build:incremental:inc --prefix ../external/incremental/runtime
   script:
+    - cd $CI_PROJECT_DIR/ohosgen/tests/unit
+    - npm run check:ts
+    - npm run check:arkts
     - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
     - npm i -d
@@ -61,9 +64,6 @@ check ohos demos:
     - npm run check:arkts
     - cd $CI_PROJECT_DIR/ohosgen/demos/context
 #   - npm run check:ts
-    - npm run check:arkts
-    - cd $CI_PROJECT_DIR/ohosgen/tests/unit
-    - npm run check:ts
     - npm run check:arkts
 
 check ohos system tests:
