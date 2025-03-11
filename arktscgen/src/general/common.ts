@@ -20,7 +20,10 @@ import { nodeType, parent } from "../utils/idl"
 import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
 
 export function peerMethod(name: string): string {
-    return pascalToCamel(dropPostfix(name, Config.constPostfix))
+    name = dropPostfix(name, Config.constPostfix)
+    name = dropPrefix(name, Config.uselessPrefix)
+    name = pascalToCamel(name)
+    return name
 }
 
 export function splitCreateOrUpdate(fullName: string): { createOrUpdate: string, rest: string } {

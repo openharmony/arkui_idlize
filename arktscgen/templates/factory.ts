@@ -27,7 +27,8 @@ import {
     nodeByType,
     ArktsObject,
     isSameNativeObject,
-    unpackString
+    unpackString,
+    updateNodeByNode
 } from "../reexport-for-generated"
 
 %GENERATED_PART%

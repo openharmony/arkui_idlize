@@ -15,19 +15,19 @@
 
 import { createUpdatedInterface } from "../../../utils/idl"
 import {
-    convertType,
     createFile,
     createProperty,
     IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
-    isInterface
+    IDLType,
+    isInterface,
+    isOptionalType
 } from "@idlizer/core"
 import { Transformer } from "../../Transformer"
 import { Config } from "../../../Config"
 import { peerMethod } from "../../../general/common"
-import { TopLevelTypeConvertor } from "../../../type-convertors/top-level/TopLevelTypeConvertor"
 import { remove } from "../../../utils/array"
 import { LibraryTypeConvertor } from "../../../type-convertors/top-level/LibraryTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
@@ -38,6 +38,13 @@ export class AttributeTransformer implements Transformer {
     ) {}
 
     private convertor = new LibraryTypeConvertor(new Typechecker(this.file.entries))
+
+    private convertToKey(type: IDLType) {
+        if (isOptionalType(type)) {
+            return this.convertor.convertType(type.type)
+        }
+        return this.convertor.convertType(type)
+    }
 
     transformed(): IDLFile {
         return createFile(
@@ -64,7 +71,7 @@ export class AttributeTransformer implements Transformer {
         const map = new Map<string, IDLParameter[]>()
         create.parameters
             .forEach((it) => {
-                const representation = convertType(this.convertor, it.type)
+                const representation = this.convertToKey(it.type)
                 const oldValue = map.get(representation) ?? []
                 map.set(representation, oldValue.concat(it))
             })
@@ -76,7 +83,7 @@ export class AttributeTransformer implements Transformer {
                     return
                 }
                 const candidates = methods
-                    .filter(it => convertType(this.convertor, it.returnType) === key)
+                    .filter(it => this.convertToKey(it.returnType) === key)
                 if (candidates.length === 1) {
                     attributes.push(candidates[0])
                     remove(methods, candidates[0])

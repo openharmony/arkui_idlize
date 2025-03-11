@@ -47,6 +47,10 @@ export class Config {
         return `get`
     }
 
+    static get uselessPrefix(): string {
+        return `Get`
+    }
+
     static get astNodeCommonAncestor(): string {
         return `AstNode`
     }

@@ -127,11 +127,17 @@ export class FactoryPrinter extends SingleFilePrinter {
                     ),
                     this.writer.makeReturn(
                         this.writer.makeFunctionCall(
-                            PeersConstructions.callUniversalCreate(node.name),
-                            node.properties
-                                .map(it => it.name)
-                                .map(mangleIfKeyword)
-                                .map(it => this.writer.makeString(it))
+                            `updateNodeByNode`,
+                            [
+                                this.writer.makeFunctionCall(
+                                PeersConstructions.callUniversalCreate(node.name),
+                                node.properties
+                                    .map(it => it.name)
+                                    .map(mangleIfKeyword)
+                                    .map(it => this.writer.makeString(it))
+                                ),
+                                this.writer.makeString(`original`)
+                            ]
                         )
                     )
                 )
