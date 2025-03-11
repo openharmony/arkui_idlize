@@ -15,7 +15,6 @@
 
 import { program } from "commander"
 import { throwException } from "@idlizer/core"
-import path from "node:path"
 
 type CliOptions = {
     pandaSdkPath: string

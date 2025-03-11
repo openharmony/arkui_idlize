@@ -22,7 +22,7 @@ export class StaticEmitter {
         private pandaSdkPath: string
     ) {}
 
-    private copyFrom = path.join(__dirname, `../libarkts-copy`)
+    private copyFrom = path.join(__dirname, `../build/libarkts-copy`)
 
     private copyTo = path.join(this.outDir, `libarkts`)
 

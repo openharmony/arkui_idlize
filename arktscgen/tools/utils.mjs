@@ -15,8 +15,7 @@
 
 import * as fs from "node:fs"
 import * as path from "node:path"
-import {execSync} from "child_process"
-import child from "child_process"
+import { execSync } from "child_process"
 
 const plusDevel = `+devel`
 
@@ -28,8 +27,19 @@ export class Version {
         this.patch = patch;
     }
 
-    incrementPatch() {
-        this.patch = (parseInt(this.patch) + 1).toString()
+    increment(part) {
+        if (part === "major") {
+            this.major = (parseInt(this.major) + 1).toString()
+            this.minor = "0"
+            this.patch = "0"
+        } else if (part === "minor") {
+            this.minor = (parseInt(this.minor) + 1).toString()
+            this.patch = "0"
+        } else if (part === "patch") {
+            this.patch = (parseInt(this.patch) + 1).toString()
+        } else {
+            throw new Error(`didn't recognize version part: ${part}`)
+        }
         return this
     }
 
@@ -64,14 +74,8 @@ export function writePackageJson(dir, value) {
     )
 }
 
-export function assertNoUncommitedChanges(dir) {
-    if (execSync(`cd ${dir} && git diff -- . ':(exclude)./external'`).toString().length > 0) {
-        throw new Error(`Uncommited changes at ${dir}`)
-    }
-}
-
 export function run(where, ...commands) {
     commands.forEach(it =>
-        child.execSync(`cd ${where} && ${it}`, { stdio: 'inherit' })
+        execSync(`cd ${where} && ${it}`, { stdio: 'inherit' })
     )
 }

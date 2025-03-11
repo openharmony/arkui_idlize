@@ -36,13 +36,7 @@ pre-publish test arktscgen:
   before_script:
     - !reference [ .setup, script ]
   script:
-    - cd $CI_PROJECT_DIR/arktscgen
-    - npm pack
-    - cd ../
-    - npx --yes ./arktscgen/idlizer-arktscgen-*.tgz --panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk --output-dir .
-    - cd libarkts
-    - npm i
-    - npm run compile
+    - npm run test:pack --prefix arktscgen
   needs:
     - build idlize-arktscgen
     - install panda sdk
@@ -66,6 +60,6 @@ install panda sdk:
   script:
     - PANDA_SDK_VERSION=next npm run --prefix ./external/incremental/tools/panda panda:sdk:install
   artifacts:
-    expire_in: 2 days
+    expire_in: 1 days
     paths:
       - external/incremental/tools/panda/node_modules

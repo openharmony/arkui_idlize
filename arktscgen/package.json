@@ -1,20 +1,20 @@
 {
   "name": "@idlizer/arktscgen",
-  "version": "3.1.5",
+  "version": "3.1.6",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
   "files": [
     "lib/*.js",
     "templates/*",
-    "./libarkts-copy/src",
-    "./libarkts-copy/native",
-    "./libarkts-copy/generator",
-    "./libarkts-copy/package.json",
-    "./libarkts-copy/tsconfig.json",
-    "!./libarkts-copy/src/generated",
-    "!./libarkts-copy/native/src/generated",
-    "!./libarkts-copy/native/build"
+    "./build/libarkts-copy/src",
+    "./build/libarkts-copy/native",
+    "./build/libarkts-copy/generator",
+    "./build/libarkts-copy/package.json",
+    "./build/libarkts-copy/tsconfig.json",
+    "!./build/libarkts-copy/src/generated",
+    "!./build/libarkts-copy/native/src/generated",
+    "!./build/libarkts-copy/native/build"
   ],
   "license": "Apache-2.0",
   "keywords": [],
@@ -45,9 +45,10 @@
     "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
     "prepack": "npm run compile && mkdir -p ./build && cp -r ../external/arkoala-arkts/libarkts ./build/libarkts-copy",
     "postpack": "rimraf ./build/libarkts-copy",
-    "test:pack": "npm pack --pack-destination ./build && npm run test:packed && npm run test:unpacked",
-    "test:packed": "cd .. && npx --yes ./arktscgen/build/idlizer-arktscgen-*.tgz --panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk --output-dir ./arktscgen/build --options-file ./external/arkoala-arkts/libarkts/generator/options.json5",
-    "test:unpacked": "cd ./build/libarkts && npm i && npm run compile",
-    "release": "npm run copy:libarkts && node ./tools/release.mjs"
+    "test:pack": "node ./tools/main.mjs test-pack",
+    "test:all": "npm run all && npm run test:pack",
+    "release:patch": "node ./tools/main.mjs release patch",
+    "release:minor": "node ./tools/main.mjs release minor",
+    "release:major": "node ./tools/main.mjs release major"
   }
 }
