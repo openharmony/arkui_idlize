@@ -118,7 +118,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                         this.writer.makeString(
                             node.properties
                                 .map(it => it.name)
-                                .map(it => `${mangleIfKeyword(it)} === original.${it}`)
+                                .map(it => `isSameNativeObject(${mangleIfKeyword(it)}, original.${it})`)
                                 .join(` && `)
                         ),
                         this.writer.makeReturn(

@@ -24,11 +24,7 @@ export class NonNullableOptions {
         if (filePath === undefined) {
             return
         }
-        const nonNullable = JSON5.parse(fs.readFileSync(filePath).toString())?.nonNullable
-        if (nonNullable === undefined) {
-            return
-        }
-        this.interfaces = nonNullable as Interface[]
+        this.interfaces = JSON5.parse(fs.readFileSync(filePath).toString())?.nonNullable ?? []
     }
 
     private readonly interfaces: Interface[] = []

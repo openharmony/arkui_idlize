@@ -26,6 +26,7 @@ import {
     KNativePointer,
     nodeByType,
     ArktsObject,
+    isSameNativeObject,
     unpackString
 } from "../reexport-for-generated"
 
