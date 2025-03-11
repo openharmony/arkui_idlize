@@ -219,13 +219,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
     }
-    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
-        if (idl.isEnum(convertor.idlType) && !param.endsWith(".value")) {
-            const isStringEnum = idl.isStringEnum(convertor.idlType)
-            return `(${param} as ${this.typeConvertor.convert(convertor.idlType)}).${isStringEnum ? 'ordinal' : 'value'}`
-        }
-        return super.makeUnsafeCast(convertor, param)
-    }
     runtimeType(param: ArgConvertor, valueType: string, value: string) {
         super.runtimeType(param, valueType, value)
     }
@@ -302,18 +295,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
-    override makeEnumCast(value: string, _unsafe: boolean, convertor: ArgConvertor | undefined): string {
-        if (convertor === undefined) {
-            throwException(`The makeEnumCast function required EnumConvertor`)
-        }
-        const decl = this.resolver.toDeclaration(convertor.nativeType())
-        if (!idl.isEnum(decl)) {
-            throwException(`Declaration type must be Enum`)
-        }
-        // ((value as Axis) as int) - in case when Axis was casted to Object in Map<Axis, Smth>
-        return this.makeCast(this.makeCast(this.makeString(value), convertor.idlType),
-            IDLI32Type).asString()
-    }
+
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
                               convertorIndex: number,
                               runtimeTypeIndex: number): LanguageExpression {

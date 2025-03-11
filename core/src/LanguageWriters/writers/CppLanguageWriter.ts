@@ -56,9 +56,9 @@ import {
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common"
 import { IndentedPrinter } from "../../IndentedPrinter";
-import { throwException } from "../../util";
 import { cppKeywords } from "../../languageSpecificKeywords";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
+import * as idl from "../../idl";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -404,7 +404,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     ordinalFromEnum(value: LanguageExpression, _: IDLType): LanguageExpression {
         return value;
     }
-    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+    makeUnsafeCast(param: string): string {
         return param
     }
     makeUnsafeCast_(value: LanguageExpression, type: IDLType, typeOptions?: PrintHint): string {
@@ -424,11 +424,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return `(${typeName}) (${value.asString()})`
     }
-    override makeEnumCast(value: string, _unsafe: boolean, convertor: ArgConvertor | undefined): string {
-        if (convertor !== undefined) {
-            return `static_cast<${this.typeConvertor.convert(convertor.nativeType())}>(${value})`
-        }
-        throwException("Need pass EnumConvertor")
+    override makeEnumCast(enumEntry: idl.IDLEnum, value: string): string {
+        return `static_cast<${this.typeConvertor.convert(idl.createReferenceType(enumEntry))}>(${value})`
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name

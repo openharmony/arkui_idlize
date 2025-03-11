@@ -14,6 +14,7 @@
  */
 
 import * as idl from '../../idl'
+import { isOptionalType } from '../../idl'
 import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
@@ -44,7 +45,6 @@ import { RuntimeType } from "../common";
 import { rightmostIndexOf, throwException } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSKeywords } from '../../languageSpecificKeywords';
-import { isOptionalType } from "../../idl"
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -432,11 +432,12 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return value
     }
-    override makeEnumCast(enumName: string, unsafe: boolean, convertor: ArgConvertor): string {
-        if (unsafe) {
-            return this.makeUnsafeCast(convertor, enumName)
-        }
-        return enumName
+    override makeEnumCast(enumEntry: idl.IDLEnum, param: string): string {
+        // Take the ordinal value if Enum is a string, and valueOf when it is an integer
+        // Enum.valueOf() - compatible with ArkTS/TS
+        return idl.isStringEnum(enumEntry)
+            ? this.ordinalFromEnum(this.makeString(param), idl.createReferenceType(enumEntry)).asString()
+            : `${param}.valueOf()`
     }
     override castToBoolean(value: string): string { return `+${value}` }
     override makeCallIsObject(value: string): LanguageExpression {

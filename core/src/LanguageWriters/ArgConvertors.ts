@@ -16,23 +16,22 @@
 import * as idl from "../idl";
 import { Language } from "../Language";
 import {
+    BlockStatement,
+    BranchStatement,
+    ExpressionAssigner,
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
-    ExpressionAssigner,
     PrintHint,
-    BlockStatement,
-    BranchStatement,
     StringExpression
 } from "./LanguageWriter";
 import { RuntimeType } from "./common";
-import { generatorConfiguration, generatorTypePrefix } from "../config"
+import { generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
 import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
-import { CppNameConvertor } from "./convertors/CppConvertors";
+import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { CppConvertor } from "./convertors/CppConvertors";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 
 export interface ArgConvertor {
@@ -209,14 +208,12 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.makeEnumCast(writer.escapeKeyword(param), false, this)
+        return writer.makeEnumCast(this.enumEntry, writer.escapeKeyword(param))
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
-        value =
-            idl.isStringEnum(this.enumEntry)
-                ? writer.ordinalFromEnum(writer.makeString(value), idl.createReferenceType(this.enumEntry)).asString()
-                : writer.makeEnumCast(value, false, this)
-        writer.writeMethodCall(`${param}Serializer`, "writeInt32", [value])
+        writer.writeMethodCall(`${param}Serializer`,
+            "writeInt32",
+            [writer.makeEnumCast(this.enumEntry, value)])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])

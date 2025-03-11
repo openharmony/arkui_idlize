@@ -299,7 +299,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
     }
-    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {
+    override makeEnumCast(_enumEntry: idl.IDLEnum, enumName: string): string {
         return `${enumName}.value`
     }
     override castToBoolean(value: string): string { return value }

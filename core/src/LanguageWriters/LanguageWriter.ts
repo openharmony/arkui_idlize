@@ -494,7 +494,7 @@ export abstract class LanguageWriter {
     abstract get supportedFieldModifiers(): FieldModifier[]
     abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
-    abstract makeEnumCast(enumName: string, unsafe: boolean, convertor: ArgConvertor | undefined): string
+    abstract makeEnumCast(enumEntry: idl.IDLEnum, enumName: string): string
     abstract getNodeName(type: idl.IDLNode): string
     abstract fork(options?: { resolver?: ReferenceResolver }): LanguageWriter
 
@@ -700,7 +700,7 @@ export abstract class LanguageWriter {
     /**
      * TODO: replace me with {@link makeUnsafeCast_}
      */
-    makeUnsafeCast(convertor: ArgConvertor, param: string): string {
+    makeUnsafeCast(param: string): string {
         return `unsafeCast<int32>(${param})`
     }
     makeUnsafeCast_(value: LanguageExpression, type: idl.IDLType, typeOptions?: PrintHint) {

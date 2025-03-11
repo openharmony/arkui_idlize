@@ -446,7 +446,7 @@ export class CJLanguageWriter extends LanguageWriter {
         name = name.startsWith('_') ? name.slice(1) : name
         this.print(`func ${name}(${signture}): ${this.typeForeignConvertor.convert(method.signature.returnType)}`)
     }
-    override makeEnumCast(enumName: string, _unsafe: boolean, _convertor: ArgConvertor | undefined): string {
+    override makeEnumCast(_enumEntry: idl.IDLEnum, enumName: string): string {
         return `${enumName}.value`
     }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
