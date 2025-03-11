@@ -1,8 +1,15 @@
+import { Chrono } from "std/time"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
 import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
 import { MEDIAQUERYNativeModule } from "../../generated/arkts";
 export { mediaquery } from "../../generated/arkts"
+
+export namespace performance {
+    export function now(): number {
+        return Chrono.nanoNow()
+    }
+}
 
 export type OHBuffer = NativeBuffer
 

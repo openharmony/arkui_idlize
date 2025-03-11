@@ -2,6 +2,8 @@ import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loa
 import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
 export { mediaquery } from "../../generated/ts"
 
+export { performance } from 'perf_hooks';
+
 export type OHBuffer = ArrayBuffer
 
 declare const NATIVE_LIBRARY_NAME: string
