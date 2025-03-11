@@ -63,3 +63,31 @@ export function runEventLoop() {
         finished = true
     }, 2000);
 }
+
+export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    if (value1 != value2)
+        throw new Error(comment)
+}
+
+class Test {
+    constructor(public readonly name, public readonly test: () => void) {
+    }
+}
+
+export class UnitTestsuite {
+
+    private tests: Test[] = []
+    constructor(public name: string) {
+    }
+
+    addTest(testName: string, test: () => void): void {
+        this.tests.push(new Test(testName, test))
+    }
+
+    run(): void {
+        for (const t of this.tests) {
+            console.log(`Run test: ${t.name}`)
+            t.test()
+        }
+    }
+}

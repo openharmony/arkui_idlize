@@ -1,3 +1,5 @@
+import { UnitTestsuite,  checkEQ } from '#compat'
+
 import {
   // .d.ts
   CONST_BOOLEAN_FALSE,
@@ -34,13 +36,10 @@ import {
   testDataClass, testDataInterface, DataClass, DataInterface,
   testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface
 } from '#compat'
+import { test_buffer } from '#compat'
 
-function assertEquals(expected: boolean | number | string, actual: boolean | number | string, msg?: string) {
-  if (typeof expected !== typeof actual || expected !== actual) {
-    msg = msg ? `"${msg}" ` : ""
-    const q = typeof expected === "string" ? "'" : ""
-    throw new Error(`ASSERT ${msg}failed: expected ${q}${expected}${q}, actual ${q}${actual}${q}`)
-  }
+export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+  checkEQ(value1, value2, comment)
 }
 
 function compareNumbers(v1: number, v2: number): boolean {
@@ -55,7 +54,7 @@ function check_constants() {
   if (CONST_BOOLEAN_TRUE != true)
     throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
 
-  assertEquals(312, CONST_NUMBER_INT, "CONST_NUMBER_INT")
+  assertEQ(312, CONST_NUMBER_INT)
 
 
   if (CONST_NUMBER_FLOAT != 312.415) {
@@ -63,37 +62,37 @@ function check_constants() {
   }
 
   // 2. Check idl const values
-  assertEquals(312, IDL_CONST_NUMBER_INT, "IDL_CONST_NUMBER_INT")
-  assertEquals(312.415, IDL_CONST_NUMBER_FLOAT, "IDL_CONST_NUMBER_FLOAT")
-  assertEquals(false, IDL_CONST_BOOLEAN_FALSE, "IDL_CONST_BOOLEAN_FALSE")
-  assertEquals(true, IDL_CONST_BOOLEAN_TRUE, "IDL_CONST_BOOLEAN_TRUE");
-  assertEquals("hello_string", IDL_CONST_STRING, "IDL_CONST_STRING");
+  assertEQ(312, IDL_CONST_NUMBER_INT)
+  assertEQ(312.415, IDL_CONST_NUMBER_FLOAT)
+  assertEQ(false, IDL_CONST_BOOLEAN_FALSE)
+  assertEQ(true, IDL_CONST_BOOLEAN_TRUE);
+  assertEQ("hello_string", IDL_CONST_STRING);
 }
 
 function check_booleans() {
-  assertEquals(false, and_values(false, false), "and(false, false)")
-  assertEquals(false, and_values(false, true), "and(false, true)")
-  assertEquals(false, and_values(true, false), "and(true, false)")
-  assertEquals(true, and_values(true, true), "and(true, true)")
+  assertEQ(false, and_values(false, false))
+  assertEQ(false, and_values(false, true))
+  assertEQ(false, and_values(true, false))
+  assertEQ(true, and_values(true, true))
 }
 
 function checkNumber() {
   // sum numbers
   let s = sum_numbers(2, 3)
   console.log(`sum: ${s}`)
-  assertEquals(true, compareNumbers(s, 5), "2+3")
+  assertEQ(true, compareNumbers(s, 5))
 
   s = sum_numbers(2.3, 3)
   console.log(`sum: ${s}`)
-  assertEquals(true, compareNumbers(s, 5.3), "2.3+3")
+  assertEQ(true, compareNumbers(s, 5.3))
 
   s = sum_numbers(2, 3.5)
   console.log(`sum: ${s}`)
-  assertEquals(true, compareNumbers(s, 5.5), "2+3.5")
+  assertEQ(true, compareNumbers(s, 5.5))
 
   s = sum_numbers(2.3, 3.5)
   console.log(`sum: ${s}`)
-  assertEquals(true, compareNumbers(s, 5.8), "2.3+3.5")
+  assertEQ(true, compareNumbers(s, 5.8))
 }
 
 function checkForceCallback() {
@@ -101,19 +100,19 @@ function checkForceCallback() {
   const testListener: ForceCallbackListener = {
     onStatus: (status: number) => {
       console.log(`TestListener onStatus: ${status}`)
-      assertEquals(123456, status, "ForceCallbackListener.onStatus()")
+      assertEQ(123456, status)
     },
     onChange: (flag: boolean, count: number) => {
       console.log("OnChange called!")
-      assertEquals(true, flag, "flag")
-      assertEquals(78910, count, "ForceCallbackListener.onStatus()")
+      assertEQ(true, flag)
+      assertEQ(78910, count)
       return "OnChange"
     },
   }
 
   const forceCallbackClass = new ForceCallbackClass()
   forceCallbackClass.registerListener(testListener)
-  assertEquals(101, forceCallbackClass.callListener(), "forceCallbackClass.callListener()")
+  assertEQ(101, forceCallbackClass.callListener())
 
   registerForceCallbackListener(testListener)
   callForceCallbackListener()
@@ -130,12 +129,12 @@ function checkEnum() {
   console.log(StringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
-  assertEquals(11, IntEnum.E1.valueOf(), "IntEnum.E1")
-  assertEquals(22, IntEnum.E2.valueOf(), "IntEnum.E2")
-  assertEquals("e11", StringEnum.E1.valueOf(), "StringEnum.E1")
-  assertEquals("e22", StringEnum.E2.valueOf(), "StringEnum.E2.valueOf()")
+  assertEQ(11, IntEnum.E1.valueOf())
+  assertEQ(22, IntEnum.E2.valueOf())
+  assertEQ("e11", StringEnum.E1.valueOf())
+  assertEQ("e22", StringEnum.E2.valueOf())
 
-  // assertEquals(OrdinaryEnum.E2, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2), "OrdinaryEnum.E2")
+  // assertEQ(OrdinaryEnum.E2, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
 
   // .idl
   console.log(IDLOrdinaryEnum.E1.valueOf())
@@ -146,29 +145,29 @@ function checkEnum() {
   console.log(IDLStringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
-  assertEquals(111, IDLIntEnum.E1.valueOf(), "IDLIntEnum.E1")
-  assertEquals(222, IDLIntEnum.E2.valueOf(), "IDLIntEnum.E2")
-  assertEquals("e111", IDLStringEnum.E1.valueOf(), "IDLStringEnum.E1")
-  assertEquals("e222", IDLStringEnum.E2.valueOf(), "IDLStringEnum.E2")
+  assertEQ(111, IDLIntEnum.E1.valueOf())
+  assertEQ(222, IDLIntEnum.E2.valueOf())
+  assertEQ("e111", IDLStringEnum.E1.valueOf())
+  assertEQ("e222", IDLStringEnum.E2.valueOf())
 
-  // assertEquals(IDLOrdinaryEnum.E2, idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2), "IDLOrdinaryEnum.E2")
+  // assertEQ(IDLOrdinaryEnum.E2, idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2))
 }
 
 function checkClassWithComplexPropertyType() {
   let value = new ClassWithComplexPropertyType()
-  assertEquals(10, value.prop.counter, "checkClassWithComplexPropertyType.counter")
-  assertEquals(true, value.prop.flag, "checkClassWithComplexPropertyType.flag")
+  assertEQ(10, value.prop.counter)
+  assertEQ(true, value.prop.flag)
 }
 
 function checkDataTestResult(msg: string, expected: DataInterface,
   actualBoolean: boolean, actualNumber: number, actualString: string, actualObject: [boolean, number, string])
 {
-  assertEquals(!expected.propBoolean, actualBoolean, msg)
-  assertEquals(expected.propNumber + 1, actualNumber, msg)
-  assertEquals(expected.propString.slice(1), actualString, msg)
-  assertEquals(!expected.propObject[0], actualObject[0], msg)
-  assertEquals(-expected.propObject[1], actualObject[1], msg)
-  assertEquals(expected.propObject[2].slice(6), actualObject[2], msg)
+  assertEQ(!expected.propBoolean, actualBoolean)
+  assertEQ(expected.propNumber + 1, actualNumber)
+  assertEQ(expected.propString.slice(1), actualString)
+  assertEQ(!expected.propObject[0], actualObject[0])
+  assertEQ(-expected.propObject[1], actualObject[1])
+  assertEQ(expected.propObject[2].slice(6), actualObject[2])
 }
 
 function checkDataInterfaces() {
@@ -197,12 +196,16 @@ function checkDataInterfaces() {
 export function run() {
   console.log("Run common unit tests")
 
-  check_constants()
-  check_booleans()
-  checkNumber()
-  checkForceCallback()
-  checkEnum()
-  checkClassWithComplexPropertyType()
-  checkDataInterfaces()
+  const suite = new UnitTestsuite("idlize ut")
+
+	suite.addTest("check_constants", check_constants)
+  suite.addTest("check_booleans", check_booleans)
+  suite.addTest("checkNumber", checkNumber)
+  suite.addTest("checkForceCallback", checkForceCallback)
+  suite.addTest("checkEnum", checkEnum)
+  suite.addTest("checkClassWithComplexPropertyType", checkClassWithComplexPropertyType)
+  suite.addTest("checkDataInterfaces", checkDataInterfaces)
+
+  return suite.run()
 }
 

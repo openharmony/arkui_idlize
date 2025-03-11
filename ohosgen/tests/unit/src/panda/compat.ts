@@ -53,3 +53,13 @@ export function init() {
     registerNativeModuleLibraryName("UNITNativeModule", "UNIT_NativeBridgeArk")
     new UNITNativeModule()
 }
+
+export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    assertEQ(value1, value2, comment)
+}
+
+export class UnitTestsuite extends ArkTestsuite {
+    constructor(name: string) {
+        super(name)
+    }
+}
