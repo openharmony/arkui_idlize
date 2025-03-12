@@ -1,4 +1,4 @@
-import { UnitTestsuite,  checkEQ } from '#compat'
+import { UnitTestsuite,  checkEQ, checkNotEQ } from '#compat'
 
 import {
   // .d.ts
@@ -17,6 +17,7 @@ import {
 
 import { and_values } from '#compat'
 import { sum_numbers } from '#compat'
+import { test_materialized_classes, UtilityInterface } from '#compat'
 import {
   ForceCallbackListener,
   ForceCallbackClass,
@@ -41,6 +42,7 @@ import { test_buffer } from '#compat'
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
+
 
 function compareNumbers(v1: number, v2: number): boolean {
   return Math.abs(v2 - v1) < 0.1
@@ -193,6 +195,82 @@ function checkDataInterfaces() {
   checkDataTestResult("class", dataIface, r4.propBoolean, r4.propNumber, r4.propString, r4.propObject)
 }
 
+function checkStaticMaterialized() {
+  test_materialized_classes.StaticMaterialized.method(123, "hello_message")
+}
+
+function checkMaterialized() {
+  // 1. call overloaded methods
+  const instance = new test_materialized_classes.MaterializedOverloadedMethods()
+  instance.method1()
+  instance.method1(true)
+  instance.method1(false, "test_message")
+
+  // 2. call MORE overloaded methods
+  const instance2 = new test_materialized_classes.MaterializedMoreOverloadedMethods()
+  instance2.method2()
+  instance2.method2(321)
+  instance2.method2(231, "test_message")
+
+  // 3. check getters, setters
+  const instance3 = new test_materialized_classes.MaterializedWithConstructorAndFields(12345, false)
+  checkEQ(12345, instance3.valNumber)
+  checkEQ(false, instance3.valBoolean)
+
+  instance3.valNumber = 54321
+  instance3.valBoolean = true
+  checkEQ(54321, instance3.valNumber)
+  checkEQ(true, instance3.valBoolean)
+
+  // 4. create instance with static 'create' method
+  const wrongInstance4 = new test_materialized_classes.MaterializedWithCreateMethod(/** todo: where is constructor params? */)
+  const instance4 = test_materialized_classes.MaterializedWithCreateMethod.create(9876, false /** todo: params unused */)
+  // assertEquals(9876, instance4.valNumber)
+  // assertEquals(false, instance4.valBoolean)
+
+  // 5. Pass struct as argument, receive struct as return value
+  const instance5 = new test_materialized_classes.MaterializedComplexArguments(/** todo: where is constructor params? */)
+  const utils: UtilityInterface = {
+    fieldString: "test_message", 
+    fieldBoolean: true,
+    fieldArrayNumber: new Array<number>(1, 2, 3, 4, 5)
+  }
+
+  const modifiedUtils: UtilityInterface = instance5.method3(utils)
+  checkNotEQ(utils.fieldBoolean, modifiedUtils.fieldBoolean)
+  checkEQ(utils.fieldBoolean, !modifiedUtils.fieldBoolean)
+  checkNotEQ(utils.fieldString, modifiedUtils.fieldString)
+  checkEQ(`${utils.fieldString}_modified`, modifiedUtils.fieldString)
+  checkNotEQ(utils.fieldArrayNumber[0], modifiedUtils.fieldArrayNumber[0])
+  checkEQ(utils.fieldArrayNumber[0], - modifiedUtils.fieldArrayNumber[0])
+
+  // 6. Pass array as argument, receive array as return value
+  const array = new Array<number>(10, 11, 12, 13, 14)
+  const stringifyArray = instance5.method4(array)
+  checkEQ(array[0].toString(), stringifyArray[0])
+  checkEQ(array.join(","), stringifyArray.join(","))
+
+  const utilsArray = new Array<UtilityInterface>()
+  let hiUtils: UtilityInterface = { 
+    fieldString: "hi_message", 
+    fieldBoolean: true, 
+    fieldArrayNumber: new Array<number>(6, 7, 8, 9, 10) 
+  }
+  let byeUtils: UtilityInterface = { 
+    fieldString: "bye_message", 
+    fieldBoolean: false, 
+    fieldArrayNumber: new Array<number>(5, 4, 3, 2, 1) 
+  }
+  utilsArray.push(hiUtils)
+  utilsArray.push(byeUtils)
+  
+  const modifiedUtilsArray = instance5.method5(utilsArray)
+  checkEQ(`${utilsArray[0].fieldString}_modified`, modifiedUtilsArray[0].fieldString)
+  checkEQ(`${utilsArray[1].fieldString}_modified`, modifiedUtilsArray[1].fieldString)
+  checkEQ(utilsArray[0].fieldArrayNumber[0], - modifiedUtilsArray[0].fieldArrayNumber[0])
+  checkEQ(utilsArray[1].fieldArrayNumber[0], - modifiedUtilsArray[1].fieldArrayNumber[0])
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -205,6 +283,8 @@ export function run() {
   suite.addTest("checkEnum", checkEnum)
   suite.addTest("checkClassWithComplexPropertyType", checkClassWithComplexPropertyType)
   suite.addTest("checkDataInterfaces", checkDataInterfaces)
+  suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
+  suite.addTest("checkMaterialized", checkMaterialized)
 
   return suite.run()
 }

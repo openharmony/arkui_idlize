@@ -193,6 +193,8 @@ export class PeerLibrary implements LibraryInterface {
 
         let pointOfViewNamespace = idl.fetchNamespaceFrom(type.parent)
 
+        // TODO: Choose what to do if `rootEntries.some(it => idl.isNamespace(it))`
+        // One of possible options - `rootEntries = rootEntries.flatMap(it => idl.isNamespace(it) ? it.members : it)` - cause error
         rootEntries ??= this.files.flatMap(it => it.entries)
         if (1 === qualifiedName.length) {
             const predefined = rootEntries.filter(it => isInIdlizeInternal(it))

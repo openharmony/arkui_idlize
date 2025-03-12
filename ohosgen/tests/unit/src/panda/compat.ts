@@ -21,6 +21,7 @@ export {
 export { and_values } from "../../generated/arkts"
 export { sum_numbers } from "../../generated/arkts"
 export { test_buffer } from "../../generated/arkts"
+export { test_materialized_classes, UtilityInterface } from "../../generated/arkts"
 export {
     ForceCallbackListener,
     ForceCallbackClass,
@@ -56,6 +57,10 @@ export function init() {
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     assertEQ(value1, value2, comment)
+}
+
+export function checkNotEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    assertNE(value1, value2, comment)
 }
 
 export class UnitTestsuite extends ArkTestsuite {

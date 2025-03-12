@@ -348,7 +348,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
 class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     protected collectImports(imports: ImportsCollector) {
-        const decl = this.library.resolveTypeReference(idl.createReferenceType(this.clazz.className))!
+        const decl = this.clazz.decl
         collectDeclDependencies(this.library, decl, imports, {
             expandTypedefs: true,
             includeTransformedCallbacks: true,

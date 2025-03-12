@@ -20,6 +20,7 @@ export {
 export { and_values } from "../../generated/ts"
 export { sum_numbers } from "../../generated/ts"
 export { test_buffer } from "../../generated/ts"
+export { test_materialized_classes, UtilityInterface } from "../../generated/ts"
 export {
     ForceCallbackListener,
     ForceCallbackClass,
@@ -66,6 +67,11 @@ export function runEventLoop() {
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     if (value1 != value2)
+        throw new Error(comment)
+}
+
+export function checkNotEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    if (value1 == value2)
         throw new Error(comment)
 }
 
