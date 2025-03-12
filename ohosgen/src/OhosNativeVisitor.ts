@@ -128,7 +128,7 @@ class OHOSNativeVisitor {
     }
 
     private apiName(clazz: IDLInterface): string {
-        return capitalize(clazz.name)
+        return capitalize(qualifiedName(clazz, "_"))
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -164,7 +164,8 @@ class OHOSNativeVisitor {
 
     private writeModifier(clazz: IDLInterface, writer: CppLanguageWriter) {
         let name = this.modifierName(clazz)
-        let handleType = this.handleType(clazz.name)
+        let handleType = this.handleType(clazz)
+        let className = qualifiedName(clazz, "_")
         let _h = this.hWriter
         let _c = writer
         _h.print(`struct ${handleType}Opaque;`)
@@ -187,12 +188,12 @@ class OHOSNativeVisitor {
                 let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
                 let cppArgs = this.generateCParameters(ctor, argConvertors, _h)
                 _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
-                let implName = `${clazz.name}_${name}Impl`
+                let implName = `${className}_${name}Impl`
                 _c.print(`&${implName},`)
                 this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs })
             })
             {
-                let destructName = `${clazz.name}_destructImpl`
+                let destructName = `${className}_destructImpl`
                 let params = [new NameType("thisPtr", handleType)]
                 _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
                 _c.print(`&${destructName},`)
@@ -210,7 +211,7 @@ class OHOSNativeVisitor {
             let returnType = this.returnTypeConvertor.convert(adjustedSignature.returnType)
             const args = this.generateCParameters(method, adjustedSignature.convertors, _h)
             _h.print(`${returnType} (*${method.name}${overloadPostfix})(${args});`)
-            let implName = `${clazz.name}_${method.name}${overloadPostfix}Impl`
+            let implName = `${className}_${method.name}${overloadPostfix}Impl`
             _c.print(`&${implName},`)
             this.impls.set(implName, { params, returnType, paramsCString: args })
         })
@@ -244,7 +245,7 @@ class OHOSNativeVisitor {
                 let returnType = this.returnTypeConvertor.convert(adjustedSignature.returnType)
                 const args = this.generateCParameters(method, adjustedSignature.convertors, _h)
                 _h.print(`${returnType} (*${method.name})(${args});`)
-                let implName = `${clazz.name}_${method.name}Impl`
+                let implName = `${className}_${method.name}Impl`
                 _c.print(`&${implName},`)
                 this.impls.set(implName, { params, returnType, paramsCString: args })
             }
@@ -278,10 +279,10 @@ class OHOSNativeVisitor {
     }
 
     private modifierName(clazz: IDLInterface): string {
-        return this.mangleTypeName(`${clazz.name}Modifier`)
+        return this.mangleTypeName(`${qualifiedName(clazz, "_")}Modifier`)
     }
-    private handleType(name: string): string {
-        return this.mangleTypeName(`${name}Handle`)
+    private handleType(clazz: IDLInterface): string {
+        return this.mangleTypeName(`${qualifiedName(clazz, "_")}Handle`)
     }
 
     private writeImpls() {

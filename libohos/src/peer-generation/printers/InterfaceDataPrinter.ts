@@ -29,8 +29,7 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap(file => {
         if (library?.libraryPackages?.length && !library.libraryPackages.includes(file.packageName()))
             return []
-        return file.entries
-            .flatMap(it => idl.isNamespace(it) ? it.members : [it])
+        return idl.linearizeNamespaceMembers(file.entries)
             .filter(it => !isInIdlizeInternal(it))
             .flatMap(entry => {
                 if (idl.isInterface(entry)) {

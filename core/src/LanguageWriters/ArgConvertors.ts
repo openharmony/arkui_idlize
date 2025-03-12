@@ -33,6 +33,7 @@ import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
+import { qualifiedName } from "../peer-generation/idl/common";
 
 export interface ArgConvertor {
     param: string
@@ -1003,7 +1004,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
             case Language.CPP:
-                return `static_cast<${generatorTypePrefix()}${this.declaration.name}>(${param})`
+                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_")}>(${param})`
             case Language.JAVA:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${param})`
@@ -1014,13 +1015,13 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
             printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, `write${this.declaration.name}`, [
+                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_")}`, [
                     printer.makeString(value)
                 ])))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readStatement = writer.makeCast(
-            writer.makeMethodCall(`${deserializerName}`, `read${this.declaration.name}`, []),
+            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_")}`, []),
             idl.createReferenceType(this.declaration)
         )
         return assigneer(readStatement)

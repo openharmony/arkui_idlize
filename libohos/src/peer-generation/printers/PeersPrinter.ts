@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType } from '@idlizer/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, MaterializedClass, qualifiedName } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
@@ -26,7 +26,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, PeerFile, PeerMethod,
+import { LanguageWriter, createConstructPeerMethod, PeerClass, PeerFile, PeerMethod,
     getInternalClassName, MaterializedMethod, PeerLibrary
 } from "@idlizer/core";
 import { tsCopyrightAndWarning } from "../FileGenerators";
@@ -391,8 +391,7 @@ export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): M
     return result
 }
 
-export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: LanguageWriter): void {
-    const className = peerClassBase.getComponentName()
+export function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): void {
     const finalizer = new Method(
         "getFinalizer",
         new MethodSignature(IDLPointerType, []),
@@ -401,7 +400,7 @@ export function printPeerFinalizer(peerClassBase: PeerClassBase, writer: Languag
     writer.writeMethodImplementation(finalizer, writer => {
         writer.writeStatement(
             writer.makeReturn(
-                writer.makeNativeCall(NativeModule.Generated, `_${className}_getFinalizer`, [])))
+                writer.makeNativeCall(NativeModule.Generated, `_${qualifiedName(clazz.decl, "_")}_getFinalizer`, [])))
     })
 }
 

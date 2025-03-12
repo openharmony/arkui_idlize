@@ -123,14 +123,14 @@ void MyPersonHandler_MyFunc22Impl(OH_NativePointer thisPtr, const OH_Number *b, 
 
 /// BufferGenerator
 
-OH_UNIT_BufferGeneratorHandle BufferGenerator_constructImpl()
+OH_UNIT_TestBuffer_BufferGeneratorHandle TestBuffer_BufferGenerator_constructImpl()
 {
     return {};
 }
-void BufferGenerator_destructImpl(OH_UNIT_BufferGeneratorHandle thiz)
+void TestBuffer_BufferGenerator_destructImpl(OH_UNIT_TestBuffer_BufferGeneratorHandle thiz)
 {
 }
-OH_Buffer BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
+OH_Buffer TestBuffer_BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
 {
     return {};
 }
@@ -138,11 +138,11 @@ OH_Buffer BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
 void stub_hold(OH_Int32 resourceId) {}
 void stub_release(OH_Int32 resourceId) {}
 
-OH_UNIT_TestValue GlobalScope_test_buffer_getBufferImpl()
+OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
 {
-    std::cout << "Return buffer from getBufferImpl" << std::endl;
-    OH_UNIT_TestValue result{};
-    result.errorCode = {.tag = INTEROP_TAG_INT32, .i32 = 123};
+    std::cout << "Return buffer from getBufferImpl"<< std::endl;
+    OH_UNIT_test_buffer_TestValue result{};
+    result.errorCode = {.tag = INTEROP_TAG_INT32, .i32 = 123 };
     result.outData.resource.hold = stub_hold;
     result.outData.resource.release = stub_release;
     result.outData.data = strdup("1234");
@@ -306,7 +306,7 @@ void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, con
 OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNamespace_MyEnum2* a) {
     return {};
 }
-OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyInterface* a) {
+OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyNamespace_MyInterface* a) {
     return {};
 }
 
@@ -549,4 +549,26 @@ Array_String MaterializedComplexArguments_method4Impl(OH_NativePointer thisPtr, 
 }
 Array_UtilityInterface MaterializedComplexArguments_method5Impl(OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces) {
     return reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
+}
+
+// namespaces
+OH_Boolean GlobalScope_hello_MyFuncImpl(OH_UNIT_hello_MyNamespace_FooXXX a) {
+    return {};
+}
+
+OH_UNIT_hello_MyNamespace_FooXXXHandle hello_MyNamespace_FooXXX_constructImpl() {
+    return {};
+}
+void hello_MyNamespace_FooXXX_destructImpl(OH_UNIT_hello_MyNamespace_FooXXXHandle thisPtr) {
+}
+OH_Number hello_MyNamespace_FooXXX_getXImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_UNIT_hello_FooXXXHandle hello_FooXXX_constructImpl() {
+    return {};
+}
+void hello_FooXXX_destructImpl(OH_UNIT_hello_FooXXXHandle thisPtr) {
+}
+OH_Number hello_FooXXX_getYImpl(OH_NativePointer thisPtr) {
+    return {};
 }

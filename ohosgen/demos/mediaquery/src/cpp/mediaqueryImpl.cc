@@ -6,14 +6,14 @@
 
 class FakeMediaQuery {};
 
-OH_MEDIAQUERY_MediaQueryListenerHandle MediaQueryListener_constructImpl() {
+OH_MEDIAQUERY_mediaquery_MediaQueryListenerHandle mediaquery_MediaQueryListener_constructImpl() {
     FakeMediaQuery* fake = new FakeMediaQuery();
-    return (OH_MEDIAQUERY_MediaQueryListenerHandle)fake;
+    return (OH_MEDIAQUERY_mediaquery_MediaQueryListenerHandle)fake;
 }
-void MediaQueryListener_destructImpl(OH_MEDIAQUERY_MediaQueryListenerHandle thiz) {
+void mediaquery_MediaQueryListener_destructImpl(OH_MEDIAQUERY_mediaquery_MediaQueryListenerHandle thisPtr) {
 }
-void MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const MEDIAQUERY_Callback_MediaQueryResult_Void* callback_) {
-    OH_MEDIAQUERY_MediaQueryResult result = {
+void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const MEDIAQUERY_mediaquery_Callback_MediaQueryResult_Void* callback_) {
+    OH_MEDIAQUERY_mediaquery_MediaQueryResult result = {
         .matches=true,
         .media=(OH_String) {
             .chars="hello",
@@ -22,12 +22,12 @@ void MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const MEDIAQUERY_
     };
     callback_->call(callback_->resource.resourceId, result);
 }
-void MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_MEDIAQUERY_Callback_MediaQueryResult_Void* callback_) {
+void mediaquery_MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_MEDIAQUERY_mediaquery_Callback_MediaQueryResult_Void* callback_) {
 }
-OH_Boolean MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr) {
+OH_Boolean mediaquery_MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr) {
     return {};
 }
-OH_String MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
+OH_String mediaquery_MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
     return {};
 }
 OH_NativePointer GlobalScope_mediaquery_matchMediaSyncImpl(const OH_String* condition) {
@@ -67,7 +67,7 @@ OH_String GlobalScope_mediaquery_testConcatStringImpl(
   return OH_String{buf, x->length + y->length};
 }
 
-void parse_option(const OH_MEDIAQUERY_Option* op) {
+void parse_option(const OH_MEDIAQUERY_mediaquery_Option* op) {
     OH_String src = op->src;
     std::string srcNative = std::string(src.chars);
     OH_Number dest = op->dest;
@@ -87,17 +87,17 @@ void parse_option(const OH_MEDIAQUERY_Option* op) {
     // }
 }
 
-void GlobalScope_mediaquery_optionArg1Impl(const OH_String* str, const OH_MEDIAQUERY_Option* op1) {
+void GlobalScope_mediaquery_optionArg1Impl(const OH_String* str, const OH_MEDIAQUERY_mediaquery_Option* op1) {
     std::string res = std::string(str->chars);
     parse_option(op1);
 
 }
-void GlobalScope_mediaquery_optionArg2Impl(const OH_String* str, const OH_MEDIAQUERY_Option* op1, const OH_MEDIAQUERY_Option* op2) {
+void GlobalScope_mediaquery_optionArg2Impl(const OH_String* str, const OH_MEDIAQUERY_mediaquery_Option* op1, const OH_MEDIAQUERY_mediaquery_Option* op2) {
     std::string res = std::string(str->chars);
     parse_option(op1);
     parse_option(op2);
 }
-void GlobalScope_mediaquery_optionArg3Impl(const OH_String* str, const OH_MEDIAQUERY_Option* op1, const OH_MEDIAQUERY_Option* op2, const OH_MEDIAQUERY_Option* op3) {
+void GlobalScope_mediaquery_optionArg3Impl(const OH_String* str, const OH_MEDIAQUERY_mediaquery_Option* op1, const OH_MEDIAQUERY_mediaquery_Option* op2, const OH_MEDIAQUERY_mediaquery_Option* op3) {
     std::string res = std::string(str->chars);
     parse_option(op1);
     parse_option(op2);

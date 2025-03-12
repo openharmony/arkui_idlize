@@ -50,34 +50,34 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         switch (node.subkind) {
             case idl.IDLInterfaceSubkind.AnonymousInterface:
                 return node.name
-                    ? this.make(node.name)
+                    ? this.make(this.qualifiedName(node))
                     : this.make(this.computeTargetTypeLiteralName(node), true)
             case idl.IDLInterfaceSubkind.Interface:
             case idl.IDLInterfaceSubkind.Class:
                 if (isInIdlizeInternal(node)) {
-                    return this.make(node.name, true)
+                    return this.make(this.qualifiedName(node), true)
                 }
-                return this.make(node.name)
+                return this.make(this.qualifiedName(node))
             case idl.IDLInterfaceSubkind.Tuple:
                 return node.name
-                    ? this.make(node.name)
+                    ? this.make(this.qualifiedName(node))
                     : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
         }
     }
     convertEnum(node: idl.IDLEnum): ConvertResult {
-        return this.make(this.enumName(node))
+        return this.make(this.qualifiedName(node))
     }
     convertTypedef(node: idl.IDLTypedef): ConvertResult {
-        return this.make(node.name)
+        return this.make(this.qualifiedName(node))
     }
     convertCallback(node: idl.IDLCallback): ConvertResult {
-        return this.make(generatorConfiguration().LibraryPrefix + node.name, true)
+        return this.make(generatorConfiguration().LibraryPrefix + this.qualifiedName(node), true)
     }
     convertMethod(node: idl.IDLMethod): ConvertResult {
         return this.make(node.name)
     }
     convertConstant(node: idl.IDLConstant): ConvertResult {
-        return this.make(node.name)
+        return this.make(this.qualifiedName(node))
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
@@ -165,7 +165,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
 
-    private enumName(target: idl.IDLEnum): string {
+    private qualifiedName(target: idl.IDLNode): string {
         return qualifiedName(target, "_")
     }
 
@@ -282,7 +282,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     convertTypeReference(type: idl.IDLReferenceType): string {
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return generatorTypePrefix() + decl.name
+            return generatorTypePrefix() + qualifiedName(decl, "_")
         }
         return this.convertor.convert(type)
     }

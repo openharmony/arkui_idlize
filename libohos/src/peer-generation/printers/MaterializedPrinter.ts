@@ -25,8 +25,8 @@ import {
     NamedMethodSignature
 } from "../LanguageWriters";
 import {
-    LanguageWriter, RuntimeType, getInternalClassName,
-    MaterializedClass, MaterializedField, isMaterialized, PeerLibrary, LayoutNodeRole
+    LanguageWriter, getInternalClassName,
+    MaterializedClass, MaterializedField, PeerLibrary, LayoutNodeRole
 } from "@idlizer/core"
 import { groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
@@ -39,11 +39,10 @@ import {
 } from "./lang/Java";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
-import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
+import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
-import { SyntheticModule } from '../common';
 
 interface MaterializedFileVisitor {
     visit(): PrinterResult
@@ -440,21 +439,6 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
     })
 }
 
-function writeToPeerPtrMethod(writer: LanguageWriter) {
-    const toPeerPtrSignature = new MethodSignature(idl.IDLPointerType, [])
-    writer.writeFunctionImplementation('toPeerPtr', toPeerPtrSignature, () => {
-        writer.print(`
-            let base: MaterializedBase = match (value as MaterializedBase) {
-                case Some(x) => x
-                case None => throw Exception("Value is not a MaterializedBase instance!")
-            }
-            return match (base.getPeer()) {
-                case Some(peer) => peer.ptr
-                case None => nullptr
-            }`)
-    })
-}
-
 class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     private printPackage(): void {
         this.printer.print(`package ${ARKOALA_PACKAGE};\n`)
@@ -483,10 +467,6 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
     protected collectImports(imports: ImportsCollector): void {
         super.collectImports(imports)
         imports.addFeature("TypeChecker", "#components")
-    }
-
-    override get namespacePrefix(): string {
-        return ""
     }
 
     convertToPropertyType(field: MaterializedField): IDLType {
