@@ -66,6 +66,7 @@ import {
     dropSuffix,
     MaterializedClass,
     isInIdlize,
+    isStaticMaterialized,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
@@ -174,7 +175,7 @@ class OHOSNativeVisitor {
         _c.print(`const static ${name} instance = {`)
         _c.pushIndent()
         _h.pushIndent()
-        if (!isGlobalScope(clazz)) {
+        if (!isGlobalScope(clazz) && !isStaticMaterialized(clazz, this.library)) {
             let ctors = [...clazz.constructors]
             if (ctors.length == 0) {
                 ctors.push(createConstructor([], undefined)) // Add empty fake constructor

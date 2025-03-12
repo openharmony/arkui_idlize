@@ -50,8 +50,21 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     return false
 }
 
-export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver) {
-    return isMaterialized(declaration, resolver) && (declaration.methods.length > 0 && declaration.methods.every(it => it.isStatic)) && !declaration.properties.length && !declaration.constructors.length
+export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
+    if (isMaterialized(declaration, resolver)) {
+        if (declaration.properties.length || declaration.constructors.length) return false
+        if (!declaration.methods.every(it => it.isStatic)) return false
+        if (idl.hasSuperType(declaration)) {
+            const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
+            if (!superType || !idl.isInterface(superType)) {
+                console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
+                return false
+            }
+            return isStaticMaterialized(superType, resolver)
+        }
+        return true
+    }
+    return false
 }
 
 export function isMaterializedType(type: idl.IDLType, resolver: ReferenceResolver): boolean {
