@@ -16,9 +16,12 @@
 import { createUpdatedInterface, createUpdatedMethod } from "../../utils/idl"
 import {
     createFile,
-    createOptionalType, createParameter, createReferenceType, createUnionType,
+    createOptionalType,
+    createParameter,
     IDLFile,
-    IDLInterface, IDLMethod, IDLParameter,
+    IDLInterface,
+    IDLMethod,
+    IDLParameter,
     IDLType,
     isInterface,
     isReferenceType

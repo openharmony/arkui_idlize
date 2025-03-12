@@ -20,6 +20,7 @@ import {
     IDLType,
     IndentedPrinter,
     isInterface,
+    throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
@@ -31,6 +32,7 @@ import { Importer } from "./Importer"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { id } from "../../utils/types"
+import { Config } from "../../Config"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
@@ -90,7 +92,7 @@ export class FactoryPrinter extends SingleFilePrinter {
             () => this.writer.writeStatement(
                 this.writer.makeReturn(
                     this.writer.makeFunctionCall(
-                        PeersConstructions.callUniversalCreate(node.name),
+                        FactoryPrinter.callUniversalCreate(node),
                         node.properties
                             .map(it => it.name)
                             .map(mangleIfKeyword)
@@ -130,11 +132,11 @@ export class FactoryPrinter extends SingleFilePrinter {
                             `updateNodeByNode`,
                             [
                                 this.writer.makeFunctionCall(
-                                PeersConstructions.callUniversalCreate(node.name),
-                                node.properties
-                                    .map(it => it.name)
-                                    .map(mangleIfKeyword)
-                                    .map(it => this.writer.makeString(it))
+                                    FactoryPrinter.callUniversalCreate(node),
+                                    node.properties
+                                        .map(it => it.name)
+                                        .map(mangleIfKeyword)
+                                        .map(it => this.writer.makeString(it))
                                 ),
                                 this.writer.makeString(`original`)
                             ]
@@ -142,6 +144,17 @@ export class FactoryPrinter extends SingleFilePrinter {
                     )
                 )
             }
+        )
+    }
+
+    private static callUniversalCreate(node: IDLInterface) {
+        const creates = node.methods.filter(it => Config.isCreate(it.name))
+        if (creates.length !== 1) {
+            throwException(`unexpected node with multiple creates`)
+        }
+        return PeersConstructions.callPeerMethod(
+            node.name,
+            PeersConstructions.createOrUpdate(node.name, creates[0].name)
         )
     }
 }

@@ -35,6 +35,7 @@ import { AttributeTransformer } from "../transformers/peers/factory/AttributeTra
 import { InteropTransformer } from "../transformers/interop/InteropTransformer"
 import { ConstMergeTransformer } from "../transformers/peers/ConstMergeTransformer"
 import { Transformer } from "../transformers/Transformer"
+import { UniversalCreateTransformer } from "../transformers/peers/UniversalCreateTransformer"
 
 class SingleFileEmitter {
     constructor(
@@ -124,6 +125,7 @@ export class DynamicEmitter {
 
     private printPeers(idl: IDLFile): void {
         idl = this.withLog(new ConstMergeTransformer(idl))
+        idl = this.withLog(new UniversalCreateTransformer(idl))
         idl = this.withLog(new NullabilityTransformer(idl, this.config))
         this.printFile(this.indexPrinter, idl)
         this.printFiles(this.peersPrinter, idl)

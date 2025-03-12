@@ -125,7 +125,7 @@ export class PeersConstructions {
         return `new ${iface}`
     }
 
-    static callUniversalCreate(iface: string): string {
-        return `${iface}.${PeersConstructions.universalCreate(iface)}`
+    static callPeerMethod(iface: string, method: string): string {
+        return `${iface}.${method}`
     }
 }
