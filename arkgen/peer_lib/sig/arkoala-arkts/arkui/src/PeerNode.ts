@@ -17,6 +17,10 @@ export class PeerNode extends IncrementalNode {
     static nextId(): int32 { return ++PeerNode.currentId }
     private id: int32
 
+    getPeerPtr(): pointer {
+        return this.peer.ptr
+    }
+
     setId(id: int32) {
         PeerNode.peerNodeMap.delete(this.id)
         this.id = id
