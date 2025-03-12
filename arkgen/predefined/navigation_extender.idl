@@ -1,8 +1,13 @@
 package org.openharmony.idlize.predefined;
 
-callback NavExtender_OnUpdateStack = void (String value);
+callback NavExtender_OnUpdateStack = void ();
 
 [Entity=Class]
 interface NavExtender {
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
+  static void syncStack(NavPathStack peer);
+  static boolean checkNeedCreate(pointer navigation, NavPathStack stack);
+  static pointer navigationCreate(i32 peer, i32 flag);
+  static void setNavigationOptions(pointer navigation, NavPathStack stack);
+  static void setNavDestinationNode(NavPathStack peer, i32 index, pointer node);
 };
