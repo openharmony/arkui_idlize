@@ -306,7 +306,7 @@ export class IdlPeerProcessor {
         }
 
         const isDeclInterface = idl.isInterfaceSubkind(decl) && !isStaticMaterialized
-        const implemenationParentName = isDeclInterface ? getInternalClassName(fullCName) : fullCName
+        const implemenationParentName = isDeclInterface ? getInternalClassName(decl.name) : decl.name
         let superType = idl.getSuperType(decl)
         const interfaces: idl.IDLReferenceType[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []

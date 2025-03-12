@@ -364,114 +364,114 @@ OH_UNIT_IDLDataClass GlobalScope_testIDLDataClassImpl(const OH_UNIT_IDLDataClass
 }
 
 // "StaticMaterialized" class implementation
-void StaticMaterialized_methodImpl(const OH_Number *valNumber, const OH_String *valString) {
+void test_materialized_classes_StaticMaterialized_methodImpl(const OH_Number *valNumber, const OH_String *valString) {
     printf("static method of static materialized class usage!! Got: %d, %s\n", valNumber->i32, valString->chars);
 }
 
 // "Materialized" class implementation with overloaded methods
-struct OH_UNIT_MaterializedOverloadedMethodsPeer {
+struct UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer {
     void method1(OH_Boolean valBoolean = true, OH_String valString = {.chars = "hi", .length = 2}) {
         printf("method1. Got boolean - %i, string - %s.\n", valBoolean, valString.chars);
     };
 };
-OH_UNIT_MaterializedOverloadedMethodsHandle MaterializedOverloadedMethods_constructImpl() {
-    return reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsHandle>(
-        new OH_UNIT_MaterializedOverloadedMethodsPeer({})
+OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle test_materialized_classes_MaterializedOverloadedMethods_constructImpl() {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle>(
+        new UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer({})
     );
 }
-void MaterializedOverloadedMethods_destructImpl(OH_UNIT_MaterializedOverloadedMethodsHandle thisPtr) {
-    delete reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsHandle*>(thisPtr);
+void test_materialized_classes_MaterializedOverloadedMethods_destructImpl(OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle thisPtr) {
+    delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle*>(thisPtr);
 }
-void MaterializedOverloadedMethods_method10Impl(OH_NativePointer thisPtr, OH_Boolean valBoolean, const OH_String* valString) {
-    reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean, *valString);
+void test_materialized_classes_MaterializedOverloadedMethods_method10Impl(OH_NativePointer thisPtr, OH_Boolean valBoolean, const OH_String* valString) {
+    reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean, *valString);
 }
 
-void MaterializedOverloadedMethods_method11Impl(OH_NativePointer thisPtr, const Opt_Boolean* valBoolean, const Opt_String* valString) {
+void test_materialized_classes_MaterializedOverloadedMethods_method11Impl(OH_NativePointer thisPtr, const Opt_Boolean* valBoolean, const Opt_String* valString) {
     if (valString->tag == INTEROP_TAG_UNDEFINED) {
         if (valBoolean->tag == INTEROP_TAG_UNDEFINED) {
-            reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
+            reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
         } else {
-            reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean->value);
+            reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean->value);
         }
     } else {
-        reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean->value, valString->value);
+        reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean->value, valString->value);
     }
 }
-void MaterializedOverloadedMethods_method12Impl(OH_NativePointer thisPtr) {
-    reinterpret_cast<OH_UNIT_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
+void test_materialized_classes_MaterializedOverloadedMethods_method12Impl(OH_NativePointer thisPtr) {
+    reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
 }
 
 //"Materialized" class implementation with MORE overloaded methods
 
-struct OH_UNIT_MaterializedMoreOverloadedMethodsPeer : OH_UNIT_MaterializedOverloadedMethodsPeer {
+struct OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer : UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer {
     void method2(OH_Number valNumber = {.tag = INTEROP_TAG_INT32, .i32 = 132}, OH_String valString = {.chars = "hi", .length = 2}) {
         printf("method2. Got number - %d, string - %s.\n", valNumber.i32, valString.chars);
     };
 };
 
-OH_UNIT_MaterializedMoreOverloadedMethodsHandle MaterializedMoreOverloadedMethods_constructImpl() {
-    return reinterpret_cast<OH_UNIT_MaterializedMoreOverloadedMethodsHandle>(
-        new OH_UNIT_MaterializedMoreOverloadedMethodsPeer({})
+OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle test_materialized_classes_MaterializedMoreOverloadedMethods_constructImpl() {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle>(
+        new OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer({})
     );
 }
-void MaterializedMoreOverloadedMethods_destructImpl(OH_UNIT_MaterializedMoreOverloadedMethodsHandle thisPtr) {
-    delete reinterpret_cast<OH_UNIT_MaterializedMoreOverloadedMethodsHandle*>(thisPtr);
+void test_materialized_classes_MaterializedMoreOverloadedMethods_destructImpl(OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle thisPtr) {
+    delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsHandle*>(thisPtr);
 }
-void MaterializedMoreOverloadedMethods_method20Impl(OH_NativePointer thisPtr) {
-    reinterpret_cast<OH_UNIT_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2();
+void test_materialized_classes_MaterializedMoreOverloadedMethods_method20Impl(OH_NativePointer thisPtr) {
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2();
 }
-void MaterializedMoreOverloadedMethods_method21Impl(OH_NativePointer thisPtr, const OH_Number* valNumber) {
-    reinterpret_cast<OH_UNIT_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(*valNumber);
+void test_materialized_classes_MaterializedMoreOverloadedMethods_method21Impl(OH_NativePointer thisPtr, const OH_Number* valNumber) {
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(*valNumber);
 }
-void MaterializedMoreOverloadedMethods_method22Impl(OH_NativePointer thisPtr, const OH_Number* valNumber, const OH_String* valString) {
-    reinterpret_cast<OH_UNIT_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(*valNumber, *valString);
+void test_materialized_classes_MaterializedMoreOverloadedMethods_method22Impl(OH_NativePointer thisPtr, const OH_Number* valNumber, const OH_String* valString) {
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer*>(thisPtr)->method2(*valNumber, *valString);
 }
 
 // "MaterializedWithConstructorAndFields"
-struct OH_UNIT_MaterializedWithConstructorAndFieldsPeer : OH_UNIT_MaterializedMoreOverloadedMethodsPeer {
-    OH_UNIT_MaterializedWithConstructorAndFieldsPeer(OH_Number num, OH_Boolean bol) : valNumber(num), valBoolean(bol) {}
+struct OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer : OH_UNIT_test_materialized_classes_MaterializedMoreOverloadedMethodsPeer {
+    OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(OH_Number num, OH_Boolean bol) : valNumber(num), valBoolean(bol) {}
     OH_Number valNumber;
     OH_Boolean valBoolean;
 };
 
-OH_UNIT_MaterializedWithConstructorAndFieldsHandle MaterializedWithConstructorAndFields_constructImpl(const OH_Number* initValNumber, OH_Boolean initValBoolean) {
-    return reinterpret_cast<OH_UNIT_MaterializedWithConstructorAndFieldsHandle>(
-        new OH_UNIT_MaterializedWithConstructorAndFieldsPeer(*initValNumber, initValBoolean)
+OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle test_materialized_classes_MaterializedWithConstructorAndFields_constructImpl(const OH_Number* initValNumber, OH_Boolean initValBoolean) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle>(
+        new OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(*initValNumber, initValBoolean)
     );
 }
-void MaterializedWithConstructorAndFields_destructImpl(OH_UNIT_MaterializedWithConstructorAndFieldsHandle thisPtr) {
-    delete reinterpret_cast<OH_UNIT_MaterializedWithConstructorAndFieldsHandle*>(thisPtr);
+void test_materialized_classes_MaterializedWithConstructorAndFields_destructImpl(OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle thisPtr) {
+    delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsHandle*>(thisPtr);
 }
-OH_Number MaterializedWithConstructorAndFields_getValNumberImpl(OH_NativePointer thisPtr) {
-    return reinterpret_cast<const OH_UNIT_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valNumber;
+OH_Number test_materialized_classes_MaterializedWithConstructorAndFields_getValNumberImpl(OH_NativePointer thisPtr) {
+    return reinterpret_cast<const OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valNumber;
 }
-void MaterializedWithConstructorAndFields_setValNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {
-    reinterpret_cast<OH_UNIT_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valNumber = *value;
+void test_materialized_classes_MaterializedWithConstructorAndFields_setValNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valNumber = *value;
 }
-OH_Boolean MaterializedWithConstructorAndFields_getValBooleanImpl(OH_NativePointer thisPtr) {
-    return reinterpret_cast<const OH_UNIT_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valBoolean;
+OH_Boolean test_materialized_classes_MaterializedWithConstructorAndFields_getValBooleanImpl(OH_NativePointer thisPtr) {
+    return reinterpret_cast<const OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valBoolean;
 }
-void MaterializedWithConstructorAndFields_setValBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {
-    reinterpret_cast<OH_UNIT_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valBoolean = value;
+void test_materialized_classes_MaterializedWithConstructorAndFields_setValBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer *>(thisPtr)->valBoolean = value;
 }
 
 // "MaterializedWithCreateMethod"
-OH_UNIT_MaterializedWithCreateMethodHandle MaterializedWithCreateMethod_constructImpl(/** todo: where is constructor params? */) {
-    return reinterpret_cast<OH_UNIT_MaterializedWithCreateMethodHandle>(
-        new OH_UNIT_MaterializedWithConstructorAndFieldsPeer({.tag = INTEROP_TAG_INT32, .i32 = 123456789}, true)
+OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle test_materialized_classes_MaterializedWithCreateMethod_constructImpl(/** todo: where is constructor params? */) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle>(
+        new OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer({.tag = INTEROP_TAG_INT32, .i32 = 123456789}, true)
     );
 }
-void MaterializedWithCreateMethod_destructImpl(OH_UNIT_MaterializedWithCreateMethodHandle thisPtr) {
-    delete reinterpret_cast<OH_UNIT_MaterializedWithCreateMethodHandle*>(thisPtr);
+void test_materialized_classes_MaterializedWithCreateMethod_destructImpl(OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle thisPtr) {
+    delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithCreateMethodHandle*>(thisPtr);
 }
-OH_UNIT_MaterializedWithCreateMethod MaterializedWithCreateMethod_createImpl(const OH_Number* valNumber, OH_Boolean valBoolean) {
-    return reinterpret_cast<OH_UNIT_MaterializedWithCreateMethod>(MaterializedWithCreateMethod_constructImpl());
+OH_UNIT_test_materialized_classes_MaterializedWithCreateMethod test_materialized_classes_MaterializedWithCreateMethod_createImpl(const OH_Number* valNumber, OH_Boolean valBoolean) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedWithCreateMethod>(test_materialized_classes_MaterializedWithCreateMethod_constructImpl());
 }
 
 // "MaterializedComplexArguments"
-struct OH_UNIT_MaterializedComplexArgumentsPeer : OH_UNIT_MaterializedWithConstructorAndFieldsPeer {
-    OH_UNIT_MaterializedComplexArgumentsPeer(OH_Number valNumber, OH_Boolean valBoolean) : OH_UNIT_MaterializedWithConstructorAndFieldsPeer(valNumber, valBoolean) {}
-    ~OH_UNIT_MaterializedComplexArgumentsPeer() {
+struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer : OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer {
+    OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer(OH_Number valNumber, OH_Boolean valBoolean) : OH_UNIT_test_materialized_classes_MaterializedWithConstructorAndFieldsPeer(valNumber, valBoolean) {}
+    ~OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer() {
         for (auto data : toClean) {
             free(data);
         }
@@ -533,22 +533,22 @@ struct OH_UNIT_MaterializedComplexArgumentsPeer : OH_UNIT_MaterializedWithConstr
     };
 };
 
-OH_UNIT_MaterializedComplexArgumentsHandle MaterializedComplexArguments_constructImpl(/** todo: where is constructor params? */) {
-    return reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsHandle>(
-        new OH_UNIT_MaterializedComplexArgumentsPeer({.tag = INTEROP_TAG_INT32, .i32 = 123456789}, true )
+OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle test_materialized_classes_MaterializedComplexArguments_constructImpl(/** todo: where is constructor params? */) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle>(
+        new OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer({.tag = INTEROP_TAG_INT32, .i32 = 123456789}, true )
     );
 }
-void MaterializedComplexArguments_destructImpl(OH_UNIT_MaterializedComplexArgumentsHandle thisPtr) {
-    delete reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsHandle*>(thisPtr);
+void test_materialized_classes_MaterializedComplexArguments_destructImpl(OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle thisPtr) {
+    delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsHandle*>(thisPtr);
 }
-OH_UNIT_UtilityInterface MaterializedComplexArguments_method3Impl(OH_NativePointer thisPtr, const OH_UNIT_UtilityInterface* interface_) {
-    return reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsPeer*>(thisPtr)->method3(*interface_);
+OH_UNIT_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method3Impl(OH_NativePointer thisPtr, const OH_UNIT_UtilityInterface* interface_) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method3(*interface_);
 }
-Array_String MaterializedComplexArguments_method4Impl(OH_NativePointer thisPtr, const Array_Number* array) {
-    return reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsPeer*>(thisPtr)->method4(*array);
+Array_String test_materialized_classes_MaterializedComplexArguments_method4Impl(OH_NativePointer thisPtr, const Array_Number* array) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method4(*array);
 }
-Array_UtilityInterface MaterializedComplexArguments_method5Impl(OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces) {
-    return reinterpret_cast<OH_UNIT_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
+Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method5Impl(OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces) {
+    return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
 }
 
 // namespaces
