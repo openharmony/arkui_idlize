@@ -1,0 +1,45 @@
+{
+    "TypePrefix": "OH_",
+    "LibraryPrefix": "",
+    "OptionalPrefix": "Opt_",
+    "GenerateUnused": false,
+    "dumpSerialized": false,
+    "ignoreMaterialized": [],
+    "forceMaterialized": [],
+    "forceCallback": [],
+    "boundProperties": {},
+    "rootComponents": [],
+    "standaloneComponents": [],
+    "parameterized": [],
+    "builderClasses": [],
+    "components": {
+        "custom": [],
+        "customNodeTypes": [],
+        "handWritten": [],
+        "ignoreEntry": [],
+        "ignoreEntryJava": [],
+        "ignoreComponents": [],
+        "ignorePeerMethod": [],
+        "ignoreMethodArkts": [],
+        "invalidAttributes": [],
+        "replaceThrowErrorReturn": []
+    },
+    "materialized": {
+        "ignoreReturnTypes": []
+    },
+    "cppPrefix": "GENERATED_",
+    "serializer": {
+        "ignore": []
+    },
+    "dummy": {
+        "ignoreMethods": {}
+    },
+    "CollapseOverloadsARKTS": false,
+    "constants": {
+        "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
+        "DataClass.propString": "''",
+        "DataClass.propObject": "[false, 0, '']",
+        "IDLDataClass.propString": "''",
+        "IDLDataClass.propObject": "[false, 0, '']"
+    }
+}
