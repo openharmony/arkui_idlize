@@ -202,7 +202,9 @@ export class BridgeCcVisitor {
     }
 
     private needsVMContext(method: PeerMethod): boolean {
-        return !!idl.asPromise(method.returnType) || !!method.method.modifiers?.includes(idl.MethodModifier.THROWS)
+        return !!idl.asPromise(method.returnType)
+            || !!method.method.modifiers?.includes(idl.MethodModifier.THROWS)
+            || !!method.method.modifiers?.includes(idl.MethodModifier.FORCE_CONTEXT)
     }
 
     private generateCMacroSuffix(method: PeerMethod): string {
@@ -218,7 +220,8 @@ export class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const ctxSuffix = this.needsVMContext(method) ? 'CTX_' : ''
+        const needsContext = this.needsVMContext(method)
+        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method.method, this.library) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
@@ -253,7 +256,8 @@ export class BridgeCcVisitor {
     protected printMethod(method: PeerMethod, modifierName?: string) {
         const cName = `${method.originalParentName}_${method.overloadedName}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
-        const argTypesAndNames = this.generateCParameters(method);
+        const argTypesAndNames = this.generateCParameters(method)
+
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
         if (this.needsVMContext(method))

@@ -56,6 +56,12 @@
                         "type": "string"
                     }
                 },
+                "forceContext": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "GenerateUnused": {
                     "type": "boolean"
                 },

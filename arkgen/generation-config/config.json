@@ -263,5 +263,11 @@
             "ArkTS": "// /*TODO: API required*/ if (value) value.builder.buildOptions.controller = this"
         }
     },
-    "CollapseOverloadsARKTS": true
+    "CollapseOverloadsARKTS": true,
+    "forceContext": [
+        "LoadUserView",
+        "MeasureLayoutAndDraw",
+        "MeasureNode",
+        "DrawNode"
+    ]
 }

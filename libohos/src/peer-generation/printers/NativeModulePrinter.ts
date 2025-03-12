@@ -20,6 +20,9 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isInIdlizeInterop,
     TypeConvertor,
     convertType,
+    generatorConfiguration,
+    isDirectMethod,
+    isVMContextMethod,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -34,11 +37,21 @@ class NativeModulePrinterBase {
         protected readonly language: Language,
     ) {}
 
-
-    protected printMethod(method: Method) {
-        this.nativeModule.writeNativeMethodDeclaration(method)
+    tryWriteQuick(method: Method): void {
+        if (this.language != Language.ARKTS) return
+        if (isVMContextMethod(method)) return
+        if (isDirectMethod(method, this.library)) {
+            this.nativeModule.print('@ani.unsafe.Direct')
+            return
+        }
+        this.nativeModule.print('@ani.unsafe.Quick')
+        return
     }
 
+    protected printMethod(method: Method) {
+        this.tryWriteQuick(method)
+        this.nativeModule.writeNativeMethodDeclaration(method)
+    }
 }
 
 class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
@@ -68,6 +81,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
         )
         if (language === Language.TS) {
             function patchType(type:idl.IDLType): idl.IDLType {
+                // TODO: do we need it?
                 if (type === idl.IDLBooleanType) {
                     return idl.IDLNumberType
                 }
@@ -77,7 +91,9 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
             const patchedReturnType = patchType(signature.returnType)
             signature = new NamedMethodSignature(patchedReturnType, patchedSignatureArgs, signature.argsNames, signature.defaults)
         }
-        return new Method('_' + inputMethod.name, signature)
+        let modifiers = generatorConfiguration().forceContext.includes(inputMethod.name) ?
+            [ MethodModifier.FORCE_CONTEXT ] : undefined
+        return new Method('_' + inputMethod.name, signature, modifiers)
     }
 
     visit(): void {

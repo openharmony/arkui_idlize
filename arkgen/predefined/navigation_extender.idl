@@ -1,6 +1,6 @@
 package org.openharmony.idlize.predefined;
 
-callback NavExtender_OnUpdateStack = void ();
+callback NavExtender_OnUpdateStack = void (String name);
 
 [Entity=Class]
 interface NavExtender {

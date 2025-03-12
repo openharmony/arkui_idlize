@@ -54,6 +54,7 @@ import { IDLVisitor, loadPeerConfiguration,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
+import { makeInteropBridges } from "./InteropBridges"
 
 const options = program
     .option('--show-config-schema', 'Prints JSON schema for config')
@@ -96,6 +97,7 @@ const options = program
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
+    .option('--interop-bridges <string>', "Generate interop bridges macros")
 
     .parse()
     .opts()
@@ -105,6 +107,11 @@ let didJob = false
 
 if (options.showConfigSchema) {
     console.log(D.printJSONSchema(PeerGeneratorConfigurationSchema))
+    didJob = true
+}
+
+if (options.interopBridges) {
+    console.log(makeInteropBridges(options.interopBridges))
     didJob = true
 }
 

@@ -23,7 +23,9 @@ import {
     LanguageStatement,
     LanguageWriter,
     PrintHint,
-    StringExpression
+    StringExpression,
+    Method,
+    MethodModifier
 } from "./LanguageWriter";
 import { RuntimeType } from "./common";
 import { generatorTypePrefix } from "../config"
@@ -34,6 +36,7 @@ import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { qualifiedName } from "../peer-generation/idl/common";
+import { PeerLibrary } from "../peer-generation/PeerLibrary";
 
 export interface ArgConvertor {
     param: string
@@ -52,6 +55,54 @@ export interface ArgConvertor {
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
     getMembers(): string[]
     getObjectAccessor(languge: Language, value: string, args?: Record<string, string>, writer?: LanguageWriter): string
+}
+
+function isDirectConvertedType(originalType: idl.IDLType|undefined, library: PeerLibrary): boolean {
+    if (originalType == undefined) return true // TODO: is it correct?
+    if (originalType == idl.IDLInteropReturnBufferType) return false
+    if (originalType == idl.IDLThisType) return true
+    let convertor = library.typeConvertor("x", originalType, false)
+    // Resolve aliases.
+    while (convertor instanceof TypeAliasConvertor) {
+        convertor = convertor.convertor
+    }
+    // Temporary!
+    if (convertor instanceof ArrayConvertor ||
+        convertor instanceof MapConvertor ||
+        convertor instanceof CustomTypeConvertor ||
+        convertor instanceof CallbackConvertor ||
+        convertor instanceof AggregateConvertor ||
+        convertor instanceof UnionConvertor) {
+        // try { console.log(`convertor is ${convertor.constructor.name} for ${JSON.stringify(originalType)}`) } catch (e) {}
+        return false
+    }
+    let type = convertor.interopType()
+    // TODO: make 'number' be direct!
+    let result = type == idl.IDLI8Type || type == idl.IDLU8Type
+        || type == idl.IDLI16Type || type == idl.IDLU16Type
+        || type == idl.IDLI32Type || type == idl.IDLU32Type
+        || type == idl.IDLF32Type
+        || type == idl.IDLI64Type || type == idl.IDLU64Type
+        || type == idl.IDLPointerType
+        || type == idl.IDLBooleanType
+        || type == idl.IDLVoidType
+        || type == idl.IDLUndefinedType
+    // try { if (!result) console.log(`type ${JSON.stringify(type)} is not direct`) } catch (e) {}
+    return result
+}
+
+export function isVMContextMethod(method: Method): boolean {
+    return !!idl.asPromise(method.signature.returnType) ||
+        !!method.modifiers?.includes(MethodModifier.THROWS) ||
+        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT)
+}
+
+export function isDirectMethod(method: Method, library: PeerLibrary): boolean {
+    if (isVMContextMethod(method)) return false
+    let result = isDirectConvertedType(method.signature.returnType, library) &&
+            method.signature.args.every((arg) => isDirectConvertedType(arg, library))
+    //if (!result) console.log(`method ${method.name} is not direct`)
+    return result
 }
 
 export abstract class BaseArgConvertor implements ArgConvertor {
@@ -532,7 +583,9 @@ export class InterfaceConvertor extends BaseArgConvertor {
         return this.idlType
     }
     interopType(): idl.IDLType {
-        throw new Error("Must never be used")
+        // Actually shouldn't be used!
+        // throw new Error("Must never be used")
+        return idl.IDLObjectType
     }
     isPointerType(): boolean {
         return true

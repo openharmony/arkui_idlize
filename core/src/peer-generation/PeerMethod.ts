@@ -12,11 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { generatorConfiguration, generatorTypePrefix } from "../config"
+import * as idl from '../idl'
+import { generatorTypePrefix } from "../config"
 import { asPromise, IDLType } from "../idl"
 import { IdlNameConvertor } from "../LanguageWriters"
-import { ArgConvertor } from "../LanguageWriters/ArgConvertors"
+import { ArgConvertor, isVMContextMethod } from "../LanguageWriters/ArgConvertors"
 import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
 import { capitalize, isDefined } from "../util"
 import { PrimitiveTypesInstance } from "./PrimitiveType"
@@ -86,7 +86,7 @@ export class PeerMethod {
             args.unshift(`${receiver.argType} ${receiver.argName}`)
         if (!!asPromise(this.method.signature.returnType))
             args.unshift(`${generatorTypePrefix()}AsyncWorkerPtr asyncWorker`)
-        if (!!asPromise(this.method.signature.returnType) || this.method.modifiers?.includes(MethodModifier.THROWS))
+        if (isVMContextMethod(this.method))
             args.unshift(`${generatorTypePrefix()}VMContext vmContext`)
         return args
     }

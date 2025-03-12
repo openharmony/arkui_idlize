@@ -22,6 +22,8 @@ import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
+import { IdlNameConvertor } from "./nameConvertor";
+import { CppInteropArgConvertor } from "./convertors/CppConvertors";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -338,6 +340,7 @@ export enum MethodModifier {
     SETTER,
     THROWS,
     FREE, // not a member of interface/class
+    FORCE_CONTEXT, // If method implementation will need VM context, synthetic
 }
 
 export enum ClassModifier {
@@ -355,6 +358,10 @@ export class Field {
 }
 
 export class Method {
+    // Mostly for synthetic methods.
+    private static knownReferenceTypes = [
+        'KInt', 'KPointer', 'undefined' /* This one looks like a bug */
+    ]
     constructor(
         public name: string,
         public signature: MethodSignature,
@@ -652,9 +659,7 @@ export abstract class LanguageWriter {
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
-    tryWriteQuick(method: Method) {}
     writeNativeMethodDeclaration(method: Method): void {
-        this.tryWriteQuick(method)
         this.writeMethodDeclaration(method.name, method.signature)
     }
     writeUnsafeNativeMethodDeclaration(name: string, signature: MethodSignature): void {

@@ -31,6 +31,7 @@ export const CoreConfigurationSchema = D.object({
     builderClasses: T.stringArray(),
     forceMaterialized: T.stringArray(),
     forceCallback: T.stringArray(),
+    forceContext: T.stringArray(),
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
@@ -47,6 +48,7 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     builderClasses: [],
     forceMaterialized: [],
     forceCallback: [],
+    forceContext: [],
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfiguration

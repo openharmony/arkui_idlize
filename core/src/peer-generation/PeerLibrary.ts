@@ -281,7 +281,6 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLF64Type: return new NumericConvertor(param, type)
                 case idl.IDLBigintType: return new BigIntToU64Convertor(param)
                 case idl.IDLPointerType: return new PointerConvertor(param)
-
                 case idl.IDLBufferType: return new BufferConvertor(param)
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
                 case idl.IDLStringType: return new StringConvertor(param)
@@ -297,6 +296,17 @@ export class PeerLibrary implements LibraryInterface {
         if (idl.isReferenceType(type)) {
             if (isImportAttr(type))
                 return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+            // TODO: special cases for interop types.
+            switch (type.name) {
+                case 'KBoolean': return new BooleanConvertor(param)
+                case 'KInt': return new NumericConvertor(param, idl.IDLI32Type)
+                case 'KFloat': return new NumericConvertor(param, idl.IDLF32Type)
+                case 'KLong': return new NumericConvertor(param, idl.IDLI64Type)
+                case 'KDouble': return new NumericConvertor(param, idl.IDLF64Type)
+                case 'KStringPtr': return new StringConvertor(param)
+                case 'number': return new NumberConvertor(param)
+                case 'KPointer': return new PointerConvertor(param)
+            }
             const decl = this.resolveTypeReference(type)
             return this.declarationConvertor(param, type, decl)
         }
