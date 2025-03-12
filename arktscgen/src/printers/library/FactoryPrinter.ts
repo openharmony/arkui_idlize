@@ -17,6 +17,7 @@ import {
     createEmptyReferenceResolver,
     createReferenceType,
     IDLInterface,
+    IDLMethod,
     IDLType,
     IndentedPrinter,
     isInterface,
@@ -33,6 +34,7 @@ import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTyp
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { id } from "../../utils/types"
 import { Config } from "../../Config"
+import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
@@ -54,7 +56,7 @@ export class FactoryPrinter extends SingleFilePrinter {
 
     private withFactoryDeclaration(prints: (() => void)[]): void {
         this.writer.writeExpressionStatements(
-            this.writer.makeString(`export const factory = {`)
+            this.writer.makeString(FactoryConstructions.prologue)
         )
         prints.forEach(it =>
             this.writer.printer.withIndent(
@@ -65,7 +67,7 @@ export class FactoryPrinter extends SingleFilePrinter {
             )
         )
         this.writer.writeExpressionStatements(
-            this.writer.makeString(`}`)
+            this.writer.makeString(FactoryConstructions.epilogue)
         )
     }
 
@@ -74,7 +76,7 @@ export class FactoryPrinter extends SingleFilePrinter {
             this.idl.entries
                 .filter(isInterface)
                 .filter(it => this.typechecker.isPeer(it.name))
-                .filter(it => it.properties.length !== 0)
+                .filter(it => FactoryPrinter.getUniversalCreate(it) !== undefined)
                 .flatMap(it => [
                     () => this.printCreate(it),
                     () => this.printUpdate(it)
@@ -108,53 +110,78 @@ export class FactoryPrinter extends SingleFilePrinter {
             makeMethod(
                 PeersConstructions.universalUpdate(node.name),
                 [{
-                    name: `original`,
+                    name: FactoryConstructions.original,
                     type: id<IDLType>(createReferenceType(node.name))
                 }]
                     .concat(node.properties),
                 createReferenceType(node.name)
             ),
             () => {
-                this.writer.writeStatements(
-                    this.writer.makeCondition(
-                        this.writer.makeString(
-                            node.properties
-                                .map(it => it.name)
-                                .map(it => `isSameNativeObject(${mangleIfKeyword(it)}, original.${it})`)
-                                .join(` && `)
-                        ),
-                        this.writer.makeReturn(
-                            this.writer.makeString(`original`)
-                        )
-                    ),
-                    this.writer.makeReturn(
-                        this.writer.makeFunctionCall(
-                            `updateNodeByNode`,
-                            [
-                                this.writer.makeFunctionCall(
-                                    FactoryPrinter.callUniversalCreate(node),
-                                    node.properties
-                                        .map(it => it.name)
-                                        .map(mangleIfKeyword)
-                                        .map(it => this.writer.makeString(it))
-                                ),
-                                this.writer.makeString(`original`)
-                            ]
-                        )
-                    )
-                )
+                this.printUnchangedBranch(node)
+                this.printChangedBranch(node)
             }
         )
     }
 
-    private static callUniversalCreate(node: IDLInterface) {
-        const creates = node.methods.filter(it => Config.isCreate(it.name))
-        if (creates.length !== 1) {
-            throwException(`unexpected node with multiple creates`)
+    private printUnchangedBranch(node: IDLInterface): void {
+        if (node.properties.length === 0) {
+            return
         }
+        this.writer.writeStatement(
+            this.writer.makeCondition(
+                this.writer.makeString(
+                    FactoryConstructions.all(
+                        node.properties
+                            .map(it => it.name)
+                            .map(it => FactoryConstructions.isSame(mangleIfKeyword(it), it))
+                    )
+                ),
+                this.writer.makeReturn(
+                    this.writer.makeString(FactoryConstructions.original)
+                )
+            )
+        )
+    }
+
+    private printChangedBranch(node: IDLInterface): void {
+        this.writer.writeStatement(
+            this.writer.makeReturn(
+                this.writer.makeFunctionCall(
+                    FactoryConstructions.updateNodeByNode,
+                    [
+                        this.writer.makeFunctionCall(
+                            FactoryPrinter.callUniversalCreate(node),
+                            node.properties
+                                .map(it => it.name)
+                                .map(mangleIfKeyword)
+                                .map(it => this.writer.makeString(it))
+                        ),
+                        this.writer.makeString(FactoryConstructions.original)
+                    ]
+                )
+            )
+        )
+    }
+
+    private static callUniversalCreate(node: IDLInterface) {
         return PeersConstructions.callPeerMethod(
             node.name,
-            PeersConstructions.createOrUpdate(node.name, creates[0].name)
+            PeersConstructions.createOrUpdate(
+                node.name,
+                FactoryPrinter.getUniversalCreate(node)?.name
+                    ?? throwException(`unexpected node with no universal create`)
+            )
         )
+    }
+
+    private static getUniversalCreate(node: IDLInterface): IDLMethod | undefined {
+        const creates = node.methods.filter(it => Config.isCreate(it.name))
+        if (creates.length !== 1) {
+            return undefined
+        }
+        if (node.properties.length !== creates[0].parameters.length) {
+            return undefined
+        }
+        return creates[0]
     }
 }

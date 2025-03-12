@@ -22,7 +22,8 @@ import {
     publish,
     testAll,
     testPacked,
-    withCoreDevelDropped
+    withCoreDevelDropped,
+    withCurrentSubmodule
 } from "./actions.mjs"
 
 program
@@ -43,7 +44,7 @@ function packAndTest() {
 function release(part) {
     assertNoUncommitedChanges()
     assertEqualVersions()
-    testAll()
+    withCurrentSubmodule(testAll)
     assertNoUncommitedChanges()
     incrementVersions(part)
     withCoreDevelDropped(publish)

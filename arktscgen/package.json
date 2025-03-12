@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/arktscgen",
-  "version": "3.3.0",
+  "version": "3.4.2",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",

@@ -14,7 +14,7 @@
  */
 
 import { execSync } from "child_process"
-import { readPackageJson, Version, writePackageJson, run } from "./utils.mjs"
+import { readPackageJson, run, Version, writePackageJson } from "./utils.mjs"
 
 const paths = {
     idlize: `..`,
@@ -107,4 +107,13 @@ export function incrementVersions(part) {
         .increment(part)
         .toString()
     writePackageJson(paths.libarkts, libarkts)
+}
+
+export function withCurrentSubmodule(action) {
+    run(paths.arktscgen, `git submodule update`)
+    try {
+        action()
+    } finally {
+        run(paths.libarkts, `git checkout - -f`)
+    }
 }
