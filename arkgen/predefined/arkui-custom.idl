@@ -132,3 +132,8 @@ interface SystemOps {
     static void syncInstanceId(i32 instanceId);
     static void restoreInstanceId();
 };
+
+[Entity=Class]
+interface FocusController {
+    static void requestFocus(String key);
+};
