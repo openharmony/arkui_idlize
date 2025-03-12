@@ -35,6 +35,7 @@ class BenchmarkBase {
 
     // Determine iterations needed for target duration
     private determineIterations(fn: BenchmarkFunction): number {
+        const MAX_ITERATIONS = 30000
         let iterations = 1;
         while (true) {
             const start = performance.now();
@@ -44,7 +45,11 @@ class BenchmarkBase {
             const duration = performance.now() - start;
 
             if (duration >= this.targetDurationMs) {
-                return Math.max(1, Math.floor((iterations * this.targetDurationMs * 1000000) / duration));
+                // Restrict number of iterations for TypeScript
+                // TBD: Fix this code
+                const max = Math.max(1, Math.floor((iterations * this.targetDurationMs * 1000000) / duration));
+                const min = Math.min(max, MAX_ITERATIONS)
+                return min
             }
             iterations *= 2;
         }
@@ -115,7 +120,7 @@ class BenchmarkBase {
             console.log(
                 `${result.mechanism.padEnd(maxMechLen)} | ` +
                 `${result.scenario.padEnd(maxScenLen)} | ` +
-                `${StringBuilder.toString(result.averageNs as long).padLeft(' ', 10)} |`
+                `${padNumber(result.averageNs, 10, 5)} |`
             );
         });
     }
@@ -239,4 +244,25 @@ export function runAll() {
 
     bench.runAll();
     bench.printResults();
+}
+
+function padLeft(str: string, length: number, char: string = ' '): string {
+    const padding = Math.max(0, length - str.length)
+    return `${char.repeat(padding)}${str}`
+}
+
+function padNumber(n: number, leftPadding: number, rightPadding: number, char: string = '_'): string {
+    const str = `${n}`
+    if (str.includes('.')) {
+        const s = str.split('.')
+        const left = padLeft(s[0], leftPadding)
+        const fractional = s[1]
+        const length = fractional.length
+        const right = length < rightPadding
+            ? fractional.padEnd(rightPadding - length)
+            : fractional.substring(0, rightPadding)
+        return `${left}.${right}`
+    }
+
+    return padLeft(str, leftPadding)
 }
