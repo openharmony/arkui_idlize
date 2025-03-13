@@ -765,6 +765,9 @@ export abstract class LanguageWriter {
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!(${expr.asString()})`)
     }
+    makeSerializedBufferGetter(serializer: string): LanguageExpression {
+        return this.makeMethodCall(serializer, `asArray`, [])
+    }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         return this.makeNaryOp("===", args)
     }

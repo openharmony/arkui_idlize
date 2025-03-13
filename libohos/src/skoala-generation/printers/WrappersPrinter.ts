@@ -83,7 +83,7 @@ export class TSWrappersVisitor {
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!serializerPushed) {
-                    params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
+                    params.push(writer.makeSerializedBufferGetter(`thisSerializer`))
                     params.push(writer.makeMethodCall(`thisSerializer`, 'length', []))
                     serializerPushed = true
                 }

@@ -278,7 +278,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     writeProperty(propName: string, propType: IDLType) {
         throw new Error("writeProperty for ArkTS is not implemented yet.")
     }
-
+    //makeSerializedBufferGetter(serializer: string): LanguageExpression {
+    //    return this.makeMethodCall(serializer, `asPointer`, [])
+    //}
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
                               convertorIndex: number,
                               runtimeTypeIndex: number): LanguageExpression {

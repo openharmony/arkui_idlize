@@ -426,12 +426,12 @@ class DeserializerPrinter {
                         writer.makeString('isSync'),
                         writer.makeNativeCall(NativeModule.Interop, `_CallCallbackSync`, [
                             writer.makeString(generateCallbackKindValue(target).toString()),
-                            writer.makeString(`${argsSerializer}Serializer.asArray()`),
+                            writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
                             writer.makeString(`${argsSerializer}Serializer.length()`),
                         ]),
                         writer.makeNativeCall(NativeModule.Interop, `_CallCallback`, [
                             writer.makeString(generateCallbackKindValue(target).toString()),
-                            writer.makeString(`${argsSerializer}Serializer.asArray()`),
+                            writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
                             writer.makeString(`${argsSerializer}Serializer.length()`),
                         ])
                     )
