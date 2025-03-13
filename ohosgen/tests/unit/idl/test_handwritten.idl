@@ -1,0 +1,6 @@
+package test_handwritten;
+
+interface IdlHandwrittenComponent {
+    attribute String name;
+    attribute number count;
+};

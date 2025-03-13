@@ -20,7 +20,9 @@
     "components": {
         "custom": [],
         "customNodeTypes": [],
-        "handWritten": [],
+        "handWritten": [
+            "HandwrittenComponent"
+        ],
         "ignoreEntry": [],
         "ignoreEntryJava": [],
         "ignoreComponents": [],

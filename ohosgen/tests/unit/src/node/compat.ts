@@ -38,7 +38,8 @@ export {
     IDLStringEnum,
     idlCheckOrdinaryEnums,
     DataClass, DataInterface, IDLDataClass, IDLDataInterface,
-    testDataClass, testDataInterface, testIDLDataClass, testIDLDataInterface
+    testDataClass, testDataInterface, testIDLDataClass, testIDLDataInterface,
+    HandwrittenComponent, IdlHandwrittenComponent,
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer

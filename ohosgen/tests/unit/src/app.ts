@@ -38,7 +38,8 @@ import {
   IDLStringEnum,
   idlCheckOrdinaryEnums,
   testDataClass, testDataInterface, DataClass, DataInterface,
-  testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface
+  testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
+  HandwrittenComponent, IdlHandwrittenComponent,
 } from '#compat'
 import { test_buffer } from '#compat'
 
@@ -292,6 +293,13 @@ function checkNativeBuffer() {
   }
 }
 
+function checkHandwritten() {
+  const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }
+  const idlHW: IdlHandwrittenComponent = { name: "idl" + dtsHW.id, count: dtsHW.total + 1 }
+  assertEQ("idlhw", idlHW.name)
+  assertEQ(1, idlHW.count)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -307,7 +315,7 @@ export function run() {
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
   suite.addTest("checkMaterialized", checkMaterialized)
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
+  suite.addTest("checkHandwritten", checkHandwritten)
 
   return suite.run()
 }
-
