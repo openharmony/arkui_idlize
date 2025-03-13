@@ -75,3 +75,23 @@ declare enum VerticalAlign {
   Center,
   Bottom,
 }
+
+declare enum TextCase {
+  Normal,
+  LowerCase,
+  UpperCase,
+}
+
+declare enum TextAlign {
+  Center,
+  Start,
+  End,
+  JUSTIFY,
+}
+
+declare enum WordBreak {
+  NORMAL = 0,
+  BREAK_ALL = 1,
+  BREAK_WORD = 2,
+  HYPHENATION = 3,
+}

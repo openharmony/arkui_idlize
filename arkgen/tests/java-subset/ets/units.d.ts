@@ -73,3 +73,8 @@ declare interface Font {
   family?: string | Resource;
   style?: FontStyle;
 }
+
+declare interface SizeOptions {
+  width?: Length;
+  height?: Length;
+}

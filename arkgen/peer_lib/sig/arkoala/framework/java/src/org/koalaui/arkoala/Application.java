@@ -92,7 +92,7 @@ public class Application {
 
     void checkEvents(int what) {
         System.out.println("JAVA: checkEvents " + what);
-        while (ArkUINativeModule._CheckArkoalaGeneratedEvents(eventBuffer, eventBuffer.length) != 0) {
+        while (InteropNativeModule._CheckCallbackEvent(eventBuffer, eventBuffer.length) != 0) {
             System.out.println("JAVA: checkEvents: got an event: " + (int)eventBuffer[0]);
         }
     }

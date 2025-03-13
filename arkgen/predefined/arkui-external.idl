@@ -372,11 +372,11 @@ interface FontInfo {
     attribute String family;
     attribute String subfamily;
     attribute number weight;
-    attribute nubmer width;
+    attribute number width;
     attribute boolean italic;
     attribute boolean monoSpace;
     attribute boolean symbolic;
-}
+};
 
 [Entity=Class]
 interface GlobalScope_ohos_font {
@@ -418,8 +418,8 @@ interface MeasureOptions {
     [Optional]
     attribute (number or String) textIndent;
     [Optional]
-    attribute (WordBreak) wordBreak;
-}
+    attribute WordBreak wordBreak;
+};
 
 [Entity=Class]
 interface GlobalScope_ohos_measure_utils {
