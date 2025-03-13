@@ -16,7 +16,7 @@
         "generate": "npm run run:ohos:mediaquery:${TARGET} -C ../.. -- --output-dir demos/mediaquery",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
-        "generate:cj": "TARGET=cj npm run generate",
+        "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",

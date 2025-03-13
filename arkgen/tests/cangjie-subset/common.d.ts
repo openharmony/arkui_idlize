@@ -264,7 +264,7 @@ declare type EdgeWidths = {
     left?: Length;
 };
 
-declare type EdgeWidth = EdgeWidths;
+// declare type EdgeWidth = EdgeWidths;
 
 declare type Padding = {
     top?: Length;

@@ -19,6 +19,31 @@ declare interface CheckboxOptions {
   // indicatorBuilder?: CustomBuilder;
 }
 
+declare interface CommonConfiguration<T> {
+
+  /**
+   * If the value is true, the contentModifier is available and can respond to operations such as triggerChange.
+   *  If it is set to false, triggerChange operations are not responded.
+   *
+   * @type { boolean }
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  enabled: boolean,
+
+  /**
+   * Obtains the contentModifier instance object
+   *
+   * @type { ContentModifier<T> }
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  // contentModifier: ContentModifier<T>
+}
 
 declare interface CheckBoxConfiguration extends CommonConfiguration<CheckBoxConfiguration> {
   /**

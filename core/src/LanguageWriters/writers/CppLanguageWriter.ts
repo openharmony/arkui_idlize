@@ -240,7 +240,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.popIndent()
         this.print(`}`)
     }
-    writeProperty(propName: string, propType: IDLType, mutable: boolean = true) {
+    writeProperty(propName: string, propType: IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }): void {
         throw new Error("writeProperty for c++ is not implemented yet.")
     }
     override writeTypeDeclaration(decl: IDLTypedef): void {

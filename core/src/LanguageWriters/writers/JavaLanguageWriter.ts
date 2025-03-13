@@ -176,9 +176,36 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         op(this)
         this.popIndent()
         this.printer.print(`}`)
-    }
-    writeProperty(propName: string, propType: idl.IDLType) {
-        throw new Error("writeProperty for Java is not implemented yet.")
+    } 
+    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }): void {
+        let isStatic = modifiers.includes(FieldModifier.STATIC)
+        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        let containerName = propName.concat("_container")
+        if (getter) {
+            if(!getter!.op) {
+                this.print(`private var ${this.getNodeName(propType)} ${containerName};`)
+            }
+            this.writeGetterImplementation(
+                new Method(propName, new MethodSignature(propType, []), isStatic ? [MethodModifier.STATIC, MethodModifier.PUBLIC] : [MethodModifier.PUBLIC]),
+                getter ? getter!.op :
+                (writer) => {
+                    writer.print(`return ${containerName}`)
+                } 
+            )
+            if (isMutable) {
+                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
+                this.writeSetterImplementation(
+                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC, MethodModifier.PUBLIC] : [MethodModifier.PUBLIC]), 
+                    setter ? setter!.op :
+                    (writer) => {
+                        writer.print(`${containerName} = ${propName};`)
+                    }
+                )
+            }
+        }
+        else {
+            this.writeMethodDeclaration(propName, new MethodSignature(propType, []))
+        }
     }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         throw new Error(`Type declarations do not exist in Java, use something else`)

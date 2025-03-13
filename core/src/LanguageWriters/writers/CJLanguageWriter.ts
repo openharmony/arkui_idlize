@@ -376,39 +376,6 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeProperty(
-        propName: string,
-        propType: idl.IDLType,
-        mutable?: boolean,
-        getterLambda?: (writer: this) => void,
-        setterLambda?: (writer: this) => void
-    ): void {
-        let shortName = propName.concat("_container")
-        if(!getterLambda) {
-            this.print(`private var ${shortName}: ${this.getNodeName(propType)}`)
-        }
-        this.print(`${mutable ? "mut " : ""}prop ${propName}: ${this.getNodeName(propType)} {`)
-
-        this.pushIndent()
-        this.print(`get() {`)
-        this.pushIndent()
-        if (getterLambda) {
-            getterLambda(this)
-        } else {
-            this.print(`return ${shortName}`)
-        }
-        this.popIndent()
-        this.print(`}`)
-        if (mutable) {
-            this.print(`set(x) { ${shortName} = x }`)
-            this.pushIndent()
-            if (setterLambda)
-                setterLambda(this)
-            this.popIndent()
-        }
-        this.popIndent()
-        this.print(`}`)
-    }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         throw new Error(`writeTypeDeclaration not implemented`)
     }
@@ -423,6 +390,50 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
+    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }): void {
+        let containerName = propName.concat("_container")
+        let truePropName = this.escapeKeyword(propName)
+        if (getter) {
+            if(!getter!.op) {
+                this.print(`private var ${containerName}: ${this.getNodeName(propType)}`)
+            }
+        }
+        let isStatic = modifiers.includes(FieldModifier.STATIC)
+        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        this.print(`public ${isMutable ? "mut " : ""}${isStatic ? "static " : "open "}prop ${truePropName}: ${this.getNodeName(propType)}`)
+        if (getter) {
+            this.print('{')
+            this.pushIndent()
+            this.writeGetterImplementation(getter.method, getter.op)
+            if (isMutable) {
+                if (setter) {
+                    this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => {this.print(`${containerName} = ${truePropName}`)})
+                } else {
+                    this.print(`set(${truePropName}) {`)
+                    this.pushIndent()
+                    this.print(`${containerName} = ${truePropName}`)
+                    this.popIndent()
+                    this.print(`}`)
+                }
+            }
+            this.popIndent()
+            this.print('}')
+        }
+    }
+    writeGetterImplementation(method: Method, op?: (writer: this) => void): void {
+        this.print(`get() {`)
+        this.pushIndent()
+        op ? op!(this) : this.print(`return ${(method.signature as NamedMethodSignature).argsNames!.map(arg => `${arg}_container`).join(', ')}`)
+        this.popIndent()
+        this.print('}')
+    }
+    writeSetterImplementation(method: Method, op: (writer: this) => void): void {
+        this.print(`set(${(method.signature as NamedMethodSignature).argsNames!.join(', ')}) {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.print('}')
+    }
     writeCJForeign(op: (writer: CJLanguageWriter) => void) {
         this.print(`foreign {`)
         this.pushIndent()
@@ -435,7 +446,7 @@ export class CJLanguageWriter extends LanguageWriter {
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
         prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}func ${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
+        this.print(`${prefix}${(modifiers?.includes(MethodModifier.SETTER) || modifiers?.includes(MethodModifier.GETTER)) ? '' : 'func '}${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
     }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)

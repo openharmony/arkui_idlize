@@ -508,6 +508,16 @@ export function collectProperties(decl: idl.IDLInterface, library: LibraryInterf
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 
+export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
+    const superTypes = idl.getSuperTypes(decl)
+    const superDecls = superTypes ? superTypes.map(t => library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
+    return [
+        ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : []),
+        ...decl.properties,
+        ...collectBuilderProperties(decl, library)
+    ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
+}
+
 export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLFunction[] {
     const superType = idl.getSuperType(decl)
     const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined

@@ -1214,6 +1214,15 @@ export function getSuperType(idl: IDLInterface): IDLReferenceType | undefined {
     return parent && parent !== IDLTopType ? parent : undefined
 }
 
+export function getSuperTypes(idl: IDLInterface): IDLReferenceType[] | undefined {
+    if (!idl.inheritance) return undefined
+    if (idl.inheritance[0] == IDLTopType) {
+        return idl.inheritance.length == 1 ? undefined : idl.inheritance.slice(1)
+    } else {
+        return idl.inheritance.length == 0 ? undefined : idl.inheritance
+    }
+}
+
 export function hasSuperType(idl: IDLInterface) {
     return isDefined(getSuperType(idl))
 }

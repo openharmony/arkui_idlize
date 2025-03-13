@@ -87,12 +87,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
         }
         
-        const interfaces: string[] = (clazz.isStaticMaterialized || printer.language == Language.CJ) ? [] : ["MaterializedBase"]
+        const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(
                 ...clazz.interfaces.map(it => {
                     const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
-                    return `${this.namespacePrefix}${it.name}${typeArgs}`
+                    return `${this.namespacePrefix}${it.name}${printer.language == Language.CJ ? 'Interface' : ''}${typeArgs}`
                 }))
         }
 
@@ -115,11 +115,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
         nsPath.forEach(it => printer.pushNamespace(it.name))
         if (clazz.isInterface) {
-            if (printer.language == Language.CJ || printer.language == Language.JAVA) {
-                printer.writeInterface(clazz.className, () => { })
-            } else if (this.library.name === 'arkoala') {
-                writeInterface(clazz.decl, printer)
-            }
+            writeInterface(clazz.decl, printer)
         } else if (!clazz.isStaticMaterialized) {
             // Write internal Materialized class with fromPtr(ptr) method
             printer.writeClass(
@@ -152,30 +148,19 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 const isSimpleType = !field.argConvertor.useArray // type needs to be deserialized from the native
                 const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
                 const receiver = isStatic ? implementationClassName : 'this'
-                writer.writeGetterImplementation(
-                    new Method(
-                        mField.name,
-                        new MethodSignature(this.convertToPropertyType(field), []),
-                        isStatic ? [MethodModifier.STATIC] : []
-                    ), writer => {
-                        writer.writeStatement(
+                const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
+                writer.writeProperty(mField.name, this.convertToPropertyType(field), mField.modifiers,
+                    {
+                        method: new Method('get', new MethodSignature(this.convertToPropertyType(field), [])), op: () => {
+                            writer.writeStatement(
                             isSimpleType
                                 ? writer.makeReturn(writer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                                 : writer.makeThrowError("Not implemented")
-                        )
-                    }
-                );
-
-                const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
-                if (!isReadOnly) {
-                    const setSignature = new NamedMethodSignature(IDLVoidType,
-                        [this.convertToPropertyType(field)], [mField.name])
-                    writer.writeSetterImplementation(
-                        new Method(
-                            mField.name,
-                            setSignature,
-                            isStatic ? [MethodModifier.STATIC] : []
-                        ), writer => {
+                            )
+                        }
+                    },
+                    {
+                        method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
                                 castedNonNullArg = `${mField.name}_NonNull`
@@ -188,8 +173,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             }
                             writer.writeMethodCall(receiver, `set${capitalize(mField.name)}`, [castedNonNullArg])
                         }
-                    );
-                }
+                    }
+                )
             })
 
             const ctorPostfix = `_${clazz.className.toLowerCase()}`
@@ -477,6 +462,10 @@ class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
 class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     override printImports(): void { }
 
+    convertToPropertyType(field: MaterializedField): IDLType {
+        return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
+    }
+
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
         return {
@@ -548,7 +537,7 @@ function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
             const modifiers: FieldModifier[] = []
             if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
             if (p.isStatic) modifiers.push(FieldModifier.STATIC)
-            writer.writeFieldDeclaration(p.name, p.type, modifiers, p.isOptional)
+            writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
         }
         for (const m of decl.methods) {
             if (m.isStatic) {

@@ -18,9 +18,10 @@ import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
 import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode, isInIdlizeInternal } from "@idlizer/core";
 import * as idl from '@idlizer/core'
-import { collectProperties } from "./StructPrinter";
+import { collectAllProperties, collectProperties } from "./StructPrinter";
 import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { isComponentDeclaration } from "../ComponentsCollector";
 
 /**
  * Printer for OHOS interfaces
@@ -39,7 +40,10 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
                     if (idl.isBuilderClass(entry)) {
                         return []
                     }
-                    return [printInterface(library, entry)]
+                    if (!isMaterialized(entry, library)) {
+                        return [printInterface(library, entry)]
+                    }
+                    return []
                 }
                 if (idl.isEnum(entry)) {
                     return [printEnum(library, entry)]
@@ -92,46 +96,50 @@ function printCollapsedOverloads(library: PeerLibrary, methods: idl.IDLMethod[],
 
 class CJDeclConvertor {
     public static makeInterface(library: PeerLibrary, type: idl.IDLInterface, writer: idl.LanguageWriter) {
-        const members = type.properties.map(it => {
+        const alias = type.name
+        const superNames = idl.getSuperTypes(type)
+
+        const members = isComponentDeclaration(library, type) ? []
+        : type.properties.map(it => {
             return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [idl.FieldModifier.PUBLIC]}
         })
-        let constructorMembers: idl.IDLProperty[] = collectProperties(type, library)
-
-        let superName = undefined as string | undefined
-        const superType = idl.getSuperType(type)
-            if (superType) {
-            if (idl.isReferenceType(superType)) {
-                const superDecl = library.resolveTypeReference(superType)
-                if (superDecl) {
-                    superName = superDecl.name
-                }
-            } else {
-                superName = idl.forceAsNamedNode(superType).name
+        let allProperties: idl.IDLProperty[] = collectAllProperties(type, library)
+        writer.writeInterface(`${alias}${isMaterialized(type, library) ? '' : 'Interface'}`, writer => {
+            for (const p of type.properties) {
+                const modifiers: idl.FieldModifier[] = []
+                if (p.isReadonly) modifiers.push(idl.FieldModifier.READONLY)
+                if (p.isStatic) modifiers.push(idl.FieldModifier.STATIC)
+                writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
+            for (const m of type.methods) {
+                if (m.isStatic) {
+                    continue
+                }
+                writer.writeMethodDeclaration(m.name,
+                    new NamedMethodSignature(
+                        m.returnType,
+                        m.parameters.map(it => it.type),
+                        m.parameters.map(it => it.name)));
+            }
+        }, superNames ? superNames.map(it => `${writer.getNodeName(it)}Interface`) : undefined)
+        if (!isMaterialized(type, library)) {
+            writer.writeClass(alias, () => {
+                allProperties.forEach(it => {
+                    let modifiers: idl.FieldModifier[] = []
+                    if (it.isReadonly) modifiers.push(idl.FieldModifier.READONLY)
+                    if (it.isStatic) modifiers.push(idl.FieldModifier.STATIC)
+                    writer.writeProperty(it.name, idl.maybeOptional(it.type, it.isOptional), modifiers, { method: new idl.Method(it.name, new NamedMethodSignature(it.type, [it.type], [it.name])) })
+                })
+                writer.writeConstructorImplementation(alias,
+                    new NamedMethodSignature(idl.IDLVoidType,
+                        allProperties.map(it => idl.maybeOptional(it.type, it.isOptional)),
+                        allProperties.map(it => writer.escapeKeyword(it.name))), () => {
+                            for(let i of allProperties) {
+                                writer.print(`this.${i.name}_container = ${writer.escapeKeyword(i.name)}`)
+                            }
+                        })
+            }, undefined, [`${type.name}Interface`])
         }
-
-        writer.writeClass(type.name, () => {
-            members.forEach(it => {
-                writer.writeProperty(it.name, it.type, true)
-            })
-            writer.writeConstructorImplementation(type.name,
-                new idl.NamedMethodSignature(idl.IDLVoidType,
-                    constructorMembers.map(it =>
-                        idl.maybeOptional(it.type, it.isOptional)
-                    ),
-                    constructorMembers.map(it =>
-                        writer.escapeKeyword(it.name)
-                    )), () => {
-                        const superType = idl.getSuperType(type)
-                        const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
-                        let superProperties = superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []
-                        writer.print(`super(${superProperties.map(it => writer.escapeKeyword(it.name)).join(', ')})`)
-
-                        for(let i of members) {
-                            writer.print(`this.${i.name}_container = ${i.name}`)
-                        }
-                    })
-        }, superName)
     }
 
     public static makeEnum(enumDecl: idl.IDLEnum, writer: idl.LanguageWriter) {
@@ -196,21 +204,19 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
     if (ns !== '') {
         printer.pushNamespace(ns)
     }
-    if (library.language == idl.Language.CJ) {
-        if (!idl.isMaterialized(entry, library)) {
+    if (idl.isInterfaceSubkind(entry)) {
+        if(library.language == idl.Language.CJ) {
             if (!['RuntimeType', 'CallbackResource', 'Materialized'].includes(entry.name))
                 CJDeclConvertor.makeInterface(library, entry, printer)
-        }
-    } else {
-        if (idl.isInterfaceSubkind(entry)) {
+        } else {
             printer.writeInterface(entry.name, w => {
                 printInterfaceBody(library, entry, w)
             }, undefined, entry.typeParameters)
-        } else if (idl.isClassSubkind(entry)) {
-            printer.writeClass(entry.name, w => {
-                printInterfaceBody(library, entry, w)
-            })
         }
+    } else if (idl.isClassSubkind(entry)) {
+        printer.writeClass(entry.name, w => {
+            printInterfaceBody(library, entry, w)
+        })
     }
     if (ns !== '') {
         printer.popNamespace()

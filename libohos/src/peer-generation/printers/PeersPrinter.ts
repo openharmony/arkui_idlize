@@ -575,7 +575,7 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     if (!decl) {
         throw new Error("Can not resolve materialized class")
     }
-    const internalClassName = getInternalClassName(idl.getFQName(decl))
+    const internalClassName = getInternalClassName(writer.language == Language.CJ ? writer.getNodeName(decl) : idl.getFQName(decl)) // here
     return [
         writer.makeAssign(
             `${resultName}`,

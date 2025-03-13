@@ -281,8 +281,35 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeProperty(propName: string, propType: idl.IDLType) {
-        throw new Error("writeProperty for TS is not implemented yet.")
+    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }): void {
+        let isStatic = modifiers.includes(FieldModifier.STATIC)
+        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        let containerName = propName.concat("_container")
+        if (getter) {
+            if(!getter!.op) {
+                this.print(`private var ${this.getNodeName(propType)} ${containerName}`)
+            }
+            this.writeGetterImplementation(
+                new Method(propName, new MethodSignature(propType, []), isStatic ? [MethodModifier.STATIC] : []),
+                getter ? getter!.op :
+                (writer) => {
+                    writer.print(`return ${containerName}`)
+                } 
+            )
+            if (isMutable) {
+                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
+                this.writeSetterImplementation(
+                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []), 
+                    setter ? setter!.op :
+                    (writer) => {
+                        writer.print(`${containerName} = ${propName}`)
+                    }
+                )
+            }
+        }
+        else {
+            this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType))
+        }
     }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         const type = this.getNodeName(decl.type)

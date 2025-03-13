@@ -274,10 +274,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-
-    writeProperty(propName: string, propType: IDLType) {
-        throw new Error("writeProperty for ArkTS is not implemented yet.")
-    }
     //makeSerializedBufferGetter(serializer: string): LanguageExpression {
     //    return this.makeMethodCall(serializer, `asPointer`, [])
     //}

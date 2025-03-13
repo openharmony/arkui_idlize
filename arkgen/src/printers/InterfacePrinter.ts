@@ -26,6 +26,7 @@ import { createLanguageWriter, LanguageWriter, PeerFile,
      isInIdlizeInternal
 } from '@idlizer/core'
 import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
+    collectAllProperties,
     collectDeclDependencies, collectJavaImports, collectProperties, convertDeclToFeature,
     DependenciesCollector, ImportFeature, ImportsCollector, isComponentDeclaration,
     peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning,
@@ -1109,47 +1110,35 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         writer.print('import Interop.*\n')
         writer.print('import std.collection.*\n')
 
-        const members = isComponentDeclaration(this.peerLibrary, type) ? []
-            : type.properties.map(it => {
-                return {name: writer.escapeKeyword(it.name), type: idl.maybeOptional(it.type, it.isOptional), modifiers: [FieldModifier.PUBLIC]}
-            })
-        let constructorMembers: idl.IDLProperty[] = collectProperties(type, this.peerLibrary)
+        let allProperties: idl.IDLProperty[] = isComponentDeclaration(this.peerLibrary, type) ? [] : collectAllProperties(type, this.peerLibrary)
+        let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.peerLibrary, type) ? [] : type.properties
 
-        let superName = undefined as string | undefined
-        const superType = idl.getSuperType(type)
-            if (superType) {
-            if (idl.isReferenceType(superType)) {
-                const superDecl = this.peerLibrary.resolveTypeReference(superType)
-                if (superDecl) {
-                    superName = superDecl.name
-                }
-            } else {
-                superName = idl.forceAsNamedNode(superType).name
+        const superNames = idl.getSuperTypes(type)
+
+        writer.writeInterface(`${type.name}${isMaterialized(type, this.peerLibrary) ? '' : 'Interface'}`, (writer) => {
+            for (const p of ownProperties) {
+                const modifiers: FieldModifier[] = []
+                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
+                if (p.isStatic) modifiers.push(FieldModifier.STATIC)
+                writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
-        }
-
+        }, superNames ? superNames.map(it => `${writer.getNodeName(it)}Interface`) : undefined) // make proper inheritance
         writer.writeClass(alias, () => {
-            members.forEach(it => {
-                writer.writeProperty(it.name, it.type, true)
+            allProperties.forEach(it => {
+                let modifiers: FieldModifier[] = []
+                if (it.isReadonly) modifiers.push(FieldModifier.READONLY)
+                if (it.isStatic) modifiers.push(FieldModifier.STATIC)
+                writer.writeProperty(it.name, idl.maybeOptional(it.type, it.isOptional), modifiers, { method: new Method(it.name, new NamedMethodSignature(it.type, [it.type], [it.name])) })
             })
             writer.writeConstructorImplementation(alias,
                 new NamedMethodSignature(idl.IDLVoidType,
-                    constructorMembers.map(it =>
-                        idl.maybeOptional(it.type, it.isOptional)
-                    ),
-                    constructorMembers.map(it =>
-                        writer.escapeKeyword(it.name)
-                    )), () => {
-                        const superType = idl.getSuperType(type)
-                        const superDecl = superType ? this.peerLibrary.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
-                        let superProperties = superDecl ? collectProperties(superDecl as idl.IDLInterface, this.peerLibrary) : []
-                        writer.print(`super(${superProperties.map(it => writer.escapeKeyword(it.name)).join(', ')})`)
-
-                        for(let i of members) {
-                            writer.print(`this.${i.name}_container = ${i.name}`)
+                    allProperties.map(it => idl.maybeOptional(it.type, it.isOptional)),
+                    allProperties.map(it => writer.escapeKeyword(it.name))), () => {
+                        for(let i of allProperties) {
+                            writer.print(`this.${i.name}_container = ${writer.escapeKeyword(i.name)}`)
                         }
                     })
-        }, superName)
+        }, undefined, [`${type.name}Interface`])
 
         return new CJDeclaration(alias, writer)
     }

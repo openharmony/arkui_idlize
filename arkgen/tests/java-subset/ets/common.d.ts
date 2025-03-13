@@ -506,7 +506,6 @@ declare interface UIGestureEvent {
 }
 
 declare interface GestureModifier {
-  applyGesture(): void;
   applyGesture(event: UIGestureEvent): void;
 }
 
