@@ -506,10 +506,10 @@ function checkNodeAPI() {
 }
 
 export function main(): void {
-    registerNativeModuleLibraryName("InteropNativeModule", "ArkoalaNative_ark")
-    registerNativeModuleLibraryName("TestNativeModule", "ArkoalaNative_ark")
-    registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ark")
-    registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ark")
+    registerNativeModuleLibraryName("InteropNativeModule", "ArkoalaNative_ani")
+    registerNativeModuleLibraryName("TestNativeModule", "ArkoalaNative_ani")
+    registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ani")
+    registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ani")
 
     checkNumberIncrement()
     checkCallbackWithReturn()

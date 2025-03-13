@@ -16,19 +16,19 @@ static const GENERATED_ArkUIFullNodeAPI* GetFullImpl() {
 KNativePointer impl_TestGetManagedCaller(KInt kind) {
     return getManagedCallbackCaller(static_cast<CallbackKind>(kind));
 }
-KOALA_INTEROP_1(TestGetManagedCaller, KNativePointer, KInt)
+KOALA_INTEROP_DIRECT_1(TestGetManagedCaller, KNativePointer, KInt)
 
 KNativePointer impl_TestGetManagedCallerSync(KInt kind) {
     return getManagedCallbackCallerSync(static_cast<CallbackKind>(kind));
 }
-KOALA_INTEROP_1(TestGetManagedCallerSync, KNativePointer, KInt)
+KOALA_INTEROP_DIRECT_1(TestGetManagedCallerSync, KNativePointer, KInt)
 
 KNativePointer impl_TestGetManagedHolder() {
     return reinterpret_cast<KNativePointer>(holdManagedCallbackResource);
 }
-KOALA_INTEROP_0(TestGetManagedHolder, KNativePointer)
+KOALA_INTEROP_DIRECT_0(TestGetManagedHolder, KNativePointer)
 
 KNativePointer impl_TestGetManagedReleaser() {
     return reinterpret_cast<KNativePointer>(releaseManagedCallbackResource);
 }
-KOALA_INTEROP_0(TestGetManagedReleaser, KNativePointer)
+KOALA_INTEROP_DIRECT_0(TestGetManagedReleaser, KNativePointer)
