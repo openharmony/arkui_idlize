@@ -585,10 +585,19 @@ export function nameEnumValues(enumTarget: ts.EnumDeclaration): string[] {
 
 export function groupBy<K, V>(values: V[], selector: (value: V) => K): Map<K, V[]> {
     const map = new Map<K, V[]>()
-    values.forEach ( value => {
+    values.forEach(value => {
         const key = selector(value)
         getOrPut(map, key, it => []).push(value)
     })
+    return map
+}
+
+export function groupByIndexed<K, V>(values: V[], selector: (value: V) => K): Map<K, [V, number][]> {
+    const map = new Map<K, [V, number][]>()
+    values.forEach((it, index) =>
+        getOrPut(map, selector(it), () => [])
+            .push([it, index])
+    )
     return map
 }
 

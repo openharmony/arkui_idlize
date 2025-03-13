@@ -17,20 +17,22 @@ import { createUpdatedInterface } from "../../../utils/idl"
 import {
     createFile,
     createProperty,
+    groupByIndexed,
     IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
     IDLType,
+    isDefined,
     isInterface,
     isOptionalType
 } from "@idlizer/core"
 import { Transformer } from "../../Transformer"
 import { Config } from "../../../Config"
 import { peerMethod } from "../../../general/common"
-import { remove } from "../../../utils/array"
 import { LibraryTypeConvertor } from "../../../type-convertors/top-level/LibraryTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
+import { remove } from "../../../utils/array"
 
 export class AttributeTransformer implements Transformer {
     constructor(
@@ -67,41 +69,62 @@ export class AttributeTransformer implements Transformer {
     }
 
     private greedilyMapped(node: IDLInterface, create: IDLMethod): IDLInterface | undefined {
-        const methods = [...node.methods]
-        const map = new Map<string, IDLParameter[]>()
-        create.parameters
-            .forEach((it) => {
-                const representation = this.convertToKey(it.type)
-                const oldValue = map.get(representation) ?? []
-                map.set(representation, oldValue.concat(it))
-            })
-
-        const attributes: IDLMethod[] = []
-        Array.from(map.entries())
-            .forEach(([key, parameters]) => {
-                if (parameters.length !== 1) {
-                    return
-                }
-                const candidates = methods
-                    .filter(it => this.convertToKey(it.returnType) === key)
-                if (candidates.length === 1) {
-                    attributes.push(candidates[0])
-                    remove(methods, candidates[0])
-                }
-            })
-        if (attributes.length !== map.size) {
+        const mapped = this.map(
+            node.methods,
+            groupByIndexed(
+                create.parameters,
+                it => this.convertToKey(it.type)
+            )
+        )
+        if (mapped === undefined) {
             return undefined
         }
         return createUpdatedInterface(
             node,
-            methods,
+            node.methods.filter(it => !mapped.includes(it)),
             undefined,
             undefined,
             undefined,
-            attributes.map(it => createProperty(
-                peerMethod(it.name),
-                it.returnType
-            ))
+            mapped.map(it =>
+                createProperty(
+                    peerMethod(it.name),
+                    it.returnType
+                )
+            )
         )
+    }
+
+    private map(
+        methods: IDLMethod[],
+        parameters: Map<string, [IDLParameter, number][]>
+    ): IDLMethod[] | undefined {
+        const methodsToMatchWith = [...methods]
+        const parametersToMatch: [string, [IDLParameter, number]][] = Array.from(parameters.entries())
+            .flatMap(([key, value]) =>
+                value.map(it => [key, it])
+            )
+        const matched = parametersToMatch
+            .map(([key, [parameter, index]]) => {
+                let candidates = methodsToMatchWith
+                    .filter(it => this.convertToKey(it.returnType) === key)
+                if (candidates.length !== 1) {
+                    candidates = candidates.filter(it => peerMethod(it.name) === parameter.name)
+                }
+                if (candidates.length === 1) {
+                    remove(methodsToMatchWith, candidates[0])
+                    return {
+                        method: candidates[0],
+                        index: index
+                    }
+                }
+                return undefined
+            })
+            .filter(isDefined)
+        if (matched.length === parametersToMatch.length) {
+            return matched
+                ?.sort((a, b) => a.index - b.index)
+                ?.map(({ method }) => method)
+        }
+        return undefined
     }
 }
