@@ -41,7 +41,6 @@ import {
   testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
   HandwrittenComponent, IdlHandwrittenComponent,
 } from '#compat'
-import { test_buffer } from '#compat'
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)

@@ -115,7 +115,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
         nsPath.forEach(it => printer.pushNamespace(it.name))
         if (clazz.isInterface) {
-            writeInterface(clazz.decl, printer)
+            writeInterface(clazz, printer)
         } else if (!clazz.isStaticMaterialized) {
             // Write internal Materialized class with fromPtr(ptr) method
             printer.writeClass(
@@ -366,7 +366,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
         if (this.library.language === Language.TS) {
             this.collector.addFeature('isInstanceOf', '@koalaui/interop')
-            this.collector.addFeatures(['isResource', 'isPadding'], '../utils')
             this.collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
         }
 
@@ -374,6 +373,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
             if (this.library.language === Language.TS) {
+                this.collector.addFeatures(['isResource', 'isPadding'], '../utils')
                 this.collector.addFeatures(['ArkUIGeneratedNativeModule'], './ArkUIGeneratedNativeModule')
             }
             if (this.library.language === Language.ARKTS) {
@@ -531,7 +531,8 @@ function getSuperName(clazz: MaterializedClass): string | undefined {
     return clazz.isInterface ? getInternalClassName(superClass.name) : superClass.name
 }
 
-function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
+function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
+    const decl: idl.IDLInterface = clazz.decl
     writer.writeInterface(decl.name, writer => {
         for (const p of decl.properties) {
             const modifiers: FieldModifier[] = []
@@ -549,7 +550,7 @@ function writeInterface(decl: idl.IDLInterface, writer: LanguageWriter) {
                     m.parameters.map(it => it.type!),
                     m.parameters.map(it => it.name)));
         }
-    })
+    }, undefined, clazz.generics)
 }
 
 // TBD: Refactor tagged method staff

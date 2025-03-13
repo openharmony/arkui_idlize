@@ -66,14 +66,16 @@ export function runEventLoop() {
     }, 2000);
 }
 
-export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
-    if (value1 != value2)
+export function checkEQ(value1: unknown, value2: unknown, comment?: string): void {
+    if (value1 !== value2) {
         throw new Error(comment)
+    }
 }
 
-export function checkNotEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
-    if (value1 == value2)
+export function checkNotEQ(value1: unknown, value2: unknown, comment?: string): void {
+    if (value1 === value2) {
         throw new Error(comment)
+    }
 }
 
 class Test {
