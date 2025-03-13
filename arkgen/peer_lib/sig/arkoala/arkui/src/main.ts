@@ -12,7 +12,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
+import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule, NativeBuffer } from "@koalaui/interop"
 import { Serializer } from "@arkoala/arkui/generated/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/generated/peers/Deserializer"
 import { MaterializedBase } from "@koalaui/interop"
@@ -653,21 +653,11 @@ function checkNativeCallback() {
     stopNativeTest(CALL_GROUP_LOG)
 }
 
-function checkArrayBuffer() {
-    checkResult("ArrayBuffer", () => {
-        let buffer = new ArrayBuffer(256)
-        let view = new DataView(buffer)
-        view.setInt8(0, 42)
-        view.setInt8(100, 37)
-        TestNativeModule._TestWithBuffer(buffer)
-    }, "42 37")
-}
-
 function checkPassToNativeBuffer() {
-    checkResult("ArrayBuffer", () => {
+    checkResult("checkPassToNativeBuffer", () => {
         const buffer = new ArrayBuffer(256)
         const pm = new PixelMapInternal()
-        pm.readPixelsToBufferSync(buffer)
+        pm.readPixelsToBufferSync(NativeBuffer.wrap(InteropNativeModule._GetNativeBufferPointer(buffer), buffer.byteLength, 0, 0, 0))
     }, "new PixelMap()[return (Ark_PixelMap) 100]getFinalizer()[return fnPtr<KNativePointer>(dummyClassFinalizer)]readPixelsToBufferSync({.data=nullptr, .length=256})")
 }
 
@@ -679,7 +669,8 @@ function checkReadAndMutateBuffer() {
         uint8array[i] = i + 1
     }
     const serializer = Serializer.hold()
-    serializer.writeBuffer(buffer)
+    const resourceId = ResourceHolder.instance().registerAndHold({})
+    serializer.writeBuffer(NativeBuffer.wrap(InteropNativeModule._GetNativeBufferPointer(buffer), buffer.byteLength, resourceId, 0, 0))
     TestNativeModule._TestReadAndMutateManagedBuffer(serializer.asArray(), serializer.length())
 
     let isSame = true

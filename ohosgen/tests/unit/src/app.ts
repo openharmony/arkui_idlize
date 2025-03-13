@@ -25,6 +25,9 @@ import {
   callForceCallbackListener,
   ClassWithComplexPropertyType
 } from '#compat'
+
+import { test_buffer } from '#compat'
+
 import {
   OrdinaryEnum,
   IntEnum,
@@ -231,7 +234,7 @@ function checkMaterialized() {
   // 5. Pass struct as argument, receive struct as return value
   const instance5 = new test_materialized_classes.MaterializedComplexArguments(/** todo: where is constructor params? */)
   const utils: UtilityInterface = {
-    fieldString: "test_message", 
+    fieldString: "test_message",
     fieldBoolean: true,
     fieldArrayNumber: new Array<number>(1, 2, 3, 4, 5)
   }
@@ -251,19 +254,19 @@ function checkMaterialized() {
   checkEQ(array.join(","), stringifyArray.join(","))
 
   const utilsArray = new Array<UtilityInterface>()
-  let hiUtils: UtilityInterface = { 
-    fieldString: "hi_message", 
-    fieldBoolean: true, 
-    fieldArrayNumber: new Array<number>(6, 7, 8, 9, 10) 
+  let hiUtils: UtilityInterface = {
+    fieldString: "hi_message",
+    fieldBoolean: true,
+    fieldArrayNumber: new Array<number>(6, 7, 8, 9, 10)
   }
-  let byeUtils: UtilityInterface = { 
-    fieldString: "bye_message", 
-    fieldBoolean: false, 
-    fieldArrayNumber: new Array<number>(5, 4, 3, 2, 1) 
+  let byeUtils: UtilityInterface = {
+    fieldString: "bye_message",
+    fieldBoolean: false,
+    fieldArrayNumber: new Array<number>(5, 4, 3, 2, 1)
   }
   utilsArray.push(hiUtils)
   utilsArray.push(byeUtils)
-  
+
   const modifiedUtilsArray = instance5.method5(utilsArray)
   checkEQ(`${utilsArray[0].fieldString}_modified`, modifiedUtilsArray[0].fieldString)
   checkEQ(`${utilsArray[1].fieldString}_modified`, modifiedUtilsArray[1].fieldString)
@@ -271,12 +274,30 @@ function checkMaterialized() {
   checkEQ(utilsArray[1].fieldArrayNumber[0], - modifiedUtilsArray[1].fieldArrayNumber[0])
 }
 
+function checkNativeBuffer() {
+  const testValue: test_buffer.TestValue = test_buffer.getBuffer();
+  checkEQ(123, testValue.errorCode, "Invalid value of errorCode")
+  const buffer = testValue.outData;
+  let text = "1234";
+  checkEQ(text.length, buffer.length, "Invalid NativeBuffer length")
+  for (let i = 0; i < text.length; i++) {
+   checkEQ(text.charAt(i) + "", String.fromCharCode(buffer.readByte(i)), "Invalid NativeBuffer data")
+  }
+  text = "4321"
+  for (let i = 0; i < text.length; i++) {
+   buffer.writeByte(i, text.charCodeAt(i))
+  }
+  for (let i = 0; i < text.length; i++) {
+    checkEQ(text.charAt(i) + "", String.fromCharCode(buffer.readByte(i)), "Invalid NativeBuffer data")
+  }
+}
+
 export function run() {
   console.log("Run common unit tests")
 
   const suite = new UnitTestsuite("idlize ut")
 
-	suite.addTest("check_constants", check_constants)
+  suite.addTest("check_constants", check_constants)
   suite.addTest("check_booleans", check_booleans)
   suite.addTest("checkNumber", checkNumber)
   suite.addTest("checkForceCallback", checkForceCallback)
@@ -285,6 +306,7 @@ export function run() {
   suite.addTest("checkDataInterfaces", checkDataInterfaces)
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
   suite.addTest("checkMaterialized", checkMaterialized)
+  suite.addTest("checkNativeBuffer", checkNativeBuffer)
 
   return suite.run()
 }

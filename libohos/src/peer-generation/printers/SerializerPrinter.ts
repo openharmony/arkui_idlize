@@ -557,6 +557,7 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
         if (!declarationPath) {
             if (destFile.language === Language.TS) {
                 collector.addFeature('Finalizable', '@koalaui/interop')
+                collector.addFeatures(["NativeBuffer"], "@koalaui/interop")
             } else {
                 collector.addFeature("TypeChecker", "#components")
                 collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")

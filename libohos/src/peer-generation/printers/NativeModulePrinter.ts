@@ -350,11 +350,9 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, 
             "KFloat32ArrayPtr",
             "pointer",
             "KInteropReturnBuffer",
+            "NativeBuffer"
         ], "@koalaui/interop")
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
-        if (file.language === Language.ARKTS) {
-            tsFile.imports.addFeature('NativeBuffer', '@koalaui/interop')
-        }
         if (module === NativeModule.Generated && library.name === 'arkoala') {
             if (file.language === Language.TS)
                 tsFile.imports.addFeature('Length', './ArkUnitsInterfaces')
@@ -368,7 +366,7 @@ function printNativeModuleRegistration(language: Language, module: NativeModuleT
     switch (language) {
         case Language.TS:
             const tsFile = file as TsSourceFile
-            tsFile.imports.addFeatures(['loadNativeModuleLibrary'], '@koalaui/interop')
+            tsFile.imports.addFeatures(['loadNativeModuleLibrary', 'NativeBuffer'], '@koalaui/interop')
             tsFile.content.print("private static _isLoaded: boolean = false")
             tsFile.content.writeMethodImplementation(new Method(
                 "_LoadOnce",

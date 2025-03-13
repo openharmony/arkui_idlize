@@ -1221,8 +1221,6 @@ export function getCommonImports(language: Language) {
         imports.push({feature: "wrapCallback", module: "@koalaui/interop"})
         imports.push({feature: "NodeAttach", module: "@koalaui/runtime"})
         imports.push({feature: "remember", module: "@koalaui/runtime"})
-    }
-    if (language === Language.ARKTS) {
         imports.push({feature: "NativeBuffer", module: "@koalaui/interop"})
     }
     return imports
