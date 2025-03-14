@@ -28,6 +28,12 @@
             "TemplateTypedFunc",
             "EntryOptions"
         ],
+        "DeletedMethods": {
+            "ScrollableCommonMethod": [
+                "onWillScroll",
+                "onDidScroll"
+            ]
+        },
         "StubbedDeclarations": [
             "OnWillScrollCallback",
             "ContentModifier",

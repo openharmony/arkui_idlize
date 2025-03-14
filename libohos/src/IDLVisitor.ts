@@ -615,9 +615,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         const childNameSuggestion = nameSuggestion.prependType()
         this.context.enter(nameSuggestion.name)
         const fileName = node.getSourceFile().fileName
-        const props = this.pickProperties(node.members, childNameSuggestion)
+        const props = this.pickProperties(nameSuggestion.name, node.members, childNameSuggestion)
             .concat(this.pickAccessors(node.members, childNameSuggestion))
-        const methods = this.pickMethods(node.members, childNameSuggestion)
+        const methods = this.pickMethods(nameSuggestion.name, node.members, childNameSuggestion)
             .concat(this.pickPropertyBindings(nameSuggestion.name, props, fileName))
         return idl.createInterface(
             IDLVisitorConfiguration().checkNameReplacement(nameSuggestion.name, node.getSourceFile()),
@@ -639,16 +639,22 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return members.filter(ts.isConstructSignatureDeclaration)
             .map(it => this.serializeConstructor(it as ts.ConstructSignatureDeclaration, nameSuggestion))
     }
-    pickProperties(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLProperty[] {
+    pickProperties(parentNameSuggestion: string, members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLProperty[] {
         const properties = members
             .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it) || this.isMethodUsedAsCallback(it)) && !isPrivate(it.modifiers))
             .map(it => this.serializeProperty(it, nameSuggestion))
+            .filter(it => {
+                return !IDLVisitorConfiguration().DeletedMethods.get(parentNameSuggestion)?.includes(it.name)
+            })
         return mergeSetGetProperties(properties)
     }
-    pickMethods(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLMethod[] {
+    pickMethods(parentNameSuggestion: string, members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLMethod[] {
         return members
             .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !this.isMethodUsedAsCallback(it) && !isPrivate(it.modifiers))
             .map(it => this.serializeMethod(it as ts.MethodDeclaration | ts.MethodSignature, nameSuggestion))
+            .filter(it => {
+                return !IDLVisitorConfiguration().DeletedMethods.get(parentNameSuggestion)?.includes(it.name)
+            })
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, nameSuggestion: NameSuggestion): idl.IDLCallable[] {
         return members.filter(ts.isCallSignatureDeclaration)
@@ -741,8 +747,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             inheritance,
             this.pickConstructors(node.members, childNameSuggestion),
             [],
-            this.pickProperties(allMembers, childNameSuggestion),
-            this.pickMethods(allMembers, childNameSuggestion),
+            this.pickProperties(nameSuggestion.name, allMembers, childNameSuggestion),
+            this.pickMethods(nameSuggestion.name, allMembers, childNameSuggestion),
             this.pickCallables(node.members, childNameSuggestion),
             this.collectTypeParameters(node.typeParameters), {
             fileName: node.getSourceFile().fileName,
@@ -768,7 +774,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     serializeObjectType(node: ts.TypeLiteralNode, nameSuggestion: NameSuggestion, typeParameters?: ts.NodeArray<ts.TypeParameterDeclaration>): idl.IDLInterface {
-        const properties = this.pickProperties(node.members, nameSuggestion ?? NameSuggestion.make("UNDEFINED"))
+        const properties = this.pickProperties(nameSuggestion.name, node.members, nameSuggestion ?? NameSuggestion.make("UNDEFINED"))
         const syntheticName = this.synthesizeTypeLiteralName(properties)
         const selectedName = selectName(nameSuggestion, syntheticName)
         return idl.createInterface(
@@ -778,7 +784,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             this.pickConstructors(node.members, nameSuggestion),
             [],
             properties,
-            this.pickMethods(node.members, nameSuggestion),
+            this.pickMethods(selectedName, node.members, nameSuggestion),
             this.pickCallables(node.members, nameSuggestion),
             this.collectTypeParameters(typeParameters), {
             fileName: node.getSourceFile().fileName,

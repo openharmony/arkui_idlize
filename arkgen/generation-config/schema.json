@@ -236,6 +236,15 @@
                                 "type": "string"
                             }
                         },
+                        "DeletedMethods": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
                         "StubbedDeclarations": {
                             "type": "array",
                             "items": {
@@ -264,6 +273,7 @@
                     },
                     "required": [
                         "DeletedDeclarations",
+                        "DeletedMethods",
                         "StubbedDeclarations",
                         "NameReplacements",
                         "TypeReplacementsFilePath"
@@ -286,6 +296,7 @@
                 "builderClasses",
                 "forceMaterialized",
                 "forceCallback",
+                "forceContext",
                 "GenerateUnused",
                 "ApiVersion",
                 "dumpSerialized",

@@ -29,6 +29,7 @@ const T = {
 
 export const IDLVisitorConfigurationSchema = D.object({
     DeletedDeclarations: T.stringArray(),
+    DeletedMethods: D.map(D.string(), T.stringArray()),
     StubbedDeclarations: T.stringArray(),
     NameReplacements: D.map(D.string(), D.array(D.tuple(D.string(), D.string()))),
     TypeReplacementsFilePath: D.string()
