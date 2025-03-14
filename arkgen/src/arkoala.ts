@@ -165,8 +165,10 @@ export function generateArkoalaFromIdl(config: {
         arkuiComponentsFiles.push(outComponentFile)
     }
     const builderClasses = printBuilderClasses(peerLibrary, config.dumpSerialized)
+    const builderClassFiles: string[] = []
     for (const [targetFile, builderClass] of builderClasses) {
         const outBuilderFile = arkoala.builderClass(targetFile)
+        builderClassFiles.push(outBuilderFile)
         writeFile(outBuilderFile, builderClass, {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
@@ -317,7 +319,7 @@ export function generateArkoalaFromIdl(config: {
         )
         writeFile(
             arkoala.arktsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), arkoala.arktsDir),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles).concat(builderClassFiles), arkoala.arktsDir),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
