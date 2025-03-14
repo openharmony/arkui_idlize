@@ -282,7 +282,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
             writer => {
                 writer.writeStatement(
                     writer.makeReturn(
-                        writer.makeString(`value as int32`),
+                        writer.makeString(`value.getOrdinal()`),
                     )
                 )
             }
