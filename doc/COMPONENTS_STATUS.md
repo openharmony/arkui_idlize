@@ -334,7 +334,7 @@
 |`friction`| Function | Samarin Sergey | done |  |  |
 |`onScroll`| Function | Samarin Sergey | deprecated |  |
 |`onWillScroll`| Function | Skroba Gleb | done |  |   |
-|`onDidScroll`| Function | Berezin Kirill | in progress |  | https://gitee.com/nikolay-igotti/idlize/issues/IBB6U0 (+) |
+|`onDidScroll`| Function | Berezin Kirill | done |  |  |
 |`onReachStart`| Function | Samarin Sergey | done |  | |
 |`onReachEnd`| Function | Samarin Sergey | done |  | |
 |`onScrollStart`| Function | Samarin Sergey | done |  | |
