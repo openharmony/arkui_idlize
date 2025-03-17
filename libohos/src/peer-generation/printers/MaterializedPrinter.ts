@@ -533,7 +533,7 @@ function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
             writer.writeMethodDeclaration(m.name,
                 new NamedMethodSignature(
                     m.returnType,
-                    m.parameters.map(it => it.type!),
+                    m.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
                     m.parameters.map(it => it.name)));
         }
     }, undefined, clazz.generics)
