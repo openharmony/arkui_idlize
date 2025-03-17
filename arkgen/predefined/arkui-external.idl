@@ -442,6 +442,7 @@ dictionary EffectScope {
 
 [Entity=Class]
 interface SymbolEffect {
+    void dummyForAccessorGenerate();
 };
 
 [Entity=Class]
