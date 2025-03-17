@@ -78,9 +78,8 @@ class PeerFileVisitor {
     }
 
     protected printImports(printer: LanguageWriter, targetBasename: string): void {
-        this.getDefaultPeerImports(this.library.language)!.forEach(it => printer.print(it))
-
         const imports = new ImportsCollector()
+        this.getDefaultPeerImports(this.library.language, imports)
         this.file.peersToGenerate.forEach(peer => {
             if (peer.originalParentFilename) {
                 const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
@@ -240,26 +239,24 @@ class PeerFileVisitor {
         })
     }
 
-    protected getDefaultPeerImports(lang: Language) {
-        const defaultPeerImports = [
-            `import { int32, float32 } from "@koalaui/common"`,
-            `import { nullptr, KPointer, KInt, KBoolean, KStringPtr } from "@koalaui/interop"`,
-            `import { runtimeType, RuntimeType } from "@koalaui/interop"`,
-            `import { Serializer } from "./Serializer"`,
-            `import { ComponentBase } from "../../ComponentBase"`,
-            `import { PeerNode } from "../../PeerNode"`
-        ]
+    protected getDefaultPeerImports(lang: Language, imports: ImportsCollector) {
+        if (lang !== Language.TS && lang !== Language.ARKTS) return
+
+        imports.addFeatures(['int32', 'float32'], "@koalaui/common")
+        imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'runtimeType', 'RuntimeType'], "@koalaui/interop")
+        // TODO Check the usage of relative path imports
+        imports.addFeatures(['Serializer'], "./peers/Serializer")
+        // TODO Remove unnecessary imports for ohos libraries
+        imports.addFeatures(['ComponentBase'], "./peers/../../ComponentBase")
+        imports.addFeatures(['PeerNode'], "./peers/../../PeerNode")
         switch (lang) {
             case Language.TS: {
-                return [...defaultPeerImports,
-                    `import { isInstanceOf } from "@koalaui/interop"`]
+                imports.addFeature('isInstanceOf', "@koalaui/interop")
+                break
             }
             case Language.ARKTS: {
-                return [...defaultPeerImports,
-                    `import { ${NativeModule.Generated.name} } from "#components"`,]
-            }
-            default: {
-                return []
+                imports.addFeature(NativeModule.Generated.name, "#components")
+                break;
             }
         }
     }
