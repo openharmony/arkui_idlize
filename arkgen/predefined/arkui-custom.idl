@@ -133,6 +133,7 @@ interface SystemOps {
     static void EndFrame(pointer root);
     static void syncInstanceId(i32 instanceId);
     static void restoreInstanceId();
+    static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
 };
 
 [Entity=Class]
