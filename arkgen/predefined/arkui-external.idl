@@ -459,3 +459,25 @@ interface ReplaceSymbolEffect: SymbolEffect {
     [Optional]
     attribute EffectScope scope;
 };
+
+[Entity=Interface]
+interface FontInfo {
+    attribute String path;
+    attribute String postScriptName;
+    attribute String fullName;
+    attribute String family;
+    attribute String subfamily;
+    attribute number weight;
+    attribute number width;
+    attribute boolean italic;
+    attribute boolean monoSpace;
+    attribute boolean symbolic;
+};
+
+[Entity=Interface]
+interface TouchPoint {
+
+    attribute Dimension x;
+    attribute Dimension y;
+
+};
