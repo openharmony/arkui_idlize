@@ -80,7 +80,7 @@ if (options.dts2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
-    const idlLibrary = new PeerLibrary(Language.TS, [])
+    const idlLibrary = new PeerLibrary(Language.TS)
     generate(
         dtsInputFiles,
         options.outputDir ?? "./idl",

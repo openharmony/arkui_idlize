@@ -23,11 +23,14 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     generatorConfiguration,
     isDirectMethod,
     isVMContextMethod,
+    LayoutNodeRole,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
-import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { ArkTSSourceFile, CJSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
+import { PrinterFunction } from "../LayoutManager";
+import { ImportsCollector } from "../ImportsCollector";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -333,10 +336,9 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
     }
 }
 
-function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, library:PeerLibrary) {
-    if (file.language === Language.TS || file.language === Language.ARKTS) {
-        const tsFile = file as TsSourceFile
-        tsFile.imports.addFeatures([
+function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCollector, library:PeerLibrary) {
+    if (library.language === Language.TS || library.language === Language.ARKTS) {
+        imports.addFeatures([
             "KInt",
             "KLong",
             "KBoolean",
@@ -350,26 +352,23 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, 
             "KFloat32ArrayPtr",
             "pointer",
             "KInteropReturnBuffer",
+            "KSerializerBuffer",
+            "loadNativeModuleLibrary",
             "NativeBuffer",
-            "KSerializerBuffer"
         ], "@koalaui/interop")
-        tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
+        imports.addFeatures(["int32", "float32"], "@koalaui/common")
         if (module === NativeModule.Generated && library.name === 'arkoala') {
-            if (file.language === Language.TS)
-                tsFile.imports.addFeature('Length', './ArkUnitsInterfaces')
-            if (file.language === Language.ARKTS)
-                tsFile.imports.addFeature('Length', '../ArkUnitsInterfaces')
+            if (library.language === Language.TS || library.language === Language.ARKTS)
+                imports.addFeature('Length', './ArkUnitsInterfaces')
         }
     }
 }
 
-function printNativeModuleRegistration(language: Language, module: NativeModuleType, file: SourceFile): void {
+function printNativeModuleRegistration(language: Language, module: NativeModuleType, content: LanguageWriter): void {
     switch (language) {
         case Language.TS:
-            const tsFile = file as TsSourceFile
-            tsFile.imports.addFeatures(['loadNativeModuleLibrary', 'NativeBuffer'], '@koalaui/interop')
-            tsFile.content.print("private static _isLoaded: boolean = false")
-            tsFile.content.writeMethodImplementation(new Method(
+            content.print("private static _isLoaded: boolean = false")
+            content.writeMethodImplementation(new Method(
                 "_LoadOnce",
                 new MethodSignature(idl.IDLBooleanType, []),
                 [MethodModifier.PRIVATE, MethodModifier.STATIC]
@@ -389,9 +388,7 @@ function printNativeModuleRegistration(language: Language, module: NativeModuleT
             })
             break
         case Language.ARKTS:
-            const arktsFile = file as ArkTSSourceFile
-            arktsFile.imports.addFeatures(['loadNativeModuleLibrary'], '@koalaui/interop')
-            arktsFile.content.writeStaticBlock(writer => {
+            content.writeStaticBlock(writer => {
                 writer.print(`loadNativeModuleLibrary("${module.name}")`)
             })
             break
@@ -421,9 +418,10 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     const visitor = createPredefinedNativeModuleVisitor(library, language, entries)
     visitor.visit()
     const file = SourceFile.make(`${module.name}${language.extension}`, language, library)
-    collectNativeModuleImports(module, file, library)
+    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile)
+        collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(module.name, writer => {
-        printNativeModuleRegistration(language, module, file)
+        printNativeModuleRegistration(language, module, file.content)
         writer.concat(visitor.nativeModule)
         const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
         if (maybeTemplate)
@@ -436,8 +434,8 @@ export function printTSPredefinedEmptyNativeModule(library: PeerLibrary, module:
     const entries = collectPredefinedNativeModuleEntries(library, module)
     const visitor = new TSNativeModulePredefinedVisitor(library, library.language, entries)
     visitor.visit()
-    const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file, library)
+    const file = SourceFile.make("", library.language, library) as TsSourceFile
+    collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(`${module.name}Empty`, writer => {
         writer.concat(visitor.nativeModuleEmpty)
     })
@@ -453,29 +451,39 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
         writer.concat(visitor.nativeFunctions)
     })
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file, library)
     file.content.concat(writer)
     return file
 }
 
-export function printArkUIGeneratedNativeModule(library: PeerLibrary, module: NativeModuleType, more?:(w:LanguageWriter) => void): SourceFile {
-    const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
-    visitor.visit()
-    const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file, library)
-    file.content.writeClass(module.name, writer => {
-        printNativeModuleRegistration(library.language, module, file)
-        more?.(writer)
-        writer.concat(visitor.nativeModule)
-    })
-    return file
+export function createGeneratedNativeModulePrinter(module: NativeModuleType, more?:(w:LanguageWriter) => void): PrinterFunction {
+    return (library) => {
+        const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
+        visitor.visit()
+        const content = library.createLanguageWriter()
+        const imports = new ImportsCollector()
+        collectNativeModuleImports(module, imports, library)
+        content.writeClass(module.name, writer => {
+            printNativeModuleRegistration(library.language, module, content)
+            more?.(writer)
+            writer.concat(visitor.nativeModule)
+        })
+        return [{
+            over: {
+                node: library.resolveTypeReference(idl.createReferenceType(module.name)) as idl.IDLInterface,
+                role: LayoutNodeRole.PEER
+            },
+            collector: imports,
+            content: content,
+        }]
+    }
 }
 
 export function printTSArkUIGeneratedEmptyNativeModule(library: PeerLibrary, module: NativeModuleType): SourceFile {
     const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language) as TSNativeModuleArkUIGeneratedVisitor
     visitor.visit()
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file, library)
+    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile)
+        collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(`${module.name}Empty`, writer => {
         writer.concat(visitor.nativeModuleEmpty)
     })
@@ -490,7 +498,6 @@ export function printCJArkUIGeneratedNativeFunctions(library: PeerLibrary, modul
         writer.concat(visitor.nativeFunctions)
     })
     const file = SourceFile.make("", library.language, library)
-    collectNativeModuleImports(module, file, library)
     file.content.concat(writer)
     return file
 }

@@ -85,10 +85,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         return this.name
     }
 
-    get libraryPackages() {
-        return undefined
-    }
-
     getCurrentContext(): string | undefined {
         return ""
     }

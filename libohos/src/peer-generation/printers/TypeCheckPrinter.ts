@@ -6,16 +6,17 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerLibrary, createDeclarationNameConvertor, isInIdlize } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInIdlize } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToOrdinalName, generateEnumFromOrdinalName } from '@idlizer/core';
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
+import { PrinterResult } from "../LayoutManager";
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
-    imports.addFeature("TypeChecker", "#components")
+    collectDeclItself(library, idl.createReferenceType("TypeChecker"), imports)
 }
 
 class FieldRecord {
@@ -119,26 +120,25 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
 abstract class TypeCheckerPrinter {
     constructor(
         protected readonly library: PeerLibrary,
+        public readonly imports: ImportsCollector,
         public readonly writer: LanguageWriter,
     ) {}
 
     protected writeImports(features: ImportFeature[]): void {
-        const imports = new ImportsCollector()
-        imports.addFeature('KBoolean', '@koalaui/interop')
-        imports.addFeature('KStringPtr', '@koalaui/interop')
-        imports.addFeature('NativeBuffer', '@koalaui/interop')
-        imports.addFeature('MaterializedBase', '@koalaui/interop')
-        imports.addFeature('int32', '@koalaui/common')
+        this.imports.addFeature('KBoolean', '@koalaui/interop')
+        this.imports.addFeature('KStringPtr', '@koalaui/interop')
+        this.imports.addFeature('NativeBuffer', '@koalaui/interop')
+        this.imports.addFeature('MaterializedBase', '@koalaui/interop')
+        this.imports.addFeature('int32', '@koalaui/common')
         for (const feature of features) {
-            imports.addFeature(feature.feature, feature.module)
+            this.imports.addFeature(feature.feature, feature.module)
         }
         for (const dep of collectTypeCheckDeclarations(this.library)) {
             if (idl.isContainerType(dep))
                 continue
-            collectDeclItself(this.library, dep, imports)
-            collectDeclDependencies(this.library, dep, imports)
+            collectDeclItself(this.library, dep, this.imports)
+            collectDeclDependencies(this.library, dep, this.imports)
         }
-        imports.print(this.writer, 'arkts/type_check')
     }
 
     protected abstract writeIsNativeBuffer(): void
@@ -197,7 +197,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, library.createLanguageWriter(Language.ARKTS))
+        super(library, new ImportsCollector(), library.createLanguageWriter(Language.ARKTS))
     }
 
 
@@ -318,7 +318,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     constructor(
         library: PeerLibrary
     ) {
-        super(library, library.createLanguageWriter(Language.TS))
+        super(library, new ImportsCollector(), library.createLanguageWriter(Language.TS))
     }
 
     protected writeTypeInstanceOf(): void {
@@ -467,14 +467,28 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     }
 }
 
-export function writeARKTSTypeCheckers(library: PeerLibrary, printer: LanguageWriter) {
-    const checker = new ARKTSTypeCheckerPrinter(library)
-    checker.print()
-    printer.concat(checker.writer)
-}
-
-export function writeTSTypeCheckers(library: PeerLibrary, printer: LanguageWriter) {
+export function printTSTypeChecker(library: PeerLibrary): PrinterResult[] {
     const checker = new TSTypeCheckerPrinter(library)
     checker.print()
-    printer.concat(checker.writer)
+    return [{
+        over: {
+            node: library.resolveTypeReference(idl.createReferenceType('TSTypeChecker')) as idl.IDLEntry,
+            role: LayoutNodeRole.PEER
+        },
+        collector: checker.imports,
+        content: checker.writer,
+    }]
+}
+
+export function printArkTSTypeChecker(library: PeerLibrary): PrinterResult[] {
+    const checker = new ARKTSTypeCheckerPrinter(library)
+    checker.print()
+    return [{
+        over: {
+            node: library.resolveTypeReference(idl.createReferenceType('ArkTSTypeChecker')) as idl.IDLEntry,
+            role: LayoutNodeRole.PEER
+        },
+        collector: checker.imports,
+        content: checker.writer,
+    }]
 }

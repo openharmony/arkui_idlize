@@ -28,7 +28,8 @@ import {
     isInIdlizeInternal,
     isInIdlize,
     qualifiedName,
-    isStaticMaterialized
+    isStaticMaterialized,
+    isInCurrentModule
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary, PeerFile, PeerClass, PeerMethod } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -297,7 +298,7 @@ export class IdlPeerProcessor {
     }
 
     private processMaterialized(decl: idl.IDLInterface, isStaticMaterialized: boolean = false) {
-        if (!this.library.hasInLibrary(decl)) {
+        if (!isInCurrentModule(decl)) {
             return
         }
         const fullCName = qualifiedName(decl, "_")

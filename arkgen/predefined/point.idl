@@ -1,3 +1,5 @@
+package api.internal.component.ets;
+
 // TODO: it must be in Namespace=common2D, but namespaces are not supported yet
 [Entity=Interface]
 interface Point {

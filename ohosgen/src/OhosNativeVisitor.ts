@@ -67,17 +67,18 @@ import {
     MaterializedClass,
     isInIdlize,
     isStaticMaterialized,
+    isInCurrentModule,
+    currentModule,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
     getInteropRootPath,
-    makeDeserializeAndCall,
     readLangTemplate,
     getUniquePropertiesFromSuperTypes,
     printCallbacksKinds,
     printManagedCaller,
-    writeDeserializer,
-    writeSerializer,
+    // writeDeserializer,
+    // writeSerializer,
     CppSourceFile,
     StructPrinter,
     TargetFile,
@@ -85,7 +86,11 @@ import {
     BridgeCcVisitor,
     createSyntheticGlobalScope,
     isGlobalScope,
+    createSerializerPrinter,
+    createDeserializerPrinter,
+    createDeserializeAndCallPrinter,
 } from '@idlizer/libohos'
+import { OhosInstall } from './OhosInstall'
 
 class NameType {
     constructor(public name: string, public type: string) { }
@@ -362,15 +367,22 @@ class OHOSNativeVisitor {
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
         const prefix = generatorTypePrefix()
-        writeSerializer(this.library, this.cppWriter, prefix)
-        writeDeserializer(this.library, this.cppWriter, prefix)
+        createSerializerPrinter(Language.CPP, prefix)(this.library).forEach(result => {
+            this.cppWriter.concat(result.content)
+        })
+        createDeserializerPrinter(Language.CPP, prefix)(this.library).forEach(result => {
+            this.cppWriter.concat(result.content)
+        })
 
         let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, this.argTypeConvertor, PrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
         this.cppWriter.concat(writer)
         this.cppWriter.concat(printBridgeCc(this.library).generated)
-        this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
+        createDeserializeAndCallPrinter(this.library.name, Language.CPP)(this.library).forEach(result => {
+            this.cppWriter.concat(result.content)
+        })
+        // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)
 
         this.hWriter.writeLines(
@@ -386,8 +398,7 @@ class OHOSNativeVisitor {
 
     prepare() {
         this.library.files.forEach(file => {
-            if (isInIdlize(file.file) ||
-                this.library.libraryPackages?.length && !this.library.libraryPackages.includes(file.packageName()))
+            if (isInIdlize(file.file) || !isInCurrentModule(file.file))
                 return
             linearizeNamespaceMembers(file.entries).forEach(entry => {
                 if (isInterface(entry)) {
@@ -547,10 +558,5 @@ function generatePostfixForOverloads(methods: IDLMethod[]): MethodWithPostfix[] 
 }
 
 export function suggestLibraryName(library: PeerLibrary) {
-    if (library.name !== '') {
-        return library.name
-    }
-    let libraryName = library.files.filter(f => !isInIdlize(f.file))[0].packageName()
-    libraryName = libraryName.replaceAll("@", "").replaceAll(".", "_").toUpperCase()
-    return libraryName
+    return currentModule().name.replaceAll(".", "_").toUpperCase()
 }

@@ -56,6 +56,40 @@
                         "type": "string"
                     }
                 },
+                "forceContext": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "moduleName": {
+                    "type": "string"
+                },
+                "modules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "packages": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "useFoldersLayout": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "packages"
+                        ],
+                        "type": "object"
+                    }
+                },
                 "GenerateUnused": {
                     "type": "boolean"
                 },
@@ -66,7 +100,13 @@
                     "type": "boolean"
                 },
                 "boundProperties": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "cppPrefix": {
                     "type": "string"
@@ -153,7 +193,13 @@
                     "additionalProperties": false,
                     "properties": {
                         "ignoreMethods": {
-                            "type": "object"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
                         }
                     },
                     "required": [
@@ -192,13 +238,75 @@
                     "type": "object"
                 },
                 "constants": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "patchMaterialized": {
-                    "type": "object"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
                 },
                 "CollapseOverloadsARKTS": {
                     "type": "boolean"
+                },
+                "IDLVisitor": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "DeletedDeclarations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "DeletedMethods": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "StubbedDeclarations": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "NameReplacements": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "items": [
+                                        {
+                                            "type": "string"
+                                        },
+                                        {
+                                            "type": "string"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        "TypeReplacementsFilePath": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "DeletedDeclarations",
+                        "DeletedMethods",
+                        "StubbedDeclarations",
+                        "NameReplacements",
+                        "TypeReplacementsFilePath"
+                    ],
+                    "type": "object"
                 },
                 "$schema": {
                     "type": "string",
@@ -216,6 +324,9 @@
                 "builderClasses",
                 "forceMaterialized",
                 "forceCallback",
+                "forceContext",
+                "moduleName",
+                "modules",
                 "GenerateUnused",
                 "ApiVersion",
                 "dumpSerialized",
@@ -225,7 +336,8 @@
                 "dummy",
                 "materialized",
                 "serializer",
-                "CollapseOverloadsARKTS"
+                "CollapseOverloadsARKTS",
+                "IDLVisitor"
             ],
             "type": "object"
         }

@@ -61,6 +61,7 @@ export class Package {
 
 export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "arkgen")),
+    new Package(path.join(IDLIZE_HOME, "arktscgen")),
     new Package(path.join(IDLIZE_HOME, "core")),
     new Package(path.join(IDLIZE_HOME, "libohos")),
     new Package(path.join(IDLIZE_HOME, "linter")),

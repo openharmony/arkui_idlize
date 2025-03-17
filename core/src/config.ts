@@ -19,6 +19,14 @@ const T = {
     stringArray: () => D.array(D.string())
 }
 
+export const ModuleConfigurationSchema = D.object({
+    name: D.string(),
+    packages: T.stringArray(),
+    useFoldersLayout: D.maybe(D.boolean()),
+})
+
+export type ModuleConfiguration = ConfigTypeInfer<typeof ModuleConfigurationSchema>
+
 export const CoreConfigurationSchema = D.object({
     TypePrefix: D.string(),
     LibraryPrefix: D.string(),
@@ -32,6 +40,8 @@ export const CoreConfigurationSchema = D.object({
     forceMaterialized: T.stringArray(),
     forceCallback: T.stringArray(),
     forceContext: T.stringArray(),
+    moduleName: D.string(),
+    modules: D.map(D.string(), ModuleConfigurationSchema)
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
@@ -49,6 +59,8 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     forceMaterialized: [],
     forceCallback: [],
     forceContext: [],
+    moduleName: "",
+    modules: new Map<string, ModuleConfiguration>(),
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfiguration

@@ -1,8 +1,7 @@
 import { Chrono } from "std/time"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
-import { MEDIAQUERYNativeModule } from "../../generated/arkts";
+import { OHOS_MEDIAQUERYNativeModule, checkArkoalaCallbacks } from "../../generated/arkts";
 export { mediaquery } from "../../generated/arkts"
 
 export namespace performance {
@@ -19,8 +18,8 @@ export function pullEvents() {
 
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", "MEDIAQUERY_NativeBridgeArk")
-    registerNativeModuleLibraryName("MEDIAQUERYNativeModule", "MEDIAQUERY_NativeBridgeArk")
-    new MEDIAQUERYNativeModule()
+    registerNativeModuleLibraryName("OHOS_MEDIAQUERYNativeModule", "MEDIAQUERY_NativeBridgeArk")
+    new OHOS_MEDIAQUERYNativeModule()
 }
 
 export function getLong(): long {

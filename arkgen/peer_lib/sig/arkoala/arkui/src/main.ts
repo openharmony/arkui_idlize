@@ -49,7 +49,7 @@ import {
 } from "./test_utils"
 import { PixelMapInternal } from "@arkoala/arkui/generated/ArkPixelMapMaterialized"
 import { ArkUINativeModule, TestNativeModule } from "@koalaui/arkoala"
-import { ArkUIGeneratedNativeModule } from "./generated/ArkUIGeneratedNativeModule"
+import { ArkUIGeneratedNativeModule } from "./generated/peers/ArkUIGeneratedNativeModule"
 import { mkdirSync, writeFileSync } from "fs"
 import { CallbackKind } from "@arkoala/arkui/generated/peers/CallbackKind"
 import { ResourceId, ResourceHolder } from "@koalaui/interop"

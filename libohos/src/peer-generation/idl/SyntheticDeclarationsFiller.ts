@@ -1,20 +1,20 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary } from "@idlizer/core";
+import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PeerFile, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
+import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
+import { NativeModule } from '../NativeModule';
 
-function createTransformedCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
-    for (const file of library.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (idl.isCallback(entry)) {
-                const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
-                if (transformedCallback &&
-                    !library.resolveTypeReference(idl.createReferenceType(entry)) &&
-                    !synthesizedEntries.has(transformedCallback.name)) {
-                    synthesizedEntries.set(transformedCallback.name, transformedCallback)
-                }
+function createTransformedCallbacks(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>) {
+    targets.forEach(entry => {
+        if (idl.isCallback(entry)) {
+            const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
+            if (transformedCallback &&
+                !library.resolveTypeReference(idl.createReferenceType(entry)) &&
+                !synthesizedEntries.has(transformedCallback.name)) {
+                synthesizedEntries.set(transformedCallback.name, transformedCallback)
             }
         }
-    }
+    })
 }
 
 function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationType: idl.IDLType, synthesizedEntries: Map<string, idl.IDLEntry>): void {
@@ -41,13 +41,17 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
         synthesizedEntries.set(callback.name, callback)
     }
 }
-function createContinuationCallbacks(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
+function createContinuationCallbacks(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>): void {
+    targets.forEach(entry => {
+        if (idl.isCallback(entry)) {
+            const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
+            createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
+        }
+    })
     for (const file of library.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (idl.isCallback(entry)) {
-                const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
-                createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
-            }
+        if (!isInCurrentModule(file.file))
+            continue
+        for (const entry of file.entries) {
             idl.forEachFunction(entry, function_ => {
                 const promise = idl.asPromise(function_.returnType)
                 if (promise) {
@@ -95,35 +99,41 @@ function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string
     }
 }
 
-function createMaterializedInternal(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    for (const file of library.files) {
-        for (const entry of file.entries) {
-            if (idl.isInterface(entry) && isMaterialized(entry, library)) {
-                const name = getInternalClassName(entry.name)
-                synthesizedEntries.set(name, idl.createInterface(
-                    name,
-                    idl.IDLInterfaceSubkind.Interface,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    [idl.createMethod("__stub", [], idl.IDLVoidType)],
-                    undefined,
-                    undefined,
-                    { fileName: entry?.fileName ?? 'generator_synthetic.d.ts', },
-                ))
-
-            }
+function createMaterializedInternal(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>): void {
+    targets.forEach(entry => {
+        if (idl.isInterface(entry) && isMaterialized(entry, library)) {
+            const name = getInternalClassName(entry.name)
+            synthesizedEntries.set(name, idl.createInterface(
+                name,
+                idl.IDLInterfaceSubkind.Interface,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                [idl.createMethod("__stub", [], idl.IDLVoidType)],
+                undefined,
+                undefined,
+                { fileName: entry?.fileName ?? 'generator_synthetic.d.ts', },
+            ))
         }
-    }
+    })
+}
+
+function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
+    const declaration = idl.createInterface(NativeModule.Generated.name, idl.IDLInterfaceSubkind.Interface)
+    const file = idl.createFile([declaration], undefined, PACKAGE_IDLIZE_INTERNAL.split("."))
+    idl.linkParentBack(file)
+    library.files.push(new PeerFile(file))
 }
 
 /** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
 export function fillSyntheticDeclarations(library: PeerLibrary) {
+    const targets = collectDeclarationTargetsUncached(library, { synthesizeCallbacks: false })
     const synthesizedEntries = new Map<string, idl.IDLEntry>()
-    createTransformedCallbacks(library, synthesizedEntries)
-    createContinuationCallbacks(library, synthesizedEntries)
+    createTransformedCallbacks(library, targets, synthesizedEntries)
+    createContinuationCallbacks(library, targets, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
-    createMaterializedInternal(library, synthesizedEntries)
+    createMaterializedInternal(library, targets, synthesizedEntries)
+    fillGeneratedNativeModuleDeclaration(library)
     library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
 }

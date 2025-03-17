@@ -15,16 +15,8 @@
 
 import { ImportFeature } from "../../ImportsCollector"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
-import { writeSerializer } from "../SerializerPrinter"
 import { TargetFile } from "../TargetFile"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./Java"
-
-export function makeJavaSerializer(library: PeerLibrary): { targetFile: TargetFile, writer: LanguageWriter } {
-    let writer = library.createLanguageWriter()
-    writer.print(`package ${ARKOALA_PACKAGE};\n`)
-    writeSerializer(library, writer, "")
-    return { targetFile: new TargetFile('Serializer', ARKOALA_PACKAGE_PATH), writer: writer }
-}
 
 export function printJavaImports(printer: LanguageWriter, imports: ImportFeature[]) {
     if (imports.length == 0) {

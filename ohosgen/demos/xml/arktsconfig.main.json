@@ -7,6 +7,8 @@
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./generated/arkts"],
+            "@ohos.xml": ["./generated/arkts/@ohos.xml"],
+            "@ohos.base": ["./generated/arkts/@ohos.base"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

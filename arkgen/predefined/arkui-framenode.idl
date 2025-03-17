@@ -1,3 +1,5 @@
+package api.internal.component.ets;
+
 [Entity=Class]
 interface FrameNode {
     constructor(UIContext uiContext);

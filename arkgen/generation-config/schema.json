@@ -62,6 +62,34 @@
                         "type": "string"
                     }
                 },
+                "moduleName": {
+                    "type": "string"
+                },
+                "modules": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "packages": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "useFoldersLayout": {
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "name",
+                            "packages"
+                        ],
+                        "type": "object"
+                    }
+                },
                 "GenerateUnused": {
                     "type": "boolean"
                 },
@@ -297,6 +325,8 @@
                 "forceMaterialized",
                 "forceCallback",
                 "forceContext",
+                "moduleName",
+                "modules",
                 "GenerateUnused",
                 "ApiVersion",
                 "dumpSerialized",

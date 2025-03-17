@@ -9,7 +9,7 @@ is_cj = get_option('target_vm') == 'cangjie'
 
 external_interop_dir = '../../../external/interop/src/cpp'
 
-cflags = ['-DKOALA_INTEROP_MODULE=NativeModule', '-DETS_MODULE_CLASSPATH_PREFIX=@xml/generated/arkts/XMLNativeModule/']
+cflags = ['-DKOALA_INTEROP_MODULE=NativeModule', '-DETS_MODULE_CLASSPATH_PREFIX=@xml/generated/arkts/ohos/xml/INTERNAL/']
 ldflags = []
 
 include_dirs = [
@@ -20,7 +20,7 @@ include_dirs = [
 ]
 
 sources = [
-    'generated/native/xml.cc',
+    'generated/native/ohos_xml.cc',
     'src/cpp/xmlImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',

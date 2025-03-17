@@ -38,6 +38,7 @@ import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
 import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
 import { isInIdlizeInternal } from '../idlize'
+import { isInCurrentModule } from './modules'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -57,6 +58,8 @@ export const lenses = {
                 }
                 const next = queue.pop()!
                 next.forEach(node => {
+                    if (!isInCurrentModule(node))
+                        return
                     if (idl.isNamespace(node)) {
                         queue.push(node.members)
                     }
@@ -88,7 +91,9 @@ export class PeerLibrary implements LibraryInterface {
         return this._cachedIdlLibrary
     }
 
-    public get globals() { return query(this.asIDLLibrary(), lenses.globals) }
+    public get globals() {
+        return query(this.asIDLLibrary(), lenses.globals)
+    }
 
     public layout: LayoutManager = LayoutManager.Empty()
 
@@ -112,7 +117,6 @@ export class PeerLibrary implements LibraryInterface {
 
     constructor(
         public language: Language,
-        public libraryPackages: string[] | undefined,
     ) {}
 
     public name: string = ""
@@ -254,9 +258,6 @@ export class PeerLibrary implements LibraryInterface {
         }// end of block to remove
 
         return undefined // empty result
-    }
-    hasInLibrary(entry: idl.IDLEntry): boolean {
-        return !this.libraryPackages?.length || this.libraryPackages?.includes(idl.getPackageName(entry))
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {

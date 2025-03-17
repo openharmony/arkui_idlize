@@ -39,7 +39,7 @@ import {
 } from "./lang/Java";
 import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
-import { collectDeclDependencies } from "../ImportsCollectorUtils";
+import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
@@ -113,7 +113,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
 
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
-        nsPath.forEach(it => printer.pushNamespace(it.name))
         if (clazz.isInterface) {
             writeInterface(clazz, printer)
         } else if (!clazz.isStaticMaterialized) {
@@ -326,7 +325,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             }
 
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
-        nsPath.forEach(() => printer.popNamespace())
     }
 }
 
@@ -357,30 +355,23 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         ], '@koalaui/interop')
         this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
         this.collector.addFeatures(['unsafeCast'], '@koalaui/common')
-        this.collector.addFeatures(['Serializer'], './peers/Serializer')
-        this.collector.addFeatures(['CallbackKind'], './peers/CallbackKind')
+        collectDeclItself(this.library, idl.createReferenceType("Serializer"), this.collector)
+        collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), this.collector)
         this.collector.addFeatures(['int32', 'float32'], '@koalaui/common')
         this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         if (this.library.language === Language.ARKTS) {
-            this.collector.addFeatures(['Deserializer'], './peers/Deserializer')
+            this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+            collectDeclItself(this.library, idl.createReferenceType("Deserializer"), this.collector)
         }
         if (this.library.language === Language.TS) {
             this.collector.addFeature('isInstanceOf', '@koalaui/interop')
-            this.collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
+            collectDeclItself(this.library, idl.createReferenceType("Deserializer"), this.collector)
         }
 
         // specific runtime dependencies
+        collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
-            if (this.library.language === Language.TS) {
-                this.collector.addFeatures(['isResource', 'isPadding'], '../utils')
-                this.collector.addFeatures(['ArkUIGeneratedNativeModule'], './ArkUIGeneratedNativeModule')
-            }
-            if (this.library.language === Language.ARKTS) {
-                this.collector.addFeatures(['ArkUIGeneratedNativeModule'], '#components')
-            }
-        } else {
-            this.collector.addFeatures([NativeModule.Generated.name], `./${NativeModule.Generated.name}`)
         }
     }
 
@@ -425,12 +416,7 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
 }
 
 class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    private printPackage(): void {
-        this.printer.print(`package ${ARKOALA_PACKAGE};\n`)
-    }
-
     override printImports(): void {
-        this.printPackage()
         const imports = [{ feature: 'org.koalaui.interop.Finalizable', module: '' }]
         printJavaImports(this.printer, imports)
     }
@@ -451,7 +437,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
 class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
     protected collectImports(imports: ImportsCollector): void {
         super.collectImports(imports)
-        imports.addFeature("TypeChecker", "#components")
+        collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.collector)
     }
 
     convertToPropertyType(field: MaterializedField): IDLType {

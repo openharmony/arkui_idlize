@@ -1,2 +1,2 @@
-export { MEDIAQUERYNativeModule } from "../../generated/arkts/MEDIAQUERYNativeModule"
-export { TypeChecker } from "../../generated/arkts/peers/type_check"
+export { OHOS_MEDIAQUERYNativeModule } from "../../generated/arkts"
+export { TypeChecker } from "../../generated/arkts"

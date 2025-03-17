@@ -1,0 +1,17 @@
+{
+    "$schema": "../../generation-config/schema.json",
+    "GenerateUnused": true,
+    "moduleName": "application",
+    "modules": {
+        "application": {
+            "name": "application",
+            "packages": ["application.ApplicationContext", "application.BaseContext", "application.Context"],
+            "useFoldersLayout": true
+        },
+        "bundleManager": {
+            "name": "bundleManager",
+            "packages": ["bundleManager.ApplicationInfo"],
+            "useFoldersLayout": true
+        }
+    }
+}

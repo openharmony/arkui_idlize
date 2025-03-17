@@ -1,5 +1,4 @@
-import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
-import { XMLNativeModule } from "../../generated/arkts/XMLNativeModule"
+import { OHOS_XMLNativeModule, checkArkoalaCallbacks } from "../../generated/arkts"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
 import { xml } from "../../generated/arkts"
@@ -14,13 +13,13 @@ export function pullEvents() {
 
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", "XML_NativeBridgeArk")
-    registerNativeModuleLibraryName("XMLNativeModule", "XML_NativeBridgeArk")
-    new XMLNativeModule()
+    registerNativeModuleLibraryName("OHOS_XMLNativeModule", "XML_NativeBridgeArk")
+    new OHOS_XMLNativeModule()
 }
 
 function makeBuffer(len: int32, init:byte[]): OHBuffer {
     const data = new byte[64];
-    XMLNativeModule._AllocateNativeBuffer(len, data, init);
+    OHOS_XMLNativeModule._AllocateNativeBuffer(len, data, init);
     const des = new DeserializerBase(data, 64);
     return des.readBuffer()
 }

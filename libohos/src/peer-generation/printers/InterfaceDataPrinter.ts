@@ -28,7 +28,7 @@ import { isComponentDeclaration } from "../ComponentsCollector";
  */
 export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap(file => {
-        if (library?.libraryPackages?.length && !library.libraryPackages.includes(file.packageName()))
+        if (!idl.isInCurrentModule(file.file) || idl.isInIdlize(file.file))
             return []
         return idl.linearizeNamespaceMembers(file.entries)
             .filter(it => !isInIdlizeInternal(it))
@@ -200,10 +200,6 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
         collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
     }
 
-    const ns = idl.getNamespaceName(entry)
-    if (ns !== '') {
-        printer.pushNamespace(ns)
-    }
     if (idl.isInterfaceSubkind(entry)) {
         if(library.language == idl.Language.CJ) {
             if (!['RuntimeType', 'CallbackResource', 'Materialized'].includes(entry.name))
@@ -217,9 +213,6 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
         printer.writeClass(entry.name, w => {
             printInterfaceBody(library, entry, w)
         })
-    }
-    if (ns !== '') {
-        printer.popNamespace()
     }
 
     return {
@@ -239,18 +232,11 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
     collectDeclDependencies(library, entry, collector)
 
     if ([idl.Language.TS, idl.Language.ARKTS].includes(library.language)) {
-        const ns = idl.getNamespaceName(entry)
-        if (ns !== '') {
-            printer.pushNamespace(ns)
-        }
         printer.writeEnum(entry.name, entry.elements.map((it, idx) => ({
             name: it.name,
             numberId: typeof it.initializer === 'number' ? it.initializer : idx,
             stringId: typeof it.initializer === 'string' ? it.initializer : undefined
         })))
-        if (ns !== '') {
-            printer.popNamespace()
-        }
     }
     if (library.language === idl.Language.CJ) {
         CJDeclConvertor.makeEnum(entry, printer)
@@ -273,16 +259,7 @@ function printTypedef(library: PeerLibrary, entry: idl.IDLTypedef): PrinterResul
     collectDeclDependencies(library, entry, collector)
 
     if ([idl.Language.TS, idl.Language.ARKTS].includes(library.language)) {
-        const ns = idl.getNamespaceName(entry)
-        if (ns !== '') {
-            printer.pushNamespace(ns)
-        }
-
         printer.writeTypeDeclaration(entry)
-
-        if (ns !== '') {
-            printer.popNamespace()
-        }
     }
     if (library.language === idl.Language.CJ) {
         printer.writeTypeDeclaration(entry)

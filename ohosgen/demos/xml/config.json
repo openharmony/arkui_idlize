@@ -1,0 +1,11 @@
+{
+    "$schema": "../../generation-config/schema.json",
+    "GenerateUnused": true,
+    "moduleName": "ohos.xml",
+    "modules": {
+        "ohos.xml": {
+            "name": "ohos.xml",
+            "packages": ["ohos.xml", "ohos.base"]
+        }
+    }
+}

@@ -1,4 +1,4 @@
-package internal.component.ets;
+package ohos.base;
 
 interface BusinessError {
     attribute String name;

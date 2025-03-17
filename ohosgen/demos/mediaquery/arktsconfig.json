@@ -6,6 +6,8 @@
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./src/panda/components"],
+            "@ohos.mediaquery": ["./generated/arkts/@ohos.mediaquery"],
+            "@ohos.base": ["./generated/arkts/@ohos.base"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

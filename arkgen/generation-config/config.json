@@ -274,5 +274,12 @@
         "TestCallVoidIntArrayPrefixSum",
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory"
-    ]
+    ],
+    "moduleName": "arkui",
+    "modules": {
+        "arkui": {
+            "name": "arkui",
+            "packages": [""]
+        }
+    }
 }

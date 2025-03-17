@@ -39,5 +39,12 @@
     "CollapseOverloadsARKTS": true,
     "linter": {
         "checkReferencesResolved": false
+    },
+    "moduleName": "arkui",
+    "modules": {
+        "arkui": {
+            "name": "arkui",
+            "packages": [""]
+        }
     }
 }

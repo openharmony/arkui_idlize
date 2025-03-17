@@ -20,7 +20,7 @@ include_dirs = [
 ]
 
 sources = [
-    'generated/native/context.cc',
+    'generated/native/application.cc',
     'src/cpp/contextImpl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
@@ -86,7 +86,7 @@ elif is_panda
     platform_build_dir = 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@context/generated/arkts/CONTEXTNativeModule/']
+    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@context/generated/arkts/application/INTERNAL/']
     include_dirs += [
         external_interop_dir / 'ets',
     ]

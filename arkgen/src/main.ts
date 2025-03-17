@@ -202,7 +202,7 @@ if (options.idl2peer) {
     const language = Language.fromString(options.language ?? "ts")
     const { inputFiles, inputDirs } = formatInputPaths(options)
 
-    const idlLibrary = new ArkoalaPeerLibrary(language, options.libraryPackages)
+    const idlLibrary = new ArkoalaPeerLibrary(language)
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
@@ -241,7 +241,7 @@ if (options.dts2peer) {
     const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
 
-    const idlLibrary = new ArkoalaPeerLibrary(lang, options.libraryPackages)
+    const idlLibrary = new ArkoalaPeerLibrary(lang)
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
         const file = toIDLFile(idlFilename)

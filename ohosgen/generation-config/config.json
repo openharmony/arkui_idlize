@@ -3,7 +3,7 @@
     "TypePrefix": "OH_",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",
-    "GenerateUnused": false,
+    "GenerateUnused": true,
     "dumpSerialized": false,
     "ApiVersion": 9999,
     "ignoreMaterialized": [],
@@ -38,5 +38,13 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": false
+    "CollapseOverloadsARKTS": false,
+    "moduleName": "multimodules_disabled",
+    "modules": {
+        "multimodules_disabled": {
+            "name": "multimodules_disabled",
+            "packages": [""],
+            "useFoldersLayout": true
+        }
+    }
 }

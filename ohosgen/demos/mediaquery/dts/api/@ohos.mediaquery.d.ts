@@ -34,7 +34,6 @@ declare namespace mediaquery {
   }
 
 
-  function matchMediaSync(condition: string): MediaQueryListener;
   function test(num:bigint): bigint
 
     function testPutString(x: string);
@@ -59,5 +58,8 @@ declare namespace mediaquery {
 
 
 }
+
+// TODO moved out of namespace due to panda bug 23884
+declare function matchMediaSync(condition: string): mediaquery.MediaQueryListener;
 
 export default mediaquery;

@@ -23,7 +23,8 @@ import { createLanguageWriter, LanguageWriter, PeerFile,
      MethodSignature,
      NamedMethodSignature,
      isInIdlize,
-     isInIdlizeInternal
+     isInIdlizeInternal,
+     isInCurrentModule
 } from '@idlizer/core'
 import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
     collectAllProperties,
@@ -807,7 +808,7 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             registerEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
-            if (this.peerLibrary?.libraryPackages?.length && !this.peerLibrary.libraryPackages.includes(file.packageName()))
+            if (!isInCurrentModule(file.file))
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (isInIdlizeInternal(entry) ||

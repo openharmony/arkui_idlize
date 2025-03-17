@@ -6,8 +6,8 @@
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./src/panda/components"],
-            "@internal/component/ets": ["src/modules/internal/components"],
-            "@bundleManager": ["src/modules/bundleManager/components"],
+            "@bundleManager/*": ["src/modules/bundleManager/*"],
+            "@ohos.base": ["src/modules/internal/components"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

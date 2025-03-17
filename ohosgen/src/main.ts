@@ -28,6 +28,7 @@ import {
     toIDLFile,
     scanInputDirs,
     D,
+    NativeModuleType,
 } from "@idlizer/core"
 import {
     isEnum,
@@ -43,6 +44,7 @@ import { IDLVisitor, loadPeerConfiguration,
     validatePaths,
     libohosPredefinedFiles,
     PeerGeneratorConfigurationSchema,
+    NativeModule,
 } from "@idlizer/libohos"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
@@ -97,11 +99,11 @@ if (options.idl2peer) {
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
 
-    const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
+    const { inputFiles, inputDirs } = formatInputPaths(options)
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
 
-    const idlLibrary = new PeerLibrary(language, libraryPackages)
+    const idlLibrary = new PeerLibrary(language)
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
@@ -119,6 +121,10 @@ if (options.idl2peer) {
     }
     new IdlPeerProcessor(idlLibrary).process()
 
+    initLibraryName(idlLibrary)
+    fillSyntheticDeclarations(idlLibrary)
+    const peerProcessor = new IdlPeerProcessor(idlLibrary)
+    peerProcessor.process()
     generateTarget(idlLibrary, outDir, language)
 
     didJob = true
@@ -128,12 +134,13 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    const { inputFiles, inputDirs, libraryPackages } = formatInputPaths(options)
+    const { inputFiles, inputDirs } = formatInputPaths(options)
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
 
     options.docs = "all"
-    const idlLibrary = new PeerLibrary(lang, libraryPackages)
+    const idlLibrary = new PeerLibrary(lang)
+    initLibraryName(idlLibrary)
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
@@ -221,7 +228,8 @@ function processInputFiles(files: string[] | string | undefined): string[] {
     return filesList.filter(processPath)
 }
 
-function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
+function initLibraryName(idlLibrary: PeerLibrary) {
+    // TODO really dirty - I do not like PeerLibrary.name at all, should be reworked in another way.
     idlLibrary.name = options.defaultIdlPackage?.toUpperCase() ?? ""
     if (!idlLibrary.name.length) {
         idlLibrary.name = suggestLibraryName(idlLibrary)
@@ -229,6 +237,10 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
     if (!idlLibrary.name.length) {
         throw new Error("No name can be assigned to generated package. please provide name via --default-idl-package ")
     }
+    NativeModule.Generated = new NativeModuleType(idlLibrary.name + 'NativeModule')
+}
+
+function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
     generateOhos(outDir, idlLibrary, {
         ...peerGeneratorConfiguration(),
         LibraryPrefix: `${idlLibrary.name.toUpperCase()}_`,

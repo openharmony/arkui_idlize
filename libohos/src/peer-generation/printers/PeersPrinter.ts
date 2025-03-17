@@ -38,7 +38,7 @@ import { printJavaImports } from "./lang/JavaPrinters";
 import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
         IDLVoidType, isNamedNode, isPrimitiveType
 } from '@idlizer/core'
-import { collectDeclDependencies } from "../ImportsCollectorUtils";
+import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { findComponentByType } from "../ComponentsCollector";
 import { NativeModule } from "../NativeModule";
 
@@ -97,11 +97,13 @@ class PeerFileVisitor {
         if (this.library.language === Language.TS) {
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
+            imports.addFeatures(['isResource', 'isPadding'], '../utils')
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
-            imports.addFeature('CallbackKind', './peers/CallbackKind')
+            collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), imports)
             imports.addFeature('CallbackTransformer', './peers/CallbackTransformer')
+            collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
         }
         if (printer.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")
@@ -110,8 +112,7 @@ class PeerFileVisitor {
             imports.addFeature("TypeChecker", "#components")
         }
         if (this.library.language !== Language.ARKTS) {
-            imports.addFeature("Deserializer", "./peers/Deserializer")
-            imports.addFeature("createDeserializer", "./peers/Deserializer")
+            collectDeclItself(this.library, idl.createReferenceType("Deserializer"), imports)
         }
         imports.addFeatures(["MaterializedBase", "toPeerPtr", "wrapCallback"], "@koalaui/interop")
         // collectMaterializedImports(imports, this.library)
@@ -251,9 +252,7 @@ class PeerFileVisitor {
         switch (lang) {
             case Language.TS: {
                 return [...defaultPeerImports,
-                    `import { isInstanceOf } from "@koalaui/interop"`,
-                    `import { isResource, isPadding } from "../../utils"`,
-                    `import { ${NativeModule.Generated.name} } from "../${NativeModule.Generated.name}"`,]
+                    `import { isInstanceOf } from "@koalaui/interop"`]
             }
             case Language.ARKTS: {
                 return [...defaultPeerImports,

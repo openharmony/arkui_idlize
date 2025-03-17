@@ -167,17 +167,18 @@ export function generate<T>(
     }
 }
 
+export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"
 
 export function isInIdlize(entry: idl.IDLEntry | idl.IDLFile): boolean {
     return idl.isInPackage(entry, "idlize")
 }
 
 export function isInIdlizeInterop(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, "idlize.internal.interop")
+    return idl.isInPackage(entry, `${PACKAGE_IDLIZE_INTERNAL}.interop`)
 }
 
 export function isInIdlizeInternal(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, "idlize.internal")
+    return idl.isInPackage(entry, PACKAGE_IDLIZE_INTERNAL)
 }
 
 export function isInIdlizeStdlib(entry: idl.IDLEntry | idl.IDLFile): boolean {

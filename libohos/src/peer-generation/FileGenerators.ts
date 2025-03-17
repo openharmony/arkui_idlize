@@ -18,14 +18,12 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, crea
 import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { CppLanguageWriter, LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
-import { writeDeserializer, writeSerializer } from "./printers/SerializerPrinter"
 import { ImportsCollector } from "./ImportsCollector"
-import { writeARKTSTypeCheckers, writeTSTypeCheckers } from "./printers/TypeCheckPrinter"
-import { printCallbacksKinds, printCallbacksKindsImports, printDeserializeAndCall } from "./printers/CallbacksPrinter"
+import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
 import { SourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
-import { makeCJDeserializer, makeCJSerializer } from "./printers/lang/CJPrinters"
+import { createDeserializerPrinter, createSerializerPrinter } from "./printers/SerializerPrinter";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
 
@@ -241,117 +239,20 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function makeSerializer(library: PeerLibrary): string {
-    switch (library.language) {
-        case Language.ARKTS: return makeTSSerializer(library).getOutput().join("\n")
-        case Language.TS: return makeTSSerializer(library).getOutput().join("\n")
-        case Language.CJ: return makeCJSerializer(library).getOutput().join("\n")
-    }
-    throw new Error(`Unsupported language "${library.language}"`)
-}
-
-export function makeTSSerializer(library: PeerLibrary): LanguageWriter {
-    let printer = library.createLanguageWriter()
-    printer.writeLines(cStyleCopyright)
-    const imports = new ImportsCollector()
-    imports.addFeatures([
-        "SerializerBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr"
-    ], "@koalaui/interop")
-    imports.addFeatures(["int32", "float32"], "@koalaui/common")
-    if (printer.language == Language.TS) {
-        imports.addFeatures([
-            "MaterializedBase", "InteropNativeModule", "ResourceHolder",
-            "nullptr", "KPointer", "isInstanceOf",
-        ], "@koalaui/interop")
-        imports.addFeatures(["isResource", "isPadding"], "../../utils")        
-        imports.addFeatures(["unsafeCast"], "@koalaui/common")
-        imports.addFeatures(["CallbackKind"], "CallbackKind")
-    }
-    if (printer.language == Language.ARKTS) {
-        imports.addFeatures(["unsafeCast"], "@koalaui/common")
-        imports.addFeatures(["MaterializedBase"], "@koalaui/interop")
-        imports.addFeatures(['nullptr', 'KPointer'], '@koalaui/interop')
-        imports.addFeatures(["int64"], "@koalaui/common")
-    }
-    imports.print(printer, '')
-    writeSerializer(library, printer, "")
-    return printer
-}
-
-export function makeTypeChecker(library: PeerLibrary, language: Language): string {
-    if (language === Language.ARKTS) {
-    let arktsPrinter = createLanguageWriter(Language.ARKTS)
-    writeARKTSTypeCheckers(library, arktsPrinter)
-        return arktsPrinter.getOutput().join("\n")
-    }
-
-    if (language === Language.TS) {
-    let tsPrinter = createLanguageWriter(Language.TS)
-    writeTSTypeCheckers(library, tsPrinter)
-        return tsPrinter.getOutput().join("\n")
-    }
-
-    throw new Error("Only TS/ARKTS are allowed here")
-}
-
 export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
     const serializers = library.createLanguageWriter(Language.CPP)
     const writeToString = library.createLanguageWriter(Language.CPP)
     serializers.print("\n// Serializers\n")
-    writeSerializer(library, serializers, "")
+    createSerializerPrinter(Language.CPP, "")(library).forEach(it => serializers.concat(it.content))
     serializers.print("\n// Deserializers\n")
-    writeDeserializer(library, serializers, "")
+    createDeserializerPrinter(Language.CPP, "")(library).forEach(it => serializers.concat(it.content))
     generateStructs(library, structs, typedefs, writeToString)
 
     return `
 ${writeToString.getOutput().join("\n")}
 
 ${serializers.getOutput().join("\n")}
-`
-}
-
-export function makeTSDeserializer(library: PeerLibrary): string {
-    const deserializer = library.createLanguageWriter(Language.TS)
-    writeDeserializer(library, deserializer, "")
-    return `${cStyleCopyright}
-import { runtimeType, Tags, RuntimeType, SerializerBase, DeserializerBase, CallbackResource } from "@koalaui/interop"
-import { KPointer, ${NativeModule.Interop.name} } from "@koalaui/interop"
-import { MaterializedBase } from "@koalaui/interop"
-import { int32, float32, unsafeCast } from "@koalaui/common"
-import { CallbackKind } from "./CallbackKind"
-import { Serializer } from "./Serializer"
-
-${deserializer.getOutput().join("\n")}
-
-export function createDeserializer(args: Uint8Array, length: int32): Deserializer { return new Deserializer(args, length) }
-`
-}
-
-export function makeDeserializer(library: PeerLibrary): string {
-    switch (library.language) {
-        case Language.ARKTS: return makeArkTSDeserializer(library)
-        case Language.TS: return makeTSDeserializer(library)
-        case Language.CJ: return makeCJDeserializer(library)
-    }
-    throw new Error(`Unsupported language "${library.language}"`)
-}
-
-export function makeArkTSDeserializer(library: PeerLibrary): string {
-    const printer = library.createLanguageWriter(Language.ARKTS)
-    printer.writeLines(cStyleCopyright)
-
-    const imports = new ImportsCollector()
-    imports.addFeatures(["KPointer", "runtimeType", "RuntimeType", "CallbackResource", "DeserializerBase"], "@koalaui/interop")
-    imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
-    imports.addFeature("Serializer", "./Serializer")
-    imports.addFeatures([NativeModule.Generated.name], "#components")
-    imports.addFeatures(["CallbackKind"], "CallbackKind")
-    imports.print(printer, '')
-
-    writeDeserializer(library, printer, "")
-    return `
-${printer.getOutput().join("\n")}
 `
 }
 
@@ -448,12 +349,6 @@ export function tsCopyrightAndWarning(content: string): string {
 
 ${content}
 `
-}
-
-export function makeDeserializeAndCall(library: PeerLibrary, language: Language, fileName: string): SourceFile {
-    const writer = SourceFile.make(fileName, language, library)
-    printDeserializeAndCall(library.name, library, writer)
-    return writer
 }
 
 export function makeCallbacksKinds(library: PeerLibrary, language: Language): string {

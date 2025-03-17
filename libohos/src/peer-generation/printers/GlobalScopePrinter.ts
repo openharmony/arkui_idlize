@@ -33,6 +33,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     )
 
     const peerImports = new ImportsCollector()
+    collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), peerImports)
     const peerMethodWriter = library.createLanguageWriter()
 
     const printed = library.globals.flatMap(scope => {
@@ -47,17 +48,15 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             })
 
             peerImports.merge(imports)
-            imports.addFeatures([realizationHolder.name], library.layout.resolve(realizationHolder, idl.LayoutNodeRole.PEER))
+            imports.addFeatures([realizationHolder.name], library.layout.resolve(realizationHolder, idl.LayoutNodeRole.GLOBAL))
 
             // entities
-            const nsPath = idl.getNamespacesPathFor(methods[0])
             const peerMethods = idlFreeMethodToLegacy(library, methods)
             const method = collapseSameMethodsIDL(methods)
             const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
 
             // write
             const writer = library.createLanguageWriter()
-            nsPath.forEach(it => writer.pushNamespace(it.name))
 
             /* global scope export function */
             writer.writeFunctionImplementation(method.name, signature, w => {
@@ -85,8 +84,6 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 )
             })
 
-            nsPath.forEach(() => writer.popNamespace())
-
             return [{
                 collector: imports,
                 content: writer,
@@ -98,15 +95,11 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         })
 
         const constantPrinterResults = scope.constants.flatMap((it):PrinterResult[] => {
-            const nsPath = idl.getNamespacesPathFor(it)
             const writer = library.createLanguageWriter()
 
             const imports = new ImportsCollector()
             collectDeclDependencies(library, it.type, imports)
-
-            nsPath.forEach(it => writer.pushNamespace(it.name))
             writer.writeConstant(it.name, it.type, it.value)
-            nsPath.forEach(() => writer.popNamespace())
 
             return [{
                 collector: imports,
@@ -135,7 +128,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         content: realizationWriter,
         over: {
             node: realizationHolder,
-            role: idl.LayoutNodeRole.PEER
+            role: idl.LayoutNodeRole.GLOBAL
         },
         private: true
     }
@@ -156,28 +149,24 @@ function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
     ], '@koalaui/interop')
     collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
     collector.addFeatures(['unsafeCast'], '@koalaui/common')
-    collector.addFeatures(['Serializer'], './peers/Serializer')
-    collector.addFeatures(['CallbackKind'], './peers/CallbackKind')
+    collectDeclItself(library, idl.createReferenceType('Serializer'), collector)
+    collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
     collector.addFeatures(['int32', 'float32'], '@koalaui/common')
     if (library.language === idl.Language.ARKTS) {
         collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
-        collector.addFeatures(['Deserializer'], './peers/Deserializer')
+        collectDeclItself(library, idl.createReferenceType('Deserializer'), collector)
         importTypeChecker(library, collector)
     }
     if (library.language === idl.Language.TS) {
         collector.addFeature('isInstanceOf', '@koalaui/interop')
-        collector.addFeatures(['Deserializer', 'createDeserializer'], './peers/Deserializer')
+        if (library.name === 'arkoala')
+            collector.addFeatures(['isResource', 'isPadding'], '../utils')
+        collectDeclItself(library, idl.createReferenceType('Deserializer'), collector)
     }
+    collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     if (library.name === 'arkoala') {
         collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
-        if (library.language === idl.Language.TS) {
-            collector.addFeatures(['isResource', 'isPadding'], '../utils')
-            collector.addFeatures(['ArkUIGeneratedNativeModule'], './ArkUIGeneratedNativeModule')
-        }
-        if (library.language === idl.Language.ARKTS) {
-            collector.addFeatures(['ArkUIGeneratedNativeModule'], '#components')
-        }
     } else {
-        collector.addFeatures([NativeModule.Generated.name], `./${NativeModule.Generated.name}`)
+        collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     }
 }

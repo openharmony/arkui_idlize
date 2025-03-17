@@ -25,125 +25,99 @@ import {
     setDefaultConfiguration,
     PeerLibrary,
     Method,
+    createReferenceType,
+    IDLEntry,
+    LayoutNodeRole,
 } from "@idlizer/core";
 import {
-    layout,
     writeIntegratedFile,
     createMaterializedPrinter,
     printGlobal,
-    makeCallbacksKinds,
-    makeDeserializeAndCall,
-    makeDeserializer,
-    makeSerializer,
-    makeTypeChecker,
     readLangTemplate,
-    printArkUIGeneratedNativeModule,
     NativeModule,
     TargetFile,
     install,
     printInterfaceData,
     printCJArkUIGeneratedNativeFunctions,
     PeerGeneratorConfiguration,
+    createSerializerPrinter,
+    createDeserializerPrinter,
+    createCallbackKindPrinter,
+    PrinterResult,
+    ImportsCollector,
+    collectDeclItself,
+    createDeserializeAndCallPrinter,
+    createGeneratedNativeModulePrinter,
+    printArkTSTypeChecker,
 } from '@idlizer/libohos';
 import { OhosInstall } from "./OhosInstall"
 import { generateNativeOhos, suggestLibraryName } from './OhosNativeVisitor';
+import { ohosLayout } from './OhosLayout';
+
+function printCallbackChecker(peerLibrary: PeerLibrary): PrinterResult[] {
+    const content = peerLibrary.createLanguageWriter(peerLibrary.language)
+    content.writeLines(readLangTemplate('CallbacksChecker', peerLibrary.language))
+    const imports = new ImportsCollector()
+    imports.addFeatures(["InteropNativeModule", "ResourceHolder", "KBuffer"], "@koalaui/interop")
+    collectDeclItself(peerLibrary, createReferenceType("Deserializer"), imports)
+    collectDeclItself(peerLibrary, createReferenceType("deserializeAndCallCallback"), imports)
+    return [{
+        over: {
+            node: peerLibrary.resolveTypeReference(createReferenceType("checkArkoalaCallbacks")) as IDLEntry,
+            role: LayoutNodeRole.PEER
+        },
+        collector: imports,
+        content: content,
+    }]
+}
 
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: PeerGeneratorConfiguration) {
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
-    peerLibrary.setFileLayout(layout(peerLibrary, "OH", `org/openharmony/${config.LibraryPrefix}`))
+    peerLibrary.setFileLayout(ohosLayout(peerLibrary))
 
     const ohos = new OhosInstall(outDir, peerLibrary.language)
-
-    NativeModule.Generated = new NativeModuleType(peerLibrary.name + 'NativeModule')
 
     const ohosManagedFiles: string[] = []
 
     // MANAGED
     /////////////////////////////////////////
 
-    // managed-interop-serializers
-
-    writeIntegratedFile(ohos.peer(new TargetFile('Serializer')),
-        makeSerializer(peerLibrary)
-    )
-    const deserializerFilePath = ohos.peer(new TargetFile('Deserializer'))
-    writeIntegratedFile(deserializerFilePath,
-        makeDeserializer(peerLibrary)
-    )
-
-    // managed-callbacks
-
-    writeIntegratedFile(ohos.peer(new TargetFile('CallbackKind')),
-        makeCallbacksKinds(peerLibrary, peerLibrary.language)
-    )
-    const callbackAndCallFilePath = ohos.peer(new TargetFile('CallbackDeserializeCall'))
-    writeIntegratedFile(callbackAndCallFilePath,
-        makeDeserializeAndCall(peerLibrary, peerLibrary.language, "./peers/CallbackDeserializeCall.ts").printToString()
-    )
-
-    // managed-native-module
-
-    const nativeModuleFileName = NativeModule.Generated.name + peerLibrary.language.extension
-    writeIntegratedFile(
-        ohos.materialized(new TargetFile(nativeModuleFileName)),
-        peerLibrary.language == Language.CJ ?
-        printCJArkUIGeneratedNativeFunctions(peerLibrary, NativeModule.Generated).printToString().concat(
-            printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated).content.getOutput().join('\n')
-        ) :
-        printArkUIGeneratedNativeModule(peerLibrary, NativeModule.Generated, w => {
-            // add method for arkts buffer stubs
-            if (peerLibrary.language === Language.ARKTS) {
-                w.writeNativeMethodDeclaration(new Method(
-                    '_AllocateNativeBuffer',
-                    NamedMethodSignature.make(
-                        IDLBufferType,
-                        [
-                            { name: 'len', type: IDLI32Type },
-                            { name: 'data', type: IDLUint8ArrayType },
-                            { name: 'init', type: IDLUint8ArrayType },
-                        ]
-                    )
-                ))
-            }
-        }).printToString()
-    )
-
-    // managed-utils
-
-    if (peerLibrary.language === Language.ARKTS) {
-        writeIntegratedFile(ohos.peer(new TargetFile('type_check')),
-            makeTypeChecker(peerLibrary, peerLibrary.language)
-        )
-    }
-
-    // managed-stubs
-
-    const callbackCheckerFilePath = ohos.peer(new TargetFile('CallbacksChecker'))
-    writeIntegratedFile(
-        callbackCheckerFilePath,
-        readLangTemplate('CallbacksChecker', peerLibrary.language)
-            .replaceAll(
-                '%DESERIALIZER_PATH%',
-                './' + path.relative(path.dirname(callbackCheckerFilePath), deserializerFilePath)
-                    .replaceAll(peerLibrary.language.extension, '')
-            )
-            .replaceAll(
-                "%CALLBACKS_PATH%",
-                './' + path.relative(path.dirname(callbackCheckerFilePath), callbackAndCallFilePath)
-                    .replaceAll(peerLibrary.language.extension, '')
-            )
-    )
-
     // install managed part
-
+    const spreadIfLang = <T>(langs: Language[], ...data: T[]): T[] => {
+        if (langs.includes(peerLibrary.language))
+            return data
+        return []
+    }
     const installed = install(
         ohos.managedDir(),
         peerLibrary,
         [
+            createCallbackKindPrinter(peerLibrary.language),
             createMaterializedPrinter(false),
             printInterfaceData,
             printGlobal,
+            createSerializerPrinter(peerLibrary.language, ""),
+            createDeserializerPrinter(peerLibrary.language, ""),
+            printCallbackChecker,
+            createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
+            createGeneratedNativeModulePrinter(NativeModule.Generated, w => {
+                // add method for arkts buffer stubs
+                if (peerLibrary.language === Language.ARKTS) {
+                    w.writeNativeMethodDeclaration(new Method(
+                        '_AllocateNativeBuffer',
+                        NamedMethodSignature.make(
+                            IDLBufferType,
+                            [
+                                { name: 'len', type: IDLI32Type },
+                                { name: 'data', type: IDLUint8ArrayType },
+                                { name: 'init', type: IDLUint8ArrayType },
+                            ]
+                        )
+                    ))
+                }
+            }),
+            ...spreadIfLang([Language.ARKTS], printArkTSTypeChecker),
         ]
     )
 
@@ -154,10 +128,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
         ohosManagedFiles.forEach(it => {
             generatedFiles.push('./' + path.relative(ohos.managedDir(), it))
         })
-        if (peerLibrary.language === Language.ARKTS) {
-            generatedFiles.push(path.join(ohos.managedDir(), 'peers/type_check.ts'))
-            generatedFiles.push(path.join(ohos.managedDir(), path.basename(nativeModuleFileName, path.extname(nativeModuleFileName))))
-        }
         writeIntegratedFile(path.join(ohos.managedDir(), 'index.ts'),
             makeOhosModule(ohos.managedDir(), generatedFiles)
         )

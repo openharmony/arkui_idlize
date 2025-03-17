@@ -27,7 +27,7 @@ function processInputOption(option: string | undefined): string[] {
     return []
 }
 
-export function formatInputPaths(options: any): { inputDirs: string[]; inputFiles: string[], libraryPackages: string[] } {
+export function formatInputPaths(options: any): { inputDirs: string[]; inputFiles: string[] } {
     if (options.inputFiles && typeof options.inputFiles === 'string') {
         options.inputFiles = processInputOption(options.inputFiles)
     }
@@ -36,15 +36,10 @@ export function formatInputPaths(options: any): { inputDirs: string[]; inputFile
         options.inputDir = processInputOption(options.inputDir)
     }
 
-    if (options.libraryPackages && typeof options.libraryPackages === 'string') {
-        options.libraryPackages = processInputOption(options.libraryPackages)
-    }
-
     const inputDirs: string[] = options.inputDir || []
     const inputFiles: string[] = options.inputFiles || []
-    const libraryPackages: string[] = options.libraryPackages || []
 
-    return { inputDirs, inputFiles, libraryPackages }
+    return { inputDirs, inputFiles }
 }
 
 export function validatePaths(paths: string[], type: 'file' | 'dir'): void {

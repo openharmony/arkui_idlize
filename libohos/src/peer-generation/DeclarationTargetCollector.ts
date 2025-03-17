@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, PeerFile } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, PeerFile, isInCurrentModule, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";
@@ -8,17 +8,17 @@ import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
 export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNode[] {
+    if (!collectDeclarationTargets_cache.has(library))
+        collectDeclarationTargets_cache.set(library, collectDeclarationTargetsUncached(library, { synthesizeCallbacks: true }))
+    return collectDeclarationTargets_cache.get(library)!
+}
 
+export function collectDeclarationTargetsUncached(library: LibraryInterface, options: { synthesizeCallbacks: boolean }): idl.IDLNode[] {
     const generateUnused = peerGeneratorConfiguration().GenerateUnused
-
-    if (collectDeclarationTargets_cache.has(library))
-        return collectDeclarationTargets_cache.get(library)!
-
-    const callbacks = collectUniqueCallbacks(library, { transformCallbacks: true })
 
     let orderer = new DependencySorter(library)
     for (const file of library.files) {
-        if (library.libraryPackages?.length && !library.libraryPackages.includes((file as PeerFile).packageName()))
+        if (!file.entries.length || !isInCurrentModule(file.entries[0]/*TODO just IDLFile*/))
             continue
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
@@ -67,14 +67,85 @@ export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNod
                 orderer.addDep(entry.returnType)
             } else if (idl.isConstant(entry)) {
                 orderer.addDep(entry.type)
+            } else if (idl.isCallback(entry)) {
+                orderer.addDep(entry)
             }
         }
     }
-    for (const callback of callbacks) orderer.addDep(callback)
-    const orderedDependencies = orderer.getToposorted()
+    if (options.synthesizeCallbacks) {
+        synthesizeCallbacks(library, orderer)
+    }
+    let orderedDependencies = orderer.getToposorted()
     orderedDependencies.unshift(idl.IDLI32Type)
-    collectDeclarationTargets_cache.set(library, orderedDependencies)
     return orderedDependencies
+}
+
+function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorter): void {
+    const foundCallbacksNames = new Set<string>()
+    const foundCallbacks: idl.IDLCallback[] = []
+    const addCallback = (callback: idl.IDLCallback) => {
+        callback = maybeTransformManagedCallback(callback, library) ?? callback
+        if (foundCallbacksNames.has(callback.name))
+            return
+        foundCallbacksNames.add(callback.name)
+        foundCallbacks.push(callback)
+    }
+    for (const decl of orderer.getToposorted()) {
+        if (idl.isCallback(decl)) {
+            addCallback(decl)
+        }
+    }
+    for (const file of library.files) {
+        for (const entry of file.entries) {
+            if (isInCurrentModule(entry))
+                idl.forEachFunction(entry, function_ => {
+                    const promise = idl.asPromise(function_.returnType)
+                    if (promise) {
+                        const reference = library.createContinuationCallbackReference(promise)
+                        const callback = library.resolveTypeReference(reference)
+                        if (callback)
+                            addCallback(callback as idl.IDLCallback)
+                    }
+                })
+        }
+    }
+    for (const foundCallback of [...foundCallbacks]) {
+        const continuationRef = library.createContinuationCallbackReference(foundCallback.returnType)
+        const continuation = library.resolveTypeReference(continuationRef)
+        if (continuation && idl.isCallback(continuation))
+            addCallback(continuation)
+    }
+    foundCallbacks
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .filter(callback => {
+            const subtypes = callback.parameters.map(it => it.type!).concat(callback.returnType)
+                .flatMap(it => {
+                    if (idl.isContainerType(it))
+                        return it.elementType
+                    if (idl.isUnionType(it))
+                        return it.types
+                    if (idl.isOptionalType(it))
+                        return it.type
+                    return it
+                })
+            // handwritten types are not serializable
+            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().isHandWritten(it.name)))
+                return false
+            // can not process callbacks with type arguments used inside
+            // (value: SomeInterface<T>) => void
+            if (subtypes.some(it => idl.isReferenceType(it) && it.typeArguments))
+                return false
+            // (value: T) => void
+            if (subtypes.some(it => idl.isTypeParameterType(it)))
+                return false
+            // (value: IgnoredInterface) => void
+            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().ignoreEntry(it.name, library.language)))
+                return false
+            if (subtypes.some(it => idl.isNamedNode(it) && it.name === "this"))
+                return false
+            return true
+        })
+        .forEach(it => orderer.addDep(it))
 }
 
 export namespace DeclarationTargets {

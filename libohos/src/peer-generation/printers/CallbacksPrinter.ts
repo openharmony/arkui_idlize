@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter, PeerLibrary, PrimitiveTypesInstance } from "@idlizer/core"
+import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, PeerLibrary, PrimitiveTypesInstance } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
@@ -23,6 +23,8 @@ import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess,
 import { PrintHint } from "@idlizer/core";
 import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
+import { collectDeclarationTargets } from '../DeclarationTargetCollector';
+import { PrinterFunction, PrinterResult } from '../LayoutManager';
 
 function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
     let res: idl.IDLCallback[] = []
@@ -50,67 +52,15 @@ function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): 
 }
 
 export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
-    const foundCallbacksNames = new Set<string>()
-    const foundCallbacks: idl.IDLCallback[] = []
-    const addCallback = (callback: idl.IDLCallback) => {
-        if (options?.transformCallbacks)
-            callback = maybeTransformManagedCallback(callback, library) ?? callback
-        if (foundCallbacksNames.has(callback.name))
-            return
-        foundCallbacksNames.add(callback.name)
-        foundCallbacks.push(callback)
-    }
-    for (const file of library.files) {
-        for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
-            for (const callback of collectEntryCallbacks(library, decl)) {
-                addCallback(callback)
-            }
-            idl.forEachFunction(decl, function_ => {
-                const promise = idl.asPromise(function_.returnType)
-                if (promise) {
-                    const reference = library.createContinuationCallbackReference(promise)
-                    const callback = library.resolveTypeReference(reference)
-                    addCallback(callback as idl.IDLCallback)
-                }
-            })
+    const uniqueCallbacks: idl.IDLCallback[] = []
+    const uniqueCallbacksNames = new Set<string>()
+    collectDeclarationTargets(library).filter(idl.isCallback).forEach(it => {
+        if (!uniqueCallbacksNames.has(it.name)) {
+            uniqueCallbacksNames.add(it.name)
+            uniqueCallbacks.push(it)
         }
-    }
-    for (const foundCallback of [...foundCallbacks]) {
-        const continuationRef = library.createContinuationCallbackReference(foundCallback.returnType)
-        const continuation = library.resolveTypeReference(continuationRef)
-        if (continuation && idl.isCallback(continuation))
-            addCallback(continuation)
-    }
-    return foundCallbacks
-        .sort((a, b) => a.name.localeCompare(b.name))
-        .filter(callback => {
-            const subtypes = callback.parameters.map(it => it.type!).concat(callback.returnType)
-                .flatMap(it => {
-                    if (idl.isContainerType(it))
-                        return it.elementType
-                    if (idl.isUnionType(it))
-                        return it.types
-                    if (idl.isOptionalType(it))
-                        return it.type
-                    return it
-                })
-            // handwritten types are not serializable
-            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().isHandWritten(it.name)))
-                return false
-            // can not process callbacks with type arguments used inside
-            // (value: SomeInterface<T>) => void
-            if (subtypes.some(it => idl.isReferenceType(it) && it.typeArguments))
-                return false
-            // (value: T) => void
-            if (subtypes.some(it => idl.isTypeParameterType(it)))
-                return false
-            // (value: IgnoredInterface) => void
-            if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().ignoreEntry(it.name, library.language)))
-                return false
-            if (subtypes.some(it => idl.isNamedNode(it) && it.name === "this"))
-                return false
-            return true
-        })
+    })
+    return uniqueCallbacks.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 export function printCallbacksKindsImports(language: Language, writer: LanguageWriter) {
@@ -138,49 +88,76 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
     writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
 }
 
+export function createCallbackKindPrinter(language: Language): PrinterFunction {
+    return (library: PeerLibrary) => {
+        const writer = library.createLanguageWriter(language)
+        const imports = new ImportsCollector()
+        if (language === Language.ARKTS) {
+            imports.addFeatures(['int32', 'float32'], '@koalaui/common')
+        }
+        if (language === Language.CJ) {
+            writer.print('package idlize\n')
+        }
+        let callbacksKindsEnum = idl.createEnum(
+            CallbackKind, [], {}
+        )
+        callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
+            idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
+        )
+        if (callbacksKindsEnum.elements.length === 0) {
+            // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
+            callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
+        }
+        writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
+        return [{
+            over: {
+                node: library.resolveTypeReference(idl.createReferenceType("CallbackKind")) as idl.IDLEntry,
+                role: LayoutNodeRole.PEER,
+            },
+            collector: imports,
+            content: writer,
+        }]
+    }
+}
+
 class DeserializeCallbacksVisitor {
     constructor(
         private readonly libraryName: string,
         private readonly library: PeerLibrary,
-        private readonly destFile: SourceFile
+        readonly writer: LanguageWriter,
+        readonly imports: ImportsCollector,
     ) {}
 
-    private get writer(): LanguageWriter {
-        return this.destFile.content
-    }
-
     private writeImports() {
-        if (this.writer.language === Language.CPP) {
-            const cppFile = this.destFile as CppSourceFile
-            cppFile.addInclude("callback_kind.h")
-            cppFile.addInclude("Serializers.h")
-            cppFile.addInclude("callbacks.h")
-            cppFile.addInclude("common-interop.h")
-            cppFile.addInclude(`${this.libraryName}_api_generated.h`)
+        if (this.writer.language === Language.CPP && this.library.name === "arkoala") {
+            const cppWriter = this.writer as CppLanguageWriter
+            cppWriter.writeInclude("callback_kind.h")
+            cppWriter.writeInclude("Serializers.h")
+            cppWriter.writeInclude("callbacks.h")
+            cppWriter.writeInclude("common-interop.h")
+            cppWriter.writeInclude(`${this.libraryName}_api_generated.h`)
         }
 
         if (this.writer.language === Language.TS || this.writer.language === Language.ARKTS) {
-            const tsFile = this.destFile as TsSourceFile
-            const imports = tsFile.imports
-            imports.addFeature("CallbackKind", "./peers/CallbackKind")
-            imports.addFeature("Deserializer", "./peers/Deserializer")
-            imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
-            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer"], "@koalaui/interop")
+            collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), this.imports)
+            collectDeclItself(this.library, idl.createReferenceType("Deserializer"), this.imports)
+            this.imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
+            this.imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer"], "@koalaui/interop")
             if (this.libraryName === 'arkoala') {
-                imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+                this.imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             }
 
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
-                collectDeclItself(this.library, callback, imports)
-                collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
+                collectDeclItself(this.library, callback, this.imports)
+                collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })
             }
 
             for (let builder of this.library.builderClasses.keys()) {
-                imports.addFeature(builder, `Ark${builder}Builder`)
+                this.imports.addFeature(builder, `Ark${builder}Builder`)
             }
             if (this.writer.language === Language.TS && this.library.name !== 'arkoala') {
                 for (const callback of collectUniqueCallbacks(this.library)) {
-                    collectDeclDependencies(this.library, callback, imports, { expandTypedefs: true })
+                    collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })
                 }
             }
         }
@@ -535,9 +512,20 @@ class ManagedCallCallbackVisitor {
     }
 }
 
-export function printDeserializeAndCall(libraryName:string, library: PeerLibrary, destination: SourceFile): void {
-    const visitor = new DeserializeCallbacksVisitor(libraryName, library, destination)
-    visitor.visit()
+export function createDeserializeAndCallPrinter(libraryName: string, language: Language): PrinterFunction {
+    return (library: PeerLibrary): PrinterResult[] => {
+        const writer = library.createLanguageWriter(language)
+        const imports = new ImportsCollector()
+        new DeserializeCallbacksVisitor(libraryName, library, writer, imports).visit()
+        return [{
+            over: {
+                node: library.resolveTypeReference(idl.createReferenceType("deserializeAndCallCallback")) as idl.IDLEntry,
+                role: LayoutNodeRole.PEER,
+            },
+            collector: imports,
+            content: writer,
+        }]
+    }
 }
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {

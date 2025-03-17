@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -35,18 +35,17 @@ import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
+import { PrinterFunction, PrinterResult } from '../LayoutManager'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
 class SerializerPrinter {
     constructor(
         private readonly library: PeerLibrary,
-        private readonly destFile: SourceFile,
+        readonly language: Language,
+        readonly writer: LanguageWriter,
+        readonly imports: ImportsCollector,
     ) {}
-
-    private get writer(): LanguageWriter {
-        return this.destFile.content
-    }
 
     private generateInterfaceSerializer(target: idl.IDLInterface, prefix: string = "") {
         const methodName = this.library.getInteropName(target)
@@ -138,7 +137,7 @@ class SerializerPrinter {
             prefix = generatorConfiguration().TypePrefix + this.library.libraryPrefix
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))
-        printSerializerImports(this.library, this.destFile, declarationPath)
+        printSerializerImports(this.library, this.language, this.imports, declarationPath)
         // just a separator
         if (this.writer.language == Language.JAVA) {
             this.writer.print("import java.util.function.Supplier;")
@@ -231,12 +230,10 @@ class DeserializerPrinter {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly destFile: SourceFile,
+        readonly language: Language,
+        readonly writer: LanguageWriter,
+        readonly imports: ImportsCollector,
     ) {}
-
-    private get writer(): LanguageWriter {
-        return this.destFile.content
-    }
 
     private generateInterfaceDeserializer(target: idl.IDLInterface, prefix: string = "") {
         const methodName = this.library.getInteropName(target)
@@ -483,7 +480,7 @@ class DeserializerPrinter {
         }
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))
-        printSerializerImports(this.library, this.destFile, declarationPath)
+        printSerializerImports(this.library, this.language, this.imports, declarationPath)
         this.writer.print("")
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
@@ -513,27 +510,38 @@ class DeserializerPrinter {
     }
 }
 
-export function writeSerializer(library: PeerLibrary, writer: LanguageWriter, prefix: string) {
-    const destFile = SourceFile.make("peers/Serializer" + writer.language.extension, writer.language, library)
-    writeSerializerFile(library, destFile, prefix)
-    destFile.printImports(writer)
-    writer.concat(destFile.content)
+export function createSerializerPrinter(language: Language, prefix: string): PrinterFunction {
+    return (library: PeerLibrary) => {
+        const imports = new ImportsCollector()
+        const writer = library.createLanguageWriter(language)
+        new SerializerPrinter(library, language, writer, imports).print(prefix)
+        return [{
+            over: {
+                node: library.resolveTypeReference(idl.createReferenceType("Serializer"))!,
+                role: LayoutNodeRole.PEER
+            },
+            collector: imports,
+            content: writer,
+        }]
+    }
 }
 
-export function writeSerializerFile(library: PeerLibrary, destFile: SourceFile, prefix: string, declarationPath?: string) {
-    new SerializerPrinter(library, destFile).print(prefix, declarationPath)
-}
-
-export function writeDeserializer(library: PeerLibrary, writer: LanguageWriter, prefix: string) {
-    const destFile = SourceFile.make("peers/Deserializer" + writer.language.extension, writer.language, library)
-    writeDeserializerFile(library, destFile, prefix)
-    destFile.printImports(writer)
-    writer.concat(destFile.content)
-}
-
-export function writeDeserializerFile(library: PeerLibrary, destFile: SourceFile, prefix: string, declarationPath?: string) {
-    const printer = new DeserializerPrinter(library, destFile)
-    printer.print(prefix, declarationPath)
+export function createDeserializerPrinter(language: Language, prefix: string): PrinterFunction {
+    if (language === Language.JAVA)
+        return () => []
+    return (library: PeerLibrary) => {
+        const imports = new ImportsCollector()
+        const writer = library.createLanguageWriter(language)
+        new DeserializerPrinter(library, language, writer, imports).print(prefix)
+        return [{
+            over: {
+                node: library.resolveTypeReference(idl.createReferenceType("Deserializer"))!,
+                role: LayoutNodeRole.PEER
+            },
+            collector: imports,
+            content: writer,
+        }]
+    }
 }
 
 export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
@@ -550,18 +558,32 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         })
 }
 
-export function printSerializerImports(library: PeerLibrary, destFile: SourceFile, declarationPath?: string) {
+export function printSerializerImports(library: PeerLibrary, language: Language, collector: ImportsCollector, declarationPath?: string) {
     const serializerDeclarations = getSerializerDeclarations(library,
-        createSerializerDependencyFilter(destFile.language))
-    if (destFile.language === Language.TS || destFile.language === Language.ARKTS) {
-        const collector = (destFile as (TsSourceFile | ArkTSSourceFile)).imports
+        createSerializerDependencyFilter(language))
+
+    if (language === Language.TS || language === Language.ARKTS) {
+        collector.addFeatures([
+            "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr", 'nullptr', 'KPointer'
+        ], "@koalaui/interop")
+        collector.addFeatures(["int32", "int64", "float32", "unsafeCast"], "@koalaui/common")
+        collectDeclItself(library, idl.createReferenceType("CallbackKind"), collector)
+        collectDeclItself(library, idl.createReferenceType("Serializer"), collector)
+        if (language == Language.TS && library.name === "arkoala") {
+            collector.addFeatures([
+                "MaterializedBase", "InteropNativeModule", "ResourceHolder",
+                "nullptr", "KPointer", "isInstanceOf",
+            ], "@koalaui/interop")
+            collector.addFeatures(["isResource", "isPadding"], "../utils")        
+        }
         if (!declarationPath) {
             collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
-            if (destFile.language === Language.TS) {
-                collector.addFeatures(["Finalizable"], "@koalaui/interop")
+            if (language === Language.TS) {
+                collector.addFeature('Finalizable', '@koalaui/interop')
+                collector.addFeatures(["NativeBuffer"], "@koalaui/interop")
             } else {
-                collector.addFeature("TypeChecker", "#components")
-                collector.addFeatures(["KUint8ArrayPtr", "InteropNativeModule"], "@koalaui/interop")
+                collectDeclItself(library, idl.createReferenceType("TypeChecker"), collector)
+                collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
             }
             if (library.name === 'arkoala') {
                 collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
@@ -600,9 +622,9 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
 
     function collectOhosImports(collector: ImportsCollector, supportsNs: boolean) {
         // TODO Check for compatibility!
-        const nameCovertor = createDeclarationNameConvertor(destFile.language)
+        const nameCovertor = createDeclarationNameConvertor(language)
         // TODO remove this hack once enums will be namespace members too
-        const forceUseByName = destFile.language === Language.ARKTS ? (node: idl.IDLEntry) => idl.isEnum(node) : () => false
+        const forceUseByName = language === Language.ARKTS ? (node: idl.IDLEntry) => idl.isEnum(node) : () => false
         const makeFeature = (node: idl.IDLEntry) => {
             let features = []
             // Enums of OHOS are accessed through namespaces, not directly

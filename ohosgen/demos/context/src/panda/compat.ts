@@ -1,8 +1,8 @@
-import { BusinessError } from "@internal/component/ets"
+import { BusinessError } from "@ohos.base"
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
-import { CONTEXTNativeModule } from "../../generated/arkts"
+import { checkArkoalaCallbacks } from "../../generated/arkts";
+import { APPLICATIONNativeModule } from "../../generated/arkts"
 
 export { BaseContext, Context, ApplicationContext } from "../../generated/arkts"
 
@@ -14,6 +14,6 @@ export function pullEvents() {
 
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", "CONTEXT_NativeBridgeArk")
-    registerNativeModuleLibraryName("CONTEXTNativeModule", "CONTEXT_NativeBridgeArk")
-    new CONTEXTNativeModule()
+    registerNativeModuleLibraryName("APPLICATIONNativeModule", "CONTEXT_NativeBridgeArk")
+    new APPLICATIONNativeModule()
 }

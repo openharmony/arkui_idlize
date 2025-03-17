@@ -7,7 +7,9 @@
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "#compat": ["./src/node/compat.ts"]
+            "#compat": ["./src/node/compat.ts"],
+            "@ohos.mediaquery": ["./generated/ts/@ohos.mediaquery"],
+            "@ohos.base": ["./generated/ts/@ohos.base"]
         }
     },
     "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],

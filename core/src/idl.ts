@@ -596,13 +596,13 @@ export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
     return getFQName(a) === getFQName(b)
 }
 
-export function getPackageClause(entry: IDLFile | IDLEntry): string[] {
+export function getPackageClause(entry: IDLNode): string[] {
     let file = getFileFor(entry)
     return file?.packageClause || []
 }
 
-export function getPackageName(entry: IDLFile | IDLEntry): string {
-    return getPackageClause(entry).join(".")
+export function getPackageName(node: IDLNode): string {
+    return getPackageClause(node).join(".")
 }
 
 export function isInPackage(entry: IDLEntry | IDLFile, packageName: string, exactMatch = false) {

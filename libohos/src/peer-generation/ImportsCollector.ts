@@ -68,9 +68,9 @@ export class ImportsCollector {
         const lines = new Array<string>()
         const currentModuleDir = path.dirname(currentModule)
         this.moduleToFeatures.forEach((features, module) => {
+            if (path.relative(currentModule, module) === "")
+                return
             if (!module.startsWith('@') && !module.startsWith('#')) {
-                if (path.relative(currentModule, module) === "")
-                    return
                 module = `./${path.relative(currentModuleDir, module)}`
             }
             lines.push(`import { ${Array.from(features).join(', ')} } from "${module}"`)

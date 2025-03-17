@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-import { IDLEntry, IDLNode, Language, LanguageWriter, LayoutManager, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
+import * as path from "path"
+import { getNamespaceName, getNamespacesPathFor, IDLEntity, IDLEntry, IDLNode, Language, LanguageWriter, LayoutManager, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
 import { ImportsCollector } from "./ImportsCollector"
 import { tsCopyrightAndWarning } from "./FileGenerators";
+import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 
 export interface PrinterResult {
     over: {
@@ -38,12 +40,13 @@ export interface PrinterFunction {
 }
 export type Printer = PrinterClass | PrinterFunction
 
-export function install(outDir:string, library:PeerLibrary, printers:Printer[], options?: { fileExtension?: string }): string[] {
+export function install(outDir:string, library:PeerLibrary, printers:Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager }): string[] {
     const storage = new Map<string, PrinterResult[]>()
 
     // groupBy
+    const layout = options?.customLayout ?? library.layout
     printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
-        const filePath = library.layout.resolve(it.over.node, it.over.role)
+        const filePath = path.normalize(layout.resolve(it.over.node, it.over.role))
         if (!storage.has(filePath)) {
             storage.set(filePath, [])
         }
@@ -58,17 +61,19 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[], 
             installedToExport.push(installPath)
         }
         results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
+        results.sort(sortByNamespaces)
 
         const imports = new ImportsCollector()
         let content: string[] = []
 
-        for (const record of results) {
-            imports.merge(record.collector)
-            content = content.concat(record.content.getOutput())
-        }
+        results.forEach(it => imports.merge(it.collector))
+        content = content.concat(printWithNamespaces(library, results))
         if (library.language === Language.CJ) {
             imports.clear()
             content = ['package idlize', 'import std.collection.*', 'import Interop.*'].concat(content)
+        }
+        if (library.language === Language.JAVA) {
+            content = [`package ${ARKOALA_PACKAGE};`].concat(content)
         }
 
         const text = tsCopyrightAndWarning(
@@ -81,4 +86,37 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[], 
     })
 
     return installedToExport
+}
+
+function printWithNamespaces(library: PeerLibrary, results: PrinterResult[]): string[] {
+    const resultsContent = library.createLanguageWriter()
+    const resultsContentCache: string[] = []
+    for (const record of results) {
+        wrapNamespaces(record.over.node, resultsContentCache, resultsContent)
+        resultsContent.concat(record.content)
+    }
+    wrapNamespaces(undefined, resultsContentCache, resultsContent)
+    return resultsContent.getOutput()
+}
+
+function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], writer: LanguageWriter): void {
+    const ns = node ? getNamespacesPathFor(node) : []
+    let bestMatch = 0
+    while (bestMatch < ns.length && bestMatch < alreadyWrapped.length) {
+        if (ns[bestMatch].name != alreadyWrapped[bestMatch])
+            break
+        bestMatch++
+    }
+    for (let i = bestMatch; i < alreadyWrapped.length; i++) {
+        writer.popNamespace()
+        alreadyWrapped.pop()
+    }
+    for (let i = bestMatch; i < ns.length; i++) {
+        writer.pushNamespace(ns[i].name, true)
+        alreadyWrapped.push(ns[i].name)
+    }
+}
+
+function sortByNamespaces(a: PrinterResult, b: PrinterResult): number {
+    return getNamespaceName(a.over.node).localeCompare(getNamespaceName(b.over.node))
 }

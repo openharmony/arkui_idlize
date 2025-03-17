@@ -274,9 +274,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 }
         }
 
-        if (hasMatchedNameHere)
-            packageName.pop();
-
         return packageName
     }
 

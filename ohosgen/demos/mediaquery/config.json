@@ -1,0 +1,11 @@
+{
+    "$schema": "../../generation-config/schema.json",
+    "GenerateUnused": true,
+    "moduleName": "ohos.mediaquery",
+    "modules": {
+        "ohos.mediaquery": {
+            "name": "ohos.mediaquery",
+            "packages": ["ohos.mediaquery", "ohos.base"]
+        }
+    }
+}
