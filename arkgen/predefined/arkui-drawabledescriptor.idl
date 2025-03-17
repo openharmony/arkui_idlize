@@ -1,0 +1,40 @@
+package org.openharmony.arkui;
+
+[Entity=Class]
+interface DrawableDescriptor {
+
+    constructor();
+    PixelMap getPixelMap();
+
+};
+[Entity=Class]
+interface LayeredDrawableDescriptor: DrawableDescriptor {
+
+    constructor(optional DrawableDescriptor foreground, optional DrawableDescriptor background, optional DrawableDescriptor mask);
+    DrawableDescriptor getForeground();
+    DrawableDescriptor getBackground();
+    DrawableDescriptor getMask();
+    static String getMaskClipPath();
+
+};
+[Entity=Class]
+interface PixelMapDrawableDescriptor: DrawableDescriptor {
+
+    constructor(optional PixelMap src);
+
+};
+[Entity=Interface]
+interface AnimationOptions {
+
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute number iterations;
+
+};
+[Entity=Class]
+interface AnimatedDrawableDescriptor: DrawableDescriptor {
+
+    constructor(sequence<PixelMap> pixelMaps, optional AnimationOptions options);
+
+};
