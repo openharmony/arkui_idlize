@@ -165,7 +165,7 @@ class DeserializeCallbacksVisitor {
             imports.addFeature("CallbackKind", "./peers/CallbackKind")
             imports.addFeature("Deserializer", "./peers/Deserializer")
             imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
-            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType"], "@koalaui/interop")
+            imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer"], "@koalaui/interop")
             if (this.libraryName === 'arkoala') {
                 imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             }
@@ -192,7 +192,7 @@ class DeserializeCallbacksVisitor {
 
         let signature: NamedMethodSignature
         if (this.writer.language === Language.CPP) {
-            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], [`thisArray`, `thisLength`])
+            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLSerializerBuffer, idl.IDLI32Type], [`thisArray`, `thisLength`])
         } else {
             signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(`Deserializer`)], [`thisDeserializer`])
         }
@@ -260,7 +260,7 @@ class DeserializeCallbacksVisitor {
             }
         })
         if (this.writer.language === Language.CPP) {
-            let signatureSync = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('VMContext'), idl.IDLUint8ArrayType, idl.IDLI32Type], [vmContext, `thisArray`, `thisLength`])
+            let signatureSync = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('VMContext'), idl.IDLSerializerBuffer, idl.IDLI32Type], [vmContext, `thisArray`, `thisLength`])
             this.writer.writeFunctionImplementation(`deserializeAndCallSync${callback.name}`, signatureSync, writer => {
                 const resourceIdName = `_resourceId`
                 const callName = `_callSync`
@@ -309,11 +309,11 @@ class DeserializeCallbacksVisitor {
         let signatureSync: NamedMethodSignature
         if (this.writer.language === Language.CPP) {
             signature = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.IDLI32Type, idl.IDLUint8ArrayType, idl.IDLI32Type],
+                [idl.IDLI32Type, idl.IDLSerializerBuffer, idl.IDLI32Type],
                 [`kind`, `thisArray`, `thisLength`],
             )
             signatureSync = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType('VMContext'), idl.IDLI32Type, idl.IDLUint8ArrayType, idl.IDLI32Type],
+                [idl.createReferenceType('VMContext'), idl.IDLI32Type, idl.IDLSerializerBuffer, idl.IDLI32Type],
                 [`vmContext`, `kind`, `thisArray`, `thisLength`],
             )
         } else {
@@ -372,7 +372,7 @@ class DeserializeCallbacksVisitor {
             this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
         }
         if (this.writer.language === Language.TS) {
-            this.writer.print('wrapSystemCallback(1, (buff:Uint8Array, len:int32) => { deserializeAndCallCallback(new Deserializer(buff.buffer, len)); return 0 })')
+            this.writer.print('wrapSystemCallback(1, (buffer: KSerializerBuffer, len:int32) => { deserializeAndCallCallback(new Deserializer(buffer, len)); return 0 })')
         }
 
         if (this.writer.language === Language.CPP) {
@@ -455,7 +455,7 @@ class ManagedCallCallbackVisitor {
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
             writer.writeExpressionStatement(writer.makeMethodCall(`_buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&_callbackResource`)]))
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(_buffer.buffer, sizeof(_buffer.buffer), &(_buffer.resourceHolder))`), true, false))
+                writer.makeString(`Serializer((KSerializerBuffer)&(_buffer.buffer), sizeof(_buffer.buffer), &(_buffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
@@ -480,7 +480,7 @@ class ManagedCallCallbackVisitor {
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
             writer.print('uint8_t _buffer[60 * 4];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
-                writer.makeString(`Serializer(_buffer, sizeof(_buffer), nullptr)`), true, false))
+                writer.makeString(`Serializer((KSerializerBuffer)&_buffer, sizeof(_buffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {

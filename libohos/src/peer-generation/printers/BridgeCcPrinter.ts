@@ -29,6 +29,7 @@ import {
     CppInteropArgConvertor,
     CppReturnTypeConvertor,
     PrimitiveTypesInstance,
+    isDirectConvertedType,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
@@ -221,9 +222,18 @@ export class BridgeCcVisitor {
             }
         })
         const needsContext = this.needsVMContext(method)
-        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method.method, this.library) ? 'DIRECT_' : ''
+        const ctxSuffix = needsContext ? 'CTX_' : this.isDirect(method) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
+    }
+
+    private isDirect(method: PeerMethod): boolean {
+        let isDirect = isDirectConvertedType(method.returnType, this.library)
+        method.argAndOutConvertors.forEach(it => {
+            if (!it.useArray)
+                isDirect &&= isDirectConvertedType(it.interopType(), this.library)
+        })
+        return isDirect
     }
 
     private generateCParameters(method: PeerMethod): [string, string][] {
@@ -233,7 +243,7 @@ export class BridgeCcVisitor {
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!ptrCreated) {
-                    maybeReceiver.push(["uint8_t*", "thisArray"], ["int32_t", "thisLength"])
+                    maybeReceiver.push(["KSerializerBuffer", "thisArray"], ["int32_t", "thisLength"])
                     ptrCreated = true
                 }
             } else {

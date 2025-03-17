@@ -18,16 +18,21 @@ import {
 } from "@idlizer/core"
 
 
-function params(count: number, letter: string, prefix?: (value: number) => string): string[] {
+function withCompute(index: number, letter: string, compute?: (value: number) => string) {
+    let arg = `${letter}${index}`
+    return compute ? compute(index) : arg
+}
+
+function params(count: number, letter: string, compute?: (value: number) => string): string[] {
     if (count == 0) return []
-    let result = [`${prefix?.(0) ?? ""}${letter}0`]
+    let result = [withCompute(0, letter, compute)]
     for (let i = 1; i < count; i++)
-        result.push(`${prefix ? prefix(i) : ""}${letter}${i}`)
+        result.push(withCompute(i, letter, compute))
     return result
 }
 
 function interopConvType(index: number): string {
-    return `InteropTypeConverter<P${index}>::InteropType`
+    return `InteropTypeConverter<P${index}>::InteropType p${index}`
 }
 
 function emitBridge(kind: string, isVoid: boolean, index: number, _: IndentedPrinter) {
@@ -44,13 +49,12 @@ function emitBridge(kind: string, isVoid: boolean, index: number, _: IndentedPri
     let returnType = isVoid ? "void" : "InteropTypeConverter<Ret>::InteropType"
     _.print(`inline ${returnType} Ani_##name( \\`)
     _.pushIndent()
-    params(index, "p",
-        (index) => (interopConvType(index) + " ")).forEach((value, innerIndex) =>_.print(`${value}${innerIndex < index - 1 ? "," : ""} \\`))
+    params(index, "p", interopConvType).forEach((value, innerIndex) =>_.print(`${value}${innerIndex < index - 1 ? "," : ""} \\`))
     _.popIndent()
     _.print(`) { \\`)
     _.pushIndent()
     _.print(`KOALA_MAYBE_LOG(name) \\`)
-    _.print(`${isVoid ? "": `return DirectInteropTypeConverter<Ret>::convertTo(`}impl_##name(${params(index, "p", (index) => "(P" + `${index})`).join(", ")})${isVoid ? "": ")"}; \\`)
+    _.print(`${isVoid ? "": `return DirectInteropTypeConverter<Ret>::convertTo(`}impl_##name(${params(index, "p", (index) => `DirectInteropTypeConverter<P${index}>::convertFrom(p${index})`).join(", ")})${isVoid ? "": ")"}; \\`)
     _.popIndent()
     _.print(`} \\`)
     _.print(`MAKE_ANI_EXPORT(KOALA_INTEROP_MODULE, name, ${(isVoid ? ['"void"'] : ["#Ret"]).concat(params(index, "#P")).join(` "|" `)}, 0)`)

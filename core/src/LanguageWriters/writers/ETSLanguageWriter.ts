@@ -274,9 +274,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-    //makeSerializedBufferGetter(serializer: string): LanguageExpression {
-    //    return this.makeMethodCall(serializer, `asPointer`, [])
-    //}
+
     makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
                               convertorIndex: number,
                               runtimeTypeIndex: number): LanguageExpression {

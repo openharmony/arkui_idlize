@@ -472,10 +472,11 @@ class DeserializerPrinter {
         const superName = `${className}Base`
         let ctorSignature: NamedMethodSignature | undefined = undefined
         if (this.writer.language == Language.CPP) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLUint8ArrayType, idl.IDLI32Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLSerializerBuffer, idl.IDLI32Type], ["data", "length"])
             prefix = prefix === "" ? generatorConfiguration().TypePrefix : prefix
         } else if (this.writer.language === Language.ARKTS) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.createContainerType("sequence", [idl.IDLU8Type]), idl.IDLI32Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [
+                idl.createUnionType([idl.IDLSerializerBuffer, idl.IDLUint8ArrayType]), idl.IDLI32Type], ["data", "length"])
         }
         else if (this.writer.language === Language.CJ) {
             ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLBufferType, idl.IDLI64Type], ["data", "length"])
@@ -555,12 +556,12 @@ export function printSerializerImports(library: PeerLibrary, destFile: SourceFil
     if (destFile.language === Language.TS || destFile.language === Language.ARKTS) {
         const collector = (destFile as (TsSourceFile | ArkTSSourceFile)).imports
         if (!declarationPath) {
+            collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
             if (destFile.language === Language.TS) {
-                collector.addFeature('Finalizable', '@koalaui/interop')
-                collector.addFeatures(["NativeBuffer"], "@koalaui/interop")
+                collector.addFeatures(["Finalizable"], "@koalaui/interop")
             } else {
                 collector.addFeature("TypeChecker", "#components")
-                collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
+                collector.addFeatures(["KUint8ArrayPtr", "InteropNativeModule"], "@koalaui/interop")
             }
             if (library.name === 'arkoala') {
                 collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")

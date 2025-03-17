@@ -182,8 +182,8 @@ class PeerFileVisitor {
             writer.writeStatement(
                 writer.makeAssign(_peer, undefined,
                     writer.makeNewObject(peerClass, [
-                        writer.makeString(_peerPtr), 
-                        writer.makeString(peerId), 
+                        writer.makeString(_peerPtr),
+                        writer.makeString(peerId),
                         writer.makeString(`"${peer.componentName}"`),
                         writer.makeString('flags')]),
                     true)
@@ -441,7 +441,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
             let arrayNum = 0
             method.argAndOutConvertors.forEach((it, index) => {
                 if (it.useArray) {
-                    writer.writePrintLog(`"${it.param}:", thisSerializer.asArray(), thisSerializer.length())`)
+                    writer.writePrintLog(`"${it.param}:", thisSerializer.asBuffer(), thisSerializer.length())`)
                 }
             })
         }
@@ -453,7 +453,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!serializerPushed) {
-                    params.push(writer.makeMethodCall(`thisSerializer`, 'asArray', []))
+                    params.push(writer.makeSerializedBufferGetter(`thisSerializer`))
                     params.push(writer.makeMethodCall(`thisSerializer`, 'length', []))
                     serializerPushed = true
                 }

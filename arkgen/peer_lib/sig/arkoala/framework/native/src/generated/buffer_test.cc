@@ -19,7 +19,7 @@
 #include "Serializers.h"
 
 void impl_TestReadAndMutateManagedBuffer(uint8_t* thisArray, int32_t thisLength) {
-    Deserializer thisDeserializer(thisArray, thisLength);
+    Deserializer thisDeserializer((KSerializerBuffer)thisArray, thisLength);
     Ark_Buffer buffer = static_cast<Ark_Buffer>(thisDeserializer.readBuffer());
     buffer.resource.hold(buffer.resource.resourceId);
     for (int32_t i = 0; i < buffer.length; ++i) {

@@ -521,7 +521,7 @@ export const IDLDate = createPrimitiveType('date')
 export const IDLBufferType = createPrimitiveType('buffer')
 
 export const IDLUint8ArrayType = createContainerType('sequence', [IDLU8Type])
-
+export const IDLSerializerBuffer = createPrimitiveType('SerializerBuffer')
 
 // Stub for IdlPeerLibrary
 export const IDLFunctionType = createPrimitiveType('Function')

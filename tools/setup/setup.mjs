@@ -18,6 +18,7 @@ function installExternal() {
     const externalPackagesToInstall = [
         `incremental/compat`,
         `incremental/common`,
+        `incremental/harness`,
         `incremental/compiler-plugin`,
         `incremental/runtime`,
         `interop`,

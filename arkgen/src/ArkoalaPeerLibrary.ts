@@ -65,6 +65,9 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
             if (isImportAttr(type))
                 return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }
+        switch (type) {
+            case idl.IDLLengthType: return new LengthConvertor(this, "Length", param, this.language)
+        }
         return super.typeConvertor(param, type, isOptionalParam)
     }
     override declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {

@@ -67,7 +67,7 @@ function checkSerdeLength() {
     ser.writeLength("12%")
     ser.writeLength("13lpx")
     ser.writeLength(14)
-    const des = new Deserializer(ser.asArray(), ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
     checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
     checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
@@ -80,7 +80,7 @@ function checkSerdeText() {
     const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
     ser.writeString(text)
-    const des = new Deserializer(ser.asArray(), ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readString", des.readString(), text)
     ser.release()
 }
@@ -90,7 +90,7 @@ function checkSerdePrimitive() {
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
-    const des = new Deserializer(ser.asArray(), ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readNumber, int", des.readNumber(), 10)
     checkSerdeResult("Deserializer.readNumber, float", des.readNumber(), 10.5)
     checkSerdeResult("Deserializer.readNumber, undefined", des.readNumber(), undefined)
@@ -101,7 +101,7 @@ function checkSerdeCustomObject() {
     const ser = Serializer.hold()
     const date = new Date(2024, 11, 28)
     ser.writeCustomObject("Date", date)
-    const des = new Deserializer(ser.asArray(), ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readCustomObject, Date",
         JSON.stringify(date),
         JSON.stringify(des.readCustomObject("Date") as Date))
@@ -294,7 +294,7 @@ function enqueueCallback(
     /* libace stored resource somewhere */
     const buffer = new byte[serializer.length()]
     for (let i = 0; i < buffer.length; i++) {
-        buffer[i] = serializer.asArray()[i]
+        buffer[i] = serializer.getByte(i)
     }
     serializer.release()
 
@@ -339,7 +339,7 @@ function checkTwoSidesCallback() {
 }
 
 function checkTwoSidesCallbackSync() {
-    wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
+    wrapSystemCallback(1, (buff: byte[], len: int32) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
     enqueueCallback(

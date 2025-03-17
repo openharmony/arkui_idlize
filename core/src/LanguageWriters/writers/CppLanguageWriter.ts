@@ -489,7 +489,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
         const fromBufferCtor =  new NamedMethodSignature(IDLVoidType, [
-                IDLUint8ArrayType,
+                idl.IDLSerializerBuffer,
                 IDLU32Type,
                 createReferenceType("CallbackResourceHolder")
             ],

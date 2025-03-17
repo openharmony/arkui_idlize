@@ -350,7 +350,8 @@ function collectNativeModuleImports(module: NativeModuleType, file: SourceFile, 
             "KFloat32ArrayPtr",
             "pointer",
             "KInteropReturnBuffer",
-            "NativeBuffer"
+            "NativeBuffer",
+            "KSerializerBuffer"
         ], "@koalaui/interop")
         tsFile.imports.addFeatures(["int32", "float32"], "@koalaui/common")
         if (module === NativeModule.Generated && library.name === 'arkoala') {
@@ -517,7 +518,7 @@ export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType
     method.argAndOutConvertors.forEach(it => {
         if (it.useArray) {
             if (!serializerArgCreated) {
-                maybeReceiver.push({ name: `thisArray`, type: idl.IDLUint8ArrayType }, { name: `thisLength`, type: idl.IDLI32Type })
+                maybeReceiver.push({ name: `thisArray`, type: idl.IDLSerializerBuffer }, { name: `thisLength`, type: idl.IDLI32Type })
                 serializerArgCreated = true
             }
         } else {

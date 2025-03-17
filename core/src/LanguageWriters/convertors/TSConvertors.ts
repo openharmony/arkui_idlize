@@ -128,6 +128,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLAnyType: return 'any'
             case idl.IDLUndefinedType: return 'undefined'
             case idl.IDLPointerType: return 'KPointer'
+            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             case idl.IDLVoidType: return 'void'
             case idl.IDLBooleanType: return 'boolean'
 

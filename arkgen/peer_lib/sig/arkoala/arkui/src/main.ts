@@ -75,7 +75,7 @@ function checkSerdeLength() {
     ser.writeLength("12%")
     ser.writeLength("13lpx")
     ser.writeLength(14)
-    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
     checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
     checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
@@ -88,7 +88,7 @@ function checkSerdeText() {
     const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
     ser.writeString(text)
-    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readString", des.readString(), text)
     ser.release()
 }
@@ -98,7 +98,7 @@ function checkSerdePrimitive() {
     ser.writeNumber(10)
     ser.writeNumber(10.5)
     ser.writeNumber(undefined)
-    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readNumber, int", des.readNumber(), 10)
     checkSerdeResult("Deserializer.readNumber, float", des.readNumber(), 10.5)
     checkSerdeResult("Deserializer.readNumber, undefined", des.readNumber(), undefined)
@@ -109,7 +109,7 @@ function checkSerdeCustomObject() {
     const ser = Serializer.hold()
     const date = new Date(2024, 11, 28)
     ser.writeCustomObject("Date", date)
-    const des = new Deserializer(ser.asArray().buffer, ser.length())
+    const des = new Deserializer(ser.asBuffer(), ser.length())
     checkSerdeResult("Deserializer.readCustomObject, Date",
         JSON.stringify(date),
         JSON.stringify(des.readCustomObject("Date") as Date))
@@ -201,8 +201,8 @@ function checkCallback() {
     assertTrue("Callback ids are different", id1 != id2)
 
     const serializer = Serializer.hold()
-    assertEquals("Call callback 1", 1001, callCallback(id1, serializer.asArray(), serializer.length()))
-    assertEquals("Call callback 2", 1002, callCallback(id2, serializer.asArray(), serializer.length()))
+    assertEquals("Call callback 1", 1001, callCallback(id1, serializer.toArray(), serializer.length()))
+    assertEquals("Call callback 2", 1002, callCallback(id2, serializer.toArray(), serializer.length()))
 // TODO: Fix the tests according to the latest callback changes
 //     assertThrows("Call disposed callback 1", () => { callCallback(id1, serializer.asArray(), serializer.length()) })
 //     assertThrows("Call disposed callback 2", () => { callCallback(id2, serializer.asArray(), serializer.length()) })
@@ -241,13 +241,12 @@ function enqueueCallback(
     /* imitate libace holding resource */
     InteropNativeModule._HoldCallbackResource(resourceId)
     /* libace stored resource somewhere */
-    const buffer = new Uint8Array(serializer.asArray().buffer.byteLength)
+    const buffer = serializer.toArray()
     const bufferLength = serializer.length()
-    buffer.set(serializer.asArray())
     serializer.release()
 
     /* libace calls stored callback */
-    const deserializer = new Deserializer(buffer.buffer, bufferLength)
+    const deserializer = new Deserializer(serializer.asBuffer(), bufferLength)
     readAndCallCallback(deserializer)
     /* libace released resource */
     InteropNativeModule._ReleaseCallbackResource(resourceId)
@@ -390,18 +389,17 @@ function checkTwoSidesPromise() {
 function checkTransformedCallback() {
 
 }
-
 function checkWriteFunction() {
     const s = Serializer.hold()
     s.writeFunction((value: number, flag: boolean) => flag ? value + 10 : value - 10)
     // TBD: id is small number
-    const id = new Int32Array(s.asArray().buffer)[0]
+    const id = s.getByte(0) | (s.getByte(1) << 8) | (s.getByte(2) << 16) | (s.getByte(3) << 24)
     s.release()
     const args = Serializer.hold()
     args.writeNumber(20)
     args.writeBoolean(true)
     // TBD: callCallback() result should be 30
-    assertEquals("Write function", 42, callCallback(id, args.asArray(), args.length()))
+    assertEquals("Write function", 42, callCallback(id, args.toArray(), args.length()))
     args.release()
 }
 
@@ -573,7 +571,7 @@ function checkCanvasRenderingContext2D() {
     const ctorPtr = BigInt(123)
     const serializer = new Serializer()
     serializer.writeCanvasRenderingContext2D(unsafeCast<CanvasRenderingContext2D>(CanvasRenderingContext2DInternal.fromPtr(ctorPtr)))
-    const deserializer = new Deserializer(serializer.asArray().buffer, serializer.length())
+    const deserializer = new Deserializer(serializer.toArray().buffer, serializer.length())
     const materializedBase = deserializer.readCanvasRenderingContext2D() as unknown as MaterializedBase
     assertEquals("Deserializer readCanvasRenderingContext2D()", ctorPtr, materializedBase.getPeer()!.ptr)
 
@@ -671,7 +669,7 @@ function checkReadAndMutateBuffer() {
     const serializer = Serializer.hold()
     const resourceId = ResourceHolder.instance().registerAndHold({})
     serializer.writeBuffer(NativeBuffer.wrap(InteropNativeModule._GetNativeBufferPointer(buffer), buffer.byteLength, resourceId, 0, 0))
-    TestNativeModule._TestReadAndMutateManagedBuffer(serializer.asArray(), serializer.length())
+    TestNativeModule._TestReadAndMutateManagedBuffer(serializer.toArray(), serializer.length())
 
     let isSame = true
     for (let i = 0; i < bufferSize; ++i) {

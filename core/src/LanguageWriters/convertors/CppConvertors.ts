@@ -161,6 +161,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case idl.IDLDate: return this.make(`Date`)
             case idl.IDLBufferType: return this.make('Buffer')
             case idl.IDLPointerType: return this.make('Pointer')
+            case idl.IDLSerializerBuffer: return { text: 'KSerializerBuffer', noPrefix: true }
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -200,7 +201,7 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
 
     private isPrimitiveOrPrimitiveAlias(type: idl.IDLNode): boolean {
         if (!idl.isType(type)) return false
-        
+
         const { resolver } = this
         while (type && idl.isReferenceType(type)) {
             const resolved = resolver.resolveTypeReference(type)
@@ -208,7 +209,7 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
             if (!idl.isTypedef(resolved)) break
             type = resolved.type
         }
-    
+
         return idl.isPrimitiveType(type)
     }
 
@@ -238,7 +239,8 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLBooleanType: return PrimitiveTypesInstance.Boolean.getText()
             case idl.IDLI32Type: return PrimitiveTypesInstance.Int32.getText()
             case idl.IDLNumberType: return "KInteropNumber"
-            case idl.IDLBufferType: return "Ark_Buffer"
+            case idl.IDLSerializerBuffer: return "KSerializerBuffer"
+            case idl.IDLBufferType: return "KInteropBuffer"
             case idl.IDLLengthType: return "KLength"
             case idl.IDLFunctionType: return PrimitiveTypesInstance.Int32.getText()
             case idl.IDLDate: return PrimitiveTypesInstance.Int64.getText()

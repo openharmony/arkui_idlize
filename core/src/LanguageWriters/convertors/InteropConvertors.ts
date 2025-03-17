@@ -123,6 +123,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLF32Type: return "KFloat"
             case idl.IDLNumberType: return 'KInteropNumber'
             case idl.IDLBigintType: return 'KLong'
+            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             case idl.IDLBooleanType:
             case idl.IDLFunctionType: return 'KInt'
             case idl.IDLStringType: return 'KStringPtr'

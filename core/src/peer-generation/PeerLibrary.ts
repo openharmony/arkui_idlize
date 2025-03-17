@@ -280,6 +280,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLF32Type: return new NumericConvertor(param, type)
                 case idl.IDLF64Type: return new NumericConvertor(param, type)
                 case idl.IDLBigintType: return new BigIntToU64Convertor(param)
+                case idl.IDLSerializerBuffer: new PointerConvertor(param)
                 case idl.IDLPointerType: return new PointerConvertor(param)
                 case idl.IDLBufferType: return new BufferConvertor(param)
                 case idl.IDLBooleanType: return new BooleanConvertor(param)
