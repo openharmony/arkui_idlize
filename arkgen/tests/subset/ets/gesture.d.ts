@@ -85,9 +85,10 @@ interface TapGestureInterface {
 }
 
 interface LongPressGestureInterface extends GestureInterface<LongPressGestureInterface> {
-    onAction(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
-    onActionEnd(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
-    onActionCancel(event: () => void): LongPressGestureInterface;
+  (value?: { fingers?: number; repeat?: boolean; duration?: number }): LongPressGestureInterface;
+  onAction(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
+  onActionEnd(event: (event: BaseGestureEvent) => void): LongPressGestureInterface;
+  onActionCancel(event: () => void): LongPressGestureInterface;
 }
 
 interface BaseGestureEvent extends BaseEvent {

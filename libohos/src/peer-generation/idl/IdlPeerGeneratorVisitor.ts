@@ -320,7 +320,24 @@ export class IdlPeerProcessor {
             }
         }
 
-        const constructor = decl.subkind === idl.IDLInterfaceSubkind.Class ? decl.constructors[0] : undefined
+        let constructor: idl.IDLConstructor | undefined = undefined
+        if (decl.subkind === idl.IDLInterfaceSubkind.Class) {
+            constructor = decl.constructors[0]
+        }
+        if (decl.subkind === idl.IDLInterfaceSubkind.Interface) {
+            if (decl.callables.length > 0) {
+                const first = decl.callables[0]
+                constructor = idl.createConstructor(
+                    [...first.parameters],
+                    first.returnType,
+                    {
+                        documentation: first.documentation,
+                        extendedAttributes: first.extendedAttributes,
+                        fileName: first.fileName
+                    }
+                )
+            }
+        }
         const mConstructor = isStaticMaterialized ? undefined : this.makeMaterializedMethod(decl, constructor, fullCName, implemenationParentName)
         const mFinalizer = isStaticMaterialized ? undefined : new MaterializedMethod(fullCName, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
