@@ -22,6 +22,7 @@ import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, Pointe
          AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
          NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
          ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
+         ObjectConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -290,7 +291,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLUndefinedType: return new UndefinedConvertor(param)
                 case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
-                case idl.IDLAnyType: return new CustomTypeConvertor(param, "Any", false, "Object")
+                case idl.IDLAnyType: return new ObjectConvertor(param)
                 case idl.IDLDate: return new DateConvertor(param)
                 default: throw new Error(`Unconverted primitive ${idl.DebugUtils.debugPrintType(type)}`)
             }

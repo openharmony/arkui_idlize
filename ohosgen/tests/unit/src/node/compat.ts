@@ -27,7 +27,7 @@ export {
     ForceCallbackClass,
     registerForceCallbackListener,
     callForceCallbackListener,
-    ClassWithComplexPropertyType
+    ClassWithComplexPropertyType,
 } from "../../generated/ts"
 export {
     OrdinaryEnum,
@@ -48,6 +48,7 @@ export {
 } from '../../generated/ts'
 
 export type OHBuffer = ArrayBuffer
+export type OHAny = any
 
 declare const NATIVE_LIBRARY_NAME: string
 export function init() {

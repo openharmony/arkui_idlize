@@ -50,6 +50,7 @@ export {
 } from '../../generated/arkts'
 
 export type OHBuffer = NativeBuffer
+export type OHAny = object
 
 export function pullEvents() {
     checkArkoalaCallbacks()

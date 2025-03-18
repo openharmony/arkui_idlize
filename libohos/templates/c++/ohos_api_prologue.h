@@ -54,6 +54,7 @@ typedef InteropAsyncWorkerPtr OH_%LIBRARY_NAME%_AsyncWorkerPtr;
 typedef InteropBuffer OH_Buffer;
 typedef InteropLength OH_Length;
 typedef InteropFunction OH_Function;
+typedef InteropObject OH_Object;
 
 typedef enum OH_APIKind {
     OH_%LIBRARY_NAME%_API_KIND = 100

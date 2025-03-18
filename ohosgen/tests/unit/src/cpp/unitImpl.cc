@@ -607,4 +607,7 @@ void hello_FooXXX_destructImpl(OH_UNIT_hello_FooXXXHandle thisPtr) {
 OH_Number hello_FooXXX_getYImpl(OH_NativePointer thisPtr) {
     return {};
 }
+void GlobalScope_TestAny_testImpl(const OH_UNIT_TestAny_WithAny* x, const UNIT_TestAny_Callback_Any_Void* f) {
+    f->call(f->resource.resourceId, x->field);
+}
 */

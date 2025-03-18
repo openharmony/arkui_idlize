@@ -23,7 +23,8 @@ import {
   ForceCallbackClass,
   registerForceCallbackListener,
   callForceCallbackListener,
-  ClassWithComplexPropertyType
+  ClassWithComplexPropertyType,
+  OHAny
 } from '#compat'
 
 // TBD: wait for the interface FQN fix for ArkTS
@@ -312,6 +313,15 @@ function checkHandwritten() {
   assertEQ(1, idlHW.count)
 }
 
+// interface TestObject { x: number }
+// function checkAny() {
+//   const obj: TestObject = { x: 10 }
+//   const param: TestAny.WithAny = { field: obj, normal: 0 }
+//   TestAny.test(param, (e:OHAny) => {
+//     console.log(e, e === obj)
+//   })
+// }
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -328,6 +338,7 @@ export function run() {
   suite.addTest("checkMaterialized", checkMaterialized)
   // suite.addTest("checkNativeBuffer", checkNativeBuffer)
   suite.addTest("checkHandwritten", checkHandwritten)
+  // suite.addTest("checkAny", checkAny)
 
   return suite.run()
 }

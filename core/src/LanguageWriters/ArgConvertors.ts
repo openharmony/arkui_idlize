@@ -48,6 +48,7 @@ export interface ArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement
+    holdResource(resourceName: string, holder:string, writer:LanguageWriter): void
     interopType(): idl.IDLType
     nativeType(): idl.IDLType
     targetType(writer: LanguageWriter): string
@@ -122,6 +123,7 @@ export abstract class BaseArgConvertor implements ArgConvertor {
         public param: string
     ) { }
 
+    holdResource(_resourceName: string, _holder: string, _writer: LanguageWriter): void {}
     nativeType(): idl.IDLType {
         throw new Error("Define")
     }
@@ -382,6 +384,62 @@ export class BigIntToU64Convertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return false
+    }
+}
+
+export class ObjectConvertor extends BaseArgConvertor {
+    constructor(param: string) {
+        super(
+            idl.IDLAnyType,
+            [
+                RuntimeType.BIGINT,
+                RuntimeType.BOOLEAN,
+                RuntimeType.FUNCTION,
+                RuntimeType.MATERIALIZED,
+                RuntimeType.NUMBER,
+                RuntimeType.OBJECT,
+                RuntimeType.STRING,
+                RuntimeType.SYMBOL,
+                RuntimeType.UNDEFINED
+            ],
+            false,
+            true,
+            param
+        )
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return writer.escapeKeyword(param)
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        if (printer.language === Language.CPP) {
+            printer.writeMethodCall(`${param}Serializer`, "writeObject", [value])
+        } else {
+            printer.writeMethodCall(`${param}Serializer`, "holdAndWriteObject", [value])
+        }
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        return assigneer(writer.makeCast(
+            writer.makeMethodCall(deserializerName, 'readObject', []),
+            this.idlType, { optional: false })
+        )
+    }
+    holdResource(name: string, holder: string, writer: LanguageWriter): void {
+        writer.writeStatement(
+            writer.makeAssign(name, idl.createReferenceType(`CallbackResource`),
+                writer.makeString(`{${this.param}.resource.resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
+        writer.writeExpressionStatement(
+            writer.makeMethodCall(holder, 'holdCallbackResource', [
+                writer.makeString('&' + name)])
+        )
+    }
+    nativeType(): idl.IDLType {
+        return idl.IDLAnyType
+    }
+    interopType(): idl.IDLType {
+        return idl.IDLAnyType
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 

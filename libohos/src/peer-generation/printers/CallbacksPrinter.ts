@@ -428,15 +428,16 @@ class ManagedCallCallbackVisitor {
         this.writer.writeFunctionImplementation(`callManaged${callback.name}`, signature, writer => {
             writer.writeStatement(writer.makeAssign(`_buffer`, idl.createReferenceType(`CallbackBuffer`),
                 writer.makeString(`{{}, {}}`), true, false))
-            writer.writeStatement(writer.makeAssign(`_callbackResource`, idl.createReferenceType(`CallbackResource`),
+            writer.writeStatement(writer.makeAssign(`_callbackResourceSelf`, idl.createReferenceType(`CallbackResource`),
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
-            writer.writeExpressionStatement(writer.makeMethodCall(`_buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&_callbackResource`)]))
+            writer.writeExpressionStatement(writer.makeMethodCall(`_buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&_callbackResourceSelf`)]))
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
                 writer.makeString(`Serializer((KSerializerBuffer)&(_buffer.buffer), sizeof(_buffer.buffer), &(_buffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
+                convertor.holdResource(`arg${i}Resource`, '_buffer.resourceHolder', writer)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
             writer.print(`enqueueCallback(&_buffer);`)

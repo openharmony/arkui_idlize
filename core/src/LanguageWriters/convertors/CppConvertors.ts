@@ -152,9 +152,9 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case idl.IDLBooleanType: return this.make(`Boolean`)
             case idl.IDLBigintType: return this.make(`UInt64`) // TODO add arbitrary precision numeric type
             case idl.IDLPointerType: return this.make('NativePointer')
+            case idl.IDLCustomObjectType: return this.make('CustomObject')
             case idl.IDLUnknownType:
-            case idl.IDLCustomObjectType:
-            case idl.IDLAnyType: return this.make(`CustomObject`)
+            case idl.IDLAnyType: return this.make(`Object`)
             case idl.IDLUndefinedType: return this.make(`Undefined`)
             case idl.IDLLengthType: return this.make(`Length`)
             case idl.IDLFunctionType: return this.make(`Function`)
