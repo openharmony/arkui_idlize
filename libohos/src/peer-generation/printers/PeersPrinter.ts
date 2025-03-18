@@ -242,7 +242,7 @@ class PeerFileVisitor {
     protected getDefaultPeerImports(lang: Language, imports: ImportsCollector) {
         if (lang !== Language.TS && lang !== Language.ARKTS) return
 
-        imports.addFeatures(['int32', 'float32'], "@koalaui/common")
+        imports.addFeatures(['int32', 'int64', 'float32'], "@koalaui/common")
         imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'runtimeType', 'RuntimeType'], "@koalaui/interop")
         // TODO Check the usage of relative path imports
         imports.addFeatures(['Serializer'], "./peers/Serializer")
