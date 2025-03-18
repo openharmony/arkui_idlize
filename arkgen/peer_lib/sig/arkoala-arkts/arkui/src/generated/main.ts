@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { ArkUINativeModule, TestNativeModule } from "#components"
-import { wrapCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName } from "@koalaui/interop"
+import { wrapCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName, KSerializerBuffer, KBuffer } from "@koalaui/interop"
 import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
@@ -32,6 +32,7 @@ import { Serializer } from "@arkoala/arkui/peers/Serializer"
 import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
 import { ResourceId, InteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/peers/CallbacksChecker"
+import { int32, int8 } from "@koalaui/common"
 
 
 const testString1000 = "One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand words One Thousand";
@@ -263,13 +264,15 @@ function checkButton() {
 }
 
 function checkCallback() {
-    const id1 = wrapCallback((args: byte[], length: int) => 2024)
-    const id2 = wrapCallback((args: byte[], length: int) => 2025)
-
-    assertEquals("Call callback 1", 2024, callCallback(id1, [], 0))
-    assertEquals("Call callback 2", 2025, callCallback(id2, [], 0))
-    assertThrows("Call disposed callback 1", () => { callCallback(id1, [], 0) })
-    assertThrows("Call callback 0", () => { callCallback(0, [2, 4, 6, 8], 4) })
+    const id1 = wrapCallback((args: KSerializerBuffer, length: int) => 2024)
+    const id2 = wrapCallback((args: KSerializerBuffer, length: int) => 2025)
+    const buffer = new KBuffer(20)
+    assertEquals("Call callback 1", 2024, callCallback(id1, buffer.buffer, 0))
+    assertEquals("Call callback 2", 2025, callCallback(id2, buffer.buffer, 0))
+    assertThrows("Call disposed callback 1", () => { callCallback(id1, buffer.buffer, 0) })
+    new Array<number>(2, 4, 6, 8).forEach((it, index) => buffer.set(index as int, it as byte))
+    assertThrows("Call callback 0", () => { callCallback(0, buffer.buffer, 4) })
+    buffer.dispose()
 }
 
 function createDefaultWriteCallback(kind: CallbackKind, callback: object) {
@@ -339,7 +342,7 @@ function checkTwoSidesCallback() {
 }
 
 function checkTwoSidesCallbackSync() {
-    wrapSystemCallback(1, (buff: byte[], len: int32) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
+    wrapSystemCallback(1, (buff: KSerializerBuffer, len: int32) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
     enqueueCallback(
@@ -360,7 +363,7 @@ function checkNumberIncrement() {
 }
 
 function checkCallbackWithReturn() {
-    wrapSystemCallback(1, (buff:byte[], len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
+    wrapSystemCallback(1, (buff:KSerializerBuffer, len:int) => { deserializeAndCallCallback(new Deserializer(buff, len)); return 0 })
 
     let callResult1 = "NOT_CALLED"
 
@@ -380,19 +383,20 @@ function checkCallbackWithReturn() {
 }
 
 function checkNativeCallback() {
-    const id1 = wrapCallback((args: byte[], length: int): int => {
+    const id1 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         return 123456
     })
     assertEquals("NativeCallback without args", 123456, TestNativeModule._TestCallIntNoArgs(id1))
-    assertThrows("NativeCallback without args called again", () => { callCallback(id1, [], 0) })
+    assertThrows("NativeCallback without args called again", () => { callCallback(id1, 0, 0) })
     assertThrows("NativeCallback without args called again from native", () => { TestNativeModule._TestCallIntNoArgs(id1) })
 
-    const id2 = wrapCallback((args: byte[], length: int): int => {
+    const id2 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         const buf = new ArrayBuffer(length)
         const view = new DataView(buf)
         const args32 = new Int32Array(buf)
+        const argsBuffer = new KBuffer(args, length)
         for (let i = 0; i < length; i++) {
-            view.setUint8(i, args[i]);
+            view.setUint8(i, argsBuffer.get(i));
         }
         let sum: int = 0
         for (let i = 0; i < args32.length; i++) {
@@ -403,18 +407,19 @@ function checkNativeCallback() {
     const arr2: int[] = [100, 200, 300, -1000]
     assertEquals("NativeCallback Int32Array sum", -400, TestNativeModule._TestCallIntIntArraySum(id2, arr2, arr2.length))
 
-    const id3 = wrapCallback((args: byte[], length: int): int => {
+    const id3 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         const buf = new ArrayBuffer(length)
         const view = new DataView(buf)
         const args32 = new Int32Array(buf)
+        const argsBuffer = new KBuffer(args, length)
         for (let i = 0; i < length; i++) {
-            view.setUint8(i, args[i]);
+            view.setUint8(i, argsBuffer.get(i));
         }
         for (let i = 1; i < args32.length; i++) {
             args32[i] += args32[i - 1]
         }
         for (let i = 0; i < length; i++) {
-            args[i] = view.getUint8(i) as byte
+            argsBuffer.set(i, view.getUint8(i) as byte)
         }
         return 0
     })
@@ -426,19 +431,20 @@ function checkNativeCallback() {
     assertEquals("NativeCallback Int32Array PrefixSum [3]", -400, arr3[3])
 
     const start = Date.now()
-    const id4 = wrapCallback((args: byte[], length: int): int => {
+    const id4 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         const buf = new ArrayBuffer(length)
         const view = new DataView(buf)
         const args32 = new Int32Array(buf)
+        const argsBuffer = new KBuffer(args, length)
         for (let i = 0; i < length; i++) {
-            view.setUint8(i, args[i]);
+            view.setUint8(i, argsBuffer.get(i));
         }
         args32[1]++
         for (let i = 0; i < length; i++) {
-            args[i] = view.getUint8(i) as byte
+            argsBuffer.set(i, view.getUint8(i) as byte)
         }
         if (args32[0] + args32[1] < args32[2]) {
-            return TestNativeModule._TestCallIntRecursiveCallback(id3 + 1, args, args.length)
+            return TestNativeModule._TestCallIntRecursiveCallback(id3 + 1, args, length as int32)
         }
         return 1
     }, false)
@@ -447,17 +453,17 @@ function checkNativeCallback() {
     const count = 100
     for (let i = 0; i < count; i++) {
         const length = 12
-        const args = new byte[length]
+        const argsBuffer = new KBuffer(length)
         const buf = new ArrayBuffer(length)
         const view = new DataView(buf)
         const args32 = new Int32Array(buf)
         args32[2] = depth
         for (let i = 0; i < length; i++) {
-            args[i] = view.getUint8(i) as byte
+            argsBuffer.set(i, view.getUint8(i) as byte)
         }
-        TestNativeModule._TestCallIntRecursiveCallback(id4, args, args.length)
+        TestNativeModule._TestCallIntRecursiveCallback(id4, argsBuffer.buffer, argsBuffer.length as int32)
         for (let i = 0; i < length; i++) {
-            view.setUint8(i, args[i]);
+            view.setUint8(i, argsBuffer.get(i));
         }
         if (i == 0) {
             assertEquals("NativeCallback Recursive [0]", Math.ceil(depth / 2), args32[0])
@@ -467,10 +473,11 @@ function checkNativeCallback() {
     const passed = Date.now() - start
     console.log(`recursive native callback: ${Math.round(passed)}ms for ${depth * count} callbacks, ${Math.round(passed / (depth * count) * 1000000)}ms per 1M callbacks`)
 
-    const id5 = wrapCallback((args: byte[], length: int): int => {
+    const id5 = wrapCallback((args: KSerializerBuffer, length: int): int => {
+        const argsBuffer = new KBuffer(args, length)
         let sum: int = 0
-        for (let i = 0; i < args.length; i++) {
-            sum += args[i]
+        for (let i = 0; i < length; i++) {
+            sum += argsBuffer.get(i)
         }
         return sum
     }, false)

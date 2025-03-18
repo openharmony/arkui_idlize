@@ -89,7 +89,7 @@ void impl_TestCallVoidIntArrayPrefixSum(KVMContext vmContext, KInt methodId, int
 }
 KOALA_INTEROP_CTX_V3(TestCallVoidIntArrayPrefixSum, KInt, int32_t*, KInt)
 
-KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, uint8_t* arr, KInt length) {
+KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, KSerializerBuffer arr, KInt length) {
     reinterpret_cast<int32_t*>(arr)[0]++;
     if (reinterpret_cast<int32_t*>(arr)[0] + reinterpret_cast<int32_t*>(arr)[1] < reinterpret_cast<int32_t*>(arr)[2]) {
         return CallInt(
@@ -101,7 +101,7 @@ KInt impl_TestCallIntRecursiveCallback(KVMContext vmContext, KInt methodId, uint
     }
     return 0;
 }
-KOALA_INTEROP_CTX_3(TestCallIntRecursiveCallback, KInt, KInt, uint8_t*, KInt)
+KOALA_INTEROP_CTX_3(TestCallIntRecursiveCallback, KInt, KInt, KSerializerBuffer, KInt)
 
 KInt impl_TestCallIntMemory(KVMContext vmContext, KInt methodId, KInt n) {
     int res = 0;
