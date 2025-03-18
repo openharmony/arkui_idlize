@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, MaterializedClass, qualifiedName } from '@idlizer/core'
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, isEnumType, MaterializedClass, qualifiedName } from '@idlizer/core'
 import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
@@ -493,6 +493,10 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
+                    } else if (isEnumType(returnType, library)) {
+                        result = [
+                            writer.makeReturn(writer.enumFromOrdinal(writer.makeString(returnValName), returnType))
+                        ]
                     } else {
                         // todo: implement other types deserialization!!!!
                         result = [writer.makeThrowError("Object deserialization is not implemented.")]

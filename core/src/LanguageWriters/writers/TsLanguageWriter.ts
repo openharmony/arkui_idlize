@@ -45,6 +45,7 @@ import { RuntimeType } from "../common";
 import { rightmostIndexOf, throwException } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSKeywords } from '../../languageSpecificKeywords';
+import { isStringEnumType } from '../../peer-generation/isEnumType';
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -449,7 +450,11 @@ export class TSLanguageWriter extends LanguageWriter {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
     enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
-        return this.makeString(`Object.values(${idl.forceAsNamedNode(enumEntry).name})[${value.asString()}]`)
+        const enumName = idl.forceAsNamedNode(enumEntry).name
+        const ordinal = value.asString()
+        return isStringEnumType(enumEntry, this.resolver)
+            ? this.makeString(`Object.values(${enumName})[${ordinal}]`)
+            : this.makeString(`${ordinal}`)
     }
     ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
         const enumName = idl.forceAsNamedNode(enumEntry).name

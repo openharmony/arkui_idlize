@@ -5,10 +5,13 @@ dictionary IDLOrdinaryEnum {
 };
 dictionary IDLIntEnum {
     number E1 = 111;
-    number E2 = 222;
+    number E3 = 333;
+    number E5 = 555;
 };
 dictionary IDLStringEnum {
     String E1 = "e111";
     String E2 = "e222";
 };
 IDLOrdinaryEnum idlCheckOrdinaryEnums(IDLOrdinaryEnum value1, IDLOrdinaryEnum value2);
+IDLIntEnum idlCheckIntEnums(IDLIntEnum value1, IDLIntEnum value2);
+IDLStringEnum idlCheckStringEnums(IDLStringEnum value1, IDLStringEnum value2);

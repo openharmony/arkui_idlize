@@ -313,11 +313,13 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        throw new Error("Method not implemented.")
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+        const enumName = idl.forceAsNamedNode(enumEntry).name
+        const ordinal = value.asString()
+        return this.makeString(`${enumName}.values()[${ordinal}]`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value.asString()}.value`)
+        return this.makeString(`${value.asString()}.ordinal()`)
     }
     makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}`)

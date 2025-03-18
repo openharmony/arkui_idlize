@@ -16,7 +16,7 @@ import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
     createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
-    createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, InteropReturnTypeConvertor,
+    createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, isEnumType, InteropReturnTypeConvertor,
     isInIdlizeInterop,
     TypeConvertor,
     convertType,
@@ -133,15 +133,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             if (clazz.ctor) this.printPeerMethod(clazz.ctor, idl.IDLPointerType)
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
-                const returnType = method.tsReturnType()
-                const returnAsValue = returnType
-                    && (
-                        idl.isPrimitiveType(returnType)
-                        || isStructureType(returnType, this.library)
-                        || idl.IDLContainerUtils.isSequence(returnType)
-                        || idl.IDLContainerUtils.isRecord(returnType)
-                    )
-                this.printPeerMethod(method, returnAsValue ? returnType : idl.IDLPointerType)
+                this.printPeerMethod(method, method.tsReturnType())
             })
         })
     }
@@ -150,13 +142,13 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
         this.library.globals.forEach(entry => {
             const peerMethods = idlFreeMethodsGroupToLegacy(this.library, entry.methods)
             peerMethods.forEach(method => {
-                const returnAsValue = idl.isPrimitiveType(method.returnType) || isStructureType(method.returnType, this.library)
-                this.printPeerMethod(method, returnAsValue ? method.returnType : idl.IDLPointerType)
+                this.printPeerMethod(method, method.returnType)
             })
         })
     }
 
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
+        returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
         const parameters = makeInteropSignature(method, returnType, this.interopConvertor, this.interopRetConvertor)
         let name = `_${component}_${method.overloadedName}`
@@ -590,4 +582,20 @@ function getReturnValue(type: idl.IDLType): string {
     }
 
     throw new Error(`Unknown return type: ${idl.IDLKind[type.kind]} ${idl.forceAsNamedNode(type).name}`)
+}
+
+function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
+
+    if (!returnType) return idl.IDLPointerType
+
+    if (isEnumType(returnType, library))
+        return idl.IDLI32Type
+
+    if (idl.isPrimitiveType(returnType)
+        || isStructureType(returnType, library)
+        || idl.IDLContainerUtils.isSequence(returnType)
+        || idl.IDLContainerUtils.isRecord(returnType))
+        return returnType
+
+    return idl.IDLPointerType
 }

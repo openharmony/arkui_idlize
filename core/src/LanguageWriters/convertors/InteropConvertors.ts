@@ -94,6 +94,9 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
                 }
                 return KInteropReturnBuffer
             }
+            if (idl.isEnum(decl)) {
+                return PrimitiveTypesInstance.Int32.getText()
+            }
         }
         return "void"
     }

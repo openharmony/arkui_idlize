@@ -56,6 +56,7 @@ export * from "./peer-generation/Materialized"
 export * from "./peer-generation/modules"
 export * from "./peer-generation/isMaterialized"
 export * from "./peer-generation/isStructureType"
+export * from "./peer-generation/isEnumType"
 export * from "./peer-generation/unions"
 
 export * from "./LanguageWriters"

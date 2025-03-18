@@ -34,10 +34,14 @@ import {
   IntEnum,
   StringEnum,
   checkOrdinaryEnums,
+  checkIntEnums,
+  checkStringEnums,
   IDLOrdinaryEnum,
   IDLIntEnum,
   IDLStringEnum,
   idlCheckOrdinaryEnums,
+  idlCheckIntEnums,
+  idlCheckStringEnums,
   testDataClass, testDataInterface, DataClass, DataInterface,
   testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
   HandwrittenComponent, IdlHandwrittenComponent,
@@ -130,33 +134,38 @@ function checkEnum() {
   console.log(OrdinaryEnum.E1.valueOf())
   console.log(OrdinaryEnum.E2.valueOf())
   console.log(IntEnum.E1.valueOf())
-  console.log(IntEnum.E2.valueOf())
+  console.log(IntEnum.E3.valueOf())
   console.log(StringEnum.E1.valueOf())
   console.log(StringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
   assertEQ(11, IntEnum.E1.valueOf())
-  assertEQ(22, IntEnum.E2.valueOf())
+  assertEQ(33, IntEnum.E3.valueOf())
+  assertEQ(55, IntEnum.E5.valueOf())
   assertEQ("e11", StringEnum.E1.valueOf())
   assertEQ("e22", StringEnum.E2.valueOf())
 
   // assertEQ(OrdinaryEnum.E2, checkOrdinaryEnums(OrdinaryEnum.E1, OrdinaryEnum.E2))
+  // assertEQ(IntEnum.E5, checkIntEnums(IntEnum.E1, IntEnum.E3))
+  // assertEQ(StringEnum.E2, checkStringEnums(StringEnum.E1, StringEnum.E2))
 
   // .idl
   console.log(IDLOrdinaryEnum.E1.valueOf())
   console.log(IDLOrdinaryEnum.E2.valueOf())
   console.log(IDLIntEnum.E1.valueOf())
-  console.log(IDLIntEnum.E2.valueOf())
+  console.log(IDLIntEnum.E3.valueOf())
   console.log(IDLStringEnum.E1.valueOf())
   console.log(IDLStringEnum.E2.valueOf())
 
   // use Enum.VALUE.valueOf() as a workaround
   assertEQ(111, IDLIntEnum.E1.valueOf())
-  assertEQ(222, IDLIntEnum.E2.valueOf())
+  assertEQ(333, IDLIntEnum.E3.valueOf())
   assertEQ("e111", IDLStringEnum.E1.valueOf())
   assertEQ("e222", IDLStringEnum.E2.valueOf())
 
   // assertEQ(IDLOrdinaryEnum.E2, idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2))
+  // assertEQ(IDLIntEnum.E5, idlCheckIntEnums(IDLIntEnum.E1, IDLIntEnum.E3))
+  // assertEQ(IDLStringEnum.E2, idlCheckStringEnums(IDLStringEnum.E1, IDLStringEnum.E2))
 }
 
 function checkClassWithComplexPropertyType() {
