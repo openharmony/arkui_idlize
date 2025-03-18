@@ -17,6 +17,7 @@ variables:
 include:
     - gitlab/setup.yml
     - gitlab/npm.yml
+    - gitlab/notify.yml
 
 idlize sanity:
   stage: test
@@ -27,6 +28,8 @@ idlize sanity:
     - !reference [.setup, script]
   script:
     - npm run sanity
+  after_script:
+    - !reference [.notify-telegram, script]
 
 pg java:run:
   stage: test

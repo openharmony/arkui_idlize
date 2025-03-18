@@ -1,0 +1,10 @@
+.notify-telegram:
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+  script: |
+    if [ $CI_JOB_STATUS == 'success' ]; then
+      node ./tools/telegram-ci.mjs ✅
+    else
+      node ./tools/telegram-ci.mjs ❎
+    fi

@@ -18,6 +18,7 @@ variables:
 include:
     - gitlab/setup.yml
     - gitlab/npm.yml
+    - gitlab/notify.yml
     - arkgen/.gitlab-ci.yml
     - ohosgen/.gitlab-ci.yml
     - arktscgen/.gitlab-ci.yml
