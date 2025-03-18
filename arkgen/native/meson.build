@@ -191,12 +191,12 @@ endif
 node_module_prefix = ''
 node_module_suffix = 'node'
 
-arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + arkts_library_name]
+arkts_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + arkts_library_name]
 arkts_include_dirs = [
-    external_interop_dir / 'ets',
+    external_interop_dir / 'ani',
 ]
 arkts_sources = [
-    external_interop_dir / 'ets/convertors-ets.cc',
+    external_interop_dir / 'ani/convertors-ani.cc',
     external_interop_dir / 'types/signatures.cc',
 ]
 
