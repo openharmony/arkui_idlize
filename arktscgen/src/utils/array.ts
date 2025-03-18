@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { id } from "./types"
+
 export function withInserted<T>(array: T[], index: number, value: T): T[] {
     return [
         ...array.slice(0, index),
@@ -28,6 +30,6 @@ export function remove<T>(array: T[], value: T): void {
 export function reversed<T>(array: T[]): T[] {
     return array.reduce(
         (a, b) => [b].concat(a),
-        [] as T[]
+        id<T[]>([])
     )
 }

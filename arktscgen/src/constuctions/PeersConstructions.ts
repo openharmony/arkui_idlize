@@ -47,7 +47,10 @@ export class PeersConstructions {
         const parameter = `node`
         return {
             name: (type: string) => `is${type}`,
-            parameter: parameter,
+            parameter: {
+                name: parameter,
+                type: `object | undefined`
+            },
             returnType: (type: string) => `${parameter} is ${type}`,
             body: (type: string) => `${parameter} instanceof ${type}`
         }

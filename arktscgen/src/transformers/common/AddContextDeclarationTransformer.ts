@@ -27,7 +27,7 @@ export class AddContextDeclarationTransformer implements Transformer {
             this.file.entries
                 .concat(
                     createInterface(
-                        Config.contextType,
+                        Config.context,
                         IDLInterfaceSubkind.Class,
                         undefined,
                         undefined,

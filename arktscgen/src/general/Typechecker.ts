@@ -60,6 +60,7 @@ export class Typechecker {
 
     isPeer(node: string): boolean {
         if (node === Config.astNodeCommonAncestor) return false // TODO: is handwritten
+        if (node === Config.context) return false // TODO: is handwritten
         if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
         if (this.isHeir(node, Config.defaultAncestor)) return true
         return false

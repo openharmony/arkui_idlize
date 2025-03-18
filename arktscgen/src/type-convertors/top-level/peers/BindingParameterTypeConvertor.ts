@@ -33,7 +33,7 @@ export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
             string: (type: IDLPrimitiveType) => (parameter: string) => parameter,
             enum: (type: IDLReferenceType) => (parameter: string) => parameter,
             reference: (type: IDLReferenceType) => (parameter: string) => {
-                if (type.name === Config.contextType) {
+                if (type.name === Config.context) {
                     return PeersConstructions.context
                 }
                 return PeersConstructions.passNode(parameter)

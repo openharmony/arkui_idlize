@@ -146,10 +146,10 @@ export class PeerPrinter extends SingleFilePrinter {
                 createReferenceType(
                     PeersConstructions.typeGuard.returnType(this.node.name)
                 ),
-                [createReferenceType(Config.astNodeCommonAncestor)],
+                [createReferenceType(PeersConstructions.typeGuard.parameter.type)],
                 undefined,
                 undefined,
-                [PeersConstructions.typeGuard.parameter]
+                [PeersConstructions.typeGuard.parameter.name]
             ),
             () => {
                 this.writer.writeStatement(

@@ -55,7 +55,7 @@ export class Config {
         return `AstNode`
     }
 
-    static get contextType(): string {
+    static get context(): string {
         return `Context`
     }
 
