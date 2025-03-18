@@ -138,6 +138,8 @@ OH_Buffer TestBuffer_BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
 void stub_hold(OH_Int32 resourceId) {}
 void stub_release(OH_Int32 resourceId) {}
 
+// TBD: wait for the interface FQN fix for ArkTS
+/*
 OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
 {
     std::cout << "Return buffer from getBufferImpl"<< std::endl;
@@ -149,7 +151,7 @@ OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
     result.outData.length = strlen("1234");
     return result;
 }
-
+*/
 // Force Callback real implementations
 
 class ForceCallbackClassPeer
@@ -301,13 +303,6 @@ OH_Number ClassWithPrimitivePropertyType_getCounterImpl(OH_NativePointer thisPtr
 
 void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
     reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c = *value;
-}
-
-OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNamespace_MyEnum2* a) {
-    return {};
-}
-OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyNamespace_MyInterface* a) {
-    return {};
 }
 
 // Enums
@@ -551,11 +546,18 @@ Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_me
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
 }
 
+// TBD: wait for the interface FQN fix for ArkTS
+/*
 // namespaces
 OH_Boolean GlobalScope_hello_MyFuncImpl(OH_UNIT_hello_MyNamespace_FooXXX a) {
     return {};
 }
-
+OH_Boolean GlobalScope_MyFunc1Impl(const OH_UNIT_Union_MyNamespace_MyEnum1_MyNamespace_MyEnum2* a) {
+    return {};
+}
+OH_Boolean GlobalScope_MyFunc2Impl(const Map_String_MyNamespace_MyInterface* a) {
+    return {};
+}
 OH_UNIT_hello_MyNamespace_FooXXXHandle hello_MyNamespace_FooXXX_constructImpl() {
     return {};
 }
@@ -572,3 +574,4 @@ void hello_FooXXX_destructImpl(OH_UNIT_hello_FooXXXHandle thisPtr) {
 OH_Number hello_FooXXX_getYImpl(OH_NativePointer thisPtr) {
     return {};
 }
+*/

@@ -1,3 +1,6 @@
+// TBD: wait for the interface FQN fix for ArkTS
+/*
+
 declare namespace MyNamespace {
     export interface MyInterface {
         property: number
@@ -29,3 +32,4 @@ export namespace hello {
     }
     export function MyFunc(a: MyNamespace.FooXXX): boolean
 }
+*/

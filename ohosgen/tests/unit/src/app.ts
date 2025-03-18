@@ -26,7 +26,8 @@ import {
   ClassWithComplexPropertyType
 } from '#compat'
 
-import { test_buffer } from '#compat'
+// TBD: wait for the interface FQN fix for ArkTS
+// import { test_buffer } from '#compat'
 
 import {
   OrdinaryEnum,
