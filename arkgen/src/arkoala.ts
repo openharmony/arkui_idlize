@@ -439,6 +439,8 @@ export function generateArkoalaFromIdl(config: {
             integrated: true
         })
     const deserializeAndCallCPPContent = peerLibrary.createLanguageWriter(Language.CPP)
+    deserializeAndCallCPPContent.writeLines(cStyleCopyright)
+    deserializeAndCallCPPContent.print('#define KOALA_INTEROP_MODULE NotSpecifiedInteropModule')
     createDeserializeAndCallPrinter(peerLibrary.name, Language.CPP)(peerLibrary).forEach(it => deserializeAndCallCPPContent.concat(it.content))
     writeFile(arkoala.native(new TargetFile('callback_deserialize_call.cc')), deserializeAndCallCPPContent.printer.getOutput().join("\n"),
         {
