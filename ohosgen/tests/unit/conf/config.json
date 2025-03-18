@@ -1,4 +1,12 @@
 {
+    "moduleName": "unit",
+    "modules": {
+        "unit": {
+            "name": "unit",
+            "packages": [""],
+            "useFoldersLayout": true
+        }
+    },
     "TypePrefix": "OH_",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",

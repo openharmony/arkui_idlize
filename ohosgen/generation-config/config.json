@@ -39,10 +39,10 @@
         "ignoreMethods": {}
     },
     "CollapseOverloadsARKTS": false,
-    "moduleName": "multimodules_disabled",
+    "moduleName": "ohos",
     "modules": {
-        "multimodules_disabled": {
-            "name": "multimodules_disabled",
+        "ohos": {
+            "name": "ohos",
             "packages": [""],
             "useFoldersLayout": true
         }

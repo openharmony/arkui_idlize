@@ -1,5 +1,5 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
+import { checkArkoalaCallbacks } from "../../generated/ts/unit.INTERNAL";
 
 export {
     // .d.ts

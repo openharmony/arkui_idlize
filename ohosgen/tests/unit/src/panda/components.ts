@@ -1,2 +1,2 @@
 export { UNITNativeModule } from "../../generated/arkts"
-export { TypeChecker } from "../../generated/arkts/peers/type_check"
+export { TypeChecker } from "../../generated/arkts/unit.INTERNAL"

@@ -1,6 +1,6 @@
 import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { checkArkoalaCallbacks } from "../../generated/arkts/peers/CallbacksChecker";
+import { checkArkoalaCallbacks } from "../../generated/arkts/unit.INTERNAL";
 import { UNITNativeModule } from "../../generated/arkts"
 
 export {

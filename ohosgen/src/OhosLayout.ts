@@ -6,12 +6,25 @@ function selectInternalsPath(): string {
     return currentModule().name + ".INTERNAL"
 }
 
+// TBD: code duplication with the ArkoalaLayout
+export function HandwrittenModule(language: Language): string {
+    switch (language) {
+        case Language.TS: return "../handwritten"
+        case Language.ARKTS: return "../handwritten"
+        default: throw new Error("Not implemented")
+    }
+}
+
 export class OhosTsLayout implements LayoutManagerStrategy {
+    constructor(
+        protected library: PeerLibrary
+    ) { }
+
     protected selectInterface(node: idl.IDLEntry): string {
         if (isInIdlize(node))
             return selectInternalsPath()
         if (idl.isHandwritten(node)) {
-            throw new Error("Not supported for ohos currently")
+            return HandwrittenModule(this.library.language)
         }
         if (isInCurrentModule(node))
             return currentModule().useFoldersLayout
@@ -95,7 +108,7 @@ export function ohosLayout(library: PeerLibrary): LayoutManagerStrategy {
         case Language.TS:
         case Language.ARKTS:
         case Language.CJ:
-            return new OhosTsLayout()
+            return new OhosTsLayout(library)
         //     return new CJLayout(library)
         default: throw new Error(`Ohos layout for language ${library.language.name} is not implemented`)
     }
