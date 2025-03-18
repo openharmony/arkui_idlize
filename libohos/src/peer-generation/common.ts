@@ -1,3 +1,4 @@
+import { LanguageWriter } from "@idlizer/core"
 import * as fs from "fs"
 import * as path from "path"
 
@@ -22,4 +23,18 @@ export function writeIntegratedFile(filename: string, content: string, message?:
         integrated: true,
         message
     })
+}
+
+///////
+
+export function injectPatch(writer: LanguageWriter, key: string, patches: Map<string, Map<string, string>>) {
+    if (patches.has(key)) {
+        const record = patches.get(key)!
+        if (record.has(writer.language.name)) {
+            const text = record.get(writer.language.name)!
+            text.split('\n').forEach(line => {
+                writer.print(line)
+            })
+        }
+    }
 }

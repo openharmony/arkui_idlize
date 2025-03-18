@@ -43,6 +43,7 @@ import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorU
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
+import { injectPatch } from '../common';
 
 interface MaterializedFileVisitor {
     visit(): PrinterResult
@@ -86,7 +87,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         if (!superClassName && printer.language == Language.JAVA) {
             superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
         }
-        
         const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(
@@ -201,6 +201,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             writer.writeSuperCall(params);
                         }
 
+                        const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
+                        injectPatch(writer, key, config.patchMaterialized)
+
                         const allOptional = ctorSig.args.every(it => isOptionalType(it))
                         const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
                         if (hasStaticMethods && allOptional) {
@@ -239,8 +242,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                                 )
                         }
                         writer.writeStatement(ctorStatements)
-                        const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
-                        injectPatch(writer, key, config.patchMaterialized)
                     })
                 } else {
                     // constructor with a special parameter to use in static methods
@@ -580,16 +581,4 @@ function methodFromTagged(method: idl.IDLMethod): idl.IDLMethod {
         },
         method.typeParameters
     )
-}
-
-function injectPatch(writer: LanguageWriter, key: string, patches: Map<string, Map<string, string>>) {
-    if (patches.has(key)) {
-        const record = patches.get(key)!
-        if (record.has(writer.language.name)) {
-            const text = record.get(writer.language.name)!
-            text.split('\n').forEach(line => {
-                writer.print(line)
-            })
-        }
-    }
 }

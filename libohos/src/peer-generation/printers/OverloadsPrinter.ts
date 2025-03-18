@@ -27,6 +27,7 @@ import { isDefined, Language, throwException, collapseTypes } from '@idlizer/cor
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration';
+import { injectPatch } from '../common';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
     let returnType: idl.IDLType = collapseTypes(types)
@@ -267,7 +268,9 @@ export class OverloadsPrinter {
             this.printer.print(`/** @memo */`)
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
+        const key = peer.getComponentName() + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
+            injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             if (this.isComponent) {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
