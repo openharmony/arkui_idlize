@@ -49,6 +49,36 @@ interface ContextMenuAnimationOptions {
     attribute AnimationRange_Number hoverScale;
 };
 
+[Entity=Interface]
+interface BaseEvent {
+    attribute i64 timestamp;
+};
+
+[Entity=Interface]
+interface HistoricalPoint {
+    attribute i64 timestamp;
+};
+
+[Entity=Interface]
+interface KeyEvent {
+    attribute i64 timestamp;
+};
+
+[Entity=Interface]
+interface CrownEvent {
+    attribute i64 timestamp;
+};
+
+[Entity=Interface]
+interface FormInfo {
+    attribute (i64 or String) id;
+};
+
+[Entity=Interface]
+interface FormCallbackInfo {
+    attribute i64 id;
+};
+
 /* parameterTypeReplacements */
 
 [Entity=Class]

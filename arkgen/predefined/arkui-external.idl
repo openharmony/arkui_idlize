@@ -234,7 +234,7 @@ dictionary PerfMonitorSourceType {
 interface GlobalScope_ohos_arkui_performanceMonitor {
     static void begin(String scene, PerfMonitorActionType startInputType, optional String note);
     static void end(String scene);
-    static void recordInputEventTime(PerfMonitorActionType actionType, PerfMonitorSourceType sourceType, number time);
+    static void recordInputEventTime(PerfMonitorActionType actionType, PerfMonitorSourceType sourceType, i64 time);
 };
 
 callback ErrorCallback = void (BusinessError err);
