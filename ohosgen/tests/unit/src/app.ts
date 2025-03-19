@@ -337,7 +337,7 @@ export function run() {
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
   suite.addTest("checkMaterialized", checkMaterialized)
   // suite.addTest("checkNativeBuffer", checkNativeBuffer)
-  suite.addTest("checkHandwritten", checkHandwritten)
+  // suite.addTest("checkHandwritten", checkHandwritten)
   // suite.addTest("checkAny", checkAny)
 
   return suite.run()

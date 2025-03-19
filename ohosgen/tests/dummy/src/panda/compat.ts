@@ -3,7 +3,7 @@ import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModu
 import { checkArkoalaCallbacks } from "../../generated/arkts";
 import { DUMMYNativeModule } from "../../generated/arkts"
 
-// export { dtsDummy, idlDummy } from "../../generated/arkts"
+export { dtsDummy, idlDummy } from "../../generated/arkts"
 export { DTSDummyClass } from "../../generated/arkts"
 // export { IDLDummyClass } from "../../generated/arkts"
 
@@ -14,7 +14,7 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "DUMMY_NativeBridgeArk")
-    registerNativeModuleLibraryName("DUMMYNativeModule", "DUMMY_NativeBridgeArk")
+    registerNativeModuleLibraryName("InteropNativeModule", "DUMMY_NativeModule")
+    registerNativeModuleLibraryName("DUMMYNativeModule", "DUMMY_NativeModule")
     new DUMMYNativeModule()
 }

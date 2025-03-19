@@ -1,4 +1,4 @@
-// void idlDummy();
+void idlDummy();
 
 /*
 [Entity=Class]

@@ -1,7 +1,7 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts";
 
-// export { dtsDummy, idlDummy } from "../../generated/ts"
+export { dtsDummy, idlDummy } from "../../generated/ts"
 export { DTSDummyClass } from "../../generated/ts"
 // export { IDLDummyClass } from "../../generated/ts"
 

@@ -83,11 +83,12 @@ if is_node
         sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cc' ]
     endif
 elif is_panda
-    library_name = 'UNIT_NativeBridgeArk'
+    library_name = 'UNIT_NativeModule'
     platform_build_dir = 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit/generated/arkts/UNITNativeModule/']
+    # cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit/generated/arkts/UNITNativeModule/']
+    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit/generated/arkts/unit/INTERNAL/']
     include_dirs += [
         external_interop_dir / 'ani',
     ]

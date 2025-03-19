@@ -57,8 +57,8 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "UNIT_NativeBridgeArk")
-    registerNativeModuleLibraryName("UNITNativeModule", "UNIT_NativeBridgeArk")
+    registerNativeModuleLibraryName("InteropNativeModule", "UNIT_NativeModule")
+    registerNativeModuleLibraryName("UNITNativeModule", "UNIT_NativeModule")
     new UNITNativeModule()
 }
 
