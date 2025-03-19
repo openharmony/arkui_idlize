@@ -9392,23 +9392,6 @@ declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').defaul
 declare type Summary = import('../api/@ohos.data.unifiedDataChannel').default.Summary;
 
 /**
- * Import the UniformDataType type object for ui component.
- *
- * @typedef { import('../api/@ohos.data.uniformTypeDescriptor').default.UniformDataType } UniformDataType
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @since 10
- */
-/**
- * Import the UniformDataType type object for ui component.
- *
- * @typedef { import('../api/@ohos.data.uniformTypeDescriptor').default.UniformDataType } UniformDataType
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @atomicservice
- * @since 11
- */
-declare type UniformDataType = import('../api/@ohos.data.uniformTypeDescriptor').default.UniformDataType;
-
-/**
  * Enum for Drag Result.
  *
  * @enum { number }
