@@ -531,9 +531,6 @@ function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
             writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
         }
         for (const m of decl.methods) {
-            if (m.isStatic) {
-                continue
-            }
             writer.writeMethodDeclaration(m.name,
                 new NamedMethodSignature(
                     m.returnType,

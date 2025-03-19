@@ -131,6 +131,7 @@ class DeserializeCallbacksVisitor {
     private writeImports() {
         if (this.writer.language === Language.CPP && this.library.name === "arkoala") {
             const cppWriter = this.writer as CppLanguageWriter
+            cppWriter.print("#define KOALA_INTEROP_MODULE NotSpecifiedInteropModule")
             cppWriter.writeInclude("callback_kind.h")
             cppWriter.writeInclude("Serializers.h")
             cppWriter.writeInclude("callbacks.h")
