@@ -38,7 +38,7 @@ check generated XML demo:
       - npm run check:ts
       - npm run check:arkts
 
-check ohos unit tests and demos:
+check ohos unit tests:
   stage: test
   tags:
     - idlize-ci
@@ -57,6 +57,23 @@ check ohos unit tests and demos:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run check:ts
     - npm run check:arkts
+
+check ohos demos:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - cd $CI_PROJECT_DIR/ohosgen
+    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - npm run compile --prefix ../external/interop
+    - npm run compile --prefix ../external/incremental/common
+    - npm run compile --prefix ../external/incremental/compat
+    - npm run compile --prefix ../external/incremental/runtime
+    - npm run build:interop:inc --prefix ../external/interop
+    - npm run build:incremental:inc --prefix ../external/incremental/runtime
+  script:
     - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
     - npm i -d
