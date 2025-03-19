@@ -17,6 +17,7 @@ import {
     ConfigTypeInfer,
     D,
     identName,
+    isDefined,
     toIDLFile,
 } from "@idlizer/core";
 import * as idl from '@idlizer/core/idl'
@@ -48,6 +49,21 @@ export interface IDLVisitorConfigurationHelpers {
 
     TypeReplacementsFile: idl.IDLFile,
     ReplacedDeclarations: Map<string, idl.IDLEntry>
+
+    checkMethodSignatureReplacement(methods: (ts.MethodDeclaration | ts.MethodSignature)[]): [idl.IDLMethod[]?, idl.IDLEntry[]?]
+}
+
+export function groupOverloadsTS(methods: (ts.MethodDeclaration | ts.MethodSignature)[]): (ts.MethodDeclaration | ts.MethodSignature)[][] {
+    const groups = new Map<string, (ts.MethodDeclaration | ts.MethodSignature)[]>()
+    for (const method of methods) {
+        const methodName = identName(method.name)!
+        if (!groups.has(methodName)) {
+            groups.set(methodName, [])
+        }
+        const bucket = groups.get(methodName)
+        bucket?.push(method)
+    }
+    return Array.from(groups.values())
 }
 
 export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): IDLVisitorConfiguration {
@@ -96,6 +112,32 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
                 return [idl.maybeOptional(result.type, result.isOptional), syntheticEntry]
             }
             return []
+        },
+        checkMethodSignatureReplacement(overloadedGroup: (ts.MethodDeclaration | ts.MethodSignature)[]): [idl.IDLMethod[]?, idl.IDLEntry[]?] {
+            const rootMethod = overloadedGroup[0]
+            if (!ts.isClassDeclaration(rootMethod.parent) && !ts.isInterfaceDeclaration(rootMethod.parent)) return []
+
+            const classOrInterfaceName = identName(rootMethod.parent.name)!
+            const methodName = identName(rootMethod.name)!
+            const entries: idl.IDLInterface[] = this.TypeReplacementsFile.entries.filter((it: idl.IDLEntry) => idl.isInterface(it)) as idl.IDLInterface[]
+            const result = entries.find(it => it.name === classOrInterfaceName)?.methods.filter((it: idl.IDLMethod) => it.name == methodName)
+            if (!result || !result.length) return []
+
+            let syntheticEntries: idl.IDLEntry[] = []
+            for (let idlMethod of result) {
+                if (idl.isReferenceType(idlMethod.returnType)) {
+                    const syntheticEntry = findSyntheticDeclaration(this.TypeReplacementsFile, idlMethod.returnType.name)
+                    if (syntheticEntry) syntheticEntries.push(syntheticEntry)
+                }
+                idlMethod.parameters.forEach(param => {
+                    if (idl.isReferenceType(param.type)) {
+                        const syntheticEntry = findSyntheticDeclaration(this.TypeReplacementsFile, param.type.name)
+                        if (syntheticEntry) syntheticEntries.push(syntheticEntry)
+                    }
+                })
+            }
+
+            return [result, syntheticEntries.length ? syntheticEntries : undefined]
         },
         checkTypedefReplacement(typedef: ts.TypeAliasDeclaration): [idl.IDLType?, idl.IDLEntry?] {
             const typename = identName(typedef.name)!

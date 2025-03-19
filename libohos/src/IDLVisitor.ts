@@ -28,6 +28,7 @@ import {
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
 import { peerGeneratorConfiguration, IDLVisitorConfiguration } from "./DefaultConfiguration"
+import { groupOverloadsTS } from "./IDLVisitorConfig"
 
 const MaxSyntheticTypeLength = 60
 
@@ -646,12 +647,21 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         return mergeSetGetProperties(properties)
     }
     pickMethods(parentNameSuggestion: string, members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLMethod[] {
-        return members
-            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it)) && !this.isCommonMethodUsedAsProperty(it) && !this.isMethodUsedAsCallback(it) && !isPrivate(it.modifiers))
-            .map(it => this.serializeMethod(it as ts.MethodDeclaration | ts.MethodSignature, nameSuggestion))
+        const methods = members
+            .filter(it => (ts.isMethodSignature(it) || ts.isMethodDeclaration(it) || ts.isIndexSignatureDeclaration(it))
+                && !this.isCommonMethodUsedAsProperty(it) && !this.isMethodUsedAsCallback(it) && !isPrivate(it.modifiers))
             .filter(it => {
-                return !IDLVisitorConfiguration().DeletedMethods.get(parentNameSuggestion)?.includes(it.name)
+                return !IDLVisitorConfiguration().DeletedMethods.get(parentNameSuggestion)?.includes(nameOrNull(it.name) ?? "_unknown")
             })
+        const groupedOverloads = groupOverloadsTS(methods as (ts.MethodDeclaration | ts.MethodSignature)[])
+        const serializedMethods = groupedOverloads.flatMap(group => {
+            const [methodReplacement, syntheticEntries] = IDLVisitorConfiguration().checkMethodSignatureReplacement(group)
+            if (!methodReplacement) return group.map(method => this.serializeMethod(method, nameSuggestion))
+
+            if (syntheticEntries) syntheticEntries.forEach(syntheticEntry => this.addSyntheticType(syntheticEntry))
+            return methodReplacement
+        })
+        return serializedMethods
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, nameSuggestion: NameSuggestion): idl.IDLCallable[] {
         return members.filter(ts.isCallSignatureDeclaration)
