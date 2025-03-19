@@ -85,13 +85,13 @@ elif is_panda
     library_name = 'TEST_GENERIC_CALLBACKNativeModule'
     platform_build_dir = 'build/panda'
 
-    cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ETS_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@test-generic-callback/generated/arkts/TEST_GENERIC_CALLBACKNativeModule/']
     include_dirs += [
-        external_interop_dir / 'ets',
+        external_interop_dir / 'ani',
     ]
     sources += [
-        external_interop_dir / 'ets/convertors-ets.cc',
+        external_interop_dir / 'ani/convertors-ani.cc',
         external_interop_dir / 'types/signatures.cc',
     ]
 elif is_cj
