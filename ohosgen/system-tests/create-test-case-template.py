@@ -86,6 +86,21 @@ arktsconfig_main_json_contents = '''
 with open(f"./{cur_test_case}/arktsconfig.main.json", 'w') as file:
     file.write(arktsconfig_main_json_contents)
 
+generation_config_json_contents = '''
+{
+    "moduleName": "__INSERT_PACKAGE_NAME_HERE__",
+    "modules": {
+        "__INSERT_PACKAGE_NAME_HERE__": {
+            "name": "__INSERT_PACKAGE_NAME_HERE__",
+            "packages": ["__INSERT_PACKAGE_NAME_HERE__"],
+            "useFoldersLayout": true
+        }
+    }
+}
+'''.strip().replace('__INSERT_PACKAGE_NAME_HERE__', cur_package_name)
+with open(f"./{cur_test_case}/generation_config.json", 'w') as file:
+    file.write(generation_config_json_contents)
+
 rollup_config_mjs_contents = '''
 import * as path from "node:path"
 import { defineConfig } from "rollup"

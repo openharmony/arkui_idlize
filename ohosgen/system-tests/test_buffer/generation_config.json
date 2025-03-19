@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_buffer",
+    "modules": {
+        "test_buffer": {
+            "name": "test_buffer",
+            "packages": ["test_buffer"],
+            "useFoldersLayout": true
+        }
+    }
+}

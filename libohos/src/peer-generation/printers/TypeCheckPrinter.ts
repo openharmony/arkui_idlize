@@ -6,7 +6,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInIdlize } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToOrdinalName, generateEnumFromOrdinalName } from '@idlizer/core';
@@ -14,6 +14,7 @@ import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
 import { PrinterResult } from "../LayoutManager";
+import { collectDeclarationTargets } from "../DeclarationTargetCollector";
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     collectDeclItself(library, idl.createReferenceType("TypeChecker"), imports)
@@ -97,21 +98,33 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             res.push(entry)
         }
     })
+    for (const decl of collectDeclarationTargets(library)) {
+        if (!idl.isEntry(decl))
+            continue
+        if (idl.isImport(decl) ||
+            isInIdlize(decl)
+        )
+            continue
+        if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
+            continue
+        syntheticCollector.convert(decl)
+        if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||
+            idl.isEnum(decl))
+            && !seenNames.has(decl.name)) {
+            seenNames.add(decl.name)
+            res.push(decl)
+        }
+    }
     for (const file of library.files) {
         for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
             if (idl.isImport(decl) ||
-                isInIdlize(decl)
+                isInIdlize(decl) ||
+                !isInCurrentModule(decl)
             )
                 continue
             if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
                 continue
             syntheticCollector.convert(decl)
-            if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||
-                idl.isEnum(decl))
-                && !seenNames.has(decl.name)) {
-                seenNames.add(decl.name)
-                res.push(decl)
-            }
         }
     }
     return res
@@ -134,10 +147,16 @@ abstract class TypeCheckerPrinter {
             this.imports.addFeature(feature.feature, feature.module)
         }
         for (const dep of collectTypeCheckDeclarations(this.library)) {
-            if (idl.isContainerType(dep))
-                continue
-            collectDeclItself(this.library, dep, this.imports)
-            collectDeclDependencies(this.library, dep, this.imports)
+            if (idl.isContainerType(dep)) {
+                dep.elementType.forEach(it => {
+                    const resolved = idl.isReferenceType(it) ? this.library.resolveTypeReference(it) : undefined
+                    if (resolved && idl.isEntry(resolved))
+                        collectDeclItself(this.library, resolved, this.imports)
+                })
+            } else {
+                collectDeclItself(this.library, dep, this.imports)
+                collectDeclDependencies(this.library, dep, this.imports)
+            }
         }
     }
 

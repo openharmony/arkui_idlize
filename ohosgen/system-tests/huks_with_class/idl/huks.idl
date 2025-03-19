@@ -1,3 +1,5 @@
+package huks_with_class;
+
 dictionary HuksTag {
     number HUKS_TAG_INVALID = 0;
     number HUKS_TAG_ALGORITHM = 536870913;

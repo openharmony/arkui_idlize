@@ -1,5 +1,5 @@
 import { pullEvents, init } from "./compat";
-import * as huks from '../../generated/arkts/GlobalScope';
+import * as huks from '../../generated/arkts';
 
 function mainBody() {
     console.log('Starting demo: huks');

@@ -16,7 +16,7 @@
         "prepare": "rm -rf ./__temp__ && npm run compile -C ..",
 
         "clean": "rm -rf ./${TEST_CASE}/build ./${TEST_CASE}/generated",
-        "generate:arkts": "npm run run:ohos:generate:${INPUT_TYPE}:arkts -C .. -- --default-idl-package ${TEST_CASE} --input-dir ./system-tests/${TEST_CASE}/${INPUT_TYPE} --output-dir ./system-tests/${TEST_CASE}",
+        "generate:arkts": "npm run run:ohos:generate:${INPUT_TYPE}:arkts -C .. -- --options-file ./system-tests/${TEST_CASE}/generation_config.json --input-dir ./system-tests/${TEST_CASE}/${INPUT_TYPE} --output-dir ./system-tests/${TEST_CASE}",
         "compile:arkts": "bash ./build-panda.sh ${TEST_CASE}",
         "compile:native": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",
         "compile:native:arkts": "TARGET_VM=panda npm run _meson",

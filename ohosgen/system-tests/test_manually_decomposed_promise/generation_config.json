@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_manually_decomposed_promise",
+    "modules": {
+        "test_manually_decomposed_promise": {
+            "name": "test_manually_decomposed_promise",
+            "packages": ["test_manually_decomposed_promise"],
+            "useFoldersLayout": true
+        }
+    }
+}

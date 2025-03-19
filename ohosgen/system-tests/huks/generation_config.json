@@ -1,0 +1,10 @@
+{
+    "moduleName": "huks",
+    "modules": {
+        "huks": {
+            "name": "huks",
+            "packages": ["huks"],
+            "useFoldersLayout": true
+        }
+    }
+}

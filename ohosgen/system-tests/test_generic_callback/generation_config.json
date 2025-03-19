@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_generic_callback",
+    "modules": {
+        "test_generic_callback": {
+            "name": "test_generic_callback",
+            "packages": ["foo"],
+            "useFoldersLayout": true
+        }
+    }
+}

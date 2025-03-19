@@ -1,0 +1,10 @@
+{
+    "moduleName": "huks_with_class",
+    "modules": {
+        "huks_with_class": {
+            "name": "huks_with_class",
+            "packages": ["huks_with_class"],
+            "useFoldersLayout": true
+        }
+    }
+}

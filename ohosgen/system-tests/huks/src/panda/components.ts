@@ -1,2 +1,2 @@
-export { HUKSNativeModule } from '../../generated/arkts/HUKSNativeModule';
-export { TypeChecker } from '../../generated/arkts/peers/type_check';
+export { HUKSNativeModule } from '../../generated/arkts';
+export { TypeChecker } from '../../generated/arkts';

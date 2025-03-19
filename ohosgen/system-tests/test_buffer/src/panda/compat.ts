@@ -1,5 +1,5 @@
 import { registerNativeModuleLibraryName } from '@koalaui/interop';
-import { checkArkoalaCallbacks } from '../../generated/arkts/peers/CallbacksChecker';
+import { checkArkoalaCallbacks } from '../../generated/arkts';
 
 export { Foo, FooResult } from '../../generated/arkts';
 
