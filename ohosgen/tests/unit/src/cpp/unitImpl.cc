@@ -139,7 +139,7 @@ void stub_hold(OH_Int32 resourceId) {}
 void stub_release(OH_Int32 resourceId) {}
 
 // TBD: wait for the interface FQN fix for ArkTS
-/*
+//*
 OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
 {
     std::cout << "Return buffer from getBufferImpl"<< std::endl;
@@ -151,7 +151,7 @@ OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
     result.outData.length = strlen("1234");
     return result;
 }
-*/
+//*/
 // Force Callback real implementations
 
 class ForceCallbackClassPeer

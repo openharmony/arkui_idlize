@@ -162,15 +162,17 @@ export class TSLanguageWriter extends LanguageWriter {
         return new TSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.language)
     }
 
-    getNodeName(type: idl.IDLNode): string {
+    getNodeName(type: idl.IDLNode, namespaces?: idl.IDLNamespace[]): string {
         // just stub.
         // language writers and name convertors are subject to rework for namespaces
         const row = this.typeConvertor.convert(type)
-        const nsPrefix = this.namespaceStack.join('.') + '.'
-        if (row.startsWith(nsPrefix)) {
-            return row.substring(nsPrefix.length)
-        }
-        return row
+        if (namespaces && namespaces.length > 0) {
+            const ns = this.typeConvertor.convert(namespaces[0])
+            if (ns && row.startsWith(`${ns}.`)) {
+                return row.substring(ns.length + 1)
+            }
+       }
+       return row
     }
 
     writeClass(
@@ -205,20 +207,20 @@ export class TSLanguageWriter extends LanguageWriter {
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
         this.printer.print(this.generateFunctionDeclaration(name, signature))
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
-        this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, namespaces?: idl.IDLNamespace[]): void {
+        this.printer.print(`${this.generateFunctionDeclaration(name, signature, namespaces)} {`)
         this.printer.pushIndent()
         op(this)
         this.printer.popIndent()
         this.printer.print('}')
     }
-    private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
+    private generateFunctionDeclaration(name: string, signature: MethodSignature, namespaces?: idl.IDLNamespace[]): string {
         const rightmostRegularParameterIndex = rightmostIndexOf(signature.args, it => !isOptionalType(it))
         const args = signature.args.map((it, index) => {
             const optionalToken = idl.isOptionalType(it) && index > rightmostRegularParameterIndex ? '?' : ''
             return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it)}`
         })
-        const returnType = this.getNodeName(signature.returnType)
+        const returnType = this.getNodeName(signature.returnType, namespaces)
         return `export function ${name}(${args.join(", ")}): ${returnType}`
     }
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[]): void {

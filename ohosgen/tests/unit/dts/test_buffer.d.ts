@@ -1,7 +1,6 @@
 
 // TBD: wait for the interface FQN fix for ArkTS
-/*
-import { Callback } from './@ohos.base';
+// import { Callback } from './@ohos.base';
 
 declare namespace test_buffer {
 
@@ -12,4 +11,3 @@ declare namespace test_buffer {
 
   function getBuffer(): TestValue
 }
-*/

@@ -58,6 +58,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             // write
             const writer = library.createLanguageWriter()
 
+            const ns = idl.getNamespacesPathFor(methods[0])
             /* global scope export function */
             writer.writeFunctionImplementation(method.name, signature, w => {
                 const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
@@ -65,7 +66,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                     ? w.makeReturn(call)
                     : w.makeStatement(call)
                 w.writeStatement(statement)
-            })
+            }, ns)
 
             /* global scope peer serialize function */
             new OverloadsPrinter(library, peerMethodWriter, library.language, false)

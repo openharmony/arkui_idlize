@@ -461,7 +461,7 @@ export abstract class LanguageWriter {
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
-    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void
+    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, namespaces?: idl.IDLNamespace[]): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void

@@ -28,7 +28,7 @@ import {
 } from '#compat'
 
 // TBD: wait for the interface FQN fix for ArkTS
-// import { test_buffer } from '#compat'
+import { test_buffer } from '#compat'
 
 import {
   OrdinaryEnum,
@@ -286,7 +286,7 @@ function checkMaterialized() {
 }
 
 // TBD: fix native buffer for TS
-/*
+// /*
 function checkNativeBuffer() {
   const testValue: test_buffer.TestValue = test_buffer.getBuffer();
   checkEQ(123, testValue.errorCode, "Invalid value of errorCode")
@@ -304,7 +304,7 @@ function checkNativeBuffer() {
     checkEQ(text.charAt(i) + "", String.fromCharCode(buffer.readByte(i)), "Invalid NativeBuffer data")
   }
 }
-*/
+// */
 
 function checkHandwritten() {
   const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }
