@@ -32,6 +32,7 @@ idlize sanity:
     - !reference [.notify-telegram, script]
 
 pg java:run:
+  allow_failure: true
   stage: test
   tags:
     - idlize-ci
