@@ -28,12 +28,12 @@ function writeVersion(version) {
 
 function readVersion() {
     const version = fs.readFileSync(path.join(IDLIZE_HOME, "VERSION"), "utf-8")
-    return new Version(version)
+    return version.trim()
 }
 
 function readExternalVersion() {
     const version = fs.readFileSync(path.join(EXTERNAL_HOME, "VERSION"), "utf-8")
-    return new Version(version)
+    return version.trim()
 }
 
 const autoPromote = false
