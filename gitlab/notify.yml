@@ -1,10 +1,12 @@
 .notify-telegram:
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
       when: always
   script: |
     if [ $CI_JOB_STATUS == 'success' ]; then
-      node ./tools/telegram-ci.mjs ✅
+      node ./tools/telegram/telegram-ci.mjs ✅
     else
-      node ./tools/telegram-ci.mjs ❎
+      node ./tools/telegram/telegram-ci.mjs ❎
     fi

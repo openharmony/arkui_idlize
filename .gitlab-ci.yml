@@ -1,6 +1,7 @@
 image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
 
 stages:
+  - notify
   - build
   - test
   - pre-deploy

@@ -1,6 +1,7 @@
 image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
 
 stages:
+  - notify
   - build
   - test
   - pre-deploy
@@ -18,6 +19,21 @@ include:
     - gitlab/setup.yml
     - gitlab/npm.yml
     - gitlab/notify.yml
+
+notify-release:
+  stage: notify
+  tags:
+    - idlize-ci
+    - koala-ci
+  script:
+    - version=$(cat ./VERSION)
+    - node ./tools/telegram/notify-release.mjs $version
+  rules:
+    - if: $CI_COMMIT_BRANCH != 'master'
+      changes:
+        compare_to: 'refs/heads/master'
+        paths:
+          - VERSION
 
 idlize sanity:
   stage: test
