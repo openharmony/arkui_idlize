@@ -20,9 +20,41 @@
 #include <iostream>
 #include <string.h>
 
+// GlobalScope
+
 void GlobalScope_idlDummyImpl() {
     printf("Output from IDL dummy\n");
 }
 void GlobalScope_dtsDummyImpl() {
     printf("Output from DTS dummy\n");
 }
+
+// DTSDummyClass
+class DTSDummyClassPeer
+{
+};
+
+OH_DUMMY_DTSDummyClassHandle DTSDummyClass_constructImpl() {
+    return (OH_DUMMY_DTSDummyClassHandle) new DTSDummyClassPeer();
+}
+void DTSDummyClass_destructImpl(OH_DUMMY_DTSDummyClassHandle thisPtr) {
+}
+void DTSDummyClass_dummyImpl(OH_NativePointer thisPtr) {
+    printf("Call DTS dummy impl method!\n");
+}
+
+/*
+// IDLDummyClass
+class IDLDummyClassPeer
+{
+};
+
+OH_DUMMY_IDLDummyClassHandle IDLDummyClass_constructImpl() {
+    return (OH_DUMMY_IDLummyClassHandle) new IDLDummyClassPeer();
+}
+void IDLDummyClass_destructImpl(OH_DUMMY_IDLDummyClassHandle thisPtr) {
+}
+void IDLDummyClass_dummyImpl(OH_NativePointer thisPtr) {
+    printf("Call dummy impl method!\n");
+}
+*/

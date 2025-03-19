@@ -1,4 +1,12 @@
 {
+    "moduleName": "dummy",
+    "modules": {
+        "dummy": {
+            "name": "dummy",
+            "packages": [""],
+            "useFoldersLayout": true
+        }
+    },
     "TypePrefix": "OH_",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",

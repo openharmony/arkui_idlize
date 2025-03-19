@@ -1,7 +1,10 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts/peers/CallbacksChecker";
+import { checkArkoalaCallbacks } from "../../generated/ts";
 
-export { dtsDummy, idlDummy } from "../../generated/ts"
+// export { dtsDummy, idlDummy } from "../../generated/ts"
+export { DTSDummyClass } from "../../generated/ts"
+// export { IDLDummyClass } from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 
 declare const NATIVE_LIBRARY_NAME: string
