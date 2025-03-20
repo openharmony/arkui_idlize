@@ -30,6 +30,9 @@ export class ComponentBase {
     public applyAttributesFinish(): void {
         ArkUINativeModule._ApplyModifierFinish(this.peer!.peer.ptr)
     }
+    public applyAttributes(attrs: Object): void {
+        this.applyAttributesFinish()
+    }
     public animationStart(param: AnimateParam): this {
         _animationStart(param, this.isFirstBuild)
         return this

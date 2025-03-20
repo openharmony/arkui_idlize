@@ -23,7 +23,26 @@ import { removeExt, renameDtsToComponent, Language, isCommonMethod,
     MethodModifier,
     NamedMethodSignature
 } from '@idlizer/core'
-import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH, collapseSameNamedMethods, collectComponents, collectDeclDependencies, collectJavaImports, COMPONENT_BASE, componentToPeerClass, convertPeerFilenameToModule, findComponentByType, groupOverloads, ImportsCollector, OverloadsPrinter, peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning } from '@idlizer/libohos'
+import {
+    ARKOALA_PACKAGE,
+    ARKOALA_PACKAGE_PATH,
+    collapseSameNamedMethods,
+    collectComponents,
+    collectDeclDependencies,
+    collectJavaImports,
+    COMPONENT_BASE,
+    componentToAttributesClass,
+    componentToPeerClass,
+    convertPeerFilenameToModule,
+    findComponentByType,
+    groupOverloads,
+    ImportsCollector,
+    OverloadsPrinter,
+    peerGeneratorConfiguration,
+    printJavaImports,
+    TargetFile,
+    tsCopyrightAndWarning,
+} from '@idlizer/libohos'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -82,6 +101,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             }
             const peerModule = convertPeerFilenameToModule(peer.originalFilename)
             imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
+            imports.addFeature(componentToAttributesClass(peer.componentName), peerModule)
             peer.attributesTypes.forEach((attrType) =>
                 imports.addFeature(attrType.typeName, peerModule)
             )
@@ -132,10 +152,32 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
-            const attributesSignature = new MethodSignature(IDLVoidType, [])
-            writer.writeMethodImplementation(new Method('applyAttributesFinish', attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+
+            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+            const applyAttributesFinish = 'applyAttributesFinish'
+            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.print('// we calls this function outside of class, so need to make it public')
-                writer.writeMethodCall('super', 'applyAttributesFinish', [])
+                writer.writeMethodCall('super', applyAttributesFinish, [])
+            })
+
+            const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
+            const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
+            const applyAttributes = 'applyAttributes'
+            writer.print(`/** @memo */`)
+            writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+                for (const field of peer.attributesFields) {
+                    writer.writeStatement(
+                        writer.makeCondition(
+                            writer.makeDefinedCheck(`attrs.${field.name}`),
+                            writer.makeStatement(
+                                writer.makeMethodCall('this', field.name, [
+                                    writer.makeString(`attrs.${field.name}!`)
+                                ])
+                            )
+                        )
+                    )
+                }
+                writer.writeMethodCall('super', applyAttributes, ['attrs'])
             })
         }, parentComponentClassName)
 
@@ -230,10 +272,18 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                 )
             })
 
-            const attributesSignature = new MethodSignature(IDLVoidType, [])
+            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
-            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
+            })
+
+            const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
+            const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
+            const applyAttributes = 'applyAttributes'
+            writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+                writer.writeMethodCall('super', applyAttributes, [])
+                writer.writeStatement(writer.makeStatement(writer.makeString("throw new RuntimeException('not implemented')")))
             })
         }, parentComponentClassName)
 

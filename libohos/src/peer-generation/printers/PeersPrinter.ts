@@ -46,7 +46,7 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-function componentToAttributesClass(component: string) {
+export function componentToAttributesClass(component: string) {
     return `Ark${component}Attributes`
 }
 

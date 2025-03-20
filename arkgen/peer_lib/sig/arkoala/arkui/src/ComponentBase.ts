@@ -27,5 +27,6 @@ export class ComponentBase {
         return true
     }
     protected applyAttributesFinish(): void { throw new Error("not implemented") }
+    protected applyAttributes(attrs: Object): void { throw new Error("not implemented") }
     __applyStyle(style: (instance: this, ...args: any) => this, ...args: any): this { throw new Error("not implemented") }
 }
