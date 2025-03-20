@@ -1,0 +1,74 @@
+package org.openharmony.arkui;
+
+[Entity=Interface]
+interface ComponentInfo {
+
+    attribute Size size;
+    attribute Offset localOffset;
+    attribute Offset windowOffset;
+    attribute Offset screenOffset;
+    attribute TranslateResult translate;
+    attribute ScaleResult scale;
+    attribute RotateResult rotate;
+    attribute Matrix4Result transform;
+
+};
+[Entity=Interface]
+interface Offset {
+
+    attribute number x;
+    attribute number y;
+
+};
+[Entity=Interface]
+interface TranslateResult {
+
+    attribute number x;
+    attribute number y;
+    attribute number z;
+
+};
+[Entity=Interface]
+interface ScaleResult {
+
+    attribute number x;
+    attribute number y;
+    attribute number z;
+    attribute number centerX;
+    attribute number centerY;
+
+};
+[Entity=Interface]
+interface RotateResult {
+
+    attribute number x;
+    attribute number y;
+    attribute number z;
+    attribute number centerX;
+    attribute number centerY;
+    attribute number angle;
+
+};
+[Entity=Tuple]
+interface Matrix4Result {
+
+    attribute number value0;
+    attribute number value1;
+    attribute number value2;
+    attribute number value3;
+    attribute number value4;
+    attribute number value5;
+    attribute number value6;
+    attribute number value7;
+    attribute number value8;
+    attribute number value9;
+    attribute number value10;
+    attribute number value11;
+    attribute number value12;
+    attribute number value13;
+    attribute number value14;
+    attribute number value15;
+
+};
+
+ComponentInfo getRectangleById(String id);

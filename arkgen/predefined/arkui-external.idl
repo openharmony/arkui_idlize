@@ -98,89 +98,6 @@ interface Want {
     attribute String moduleName;
 };
 
-
-/**
- * Defines the Length Unit.
- */
-dictionary LengthUnit {
-  /**
-   * Logical pixel used in Ace1.0. It's based on frontend design width.
-   * For example, when a frontend with 750px design width running on a
-   * device with 1080 pixels width, 1px represents 1.44 pixels.
-   */
-  number PX = 0;
-
-  /**
-   * Density independent pixels, one vp is one pixel on a 160 dpi screen.
-   */
-  number VP = 1;
-
-  /**
-   * Scale independent pixels. This is like VP but will be scaled by
-   * user's font size preference.
-   */
-  number FP = 2;
-
-  /**
-   * The percentage of either a value from the element's parent or from
-   * another property of the element itself.
-   */
-  number PERCENT = 3;
-
-  /**
-   * Logic pixels used in ACE2.0 instead of PX, and PX is the physical pixels in ACE2.0.
-   */
-  number LPX = 4;
-};
-
-
-/**
- * Defines the Length Metrics.
- */
-[Entity=Class]
-interface LengthMetrics {
-  /**
-   * The unit of the LengthMetrics. The default value is LengthUnit::VP.
-   */
-  attribute LengthUnit unit;
-
-  /**
-   * The value of the LengthMetrics.
-   */
-  attribute number value;
-
-  /**
-   * expand for M2 app
-   */
-  static LengthMetrics px(number value);
-  static LengthMetrics vp(number value);
-  static LengthMetrics fp(number value);
-  static LengthMetrics percent(number value);
-  static LengthMetrics lpx(number value);
-  static LengthMetrics resource(Resource value);
-};
-
-/**
- * The ColorMetrics API declaration, part for M2 app
- */
-[Entity=Class]
-interface ColorMetrics {
-    [Accessor=Getter]
-    readonly attribute String color;
-    [Accessor=Getter]
-    readonly attribute number red;
-    [Accessor=Getter]
-    readonly attribute number green;
-    [Accessor=Getter]
-    readonly attribute number blue;
-    [Accessor=Getter]
-    readonly attribute number alpha;
-    static ColorMetrics numeric(number value);
-    static ColorMetrics rgba(number red, number green, number blue, optional number alpha);
-    static ColorMetrics resourceColor(ResourceColor color);
-    ColorMetrics blendColor(ColorMetrics overlayColor);
-};
-
 [Entity=Interface]
 interface WebHeader {
     attribute String headerKey;
@@ -481,4 +398,68 @@ interface TouchPoint {
     attribute Dimension x;
     attribute Dimension y;
 
+};
+
+/*
+* from @ohos.deviceStatus.dragInteraction.idl
+*/
+[Entity=Interface]
+interface Summary {
+
+    attribute String dataType;
+    attribute number dataSize;
+
+};
+
+/*
+* from ui_extension_component.idl
+*/
+callback ReceiveCallback = void (record<String, Object> data);
+
+/*
+* from @ohos.multimedia.image.idl
+*/
+dictionary ResolutionQuality {
+
+    number LOW = 1;
+    number MEDIUM = 2;
+    number HIGH = 3;
+
+};
+
+/*
+* from image.idl
+*/
+typedef Matrix4Transit ImageMatrix;
+
+/*
+* from @ohos.multimodalInput.intentionCode.idl
+*/
+dictionary IntentionCode {
+    number INTENTION_UNKNOWN = -1;
+    number INTENTION_UP = 1;
+    number INTENTION_DOWN = 2;
+    number INTENTION_LEFT = 3;
+    number INTENTION_RIGHT = 4;
+    number INTENTION_SELECT = 5;
+    number INTENTION_ESCAPE = 6;
+    number INTENTION_BACK = 7;
+    number INTENTION_FORWARD = 8;
+    number INTENTION_MENU = 9;
+    number INTENTION_PAGE_UP = 11;
+    number INTENTION_PAGE_DOWN = 12;
+    number INTENTION_ZOOM_OUT = 13;
+    number INTENTION_ZOOM_IN = 14;
+};
+
+/*
+* from @ohos.window.idl
+*/
+dictionary WindowStatusType {
+    number UNDEFINED = 0;
+    number FULL_SCREEN = 1;
+    number MAXIMIZE = 2;
+    number MINIMIZE = 3;
+    number FLOATING = 4;
+    number SPLIT_SCREEN = 5;
 };

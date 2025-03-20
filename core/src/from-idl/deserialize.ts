@@ -77,7 +77,7 @@ function toIDLNodeForward(file: string, node: webidl2.IDLRootType): idl.IDLEntry
         return toIDLProperty(file, node as webidl2.AttributeMemberType)
     }
     if (isOperation(node as webidl2.IDLNamespaceMemberType)) {
-        return toIDLMethod(file, node as webidl2.OperationMemberType)
+        return toIDLMethod(file, node as webidl2.OperationMemberType, true)
     }
     if (isConstant(node)) {
         return toIDLConstant(file, node)
@@ -265,7 +265,7 @@ function toIDLCallable(file: string, node: webidl2.OperationMemberType): idl.IDL
     )
 }
 
-function toIDLMethod(file: string, node: webidl2.OperationMemberType): idl.IDLMethod {
+function toIDLMethod(file: string, node: webidl2.OperationMemberType, isFree:boolean = false): idl.IDLMethod {
     if (!node.idlType) {
         throw new Error(`method with no type ${toString(node)}`)
     }
@@ -280,7 +280,7 @@ function toIDLMethod(file: string, node: webidl2.OperationMemberType): idl.IDLMe
             isStatic: node.special === "static",
             isAsync: node.async,
             isOptional: isOptional(node),
-            isFree: false, // TODO: namespace-related-to-rework
+            isFree
         }, {
             documentation: makeDocs(node),
             extendedAttributes: toExtendedAttributes(node.extAttrs),

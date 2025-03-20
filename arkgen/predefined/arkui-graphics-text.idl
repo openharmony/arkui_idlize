@@ -1,0 +1,42 @@
+package org.openharmony.arkui;
+
+dictionary Affinity {
+
+    number UPSTREAM = 0;
+    number DOWNSTREAM = 1;
+
+};
+
+interface RunMetrics {};
+
+[Entity=Interface]
+interface LineMetrics {
+
+    attribute number startIndex;
+    attribute number endIndex;
+    attribute number ascent;
+    attribute number descent;
+    attribute number height;
+    attribute number width;
+    attribute number left;
+    attribute number baseline;
+    attribute number lineNumber;
+    attribute number topHeight;
+    attribute record<number, RunMetrics> runMetrics;
+
+};
+
+dictionary TextDirection {
+
+    number RTL = 0;
+    number LTR = 1;
+
+};
+
+[Entity=Interface]
+interface TextBox {
+
+    attribute Rect rect;
+    attribute TextDirection direction;
+
+};
