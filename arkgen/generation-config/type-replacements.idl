@@ -79,6 +79,11 @@ interface FormCallbackInfo {
     attribute i64 id;
 };
 
+[Entity=Interface]
+interface CustomDialogControllerOptions {
+    attribute CustomBuilder builder;
+};
+
 /* parameterTypeReplacements */
 
 [Entity=Class]

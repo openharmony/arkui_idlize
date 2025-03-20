@@ -256,12 +256,7 @@
             ]
         }
     },
-    "patchMaterialized": {
-        "CustomDialogController.constructor": {
-            "TS": "if (value) value.builder.buildOptions.controller = this",
-            "ArkTS": "// /*TODO: API required*/ if (value) value.builder.buildOptions.controller = this"
-        }
-    },
+    "patchMaterialized": {},
     "CollapseOverloadsARKTS": true,
     "forceContext": [
         "LoadUserView",
