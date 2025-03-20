@@ -166,6 +166,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             writer.print(`/** @memo */`)
             writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 for (const field of peer.attributesFields) {
+                    if (peerGeneratorConfiguration().ignoreMethod(field.name, this.library.language)) {
+                        continue
+                    }
                     writer.writeStatement(
                         writer.makeCondition(
                             writer.makeDefinedCheck(`attrs.${field.name}`),

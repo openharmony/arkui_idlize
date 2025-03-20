@@ -1,7 +1,7 @@
 import * as idl from '@idlizer/core/idl'
 import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PeerFile, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
-import { componentToPeerClass } from '../printers/PeersPrinter';
+import { componentToAttributesClass, componentToPeerClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
 import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
@@ -139,6 +139,17 @@ function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<stri
     })
 }
 
+function createComponentAttributes(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>) {
+    library.files.forEach(file => {
+        file.entries.forEach(it => {
+            if (isComponentDeclaration(library, it)) {
+                const name = componentToAttributesClass(it.name.replace('Attribute', ''))
+                synthesizedEntries.set(name, idl.createInterface(name, idl.IDLInterfaceSubkind.Interface))
+            }
+        })
+    })
+}
+
 /** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
 export function fillSyntheticDeclarations(library: PeerLibrary) {
     const targets = collectDeclarationTargetsUncached(library, { synthesizeCallbacks: false })
@@ -148,6 +159,7 @@ export function fillSyntheticDeclarations(library: PeerLibrary) {
     createImportsStubs(library, synthesizedEntries)
     createMaterializedInternal(library, targets, synthesizedEntries)
     createComponentPeers(library, synthesizedEntries)
+    createComponentAttributes(library, synthesizedEntries)
     fillGeneratedNativeModuleDeclaration(library)
     library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
 }
