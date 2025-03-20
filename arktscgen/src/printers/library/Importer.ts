@@ -14,7 +14,7 @@
  */
 
 import { createDefaultTypescriptWriter } from "../../utils/idl"
-import { Config } from "../../Config"
+import { Config } from "../../general/Config"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import * as path from "node:path"
 import { Typechecker } from "../../general/Typechecker"
@@ -35,7 +35,6 @@ export class Importer {
     private seen = new Set<string>([
         Config.astNodeCommonAncestor,
         Config.defaultAncestor, // TODO: handwritten
-        `Es2pandaAstNodeType` // TODO: remove once enum generation is fixed
     ])
 
     withPeerImport(it: string): string {

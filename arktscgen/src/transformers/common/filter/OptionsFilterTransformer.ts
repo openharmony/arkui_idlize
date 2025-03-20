@@ -14,7 +14,7 @@
  */
 
 import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
-import { Config } from "../../../Config"
+import { Config } from "../../../general/Config"
 import { IDLFile } from "@idlizer/core"
 
 export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
@@ -26,10 +26,10 @@ export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     }
 
     protected shouldFilterOutInterface(name: string): boolean {
-        return !this.config.ignore.shouldEmitInterface(name)
+        return this.config.ignore.isIgnoredInterface(name)
     }
 
     protected shouldFilterOutMethod(node: string, name: string): boolean {
-        return !this.config.ignore.shouldEmitMethod(node, name)
+        return this.config.ignore.isIgnoredMethod(node, name)
     }
 }

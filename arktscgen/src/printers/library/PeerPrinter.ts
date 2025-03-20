@@ -32,10 +32,18 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { Config } from "../../Config"
 import { makeMethod, nodeNamespace, nodeType, parent } from "../../utils/idl"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { isAbstract, isDataClass, isGetter, isReal, isRegular, mangleIfKeyword, peerMethod } from "../../general/common"
+import {
+    isAbstract,
+    isCreateOrUpdate,
+    isDataClass,
+    isGetter,
+    isReal,
+    isRegular,
+    mangleIfKeyword,
+    peerMethod
+} from "../../general/common"
 import { Importer } from "./Importer"
 import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { Typechecker } from "../../general/Typechecker"
@@ -165,7 +173,7 @@ export class PeerPrinter extends SingleFilePrinter {
 
     private printMethods(): void {
         this.node.methods.forEach(it => {
-            if (Config.isCreateOrUpdate(it.name)) {
+            if (isCreateOrUpdate(it.name)) {
                 if (isAbstract(this.node)) {
                     return
                 }

@@ -14,7 +14,7 @@
  */
 
 import { createFile, createInterface, IDLFile, IDLInterfaceSubkind } from "@idlizer/core"
-import { Config } from "../../Config";
+import { Config } from "../../general/Config";
 import { Transformer } from "../Transformer";
 
 export class AddContextDeclarationTransformer implements Transformer {

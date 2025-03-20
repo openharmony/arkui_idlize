@@ -17,7 +17,7 @@ import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
 import { PeersConstructions } from "../../../constuctions/PeersConstructions"
-import { Config } from "../../../Config"
+import { Config } from "../../../general/Config"
 
 export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
     (parameter: string) => string | string[]

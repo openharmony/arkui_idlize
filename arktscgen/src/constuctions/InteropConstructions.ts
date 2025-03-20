@@ -14,8 +14,7 @@
  */
 
 import { capitalize, createReferenceType, IDLPointerType, IDLPrimitiveType, IDLU32Type } from "@idlizer/core"
-import { Config } from "../Config"
-import { splitCreateOrUpdate } from "../general/common"
+import { isCreateOrUpdate, splitCreateOrUpdate } from "../general/common"
 
 export class InteropConstructions {
     static get receiver(): string {
@@ -44,7 +43,7 @@ export class InteropConstructions {
     }
 
     static method(interfaceName: string, methodName: string, namespaceName: string = ""): string {
-        if (Config.isCreateOrUpdate(methodName)) {
+        if (isCreateOrUpdate(methodName)) {
             const { createOrUpdate, rest } = splitCreateOrUpdate(methodName)
             return `${createOrUpdate}${interfaceName}${capitalize(namespaceName)}${rest}`
         }

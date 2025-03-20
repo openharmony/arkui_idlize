@@ -24,7 +24,7 @@ import {
     LanguageWriter, throwException
 } from "@idlizer/core"
 import { PeersConstructions } from "../../../constuctions/PeersConstructions"
-import { Config } from "../../../Config"
+import { Config } from "../../../general/Config"
 
 export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
     (writer: LanguageWriter, call: LanguageExpression) => LanguageExpression

@@ -17,7 +17,7 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
 import { MultiFileOutput } from "../printers/MultiFilePrinter"
-import { Config } from "../Config"
+import { Config } from "../general/Config"
 import { BridgesPrinter } from "../printers/interop/BridgesPrinter"
 import { EnumsPrinter } from "../printers/enums/EnumsPrinter"
 import { IndexPrinter } from "../printers/library/IndexPrinter"
@@ -83,9 +83,9 @@ export class DynamicEmitter {
 
     private enumsPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new EnumsPrinter(idl).print(),
-        `libarkts/src/Es2pandaEnums.ts`,
+        `libarkts/src/generated/Es2pandaEnums.ts`,
         `Es2pandaEnums.ts`,
-        false
+        true
     )
 
     private indexPrinter = new SingleFileEmitter(

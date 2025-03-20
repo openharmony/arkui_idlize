@@ -28,8 +28,7 @@ import {
     isOptionalType
 } from "@idlizer/core"
 import { Transformer } from "../../Transformer"
-import { Config } from "../../../Config"
-import { peerMethod } from "../../../general/common"
+import { isCreate, peerMethod } from "../../../general/common"
 import { LibraryTypeConvertor } from "../../../type-convertors/top-level/LibraryTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
 import { remove } from "../../../utils/array"
@@ -61,7 +60,7 @@ export class AttributeTransformer implements Transformer {
     }
 
     private transformInterface(node: IDLInterface): IDLInterface {
-        const creates = node.methods.filter(it => Config.isCreate(it.name))
+        const creates = node.methods.filter(it => isCreate(it.name))
         if (creates.length !== 1) {
             return node
         }

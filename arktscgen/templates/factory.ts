@@ -22,7 +22,6 @@ import {
     unpackNodeArray,
     assertValidPeer,
     AstNode,
-    Es2pandaAstNodeType,
     KNativePointer,
     nodeByType,
     ArktsObject,

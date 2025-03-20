@@ -37,7 +37,7 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { Config } from "../Config"
+import { Config } from "../general/Config"
 import { mangleIfKeyword } from "../general/common"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {

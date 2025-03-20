@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Config } from "../../../Config"
+import { Config } from "../../../general/Config"
 import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
 
 export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Config } from "../Config"
+import { Config } from "./Config"
 import { IDLInterface, IDLMethod, isVoidType, throwException } from "@idlizer/core"
 import { InteropConstructions } from "../constuctions/InteropConstructions"
 import { nodeType, parent } from "../utils/idl"
@@ -80,4 +80,24 @@ export function isReal(node: IDLInterface): boolean {
 
 export function isDataClass(node: IDLInterface): boolean {
     return parent(node) === Config.defaultAncestor
+}
+
+export function isCreate(name: string): boolean {
+    return isCreateOrUpdate(name) && name.startsWith(Config.createPrefix)
+}
+
+export function isCreateOrUpdate(sourceMethodName: string): boolean {
+    if (!sourceMethodName.startsWith(Config.createPrefix) && !sourceMethodName.startsWith(Config.updatePrefix)) {
+        return false
+    }
+    const { rest } = splitCreateOrUpdate(sourceMethodName)
+    return rest.length <= 1
+}
+
+export function fixEnumPrefix(name: string): string {
+    if (name.startsWith(`es2panda_`)) {
+        name = dropPrefix(name, `es2panda_`)
+        name = `Es2panda${name}`
+    }
+    return name
 }

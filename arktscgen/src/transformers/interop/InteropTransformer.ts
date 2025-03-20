@@ -17,8 +17,7 @@ import { createFile, createParameter, createReferenceType, IDLFile, IDLMethod } 
 import { IDLInterface, isInterface } from "@idlizer/core/idl"
 import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { createUpdatedInterface, createUpdatedMethod, isSequence, nodeNamespace } from "../../utils/idl"
-import { Config } from "../../Config"
-import { mangleIfKeyword } from "../../general/common";
+import { isCreateOrUpdate, mangleIfKeyword } from "../../general/common";
 import { Transformer } from "../Transformer";
 
 export class InteropTransformer implements Transformer {
@@ -75,7 +74,7 @@ export class InteropTransformer implements Transformer {
     }
 
     private withInsertedReceiver(node: IDLMethod, parent: IDLInterface): IDLMethod {
-        if (Config.isCreateOrUpdate(node.name)) {
+        if (isCreateOrUpdate(node.name)) {
             return node
         }
         return createUpdatedMethod(

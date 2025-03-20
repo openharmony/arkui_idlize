@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
+import * as path from "node:path"
 import { toIDLFile } from "@idlizer/core"
 import { DynamicEmitter } from "./emitters/DynamicEmitter"
-import { Config } from "./Config"
+import { Config } from "./general/Config"
 import { IgnoreOptions } from "./options/IgnoreOptions"
-import * as path from "node:path"
 import { StaticEmitter } from "./emitters/StaticEmitter"
 import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"

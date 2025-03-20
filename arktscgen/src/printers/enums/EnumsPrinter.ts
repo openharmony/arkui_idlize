@@ -17,6 +17,7 @@ import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, 
 import { IDLEnum, IDLType } from "@idlizer/core/idl"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { isNumber } from "../../utils/types"
+import { fixEnumPrefix } from "../../general/common"
 
 export class EnumsPrinter extends SingleFilePrinter {
     protected writer = new TSLanguageWriter(
@@ -33,7 +34,7 @@ export class EnumsPrinter extends SingleFilePrinter {
 
     private printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
-            node.name,
+            fixEnumPrefix(node.name),
             node.elements.map(it => {
                 if (!isNumber(it.initializer)) {
                     throwException(`unexpected initializer value: ${it.initializer}`)

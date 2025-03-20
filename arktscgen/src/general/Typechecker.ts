@@ -23,7 +23,7 @@ import {
     isPrimitiveType,
     isReferenceType
 } from "@idlizer/core"
-import { Config } from "../Config"
+import { Config } from "./Config"
 import { isIrNamespace } from "../utils/idl"
 
 export class Typechecker {

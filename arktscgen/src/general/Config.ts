@@ -13,9 +13,8 @@
  * limitations under the License.
  */
 
-import { IgnoreOptions } from "./options/IgnoreOptions"
-import { splitCreateOrUpdate } from "./general/common"
-import { NonNullableOptions } from "./options/NonNullableOptions"
+import { IgnoreOptions } from "../options/IgnoreOptions"
+import { NonNullableOptions } from "../options/NonNullableOptions"
 
 export class Config {
     constructor(
@@ -43,10 +42,6 @@ export class Config {
         return `cpp_namespace`
     }
 
-    static get getterAttribute(): string {
-        return `get`
-    }
-
     static get uselessPrefix(): string {
         return `Get`
     }
@@ -57,18 +52,6 @@ export class Config {
 
     static get context(): string {
         return `Context`
-    }
-
-    static isCreate(name: string): boolean {
-        return Config.isCreateOrUpdate(name) && name.startsWith(Config.createPrefix)
-    }
-
-    static isCreateOrUpdate(sourceMethodName: string): boolean {
-        if (!sourceMethodName.startsWith(Config.createPrefix) && !sourceMethodName.startsWith(Config.updatePrefix)) {
-            return false
-        }
-        const { rest } = splitCreateOrUpdate(sourceMethodName)
-        return rest.length <= 1;
     }
 
     static get dataClassPrefix(): string {

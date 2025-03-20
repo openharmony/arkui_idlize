@@ -18,7 +18,7 @@ import { Typechecker } from "../../../general/Typechecker"
 import { BaseTypeConvertor } from "../../BaseTypeConvertor"
 import { BridgesConstructions } from "../../../constuctions/BridgesConstructions"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
-import { Config } from "../../../Config"
+import { Config } from "../../../general/Config"
 import { innerType } from "../../../utils/idl"
 
 export class CastTypeConvertor extends BaseTypeConvertor<string> {

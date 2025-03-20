@@ -35,7 +35,7 @@ import {
     isInterface,
     isReferenceType
 } from "@idlizer/core"
-import { Config } from "../../Config";
+import { Config } from "../../general/Config";
 import { Transformer } from "../Transformer";
 
 export class TwinMergeTransformer implements Transformer {

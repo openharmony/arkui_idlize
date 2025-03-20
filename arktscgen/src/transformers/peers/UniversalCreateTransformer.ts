@@ -15,8 +15,8 @@
 
 import { createUpdatedInterface } from "../../utils/idl"
 import { createFile, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
-import { Config } from "../../Config";
 import { Transformer } from "../Transformer";
+import { isCreate } from "../../general/common"
 
 export class UniversalCreateTransformer implements Transformer {
     constructor(
@@ -44,14 +44,14 @@ export class UniversalCreateTransformer implements Transformer {
             node,
             [universal].concat(
                 node.methods
-                    .filter(it => !Config.isCreate(it.name))
+                    .filter(it => !isCreate(it.name))
             )
         )
     }
 
     private static universalCreate(node: IDLInterface): IDLMethod | undefined {
         const creates = node.methods
-            .filter(it => Config.isCreate(it.name))
+            .filter(it => isCreate(it.name))
             .filter(it => !UniversalCreateTransformer.isCopyConstructor(it))
 
         return creates.find(candidate =>

@@ -26,9 +26,10 @@ import {
     isInterface,
     isReferenceType
 } from "@idlizer/core"
-import { Config } from "../../Config"
+import { Config } from "../../general/Config"
 import { Transformer } from "../Transformer"
 import { Typechecker } from "../../general/Typechecker"
+import { isCreateOrUpdate } from "../../general/common"
 
 export class NullabilityTransformer implements Transformer {
     constructor(
@@ -73,7 +74,7 @@ export class NullabilityTransformer implements Transformer {
     }
 
     private transformedReturnType(node: IDLMethod, parent: IDLInterface): IDLType {
-        if (Config.isCreateOrUpdate(node.name)) {
+        if (isCreateOrUpdate(node.name)) {
             return node.returnType
         }
         if (this.config.nonNullable.isNonNullableReturnType(parent.name, node.name)) {

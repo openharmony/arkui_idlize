@@ -26,14 +26,13 @@ import {
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { makeMethod } from "../../utils/idl"
-import { mangleIfKeyword } from "../../general/common"
+import { isCreate, mangleIfKeyword } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { Importer } from "./Importer"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { id } from "../../utils/types"
-import { Config } from "../../Config"
 import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
 
 export class FactoryPrinter extends SingleFilePrinter {
@@ -175,7 +174,7 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private static getUniversalCreate(node: IDLInterface): IDLMethod | undefined {
-        const creates = node.methods.filter(it => Config.isCreate(it.name))
+        const creates = node.methods.filter(it => isCreate(it.name))
         if (creates.length !== 1) {
             return undefined
         }
