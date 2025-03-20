@@ -12,7 +12,6 @@
         "Method",
         "Configuration",
         "UIGestureEvent",
-        "GestureHandler",
         "AnimatableArithmetic",
         "DynamicNode"
     ],
