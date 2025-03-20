@@ -6,7 +6,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize, isStringEnumType } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToOrdinalName, generateEnumFromOrdinalName } from '@idlizer/core';
@@ -306,6 +306,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                 )
             }
         )
+        const enumName = this.writer.getNodeName(type)
         this.writer.writeMethodImplementation(
             new Method(generateEnumFromOrdinalName(this.writer.getNodeName(type)),
                 new NamedMethodSignature(
@@ -313,9 +314,16 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                     [idl.IDLI32Type], ["ordinal"]),
                 [MethodModifier.STATIC]),
             writer => {
-                writer.writeStatement(
-                    writer.makeThrowError(`Waiting for possibility to convert ordinal to enum from Panda team`)
-                )
+                idl.isStringEnum(type)
+                    ? writer.writeStatement(
+                        writer.makeThrowError(`Waiting for possibility to get ordinal for string enum from Panda team`)
+                    )
+                    : writer.writeStatements(
+                        // Enum.values().find(...) and Enum.values().findIndex(...)
+                        // do not work for some reason
+                        writer.makeStatement(writer.makeString(`for (const v of ${enumName}.values()) { if (v == ordinal) return v }`)),
+                        writer.makeThrowError(`Enum ${enumName} does not contain \${ordinal} value`),
+                    )
             }
         )
     }
