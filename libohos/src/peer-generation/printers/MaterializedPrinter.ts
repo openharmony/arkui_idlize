@@ -399,9 +399,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
 function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, classTypeParameters?: string[]) {
     // write "fromPtr(ptr: number): MaterializedClass" method
-    const className = clazz.getImplementationName()
-    const clazzRefType = idl.createReferenceType(className,
-        clazz.generics?.map(idl.createTypeParameterReference))
+    const className: string = clazz.getImplementationName()
+    const clazzRefType = clazz.isInterface
+        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(idl.createTypeParameterReference))
+        : idl.createReferenceType(clazz.decl, clazz.generics?.map(idl.createTypeParameterReference))
     const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
     writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
         const objVar = `obj`

@@ -1,6 +1,8 @@
 import * as idl from '@idlizer/core/idl'
 import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PeerFile, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
+import { componentToPeerClass } from '../printers/PeersPrinter';
+import { isComponentDeclaration } from '../ComponentsCollector';
 import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
 
@@ -67,7 +69,7 @@ class ImportsStubsGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type) ?? this.synthesizedEntries.get(type.name)
         if (!decl || idl.isTypedef(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)) {
             this.synthesizedEntries.set(type.name, idl.createInterface(
@@ -86,14 +88,14 @@ class ImportsStubsGenerator extends DependenciesCollector {
                 },
             ))
         }
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 }
 
 function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     const generator = new ImportsStubsGenerator(library, synthesizedEntries)
     for (const file of library.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries).filter(it => !idl.isImport(it))) { // TODO: process imports
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             generator.convert(entry)
         }
     }
@@ -126,6 +128,17 @@ function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
     library.files.push(new PeerFile(file))
 }
 
+function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
+    library.files.forEach(file => {
+        file.entries.forEach(it => {
+            if (isComponentDeclaration(library, it)) {
+                const name = componentToPeerClass(it.name.replace('Attribute', ''))
+                synthesizedEntries.set(name, idl.createInterface(name, idl.IDLInterfaceSubkind.Class))
+            }
+        })
+    })
+}
+
 /** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
 export function fillSyntheticDeclarations(library: PeerLibrary) {
     const targets = collectDeclarationTargetsUncached(library, { synthesizeCallbacks: false })
@@ -134,6 +147,7 @@ export function fillSyntheticDeclarations(library: PeerLibrary) {
     createContinuationCallbacks(library, targets, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
     createMaterializedInternal(library, targets, synthesizedEntries)
+    createComponentPeers(library, synthesizedEntries)
     fillGeneratedNativeModuleDeclaration(library)
     library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
 }

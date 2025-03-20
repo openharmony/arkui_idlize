@@ -20,14 +20,10 @@ declare enum DpiFollowStrategy {
 
 declare interface UIExtensionOptions {
    isTransferringCaller?: boolean;
-   placeholder?: ComponentContent;
    dpiFollowStrategy?: DpiFollowStrategy;
 }
 
-declare interface TerminationInfo {
-   code: number;
-   want?: import('../api/@ohos.app.ability.Want').default;
-}
+declare type TerminationInfo = import('./embedded_component').TerminationInfo;
 
 declare interface UIExtensionProxy {
    send(data: Record<string, Object>): void;
@@ -40,26 +36,26 @@ declare interface UIExtensionProxy {
 
 interface UIExtensionComponentInterface {
    (
-       want: import('../api/@ohos.app.ability.Want').default,
+       want: Want,
        options?: UIExtensionOptions
    ): UIExtensionComponentAttribute;
 }
 
 declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComponentAttribute> {
    onRemoteReady(
-       callback: import('../api/@ohos.base').Callback<UIExtensionProxy>
+       callback: Callback<UIExtensionProxy>
    ): UIExtensionComponentAttribute;
    onReceive(
-       callback: import('../api/@ohos.base').Callback<{ [key: string]: Object }>
+       callback: Callback<{ [key: string]: Object }>
    ): UIExtensionComponentAttribute;
    onResult(
-       callback: import('../api/@ohos.base').Callback<{
+       callback: Callback<{
           code: number;
-          want?: import('../api/@ohos.app.ability.Want').default;
+          want?: Want;
        }>
    ): UIExtensionComponentAttribute;
    onRelease(
-       callback: import('../api/@ohos.base').Callback<number>
+       callback: Callback<number>
    ): UIExtensionComponentAttribute;
    onError(
        callback: ErrorCallback

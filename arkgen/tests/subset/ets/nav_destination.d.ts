@@ -601,7 +601,7 @@ declare class NavDestinationAttribute extends CommonMethod<NavDestinationAttribu
    * @atomicservice
    * @since 11
    */
-  onReady(callback: import('../api/@ohos.base').Callback<NavDestinationContext>): NavDestinationAttribute;
+  onReady(callback: Callback<NavDestinationContext>): NavDestinationAttribute;
 
   /**
    * Invoked before the navDestination is appeared.
@@ -663,17 +663,6 @@ declare class NavDestinationAttribute extends CommonMethod<NavDestinationAttribu
    * @since 12
    */
   ignoreLayoutSafeArea(types?: Array<LayoutSafeAreaType>, edges?: Array<LayoutSafeAreaEdge>): NavDestinationAttribute;
-
-  /**
-   * Set the style of system bar
-   *
-   * @param { Optional<SystemBarStyle> } style - The properties of system bar
-   * @returns { NavDestinationAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @atomicservice
-   * @since 12
-   */
-  systemBarStyle(style: Optional<SystemBarStyle>): NavDestinationAttribute;
 }
 
 /**

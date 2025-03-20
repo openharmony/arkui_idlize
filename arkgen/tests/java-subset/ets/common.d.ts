@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-declare type PixelMap = import('../resource/image').default.PixelMap;
-
 declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
 
 declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;

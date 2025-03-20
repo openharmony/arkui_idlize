@@ -35,7 +35,7 @@ export class ImportsCollector {
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
             .find(it => it[0] !== module && it[1].has(feature))
         if (featureInAnotherModule) {
-            console.warn(`WARNING: Skip feature:'${feature}' is already imported into '${featureInAnotherModule[0]}'`)
+            console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
             const dependencies = getOrPut(this.moduleToFeatures, module, () => new Set())
             dependencies.add(feature)

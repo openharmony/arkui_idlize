@@ -30,7 +30,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     throwException
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { DebugUtils, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
+import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
@@ -54,8 +54,11 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         }
         return "{}"
     }
-    convertImport(type: IDLReferenceType, importClause: string): string | undefined {
+    convertImport(type: IDLImport): string | undefined {
         throw new Error('Can not return import');
+    }
+    convertTypeReferenceAsImport(type: IDLReferenceType, importClause: string): string | undefined {
+        return this.convertTypeReference(type)
     }
     convertTypeReference(type: IDLReferenceType): string | undefined {
         const decl = this.resolver.resolveTypeReference(type)

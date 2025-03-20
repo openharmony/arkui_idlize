@@ -1,5 +1,6 @@
 package idlize.internal;
 
+interface Finalizable {};
 interface Serializer {};
 interface Deserializer {};
 interface deserializeAndCallCallback {};

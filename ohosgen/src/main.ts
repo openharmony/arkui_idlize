@@ -134,9 +134,12 @@ if (options.dts2peer) {
     const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
     const lang = Language.fromString(options.language ?? "ts")
 
-    const { inputFiles, inputDirs } = formatInputPaths(options)
+    const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles, libraryPackages } = formatInputPaths(options)
+    validatePaths(baseDirs, "dir")
     validatePaths(inputDirs, "dir")
+    validatePaths(auxInputDirs, "dir")
     validatePaths(inputFiles, "file")
+    validatePaths(auxInputFiles, "file")
 
     options.docs = "all"
     const idlLibrary = new PeerLibrary(lang)
@@ -144,23 +147,34 @@ if (options.dts2peer) {
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
+    const allAuxInputFiles = scanInputDirs(auxInputDirs)
+        .concat(auxInputFiles)
     const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
+    const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
+    const idlAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.idl'))
 
-    idlInputFiles.forEach(idlFilename => {
-        idlFilename = path.resolve(idlFilename)
-        const file = toIDLFile(idlFilename)
-        const peerFile = new PeerFile(file)
-        idlLibrary.files.push(peerFile)
-    })
+    {
+        const pushOne = (idlFilename: string, resultFilesArray: PeerFile[]) => {
+            idlFilename = path.resolve(idlFilename)
+            const file = toIDLFile(idlFilename)
+            const peerFile = new PeerFile(file)
+            resultFilesArray.push(peerFile)
+        }
+        idlInputFiles.forEach(idlFilename => pushOne(idlFilename, idlLibrary.files))
+        idlAuxInputFiles.forEach(auxIdlFilename => pushOne(auxIdlFilename, idlLibrary.auxFiles))
+    }
 
     generate(
+        baseDirs,
+        [...inputDirs, ...auxInputDirs],
         dtsInputFiles,
+        dtsAuxInputFiles,
         generatedPeersDir,
-        (sourceFile, program, compilerHost) => new IDLVisitor(sourceFile, program, compilerHost, options, idlLibrary),
+        (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile(file, outputDir, sourceFile) {
+            onSingleFile(file, outputDir, sourceFile, isAux) {
                 file.entries = file.entries.filter(newEntry =>
                     !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
                         if (([newEntry, entry].every(isInterface)
@@ -180,7 +194,10 @@ if (options.dts2peer) {
 
                 const peerFile = new PeerFile(file)
 
-                idlLibrary.files.push(peerFile)
+                if (isAux)
+                    idlLibrary.auxFiles.push(peerFile)
+                else
+                    idlLibrary.files.push(peerFile)
             },
             onEnd(outDir: string) {
                 if (options.verifyIdl) {

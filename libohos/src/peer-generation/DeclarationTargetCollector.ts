@@ -7,16 +7,18 @@ import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 import { collectUniqueCallbacks } from "./printers/CallbacksPrinter";
 
 const collectDeclarationTargets_cache = new Map<LibraryInterface, idl.IDLNode[]>()
-export function collectDeclarationTargets(library: LibraryInterface): idl.IDLNode[] {
-    if (!collectDeclarationTargets_cache.has(library))
-        collectDeclarationTargets_cache.set(library, collectDeclarationTargetsUncached(library, { synthesizeCallbacks: true }))
-    return collectDeclarationTargets_cache.get(library)!
+const collectDeclarationTargets_cache_doUnionFlattening = new Map<LibraryInterface, idl.IDLNode[]>()
+export function collectDeclarationTargets(library: LibraryInterface, doUnionFlattening: boolean = false): idl.IDLNode[] {
+    const cache = doUnionFlattening ? collectDeclarationTargets_cache_doUnionFlattening : collectDeclarationTargets_cache
+    if (!cache.has(library))
+        cache.set(library, collectDeclarationTargetsUncached(library, { synthesizeCallbacks: true, doUnionFlattening}))
+    return cache.get(library)!
 }
 
-export function collectDeclarationTargetsUncached(library: LibraryInterface, options: { synthesizeCallbacks: boolean }): idl.IDLNode[] {
+export function collectDeclarationTargetsUncached(library: LibraryInterface, options: { synthesizeCallbacks: boolean, doUnionFlattening?: boolean }): idl.IDLNode[] {
     const generateUnused = peerGeneratorConfiguration().GenerateUnused
 
-    let orderer = new DependencySorter(library)
+    let orderer = new DependencySorter(library, !!options.doUnionFlattening)
     for (const file of library.files) {
         if (!file.entries.length || !isInCurrentModule(file.entries[0]/*TODO just IDLFile*/))
             continue
@@ -33,29 +35,29 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))
                             continue
-                        orderer.addDep(library.toDeclaration(property.type))
+                        orderer.addDep(library.toDeclaration(idl.maybeOptional(property.type, property.isOptional)))
                     }
                     for (const method of entry.methods) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name))
                             continue
                         for (const parameter of method.parameters)
-                            orderer.addDep(parameter.type!)
+                            orderer.addDep(idl.maybeOptional(parameter.type!, parameter.isOptional))
                         orderer.addDep(method.returnType)
                     }
                     for (const constructor of entry.constructors) {
                         for (const parameter of constructor.parameters)
-                            orderer.addDep(library.toDeclaration(parameter.type!))
+                            orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
                     }
                     for (const callable of entry.callables) {
                         for (const parameter of callable.parameters)
-                            orderer.addDep(library.toDeclaration(parameter.type!))
+                            orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
                     }
                 } else if (generateUnused && !isInIdlize(entry)) {
                     orderer.addDep(library.toDeclaration(entry))
                     for (const property of entry.properties) {
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(property.name))
                             continue
-                        orderer.addDep(library.toDeclaration(property.type))
+                        orderer.addDep(library.toDeclaration(idl.maybeOptional(property.type, property.isOptional)))
                     }
                 }
             }
@@ -63,7 +65,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                 orderer.addDep(library.toDeclaration(entry))
             } else if (idl.isMethod(entry)) {
                 for (const parameter of entry.parameters)
-                    orderer.addDep(parameter.type!)
+                    orderer.addDep(idl.maybeOptional(parameter.type!, parameter.isOptional))
                 orderer.addDep(entry.returnType)
             } else if (idl.isConstant(entry)) {
                 orderer.addDep(entry.type)
@@ -149,37 +151,37 @@ function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorte
 }
 
 export namespace DeclarationTargets {
-    function allTypes<T extends idl.IDLType>(library: LibraryInterface, predicate: (e: idl.IDLNode) => e is T): T[] {
-        return collectDeclarationTargets(library).filter(predicate)
+    function allTypes<T extends idl.IDLType>(library: LibraryInterface, predicate: (e: idl.IDLNode) => e is T, doUnionFlattening: boolean = false): T[] {
+        return collectDeclarationTargets(library, doUnionFlattening).filter(predicate)
     }
 
-    function allEntries<T extends idl.IDLEntry>(library: LibraryInterface, predicate: (e: idl.IDLNode) => e is T): T[] {
-        return collectDeclarationTargets(library).filter(predicate)
+    function allEntries<T extends idl.IDLEntry>(library: LibraryInterface, predicate: (e: idl.IDLNode) => e is T, doUnionFlattening: boolean = false): T[] {
+        return collectDeclarationTargets(library, doUnionFlattening).filter(predicate)
     }
 
-    export function allUnionTypes(library: LibraryInterface): Map<string, {id: number, name: string}[]> {
+    export function allUnionTypes(library: LibraryInterface, doUnionFlattening: boolean = false): Map<string, {id: number, name: string}[]> {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
         const data: Array<[string, {id: number, name: string}[]]> =
-            allTypes(library, idl.isUnionType)
+            allTypes(library, idl.isUnionType, doUnionFlattening)
                 .map(it => [
                     nativeNameConvertorInstance.convert(it),
                     it.types.map((e, index) => { return {id: index, name: "value" + index }})])
         return new Map(data)
     }
 
-    export function allLiteralTypes(library: LibraryInterface): Map<string, string[]> {
+    export function allLiteralTypes(library: LibraryInterface, doUnionFlattening: boolean = false): Map<string, string[]> {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
         const data: Array<[string, string[]]> =
-            allEntries(library, (it): it is idl.IDLInterface => idl.isInterface(it) && it.subkind === idl.IDLInterfaceSubkind.AnonymousInterface)
+            allEntries(library, (it): it is idl.IDLInterface => idl.isInterface(it) && it.subkind === idl.IDLInterfaceSubkind.AnonymousInterface, doUnionFlattening)
                 .map(it => [
                     nativeNameConvertorInstance.convert(it),
                     it.properties.map(p => p.name)])
         return new Map(data)
     }
 
-    export function allOptionalTypes(library: LibraryInterface): Set<string> {
+    export function allOptionalTypes(library: LibraryInterface, doUnionFlattening: boolean = false): Set<string> {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
-        const data = collectDeclarationTargets(library)
+        const data = collectDeclarationTargets(library, doUnionFlattening)
             .filter(it => it !== idl.IDLVoidType)
             .map(it => idl.isType(it)
                 ? nativeNameConvertorInstance.convert(idl.createOptionalType(it))

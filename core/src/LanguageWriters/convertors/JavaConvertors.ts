@@ -81,13 +81,17 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
     convertConstant(type: idl.IDLConstant): string {
         throw new Error('Method not implemented.'); // TODO: namespace-related-to-rework
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+    convertImport(type: idl.IDLImport): string {
+        console.warn("Imports are not implemented yet")
+        return type.name
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
         return type.name
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         if (importAttr) {
-            return this.convertImport(type, importAttr)
+            return this.convertTypeReferenceAsImport(type, importAttr)
         }
 
         const decl = this.resolver.resolveTypeReference(type)!
@@ -126,6 +130,7 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
             case idl.IDLDate: return 'Date'
             case idl.IDLBufferType: return 'byte[]'
             case idl.IDLInteropReturnBufferType: return 'byte[]'
+            case idl.IDLSerializerBuffer: return 'byte[]'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -160,7 +165,7 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
             case 'KStringPtr': return 'String'
             case 'string': return 'String'
         }
-        return name
+        return name.split(".").at(-1)!
     }
 }
 

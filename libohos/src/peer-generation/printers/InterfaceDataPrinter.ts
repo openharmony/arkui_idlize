@@ -196,9 +196,7 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
     const collector = new ImportsCollector()
 
     collectDeclDependencies(library, entry, collector)
-    if (library.language === idl.Language.ARKTS) {
-        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
-    }
+    collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
 
     if (idl.isInterfaceSubkind(entry)) {
         if(library.language == idl.Language.CJ) {

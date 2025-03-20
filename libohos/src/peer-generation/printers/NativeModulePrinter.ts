@@ -529,7 +529,7 @@ export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType
         } else {
             maybeReceiver.push({
                 name: `${it.param}`,
-                type: idl.createReferenceType(convertType(interopConvertor, it.interopType()))
+                type: idl.createReferenceType('%TEXT%:' + convertType(interopConvertor, it.interopType()))
             })
         }
     })

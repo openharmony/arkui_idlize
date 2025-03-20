@@ -74,10 +74,10 @@ class TypeCheckSyntheticCollector extends DependenciesCollector {
     ) {
         super(library)
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl && (idl.isInterface(decl))) this.onSyntheticDeclaration(decl)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
     convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
         if (idl.IDLContainerUtils.isSequence(type))
@@ -242,10 +242,16 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                                    fieldsCount: number,
                                    typeArguments: string[]) {
         const argsNames = Array.from({length: fieldsCount}, (_, index) => `arg${index}`)
+        const argType = idl.createUnionType([
+            idl.IDLObjectType,
+            idl.IDLStringType,
+            idl.IDLNumberType,
+            idl.IDLUndefinedType,
+        ])
         this.writer.writeMethodImplementation(new Method(
             checkerName,
             new NamedMethodSignature(IDLBooleanType,
-                [idl.createReferenceType('object|string|number|undefined|null'), ...argsNames.map(_ => IDLBooleanType)],
+                [argType, ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
             typeArguments
@@ -278,7 +284,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         this.writer.writeMethodImplementation(
             new Method("typeCast",
                 new NamedMethodSignature(
-                    idl.createReferenceType("T"),
+                    idl.createTypeParameterReference("T"),
                     [idl.IDLObjectType], ["value"]),
                 [MethodModifier.STATIC], ["T"]),
             writer => {
@@ -435,10 +441,17 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
     protected writeInterfaceChecker(name: string, descriptor: StructDescriptor, type: idl.IDLType): void {
         const typeName = this.library.mapType(type)
         const argsNames = descriptor.getFields().map(it => `duplicated_${it.name}`)
+        const argType = idl.createUnionType([
+            idl.IDLObjectType,
+            idl.IDLStringType,
+            idl.IDLNumberType,
+            idl.IDLUndefinedType,
+            idl.IDLBooleanType,
+        ])
         this.writer.writeMethodImplementation(new Method(
             generateTypeCheckerName(name),
             new NamedMethodSignature(IDLBooleanType,
-                [idl.createReferenceType('object|string|number|undefined|null|boolean'), ...argsNames.map(_ => IDLBooleanType)],
+                [argType, ...argsNames.map(_ => IDLBooleanType)],
                 ['value', ...argsNames]),
             [MethodModifier.STATIC],
         ), writer => {
@@ -484,9 +497,15 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
 
     protected writeArrayChecker(typeName: string, type: idl.IDLContainerType) {
         const checkerName = generateTypeCheckerName(typeName)
+        const argType = idl.createUnionType([
+            idl.IDLObjectType,
+            idl.IDLStringType,
+            idl.IDLNumberType,
+            idl.IDLUndefinedType,
+        ])
         this.writer.writeMethodImplementation(new Method(
             checkerName,
-            new NamedMethodSignature(IDLBooleanType, [idl.createReferenceType('object|string|number|undefined|null')], ['value']),
+            new NamedMethodSignature(IDLBooleanType, [argType], ['value']),
             [MethodModifier.STATIC],
         ), writer => {
             writer.writeStatement(writer.makeReturn(writer.makeString(`Array.isArray(value)`)))

@@ -21,21 +21,6 @@ import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     convertTypeReference(type: idl.IDLReferenceType): string {
-        // Only to deal with namespaces. TODO: remove later
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl && idl.isEnum(decl)) {
-            return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
-        }
-
-        // TODO: Needs to be implemented properly
-        const types = type.name.split(".")
-        if (types.length > 1) {
-            // Takes only name without the namespace prefix
-            const decl = this.resolver.resolveTypeReference(idl.createReferenceType(types.slice(-1).join()))
-            if (decl !== undefined) {
-                return convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), decl)
-            }
-        }
         const typeName = super.convertTypeReference(type)
         // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
@@ -87,6 +72,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
             case idl.IDLFunctionType: return 'Object'
 
             case idl.IDLBigintType: return 'long'
+            case idl.IDLCustomObjectType: return 'object'
         }
         return super.convertPrimitiveType(type)
     }

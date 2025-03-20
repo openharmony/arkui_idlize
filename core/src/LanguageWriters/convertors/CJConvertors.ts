@@ -71,7 +71,11 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     convertConstant(node: idl.IDLConstant): string {
         throw new Error('Method not implemented.')
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+    convertImport(type: idl.IDLImport): string {
+        console.warn("Imports are not implemented yet")
+        return type.name
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
         return type.name
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
@@ -80,7 +84,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         if (importAttr) {
-            return this.convertImport(type, importAttr)
+            return this.convertTypeReferenceAsImport(type, importAttr)
         }
         // resolve synthetic types
         const decl = this.resolver.resolveTypeReference(type)!

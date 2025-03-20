@@ -14,41 +14,66 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { convertNode, convertType, LibraryInterface, NodeConvertor, ReferenceResolver } from "@idlizer/core";
+import { convertNode, convertType, Language, LibraryInterface, NodeConvertor, ReferenceResolver } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
 
 class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
-    constructor(public library: LibraryInterface) {}
+    constructor(
+        public library: LibraryInterface, 
+        private doUnionFlattening: boolean)
+    {}
+
+    private toDeclarations(node: idl.IDLNode | idl.IDLType, isOptional = false): idl.IDLNode[] {
+        const one = (node: idl.IDLNode | idl.IDLType) => {
+            if (idl.isType(node) && isOptional)
+                node = idl.maybeOptional(node, isOptional)
+            return this.library.toDeclaration(node)
+        }
+
+        const result = [one(node)];
+        if (this.doUnionFlattening && idl.isUnionType(node)) {
+            const flattened = flattenUnionType(this.library, node)
+            if (flattened !== node)
+                result.push(one(flattened))
+        }
+
+        return result
+    }
     convertOptional(type: idl.IDLOptionalType): idl.IDLNode[] {
-        return convertType(this, type.type)
+        return this.toDeclarations(type.type)
     }
     convertNamespace(decl: idl.IDLNamespace): idl.IDLNode[] {
         return decl.members.flatMap(it => this.convert(it))
     }
     convertMethod(decl: idl.IDLMethod): idl.IDLNode[] {
         return [
-            ...decl.parameters.flatMap(it => this.convert(it.type!)),
-            ...this.convert(decl.returnType),
+            ...decl.parameters.flatMap(it => this.toDeclarations(it.type, it.isOptional)),
+            ...this.toDeclarations(decl.returnType),
         ]
     }
     convertConstant(decl: idl.IDLConstant): idl.IDLNode[] {
-        return this.convert(decl.type)
+        return this.toDeclarations(decl.type)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLNode[] {
-        return type.types.map(it => this.library.toDeclaration(it))
+        return type.types.flatMap(it => this.toDeclarations(it))
     }
     convertContainer(type: idl.IDLContainerType): idl.IDLNode[] {
+        return [] // hack: containers are not required a complete element declaration in all languages we have, only forward, so, simulate no dependency here
+        //return type.elementType.flatMap(it => this.toDeclarations(it))
+    }
+    convertImport(type: idl.IDLImport): idl.IDLNode[] {
+        console.warn("Imports are not implemented yet")
         return []
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
-        return []
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLNode[] {
+        return this.convertTypeReference(type)
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLNode[] {
         if (type.name === "Optional") {
             return type.typeArguments!
         }
-        return [this.library.toDeclaration(type)]
+        return this.toDeclarations(type)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLNode[] {
         return []
@@ -57,14 +82,13 @@ class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
         return []
     }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
-        return collectProperties(node, this.library).map(it =>
-            this.library.toDeclaration(flattenUnionType(this.library, it.type)))
+        return collectProperties(node, this.library).flatMap(it => this.toDeclarations(it.type, it.isOptional))
     }
     convertEnum(node: idl.IDLEnum): idl.IDLNode[] {
         return []
     }
     convertTypedef(node: idl.IDLTypedef): idl.IDLNode[] {
-        return [this.library.toDeclaration(node)]
+        return this.toDeclarations(node.type)
     }
     convertCallback(node: idl.IDLCallback): idl.IDLNode[] {
         return []
@@ -102,8 +126,11 @@ export class DependencySorter {
     adjMap = new Map<idl.IDLNode, idl.IDLNode[]>()
     seen = new Set<idl.IDLNode>()///one for all deps?
 
-    constructor(private library: LibraryInterface) {
-        this.dependenciesCollector = new SorterDependenciesCollector(library);
+    constructor(
+        private library: LibraryInterface,
+        private doUnionFlattening: boolean)
+    {
+        this.dependenciesCollector = new SorterDependenciesCollector(library, this.doUnionFlattening);
     }
 
     private fillDependencies(target: idl.IDLNode) {
@@ -133,6 +160,8 @@ export class DependencySorter {
     }
 
     addDep(declaration: idl.IDLNode) {
+        if (this.doUnionFlattening && idl.isUnionType(declaration))
+            declaration = flattenUnionType(this.library, declaration)
         declaration = this.cachedTransformer.transofrm(declaration)
         if (this.dependencies.has(declaration)) return
         this.dependencies.add(declaration)
@@ -142,57 +171,39 @@ export class DependencySorter {
 
     // Kahn's algorithm.
     getToposorted(): idl.IDLNode[] {
-        let result: idl.IDLNode[] = []
-        let input = Array.from(this.dependencies)
-        // Compute in-degrees.
-        let inDegree = new Map<idl.IDLNode, number>()
-        for (let k of input) {
-            inDegree.set(k, 0)
-        }
-        for (let k of input) {
-            for (let it of this.adjMap.get(k)!) {
-                let old = inDegree.get(it)
-                if (old == undefined) {
-                    // throw new Error(`Forgotten type: ${it} of ${k}`)
-                    old = 0
-                }
-                inDegree.set(it, old + 1)
-            }
-        }
-        let queue: idl.IDLNode[] = []
-        // Insert elements with in-degree 0
-        for (let k of input) {
-            if (inDegree.get(k)! == 0) {
-                queue.push(k)
-            }
-        }
-        // Add all elements with 0
-        while (queue.length > 0) {
-            let e = queue.shift()!
-            result.unshift(e)
-            let kids = this.adjMap.get(e)
-            if (kids != undefined) {
-                for (let it of kids) {
-                    let old = inDegree.get(it)! - 1
-                    inDegree.set(it, old)
-                    if (old == 0) {
-                        queue.push(it)
-                    }
+        let result = new Set<idl.IDLNode>
+        let input = [...this.dependencies]
+        while (input.length) {
+            let broken: idl.IDLNode[] = []
+            let processed = 0
+            for (const candidate of input) {
+                const adj = this.adjMap.get(candidate)!
+                if (adj.find(adj => !result.has(adj)))
+                    broken.push(candidate)
+                else {
+                    result.add(candidate)
+                    ++processed
                 }
             }
-        }
+            if (!processed) {
+                console.warn("DependencySorter detects unsatisfiable dependencies (loops wtith consecuences):")
+                const namer = this.library.createTypeNameConvertor(Language.CPP)
+                for(const it of broken)
+                    console.warn(`${namer.convert(it)} -> [${this.adjMap.get(it)?.filter(it => !result.has(it)).map(it => namer.convert(it)).join(", ")}]`)
+                console.warn("DependencySorter dependencies end")
+                //throw new Error("unsatisfeable dependencies detected")
 
-        if (result.length < input.length) {
-            let cycle = []
-            for (let it of input) {
-                if (!result.includes(it)) {
-                    cycle.push(it)
-                }
+                break
             }
-            console.log(`CYCLE:\n${cycle.map(it => `${idl.forceAsNamedNode(it).name} (ind=${inDegree.get(it)}): ${this.adjMap.get(it)?.map(it => idl.forceAsNamedNode(it).name).join(",")}`).join("\n")}`)
-            throw new Error("cycle detected")
+            input = broken
         }
-        // console.log("DEPS", result.map(it => this.table.computeTargetName(it, false)).join(","))
-        return result
+        // if(1) {
+        //     const namer = this.library.createTypeNameConvertor(Language.CPP)
+        //     console.debug("DEPS BEGIN")
+        //     for(const it of resultArray)
+        //         console.debug(namer.convert(it))
+        //     console.debug("DEPS END")
+        // }
+        return [...result.values()]
     }
 }

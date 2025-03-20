@@ -27,19 +27,56 @@ function processInputOption(option: string | undefined): string[] {
     return []
 }
 
-export function formatInputPaths(options: any): { inputDirs: string[]; inputFiles: string[] } {
+export type InputPaths = {
+    baseDirs: string[]
+    inputDirs: string[]
+    auxInputDirs: string[]
+    inputFiles: string[]
+    auxInputFiles: string[]
+    libraryPackages: string[]
+}
+export function formatInputPaths(options: any): InputPaths {
     if (options.inputFiles && typeof options.inputFiles === 'string') {
         options.inputFiles = processInputOption(options.inputFiles)
+    }
+
+    if (options.auxInputFiles && typeof options.auxInputFiles === 'string') {
+        options.auxInputFiles = processInputOption(options.auxInputFiles)
     }
 
     if (options.inputDir && typeof options.inputDir === 'string') {
         options.inputDir = processInputOption(options.inputDir)
     }
 
-    const inputDirs: string[] = options.inputDir || []
-    const inputFiles: string[] = options.inputFiles || []
+    if (options.auxInputDir && typeof options.auxInputDir === 'string') {
+        options.auxInputDir = processInputOption(options.auxInputDir)
+    }
 
-    return { inputDirs, inputFiles }
+    if (options.libraryPackages && typeof options.libraryPackages === 'string') {
+        options.libraryPackages = processInputOption(options.libraryPackages)
+    }
+
+    const inputDirs: string[] = options.inputDir || []
+    const auxInputDirs: string[] = options.auxInputDir || []
+    const inputFiles: string[] = options.inputFiles || []
+    const auxInputFiles: string[] = options.auxInputFiles || []
+    const libraryPackages: string[] = options.libraryPackages || []
+
+    let baseDirs = options.baseDir ? processInputOption(options.baseDir) : inputDirs
+    if (!baseDirs.length && inputFiles.length) {
+        baseDirs = [...(new Set<string>(options.inputFiles.map((it:string) => path.dirname(it))).values())]
+    }
+    if (!baseDirs.length)
+        throw new Error("Check your --base-dir parameter, value is missing")
+
+    return {
+        baseDirs,
+        inputDirs,
+        auxInputDirs,
+        inputFiles,
+        auxInputFiles,
+        libraryPackages
+    }
 }
 
 export function validatePaths(paths: string[], type: 'file' | 'dir'): void {

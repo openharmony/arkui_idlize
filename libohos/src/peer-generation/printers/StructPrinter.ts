@@ -82,7 +82,7 @@ export class StructPrinter {
         const seenNames = new Set<string>()
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
-        const declTargets = collectDeclarationTargets(this.library)
+        const declTargets = collectDeclarationTargets(this.library, true)
         for (const target of declTargets) {
             if (target === idl.IDLVoidType) {
                 continue
@@ -500,9 +500,9 @@ inline void WriteToString(std::string* result, const ${name}* value) {
 
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
+    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
     return [
-        ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
+        ...((superDecl && idl.isInterface(superDecl)) ? collectProperties(superDecl, library) : []),
         ...decl.properties,
         ...collectBuilderProperties(decl, library)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
@@ -520,9 +520,9 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
 
 export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLFunction[] {
     const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(/* FIX */ superType as idl.IDLReferenceType) : undefined
+    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
     return [
-        ...(superDecl ? collectFunctions(superDecl as idl.IDLInterface, library) : []),
+        ...((superDecl && idl.isInterface(superDecl)) ? collectFunctions(superDecl, library) : []),
         ...decl.methods,
         ...decl.callables,
     ]

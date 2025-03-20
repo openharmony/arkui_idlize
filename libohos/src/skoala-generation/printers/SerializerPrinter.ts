@@ -98,9 +98,9 @@ class IdlSerializerPrinter {
 
 export function collectProperties(decl: idl.IDLInterface, library: IdlSkoalaLibrary): idl.IDLProperty[] {
     const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(superType as idl.IDLReferenceType) : undefined
+    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
     return [
-        ...(superDecl ? collectProperties(superDecl as idl.IDLInterface, library) : []),
+        ...((superDecl && idl.isInterface(superDecl)) ? collectProperties(superDecl, library) : []),
         ...decl.properties,
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }

@@ -18,7 +18,7 @@ import * as ts from "typescript"
 export interface GenerateOptions<T> {
     compilerOptions: ts.CompilerOptions
     onBegin?: (outDir: string, typeChecker: ts.TypeChecker) => void
-    onSingleFile?: (entries: T, outDir: string, inputFile: ts.SourceFile) => void
+    onSingleFile?: (entries: T, outDir: string, inputFile: ts.SourceFile, isAux: boolean) => void
     onEnd?: (outDir: string) => void
     enableLog?: boolean
     recursive?: boolean

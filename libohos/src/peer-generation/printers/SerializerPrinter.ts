@@ -330,7 +330,7 @@ class DeserializerPrinter {
                     this.writer.makeMethodCall(
                         this.writer.language == Language.CJ ?
                         getInternalClassName(this.writer.getNodeName(target)) :
-                        getInternalClassQualifiedName(target), "fromPtr", [this.writer.makeString(`ptr`)])))
+                        getInternalClassQualifiedName(target, "namespace.name"), "fromPtr", [this.writer.makeString(`ptr`)])))
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
@@ -551,7 +551,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it))
         .filter(it => !it.typeParameters?.length)
         .filter(it => {
-            const fullName = qualifiedName(it, "_")
+            const fullName = qualifiedName(it, "_", "namespace.name")
             const seen = seenNames.has(fullName)
             seenNames.add(fullName)
             return !seen

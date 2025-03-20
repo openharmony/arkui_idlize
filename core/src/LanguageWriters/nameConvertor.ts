@@ -23,7 +23,8 @@ export interface TypeConvertor<T> {
     convertOptional(type: idl.IDLOptionalType): T
     convertUnion(type: idl.IDLUnionType): T
     convertContainer(type: idl.IDLContainerType): T
-    convertImport(type: idl.IDLReferenceType, importClause: string): T
+    convertImport(type: idl.IDLImport): T
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): T
     convertTypeReference(type: idl.IDLReferenceType): T
     convertTypeParameter(type: idl.IDLTypeParameterType): T
     convertPrimitiveType(type: idl.IDLPrimitiveType): T
@@ -33,10 +34,11 @@ export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): 
     if (idl.isOptionalType(type)) return convertor.convertOptional(type)
     if (idl.isUnionType(type)) return convertor.convertUnion(type)
     if (idl.isContainerType(type)) return convertor.convertContainer(type)
+    if (idl.isImport(type)) return convertor.convertImport(type)
     if (idl.isReferenceType(type)) {
         const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
         return importAttr
-            ? convertor.convertImport(type, importAttr)
+            ? convertor.convertTypeReferenceAsImport(type, importAttr)
             : convertor.convertTypeReference(type)
     }
     if (idl.isTypeParameterType(type)) return convertor.convertTypeParameter(type)
@@ -45,6 +47,7 @@ export function convertType<T>(convertor: TypeConvertor<T>, type: idl.IDLType): 
 }
 
 export interface DeclarationConvertor<T> {
+    convertImport(node: idl.IDLImport): T
     convertNamespace(node: idl.IDLNamespace): T
     convertInterface(node: idl.IDLInterface): T
     convertEnum(node: idl.IDLEnum): T
@@ -55,6 +58,7 @@ export interface DeclarationConvertor<T> {
 }
 
 export function convertDeclaration<T>(convertor: DeclarationConvertor<T>, decl: idl.IDLEntry): T {
+    if (idl.isImport(decl)) return convertor.convertImport(decl)
     if (idl.isNamespace(decl)) return convertor.convertNamespace(decl)
     if (idl.isInterface(decl))
         return convertor.convertInterface(decl)

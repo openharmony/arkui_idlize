@@ -103,7 +103,11 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
-    convertImport(type: idl.IDLReferenceType, _: string): ConvertResult {
+    convertImport(type: idl.IDLImport): ConvertResult {
+        console.warn("Imports are not implemented yet")
+        return this.make(idl.IDLCustomObjectType.name)
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, _: string): ConvertResult {
         return this.make(idl.IDLCustomObjectType.name)
     }
     convertTypeReference(type: idl.IDLReferenceType): ConvertResult {
@@ -167,7 +171,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
 
     private qualifiedName(target: idl.IDLNode): string {
-        return qualifiedName(target, "_")
+        return qualifiedName(target, "_", "namespace.name")
     }
 
     private computeTargetTypeLiteralName(decl: idl.IDLInterface): string {
@@ -203,10 +207,14 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
         if (!idl.isType(type)) return false
 
         const { resolver } = this
+        const seen = new Set<idl.IDLNode>
         while (type && idl.isReferenceType(type)) {
             const resolved = resolver.resolveTypeReference(type)
             if (!resolved) return false
             if (!idl.isTypedef(resolved)) break
+            if (seen.has(resolved))
+                return false
+            seen.add(resolved)
             type = resolved.type
         }
 
@@ -268,7 +276,11 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
         if (idl.IDLContainerUtils.isPromise(type)) return 'void'
         return this.convertor.convert(type)
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): string {
+    convertImport(type: idl.IDLImport): string {
+        console.warn("Imports are not implemented yet")
+        return "void"
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
         return this.convertor.convert(type)
     }
     convertOptional(type: idl.IDLOptionalType): string {
@@ -284,7 +296,7 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
     convertTypeReference(type: idl.IDLReferenceType): string {
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return generatorTypePrefix() + qualifiedName(decl, "_")
+            return generatorTypePrefix() + qualifiedName(decl, "_", "namespace.name")
         }
         return this.convertor.convert(type)
     }

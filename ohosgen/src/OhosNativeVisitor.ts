@@ -133,7 +133,7 @@ class OHOSNativeVisitor {
     }
 
     private apiName(clazz: IDLInterface): string {
-        return capitalize(qualifiedName(clazz, "_"))
+        return capitalize(qualifiedName(clazz, "_", "namespace.name"))
     }
 
     makeSignature(returnType: IDLType, parameters: IDLParameter[]): MethodSignature {
@@ -170,7 +170,7 @@ class OHOSNativeVisitor {
     private writeModifier(clazz: IDLInterface, writer: CppLanguageWriter) {
         let name = this.modifierName(clazz)
         let handleType = this.handleType(clazz)
-        let className = qualifiedName(clazz, "_")
+        let className = qualifiedName(clazz, "_", "namespace.name")
         let _h = this.hWriter
         let _c = writer
         _h.print(`struct ${handleType}Opaque;`)
@@ -284,10 +284,10 @@ class OHOSNativeVisitor {
     }
 
     private modifierName(clazz: IDLInterface): string {
-        return this.mangleTypeName(`${qualifiedName(clazz, "_")}Modifier`)
+        return this.mangleTypeName(`${qualifiedName(clazz, "_", "namespace.name")}Modifier`)
     }
     private handleType(clazz: IDLInterface): string {
-        return this.mangleTypeName(`${qualifiedName(clazz, "_")}Handle`)
+        return this.mangleTypeName(`${qualifiedName(clazz, "_", "namespace.name")}Handle`)
     }
 
     private writeImpls() {

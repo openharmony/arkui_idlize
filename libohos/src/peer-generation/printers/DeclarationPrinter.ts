@@ -29,16 +29,16 @@ class GeneratorSyntheticPrinter extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl && !idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import))
             this.onGeneratorSyntheticDependency(decl)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 }
 
 function printDeclarationIfNeeded(library: PeerLibrary, entry: idl.IDLEntry, seenNames: Set<String>): string {
-    const scopedName = qualifiedName(entry, ".")
+    const scopedName = qualifiedName(entry, ".", "namespace.name")
     if (seenNames.has(scopedName))
         return ""
     const visitor = new DtsPrintVisitor(type => library.resolveTypeReference(type), library.language)
@@ -59,7 +59,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
     })
     for (const file of peerLibrary.files) {
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            if (idl.isImport(entry) || isInIdlize(entry))
+            if (idl.isImport(entry) || isInIdlize(entry) || idl.isNamespace(entry))
                 continue
             syntheticsGenerator.convert(entry)
             const text = printDeclarationIfNeeded(peerLibrary, entry, seenEntries)

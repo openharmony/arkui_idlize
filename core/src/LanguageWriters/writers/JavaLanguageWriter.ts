@@ -128,6 +128,13 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
 
     getNodeName(type: idl.IDLNode): string {
+        // another stub. Bad one.
+        // I hope that I will rewrite LWs soon
+        if (idl.isType(type) && idl.isReferenceType(type)) {
+            if (type.name.startsWith('%TEXT%:')) {
+                return type.name.substring(7)
+            }
+        }
         return this.typeConvertor.convert(type)
     }
 

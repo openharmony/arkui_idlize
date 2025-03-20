@@ -31,7 +31,10 @@ class CJImportsCollector implements TypeConvertor<ImportFeature[]> {
         }
         return result
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): ImportFeature[] {
+    convertImport(type: idl.IDLImport): ImportFeature[] {
+        return []
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): ImportFeature[] {
         return []
     }
     convertTypeReference(type: idl.IDLReferenceType): ImportFeature[] {
@@ -66,6 +69,10 @@ export function collectJavaImports(nodes: idl.IDLType[]): ImportFeature[] {
 class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeature[]> {
     private readonly typeDepsCollector = new CJImportsCollector()
 
+    convertImport(node: idl.IDLImport): ImportFeature[] {
+        console.warn("Imports are not implemented yet")
+        return []
+    }
     convertNamespace(node: idl.IDLNamespace): ImportFeature[] {
         throw new Error("Internal error: namespaces are not allowed on the CJ layer")
     }

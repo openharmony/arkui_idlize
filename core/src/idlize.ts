@@ -18,6 +18,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as idl from "./idl"
 import { GenerateOptions } from "./options"
+import { isDefined } from "./util"
 
 export function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recursive = false): string[] {
     const dirsToVisit = [path.resolve(dir)]
@@ -65,11 +66,18 @@ export function scanInputDirs(
 
 export interface GenerateVisitor<T> {
     visitPhase1(): T
-    visitPhase2?(siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<T>, result: T }}): T
+    visitPhase2?(siblings: { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<T>, result: T, isAux: boolean }}): T
+}
+
+function fileExists(fileName: string): boolean {
+    return ts.sys.fileExists(fileName);
 }
 
 export function generate<T>(
+    baseDirs: string[],
+    lookupDirs: string[],
     inputFiles: string[],
+    auxInputFiles: string[],
     outputDir: string,
     visitorFactory: (sourceFile: ts.SourceFile, program: ts.Program, compilerHost: ts.CompilerHost) => GenerateVisitor<T>,
     options: GenerateOptions<T>
@@ -83,27 +91,101 @@ export function generate<T>(
         process.exit(1)
     }
 
-    let input: string[] = []
+    let input: Set<string> = new Set<string>
+    let auxInput: Set<string> = new Set<string>
 
-    if (inputFiles.length > 0) {
-        inputFiles.forEach(file => {
+    {
+        const resolveOne = (file: string, tag: string) => {
             const fullPath = path.resolve(file)
             if (fs.existsSync(fullPath)) {
-                if (options.enableLog) {
-                    console.log(`Including input file: ${fullPath}`)
-                }
-                input.push(fullPath)
-            } else {
-                console.warn(`Warning: Input file does not exist: ${fullPath}`)
-            }
-        })
+                if (options.enableLog)
+                    console.log(`Including ${tag} file: ${fullPath}`)
+                return fullPath
+            } else
+                console.warn(`Warning: ${tag} file does not exist: ${fullPath}`)
+        }
+        inputFiles.map(file => resolveOne(file, "file")).filter(isDefined).sort().map(file => input.add(file))
+        auxInputFiles.map(file => resolveOne(file, "aux file")).filter(isDefined).sort().map(file => auxInput.add(file))
     }
 
-    input = Array.from(new Set(input.map(p => path.resolve(p)))).sort()
+    const compilerHostBase = ts.createCompilerHost(options.compilerOptions)
+    const compilerHost: ts.CompilerHost = {
+        ...compilerHostBase,
+        resolveModuleNames: (moduleNames: string[], containingFile: string, reusedNames: string[] | undefined, redirectedReference: ts.ResolvedProjectReference | undefined, options: ts.CompilerOptions, containingSourceFile?: ts.SourceFile): (ts.ResolvedModule | undefined)[] => {
+            const resolvedModules: (ts.ResolvedModule|undefined)[] = []
+            for (let moduleName of moduleNames) {
 
-    let compilerHost = ts.createCompilerHost(options.compilerOptions)
-    let program = ts.createProgram(
-        input.concat([path.join(__dirname, "../stdlib.d.ts")]),
+                // TODO: move this replacement table to some external config...
+                {
+                    const replacement:{[key:string]:string} = {
+                        "../component/navigation": "@internal/component/ets/navigation",
+                        "wrappedBuilderObject": "@internal/component/ets/common",
+                    }
+                    moduleName = replacement[moduleName] || moduleName;
+                }
+
+                let result:ts.ResolvedModuleFull|undefined = ts.resolveModuleName(moduleName, containingFile, options, compilerHostBase).resolvedModule
+                if (result)
+                    resolvedModules.push(result)
+                else {
+                    // as a some fallback - try to resolve from parents of containingFile, lookupDirs
+                    for(let pov of [path.dirname(containingFile), ...lookupDirs]) {
+                        while (!result) {
+                            for(const extension of ["", ".d.ts", ".d.ets"]) {
+                                const candidate = `${moduleName}${extension}`;
+                                if (path.isAbsolute(candidate) && fileExists(candidate)) {
+                                    result = {resolvedFileName: candidate, extension: ts.Extension.Dts, isExternalLibraryImport: false}
+                                    break
+                                }
+                                const povCandidate = path.join(pov, candidate)
+                                if (fileExists(povCandidate)) {
+                                    result = {resolvedFileName: povCandidate, extension: ts.Extension.Dts, isExternalLibraryImport: false}
+                                    break
+                                }
+                            }
+                            if (result)
+                                break
+                            result = ts.resolveModuleName(
+                                path.join(pov, moduleName),
+                                containingFile,
+                                options,
+                                compilerHostBase).resolvedModule
+                            if (result)
+                                break
+                            result = ts.resolveModuleName(
+                                moduleName,
+                                pov,
+                                options,
+                                compilerHostBase).resolvedModule
+                            if (result)
+                                break
+                            const nextPov = path.resolve(pov, "..")
+                            if (nextPov == pov)
+                                break
+                            if (baseDirs.every(baseDir => path.relative(baseDir, nextPov).startsWith("..")))
+                                break
+                            pov = nextPov
+                        }
+                        if (result)
+                            break
+                    }
+                    if (!result)
+                        console.warn(`Dts import at '${containingFile}', module '${moduleName}': unable to resolve source file path`)
+                    resolvedModules.push(result);
+                }
+            }
+            return resolvedModules;
+        }
+    }
+    
+    let stdlib = path.resolve(require.resolve("@idlizer/arkgen"), "..", "..", "stdlib.d.ts")
+    if (!fs.existsSync(stdlib))
+        stdlib = path.join(__dirname, "../stdlib.d.ts")
+    if (!fs.existsSync(stdlib))
+        throw new Error("Unable to find stdlib.d.ts")
+
+    const program = ts.createProgram(
+        [...input.values(), ...auxInput.values(), stdlib],
         options.compilerOptions,
         compilerHost
     )
@@ -120,20 +202,17 @@ export function generate<T>(
     type VisitorStaff = {
         tsSourceFile: ts.SourceFile,
         visitor: GenerateVisitor<T>,
-        result: T
+        result: T,
+        isAux: boolean
     }
     const dtsFileName2Visitor: { [key in string]: VisitorStaff } = {}
     for (const sourceFile of program.getSourceFiles()) {
         const resolvedSourceFileName = path.resolve(sourceFile.fileName)
 
-        const isExplicitFile = input.some(f => path.resolve(f) === resolvedSourceFileName)
-
-        if (!isExplicitFile) {
-            if (options.enableLog) {
-                console.log(`Skipping file: ${resolvedSourceFileName}`)
-            }
+        const isInput = input.has(resolvedSourceFileName)
+        const isAuxInput = auxInput.has(resolvedSourceFileName)
+        if (!isInput && !isAuxInput)
             continue
-        }
 
         if (options.enableLog) {
             console.log(`Processing file: ${resolvedSourceFileName}`)
@@ -145,19 +224,20 @@ export function generate<T>(
         dtsFileName2Visitor[sourceFile.fileName] = {
             tsSourceFile: sourceFile,
             visitor,
-            result
+            result,
+            isAux: isAuxInput
         }
+    }
+
+    for (const resolvedSourceFileName in dtsFileName2Visitor) {
+        const visitorStaff: VisitorStaff = dtsFileName2Visitor[resolvedSourceFileName]
+        options.onSingleFile?.(visitorStaff.result, outputDir, visitorStaff.tsSourceFile, visitorStaff.isAux)
     }
 
     for (const resolvedSourceFileName in dtsFileName2Visitor) {
         const visitorStaff = dtsFileName2Visitor[resolvedSourceFileName]
         if (visitorStaff.visitor.visitPhase2)
             visitorStaff.result = visitorStaff.visitor.visitPhase2(dtsFileName2Visitor)
-    }
-
-    for (const resolvedSourceFileName in dtsFileName2Visitor) {
-        const visitorStaff: VisitorStaff = dtsFileName2Visitor[resolvedSourceFileName]
-        options.onSingleFile?.(visitorStaff.result, outputDir, visitorStaff.tsSourceFile)
     }
 
     options.onEnd?.(outputDir)

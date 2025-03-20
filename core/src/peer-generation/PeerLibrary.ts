@@ -15,6 +15,7 @@
 
 import { warn } from 'console'
 import * as idl from '../idl'
+import { resolveNamedNode } from '../resolveNamedNode'
 import { Language } from '../Language'
 import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
 import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
@@ -32,7 +33,7 @@ import { JavaTypeNameConvertor } from '../LanguageWriters/convertors/JavaConvert
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
 import { BuilderClass, isBuilderClass } from './BuilderClass'
-import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
+import { generateSyntheticFunctionName, isImportAttr, qualifiedName } from './idl/common'
 import { MaterializedClass } from './Materialized'
 import { PeerFile } from './PeerFile'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
@@ -106,6 +107,7 @@ export class PeerLibrary implements LibraryInterface {
         return this._syntheticFile.entries.filter(it => idl.isInterface(it)) as idl.IDLInterface[]
     }
     public readonly files: PeerFile[] = []
+    public readonly auxFiles: PeerFile[] = []
     public readonly builderClasses: Map<string, BuilderClass> = new Map()
     public get buildersToGenerate(): BuilderClass[] {
         return Array.from(this.builderClasses.values()).filter(it => it.needBeGenerated)
@@ -185,80 +187,122 @@ export class PeerLibrary implements LibraryInterface {
         return this.targetNameConvertorInstance.convert(type)
     }
 
-    resolveTypeReference(type: idl.IDLReferenceType): idl.IDLEntry | undefined {
-        return this.resolveTypeReferenceScoped(type)
+    resolveTypeReference(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
+        let result = this.resolveNamedNode(type.name.split("."), type.parent)
+        if (!singleStep) {
+            const seen = new Set<idl.IDLEntry>
+            while(result) {
+                let nextResult: idl.IDLEntry | undefined = undefined
+                if (idl.isImport(result))
+                    nextResult = this.resolveImport(result)
+                else if (idl.isReferenceType(result))
+                    nextResult = this.resolveNamedNode(result.name.split("."))
+                else if (idl.isTypedef(result) && idl.isReferenceType(result.type))
+                    nextResult = this.resolveNamedNode(result.type.name.split("."))
+
+                if (!nextResult)
+                    break;
+
+                if (seen.has(nextResult)) {
+                    console.warn(`Cyclic referenceType: ${type.name}, seen: [${[...seen.values()].map(idl.getFQName).join(", ")}]`)
+                    break;
+                }
+                seen.add(nextResult)
+                result = nextResult
+            }
+        }
+        if (result && (idl.isImport(result) || idl.isNamespace(result)))
+            result = undefined
+        return result
     }
 
-    private resolveTypeReferenceScoped(type: idl.IDLReferenceType, pointOfView?: idl.IDLEntry, rootEntries?: idl.IDLEntry[]): idl.IDLEntry | undefined {
-        const entry = this._syntheticFile.entries.find(it => it.name === type.name)
+    resolveNamedNode(target: string[], pov: idl.IDLNode|undefined = undefined): idl.IDLEntry | undefined {
+        const qualifiedName = target.join(".")
+        const entry = this._syntheticFile.entries.find(it => it.name === qualifiedName)
         if (entry)
             return entry
 
-        const qualifiedName = type.name.split(".");
-
-        let pointOfViewNamespace = idl.fetchNamespaceFrom(type.parent)
-
-        // TODO: Choose what to do if `rootEntries.some(it => idl.isNamespace(it))`
-        // One of possible options - `rootEntries = rootEntries.flatMap(it => idl.isNamespace(it) ? it.members : it)` - cause error
-        rootEntries ??= this.files.flatMap(it => it.entries)
-        if (1 === qualifiedName.length) {
-            const predefined = rootEntries.filter(it => isInIdlizeInternal(it))
-            const found = predefined.find(it => it.name === qualifiedName[0])
+        if (1 === target.length) {
+            const predefined = this.files.flatMap(it => it.entries).filter(isInIdlizeInternal)
+            const found = predefined.find(it => it.name === target.at(-1))
             if (found)
                 return found;
         }
 
-        let doWork = true
-        while (doWork) {
-            doWork = !!pointOfViewNamespace
-            let entries = pointOfViewNamespace
-                ? [...pointOfViewNamespace.members]
-                : [...rootEntries]
-            for (let qualifiedNamePart = 0; qualifiedNamePart < qualifiedName.length; ++qualifiedNamePart) {
-                const candidates = entries.filter(it => it.name === qualifiedName[qualifiedNamePart])
-                if (!candidates.length)
-                    break
-                if (qualifiedNamePart === qualifiedName.length - 1) {
-                    const target = candidates.length == 1
-                        ? candidates[0]
-                        : candidates.find(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.Import)) // probably the wrong logic here
-                    if (target && idl.isImport(target))// Temporary disable Import declarations
-                        return undefined
-                    return target
-                }
-                entries = []
-                for (const candidate of candidates) {
-                    if (idl.isNamespace(candidate))
-                        entries.push(...candidate.members)
-                    else if (idl.isEnum(candidate))
-                        entries.push(...candidate.elements)
-                    else if (idl.isInterface(candidate))
-                        entries.push(...candidate.constants, ...candidate.properties, ...candidate.methods)
-                }
-            }
+        const corpus = this.files.map(it => it.file).concat(this.auxFiles.map(it => it.file))
 
-            pointOfViewNamespace = idl.fetchNamespaceFrom(pointOfViewNamespace?.parent)
+        let result = resolveNamedNode(target, pov, corpus)
+        if (result && idl.isEntry(result))
+            return result
+
+        if (1 == target.length) {
+            const stdScopes = [// TODO: move to some external config
+                ["idlize", "stdlib"],
+                ["org", "openharmony", "idlize", "predefined"],
+                ["org", "openharmony", "arkui"],
+            ]
+            for (const stdScope of stdScopes) {
+                result = resolveNamedNode([...stdScope, ...target], undefined, corpus)
+                if (result && idl.isEntry(result))
+                    return result
+            }
         }
 
         // TODO: remove the next block after namespaces out of quarantine
-        if (!pointOfView) {
-            const resolveds: idl.IDLEntry[] = []
+        {
+            const povAsReadableString = pov
+                ? `'${idl.getFQName(pov)}'`
+                : "[root]"
+
+            // retry from root
+            pov = undefined
+            const resolveds: idl.IDLNode[] = []
+            for (let file of this.files) {
+                result = resolveNamedNode([...file.file.packageClause, ...target], pov, corpus)
+                if (result && idl.isEntry(result)) {
+                    // too much spam
+                    // console.warn(`WARNING: Type reference '${qualifiedName}' is not resolved from ${povAsReadableString} but resolved from some package '${file.packageClause().join(".")}'`)
+                    resolveds.push(result)
+                }
+            }
+
+            // and from each namespace
             const traverseNamespaces = (entry: idl.IDLEntry) => {
                 if (entry && idl.isNamespace(entry) && entry.members.length) {
-                    //console.log(`Try alien namespace '${idl.getNamespacesPathFor(entry.members[0]).map(obj => obj.name).join(".")}' to resolve name '${type.name}'`)
-                    const resolved = this.resolveTypeReferenceScoped(type, entry, rootEntries)
-                    if (resolved)
+                    const resolved = resolveNamedNode([...idl.getNamespacesPathFor(entry).map(it => it.name), ...target], pov, corpus)
+                    if (resolved) {
+                        console.warn(`WARNING: Name '${qualifiedName}' is not resolved from ${povAsReadableString} but resolved from some namespace: '${idl.getNamespacesPathFor(resolved).map(obj => obj.name).join(".")}'`)
                         resolveds.push(resolved)
+                    }
                     entry.members.forEach(traverseNamespaces)
                 }
             }
             this.files.forEach(file => file.entries.forEach(traverseNamespaces))
 
-            if (resolveds.length)
-                console.log(`WARNING: Type reference '${type.name}' is not resolved without own namespace/pointOfView but resolved within some other namespace: '${idl.getNamespacesPathFor(resolveds[0]).map(obj => obj.name).join(".")}'`)
+            for (const resolved of resolveds)
+                if (idl.isEntry(resolved))
+                    return resolved
         }// end of block to remove
 
-        return undefined // empty result
+        return undefined
+    }
+
+    resolveImport(target: idl.IDLImport): idl.IDLEntry | undefined {
+        let result = this.resolveNamedNode(target.clause)
+        if (result) {
+            if (idl.isReferenceType(result))
+                return this.resolveTypeReference(result)
+            if (idl.isImport(result)) {
+                if (result == target) {
+                    console.log("Self-targeted Import?")
+                    return undefined
+                }
+                return this.resolveImport(result)
+            }
+            if (idl.isEntry(result))
+                return result
+        }
+        return undefined
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
@@ -293,6 +337,8 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLUnknownType:
                 case idl.IDLAnyType: return new ObjectConvertor(param)
                 case idl.IDLDate: return new DateConvertor(param)
+
+                case idl.IDLFunctionType: return new FunctionConvertor(this, param)
                 default: throw new Error(`Unconverted primitive ${idl.DebugUtils.debugPrintType(type)}`)
             }
         }
@@ -300,7 +346,8 @@ export class PeerLibrary implements LibraryInterface {
             if (isImportAttr(type))
                 return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
             // TODO: special cases for interop types.
-            switch (type.name) {
+            // TODO: this types are not references! NativeModulePrinter must be fixed
+            switch (type.name.replaceAll('%TEXT%:', '')) { // this is really bad stub, to fix legacy references
                 case 'KBoolean': return new BooleanConvertor(param)
                 case 'KInt': return new NumericConvertor(param, idl.IDLI32Type)
                 case 'KFloat': return new NumericConvertor(param, idl.IDLF32Type)
@@ -333,12 +380,22 @@ export class PeerLibrary implements LibraryInterface {
         let customConv = this.customConvertor(param, type.name, type)
         if (customConv)
             return customConv
-        if (!declaration)
+        if (!declaration) {
             return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), false, this.targetNameConvertorInstance.convert(type)) // assume some predefined type
+        }
 
         const declarationName = declaration.name!
         if (isImportAttr(declaration)) {
             return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+        }
+        if (idl.isImport(declaration)) {
+            const target = this.resolveImport(declaration)
+            if (target && idl.isEntry(target))
+                return this.declarationConvertor(param, type, target)
+            else {
+                warn(`Unable to resolve Import ${declaration.clause.join(".")} as ${declaration.name}`)
+                return new CustomTypeConvertor(param, declaration.name, false, declaration.name)
+            }
         }
         if (idl.isEnum(declaration)) {
             return new EnumConvertor(param, declaration)
@@ -383,7 +440,7 @@ export class PeerLibrary implements LibraryInterface {
             case `Date`:
                 return new DateConvertor(param)
             case `Function`:
-                return new FunctionConvertor(this, param, type as idl.IDLReferenceType)
+                return new FunctionConvertor(this, param)
             case `Record`:
                 return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Optional`:

@@ -163,6 +163,13 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     getNodeName(type: idl.IDLNode, namespaces?: idl.IDLNamespace[]): string {
+        // another stub. Bad one.
+        // I hope that I will rewrite LWs soon
+        if (idl.isType(type) && idl.isReferenceType(type)) {
+            if (type.name.startsWith('%TEXT%:')) {
+                return type.name.substring(7)
+            }
+        }
         // just stub.
         // language writers and name convertors are subject to rework for namespaces
         const row = this.typeConvertor.convert(type)
@@ -459,7 +466,7 @@ export class TSLanguageWriter extends LanguageWriter {
             : this.makeString(`${ordinal}`)
     }
     ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
-        const enumName = idl.forceAsNamedNode(enumEntry).name
+        const enumName = this.getNodeName(enumEntry)
         const decl = idl.isReferenceType(enumEntry) ? this.resolver.resolveTypeReference(enumEntry) : undefined
         if (decl && idl.isEnum(decl) && idl.isStringEnum(decl)) {
             return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`)

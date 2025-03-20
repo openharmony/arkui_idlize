@@ -13,22 +13,20 @@
  * limitations under the License.
  */
 
-declare type PixelMap = import('../resource/image').default.PixelMap;
-
-declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
+declare type SymbolGlyphModifier = import('../resource/symbol').SymbolGlyphModifier;
 
 declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 
 declare type AnimationRange<T> = [from: T, to: T];
 
-declare type PromptActionDialogController = import('../api/@ohos.promptAction').promptAction.DialogController;
+declare type PromptActionDialogController = import('../api/@ohos.PromptActionDialogController').PromptActionDialogController;
 
 
-declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').default.NavDestinationInfo;
+declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
 
-declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationInfo;
 
-declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
 
 declare interface AnimateParam {
     duration?: number;

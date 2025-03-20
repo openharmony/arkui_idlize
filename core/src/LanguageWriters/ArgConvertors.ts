@@ -37,6 +37,7 @@ import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generat
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { qualifiedName } from "../peer-generation/idl/common";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
+import { PeerMethod } from "../peer-generation/PeerMethod";
 
 export interface ArgConvertor {
     param: string
@@ -77,7 +78,10 @@ export function isDirectConvertedType(originalType: idl.IDLType|undefined, libra
         convertor instanceof MapConvertor ||
         convertor instanceof TupleConvertor ||
         convertor instanceof AggregateConvertor ||
-        convertor instanceof OptionConvertor) {
+        convertor instanceof UnionConvertor ||
+        convertor instanceof OptionConvertor ||
+        convertor instanceof ImportTypeConvertor) {
+        // try { console.log(`convertor is ${convertor.constructor.name} for ${JSON.stringify(originalType)}`) } catch (e) {}
         return false
     }
     let type = convertor.interopType()
@@ -103,11 +107,18 @@ export function isVMContextMethod(method: Method): boolean {
         !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT)
 }
 
-export function isDirectMethod(method: Method, library: PeerLibrary): boolean {
+export function isDirectMethod(method: Method|PeerMethod, library: PeerLibrary): boolean {
+    let returnType: idl.IDLType
+    if (method instanceof PeerMethod) {
+        returnType = method.returnType
+        method = method.method
+    } else {
+        returnType = method.signature.returnType
+    }
     if (isVMContextMethod(method)) {
         return false
     }
-    let result = isDirectConvertedType(method.signature.returnType, library) &&
+    let result = isDirectConvertedType(returnType, library) &&
             method.signature.args.every((arg) => isDirectConvertedType(arg, library))
     // if (!result) console.log(`method ${method.name} is not direct`)
     return result
@@ -263,10 +274,17 @@ export class StringConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
+    private typeForSerializer: idl.IDLType
     constructor(param: string, public enumEntry: idl.IDLEnum) {
         super(idl.createReferenceType(enumEntry),
             [idl.isStringEnum(enumEntry) ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
+
+        if (this.enumEntry.name == "GestureType" || this.enumEntry.name == "GestureControl.GestureType") // TODO rework this hack after idl name resolver stands up
+            this.typeForSerializer = idl.createReferenceType(this.enumEntry)
+        else
+            this.typeForSerializer = idl.createReferenceType(this.enumEntry.name)
+        this.typeForSerializer.parent = enumEntry
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeEnumCast(this.enumEntry, writer.escapeKeyword(param))
@@ -279,12 +297,12 @@ export class EnumConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
         const enumExpr = idl.isStringEnum(this.enumEntry)
-            ? writer.enumFromOrdinal(readExpr, idl.createReferenceType(this.enumEntry))
-            : writer.makeCast(readExpr, idl.createReferenceType(this.enumEntry))
+            ? writer.enumFromOrdinal(readExpr, this.typeForSerializer)
+            : writer.makeCast(readExpr, this.typeForSerializer)
         return assigneer(enumExpr)
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.enumEntry)
+        return this.idlType
     }
     interopType(): idl.IDLType {
         return idl.IDLI32Type
@@ -1088,7 +1106,7 @@ export class UnionConvertor extends BaseArgConvertor { //
 }
 
 export class FunctionConvertor extends BaseArgConvertor { //
-    constructor(private library: LibraryInterface, param: string, protected type: idl.IDLReferenceType) {
+    constructor(private library: LibraryInterface, param: string) {
         // TODO: pass functions as integers to native side.
         super(idl.IDLFunctionType, [RuntimeType.FUNCTION], false, false, param)
     }
@@ -1101,7 +1119,7 @@ export class FunctionConvertor extends BaseArgConvertor { //
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeCast(
             writer.makeString(`${deserializerName}.readFunction()`),
-            this.type, { optional: true }
+            idl.IDLFunctionType, { optional: true }
         ))
     }
     nativeType(): idl.IDLType {
@@ -1122,7 +1140,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         switch (writer.language) {
             case Language.CPP:
-                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_")}>(${param})`
+                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
             case Language.JAVA:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${param})`
@@ -1133,13 +1151,13 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         printer.writeStatement(
             printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_")}`, [
+                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_", "namespace.name")}`, [
                     printer.makeString(value)
                 ])))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readStatement = writer.makeCast(
-            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_")}`, []),
+            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_", "namespace.name")}`, []),
             idl.createReferenceType(this.declaration)
         )
         return assigneer(readStatement)

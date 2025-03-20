@@ -16,6 +16,7 @@ import { fromIDL } from "./from-idl/common"
  */
 export * from "./config"
 export * from "./idl"
+export * from "./resolveNamedNode"
 export * from "./visitor"
 export * from "./library"
 export * from "./idlize"

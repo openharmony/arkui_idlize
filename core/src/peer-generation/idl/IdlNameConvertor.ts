@@ -18,6 +18,10 @@ import { DeclarationConvertor } from "../../LanguageWriters/nameConvertor";
 import { Language } from "../../Language";
 
 export class DeclarationNameConvertor implements DeclarationConvertor<string> {
+    convertImport(decl: idl.IDLImport): string {
+        console.warn("Imports are not implemented yet")
+        return decl.name
+    }
     convertInterface(decl: idl.IDLInterface): string {
         return decl.name
     }
@@ -55,10 +59,10 @@ export class TSFeatureNameConvertor extends DeclarationNameConvertor {
 
 export class ETSDeclarationNameConvertor extends DeclarationNameConvertor {
     override convertInterface(decl: idl.IDLInterface): string {
-        return idl.getFQName(decl)
+        return idl.getQualifiedName(decl, "namespace.name")
     }
     override convertEnum(decl: idl.IDLEnum): string {
-        return idl.getFQName(decl)
+        return idl.getQualifiedName(decl, "namespace.name")
     }
     static readonly I = new ETSDeclarationNameConvertor()
 }

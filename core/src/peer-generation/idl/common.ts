@@ -35,7 +35,7 @@ export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
     throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
 }
 
-export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|string): string {
+export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|string, pattern: idl.QNPattern): string {
     if (!idl.isNamedNode(decl))
         throw new Error("internal error, name required for no-named node")
     const delimiter = typeof languageOrDelimiter === "string"
@@ -43,7 +43,7 @@ export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|s
         : (languageOrDelimiter === Language.CPP ? '_' : '.')
     if (!idl.isEntry(decl))
         throw new Error(`Expected to have an IDLEntry, got ${idl.IDLKind[decl.kind]}`)
-    return idl.getFQName(decl).split(".").join(delimiter)
+    return idl.getQualifiedName(decl, pattern).split(".").join(delimiter)
 }
 
 export function collapseTypes(types: idl.IDLType[], name?: string): idl.IDLType {

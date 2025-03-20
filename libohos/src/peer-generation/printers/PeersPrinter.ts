@@ -396,7 +396,7 @@ export function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWri
     writer.writeMethodImplementation(finalizer, writer => {
         writer.writeStatement(
             writer.makeReturn(
-                writer.makeNativeCall(NativeModule.Generated, `_${qualifiedName(clazz.decl, "_")}_getFinalizer`, [])))
+                writer.makeNativeCall(NativeModule.Generated, `_${qualifiedName(clazz.decl, "_", "namespace.name")}_getFinalizer`, [])))
     })
 }
 
@@ -575,7 +575,7 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     if (!decl) {
         throw new Error("Can not resolve materialized class")
     }
-    const internalClassName = getInternalClassName(writer.language == Language.CJ ? writer.getNodeName(decl) : idl.getFQName(decl)) // here
+    const internalClassName = getInternalClassName(writer.language == Language.CJ ? writer.getNodeName(decl) : idl.getQualifiedName(decl, "namespace.name")) // here
     return [
         writer.makeAssign(
             `${resultName}`,

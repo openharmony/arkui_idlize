@@ -92,7 +92,9 @@ import {
     escapeIDLKeyword,
     getNamespacesPathFor,
     IDLBigintType,
-    IDLDate
+    IDLDate,
+    IDLFunctionType,
+    getQualifiedName
 } from "../idl"
 import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
@@ -361,6 +363,7 @@ export class CustomPrintVisitor {
                 case IDLBigintType:
                 case IDLPointerType: return "number|bigint"
                 case IDLDate: return "Date"
+                case IDLFunctionType: return "Function"
                 default: throw new Error(`Unknown primitive type ${DebugUtils.debugPrintType(type)}`)
             }
         }
@@ -379,15 +382,21 @@ export class CustomPrintVisitor {
 
     private toTypeName(node: IDLNode): string {
         if (isReferenceType(node)) {
-            const synthDecl = this.resolver(node)
-            if (synthDecl && isSyntheticEntry(synthDecl)) {
-                if (isInterface(synthDecl)) {
-                    const isTuple = getExtAttribute(synthDecl, IDLExtendedAttributes.Entity) === IDLEntity.Tuple
-                    return this.literal(synthDecl, isTuple, !isTuple)
+            const decl = this.resolver(node)
+            if (decl) {
+                if (isSyntheticEntry(decl)) {
+                    if (isInterface(decl)) {
+                        const isTuple = getExtAttribute(decl, IDLExtendedAttributes.Entity) === IDLEntity.Tuple
+                        return this.literal(decl, isTuple, !isTuple)
+                    }
+                    if (isCallback(decl)) {
+                        return this.callback(decl)
+                    }
                 }
-                if (isCallback(synthDecl)) {
-                    return this.callback(synthDecl)
-                }
+                let typeSpec = getQualifiedName(decl, "namespace.name")
+                if (node.typeArguments)
+                    typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.toTypeName(it))}>`
+                return typeSpec
             }
         }
         if (hasExtAttribute(node, IDLExtendedAttributes.Import)) {

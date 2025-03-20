@@ -61,7 +61,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         return super.createTypeNameConvertor(language)
     }
     override typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
-        if (idl.isReferenceType(type)) {
+        if (idl.isReferenceType(type) && !isOptionalParam) {
             if (isImportAttr(type))
                 return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
         }

@@ -301,7 +301,7 @@ export class IdlPeerProcessor {
         if (!isInCurrentModule(decl)) {
             return
         }
-        const fullCName = qualifiedName(decl, "_")
+        const fullCName = qualifiedName(decl, "_", "namespace.name")
         if (this.library.materializedClasses.has(fullCName)) {
             return
         }
@@ -312,8 +312,8 @@ export class IdlPeerProcessor {
         const interfaces: idl.IDLReferenceType[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []
         if (superType) {
-            const resolvedType = this.library.resolveTypeReference(superType) as (idl.IDLInterface | undefined)
-            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+            const resolvedType = this.library.resolveTypeReference(superType)
+            if (!resolvedType || !idl.isInterface(resolvedType) || !isMaterialized(resolvedType, this.library)) {
                 propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
                 interfaces.push(superType)
                 superType = undefined

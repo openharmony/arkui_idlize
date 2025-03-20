@@ -354,6 +354,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isComputedPropertyName(node)) {
         return identString(node)
     }
+    if (ts.isExportAssignment(node)) {
+        return node.expression.getText()
+    }
     if (ts.isUnionTypeNode(node)) {
         return `UnionType`
     }

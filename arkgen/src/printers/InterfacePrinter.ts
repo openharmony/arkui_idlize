@@ -294,6 +294,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return ''
     }
 
+    convertImport(node: idl.IDLImport): void {
+        console.warn("Imports are not implemented yet")
+    }
+
     convertNamespace(node: idl.IDLNamespace): void {
         this.writer.pushNamespace(node.name);
         node.members.forEach(it => convertDeclaration(this, it))
@@ -309,10 +313,10 @@ class TSSyntheticGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl) this.onSyntheticDeclaration(decl)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 }
 
@@ -352,7 +356,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
             const module = convertDeclToFeature(this.peerLibrary, entry).module
             if (!moduleToEntries.has(module))
                 moduleToEntries.set(module, [])
-            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry)))
+            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry, "namespace.name")))
                 return
             moduleToEntries.get(module)!.push(entry)
         }
@@ -362,6 +366,7 @@ class TSInterfacesVisitor extends DefaultInterfacesVisitor {
         for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
+                    idl.isNamespace(entry) ||
                     isInIdlizeInternal(entry) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
@@ -414,7 +419,7 @@ class JavaSyntheticGenerator extends DependenciesCollector {
         return super.convertUnion(type)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const generatedName = this.nameConvertor.convert(type)
         const clazz = idl.createInterface(
             generatedName,
@@ -422,7 +427,7 @@ class JavaSyntheticGenerator extends DependenciesCollector {
             [idl.createReferenceType(ARK_CUSTOM_OBJECT)]
         )
         this.onSyntheticDeclaration(clazz)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
@@ -470,6 +475,7 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
                     this.onNewDeclaration(this.makeTuple(name, type))
                     return
             }
+            return
         }
         if (idl.isReferenceType(type)) {
             const target = this.peerLibrary.resolveTypeReference(type) // TODO: namespace-related-to-rework
@@ -488,6 +494,9 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
     }
     convertNamespace(node: idl.IDLNamespace): void {
         node.members.forEach(member => convertDeclaration(this, member))
+    }
+    convertImport(node: idl.IDLImport): void {
+        console.warn("Imports are not implemented yet")
     }
     convertInterface(node: idl.IDLInterface): void {
         const name = this.nameConvertor.convert(node)
@@ -695,7 +704,7 @@ class JavaInterfacesVisitor extends DefaultInterfacesVisitor {
         })
         for (const file of this.peerLibrary.files.values()) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (isInIdlizeInternal(entry))
+                if (idl.isNamespace(entry) ||isInIdlizeInternal(entry))
                     continue;
                 syntheticsGenerator.convert(entry)
                 if (peerGeneratorConfiguration().ignoreEntry(entry.name, Language.JAVA))
@@ -723,10 +732,10 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
         super(library)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl) this.onSyntheticDeclaration(decl)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
@@ -811,7 +820,8 @@ class ArkTSInterfacesVisitor extends DefaultInterfacesVisitor {
             if (!isInCurrentModule(file.file))
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (isInIdlizeInternal(entry) ||
+                if (idl.isNamespace(entry) ||
+                    isInIdlizeInternal(entry) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
@@ -863,7 +873,8 @@ class CJInterfacesVisitor extends DefaultInterfacesVisitor {
         })
         for (const file of this.peerLibrary.files) {
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (isInIdlize(entry))
+                if (idl.isNamespace(entry) || 
+                    isInIdlize(entry))
                     continue
                 if (peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
                     continue
@@ -891,10 +902,10 @@ class CJSyntheticGenerator extends DependenciesCollector {
         return super.convertUnion(type)
     }
 
-    convertImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (decl) this.onSyntheticDeclaration(decl)
-        return super.convertImport(type, importClause)
+        return super.convertTypeReferenceAsImport(type, importClause)
     }
 }
 
@@ -950,6 +961,9 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             return
         }
         throw new Error(`Unsupported typedef: ${name}, kind=${type.kind}`)
+    }
+    convertImport(node: idl.IDLImport): void {
+        console.warn("Imports are not implemented yet")
     }
     convertNamespace(node: idl.IDLNamespace): void {
         throw new Error("Internal error: namespaces are not allowed on the CJ layer")

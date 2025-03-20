@@ -216,7 +216,7 @@ export class BridgeCcVisitor {
             }
         })
         const needsContext = idl.isVMContextMethod(method.method)
-        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method.method, this.library) ? 'DIRECT_' : ''
+        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method, this.library) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }

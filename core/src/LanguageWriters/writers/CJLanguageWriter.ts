@@ -288,6 +288,13 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.typeForeignConvertor)
     }
     getNodeName(type: idl.IDLNode): string {
+        // another stub. Bad one.
+        // I hope that I will rewrite LWs soon
+        if (idl.isType(type) && idl.isReferenceType(type)) {
+            if (type.name.startsWith('%TEXT%:')) {
+                return type.name.substring(7)
+            }
+        }
         // rework for proper namespace logic
         let name = this.typeConvertor.convert(type).split('.')
         return name[name.length - 1]

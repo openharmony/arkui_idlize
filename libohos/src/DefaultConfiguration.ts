@@ -129,7 +129,7 @@ function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType):
         linter: {
             validEntryAttributes: new Map([
                 [IDLKind.Property, ["Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName"]],
-                [IDLKind.Interface, ["Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation"]],
+                [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation"]],
                 [IDLKind.Callback, ["Async", "Synthetic"]],
                 [IDLKind.Method, ["Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected"]],
                 [IDLKind.Callable, ["CallSignature", "Deprecated"]],

@@ -107,7 +107,6 @@ declare class CanvasRenderingContext2D extends CanvasRenderer {
   static of(): CanvasRenderingContext2D
 }
 
-declare interface DrawingCanvas {}
 declare interface Size {
   width: number;
   height: number;

@@ -669,7 +669,7 @@ declare class NavPathInfo {
    * @atomicservice
    * @since 11
    */
-  constructor(name: string, param: unknown, onPop?: import('../api/@ohos.base').Callback<PopInfo>);
+  constructor(name: string, param: unknown, onPop?: Callback<PopInfo>);
 
   /**
    * The name of NavDestination.
@@ -726,7 +726,7 @@ declare class NavPathInfo {
    * @atomicservice
    * @since 12
    */
-  onPop?: import('../api/@ohos.base').Callback<PopInfo>;
+  onPop?: Callback<PopInfo>;
 }
 
 /**
@@ -982,7 +982,7 @@ declare class NavPathStack {
    * @atomicservice
    * @since 12
    */
-  pushPathByName(name: string, param: Object, onPop: import('../api/@ohos.base').Callback<PopInfo>, animated?: boolean): void;
+  pushPathByName(name: string, param: Object, onPop: Callback<PopInfo>, animated?: boolean): void;
 
   /**
    * Pushes the specified NavDestination into the stack.
@@ -1062,7 +1062,7 @@ declare class NavPathStack {
    * @atomicservice
    * @since 12
    */
-  pushDestinationByName(name: string, param: Object, onPop: import('../api/@ohos.base').Callback<PopInfo>, animated?: boolean): Promise<void>;
+  pushDestinationByName(name: string, param: Object, onPop: Callback<PopInfo>, animated?: boolean): Promise<void>;
 
   /**
    * Replace the current NavDestination with the specific one.The current NavDestination will be destroyed.

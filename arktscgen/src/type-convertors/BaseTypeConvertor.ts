@@ -23,6 +23,7 @@ import {
     IDLI32Type,
     IDLI64Type,
     IDLI8Type,
+    IDLImport,
     IDLOptionalType,
     IDLPointerType,
     IDLPrimitiveType,
@@ -87,6 +88,10 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
         throwException(`unsupported primitive type: ${JSON.stringify(type)}`)
     }
 
+    convertTypeReferenceAsImport(type: IDLReferenceType, importClause: string): T {
+        return this.convertTypeReference(type)
+    }
+
     convertTypeReference(type: IDLReferenceType): T {
         if (this.typechecker.isReferenceTo(type, isEnum)) {
             return this.conversions.enum(type)
@@ -102,8 +107,8 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
         throwException("union type is not supported")
     }
 
-    convertImport(type: IDLReferenceType, importClause: string): T {
-        throw new Error("import is not supported")
+    convertImport(type: IDLImport): T {
+        throw new Error("Import is not supported")
     }
 
     convertTypeParameter(type: IDLTypeParameterType): T {

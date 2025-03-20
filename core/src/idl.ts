@@ -66,6 +66,7 @@ export enum IDLExtendedAttributes {
     DtsTag = "DtsTag",
     Entity = "Entity",
     Import = "Import",
+    DefaultExport = "DefaultExport",
     IndexSignature = "IndexSignature",
     Interfaces = "Interfaces",
     NativeModule = "NativeModule",
@@ -564,8 +565,8 @@ export function linkParentBack<T extends IDLNode>(node: T): T {
     return node
 }
 
-export function getNamespacesPathFor(entry: IDLEntry): IDLNamespace[] {
-    let iterator: IDLNode | undefined = entry.parent
+export function getNamespacesPathFor(node: IDLNode): IDLNamespace[] {
+    let iterator: IDLNode | undefined = node.parent
     const result: IDLNamespace[] = []
     while (iterator) {
         if (isNamespace(iterator))
@@ -575,35 +576,36 @@ export function getNamespacesPathFor(entry: IDLEntry): IDLNamespace[] {
     return result
 }
 
-export function getFileFor(entry: IDLNode): IDLFile | undefined {
-    let iterator: IDLNode | undefined = entry
+export function getFileFor(node: IDLNode): IDLFile | undefined {
+    let iterator: IDLNode | undefined = node
     while (iterator) {
         if (isFile(iterator))
             return iterator
         iterator = iterator.parent
     }
-    console.warn(`Entry ${JSON.stringify(entry)} does not have IDLFile in parents`)
+    console.warn(`Node ${getQualifiedName(node, "namespace.name")} does not have IDLFile in parents`)
     return undefined
 }
 
-export function isEqualByQualifedName(a?: IDLEntry, b?: IDLEntry): boolean {
+export function isEqualByQualifedName(a?: IDLNamedNode, b?: IDLNamedNode, pattern: QNPattern = "package.namespace.name"): boolean {
     if (a === b)
         return true
     if (!a || !b)
         return false
     if (a.kind !== b.kind || a.name !== b.name)
         return false
-    return getFQName(a) === getFQName(b)
+    return getQualifiedName(a, pattern) === getQualifiedName(b, pattern)
 }
 
-export function getPackageClause(entry: IDLNode): string[] {
-    let file = getFileFor(entry)
+export function getPackageClause(node: IDLNode): string[] {
+    const file = getFileFor(node)
     return file?.packageClause || []
 }
 
 export function getPackageName(node: IDLNode): string {
     return getPackageClause(node).join(".")
 }
+
 
 export function isInPackage(entry: IDLEntry | IDLFile, packageName: string, exactMatch = false) {
     const entryPackageName = getPackageName(entry)
@@ -616,10 +618,26 @@ export function getNamespaceName(a: IDLEntry): string {
     return getNamespacesPathFor(a).map(it => it.name).join('.')
 }
 
-export function getFQName(a:IDLEntry): string {
-    // TODO package name is very dirty now, waiting for Alexander Rekunkov PR
-    // return [...getPackageClause(a), ...getNamespacesPathFor(a).map(it => it.name), a.name].join('.')
-    return [...getNamespacesPathFor(a).map(it => it.name), a.name].join('.')
+export type QNPattern = 
+    "package.namespace.name" |
+    "namespace.name" |
+    "name";
+
+export function getQualifiedName(a:IDLNode, pattern: QNPattern): string {
+    const result: string[] = []
+    if ("package.namespace.name" === pattern)
+        result.push(...getPackageClause(a), ...getNamespacesPathFor(a).map(it => it.name))
+    else if ("namespace.name" === pattern)
+        result.push(...getNamespacesPathFor(a).map(it => it.name))
+
+    if (isNamedNode(a) && a.name)
+        result.push(a.name)
+
+    return result.join(".")
+}
+
+export function getFQName(a:IDLNode): string {
+    return getQualifiedName(a, "package.namespace.name")
 }
 
 export function createVersion(value: string[], extendedAttributes?: IDLExtendedAttribute[], fileName?:string): IDLVersion {
@@ -1464,10 +1482,9 @@ export function isStringEnum(decl: IDLEnum): boolean {
 export function linearizeNamespaceMembers(entries: IDLEntry[]) {
     const linearized: IDLEntry[] = []
     for (const entry of entries) {
+        linearized.push(entry)
         if (isNamespace(entry))
             linearized.push(...linearizeNamespaceMembers(entry.members))
-        else
-            linearized.push(entry)
     }
     return linearized
 }

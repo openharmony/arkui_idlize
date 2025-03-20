@@ -16,7 +16,11 @@ class JavaImportsCollector implements TypeConvertor<ImportFeature[]> {
         }
         return result
     }
-    convertImport(type: idl.IDLReferenceType, importClause: string): ImportFeature[] {
+    convertImport(type: idl.IDLImport): ImportFeature[] {
+        console.warn("Imports are not implemented yet")
+        return []
+    }
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): ImportFeature[] {
         return []
     }
     convertTypeReference(type: idl.IDLReferenceType): ImportFeature[] {

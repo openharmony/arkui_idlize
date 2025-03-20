@@ -193,8 +193,8 @@ export function getInternalClassName(name: string): string {
     return `${name}Internal`
 }
 
-export function getInternalClassQualifiedName(target: idl.IDLEntry): string {
-    return getInternalClassName(qualifiedName(target, "."))
+export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name"): string {
+    return getInternalClassName(qualifiedName(target, ".", pattern))
 }
 
 export function getMaterializedFileName(name:string): string {
