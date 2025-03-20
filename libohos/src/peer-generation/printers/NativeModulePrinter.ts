@@ -51,9 +51,9 @@ class NativeModulePrinterBase {
         return
     }
 
-    protected printMethod(method: Method) {
-        this.tryWriteQuick(method)
-        this.nativeModule.writeNativeMethodDeclaration(method)
+    protected printMethod(interopMethod: Method, originalMethod: Method) {
+        this.tryWriteQuick(originalMethod)
+        this.nativeModule.writeNativeMethodDeclaration(interopMethod)
     }
 }
 
@@ -105,7 +105,8 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
                 if (NativeModulePredefinedVisitor.excludes.get(this.language)?.has(idlMethod.name))
                     continue
                 const method = this.makeInteropMethodFromIdl(idlMethod, this.language)
-                this.printMethod(method)
+                this.printMethod(method, new Method(idlMethod.name, new MethodSignature(
+                    idlMethod.returnType, idlMethod.parameters.map(it => it.type))))
             }
         }
     }
@@ -162,7 +163,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             modifiers = [MethodModifier.FORCE_CONTEXT]
         }
 
-        this.printMethod(new Method(name, parameters, modifiers))
+        this.printMethod(new Method(name, parameters, modifiers), method.method)
     }
 
     visit(): void {
@@ -192,20 +193,20 @@ function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWr
 class TSNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
     readonly nativeModuleEmpty: LanguageWriter = this.library.createLanguageWriter(this.language)
 
-    protected printMethod(method: Method): void {
-        super.printMethod(method)
-        const isUnsupportedStructType = isStructureType(method.signature.returnType, this.library)
-        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty, isUnsupportedStructType)
+    protected printMethod(interopMethod: Method, originalMethod: Method): void {
+        super.printMethod(interopMethod, originalMethod)
+        const isUnsupportedStructType = isStructureType(interopMethod.signature.returnType, this.library)
+        writeNativeModuleEmptyImplementation(interopMethod, this.nativeModuleEmpty, isUnsupportedStructType)
     }
 }
 
 class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisitor {
     readonly nativeModuleEmpty: LanguageWriter = this.library.createLanguageWriter(Language.TS)
 
-    protected printMethod(method: Method): void {
-        super.printMethod(method)
-        const isUnsupportedStructType = isStructureType(method.signature.returnType, this.library)
-        writeNativeModuleEmptyImplementation(method, this.nativeModuleEmpty, isUnsupportedStructType)
+    protected printMethod(interopMethod: Method, originalMethod: Method): void {
+        super.printMethod(interopMethod, originalMethod)
+        const isUnsupportedStructType = isStructureType(interopMethod.signature.returnType, this.library)
+        writeNativeModuleEmptyImplementation(interopMethod, this.nativeModuleEmpty, isUnsupportedStructType)
     }
 }
 

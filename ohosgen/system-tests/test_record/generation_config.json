@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_record",
+    "modules": {
+        "test_record": {
+            "name": "test_record",
+            "packages": ["foo"],
+            "useFoldersLayout": true
+        }
+    }
+}

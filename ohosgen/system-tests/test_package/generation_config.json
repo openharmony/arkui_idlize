@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_package",
+    "modules": {
+        "test_package": {
+            "name": "test_package",
+            "packages": ["bar", "foo"],
+            "useFoldersLayout": true
+        }
+    }
+}

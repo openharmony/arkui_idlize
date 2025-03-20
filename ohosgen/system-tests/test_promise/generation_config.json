@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_promise",
+    "modules": {
+        "test_promise": {
+            "name": "test_promise",
+            "packages": ["foo"],
+            "useFoldersLayout": true
+        }
+    }
+}

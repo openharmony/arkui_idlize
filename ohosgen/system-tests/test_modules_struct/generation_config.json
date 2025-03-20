@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_modules_struct",
+    "modules": {
+        "test_modules_struct": {
+            "name": "test_modules_struct",
+            "packages": ["bar", "baz", "foo"],
+            "useFoldersLayout": true
+        }
+    }
+}

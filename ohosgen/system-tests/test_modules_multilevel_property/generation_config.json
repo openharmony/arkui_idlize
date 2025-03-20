@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_modules_multilevel_property",
+    "modules": {
+        "test_modules_multilevel_property": {
+            "name": "test_modules_multilevel_property",
+            "packages": ["bar", "baz", "foo", "qux"],
+            "useFoldersLayout": true
+        }
+    }
+}

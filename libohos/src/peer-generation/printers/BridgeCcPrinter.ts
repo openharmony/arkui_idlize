@@ -82,7 +82,7 @@ export class BridgeCcVisitor {
             args.unshift(this.getReceiverArgName())
         if (!!idl.asPromise(method.returnType))
             args.unshift(`GetAsyncWorker()`)
-        if (this.needsVMContext(method))
+        if (idl.isVMContextMethod(method.method))
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(method)
         const field = this.getApiCallResultField(method)
@@ -202,12 +202,6 @@ export class BridgeCcVisitor {
         this.generatedApi.print(`}`)
     }
 
-    private needsVMContext(method: PeerMethod): boolean {
-        return !!idl.asPromise(method.returnType)
-            || !!method.method.modifiers?.includes(idl.MethodModifier.THROWS)
-            || !!method.method.modifiers?.includes(idl.MethodModifier.FORCE_CONTEXT)
-    }
-
     private generateCMacroSuffix(method: PeerMethod): string {
         let argumentsCount = method.hasReceiver() ? 1 : 0
         let arrayAdded = false
@@ -221,19 +215,10 @@ export class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const needsContext = this.needsVMContext(method)
-        const ctxSuffix = needsContext ? 'CTX_' : this.isDirect(method) ? 'DIRECT_' : ''
+        const needsContext = idl.isVMContextMethod(method.method)
+        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method.method, this.library) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
-    }
-
-    private isDirect(method: PeerMethod): boolean {
-        let isDirect = isDirectConvertedType(method.returnType, this.library)
-        method.argAndOutConvertors.forEach(it => {
-            if (!it.useArray)
-                isDirect &&= isDirectConvertedType(it.interopType(), this.library)
-        })
-        return isDirect
     }
 
     private generateCParameters(method: PeerMethod): [string, string][] {
@@ -270,7 +255,7 @@ export class BridgeCcVisitor {
 
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
-        if (this.needsVMContext(method))
+        if (idl.isVMContextMethod(method.method))
             argDecls.unshift("KVMContext vmContext")
         this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()

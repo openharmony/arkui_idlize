@@ -1,3 +1,5 @@
+package bar;
+
 import foo;
 
 [Entity=Class]

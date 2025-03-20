@@ -1,3 +1,5 @@
+package foo;
+
 [Entity=Interface]
 interface FooResult {
     attribute number index;

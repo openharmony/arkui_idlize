@@ -62,9 +62,8 @@ export function isDirectConvertedType(originalType: idl.IDLType|undefined, libra
     const debug = false
     if (originalType == undefined) return true // TODO: is it correct?
     if (debug) console.log(`IDL type ${idl.DebugUtils.debugPrintType(originalType)}`)
-    if (originalType == idl.IDLInteropReturnBufferType) {
-        return false
-    }
+    if (originalType == idl.IDLInteropReturnBufferType) return false
+    if (originalType == idl.IDLThisType) return false
     if (originalType == idl.IDLSerializerBuffer) return true
     let convertor = library.typeConvertor("x", originalType, false)
     // Resolve aliases.
