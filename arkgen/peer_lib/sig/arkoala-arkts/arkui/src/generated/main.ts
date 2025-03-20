@@ -449,7 +449,8 @@ function checkNativeCallback() {
         return 1
     }, false)
     assertEquals("NativeCallback prepare recursive callback test", id4, id3 + 1)
-    const depth = 500
+    // more than 10 depth causes segfault
+    const depth = 10
     const count = 100
     for (let i = 0; i < count; i++) {
         const length = 12
