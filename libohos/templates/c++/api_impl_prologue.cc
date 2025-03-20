@@ -69,10 +69,10 @@ void holdBuffer(int resourceId) {
     }
 }
 
-void impl_AllocateNativeBuffer(KInt len, KByte* ret, KByte* init) {
+void impl_AllocateNativeBuffer(KInt len, KNativePointer source, KByte* ret) {
     void* mem;
     int resourceId = allocate_buffer(len, &mem);
-    memcpy((KByte*)mem, init, len);
+    memcpy((KByte*)mem, source, len);
     SerializerBase ser { ret, 40 }; // todo check
     ser.writeInt32(resourceId);
     ser.writePointer((void*)&holdBuffer);
@@ -81,4 +81,4 @@ void impl_AllocateNativeBuffer(KInt len, KByte* ret, KByte* init) {
     ser.writeInt64(len);
 
 }
-KOALA_INTEROP_V3(AllocateNativeBuffer, KInt, KByte*, KByte*);
+KOALA_INTEROP_V3(AllocateNativeBuffer, KInt, KNativePointer, KByte*);

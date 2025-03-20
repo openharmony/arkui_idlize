@@ -28,6 +28,7 @@ import {
     createReferenceType,
     IDLEntry,
     LayoutNodeRole,
+    IDLPointerType,
 } from "@idlizer/core";
 import {
     writeIntegratedFile,
@@ -102,20 +103,17 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             printCallbackChecker,
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             createGeneratedNativeModulePrinter(NativeModule.Generated, w => {
-                // add method for arkts buffer stubs
-                if (peerLibrary.language === Language.ARKTS) {
-                    w.writeNativeMethodDeclaration(new Method(
-                        '_AllocateNativeBuffer',
-                        NamedMethodSignature.make(
-                            IDLBufferType,
-                            [
-                                { name: 'len', type: IDLI32Type },
-                                { name: 'data', type: IDLUint8ArrayType },
-                                { name: 'init', type: IDLUint8ArrayType },
-                            ]
-                        )
-                    ))
-                }
+                w.writeNativeMethodDeclaration(new Method(
+                    '_AllocateNativeBuffer',
+                    NamedMethodSignature.make(
+                        IDLBufferType,
+                        [
+                            { name: 'len', type: IDLI32Type },
+                            { name: 'source', type: IDLPointerType },
+                            { name: 'returnBuffer', type: IDLUint8ArrayType },
+                        ]
+                    )
+                ))
             }),
             ...spreadIfLang([Language.ARKTS], printArkTSTypeChecker),
         ]

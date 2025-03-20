@@ -1,15 +1,12 @@
-import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { xml, checkArkoalaCallbacks } from "../../generated/ts"
+import { int32 } from "@koalaui/common"
+import { callCallback, KPointer, InteropNativeModule, NativeBuffer, DeserializerBase,
+    registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
+import { xml, checkArkoalaCallbacks, OHOS_XMLNativeModule,  } from "../../generated/ts"
 export { xml } from "../../generated/ts"
 
 export type EventType = xml.EventType
-export type OHBuffer = ArrayBuffer
+export type OHBuffer = NativeBuffer
 export const EventType = xml.EventType
-
-export function encodeText(text:string): OHBuffer {
-    const enc = new TextEncoder()
-    return enc.encode(text).buffer as OHBuffer
-}
 
 declare const NATIVE_LIBRARY_NAME: string
 export function init() {
@@ -17,6 +14,20 @@ export function init() {
     registerNativeModuleLibraryName("OHOS_XMLNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
+}
+
+function makeBuffer(len: int32, source: KPointer): OHBuffer {
+    const result = new Uint8Array(64);
+    OHOS_XMLNativeModule._AllocateNativeBuffer(len, source, result);
+    const deserializer = new DeserializerBase(result, 64);
+    return deserializer.readBuffer()
+}
+
+export function encodeText(text:string): OHBuffer {
+    const encoder = new TextEncoder()
+    const data = encoder.encode(text)
+    const ptr = InteropNativeModule._GetNativeBufferPointer(data.buffer as ArrayBuffer)
+    return makeBuffer(data.byteLength, ptr)
 }
 
 export function runEventLoop() {

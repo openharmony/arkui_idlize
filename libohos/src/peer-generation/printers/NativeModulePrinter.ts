@@ -157,7 +157,12 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             parameters.returnType = idl.IDLPointerType
         }
 
-        this.printMethod(new Method(name, parameters))
+        let modifiers: MethodModifier[] | undefined
+        if (isVMContextMethod(method.method)) {
+            modifiers = [MethodModifier.FORCE_CONTEXT]
+        }
+
+        this.printMethod(new Method(name, parameters, modifiers))
     }
 
     visit(): void {
