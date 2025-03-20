@@ -58,7 +58,7 @@ function httpPost(url, data) {
 }
 
 async function send() {
-    const message = `Idlize release was created: ${version}\n\nBranch:${branchName}\nAuthor:${author}`
+    const message = `#idlize Idlize release was created: ${version}\n\nBranch:${branchName}\nAuthor:${author}`
 
     await httpPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         message_thread_id: threadId,

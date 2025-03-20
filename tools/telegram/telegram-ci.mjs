@@ -58,7 +58,7 @@ function httpPost(url, data) {
 }
 
 async function send() {
-    const message = `${jobName}: ${status}\n\nURL:${projectUrl}/pipelines/${pipelineId}/\nBranch:${branchName}\nAuthor:${author}`
+    const message = `#idlize ${jobName}: ${status}\n\nURL:${projectUrl}/pipelines/${pipelineId}/\nBranch:${branchName}\nAuthor:${author}`
 
     await httpPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         message_thread_id: threadId,

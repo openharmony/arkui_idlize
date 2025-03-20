@@ -8,5 +8,5 @@
     if [ $CI_JOB_STATUS == 'success' ]; then
       node ./tools/telegram/telegram-ci.mjs ✅
     else
-      node ./tools/telegram/telegram-ci.mjs ❎
+      node ./tools/telegram/telegram-ci.mjs ❌
     fi
