@@ -496,6 +496,7 @@ export function createOptionalType(element:IDLType): IDLOptionalType {
  */
 export const IDLTopType: IDLReferenceType = createReferenceType("__TOP__")
 
+// must match with toIDLType in deserialize.ts
 export const IDLPointerType = createPrimitiveType('pointer')
 export const IDLVoidType = createPrimitiveType('void')
 export const IDLBooleanType = createPrimitiveType('boolean')

@@ -194,15 +194,12 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
         return idl.createUnionType(types, name)
     }
     if (isSingleTypeDescription(type)) {
+        // must match with primitive types in idl.ts
         switch (type.idlType) {
-            case idl.IDLUnknownType.name: return idl.IDLUnknownType
-            case idl.IDLObjectType.name: return idl.IDLObjectType
-            case idl.IDLAnyType.name: return idl.IDLAnyType
-            case idl.IDLBooleanType.name: return idl.IDLBooleanType
-            case idl.IDLNumberType.name: return idl.IDLNumberType
-            case idl.IDLStringType.name: return idl.IDLStringType
-            case idl.IDLUndefinedType.name: return idl.IDLUndefinedType
+            case idl.IDLPointerType.name: return idl.IDLPointerType
             case idl.IDLVoidType.name: return idl.IDLVoidType
+            case idl.IDLBooleanType.name: return idl.IDLBooleanType
+            case idl.IDLObjectType.name: return idl.IDLObjectType
             case idl.IDLI8Type.name: return idl.IDLI8Type
             case idl.IDLU8Type.name: return idl.IDLU8Type
             case idl.IDLI16Type.name: return idl.IDLI16Type
@@ -213,9 +210,17 @@ function toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extA
             case idl.IDLU64Type.name: return idl.IDLU64Type
             case idl.IDLF32Type.name: return idl.IDLF32Type
             case idl.IDLF64Type.name: return idl.IDLF64Type
-            case idl.IDLPointerType.name: return idl.IDLPointerType
+            case idl.IDLBigintType.name: return idl.IDLBigintType
+            case idl.IDLNumberType.name: return idl.IDLNumberType
+            case idl.IDLStringType.name: return idl.IDLStringType
+            case idl.IDLAnyType.name: return idl.IDLAnyType
+            case idl.IDLUndefinedType.name: return idl.IDLUndefinedType
+            case idl.IDLUnknownType.name: return idl.IDLUnknownType
+            case idl.IDLObjectType.name: return idl.IDLObjectType
+            case idl.IDLThisType.name: return idl.IDLThisType
+            case idl.IDLDate.name: return idl.IDLDate
             case idl.IDLBufferType.name: return idl.IDLBufferType
-
+            case idl.IDLSerializerBuffer.name: return idl.IDLSerializerBuffer
         }
         const combinedExtAttrs = (type.extAttrs ?? []).concat(extAttrs ?? [])
         const idlRefType = idl.createReferenceType(type.idlType)
