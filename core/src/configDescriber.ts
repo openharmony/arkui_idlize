@@ -113,11 +113,26 @@ class ValidationBox<T> {
     }
 }
 
-class ConfigDescriberLeaf<T> {
+export interface ConfigDescriberBaseConfig {
+    mergeStrategy: 'replace' | 'merge'
+}
+
+class ConfigDescriberBase {
+    $: ConfigDescriberBaseConfig = {
+        mergeStrategy: 'merge'
+    }
+
+    onMerge(strategy:ConfigDescriberBaseConfig['mergeStrategy']): this {
+        this.$.mergeStrategy = strategy
+        return this
+    }
+}
+
+class ConfigDescriberLeaf<T> extends ConfigDescriberBase {
     constructor(
         public validate: (x: unknown) => ValidationBox<T>,
         public printSchema: () => JsonSchemaNode,
-    ) { }
+    ) { super() }
 }
 
 class ConfigDescriberOptionalLeaf<T> extends ConfigDescriberLeaf<T> {
@@ -136,6 +151,36 @@ class ConfigDescriberObjectLeaf<T> extends ConfigDescriberLeaf<T> {
 }
 
 export type ConfigSchema<T> = ConfigDescriberLeaf<T>
+
+///
+
+export interface ConfigDescriberFieldInfo {
+    mergeStrategy: ConfigDescriberBaseConfig['mergeStrategy']
+}
+
+export function inspectSchema(schema:ConfigDescriberLeaf<any>) {
+    return {
+        inspectPath(name:string): ConfigDescriberFieldInfo | undefined {
+            if (name === '') {
+                return {
+                    mergeStrategy: schema.$.mergeStrategy
+                }
+            }
+            const path = name.split('.')
+            let leaf = schema
+            while (leaf instanceof ConfigDescriberObjectLeaf && path.length > 0) {
+                const key = path.shift()!
+                leaf = leaf.schema[key]
+                if (!leaf) {
+                    return undefined
+                }
+            }
+            return { mergeStrategy: leaf.$.mergeStrategy }
+        }
+    }
+}
+
+///
 
 export interface CommonBuilderConfig<T> {
     default?: T

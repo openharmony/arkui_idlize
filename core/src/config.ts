@@ -41,7 +41,7 @@ export const CoreConfigurationSchema = D.object({
     forceCallback: T.stringArray(),
     forceContext: T.stringArray(),
     moduleName: D.string(),
-    modules: D.map(D.string(), ModuleConfigurationSchema)
+    modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace')
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>

@@ -13,45 +13,51 @@
  * limitations under the License.
  */
 
-function mergeJSON(a: unknown, b: unknown): unknown {
+import { ConfigSchema, inspectSchema } from "@idlizer/core"
+
+function mergeJSON(a: unknown, b: unknown, path: string[], schema: ConfigSchema<any>): unknown {
     if (a === undefined && b !== undefined) {
         return b
     }
     if (b === undefined && a !== undefined) {
         return a
     }
-    if (Array.isArray(a) && Array.isArray(b)) {
-        return a.concat(b)
-    }
-    if (typeof a === 'object' && typeof b === 'object') {
-        if (a !== null && b !== null) {
-            const aObj = a as any
-            const bObj = b as any
-            const result: any = {}
-            for (const key in a) {
-                if (key in b) {
-                    result[key] = mergeJSON(aObj[key], bObj[key])
-                } else {
-                    result[key] = aObj[key]
+    const inspector = inspectSchema(schema)
+    const info = inspector.inspectPath(path.join('.'))
+    if (!info || info.mergeStrategy !== 'replace') {
+        if (Array.isArray(a) && Array.isArray(b)) {
+            return a.concat(b)
+        }
+        if (typeof a === 'object' && typeof b === 'object') {
+            if (a !== null && b !== null) {
+                const aObj = a as any
+                const bObj = b as any
+                const result: any = {}
+                for (const key in a) {
+                    if (key in b) {
+                        result[key] = mergeJSON(aObj[key], bObj[key], path.concat([key]), schema)
+                    } else {
+                        result[key] = aObj[key]
+                    }
                 }
-            }
-            for (const key in b) {
-                if (key in a) {
-                    result[key] = mergeJSON(aObj[key], bObj[key])
-                } else {
-                    result[key] = bObj[key]
+                for (const key in b) {
+                    if (key in a) {
+                        result[key] = mergeJSON(aObj[key], bObj[key], path.concat([key]), schema)
+                    } else {
+                        result[key] = bObj[key]
+                    }
                 }
+                return result
             }
-            return result
         }
     }
     return b
 }
 
-export function mergeJSONs(objects: unknown[]): unknown {
+export function mergeJSONs(objects: unknown[], schema: ConfigSchema<any>): unknown {
     let result = undefined
     for (const obj of objects) {
-        result = mergeJSON(result, obj)
+        result = mergeJSON(result, obj, [], schema)
     }
     return result
 }

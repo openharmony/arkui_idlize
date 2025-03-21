@@ -170,7 +170,8 @@ export function readConfigFiles(configurationFiles?: string, ignoreDefaultConfig
 
 export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles?: string, ignoreDefaultConfig = false): T {
     const json = mergeJSONs(
-        readConfigFiles(configurationFiles, ignoreDefaultConfig)
+        readConfigFiles(configurationFiles, ignoreDefaultConfig),
+        schema
     )
     const result = schema.validate(json)
     if (!result.success()) {

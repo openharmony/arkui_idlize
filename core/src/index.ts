@@ -68,4 +68,4 @@ export { fromIDL }  from "./from-idl/common"
 export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
 export { toIDLFile, addSyntheticType, resolveSyntheticType } from "./from-idl/deserialize"
 
-export { D, ConfigTypeInfer, ConfigSchema } from './configDescriber'
+export { D, ConfigTypeInfer, ConfigSchema, inspectSchema } from './configDescriber'

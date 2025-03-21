@@ -225,7 +225,7 @@ export class TSLanguageWriter extends LanguageWriter {
         const rightmostRegularParameterIndex = rightmostIndexOf(signature.args, it => !isOptionalType(it))
         const args = signature.args.map((it, index) => {
             const optionalToken = idl.isOptionalType(it) && index > rightmostRegularParameterIndex ? '?' : ''
-            return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it)}`
+            return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it, namespaces)}`
         })
         const returnType = this.getNodeName(signature.returnType, namespaces)
         return `export function ${name}(${args.join(", ")}): ${returnType}`
