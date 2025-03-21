@@ -309,49 +309,59 @@ void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, con
 OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum value1, OH_UNIT_OrdinaryEnum value2) {
     // printf("value1: %d, expected: %d\n", value1, OH_UNIT_ORDINARY_ENUM_E1);
     if (value1 != OH_UNIT_ORDINARY_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_ORDINARY_ENUM_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_ORDINARY_ENUM_E1);
     }
-    return OH_UNIT_ORDINARY_ENUM_E2;
+    return OH_UNIT_ORDINARY_ENUM_E3;
 }
 
 OH_UNIT_IntEnum GlobalScope_checkIntEnumsImpl(OH_UNIT_IntEnum value1, OH_UNIT_IntEnum value2) {
     // printf("value2: %d, expected: %d\n", value2, OH_UNIT_INT_ENUM_E3);
     if (value2 != OH_UNIT_INT_ENUM_E3) {
-        INTEROP_FATAL("Enum param value2 %d does not equeal OH_UNIT_INT_ENUM_E3: %d", value1, OH_UNIT_INT_ENUM_E3);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_INT_ENUM_E3: %d", value1, OH_UNIT_INT_ENUM_E3);
     }
     return OH_UNIT_INT_ENUM_E5;
 }
 
+OH_UNIT_DuplicateIntEnum GlobalScope_checkDuplicateIntEnumsImpl(OH_UNIT_DuplicateIntEnum value1, OH_UNIT_DuplicateIntEnum value2) {
+    if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_SECOND) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_SECOND: %d", value1, OH_UNIT_DUPLICATE_INT_ENUM_SECOND);
+    }
+    if (value2 != OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND: %d", value1, OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_SECOND);
+    }
+    if (OH_UNIT_DUPLICATE_INT_ENUM_THIRD != OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_THIRD) {
+        INTEROP_FATAL("Enum OH_UNIT_DUPLICATE_INT_ENUM_THIRD %d does not equal OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_THIRD: %d",
+            OH_UNIT_DUPLICATE_INT_ENUM_THIRD, OH_UNIT_DUPLICATE_INT_ENUM_LEGACY_THIRD);
+    }
+    return OH_UNIT_DUPLICATE_INT_ENUM_THIRD;
+}
+
 OH_UNIT_StringEnum GlobalScope_checkStringEnumsImpl(OH_UNIT_StringEnum value1, OH_UNIT_StringEnum value2) {
     if (value1 != OH_UNIT_STRING_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
     }
-    // printf("Return enum OH_UNIT_STRING_ENUM_E2: %d\n", OH_UNIT_STRING_ENUM_E2);
-    return OH_UNIT_STRING_ENUM_E2;
+    return OH_UNIT_STRING_ENUM_E3;
 }
 
 OH_UNIT_IDLOrdinaryEnum GlobalScope_idlCheckOrdinaryEnumsImpl(OH_UNIT_IDLOrdinaryEnum value1, OH_UNIT_IDLOrdinaryEnum value2) {
-    // printf("value1: %d, expected: %d\n", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
     if (value1 != OH_UNIT_IDLORDINARY_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_IDLORDINARY_ENUM_E1: %d", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
     }
-    return OH_UNIT_IDLORDINARY_ENUM_E2;
+    return OH_UNIT_IDLORDINARY_ENUM_E3;
 }
 
 OH_UNIT_IDLIntEnum GlobalScope_idlCheckIntEnumsImpl(OH_UNIT_IDLIntEnum value1, OH_UNIT_IDLIntEnum value2) {
-    // printf("value2: %d, expected: %d\n", value2, OH_UNIT_IDLINT_ENUM_E3);
     if (value2 != OH_UNIT_IDLINT_ENUM_E3) {
-        INTEROP_FATAL("Enum param value2 %d does not equeal OH_UNIT_INT_ENUM_E3: %d", value1, OH_UNIT_IDLINT_ENUM_E3);
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_IDLINT_ENUM_E3: %d", value1, OH_UNIT_IDLINT_ENUM_E3);
     }
     return OH_UNIT_IDLINT_ENUM_E5;
 }
 
 OH_UNIT_IDLStringEnum GlobalScope_idlCheckStringEnumsImpl(OH_UNIT_IDLStringEnum value1, OH_UNIT_IDLStringEnum value2) {
     if (value1 != OH_UNIT_IDLSTRING_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equeal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_IDLSTRING_ENUM_E1);
+        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_IDLSTRING_ENUM_E1: %d", value1, OH_UNIT_IDLSTRING_ENUM_E1);
     }
-    // printf("Return enum OH_UNIT_STRING_ENUM_E2: %d\n", OH_UNIT_IDLSTRING_ENUM_E2);
-    return OH_UNIT_IDLSTRING_ENUM_E2;
+    return OH_UNIT_IDLSTRING_ENUM_E3;
 }
 
 

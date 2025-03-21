@@ -1,7 +1,8 @@
 package test_enum;
 dictionary IDLOrdinaryEnum {
-    number E1 = 0;
-    number E2 = 1;
+    number E1;
+    number E2;
+    number E3;
 };
 dictionary IDLIntEnum {
     number E1 = 111;
@@ -11,6 +12,7 @@ dictionary IDLIntEnum {
 dictionary IDLStringEnum {
     String E1 = "e111";
     String E2 = "e222";
+    String E3 = "e333";
 };
 IDLOrdinaryEnum idlCheckOrdinaryEnums(IDLOrdinaryEnum value1, IDLOrdinaryEnum value2);
 IDLIntEnum idlCheckIntEnums(IDLIntEnum value1, IDLIntEnum value2);

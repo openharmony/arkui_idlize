@@ -320,9 +320,9 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                     [idl.IDLI32Type], ["ordinal"]),
                 [MethodModifier.STATIC]),
             writer => {
-                idl.isStringEnum(type)
+                isPassedByOrdinalEnum(type)
                     ? writer.writeStatement(
-                        writer.makeThrowError(`Waiting for possibility to get ordinal for string enum from Panda team`)
+                        writer.makeReturn(writer.makeString(`${enumName}.values()[ordinal]`))
                     )
                     : writer.writeStatements(
                         // Enum.values().find(...) and Enum.values().findIndex(...)
@@ -537,4 +537,8 @@ export function printArkTSTypeChecker(library: PeerLibrary): PrinterResult[] {
         collector: checker.imports,
         content: checker.writer,
     }]
+}
+
+function isPassedByOrdinalEnum(type: idl.IDLEnum): boolean {
+    return idl.isStringEnum(type) || type.elements.every((it, index) => it.initializer === index)
 }

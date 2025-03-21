@@ -34,9 +34,11 @@ export {
 export {
     OrdinaryEnum,
     IntEnum,
+    DuplicateIntEnum,
     StringEnum,
     checkOrdinaryEnums,
     checkIntEnums,
+    checkDuplicateIntEnums,
     checkStringEnums,
     IDLOrdinaryEnum,
     IDLIntEnum,
