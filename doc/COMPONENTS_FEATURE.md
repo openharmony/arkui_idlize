@@ -3,10 +3,10 @@
 
 | Status       | Components | Classes | Functions |
 | -----------  | ---------- | ------- | --------- |
-| Total        | 115      | 166     | 2244     |
-| In Progress  | 11      | 24     | 130     |
-| Done         | 66      | 78     | 1835     |
-| Blocked      | 33      | 44     | 157     |
+| Total        | 115      | 177     | 2278     |
+| In Progress  | 11      | 17     | 94     |
+| Done         | 66      | 87     | 1893     |
+| Blocked      | 33      | 45     | 151     |
 
 
 | Name | Kind | Owner | Status |
@@ -193,7 +193,7 @@
 |`groupDefaultFocus`| Function | Dmitry A Smirnov | done |
 |`focusOnTouch`| Function | Dmitry A Smirnov | done |
 |`focusBox`| Function | Dudkin Sergey | done |
-|`animation`| Function | managed side |  |
+|`animation`| Function | managed side | managed side |
 |`transition`| Function | Dmitry A Smirnov | done |
 |`motionBlur`| Function | Dmitry A Smirnov | done |
 |`brightness`| Function | Lobah Mikhail | done |
@@ -242,7 +242,7 @@
 |`onDragLeave`| Function | Lobah Mikhail, Evstigneev Roman | done |
 |`onDrop`| Function | Lobah Mikhail, Evstigneev Roman | done |
 |`onDragEnd`| Function | Lobah Mikhail, Evstigneev Roman | done |
-|`allowDrop`| Function | Lobah Mikhail | done |
+|`allowDrop`| Function | Lobah Mikhail | in progress |
 |`draggable`| Function | Lobah Mikhail | done |
 |`dragPreview`| Function | Lobah Mikhail | done |
 |`onPreDrag`| Function | Lobah Mikhail | done |
@@ -258,7 +258,7 @@
 |`key`| Function | Lobah Mikhail | done |
 |`id`| Function | Erokhin Ilya | done |
 |`geometryTransition`| Function | Lobah Mikhail | done |
-|`stateStyles`| Function | Dudkin Sergey | blocked IDL |
+|`stateStyles`| Function | Dudkin Sergey | managed side |
 |`restoreId`| Function | Lobah Mikhail | done |
 |`sphericalEffect`| Function | Lobah Mikhail | done |
 |`lightUpEffect`| Function | Lobah Mikhail | done |
@@ -272,7 +272,7 @@
 |`accessibilityChecked`| Function | Lobah Mikhail | done |
 |`accessibilitySelected`| Function | Lobah Mikhail | done |
 |`obscured`| Function | Dmitry A Smirnov | done |
-|`reuseId`| Function | Dmitry A Smirnov | blocked AceEngine |
+|`reuseId`| Function | Dmitry A Smirnov | managed side |
 |`renderFit`| Function | Dmitry A Smirnov | done |
 |`gestureModifier`| Function | Erokhin Ilya | blocked IDL |
 |`backgroundBrightness`| Function | Skroba Gleb | done |
@@ -295,12 +295,12 @@
 |`parallelGesture`| Function | Erokhin Ilya | done |
 |`blur`| Function | Roman Sedaikin | done |
 |`linearGradientBlur`| Function | Lobah Mikhail | done |
-|`systemBarEffect`| Function | Lobah Mikhail | done |
+|`systemBarEffect`| Function | Lobah Mikhail | blocked IDL |
 |`backdropBlur`| Function | Berezin Kirill | done |
 |`sharedTransition`| Function | Skroba Gleb | done |
 |`chainMode`| Function | Berezin Kirill | done |
 |`dragPreviewOptions`| Function | Erokhin Ilya | blocked IDL |
-|`overlay`| Function | Lobah Mikhail | done |
+|`overlay`| Function | Lobah Mikhail | blocked IDL |
 |`blendMode`| Function | Lobah Mikhail | done |
 |`advancedBlendMode`| Function | Erokhin Ilya | blocked IDL |
 |`bindPopup`| Function | Erokhin Ilya | done |
@@ -332,8 +332,6 @@
 |`enableScrollInteraction`| Function | Samarin Sergey | done |
 |`friction`| Function | Samarin Sergey | done |
 |`onScroll`| Function | Samarin Sergey | deprecated |
-|`onWillScroll`| Function | Skroba Gleb | done |
-|`onDidScroll`| Function | Berezin Kirill | done |
 |`onReachStart`| Function | Samarin Sergey | done |
 |`onReachEnd`| Function | Samarin Sergey | done |
 |`onScrollStart`| Function | Samarin Sergey | done |
@@ -390,7 +388,7 @@
 |*EmbeddedComponent*| *Component* | Ekaterina Stepanova | blocked IDL |
 |`setEmbeddedComponentOptions`| Function | Ekaterina Stepanova | blocked IDL |
 |`onTerminated`| Function | Ekaterina Stepanova | blocked IDL |
-|`onError`| Function | Skroba Gleb | in progress |
+|`onError`| Function | Skroba Gleb | done |
 |*Flex*| *Component* | Kovalev Sergey | done |
 |`setFlexOptions`| Function | Kovalev Sergey | done |
 |`pointLight`| Function | Evstigneev Roman, Andrey Khudenkikh | done |
@@ -410,10 +408,10 @@
 |`dimension`| Function | Vadim Voronov | done |
 |`allowUpdate`| Function | Vadim Voronov | done |
 |`visibility`| Function | Vadim Voronov | done |
-|`onAcquired`| Function | Vadim Voronov | blocked IDL |
-|`onError`| Function | Vadim Voronov | blocked IDL |
+|`onAcquired`| Function | Vadim Voronov | in progress |
+|`onError`| Function | Vadim Voronov | in progress |
 |`onRouter`| Function | Vadim Voronov | deprecated |
-|`onUninstall`| Function | Vadim Voronov | blocked IDL |
+|`onUninstall`| Function | Vadim Voronov | in progress |
 |`onLoad`| Function | Vadim Voronov | done |
 |*FormLink*| *Component* | Dmitry A Smirnov | done |
 |`setFormLinkOptions`| Function | Dmitry A Smirnov | done |
@@ -504,7 +502,7 @@
 |`sourceSize`| Function | Evstigneev Roman | done |
 |`syncLoad`| Function | Evstigneev Roman | done |
 |`colorFilter`| Function | Evstigneev Roman | blocked IDL |
-|`copyOption`| Function | Evstigneev Roman | blocked AceEngine |
+|`copyOption`| Function | Evstigneev Roman | done |
 |`draggable`| Function | Evstigneev Roman | done |
 |`pointLight`| Function | Evstigneev Roman, Andrey Khudenkikh | done |
 |`edgeAntialiasing`| Function | Evstigneev Roman | done |
@@ -1433,7 +1431,6 @@
 |`onOverrideUrlLoading`| Function | Erokhin Ilya, Maksimov Nikita | done |
 |`textAutosizing`| Function | Erokhin Ilya | done |
 |`enableNativeMediaPlayer`| Function | Erokhin Ilya | done |
-|`enableSmoothDragResize`| Function | Erokhin Ilya | done |
 |`onRenderProcessNotResponding`| Function | Erokhin Ilya | done |
 |`onRenderProcessResponding`| Function | Erokhin Ilya | done |
 |`selectionMenuOptions`| Function | Erokhin Ilya | done |
@@ -1444,7 +1441,7 @@
 |`editMenuOptions`| Function | Erokhin Ilya, Maksimov Nikita | blocked IDL |
 |`enableHapticFeedback`| Function | Erokhin Ilya | done |
 |`registerNativeEmbedRule`| Function | Erokhin Ilya | done |
-|`bindSelectionMenu`| Function | Lobah Mikhail | done |
+|`bindSelectionMenu`| Function | Lobah Mikhail | in progress |
 |*WindowScene*| *Component* | Dudkin Sergey | done |
 |`setWindowSceneOptions`| Function | Dudkin Sergey | done |
 |`attractionEffect`| Function | Dudkin Sergey | done |
@@ -1492,7 +1489,7 @@
 |`onReceive`| Function | Tuzhilkin Ivan | blocked IDL |
 |`onResult`| Function | Tuzhilkin Ivan | deprecated |
 |`onRelease`| Function | Tuzhilkin Ivan | deprecated |
-|`onError`| Function | Skroba Gleb | in progress |
+|`onError`| Function | Skroba Gleb | done |
 |`onTerminated`| Function | Tuzhilkin Ivan | done |
 |*LinearIndicator*| *Component* | Kovalev Sergey | done |
 |`setLinearIndicatorOptions`| Function | Kovalev Sergey | done |
@@ -1508,43 +1505,41 @@
 |*UnifiedData*| *Class* | Tuzhilkin Ivan | blocked IDL |
 |`hasType`| Function | Tuzhilkin Ivan | blocked IDL |
 |`getTypes`| Function | Tuzhilkin Ivan | blocked IDL |
-|*LazyForEachOps*| *Class* | managed side |  |
-|`NeedMoreElements`| Function | managed side |  |
-|`OnRangeUpdate`| Function | managed side |  |
-|`SetCurrentIndex`| Function | managed side |  |
-|`Prepare`| Function | managed side |  |
-|`NotifyChange`| Function |  |  |
+|*LazyForEachOps*| *Class* | managed side | done |
+|`NeedMoreElements`| Function | managed side | done |
+|`OnRangeUpdate`| Function | managed side | done |
+|`SetCurrentIndex`| Function | managed side | done |
+|`Prepare`| Function | managed side | done |
+|`NotifyChange`| Function | managed side | done |
 |*SystemOps*| *Class* |  |  |
 |`StartFrame`| Function |  |  |
 |`EndFrame`| Function |  |  |
 |`syncInstanceId`| Function |  |  |
 |`restoreInstanceId`| Function |  |  |
 |`getResourceId`| Function | | |
-|*FocusController*| *Class* |  |  |
-|`requestFocus`| Function |  |  |
+|*FocusController*| *Class* | Lobah Mikhail | in progress |
+|`requestFocus`| Function | Lobah Mikhail | in progress |
+|*DrawableDescriptor*| *Class* | | |
+|`getPixelMap`| Function | | |
+|*LayeredDrawableDescriptor*| *Class* | | |
+|`getForeground`| Function | | |
+|`getBackground`| Function | | |
+|`getMask`| Function | | |
+|`getMaskClipPath`| Function | | |
+|*PixelMapDrawableDescriptor*| *Class* | | |
+|*AnimatedDrawableDescriptor*| *Class* | | |
 |*DrawingCanvas*| *Class* | Dudkin Sergey | done |
 |`drawRect`| Function | Dudkin Sergey | done |
-|*LengthMetrics*| *Class* | Evstigneev Roman | in progress |
-|`px`| Function | Evstigneev Roman | in progress |
-|`vp`| Function | Samarin Sergey | in progress |
-|`fp`| Function | Samarin Sergey | in progress |
-|`percent`| Function | Samarin Sergey | in progress |
-|`lpx`| Function | Samarin Sergey | in progress |
-|`resource`| Function | Evstigneev Roman | in progress |
-|`getUnit`| Function | Samarin Sergey | in progress |
-|`setUnit`| Function | Samarin Sergey | in progress |
-|`getValue`| Function | Samarin Sergey | in progress |
-|`setValue`| Function | Samarin Sergey | in progress |
-|*ColorMetrics*| *Class* |  |  |
-|`numeric`| Function |  |  |
-|`rgba`| Function |  |  |
-|`resourceColor`| Function |  |  |
-|`blendColor`| Function |  |  |
-|`getColor`| Function |  |  |
-|`getRed`| Function |  |  |
-|`getGreen`| Function |  |  |
-|`getBlue`| Function |  |  |
-|`getAlpha`| Function |  |  |
+|*ColorMetrics*| *Class* | Lobah Mikhail | in progress |
+|`numeric`| Function | Lobah Mikhail | in progress |
+|`rgba`| Function | Lobah Mikhail | in progress |
+|`resourceColor`| Function | Lobah Mikhail | in progress |
+|`blendColor`| Function | Lobah Mikhail | in progress |
+|`getColor`| Function | Lobah Mikhail | in progress |
+|`getRed`| Function | Lobah Mikhail | in progress |
+|`getGreen`| Function | Lobah Mikhail | in progress |
+|`getBlue`| Function | Lobah Mikhail | in progress |
+|`getAlpha`| Function | Lobah Mikhail | in progress |
 |*WebviewController*| *Class* | Politov Mikhail | done |
 |`initializeWebEngine`| Function | Politov Mikhail | done |
 |`loadUrl`| Function | Politov Mikhail | done |
@@ -1553,7 +1548,7 @@
 |*GlobalScope_ohos_arkui_performanceMonitor*| *Class* | Vadim Voronov | blocked IDL |
 |`begin`| Function | Vadim Voronov | done |
 |`end`| Function | Vadim Voronov | done |
-|`recordInputEventTime`| Function | Vadim Voronov | blocked IDL |
+|`recordInputEventTime`| Function | Vadim Voronov | in progress |
 |*CommonShape*| *Class* | Tuzhilkin Ivan | done |
 |`offset`| Function | Tuzhilkin Ivan | done |
 |`fill`| Function | Tuzhilkin Ivan | done |
@@ -1562,16 +1557,16 @@
 |`width`| Function | Tuzhilkin Ivan | done |
 |`height`| Function | Tuzhilkin Ivan | done |
 |`size`| Function | Tuzhilkin Ivan | done |
-|*RectShape*| *Class* | Samarin Sergey | in progress |
-|`offset`| Function | Samarin Sergey | in progress |
-|`fill`| Function | Samarin Sergey | in progress |
-|`position`| Function | Samarin Sergey | in progress |
-|`width`| Function | Samarin Sergey | in progress |
-|`height`| Function | Samarin Sergey | in progress |
-|`size`| Function | Samarin Sergey | in progress |
-|`radiusWidth`| Function | Samarin Sergey | in progress |
-|`radiusHeight`| Function | Samarin Sergey | in progress |
-|`radius`| Function | Samarin Sergey | in progress |
+|*RectShape*| *Class* | Samarin Sergey | done |
+|`offset`| Function | Samarin Sergey | done |
+|`fill`| Function | Samarin Sergey | done |
+|`position`| Function | Samarin Sergey | done |
+|`width`| Function | Samarin Sergey | done |
+|`height`| Function | Samarin Sergey | done |
+|`size`| Function | Samarin Sergey | done |
+|`radiusWidth`| Function | Samarin Sergey | done |
+|`radiusHeight`| Function | Samarin Sergey | done |
+|`radius`| Function | Samarin Sergey | done |
 |*CircleShape*| *Class* | Dudkin Sergey | in progress |
 |`offset`| Function | Dudkin Sergey | in progress |
 |`fill`| Function | Dudkin Sergey | in progress |
@@ -1586,11 +1581,11 @@
 |`width`| Function | Erokhin Ilya | done |
 |`height`| Function | Erokhin Ilya | done |
 |`size`| Function | Erokhin Ilya | done |
-|*PathShape*| *Class* | Lobah Mikhail | in progress |
-|`offset`| Function | Lobah Mikhail | in progress |
-|`fill`| Function | Lobah Mikhail | in progress |
-|`position`| Function | Lobah Mikhail | in progress |
-|`commands`| Function | Lobah Mikhail | in progress |
+|*PathShape*| *Class* | Lobah Mikhail | done |
+|`offset`| Function | Lobah Mikhail | done |
+|`fill`| Function | Lobah Mikhail | done |
+|`position`| Function | Lobah Mikhail | done |
+|`commands`| Function | Lobah Mikhail | done |
 |*GlobalScope_ohos_font*| *Class* | Pavelyev Ivan | in progress |
 |`registerFont`| Function | Pavelyev Ivan | in progress |
 |`getSystemFontList`| Function | Pavelyev Ivan | in progress |
@@ -1598,14 +1593,16 @@
 |*GlobalScope_ohos_measure_utils*| *Class* |  |  |
 |`measureText`| Function |  |  |
 |`measureTextSize`| Function |  |  |
-|*ScaleSymbolEffect*| *Class* | Andrey Khudenkikh | in progress |
-|`getScope`| Function | Andrey Khudenkikh | in progress |
-|`setScope`| Function | Andrey Khudenkikh | in progress |
-|`getDirection`| Function | Andrey Khudenkikh | in progress |
-|`setDirection`| Function | Andrey Khudenkikh | in progress |
-|*ReplaceSymbolEffect*| *Class* | Andrey Khudenkikh | in progress |
-|`getScope`| Function | Andrey Khudenkikh | in progress |
-|`setScope`| Function | Andrey Khudenkikh | in progress |
+|*SymbolEffect*| *Class* | | |
+|`dummyForAccessorGenerate`| Function | | |
+|*ScaleSymbolEffect*| *Class* | Andrey Khudenkikh | done |
+|`getScope`| Function | Andrey Khudenkikh | done |
+|`setScope`| Function | Andrey Khudenkikh | done |
+|`getDirection`| Function | Andrey Khudenkikh | done |
+|`setDirection`| Function | Andrey Khudenkikh | done |
+|*ReplaceSymbolEffect*| *Class* | Andrey Khudenkikh | done |
+|`getScope`| Function | Andrey Khudenkikh | done |
+|`setScope`| Function | Andrey Khudenkikh | done |
 |*FrameNode*| *Class* | Tuzhilkin Ivan | done |
 |`isModifiable`| Function | Tuzhilkin Ivan | done |
 |`appendChild`| Function | Tuzhilkin Ivan | done |
@@ -1622,11 +1619,58 @@
 |`getOpacity`| Function | Morozov Sergey | done |
 |`getPositionToWindowWithTransform`| Function | Morozov Sergey | done |
 |`getFrameNodeByKey`| Function |  |  |
+|*LengthMetrics*| *Class* | Evstigneev Roman | done |
+|`px`| Function | Evstigneev Roman | done |
+|`vp`| Function | Samarin Sergey | done |
+|`fp`| Function | Samarin Sergey | done |
+|`percent`| Function | Samarin Sergey | done |
+|`lpx`| Function | Samarin Sergey | done |
+|`resource`| Function | Evstigneev Roman | done |
+|`getUnit`| Function | Samarin Sergey | done |
+|`setUnit`| Function | Samarin Sergey | done |
+|`getValue`| Function | Samarin Sergey | done |
+|`setValue`| Function | Samarin Sergey | done |
+|*ShapeMask*| *Class* | | |
+|`setRectShape`| Function | | |
+|`setRoundRectShape`| Function | | |
+|`setCircleShape`| Function | | |
+|`setOvalShape`| Function | | |
+|`setCommandPath`| Function | | |
+|`getFillColor`| Function | | |
+|`setFillColor`| Function | | |
+|`getStrokeColor`| Function | | |
+|`setStrokeColor`| Function | | |
+|`getStrokeWidth`| Function | | |
+|`setStrokeWidth`| Function | | |
+|*ShapeClip*| *Class* | | |
+|`setRectShape`| Function | | |
+|`setRoundRectShape`| Function | | |
+|`setCircleShape`| Function | | |
+|`setOvalShape`| Function | | |
+|`setCommandPath`| Function | | |
+|*Matrix4Transit*| *Class* | | |
+|`copy`| Function | | |
+|`invert`| Function | | |
+|`combine`| Function | | |
+|`translate`| Function | | |
+|`scale`| Function | | |
+|`skew`| Function | | |
+|`rotate`| Function | | |
+|`transformPoint`| Function | | |
+|`setPolyToPoly`| Function | | |
 |*PixelMap*| *Class* | Andrey Khudenkikh | blocked |
-|`readPixelsToBufferSync`| Function | Andrey Khudenkikh | blocked AceEngine |
-|`writeBufferToPixels`| Function | Andrey Khudenkikh | blocked AceEngine |
-|`getIsEditable`| Function | Andrey Khudenkikh | blocked AceEngine |
-|`getIsStrideAlignment`| Function | Andrey Khudenkikh | blocked AceEngine |
+|`readPixelsToBufferSync`| Function | Andrey Khudenkikh | in progress |
+|`writeBufferToPixels`| Function | Andrey Khudenkikh | in progress |
+|`getIsEditable`| Function | Andrey Khudenkikh | in progress |
+|`getIsStrideAlignment`| Function | Andrey Khudenkikh | in progress |
+|*Filter*| *Class* | | |
+|`pixelStretch`| Function | | |
+|`blur`| Function | | |
+|`waterRipple`| Function | | |
+|`flyInFlyOutEffect`| Function | | |
+|`distort`| Function | | |
+|*VisualEffect*| *Class* | | |
+|`backgroundColorBlender`| Function | | |
 |*NavExtender*| *Class* |  |  |
 |`setUpdateStackCallback`| Function |  |  |
 |`syncStack`| Function |  |  |
@@ -1650,6 +1694,50 @@
 |`goTo`| Function | Maksimov Nikita | done |
 |*CalendarPickerDialog*| *Class* | Ekaterina Stepanova | blocked IDL |
 |`show`| Function | Ekaterina Stepanova | blocked IDL |
+|*NavPathInfo*| *Class* | Skroba Gleb | in progress |
+|`getName`| Function | Skroba Gleb | in progress |
+|`setName`| Function | Skroba Gleb | in progress |
+|`getParam`| Function |  |  |
+|`setParam`| Function | Skroba Gleb | in progress |
+|`getOnPop`| Function | Skroba Gleb | in progress |
+|`setOnPop`| Function | Skroba Gleb | in progress |
+|`getIsEntry`| Function | Skroba Gleb | in progress |
+|`setIsEntry`| Function | Skroba Gleb | in progress |
+|*NavPathStack*| *Class* | Morozov Sergey | blocked IDL |
+|`pushPath`| Function | Skroba Gleb | done |
+|`pushDestination`| Function | Morozov Sergey | in progress |
+|`pushPathByName`| Function | Morozov Sergey | managed side |
+|`pushDestinationByName`| Function | Morozov Sergey | in progress |
+|`replacePath`| Function | Morozov Sergey | managed side |
+|`replaceDestination`| Function | Morozov Sergey | managed side |
+|`replacePathByName`| Function | Morozov Sergey | managed side |
+|`removeByIndexes`| Function | Morozov Sergey | managed side |
+|`removeByName`| Function | Morozov Sergey | managed side |
+|`removeByNavDestinationId`| Function | Morozov Sergey | managed side |
+|`pop`| Function | Skroba Gleb | in progress |
+|`popToName`| Function | Morozov Sergey | managed side |
+|`popToIndex`| Function | Morozov Sergey | managed side |
+|`moveToTop`| Function | Morozov Sergey | managed side |
+|`moveIndexToTop`| Function | Morozov Sergey | managed side |
+|`clear`| Function | Morozov Sergey | managed side |
+|`getAllPathName`| Function | Morozov Sergey | in progress |
+|`getParamByIndex`| Function | Morozov Sergey | in progress |
+|`getParamByName`| Function | Morozov Sergey, Skroba Gleb | in progress |
+|`getIndexByName`| Function | Morozov Sergey | in progress |
+|`getParent`| Function | Morozov Sergey | managed side |
+|`size`| Function | Skroba Gleb | done |
+|`disableAnimation`| Function | Morozov Sergey | managed side |
+|`setInterception`| Function | Morozov Sergey | managed side |
+|*NavigationTransitionProxy*| *Class* | Morozov Sergey | managed side |
+|`finishTransition`| Function | Morozov Sergey | done |
+|`cancelTransition`| Function | Morozov Sergey | done |
+|`updateTransition`| Function | Morozov Sergey | done |
+|`getFrom`| Function |  |  |
+|`setFrom`| Function | Morozov Sergey | managed side |
+|`getTo`| Function |  |  |
+|`setTo`| Function | Morozov Sergey | managed side |
+|`getIsInteractive`| Function | Morozov Sergey | done |
+|`setIsInteractive`| Function | Morozov Sergey | done |
 |*CanvasGradient*| *Class* | Vadim Voronov | done |
 |`addColorStop`| Function | Vadim Voronov | done |
 |*CanvasPath*| *Class* | Vadim Voronov | done |
@@ -1741,10 +1829,10 @@
 |`setShadowBlur`| Function | Vadim Voronov | done |
 |`getShadowColor`| Function | Vadim Voronov | blocked IDL |
 |`setShadowColor`| Function | Vadim Voronov | done |
-|`getShadowOffsetX`| Function | Vadim Voronov blocked IDL |  |
+|`getShadowOffsetX`| Function | Vadim Voronov | blocked IDL |
 |`setShadowOffsetX`| Function | Vadim Voronov | done |
-|`getShadowOffsetY`| Function | Vadim Voronov blocked IDL |  |
-|`setShadowOffsetY`| Function | Vadim Voronov | dones |
+|`getShadowOffsetY`| Function | Vadim Voronov | blocked IDL |
+|`setShadowOffsetY`| Function | Vadim Voronov | done |
 |`getDirection`| Function | Vadim Voronov | blocked IDL |
 |`setDirection`| Function | Vadim Voronov | done |
 |`getFont`| Function | Vadim Voronov | blocked IDL |
@@ -1753,17 +1841,17 @@
 |`setTextAlign`| Function | Vadim Voronov | done |
 |`getTextBaseline`| Function | Vadim Voronov | blocked IDL |
 |`setTextBaseline`| Function | Vadim Voronov | done |
-|*CanvasRenderingContext2D*| *Class* | Vadim Voronov | done |
+|*CanvasRenderingContext2D*| *Class* | Vadim Voronov | blocked IDL |
 |`toDataURL`| Function | Vadim Voronov | done |
 |`startImageAnalyzer`| Function | Vadim Voronov | done |
 |`stopImageAnalyzer`| Function | Vadim Voronov | done |
 |`onOnAttach`| Function | Vadim Voronov | done |
-|`offOnAttach`| Function | Vadim Voronov | done |
 |`onOnDetach`| Function | Vadim Voronov | done |
+|`offOnAttach`| Function | Vadim Voronov | done |
 |`offOnDetach`| Function | Vadim Voronov | done |
 |`getHeight`| Function | Vadim Voronov | done |
 |`getWidth`| Function | Vadim Voronov | done |
-|`getCanvas`| Function | Vadim Voronov | done |
+|`getCanvas`| Function | Vadim Voronov | blocked IDL |
 |*OffscreenCanvasRenderingContext2D*| *Class* | Vadim Voronov | done |
 |`toDataURL`| Function | Vadim Voronov | done |
 |`transferToImageBitmap`| Function | Vadim Voronov | done |
@@ -1775,8 +1863,8 @@
 |`getWidth`| Function | Vadim Voronov | done |
 |`setWidth`| Function | Vadim Voronov | done |
 |*DrawingRenderingContext*| *Class* | Vadim Voronov | in progress |
-|`invalidate`| Function | Vadim Voronov | done |
-|`getSize`| Function |  |  |
+|`invalidate`| Function | Vadim Voronov | in progress |
+|`getSize`| Function | Vadim Voronov | in progress |
 |`getCanvas`| Function | Vadim Voronov | in progress |
 |*ICurve*| *Class* | Erokhin Ilya | done |
 |`interpolate`| Function | Erokhin Ilya | done |
@@ -2017,42 +2105,42 @@
 |`setRepeat`| Function | Samarin Sergey | done |
 |`getFingerList`| Function | Kovalev Sergey | done |
 |`setFingerList`| Function | Samarin Sergey | done |
-|`getOffsetX`| Function | Samarin Sergey | in progress |
+|`getOffsetX`| Function | Samarin Sergey | done |
 |`setOffsetX`| Function | Samarin Sergey | done |
-|`getOffsetY`| Function | Samarin Sergey | in progress |
+|`getOffsetY`| Function | Samarin Sergey | done |
 |`setOffsetY`| Function | Samarin Sergey | done |
-|`getAngle`| Function | Samarin Sergey | in progress |
+|`getAngle`| Function | Samarin Sergey | done |
 |`setAngle`| Function | Samarin Sergey | done |
-|`getSpeed`| Function | Samarin Sergey | in progress |
+|`getSpeed`| Function | Samarin Sergey | done |
 |`setSpeed`| Function | Samarin Sergey | done |
-|`getScale`| Function | Samarin Sergey | in progress |
+|`getScale`| Function | Samarin Sergey | done |
 |`setScale`| Function | Samarin Sergey | done |
-|`getPinchCenterX`| Function | Samarin Sergey | in progress |
+|`getPinchCenterX`| Function | Samarin Sergey | done |
 |`setPinchCenterX`| Function | Samarin Sergey | done |
-|`getPinchCenterY`| Function | Samarin Sergey | in progress |
+|`getPinchCenterY`| Function | Samarin Sergey | done |
 |`setPinchCenterY`| Function | Samarin Sergey | done |
-|`getVelocityX`| Function | Samarin Sergey | in progress |
+|`getVelocityX`| Function | Samarin Sergey | done |
 |`setVelocityX`| Function | Samarin Sergey | done |
-|`getVelocityY`| Function | Samarin Sergey | in progress |
+|`getVelocityY`| Function | Samarin Sergey | done |
 |`setVelocityY`| Function | Samarin Sergey | done |
-|`getVelocity`| Function | Samarin Sergey | in progress |
+|`getVelocity`| Function | Samarin Sergey | done |
 |`setVelocity`| Function | Samarin Sergey | blocked IDL |
-|*TapGestureInterface*| *Class* | Dudkin Sergey | blocked IDL |
-|`onAction`| Function | Dudkin Sergey | in progress |
+|*TapGestureInterface*| *Class* | Dudkin Sergey | done |
+|`onAction`| Function | Dudkin Sergey | done |
 |*LongPressGestureInterface*| *Class* | Morozov Sergey | blocked IDL |
-|`onAction`| Function | Morozov Sergey | in progress |
-|`onActionEnd`| Function | Morozov Sergey | in progress |
-|`onActionCancel`| Function | Morozov Sergey | in progress |
+|`onAction`| Function | Morozov Sergey | done |
+|`onActionEnd`| Function | Morozov Sergey | done |
+|`onActionCancel`| Function | Morozov Sergey | done |
 |*PanGestureOptions*| *Class* | Politov Mikhail | blocked IDL |
 |`setDirection`| Function | Politov Mikhail | done |
 |`setDistance`| Function | Politov Mikhail | done |
 |`setFingers`| Function | Politov Mikhail | done |
 |`getDirection`| Function | Politov Mikhail | in progress |
-|*PanGestureInterface*| *Class* | Morozov Sergey | in progress |
-|`onActionStart`| Function | Morozov Sergey | in progress |
-|`onActionUpdate`| Function | Morozov Sergey | in progress |
-|`onActionEnd`| Function | Morozov Sergey | in progress |
-|`onActionCancel`| Function | Morozov Sergey | in progress |
+|*PanGestureInterface*| *Class* | Morozov Sergey | blocked IDL |
+|`onActionStart`| Function | Morozov Sergey | done |
+|`onActionUpdate`| Function | Morozov Sergey | done |
+|`onActionEnd`| Function | Morozov Sergey | done |
+|`onActionCancel`| Function | Morozov Sergey | done |
 |*SwipeGestureInterface*| *Class* | Tuzhilkin Ivan | blocked IDL |
 |`onAction`| Function | Tuzhilkin Ivan | done |
 |*PinchGestureInterface*| *Class* | Tuzhilkin Ivan | blocked IDL |
@@ -2061,10 +2149,10 @@
 |`onActionEnd`| Function | Tuzhilkin Ivan | done |
 |`onActionCancel`| Function | Tuzhilkin Ivan | done |
 |*RotationGestureInterface*| *Class* | Andrey Khudenkikh | blocked IDL |
-|`onActionStart`| Function | Andrey Khudenkikh | in progress |
-|`onActionUpdate`| Function | Andrey Khudenkikh | in progress |
-|`onActionEnd`| Function | Andrey Khudenkikh | in progress |
-|`onActionCancel`| Function | Andrey Khudenkikh | in progress |
+|`onActionStart`| Function | Andrey Khudenkikh | done |
+|`onActionUpdate`| Function | Andrey Khudenkikh | done |
+|`onActionEnd`| Function | Andrey Khudenkikh | done |
+|`onActionCancel`| Function | Andrey Khudenkikh | done |
 |*GestureGroupInterface*| *Class* | Tuzhilkin Ivan |  |
 |`onCancel`| Function | Tuzhilkin Ivan | done |
 |*ScrollableTargetInfo*| *Class* | Maksimov Nikita | done |
@@ -2117,50 +2205,6 @@
 |`setPathStack`| Function | Morozov Sergey | managed side |
 |`getNavDestinationId`| Function | Morozov Sergey | blocked IDL |
 |`setNavDestinationId`| Function | Morozov Sergey | done |
-|*NavPathInfo*| *Class* | Skroba Gleb | in progress |
-|`getName`| Function | Skroba Gleb | in progress |
-|`setName`| Function | Skroba Gleb | in progress |
-|`getParam`| Function |  |  |
-|`setParam`| Function | Skroba Gleb | in progress |
-|`getOnPop`| Function | Skroba Gleb | in progress |
-|`setOnPop`| Function | Skroba Gleb | in progress |
-|`getIsEntry`| Function | Skroba Gleb | in progress |
-|`setIsEntry`| Function | Skroba Gleb | in progress |
-|*NavPathStack*| *Class* | Morozov Sergey | blocked IDL |
-|`pushPath`| Function | Skroba Gleb | done |
-|`pushDestination`| Function | Morozov Sergey | in progress |
-|`pushPathByName`| Function | Morozov Sergey | managed side |
-|`pushDestinationByName`| Function | Morozov Sergey | in progress |
-|`replacePath`| Function | Morozov Sergey | managed side |
-|`replaceDestination`| Function | Morozov Sergey | managed side |
-|`replacePathByName`| Function | Morozov Sergey | managed side |
-|`removeByIndexes`| Function | Morozov Sergey | managed side |
-|`removeByName`| Function | Morozov Sergey | managed side |
-|`removeByNavDestinationId`| Function | Morozov Sergey | managed side |
-|`pop`| Function | Skroba Gleb | in progress |
-|`popToName`| Function | Morozov Sergey | managed side |
-|`popToIndex`| Function | Morozov Sergey | managed side |
-|`moveToTop`| Function | Morozov Sergey | managed side |
-|`moveIndexToTop`| Function | Morozov Sergey | managed side |
-|`clear`| Function | Morozov Sergey | managed side |
-|`getAllPathName`| Function | Morozov Sergey | in progress |
-|`getParamByIndex`| Function | Morozov Sergey | in progress |
-|`getParamByName`| Function | Morozov Sergey, Skroba Gleb | in progress |
-|`getIndexByName`| Function | Morozov Sergey | in progress |
-|`getParent`| Function | Morozov Sergey | managed side |
-|`size`| Function | Skroba Gleb | done |
-|`disableAnimation`| Function | Morozov Sergey | managed side |
-|`setInterception`| Function | Morozov Sergey | managed side |
-|*NavigationTransitionProxy*| *Class* | Morozov Sergey | managed side |
-|`finishTransition`| Function | Morozov Sergey | done |
-|`cancelTransition`| Function | Morozov Sergey | done |
-|`updateTransition`| Function | Morozov Sergey | done |
-|`getFrom`| Function |  |  |
-|`setFrom`| Function | Morozov Sergey | managed side |
-|`getTo`| Function |  |  |
-|`setTo`| Function | Morozov Sergey | managed side |
-|`getIsInteractive`| Function | Morozov Sergey | done |
-|`setIsInteractive`| Function | Morozov Sergey | done |
 |*PatternLockController*| *Class* | Dmitry A Smirnov | done |
 |`reset`| Function | Dmitry A Smirnov | done |
 |`setChallengeResult`| Function | Dmitry A Smirnov | done |
@@ -2168,13 +2212,13 @@
 |`getCaretOffset`| Function | Dudkin Sergey | done |
 |`setCaretOffset`| Function | Dudkin Sergey | done |
 |`closeSelectionMenu`| Function | Dudkin Sergey | done |
-|`getTypingStyle`| Function | Dmitry A Smirnov | in progress |
+|`getTypingStyle`| Function | Dmitry A Smirnov | done |
 |`setTypingStyle`| Function | Dudkin Sergey | done |
 |`setSelection`| Function | Dudkin Sergey | done |
 |`isEditing`| Function | Dudkin Sergey | done |
 |`stopEditing`| Function | Dudkin Sergey | done |
 |`getLayoutManager`| Function | Dudkin Sergey | done |
-|`getPreviewText`| Function | Dmitry A Smirnov | in progress |
+|`getPreviewText`| Function | Dmitry A Smirnov | done |
 |*RichEditorController*| *Class* | Dudkin Sergey | blocked IDL |
 |`addTextSpan`| Function | Dudkin Sergey, Samarin Sergey | in progress |
 |`addImageSpan`| Function | Dudkin Sergey, Maksimov Nikita, Tuzhilkin Ivan, Samarin Sergey | in progress |
@@ -2241,6 +2285,7 @@
 |`setScope`| Function |  |  |
 |`getDirection`| Function |  |  |
 |`setDirection`| Function |  |  |
+|*PulseSymbolEffect*| *Class* | | |
 |*TabsController*| *Class* | Skroba Gleb | done |
 |`changeIndex`| Function | Skroba Gleb | done |
 |`preloadItems`| Function | Skroba Gleb | done |
@@ -2497,16 +2542,16 @@
 |`getTextShadow`| Function | Politov Mikhail | done |
 |*BackgroundColorStyle*| *Class* | Politov Mikhail | done |
 |`getTextBackgroundStyle`| Function |  |  |
-|*GestureStyle*| *Class* | Dudkin Sergey | in progress |
-|*ParagraphStyle*| *Class* | Dudkin Sergey | in progress |
-|`getTextAlign`| Function | Dudkin Sergey | in progress |
-|`getTextIndent`| Function | Dudkin Sergey | in progress |
-|`getMaxLines`| Function | Dudkin Sergey | in progress |
-|`getOverflow`| Function | Dudkin Sergey | in progress |
-|`getWordBreak`| Function | Dudkin Sergey | in progress |
-|`getLeadingMargin`| Function |  |  |
-|*LineHeightStyle*| *Class* | Dudkin Sergey | in progress |
-|`getLineHeight`| Function | Dudkin Sergey | in progress |
+|*GestureStyle*| *Class* | Dudkin Sergey | done |
+|*ParagraphStyle*| *Class* | Dudkin Sergey | done |
+|`getTextAlign`| Function | Dudkin Sergey | done |
+|`getTextIndent`| Function | Dudkin Sergey | done |
+|`getMaxLines`| Function | Dudkin Sergey | done |
+|`getOverflow`| Function | Dudkin Sergey | done |
+|`getWordBreak`| Function | Dudkin Sergey | done |
+|`getLeadingMargin`| Function | Dudkin Sergey | in progress |
+|*LineHeightStyle*| *Class* | Dudkin Sergey | done |
+|`getLineHeight`| Function | Dudkin Sergey | done |
 |*UrlStyle*| *Class* | Politov Mikhail | done |
 |`getUrl`| Function | Politov Mikhail | done |
 |*MutableStyledString*| *Class* | Maksimov Nikita | blocked IDL |
@@ -2523,10 +2568,10 @@
 |`appendStyledString`| Function | Maksimov Nikita | done |
 |*ImageAttachment*| *Class* | Evstigneev Roman | in progress |
 |`getValue`| Function | Evstigneev Roman | done |
-|`getSize`| Function |  |  |
+|`getSize`| Function | Evstigneev Roman | in progress |
 |`getVerticalAlign`| Function | Evstigneev Roman | done |
 |`getObjectFit`| Function | Evstigneev Roman | done |
-|`getLayoutStyle`| Function |  |  |
+|`getLayoutStyle`| Function | Evstigneev Roman | in progress |
 |*CustomSpan*| *Class* | Politov Mikhail | blocked IDL |
 |`onMeasure`| Function | Politov Mikhail | blocked IDL |
 |`onDraw`| Function | Politov Mikhail | blocked IDL |
