@@ -64,15 +64,15 @@
 |`buttonStyle`| Function |Evstigneev Roman | done |  |  |
 |`controlSize`| Function |Evstigneev Roman | done |  |  |
 |`role`| Function | Evstigneev Roman | done |  |  |
-|`fontColor`| Function | Evstigneev Roman | done |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IAUX6D, test in progress Evstigneev Roman |
-|`fontSize`| Function | Evstigneev Roman | done |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IAUX6D, test in progress Evstigneev Roman |
-|`fontWeight`| Function |Evstigneev Roman | done |  |https://gitee.com/openharmony/arkui_ace_engine/issues/IAUX6D, test in progress Evstigneev Roman |
+|`fontColor`| Function | Evstigneev Roman | done |  | Ace issue fixed, test in progress Evstigneev Roman |
+|`fontSize`| Function | Evstigneev Roman | done |  | Ace issue fixed, test in progress Evstigneev Roman |
+|`fontWeight`| Function |Evstigneev Roman | done |  | Ace issue fixed, test in progress Evstigneev Roman |
 |`fontStyle`| Function |Evstigneev Roman | done |  |  |
 |`fontFamily`| Function |Evstigneev Roman | done |  |  |
 |`contentModifier`| Function |Evstigneev Roman | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG (+) |
 |`labelStyle`| Function |Evstigneev Roman | done |  |  |
-|`minFontScale`| Function | Kovalev Sergey | in progress |  | |
-|`maxFontScale`| Function | Kovalev Sergey | in progress |  | |
+|`minFontScale`| Function | Kovalev Sergey | done |  | |
+|`maxFontScale`| Function | Kovalev Sergey | done |  | |
 |*Calendar*| *Component* | Maksimov Nikita | done |  |  |
 |`setCalendarOptions`| Function | Maksimov Nikita | done |  |  |
 |`showLunar`| Function | Maksimov Nikita | done |  |  |
@@ -89,7 +89,7 @@
 |`onSelectChange`| Function | Maksimov Nikita | done |  | |
 |`onRequestData`| Function | Maksimov Nikita | done |  | |
 |*CalendarPicker*| *Component* |Politov Mikhail | done |  |  |
-|`setCalendarPickerOptions`| Function |Politov Mikhail | done |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IB7RNZ |
+|`setCalendarPickerOptions`| Function |Politov Mikhail | done |  | UT blocked by https://gitee.com/openharmony/arkui_ace_engine/issues/IB7RNZ |
 |`textStyle`| Function |Politov Mikhail | done |  |  |
 |`onChange`| Function |Politov Mikhail | done |  |  |
 |`edgeAlign`| Function |Politov Mikhail | done |  |  |
@@ -176,7 +176,7 @@
 |`onTouch`| Function | Roman Sedaikin, Tuzhilkin Ivan | done |  | EVENT |
 |`onKeyEvent`| Function | Erokhin Ilya, Maksimov Nikita, Pavelyev Ivan | done |  |   |
 |`onDigitalCrown`| Function | | | | |
-|`onKeyPreIme`| Function | Erokhin Ilya, Maksimov Nikita, Pavelyev Ivan | done |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX  |
+|`onKeyPreIme`| Function | Erokhin Ilya, Maksimov Nikita, Pavelyev Ivan | done |  |  |
 |`onKeyEventDispatch`| Function | | | | |
 |`onFocusAxisEvent`| Function | | | | |
 |`focusable`| Function | Roman Sedaikin | done |  | |
@@ -188,7 +188,7 @@
 |`groupDefaultFocus`| Function | Dmitry A Smirnov| done |  | |
 |`focusOnTouch`| Function | Dmitry A Smirnov| done |  | |
 |`focusBox`| Function | Dudkin Sergey | done |  | |
-|`animation`| Function | managed side |  | |https://gitee.com/nikolay-igotti/idlize/issues/IAXHJP|
+|`animation`| Function | managed side | managed side | |  |
 |`transition`| Function | Dmitry A Smirnov| done |  |transition(Ark_TransitionOptions) - deprecated, this case tesskipped|
 |`motionBlur`| Function | Dmitry A Smirnov| done |  | |
 |`brightness`| Function | Lobah Mikhail | done |  |  |
@@ -208,7 +208,7 @@
 |`gridSpan`| Function | Lobah Mikhail | done |  |deprecated? |
 |`gridOffset`| Function | Lobah Mikhail | done |  |deprecated? |
 |`rotate`| Function | Dmitry A Smirnov| done |  | Dmitry A Smirnov|
-|`transform`| Function | Lobah Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IB6H50 case 2 -- of Ark_CustomObject from type Object| |
+|`transform`| Function | Lobah Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IBUR61 Type `object` is converted to `ArkCustomObject` | |
 |`onAppear`| Function | Roman Sedaikin | done |  | |
 |`onDisAppear`| Function | Roman Sedaikin | done |  | |
 |`onAttach`| Function | Andrey Khudenkikh | done |  | |
@@ -237,7 +237,7 @@
 |`onDragLeave`| Function | Lobah Mikhail, Evstigneev Roman | done |  | EVENT |
 |`onDrop`| Function | Lobah Mikhail, Evstigneev Roman | done |  | EVENT |
 |`onDragEnd`| Function | Lobah Mikhail, Evstigneev Roman | done |  | EVENT |
-|`allowDrop`| Function | Lobah Mikhail | done |  | |
+|`allowDrop`| Function | Lobah Mikhail | in progress |  Ark_UniformDataType unblocked | |
 |`draggable`| Function | Lobah Mikhail | done |  | |
 |`dragPreview`| Function | Lobah Mikhail | done |  | UT done Lobah Mikhail CustomBuilder |
 |`onPreDrag`| Function | Lobah Mikhail | done |  | |
@@ -253,7 +253,7 @@
 |`key`| Function | Lobah Mikhail | done |  | |
 |`id`| Function | Erokhin Ilya | done |  |  |
 |`geometryTransition`| Function | Lobah Mikhail | done |  | |
-|`stateStyles`| Function | Dudkin Sergey | blocked IDL |  | managed side https://gitee.com/rri_opensource/koala_projects/issues/IBOSCF |
+|`stateStyles`| Function | Dudkin Sergey | managed side |  | managed side https://gitee.com/rri_opensource/koala_projects/issues/IBOSCF |
 |`restoreId`| Function | Lobah Mikhail | done |  | |
 |`sphericalEffect`| Function | Lobah Mikhail | done |  | |
 |`lightUpEffect`| Function | Lobah Mikhail | done |  | |
@@ -268,12 +268,12 @@
 |`accessibilityTextHint`| Function | Lobah Mikhail | done |  | |
 |`accessibilityDescription`| Function | Lobah Mikhail | done |  | |
 |`accessibilityLevel`| Function | Lobah Mikhail | done |  | |
-|`accessibilityVirtualNode`| Function | Lobah Mikhail | done |  | UT done Lobah Mikhail CustomBuilder https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
+|`accessibilityVirtualNode`| Function | Lobah Mikhail | done |  |  |
 |`accessibilityChecked`| Function | Lobah Mikhail | done |  | |
 |`accessibilitySelected`| Function | Lobah Mikhail | done |  | |
 |`obscured`| Function |Dmitry A Smirnov | done |  | |
-|`reuseId`| Function |Dmitry A Smirnov | blocked AceEngine |  | not implemented in ace_engine|
-|`reuse`| Function | | | | to be removed from CAPI generation |
+|`reuseId`| Function |Dmitry A Smirnov | managed side |  | not implemented in ace_engine|
+|`reuse`| Function |managed side | managed side | | to be removed from CAPI generation |
 |`renderFit`| Function | Dmitry A Smirnov| done |  | |
 |`gestureModifier`| Function | Erokhin Ilya | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SG |
 |`backgroundBrightness`| Function | Skroba Gleb | done |  | |
@@ -296,12 +296,12 @@
 |`parallelGesture`| Function | Erokhin Ilya | done |  |  |
 |`blur`| Function | Roman Sedaikin | done |  | |
 |`linearGradientBlur`| Function | Lobah Mikhail | done |  | |
-|`systemBarEffect`| Function | Lobah Mikhail | done |  | |
+|`systemBarEffect`| Function | Lobah Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IBUQXK The common method must have two parameters specified | |
 |`backdropBlur`| Function | Berezin Kirill | done |  | |
 |`sharedTransition`|Function|Skroba Gleb | done |  |  |
 |`chainMode`| Function | Berezin Kirill | done |  | |
 |`dragPreviewOptions`| Function | Erokhin Ilya | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBC7UD |
-|`overlay`| Function | Lobah Mikhail | done |  | UT done Lobah Mikhail CustomBuilder |
+|`overlay`| Function | Lobah Mikhail | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IBUXWQ Correct generation of the `Ark_ComponentContent ` class without stubs is required. | |
 |`blendMode`| Function | Lobah Mikhail | done |  | |
 |`advancedBlendMode`| Function | Erokhin Ilya | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBC80Y |
 |`bindPopup`| Function | Erokhin Ilya | done |  | UT in progress Morozov Sergey |
@@ -322,7 +322,7 @@
 |`fillOpacity`| Function | Evstigneev Roman | done |  |  |
 |`strokeWidth`| Function | Evstigneev Roman | done |  |  |
 |`antiAlias`| Function | Evstigneev Roman | done |  |  |
-|`strokeDashArray`| Function | Evstigneev Roman | in progress |  |https://gitee.com/openharmony/interface_sdk-js/issues/IAX8ZZ (+)|
+|`strokeDashArray`| Function | Evstigneev Roman | in progress |  | any object, to be handled in capi|
 |*Common*| *Component* | Maksimov Nikita | done |  | |
 |`setCommonOptions`| Function | Maksimov Nikita | done |  | |
 |*ScrollableCommonMethod*| *Component* | Samarin Sergey | blocked IDL |  |  |
@@ -333,8 +333,8 @@
 |`enableScrollInteraction`| Function | Samarin Sergey | done |  |  |
 |`friction`| Function | Samarin Sergey | done |  |  |
 |`onScroll`| Function | Samarin Sergey | deprecated |  |
-|`onWillScroll`| Function | Skroba Gleb | done |  |   |
-|`onDidScroll`| Function | Berezin Kirill | done |  |  |
+|`onWillScroll`| Function | Skroba Gleb | done |  | Issue with type of callback: https://gitee.com/nikolay-igotti/idlize/issues/IBB6U0 |
+|`onDidScroll`| Function | Berezin Kirill | done |  | Issue with type of callback: https://gitee.com/nikolay-igotti/idlize/issues/IBB6U0 |
 |`onReachStart`| Function | Samarin Sergey | done |  | |
 |`onReachEnd`| Function | Samarin Sergey | done |  | |
 |`onScrollStart`| Function | Samarin Sergey | done |  | |
@@ -393,7 +393,7 @@
 |*EmbeddedComponent*| *Component* | Ekaterina Stepanova | blocked IDL |  | |
 |`setEmbeddedComponentOptions`| Function | Ekaterina Stepanova | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
 |`onTerminated`| Function | Ekaterina Stepanova | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX |
-|`onError`| Function |Skroba Gleb | in progress |  |  |
+|`onError`| Function |Skroba Gleb | done |  |  |
 |*Flex*| *Component* | Kovalev Sergey | done |  |  |
 |`setFlexOptions`| Function | Kovalev Sergey | done |  |  |
 |`pointLight`| Function | Evstigneev Roman, Andrey Khudenkikh | done |  | UT by Evstigneev Roman |
@@ -413,10 +413,10 @@
 |`dimension`| Function | Vadim Voronov | done |  | |
 |`allowUpdate`| Function | Vadim Voronov | done |  | |
 |`visibility`| Function | Vadim Voronov | done |  | |
-|`onAcquired`| Function | Vadim Voronov | blocked IDL |  | implemented with narrow range of ID, https://gitee.com/nikolay-igotti/idlize/issues/IB8I7X |
-|`onError`| Function | Vadim Voronov | blocked IDL |  | implemented with narrow range of erroCode,https://gitee.com/nikolay-igotti/idlize/issues/IB8I7X |
+|`onAcquired`| Function | Vadim Voronov | in progress |  |  |
+|`onError`| Function | Vadim Voronov | in progress |  |  |
 |`onRouter`| Function | Vadim Voronov | deprecated |  |  |
-|`onUninstall`| Function | Vadim Voronov | blocked IDL |  | implemented with narrow range of ID, https://gitee.com/nikolay-igotti/idlize/issues/IB8I7X |
+|`onUninstall`| Function | Vadim Voronov | in progress |  | |
 |`onLoad`| Function | Vadim Voronov | done |  | |
 |*FormLink*| *Component* | Dmitry A Smirnov| done |  |  |
 |`setFormLinkOptions`| Function | Dmitry A Smirnov| done |  |  |
@@ -508,7 +508,7 @@
 |`sourceSize`| Function | Evstigneev Roman | done |  | |
 |`syncLoad`| Function | Evstigneev Roman | done |  | |
 |`colorFilter`| Function | Evstigneev Roman | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IB0Y72 (+),  DrawingColorFilter is stub on the 2.0.41, in progress for ColorFilter |
-|`copyOption`| Function | Evstigneev Roman | blocked AceEngine |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBEEFF (+) |
+|`copyOption`| Function | Evstigneev Roman | done |  |  tests blocked by https://gitee.com/openharmony/arkui_ace_engine/issues/IBEEFF (+) |
 |`draggable`| Function | Evstigneev Roman | done |  |   |
 |`pointLight`| Function | Evstigneev Roman, Andrey Khudenkikh | done |  |    |
 |`edgeAntialiasing`| Function | Evstigneev Roman | done |  | |
@@ -1010,7 +1010,7 @@
 |`letterSpacing`| Function |Politov Mikhail | done |  |  |
 |`textCase`| Function | Politov Mikhail | done |  |  |
 |`lineHeight`| Function | Politov Mikhail | done |  |  |
-|`textShadow`| Function | Politov Mikhail | done |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IB1K3Z |
+|`textShadow`| Function | Politov Mikhail | done |  | test blocked by https://gitee.com/openharmony/arkui_ace_engine/issues/IB1K3Z |
 |*Stack*| *Component* | Korobeinikov Evgeny | done |  |  |
 |`setStackOptions` | Function | Korobeinikov Evgeny | done |  |  |
 |`alignContent` | Function | Korobeinikov Evgeny | done |  |  |
@@ -1511,7 +1511,7 @@
 |`runJavaScriptOnDocumentEnd`| Function | | | | |
 |`runJavaScriptOnHeadEnd`| Function | | | | |
 |`registerNativeEmbedRule`| Function | Erokhin Ilya | done |  | |
-|`bindSelectionMenu`| Function | Lobah Mikhail | done |  |   |
+|`bindSelectionMenu`| Function | Lobah Mikhail | in progress |  |   |
 |*WindowScene*| *Component* | Dudkin Sergey | done |  | |
 |`setWindowSceneOptions`| Function | Dudkin Sergey | done |  | |
 |`attractionEffect`| Function | Dudkin Sergey  | done |  |  |
@@ -1561,7 +1561,7 @@
 |`onReceive`| Function | Tuzhilkin Ivan | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IAU9SX (+) - still blocked, but ticket can be incorect after new generation|
 |`onResult`| Function | Tuzhilkin Ivan | deprecated |  | done | |
 |`onRelease`| Function | Tuzhilkin Ivan | deprecated |  | done | |
-|`onError`| Function | Skroba Gleb | in progress |  | |
+|`onError`| Function | Skroba Gleb | done |  | |
 |`onTerminated`| Function | Tuzhilkin Ivan | done |  | |
 |`onDrawReady`| Function | | | | |
 |*LinearIndicator*| *Component* | Kovalev Sergey | done |  | depricated |
@@ -1578,42 +1578,42 @@
 |*UnifiedData*| *Class* | Tuzhilkin Ivan | blocked IDL |  | |
 |`hasType`| Function | Tuzhilkin Ivan | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBDHFY , https://gitee.com/nikolay-igotti/idlize/issues/IBDHH7 (+)|
 |`getTypes`| Function | Tuzhilkin Ivan | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBDHFY , https://gitee.com/nikolay-igotti/idlize/issues/IBDHH7 (+)|
-|*LazyForEachOps*| *Class* | managed side |  | | |
-|`NeedMoreElements`| Function | managed side |  |  |
-|`OnRangeUpdate`| Function | managed side |  | | |
-|`SetCurrentIndex`| Function | managed side |  | | |
-|`Prepare`| Function | managed side |  | | |
-|`NotifyChange`| Function | | | | |
+|*LazyForEachOps*| *Class* | managed side | done | | |
+|`NeedMoreElements`| Function | managed side |done  |  |
+|`OnRangeUpdate`| Function | managed side | done | | |
+|`SetCurrentIndex`| Function | managed side | done | | |
+|`Prepare`| Function | managed side | done | | |
+|`NotifyChange`| Function |managed side |done | | |
 |*SystemOps*| *Class* | | | | |
 |`StartFrame`| Function | | | | |
 |`EndFrame`| Function |  |  | | |
 |`syncInstanceId`| Function | | | | |
 |`restoreInstanceId`| Function | | | | |
-|*FocusController*| *Class* | | | | |
-|`requestFocus`| Function | | | | |
+|*FocusController*| *Class* | Lobah Mikhail| in progress| | |
+|`requestFocus`| Function | Lobah Mikhail| in progress| | |
 |*DrawingCanvas*| *Class* | Dudkin Sergey | done |  | |
 |`drawRect`| Function | Dudkin Sergey | done |  | |
-|*LengthMetrics*| *Class* | Evstigneev Roman | in progress | | |
-|`px`| Function | Evstigneev Roman | in progress | | done for feature branch |
-|`vp`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`fp`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`percent`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`lpx`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`resource`| Function | Evstigneev Roman | in progress | | done for feature branch |
-|`getUnit`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`setUnit`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`getValue`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`setValue`| Function | Samarin Sergey | in progress | | done for feature branch |
-|*ColorMetrics*| *Class* | | | | |
-|`numeric`| Function | | | | |
-|`rgba`| Function | | | | |
-|`resourceColor`| Function | | | | |
-|`blendColor`| Function | | | | |
-|`getColor`| Function | | | | |
-|`getRed`| Function | | | | |
-|`getGreen`| Function | | | | |
-|`getBlue`| Function | | | | |
-|`getAlpha`| Function | | | | |
+|*LengthMetrics*| *Class* | Evstigneev Roman | done | | |
+|`px`| Function | Evstigneev Roman | done | | |
+|`vp`| Function | Samarin Sergey | done | | |
+|`fp`| Function | Samarin Sergey | done | | |
+|`percent`| Function | Samarin Sergey | done | | |
+|`lpx`| Function | Samarin Sergey | done | | |
+|`resource`| Function | Evstigneev Roman | done | | |
+|`getUnit`| Function | Samarin Sergey | done | | |
+|`setUnit`| Function | Samarin Sergey | done | | |
+|`getValue`| Function | Samarin Sergey | done | | |
+|`setValue`| Function | Samarin Sergey | done | | |
+|*ColorMetrics*| *Class* | Lobah Mikhail| in progress| | |
+|`numeric`| Function | Lobah Mikhail| in progress| | |
+|`rgba`| Function | Lobah Mikhail| in progress| | |
+|`resourceColor`| Function | Lobah Mikhail| in progress| | |
+|`blendColor`| Function | Lobah Mikhail| in progress| | |
+|`getColor`| Function | Lobah Mikhail| in progress| | |
+|`getRed`| Function | Lobah Mikhail| in progress| | |
+|`getGreen`| Function | Lobah Mikhail| in progress| | |
+|`getBlue`| Function | Lobah Mikhail| in progress| | |
+|`getAlpha`| Function | Lobah Mikhail| in progress| | |
 |*WebviewController*| *Class* | Politov Mikhail | done | | |
 |`initializeWebEngine`| Function | Politov Mikhail | done | | |
 |`loadUrl`| Function | Politov Mikhail | done | | |
@@ -1622,7 +1622,7 @@
 |*GlobalScope_ohos_arkui_performanceMonitor*| *Class* | Vadim Voronov | blocked IDL | | |
 |`begin`| Function | Vadim Voronov | done | | |
 |`end`| Function | Vadim Voronov | done | | |
-|`recordInputEventTime`| Function | Vadim Voronov | blocked IDL | | implemented with UT https://gitee.com/nikolay-igotti/idlize/issues/IB8I7X |
+|`recordInputEventTime`| Function | Vadim Voronov | in progress | |  |
 |*CommonShape*| *Class* | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
 |`offset`| Function | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
 |`fill`| Function | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
@@ -1631,16 +1631,16 @@
 |`width`| Function | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
 |`height`| Function | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
 |`size`| Function | Tuzhilkin Ivan | done | | Empty implementation is acceptable now. Can be reworked/deleted in future generated |
-|*RectShape*| *Class* | Samarin Sergey | in progress | | done for feature branch |
-|`offset`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`fill`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`position`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`width`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`height`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`size`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`radiusWidth`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`radiusHeight`| Function | Samarin Sergey | in progress | | done for feature branch |
-|`radius`| Function | Samarin Sergey | in progress | | done for feature branch |
+|*RectShape*| *Class* | Samarin Sergey | done | | |
+|`offset`| Function | Samarin Sergey | done | | |
+|`fill`| Function | Samarin Sergey | done | | |
+|`position`| Function | Samarin Sergey | done | | |
+|`width`| Function | Samarin Sergey | done | | |
+|`height`| Function | Samarin Sergey | done | | |
+|`size`| Function | Samarin Sergey | done | | |
+|`radiusWidth`| Function | Samarin Sergey | done | | |
+|`radiusHeight`| Function | Samarin Sergey | done | | |
+|`radius`| Function | Samarin Sergey | done | | |
 |*CircleShape*| *Class* |Dudkin Sergey |in progress | | |
 |`offset`| Function |Dudkin Sergey |in progress | | |
 |`fill`| Function | Dudkin Sergey |in progress | | |
@@ -1655,11 +1655,11 @@
 |`width`| Function | Erokhin Ilya | done | | |
 |`height`| Function | Erokhin Ilya | done | | |
 |`size`| Function | Erokhin Ilya | done | | |
-|*PathShape*| *Class* | Lobah Mikhail | in progress| | |
-|`offset`| Function | Lobah Mikhail| in progress| | |
-|`fill`| Function | Lobah Mikhail | in progress| | |
-|`position`| Function | Lobah Mikhail| in progress| | |
-|`commands`| Function | Lobah Mikhail| in progress| | |
+|*PathShape*| *Class* | Lobah Mikhail | done| | |
+|`offset`| Function | Lobah Mikhail| done| | |
+|`fill`| Function | Lobah Mikhail | done| | |
+|`position`| Function | Lobah Mikhail| done| | |
+|`commands`| Function | Lobah Mikhail| done| | |
 |*GlobalScope_ohos_font*| *Class* | Pavelyev Ivan | in progress | | done on feature branch |
 |`registerFont`| Function | Pavelyev Ivan | in progress | | done on feature branch |
 |`getSystemFontList`| Function | Pavelyev Ivan | in progress | | done on feature branch |
@@ -1667,14 +1667,14 @@
 |*GlobalScope_ohos_measure_utils*| *Class* | | | | |
 |`measureText`| Function | | | | |
 |`measureTextSize`| Function | | | | |
-|*ScaleSymbolEffect*| *Class* | Andrey Khudenkikh | in progress | | |
-|`getScope`| Function | Andrey Khudenkikh | in progress | | |
-|`setScope`| Function | Andrey Khudenkikh | in progress | | |
-|`getDirection`| Function | Andrey Khudenkikh | in progress | | |
-|`setDirection`| Function | Andrey Khudenkikh | in progress | | |
-|*ReplaceSymbolEffect*| *Class* | Andrey Khudenkikh | in progress | | |
-|`getScope`| Function | Andrey Khudenkikh | in progress | | |
-|`setScope`| Function | Andrey Khudenkikh | in progress | | |
+|*ScaleSymbolEffect*| *Class* | Andrey Khudenkikh | done | | |
+|`getScope`| Function | Andrey Khudenkikh | done | | |
+|`setScope`| Function | Andrey Khudenkikh | done | | |
+|`getDirection`| Function | Andrey Khudenkikh | done | | |
+|`setDirection`| Function | Andrey Khudenkikh | done | | |
+|*ReplaceSymbolEffect*| *Class* | Andrey Khudenkikh | done | | |
+|`getScope`| Function | Andrey Khudenkikh | done | | |
+|`setScope`| Function | Andrey Khudenkikh | done | | |
 |*FrameNode*| *Class* | Tuzhilkin Ivan | done |  | |
 |`isModifiable`| Function | Tuzhilkin Ivan | done |  | |
 |`appendChild`| Function | Tuzhilkin Ivan | done |  | |
@@ -1692,10 +1692,10 @@
 |`getPositionToWindowWithTransform`| Function | Morozov Sergey | done | | |
 |`getFrameNodeByKey`| Function | | | | |
 |*PixelMap*| *Class* | Andrey Khudenkikh | blocked  | |
-|`readPixelsToBufferSync`| Function | Andrey Khudenkikh | blocked AceEngine |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBE98T |
-|`writeBufferToPixels`| Function | Andrey Khudenkikh | blocked AceEngine |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBE98T |
-|`getIsEditable`| Function | Andrey Khudenkikh | blocked AceEngine |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBE98T |
-|`getIsStrideAlignment`| Function | Andrey Khudenkikh | blocked AceEngine |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBE98T |
+|`readPixelsToBufferSync`| Function | Andrey Khudenkikh | in progress |  |  |
+|`writeBufferToPixels`| Function | Andrey Khudenkikh | in progress |  |  |
+|`getIsEditable`| Function | Andrey Khudenkikh | in progress |  |  |
+|`getIsStrideAlignment`| Function | Andrey Khudenkikh | in progress |  |  |
 |*NavExtender*| *Class* | | | | |
 |`setUpdateStackCallback`| Function | | | | |
 |`syncStack`| Function | | | | |
@@ -1749,8 +1749,8 @@
 |*CanvasRenderer*| *Class*  | Vadim Voronov | blocked IDL |  | |
 |`drawImage`| Function  | Vadim Voronov | done |  | |
 |`beginPath`| Function  | Vadim Voronov | done  |  | |
-|`clip`| Function  | Vadim Voronov | done  |  |   |
-|`fill`| Function  | Vadim Voronov | done  |  |   |
+|`clip`| Function  | Vadim Voronov | done  |  | |
+|`fill`| Function  | Vadim Voronov | done  |  | |
 |`stroke`| Function  | Vadim Voronov | done  |  | |
 |`createLinearGradient`| Function  | Vadim Voronov | done | | |
 |`createPattern`| Function  | Vadim Voronov | done | | |
@@ -1782,8 +1782,8 @@
 |`saveLayer`| Function  | Vadim Voronov | done |  | |
 |`restoreLayer`| Function  | Vadim Voronov | done |  | |
 |`reset`| Function  | Vadim Voronov | done |  | |
-|`getLetterSpacing`| Function | Vadim Voronov | in progress | | |
-|`setLetterSpacing`| Function | Vadim Voronov |in progress | | |
+|`getLetterSpacing`| Function | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
+|`setLetterSpacing`| Function | Vadim Voronov | in progress | | |
 |`getGlobalAlpha`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
 |`setGlobalAlpha`| Function  | Vadim Voronov | done |  | |
 |`getGlobalCompositeOperation`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
@@ -1812,10 +1812,10 @@
 |`setShadowBlur`| Function  | Vadim Voronov | done |  | |
 |`getShadowColor`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
 |`setShadowColor`| Function  | Vadim Voronov | done |  | |
-|`getShadowOffsetX`| Function  | Vadim Voronov blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
+|`getShadowOffsetX`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
 |`setShadowOffsetX`| Function  | Vadim Voronov | done |  | |
-|`getShadowOffsetY`| Function  | Vadim Voronov blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
-|`setShadowOffsetY`| Function  | Vadim Voronov | dones |  | |
+|`getShadowOffsetY`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
+|`setShadowOffsetY`| Function  | Vadim Voronov | done |  | |
 |`getDirection`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
 |`setDirection`| Function  | Vadim Voronov | done |  |   |
 |`getFont`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
@@ -1824,7 +1824,7 @@
 |`setTextAlign`| Function  | Vadim Voronov | done |  |   |
 |`getTextBaseline`| Function  | Vadim Voronov | blocked IDL |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 |
 |`setTextBaseline`| Function  | Vadim Voronov | done |  |   |
-|*CanvasRenderingContext2D*| *Class* | Vadim Voronov | done |  |  |
+|*CanvasRenderingContext2D*| *Class* | Vadim Voronov | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IB6H50 |
 |`toDataURL`| Function |Vadim Voronov| done |  |  |
 |`startImageAnalyzer`| Function | Vadim Voronov | done |  | |
 |`stopImageAnalyzer`| Function | Vadim Voronov| done |  | |
@@ -1834,7 +1834,7 @@
 |`offOnDetach`| Function | Vadim Voronov | done |  |  |
 |`getHeight`| Function |Vadim Voronov| done |  | |
 |`getWidth`| Function |Vadim Voronov| done |  | |
-|`getCanvas`| Function |Vadim Voronov | done | | |
+|`getCanvas`| Function |Vadim Voronov | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IB6H50 |
 |*OffscreenCanvasRenderingContext2D*| *Class* | Vadim Voronov | done | | |
 |`toDataURL`| Function | Vadim Voronov | done | | |
 |`transferToImageBitmap`| Function | Vadim Voronov | done | |    |
@@ -1846,8 +1846,8 @@
 |`getWidth`| Function | Vadim Voronov | done| | |
 |`setWidth`| Function | Vadim Voronov | done | | |
 |*DrawingRenderingContext*| *Class* | Vadim Voronov | in progress |  | |
-|`invalidate`| Function | Vadim Voronov | done |  | |
-|`getSize`| Function | | | | |
+|`invalidate`| Function | Vadim Voronov | in progress |  | |
+|`getSize`| Function | Vadim Voronov | in progress |  | |
 |`getCanvas`| Function | Vadim Voronov | in progress | | |
 |*ICurve*| *Class* | Erokhin Ilya | done |  | |
 |`interpolate`| Function | Erokhin Ilya | done |  |  |
@@ -2037,9 +2037,9 @@
 |`getCaretOffset`| Function | Dudkin Sergey | done |  |  |
 |`getTextContentRect`| Function | Morozov Sergey, SkrobaGleb | done | |
 |`getTextContentLineCount`| Function | Morozov Sergey | done |  | |
-|`addText`| Function | Morozov Sergey | | | no api in sdk on FB, on UB only | |
-|`deleteText`| Function | Morozov Sergey | | | no api in sdk on FB, on UB only | |
-|`getSelection`| Function | Morozov Sergey | | | no api in sdk on FB, on UB only | |
+|`addText`| Function | Morozov Sergey | in progress| | no api in sdk on FB, on UB only | |
+|`deleteText`| Function | Morozov Sergey | in progress| | no api in sdk on FB, on UB only | |
+|`getSelection`| Function | Morozov Sergey | in progress| | no api in sdk on FB, on UB only | |
 |*ChildrenMainSize*| *Class* | Morozov Sergey | blocked IDL |  |
 |`splice`| Function | Morozov Sergey | done |  |  |
 |`update`| Function | Morozov Sergey | done |  |  |
@@ -2120,42 +2120,42 @@
 |`setRepeat`| Function | Samarin Sergey | done |  | |
 |`getFingerList`| Function | Kovalev Sergey | done | | |
 |`setFingerList`| Function | Samarin Sergey | done |  | |
-|`getOffsetX`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getOffsetX`| Function | Samarin Sergey | done |  | |
 |`setOffsetX`| Function | Samarin Sergey | done |  | |
-|`getOffsetY`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getOffsetY`| Function | Samarin Sergey | done |  | |
 |`setOffsetY`| Function | Samarin Sergey | done |  | |
-|`getAngle`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getAngle`| Function | Samarin Sergey | done |  | |
 |`setAngle`| Function | Samarin Sergey | done |  | |
-|`getSpeed`| Function | Samarin Sergey | in progress|  | done for feature branch |
+|`getSpeed`| Function | Samarin Sergey | done|  | |
 |`setSpeed`| Function | Samarin Sergey | done |  | |
-|`getScale`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getScale`| Function | Samarin Sergey | done |  | |
 |`setScale`| Function | Samarin Sergey | done |  | |
-|`getPinchCenterX`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getPinchCenterX`| Function | Samarin Sergey | done |  | |
 |`setPinchCenterX`| Function | Samarin Sergey | done |  | |
-|`getPinchCenterY`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getPinchCenterY`| Function | Samarin Sergey | done |  | |
 |`setPinchCenterY`| Function | Samarin Sergey | done |  | |
-|`getVelocityX`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getVelocityX`| Function | Samarin Sergey | done |  | |
 |`setVelocityX`| Function | Samarin Sergey | done |  | |
-|`getVelocityY`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getVelocityY`| Function | Samarin Sergey | done |  | |
 |`setVelocityY`| Function | Samarin Sergey | done |  | |
-|`getVelocity`| Function | Samarin Sergey | in progress |  | done for feature branch |
+|`getVelocity`| Function | Samarin Sergey | done |  | |
 |`setVelocity`| Function | Samarin Sergey | blocked IDL|  | not applicable https://gitee.com/nikolay-igotti/idlize/issues/IBQEWR |
-|*TapGestureInterface*| *Class* | Dudkin Sergey | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
-|`onAction`| Function | Dudkin Sergey | in progress| | |
+|*TapGestureInterface*| *Class* | Dudkin Sergey | done | | |
+|`onAction`| Function | Dudkin Sergey | done | | |
 |*LongPressGestureInterface*| *Class* | Morozov Sergey | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
-|`onAction`| Function | Morozov Sergey | in progress | | |
-|`onActionEnd`| Function | Morozov Sergey | in progress | | |
-|`onActionCancel`| Function | Morozov Sergey |in progress | | |
+|`onAction`| Function | Morozov Sergey | done | | |
+|`onActionEnd`| Function | Morozov Sergey | done | | |
+|`onActionCancel`| Function | Morozov Sergey | done | | |
 |*PanGestureOptions*| *Class* | Politov Mikhail | blocked IDL |  | |
 |`setDirection`| Function | Politov Mikhail | done |  | |
 |`setDistance`| Function | Politov Mikhail | done |  | |
 |`setFingers`| Function | Politov Mikhail | done |  | |
 |`getDirection`| Function | Politov Mikhail | in progress |  |  |
-|*PanGestureInterface*| *Class* | Morozov Sergey | in progress | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
-|`onActionStart`| Function | Morozov Sergey | in progress | | |
-|`onActionUpdate`| Function | Morozov Sergey | in progress | | |
-|`onActionEnd`| Function | Morozov Sergey | in progress | | |
-|`onActionCancel`| Function | Morozov Sergey | in progress | | |
+|*PanGestureInterface*| *Class* | Morozov Sergey | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
+|`onActionStart`| Function | Morozov Sergey | done | | |
+|`onActionUpdate`| Function | Morozov Sergey | done | | |
+|`onActionEnd`| Function | Morozov Sergey | done | | |
+|`onActionCancel`| Function | Morozov Sergey | done | | |
 |*SwipeGestureInterface*| *Class* | Tuzhilkin Ivan | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
 |`onAction`| Function | Tuzhilkin Ivan | done | | |
 |*PinchGestureInterface*| *Class* | Tuzhilkin Ivan | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
@@ -2164,10 +2164,10 @@
 |`onActionEnd`| Function | Tuzhilkin Ivan | done | | |
 |`onActionCancel`| Function | Tuzhilkin Ivan | done | | |
 |*RotationGestureInterface*| *Class* | Andrey Khudenkikh | blocked IDL | | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
-|`onActionStart`| Function | Andrey Khudenkikh | in progress | | |
-|`onActionUpdate`| Function | Andrey Khudenkikh | in progress | | |
-|`onActionEnd`| Function | Andrey Khudenkikh | in progress | | |
-|`onActionCancel`| Function | Andrey Khudenkikh | in progress | | |
+|`onActionStart`| Function | Andrey Khudenkikh | done | | |
+|`onActionUpdate`| Function | Andrey Khudenkikh | done | | |
+|`onActionEnd`| Function | Andrey Khudenkikh | done | | |
+|`onActionCancel`| Function | Andrey Khudenkikh | done | | |
 |*GestureGroupInterface*| *Class* | Tuzhilkin Ivan | | blocked IDL | https://gitee.com/nikolay-igotti/idlize/issues/IBSL6X |
 |`onCancel`| Function | Tuzhilkin Ivan | done | | |
 |*ScrollableTargetInfo*| *Class* | Maksimov Nikita | done |  | |
@@ -2271,13 +2271,13 @@
 |`getCaretOffset`| Function|Dudkin Sergey| done |  | |
 |`setCaretOffset`| Function|Dudkin Sergey| done |  | |
 |`closeSelectionMenu`| Function|Dudkin Sergey| done |  | |
-|`getTypingStyle`| Function|Dmitry A Smirnov| in progress |  |  |
+|`getTypingStyle`| Function|Dmitry A Smirnov| done |  |  |
 |`setTypingStyle`| Function|Dudkin Sergey| done |  | |
 |`setSelection`| Function|Dudkin Sergey| done |  | |
 |`isEditing`| Function|Dudkin Sergey| done |  | |
 |`stopEditing`| Function|Dudkin Sergey| done |  | |
 |`getLayoutManager`| Function|Dudkin Sergey| done |  | |
-|`getPreviewText`| Function|Dmitry A Smirnov| in progress |  |  |
+|`getPreviewText`| Function|Dmitry A Smirnov| done |  |  |
 |`getCaretRect`| Function | | | | |
 |*RichEditorController*| *Class* |Dudkin Sergey| blocked IDL|  |  |
 |`addTextSpan`| Function |Dudkin Sergey, Samarin Sergey | in progress |  |  |
@@ -2381,11 +2381,11 @@
 |*StyledStringController*| *Class* | Pavelyev Ivan | done |  | |
 |`setStyledString`| Function | Pavelyev Ivan | done |  | |
 |`getStyledString`| Function | Pavelyev Ivan | done |  | |
-|*LayoutManager*| *Class* | Andrey Khudenkikh | blocked IDL|  | |
+|*LayoutManager*| *Class* | Andrey Khudenkikh | blocked IDL|  | https://gitee.com/nikolay-igotti/idlize/issues/IBUQ4G |
 |`getLineCount`| Function | Andrey Khudenkikh | done |  | |
-|`getGlyphPositionAtCoordinate`| Function | Andrey Khudenkikh | blocked IDL |  | |
-|`getLineMetrics`| Function | Andrey Khudenkikh | blocked IDL |  | |
-|`getRectsForRange`| Function | Andrey Khudenkikh | blocked IDL |  | |
+|`getGlyphPositionAtCoordinate`| Function | Andrey Khudenkikh | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBUQ4G |
+|`getLineMetrics`| Function | Andrey Khudenkikh | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBUQ4G |
+|`getRectsForRange`| Function | Andrey Khudenkikh | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBUQ4G |
 |*TextMenuItemId*| *Class* | Maksimov Nikita | done |  | |
 |`of`| Function | Maksimov Nikita | done |  | |
 |`equals`| Function | Maksimov Nikita | done |  | |
@@ -2586,7 +2586,7 @@
 |`fromHtml`| Function | Pavelyev Ivan | done |  | |
 |`toHtml`| Function | Pavelyev Ivan | in progress |  |  |
 |`marshalling`| Function | Pavelyev Ivan | in progress |  |  |
-|`unmarshalling`| Function | Pavelyev Ivan | done |  | |
+|`unmarshalling`| Function | Pavelyev Ivan | done |  | The method has been split and there is no implementation for `0`, but for `1`, a rework is required!!! |
 |`getLength`| Function | Pavelyev Ivan | done |  | |
 |*TextStyle_styled_string*| *Class* | Erokhin Ilya | done |  |  |
 |`getFontColor`| Function | | | | |
@@ -2606,16 +2606,16 @@
 |`getTextShadow`| Function |  Politov Mikhail | done | | |
 |*BackgroundColorStyle*| *Class* | Politov Mikhail | done |  | |
 |`getTextBackgroundStyle`| Function | | | | |
-|*GestureStyle*| *Class* | Dudkin Sergey| in progress |  | done on feature_branch|
-|*ParagraphStyle*| *Class* |Dudkin Sergey |in progress |  | |
-|`getTextAlign`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
-|`getTextIndent`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
-|`getMaxLines`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
-|`getOverflow`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
-|`getWordBreak`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
-|`getLeadingMargin`| Function | | | | |
-|*LineHeightStyle*| *Class* |Dudkin Sergey |in progress |  | |
-|`getLineHeight`| Function |Dudkin Sergey |in progress |  | done on feature_branch|
+|*GestureStyle*| *Class* | Dudkin Sergey| done | | |
+|*ParagraphStyle*| *Class* |Dudkin Sergey | done |  | |
+|`getTextAlign`| Function |Dudkin Sergey | done |  | |
+|`getTextIndent`| Function |Dudkin Sergey | done |  | |
+|`getMaxLines`| Function |Dudkin Sergey | done |  | |
+|`getOverflow`| Function |Dudkin Sergey | done |  | |
+|`getWordBreak`| Function |Dudkin Sergey | done | | |
+|`getLeadingMargin`| Function |Dudkin Sergey | in progress | | |
+|*LineHeightStyle*| *Class* |Dudkin Sergey |done|  | |
+|`getLineHeight`| Function |Dudkin Sergey | done |  | |
 |*UrlStyle*| *Class* | Politov Mikhail | done |  | |
 |`getUrl`| Function | Politov Mikhail | done |  | |
 |*MutableStyledString*| *Class* | Maksimov Nikita | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IBBYJE + |
@@ -2632,11 +2632,11 @@
 |`appendStyledString`| Function | Maksimov Nikita | done |  | |
 |*ImageAttachment*| *Class* | Evstigneev Roman | in progress | | |
 |`getValue`| Function | Evstigneev Roman | done | | |
-|`getSize`| Function | | | | |
+|`getSize`| Function | Evstigneev Roman | in progress | | |
 |`getVerticalAlign`| Function | Evstigneev Roman | done | | |
 |`getObjectFit`| Function | Evstigneev Roman | done | | |
-|`getLayoutStyle`| Function | | | | |
-|`getColorFilter`| Function | | | | |
+|`getLayoutStyle`| Function | Evstigneev Roman | in progress | | |
+|`getColorFilter`| Function | Evstigneev Roman | in progress | | |
 |*CustomSpan*| *Class* | Politov Mikhail | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
 |`onMeasure`| Function | Politov Mikhail | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
 |`onDraw`| Function | Politov Mikhail | blocked IDL |  | https://gitee.com/nikolay-igotti/idlize/issues/IB4H0N |
