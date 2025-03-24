@@ -50,10 +50,21 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     return false
 }
 
+function isSelfReturnMethod(method:idl.IDLMethod, entry:idl.IDLEntry, resolver: ReferenceResolver): boolean {
+    if (!idl.isReferenceType(method.returnType)) {
+        return false
+    }
+    const found = resolver.resolveTypeReference(method.returnType)
+    if (!found) {
+        return false
+    }
+    return idl.getFQName(found) === idl.getFQName(entry)
+}
+
 export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
     if (isMaterialized(declaration, resolver)) {
         if (declaration.properties.length || declaration.constructors.length) return false
-        if (!declaration.methods.every(it => it.isStatic)) return false
+        if (!declaration.methods.every(it => it.isStatic && !isSelfReturnMethod(it, declaration, resolver))) return false
         if (idl.hasSuperType(declaration)) {
             const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
             if (!superType || !idl.isInterface(superType)) {
