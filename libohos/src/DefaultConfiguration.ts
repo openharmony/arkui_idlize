@@ -128,13 +128,16 @@ function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType):
 
         linter: {
             validEntryAttributes: new Map([
-                [IDLKind.Property, ["Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName"]],
+                [IDLKind.Import, ["Deprecated"]],
+                [IDLKind.Namespace, ["DefaultExport", "Deprecated"]],
+                [IDLKind.Const, ["DefaultExport", "Deprecated"]],
+                [IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName"]],
                 [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation"]],
-                [IDLKind.Callback, ["Async", "Synthetic"]],
-                [IDLKind.Method, ["Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected"]],
-                [IDLKind.Callable, ["CallSignature", "Deprecated"]],
-                [IDLKind.Typedef, ["Import"]],
-                [IDLKind.Enum, ["Deprecated"]],
+                [IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic"]],
+                [IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected"]],
+                [IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated"]],
+                [IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import"]],
+                [IDLKind.Enum, ["DefaultExport", "Deprecated"]],
                 [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated"]],
                 [IDLKind.Constructor, ["Deprecated",]]
             ]),
