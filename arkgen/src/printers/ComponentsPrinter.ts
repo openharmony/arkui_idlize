@@ -281,12 +281,11 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
 
-            const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
-            const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
+            const applyAttributesSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributes = 'applyAttributes'
             writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.writeMethodCall('super', applyAttributes, [])
-                writer.writeStatement(writer.makeStatement(writer.makeString("throw new RuntimeException('not implemented')")))
+                writer.writeStatement(writer.makeStatement(writer.makeString(`throw new RuntimeException("not implemented")`)))
             })
         }, parentComponentClassName)
 

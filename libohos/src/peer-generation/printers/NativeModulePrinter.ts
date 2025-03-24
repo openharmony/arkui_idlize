@@ -592,7 +592,7 @@ function getReturnValue(type: idl.IDLType): string {
 
 function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
 
-    if (!returnType) return idl.IDLPointerType
+    if (!returnType) return idl.IDLVoidType
 
     if (isEnumType(returnType, library))
         return idl.IDLI32Type

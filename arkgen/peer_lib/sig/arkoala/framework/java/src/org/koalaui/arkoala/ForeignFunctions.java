@@ -30,7 +30,7 @@ public class ForeignFunctions {
         serializer.writeInt32(1);
         serializer.holdAndWriteCallback(code);
         serializer.writeInt32(delay);
-        int rv = InteropNativeModule._CallForeignVM(ForeignFunctions.foreignContext, 3, serializer.asArray(), serializer.length());
+        int rv = InteropNativeModule._CallForeignVM(ForeignFunctions.foreignContext, 3, serializer.toArray(), serializer.length());
         serializer.release();
         return rv;
     }

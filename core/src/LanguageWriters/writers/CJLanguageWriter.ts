@@ -554,7 +554,7 @@ export class CJLanguageWriter extends LanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}.ordinal`)
     }
-    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+    protected makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         let methodCall = this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
         return this.makeString(methodCall.asString() + '.ordinal')
     }

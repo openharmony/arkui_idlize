@@ -31,4 +31,5 @@ public class ComponentBase {
     protected void applyAttributesFinish() {
         //throw new Error("not implemented");
     }
+    public void applyAttributes() {}
 }

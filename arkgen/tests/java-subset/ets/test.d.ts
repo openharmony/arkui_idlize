@@ -51,6 +51,12 @@ declare interface DatePickerOptionsTest {
   end?: Date;
 }
 
+declare interface TestInterface {
+    v1: ComponentInfo
+    v2: Edges
+    v3: BorderRadiuses
+}
+
 declare class ClassDTS {
 
     valBoolean: boolean

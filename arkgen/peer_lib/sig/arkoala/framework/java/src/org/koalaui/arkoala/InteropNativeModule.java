@@ -27,6 +27,7 @@ public class InteropNativeModule {
     static native void   _PrintGroupedLog(int index);
     static native void   _AppendGroupedLog(int index, String message);
     static native long   _GetStringFinalizer();
+    static native double _IncrementNumber(double value);
     static native void   _InvokeFinalizer(long ptr1, long ptr2);
     static native long   _GetPtrVectorElement(long ptr1, int arg);
     static native int    _StringLength(long ptr1);
@@ -34,18 +35,17 @@ public class InteropNativeModule {
     static native byte[] _StringDataBytes(long ptr1);
     static native long   _StringMake(String str1);
     static native int    _GetPtrVectorSize(long ptr1);
-    static native int    _ManagedStringWrite(String str1, byte[] arr, int arg);
+    static native int    _ManagedStringWrite(String str1, long arr, int arg);
     static native void   _NativeLog(String str1);
     static native String _Utf8ToString(byte[] data, int offset, int length);
     static native String _StdStringToString(long ptr1);
     static native byte[] _RawReturnData(int length, int filler);
 
-    static native void   _CallCallback(int callbackKind, byte[] args, int argsSize);
-    static native void   _CallCallbackSync(int callbackKind, byte[] args, int argsSize);
+    static native void   _CallCallback(int callbackKind, long args, int argsSize);
+    static native void   _CallCallbackSync(int callbackKind, long args, int argsSize);
     static native void   _CallCallbackResourceHolder(long holder, int resourceId);
     static native void   _CallCallbackResourceReleaser(long releaser, int resourceId);
-    static native int    _CallForeignVM(long context, int kind, byte[] data, int length);
-    static native int    _CheckCallbackEvent(byte[] data, int length);
+    static native int    _CheckCallbackEvent(long data, int length);
     static native void   _ReleaseCallbackResource(int id);
     static native void   _HoldCallbackResource(int id);
 
@@ -54,6 +54,14 @@ public class InteropNativeModule {
     static native boolean _RunApplication(int arg0, int arg1);
     static native long    _StartApplication(String appUrl, String appParams);
     static native String  _EmitEvent(int type, int target, int arg0, int arg1);
+    static native int     _CallForeignVM(long context, int kind, byte[] data, int length);
+    static native void    _SetForeignVMContext(long context);
     static native void    _RestartWith(String page);
+
+    static native int     _ReadByte(long data, long index, long length);
+    static native void    _WriteByte(long data, long index, long length, int value);
+    static native long    _Malloc(long length);
+    static native void    _Free(long data);
+    static native void    _CopyArray(long data, long length, byte[] args);
 }
 

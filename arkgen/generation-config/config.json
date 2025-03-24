@@ -202,7 +202,11 @@
             "CircleShape",
             "BusinessError",
             "Error",
-            "ErrorCallback"
+            "ErrorCallback",
+            "getRectangleById",
+            "edgeColors",
+            "edgeWidths",
+            "borderRadiuses"
         ],
         "ignoreComponents": [
             "Particle",

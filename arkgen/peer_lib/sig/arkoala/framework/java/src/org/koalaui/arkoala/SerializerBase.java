@@ -18,8 +18,6 @@
 
 package org.koalaui.arkoala;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,118 +28,174 @@ public class SerializerBase {
         customSerializers.add(serializer);
     }
 
-    // TODO: use allocateDirect
-    private ByteBuffer buffer = ByteBuffer.allocate(96).order(ByteOrder.LITTLE_ENDIAN);
+    private long buffer;
+    private int length;
+    private int position;
     protected boolean isHolding = false;
 
+    public SerializerBase() {
+        var len = 96;
+        buffer = InteropNativeModule._Malloc(len);
+        length = len;
+        position = 0;
+    }
     public void release() {
-        this.isHolding = false;
+        isHolding = false;
         // todo handle release resources
-        this.buffer.position(0);
+        position = 0;
+    }
+    public final long asBuffer() {
+        return buffer;
+    }
+    public final int length() {
+        return length;
+    }
+    public final int currentPosition() {
+        return position;
+    }
+    // TODO: get rid of length.
+    private static void writeu8(long buffer, int offset, int length, int value) {
+        InteropNativeModule._WriteByte(buffer, offset, length, value);
+    }
+    // TODO: get rid of length.
+    private static int readu8(long buffer, int offset, int length) {
+        return InteropNativeModule._ReadByte(buffer, offset, length);
+    }
+    private static void writeu32(long buffer, int offset, int length, int value) {
+        InteropNativeModule._WriteByte(buffer, offset,     length, (value     ) & 0xff);
+        InteropNativeModule._WriteByte(buffer, offset + 1, length, (value >> 8) & 0xff);
+        InteropNativeModule._WriteByte(buffer, offset + 2, length, (value >> 16) & 0xff);
+        InteropNativeModule._WriteByte(buffer, offset + 3, length, (value >> 24) & 0xff);
+    }
+    private void writeu8(int position, int value) {
+        writeu8(buffer, position, length, value);
+    }
+    private void writeu32(int position, int value) {
+        writeu8(buffer, position + 0, length, (value      ) & 0xff);
+        writeu8(buffer, position + 1, length, (value >>  8) & 0xff);
+        writeu8(buffer, position + 2, length, (value >> 16) & 0xff);
+        writeu8(buffer, position + 3, length, (value >> 24) & 0xff);
+    }
+    // TODO: get rid of length.
+    private static int readu32(long buffer, int offset, int length) {
+        return InteropNativeModule._ReadByte(buffer, offset, length);
     }
 
-    public SerializerBase() {}
-
-    public byte[] asArray() {
-        return buffer.array();
+    public final byte getByte(int offset) {
+        return (byte)readu8(buffer, offset, length);
     }
-    public int length() {
-        return buffer.position();
-    }
-    public int currentPosition() {
-        return buffer.position();
+    public final byte[] toArray() {
+        var result = new byte[currentPosition()];
+        for (var i = 0; i < currentPosition(); i++) {
+            result[i] = getByte(i);
+        }
+        return result;
     }
     private void checkCapacity(int value) {
         if (value < 1) {
             throw new Error(value + " is less than 1");
-        } else {
-            var buffPosition = buffer.position();
-            var buffLimit = buffer.limit();
-            if (buffLimit < buffPosition + value) {
-                var minSize = buffPosition + value;
-                var resizedSize = Math.max(minSize, Math.round((float) (3 * buffPosition) / 2));
-                var resizedBuffer = ByteBuffer.allocate(resizedSize).order(ByteOrder.LITTLE_ENDIAN);
-                resizedBuffer.put(buffer.array(), 0, buffPosition);
-                resizedBuffer.position(buffPosition);
-                buffer = resizedBuffer;
+        }
+        var buffSize = length;
+        if (position > buffSize - value) {
+            var minSize = position + value;
+            var resizedSize = Math.max(minSize, Math.round((float) (3 * buffSize) / 2));
+            var resizedBuffer = InteropNativeModule._Malloc(resizedSize);
+            var oldBuffer = buffer;
+            for (var i = 0; i < position; i++) {
+                writeu8(resizedBuffer, i, resizedSize, readu8(oldBuffer, i, position));
             }
+            buffer = resizedBuffer;
+            length = resizedSize;
+            InteropNativeModule._Free(oldBuffer);
         }
     }
+    public void writeTag(Tag tag) {
+        checkCapacity(1);
+        writeu8(position, tag.value);
+        position += 1;
+    }
     public void writeNumber(int value) {
-        this.checkCapacity(5);
-        this.buffer.put(Tag.INT32.value);
-        this.buffer.putInt(value);
+        writeTag(Tag.INT32);
+        writeInt32(value);
     }
     public void writeNumber(float value) {
-        this.checkCapacity(5);
-        this.buffer.put(Tag.FLOAT32.value);
-        this.buffer.putFloat(value);
+        writeTag(Tag.FLOAT32);
+        writeFloat32(value);
     }
     public void writeNumber(double value) {
         if (Math.floor(value) == value) {
-            this.writeNumber((int)value);
+            writeNumber((int)value);
         }
         else {
-            this.writeNumber((float)value);
+            writeNumber((float)value);
         }
     }
     public void writeNumber(Opt_Number value) {
-        this.writeNumber(value.value);
+        writeNumber(value.value);
     }
     public void writeInt8(byte value) {
-        this.checkCapacity(1);
-        buffer.put(value);
+        checkCapacity(1);
+        writeu8(position, value);
+        position += 1;
     }
     public void writeInt8(int value) {
-        this.checkCapacity(1);
-        buffer.put((byte)value);
+        writeInt8((byte)value);
     }
     public void writeInt8(RuntimeType value) {
-        this.checkCapacity(1);
-        buffer.put(value.value);
+        writeInt8(value.value);
+    }
+    private void setInt32(int position, int value) {
+        writeu32(buffer, position, length, value);
     }
     public void writeInt32(int value) {
-        this.checkCapacity(4);
-        buffer.putInt(value);
+        checkCapacity(4);
+        setInt32(position, value);
+        position += 4;
     }
     public void writeInt64(long value) {
-        this.checkCapacity(8);
-        buffer.putLong(value);
+        checkCapacity(8);
+        writeu8(position + 0, (int)((value      ) & 0xff));
+        writeu8(position + 1, (int)((value >>  8) & 0xff));
+        writeu8(position + 2, (int)((value >> 16) & 0xff));
+        writeu8(position + 3, (int)((value >> 24) & 0xff));
+        writeu8(position + 4, (int)((value >> 32) & 0xff));
+        writeu8(position + 5, (int)((value >> 40) & 0xff));
+        writeu8(position + 6, (int)((value >> 48) & 0xff));
+        writeu8(position + 7, (int)((value >> 56) & 0xff));
+        position += 8;
     }
     public void writeFloat32(float value) {
-        this.checkCapacity(4);
-        buffer.putFloat(value);
+        writeInt32(Float.floatToIntBits(value));
     }
     public void writePointer(long value) {
-        this.checkCapacity(8);
-        buffer.putLong(value);
+        writeInt64(value);
     }
     public void writeBoolean(boolean value) {
-        this.checkCapacity(1);
-        buffer.put(value ? (byte) 1 : (byte) 0);
+        checkCapacity(1);
+        writeu8(position, value ? (byte) 1 : (byte) 0);
+        position += 1;
     }
     public void writeBoolean(Opt_Boolean value) {
-        this.writeBoolean(value.value);
+        writeBoolean(value.value);
     }
-    public void writeString1(String value) {
-        var encoded = value.getBytes();
-        int length = encoded.length + 1;
-        this.checkCapacity(4 + length);
-        buffer.putInt(length);
-        buffer.put(encoded);
-        buffer.put((byte) 0);
-    }
+    // public void writeString1(String value) {
+    //     var encoded = value.getBytes();
+    //     int length = encoded.length + 1;
+    //     checkCapacity(4 + length);
+    //     buffer.putInt(length);
+    //     buffer.put(encoded);
+    //     buffer.put((byte) 0);
+    // }
     public void writeString(String value) {
-        this.checkCapacity(4 + value.length() * 4 + 1);
+        checkCapacity(4 + value.length() * 4 + 1);
         int encodedLength =
-            InteropNativeModule._ManagedStringWrite(value, this.buffer.array(), this.buffer.position() + 4);
-        buffer.putInt(encodedLength);
-        buffer.position(buffer.position() + encodedLength);
+            InteropNativeModule._ManagedStringWrite(value, buffer, position + 4);
+        setInt32(position, encodedLength);
+        position += encodedLength + 4;
     }
     public void writeBuffer(byte[] value) {
-        this.checkCapacity(8);
-        this.buffer.putLong(42);
-        this.buffer.putLong(value.length);
+        writeInt64(42);
+        writeInt64(value.length);
     }
     public void writeCustomObject(String kind, Object value) {
         for (var serializer: customSerializers) {
@@ -151,15 +205,30 @@ public class SerializerBase {
             }
         }
         System.out.println(String.format("Unsupported custom serialization for %s, write undefined", kind));
-        this.writeInt8(Tag.UNDEFINED.value);
+        writeTag(Tag.UNDEFINED);
     }
     private ArrayList<Integer> heldResources = new ArrayList<Integer>();
     void holdAndWriteCallback(Object callback) {
         int resourceId = ResourceHolder.instance().registerAndHold(callback);
-        this.heldResources.add(resourceId);
-        this.writeInt32(resourceId);
-        this.writePointer(0);
-        this.writePointer(0);
-        this.writePointer(0);
+        heldResources.add(resourceId);
+        writeInt32(resourceId);
+        writePointer(0);
+        writePointer(0);
+        writePointer(0);
+    }
+
+    public int holdAndWriteObject(Object obj) {
+        return holdAndWriteObject(obj, 0, 0);
+    }
+    public int holdAndWriteObject(Object obj, long hold) {
+        return holdAndWriteObject(obj, hold, 0);
+    }
+    public int holdAndWriteObject(Object obj, long hold, long release) {
+        int resourceId = ResourceHolder.instance().registerAndHold(obj);
+        heldResources.add(resourceId);
+        writeInt32(resourceId);
+        writePointer(hold);
+        writePointer(release);
+        return resourceId;
     }
 }

@@ -524,6 +524,7 @@ function getSuperName(clazz: MaterializedClass): string | undefined {
 
 function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
     const decl: idl.IDLInterface = clazz.decl
+    const superInterface = writer.language == Language.JAVA ? ["Ark_Object"] : undefined
     writer.writeInterface(decl.name, writer => {
         for (const p of decl.properties) {
             const modifiers: FieldModifier[] = []
@@ -538,7 +539,7 @@ function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
                     m.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
                     m.parameters.map(it => it.name)));
         }
-    }, undefined, clazz.generics)
+    }, superInterface, clazz.generics)
 }
 
 // TBD: Refactor tagged method staff

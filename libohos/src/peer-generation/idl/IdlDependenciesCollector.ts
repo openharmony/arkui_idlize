@@ -168,11 +168,18 @@ class CJDependenciesCollector extends DependenciesCollector {
     }
 }
 
+class JavaDependenciesCollector extends DependenciesCollector {
+    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+        return []
+    }
+}
+
 export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
     switch (library.language) {
         case Language.TS: return new TSDependenciesCollector(library)
         case Language.ARKTS: return new ArkTSDependenciesCollector(library)
         case Language.CJ: return new CJDependenciesCollector(library)
+        case Language.JAVA: return new JavaDependenciesCollector(library)
         // in Java and CJ there is no imports (just files in the same package)
         default: throw new Error("Not implemented")
     }

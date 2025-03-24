@@ -30,4 +30,6 @@ declare const Navigation: NavigationInterface
 
 declare interface NavPathStack { 
     (): NavigationAttribute
+
+    pushPathByName(name: string, param: unknown, animated?: boolean): void;
 }

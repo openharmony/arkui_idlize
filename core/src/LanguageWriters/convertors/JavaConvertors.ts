@@ -130,7 +130,9 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
             case idl.IDLDate: return 'Date'
             case idl.IDLBufferType: return 'byte[]'
             case idl.IDLInteropReturnBufferType: return 'byte[]'
-            case idl.IDLSerializerBuffer: return 'byte[]'
+            case idl.IDLSerializerBuffer: return 'long'
+            case idl.IDLAnyType: return 'Ark_Object'
+            case idl.IDLUnknownType: return 'Ark_Object'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -191,6 +193,20 @@ export class JavaInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLNumberType: return "double"
             case idl.IDLLengthType: return "String"
             case idl.IDLBooleanType: return "boolean"
+            case idl.IDLI64Type: return "long"
+            case idl.IDLU64Type: return "long"
+            case idl.IDLI32Type: return "int"
+            case idl.IDLU32Type: return "int"
+            case idl.IDLF32Type: return "float"
+            case idl.IDLBigintType: return "long"
+            case idl.IDLSerializerBuffer: return "long"
+            case idl.IDLFunctionType: return "int"
+            case idl.IDLStringType: return "String"
+            case idl.IDLBufferType: return "byte[]"
+            case idl.IDLDate: return "long"
+            case idl.IDLVoidType: return "void"
+            case idl.IDLUndefinedType: return "long"
+            case idl.IDLPointerType: return "long" // return PrimitiveTypesInstance.NativePointer.getText()
         }
         return super.convertPrimitiveType(type)
     }

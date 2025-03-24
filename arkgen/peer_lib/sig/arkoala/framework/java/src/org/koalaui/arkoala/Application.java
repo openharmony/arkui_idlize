@@ -38,6 +38,12 @@ public class Application {
         this.view = view;
         builderFunction = view.getBuilder();
         rootNode = ArkColumnPeer.create(null, 0);
+
+        eventBuffer = InteropNativeModule._Malloc(eventBufferLength);
+    }
+
+    public void Destroy() {
+        InteropNativeModule._Free(eventBuffer);
     }
 
     public static void main(String[] args) {
@@ -51,6 +57,7 @@ public class Application {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        app.Destroy();
     }
 
     static String printBytes(byte[] bytes, int count) {
@@ -88,12 +95,14 @@ public class Application {
         return exitApp;
     }
 
-    byte[] eventBuffer = new byte[4 * 60];
+    final int eventBufferLength = 4 * 60;
+    long eventBuffer;
 
     void checkEvents(int what) {
         System.out.println("JAVA: checkEvents " + what);
-        while (InteropNativeModule._CheckCallbackEvent(eventBuffer, eventBuffer.length) != 0) {
-            System.out.println("JAVA: checkEvents: got an event: " + (int)eventBuffer[0]);
+        while (InteropNativeModule._CheckCallbackEvent(eventBuffer, eventBufferLength) != 0) {
+            int event = InteropNativeModule._ReadByte(eventBuffer, 0, eventBufferLength);
+            System.out.println("JAVA: checkEvents: got an event: " + event);
         }
     }
 

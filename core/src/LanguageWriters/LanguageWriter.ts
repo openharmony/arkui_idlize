@@ -627,9 +627,6 @@ export abstract class LanguageWriter {
     makeUnionTypeDefaultInitializer() {
         return this.makeRuntimeType(RuntimeType.UNDEFINED)
     }
-    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
-        return this.makeFunctionCall("runtimeType", [ this.makeString(value) ])
-    }
     makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
         return new ExpressionStatement(new StringExpression(""))
     }

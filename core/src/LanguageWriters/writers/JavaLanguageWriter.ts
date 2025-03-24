@@ -287,7 +287,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
-    makeRuntimeTypeGetterCall(value: string): LanguageExpression {
+    protected makeRuntimeTypeGetterCall(value: string): LanguageExpression {
         return this.makeMethodCall("Ark_Object", "getRuntimeType", [this.makeString(value)])
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
@@ -326,7 +326,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(`${enumName}.values()[${ordinal}]`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value.asString()}.ordinal()`)
+        return this.makeString(`${value.asString()}.ordinal`)
     }
     makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}`)
@@ -335,8 +335,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
     }
-    override makeEnumCast(_enumEntry: idl.IDLEnum, enumName: string): string {
-        return `${enumName}.value`
+    override makeEnumCast(enumEntry: idl.IDLEnum, enumName: string): string {
+        return idl.isStringEnum(enumEntry)
+            ? `${enumName}.ordinal`
+            : `${enumName}.value`
     }
     override castToBoolean(value: string): string { return value }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {

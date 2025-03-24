@@ -597,60 +597,67 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             return {name: it.name, id: it.initializer}
         })
 
-        const isStringEnum = initializers.every(it => typeof it.id == 'string')
+        const isStringEnum = idl.isStringEnum(enumDecl)
 
         let memberValue = 0
+        let counter = 0
         const members: {
             name: string,
-            stringId: string | undefined,
-            numberId: number,
+            ordinal: number,
+            value: number | string,
         }[] = []
         for (const initializer of initializers) {
             if (typeof initializer.id == 'string') {
-                members.push({name: initializer.name, stringId: initializer.id, numberId: memberValue})
+                members.push({name: initializer.name, ordinal: counter, value: initializer.id})
             }
             else if (typeof initializer.id == 'number') {
                 memberValue = initializer.id
-                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+                members.push({name: initializer.name, ordinal: counter, value: memberValue})
             }
             else {
-                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+                members.push({name: initializer.name, ordinal: counter, value: memberValue})
             }
             memberValue += 1
+            counter += 1
         }
 
         writer.writeClass(alias, () => {
             const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 const initializer = isStringEnum ?
-                    `new ${alias}(${it.numberId}, "${it.stringId}")` :
-                    `new ${alias}(${it.numberId})`
+                    `new ${alias}(${it.ordinal}, "${it.value}")` :
+                    `new ${alias}(${it.ordinal}, ${it.value})`
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                     writer.makeString(initializer)
                 )
             })
 
             // data fields
+            const ordinal = 'ordinal'
             const value = 'value'
-            const stringValue = 'stringValue'
-            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-            if (isStringEnum) {
-                writer.writeFieldDeclaration(stringValue, idl.IDLStringType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
-            }
+            const valueType = isStringEnum ? idl.IDLStringType : idl.IDLI32Type
+            writer.writeFieldDeclaration(ordinal, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
+            writer.writeFieldDeclaration(value, valueType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
             // constructor
-            const signature = isStringEnum ?
-                new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type, idl.IDLStringType]) :
-                new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
+            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type, valueType])
             writer.writeConstructorImplementation(alias, signature, () => {
                 writer.writeStatement(
-                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
+                    writer.makeAssign(ordinal, undefined, writer.makeString(signature.argName(0)), false)
                 )
-                if (isStringEnum)
-                    writer.writeStatement(
-                        writer.makeAssign(stringValue, undefined, writer.makeString(signature.argName(1)), false)
-                    )
+                writer.writeStatement(
+                    writer.makeAssign(value, undefined, writer.makeString(signature.argName(1)), false)
+                )
             }, undefined, [MethodModifier.PRIVATE])
+
+            // values method
+            const valuesReturnType = idl.createContainerType('sequence', [idl.createReferenceType(alias)])
+            const valuesMethod = new Method('values', new MethodSignature(valuesReturnType, []), [MethodModifier.PUBLIC, MethodModifier.STATIC])
+            writer.writeMethodImplementation(valuesMethod, () => {
+                const enumMembers = members.map(it => it.name).join(', ')
+                writer.writeFieldDeclaration('result', valuesReturnType, [FieldModifier.FINAL], false, writer.makeString(`{ ${enumMembers} }`))
+                writer.writeStatement(writer.makeReturn(writer.makeString('result')))
+            })
         }, ARK_OBJECTBASE)
 
         return new JavaDeclaration(alias, writer)
