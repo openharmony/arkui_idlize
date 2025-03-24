@@ -225,7 +225,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
         return this.makeString(`${value} as ${type}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
         return this.makeMethodCall('TypeChecker', generateEnumFromOrdinalName(enumName), [this.makeString(value.asString())])
     }
@@ -372,8 +372,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
         return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
     }
-    makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return new TSCastExpression(value, `${this.getNodeName(type)}`, options?.unsafe ?? false)
+    makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
+        return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
 }
 

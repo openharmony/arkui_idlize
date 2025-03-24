@@ -195,8 +195,7 @@ class DeserializeCallbacksVisitor {
             } else {
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder.instance()`, `get`, [writer.makeString(resourceIdName)]),
-                    idl.createReferenceType(callback),
-                ), true))
+                    callback), true))
             }
             const argsNames = []
             for (const param of callback.parameters) {

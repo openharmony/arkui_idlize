@@ -38,7 +38,9 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return node.name
     }
     convertCallback(node: idl.IDLCallback): string {
-        return node.name
+        return idl.isSyntheticEntry(node)
+            ? this.mapCallback(node)
+            : node.name
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name

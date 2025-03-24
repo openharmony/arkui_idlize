@@ -493,13 +493,17 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
-                    } else if (isEnumType(returnType, library)) {
-                        result = [
-                            writer.makeReturn(writer.enumFromOrdinal(writer.makeString(returnValName), returnType))
-                        ]
                     } else {
-                        // todo: implement other types deserialization!!!!
+                        // todo: implement deserialization for types other than enum
                         result = [writer.makeThrowError("Object deserialization is not implemented.")]
+
+                        if (idl.isReferenceType(returnType)) {
+                            const enumEntry = library.resolveTypeReference(returnType)
+                            if (enumEntry && idl.isEnum(enumEntry))
+                                result = [
+                                    writer.makeReturn(writer.enumFromOrdinal(writer.makeString(returnValName), enumEntry))
+                                ]
+                        }
                     }
                 } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)

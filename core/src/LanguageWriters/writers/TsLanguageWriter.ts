@@ -390,8 +390,8 @@ export class TSLanguageWriter extends LanguageWriter {
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)
     }
-    makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return new TSCastExpression(value, this.getNodeName(/* FIXME: */ idl.maybeUnwrapOptionalType(type)), options?.unsafe ?? false)
+    makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
+        return new TSCastExpression(value, this.getNodeName(node), options?.unsafe ?? false)
     }
     override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
 
@@ -458,12 +458,12 @@ export class TSLanguageWriter extends LanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
-        const enumName = idl.forceAsNamedNode(enumEntry).name
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+        const enumName = enumEntry.name
         const ordinal = value.asString()
-        return isStringEnumType(enumEntry, this.resolver)
+        return idl.isStringEnum(enumEntry)
             ? this.makeString(`Object.values(${enumName})[${ordinal}]`)
-            : this.makeString(`${ordinal}`)
+            : this.makeString(ordinal)
     }
     ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)

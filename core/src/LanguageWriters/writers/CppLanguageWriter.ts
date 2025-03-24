@@ -65,16 +65,16 @@ import * as idl from "../../idl";
 ////////////////////////////////////////////////////////////////
 
 export class CppCastExpression implements LanguageExpression {
-    constructor(public convertor:IdlNameConvertor, public value: LanguageExpression, public type: IDLType, private options?:MakeCastOptions) {}
+    constructor(public convertor:IdlNameConvertor, public value: LanguageExpression, public node: IDLNode, private options?: MakeCastOptions) {}
     asString(): string {
-        if (forceAsNamedNode(this.type).name === "Tag") {
+        if (forceAsNamedNode(this.node).name === "Tag") {
             return `${this.value.asString()} == ${PrimitiveTypeList.UndefinedRuntime} ? ${PrimitiveTypeList.UndefinedTag} : ${PrimitiveTypeList.ObjectTag}`
         }
         let resultName = ''
         if (this.options?.overrideTypeName) {
             resultName = this.options.overrideTypeName
         } else {
-            const pureName = this.mapTypeWithReceiver(this.type, this.options?.receiver)
+            const pureName = this.mapTypeWithReceiver(this.options?.receiver)
             const qualifiedName = this.options?.toRef ? `${pureName}&` : pureName
             resultName = qualifiedName
         }
@@ -82,12 +82,12 @@ export class CppCastExpression implements LanguageExpression {
             ? `reinterpret_cast<${resultName}>(${this.value.asString()})`
             : `static_cast<${resultName}>(${this.value.asString()})`
     }
-    private mapTypeWithReceiver(type: IDLType, receiver?: string): string {
+    private mapTypeWithReceiver(receiver?: string): string {
         // make deducing type from receiver
         if (receiver !== undefined) {
             return `std::decay<decltype(${receiver})>::type`
         }
-        return this.convertor.convert(type)
+        return this.convertor.convert(this.node)
     }
 }
 
@@ -341,8 +341,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeMapResize(mapTypeName: string, keyType: IDLType, valueType: IDLType, map: string, size: string, deserializer: string): LanguageStatement {
         return new CppMapResizeStatement(mapTypeName, keyType, valueType, map, size, deserializer)
     }
-    makeCast(expr: LanguageExpression, type: IDLType, options?:MakeCastOptions): LanguageExpression {
-        return new CppCastExpression(this.typeConvertor, expr, type, options)
+    makeCast(expr: LanguageExpression, node: IDLNode, options?:MakeCastOptions): LanguageExpression {
+        return new CppCastExpression(this.typeConvertor, expr, node, options)
     }
     makePointerPropertyAccessExpression(expression: string, name: string): CppPointerPropertyAccessExpression {
         return new CppPointerPropertyAccessExpression(expression, name)
@@ -398,8 +398,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return []
     }
-    enumFromOrdinal(value: LanguageExpression, type: IDLType): LanguageExpression {
-        return this.makeString(`static_cast<${this.typeConvertor.convert(type)}>(` + value.asString() + `)`);
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+        return this.makeString(`static_cast<${this.typeConvertor.convert(enumEntry)}>(` + value.asString() + `)`);
     }
     ordinalFromEnum(value: LanguageExpression, _: IDLType): LanguageExpression {
         return value;

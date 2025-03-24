@@ -101,7 +101,7 @@ export class IDLDependencyCollector implements IDLConverter<idl.IDLNode[]> {
         return [
             ...decl.inheritance
                 .filter(it => it !== idl.IDLTopType)
-                .flatMap(it => this.visitSupertype(it)),
+                .flatMap(it => this.walk(it)),
             ...decl.properties
                 .filter(it => !it.isStatic)
                 .flatMap(it => this.walk(it.type)),
@@ -111,12 +111,6 @@ export class IDLDependencyCollector implements IDLConverter<idl.IDLNode[]> {
                     ...this.walk(it.returnType)
                 ])
         ]
-    }
-    protected visitSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLNode[] {
-        if (idl.isInterface(type)) {
-            return this.walk(idl.createReferenceType(type))
-        }
-        return this.walk(type)
     }
     visitEnum(): idl.IDLNode[] {
         return []

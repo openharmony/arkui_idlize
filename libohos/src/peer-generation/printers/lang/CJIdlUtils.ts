@@ -80,15 +80,12 @@ class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeatur
         return [
             ...decl.inheritance
                 .filter(it => it !== idl.IDLTopType)
-                .flatMap(it => this.convertSupertype(it)),
+                .flatMap(it => this.typeDepsCollector.convert(it)),
             ...decl.properties.flatMap(it => this.typeDepsCollector.convert(it.type)),
             ...[...decl.callables, ...decl.methods].flatMap(it => [
                 ...it.parameters.flatMap(param => this.typeDepsCollector.convert(param.type)),
                 ...this.typeDepsCollector.convert(it.returnType)])
         ]
-    }
-    protected convertSupertype(type: idl.IDLType): ImportFeature[] {
-        return this.typeDepsCollector.convert(type)
     }
     convertEnum(decl: idl.IDLEnum): ImportFeature[] {
         return []

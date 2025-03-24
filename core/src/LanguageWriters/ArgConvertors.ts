@@ -274,17 +274,10 @@ export class StringConvertor extends BaseArgConvertor {
 }
 
 export class EnumConvertor extends BaseArgConvertor {
-    private typeForSerializer: idl.IDLType
     constructor(param: string, public enumEntry: idl.IDLEnum) {
         super(idl.createReferenceType(enumEntry),
             [idl.isStringEnum(enumEntry) ? RuntimeType.STRING : RuntimeType.NUMBER],
             false, false, param)
-
-        if (this.enumEntry.name == "GestureType" || this.enumEntry.name == "GestureControl.GestureType") // TODO rework this hack after idl name resolver stands up
-            this.typeForSerializer = idl.createReferenceType(this.enumEntry)
-        else
-            this.typeForSerializer = idl.createReferenceType(this.enumEntry.name)
-        this.typeForSerializer.parent = enumEntry
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeEnumCast(this.enumEntry, writer.escapeKeyword(param))
@@ -297,8 +290,8 @@ export class EnumConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
         const enumExpr = idl.isStringEnum(this.enumEntry)
-            ? writer.enumFromOrdinal(readExpr, this.typeForSerializer)
-            : writer.makeCast(readExpr, this.typeForSerializer)
+            ? writer.enumFromOrdinal(readExpr, this.enumEntry)
+            : writer.makeCast(readExpr, this.enumEntry)
         return assigneer(enumExpr)
     }
     nativeType(): idl.IDLType {
@@ -1158,8 +1151,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readStatement = writer.makeCast(
             writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_", "namespace.name")}`, []),
-            idl.createReferenceType(this.declaration)
-        )
+            this.declaration)
         return assigneer(readStatement)
     }
     nativeType(): idl.IDLType {

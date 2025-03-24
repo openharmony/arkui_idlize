@@ -323,7 +323,7 @@ class DeserializerPrinter {
                 this.writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
         if (this.writer.language === Language.CPP)
             this.writer.writeStatement(
-                this.writer.makeReturn(this.writer.makeCast(this.writer.makeString(`ptr`), idl.createReferenceType(target))))
+                this.writer.makeReturn(this.writer.makeCast(this.writer.makeString(`ptr`), target)))
         else
             this.writer.writeStatement(
                 this.writer.makeReturn(

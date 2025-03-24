@@ -6,19 +6,6 @@ import { isComponentDeclaration } from '../ComponentsCollector';
 import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
 
-function createTransformedCallbacks(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>) {
-    targets.forEach(entry => {
-        if (idl.isCallback(entry)) {
-            const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
-            if (transformedCallback &&
-                !library.resolveTypeReference(idl.createReferenceType(entry)) &&
-                !synthesizedEntries.has(transformedCallback.name)) {
-                synthesizedEntries.set(transformedCallback.name, transformedCallback)
-            }
-        }
-    })
-}
-
 function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationType: idl.IDLType, synthesizedEntries: Map<string, idl.IDLEntry>): void {
     const continuationParameters = library.createContinuationParameters(continuationType)
     const syntheticName = generateSyntheticFunctionName(
@@ -154,7 +141,6 @@ function createComponentAttributes(library: PeerLibrary, synthesizedEntries: Map
 export function fillSyntheticDeclarations(library: PeerLibrary) {
     const targets = collectDeclarationTargetsUncached(library, { synthesizeCallbacks: false })
     const synthesizedEntries = new Map<string, idl.IDLEntry>()
-    createTransformedCallbacks(library, targets, synthesizedEntries)
     createContinuationCallbacks(library, targets, synthesizedEntries)
     createImportsStubs(library, synthesizedEntries)
     createMaterializedInternal(library, targets, synthesizedEntries)

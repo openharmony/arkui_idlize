@@ -475,7 +475,7 @@ export abstract class LanguageWriter {
     abstract makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
-    abstract makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression
+    abstract makeCast(value: LanguageExpression, node: idl.IDLNode, options?:MakeCastOptions): LanguageExpression
     // version of makeCast which uses TypeCheck.typeCast<T>(value) call for ETS language writer
     // Use it only if TypeChecker class is added as import to the generated file
     makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
@@ -499,7 +499,7 @@ export abstract class LanguageWriter {
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
     abstract get supportedFieldModifiers(): FieldModifier[]
-    abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression
+    abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
     abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
     abstract makeEnumCast(enumEntry: idl.IDLEnum, enumName: string): string
     abstract getNodeName(type: idl.IDLNode): string

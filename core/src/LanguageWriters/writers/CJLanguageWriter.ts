@@ -530,8 +530,8 @@ export class CJLanguageWriter extends LanguageWriter {
     writePrintLog(message: string): void {
         this.print(`println("${message}")`)
     }
-    makeCast(value: LanguageExpression, type: idl.IDLType, options?:MakeCastOptions): LanguageExpression {
-        return new CJCastExpression(value, this.getNodeName(type), options?.unsafe ?? false)
+    makeCast(value: LanguageExpression, node: idl.IDLNode, options?:MakeCastOptions): LanguageExpression {
+        return new CJCastExpression(value, this.getNodeName(node), options?.unsafe ?? false)
     }
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
         if (idl.isInterface(type)) {
@@ -592,7 +592,7 @@ export class CJLanguageWriter extends LanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
     }
     ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {

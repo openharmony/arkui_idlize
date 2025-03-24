@@ -244,8 +244,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${map}.size()`)
     }
-    makeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return new JavaCastExpression(value, this.getNodeName(type), options?.unsafe ?? false)
+    makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
+        return new JavaCastExpression(value, this.getNodeName(node), options?.unsafe ?? false)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
@@ -320,7 +320,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = idl.forceAsNamedNode(enumEntry).name
         const ordinal = value.asString()
         return this.makeString(`${enumName}.values()[${ordinal}]`)
