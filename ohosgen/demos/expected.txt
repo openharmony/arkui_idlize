@@ -1,9 +1,0 @@
-demos/test_generic_callback PASS
-demos/test_generic_callback_named FAIL
-demos/test_manually_decomposed_promise PASS
-demos/test_modules_interface FAIL
-demos/test_modules_multilevel PASS
-demos/test_modules_simple PASS
-demos/test_modules_struct PASS
-demos/test_package PASS
-demos/test_promise PASS

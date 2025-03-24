@@ -34,8 +34,6 @@
     "run:xml:ts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --options-file ./demos/xml/config.json",
     "run:xml:arkts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --language=arkts --options-file ./demos/xml/config.json",
     "run:xml:cj": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --language=cangjie --options-file ./demos/xml/config.json",
-    "run:ohos:generate-dts-demo:arkts": "npm run compile && node . --use-new-ohos --language=arkts --dts2peer",
-    "run:ohos:generate-idl-demo:arkts": "npm run compile && node . --use-new-ohos --language=arkts --idl2peer",
     "run:ohos:generate:dts:arkts": "node . --use-new-ohos --language=arkts --dts2peer",
     "run:ohos:generate:idl:arkts": "node . --use-new-ohos --language=arkts --idl2peer",
     "run:ohos:mediaquery:ts": "npm run compile && node . --use-new-ohos --language=ts --input-files ./demos/mediaquery/dts/api/@ohos.mediaquery.d.ts --output-dir ./out/ts-ohos-mediaquery --dts2peer --options-file ./demos/mediaquery/config.json",

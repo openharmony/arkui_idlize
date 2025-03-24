@@ -1,2 +1,0 @@
-option('target_vm', type: 'combo', choices: ['node', 'panda', 'cangjie'], value: 'panda',
-    description: 'Select the VM to compile for')
