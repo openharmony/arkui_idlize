@@ -28,7 +28,7 @@ import {
     MethodModifier
 } from "./LanguageWriter";
 import { RuntimeType } from "./common";
-import { generatorTypePrefix } from "../config"
+import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
 import { hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
@@ -104,21 +104,15 @@ export function isDirectConvertedType(originalType: idl.IDLType|undefined, libra
 export function isVMContextMethod(method: Method): boolean {
     return !!idl.asPromise(method.signature.returnType) ||
         !!method.modifiers?.includes(MethodModifier.THROWS) ||
-        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT)
+        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT) ||
+        generatorConfiguration().forceContext.includes(method.name)
 }
 
-export function isDirectMethod(method: Method|PeerMethod, library: PeerLibrary): boolean {
-    let returnType: idl.IDLType
-    if (method instanceof PeerMethod) {
-        returnType = method.returnType
-        method = method.method
-    } else {
-        returnType = method.signature.returnType
-    }
+export function isDirectMethod(method: Method, library: PeerLibrary): boolean {
     if (isVMContextMethod(method)) {
         return false
     }
-    let result = isDirectConvertedType(returnType, library) &&
+    let result = isDirectConvertedType(method.signature.returnType, library) &&
             method.signature.args.every((arg) => isDirectConvertedType(arg, library))
     // if (!result) console.log(`method ${method.name} is not direct`)
     return result
@@ -661,7 +655,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
     interopType(): idl.IDLType {
         // Actually shouldn't be used!
         // throw new Error("Must never be used")
-        return idl.IDLObjectType
+        return idl.IDLSerializerBuffer
     }
     isPointerType(): boolean {
         return true

@@ -68,7 +68,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     abstract printImports(): void
 
     convertToPropertyType(field: MaterializedField): IDLType {
-        return field.field.type
+        return idl.maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }
 
     protected get namespacePrefix(): string {

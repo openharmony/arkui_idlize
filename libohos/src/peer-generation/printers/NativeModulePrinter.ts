@@ -24,6 +24,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isDirectMethod,
     isVMContextMethod,
     LayoutNodeRole,
+    lib,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -31,6 +32,7 @@ import { ArkTSSourceFile, CJSourceFile, SourceFile, TsSourceFile } from "./Sourc
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
+import { createOutArgConvertor } from "../PromiseConvertors";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -51,8 +53,8 @@ class NativeModulePrinterBase {
         return
     }
 
-    protected printMethod(interopMethod: Method, originalMethod: Method) {
-        this.tryWriteQuick(originalMethod)
+    protected printMethod(interopMethod: Method) {
+        this.tryWriteQuick(interopMethod)
         this.nativeModule.writeNativeMethodDeclaration(interopMethod)
     }
 }
@@ -105,8 +107,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
                 if (NativeModulePredefinedVisitor.excludes.get(this.language)?.has(idlMethod.name))
                     continue
                 const method = this.makeInteropMethodFromIdl(idlMethod, this.language)
-                this.printMethod(method, new Method(idlMethod.name, new MethodSignature(
-                    idlMethod.returnType, idlMethod.parameters.map(it => it.type))))
+                this.printMethod(method)
             }
         }
     }
@@ -151,19 +152,9 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
         returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
-        const parameters = makeInteropSignature(method, returnType, this.interopConvertor, this.interopRetConvertor)
-        let name = `_${component}_${method.overloadedName}`
-
-        if (parameters.returnType === idl.IDLThisType) {
-            parameters.returnType = idl.IDLPointerType
-        }
-
-        let modifiers: MethodModifier[] | undefined
-        if (isVMContextMethod(method.method)) {
-            modifiers = [MethodModifier.FORCE_CONTEXT]
-        }
-
-        this.printMethod(new Method(name, parameters, modifiers), method.method)
+        const name = `_${component}_${method.overloadedName}`
+        const interopMethod = makeInteropMethod(this.library, name, method)
+        this.printMethod(interopMethod)
     }
 
     visit(): void {
@@ -193,8 +184,8 @@ function writeNativeModuleEmptyImplementation(method: Method, writer: LanguageWr
 class TSNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
     readonly nativeModuleEmpty: LanguageWriter = this.library.createLanguageWriter(this.language)
 
-    protected printMethod(interopMethod: Method, originalMethod: Method): void {
-        super.printMethod(interopMethod, originalMethod)
+    protected printMethod(interopMethod: Method): void {
+        super.printMethod(interopMethod)
         const isUnsupportedStructType = isStructureType(interopMethod.signature.returnType, this.library)
         writeNativeModuleEmptyImplementation(interopMethod, this.nativeModuleEmpty, isUnsupportedStructType)
     }
@@ -203,8 +194,8 @@ class TSNativeModulePredefinedVisitor extends NativeModulePredefinedVisitor {
 class TSNativeModuleArkUIGeneratedVisitor extends NativeModuleArkUIGeneratedVisitor {
     readonly nativeModuleEmpty: LanguageWriter = this.library.createLanguageWriter(Language.TS)
 
-    protected printMethod(interopMethod: Method, originalMethod: Method): void {
-        super.printMethod(interopMethod, originalMethod)
+    protected printMethod(interopMethod: Method): void {
+        super.printMethod(interopMethod)
         const isUnsupportedStructType = isStructureType(interopMethod.signature.returnType, this.library)
         writeNativeModuleEmptyImplementation(interopMethod, this.nativeModuleEmpty, isUnsupportedStructType)
     }
@@ -516,27 +507,104 @@ export function collectPredefinedNativeModuleEntries(library: PeerLibrary, modul
     }
 }
 
-export function makeInteropSignature(method: PeerMethod, returnType: idl.IDLType | undefined, interopConvertor: TypeConvertor<string>, retConvertor: InteropReturnTypeConvertor): NamedMethodSignature {
-    const maybeReceiver: ({name: string, type: idl.IDLType})[] = method.hasReceiver()
+export function makeInteropMethod(
+    library: PeerLibrary,
+    name: string,
+    method: PeerMethod,
+): Method
+export function makeInteropMethod(
+    library: PeerLibrary,
+    name: string,
+    idlParameters: idl.IDLParameter[],
+    idlReturnType: idl.IDLType | undefined,
+    options: {
+        forceContext: boolean,
+        throws: boolean,
+        hasReceiver: boolean,
+        interopConvertor?: TypeConvertor<string>,
+        interopReturnConvertor?: InteropReturnTypeConvertor,
+    },
+): Method
+export function makeInteropMethod(
+    library: PeerLibrary,
+    name: string,
+    idlParametersOrMethod: idl.IDLParameter[] | PeerMethod,
+    idlReturnType?: idl.IDLType | undefined,
+    options?: {
+        forceContext: boolean,
+        throws: boolean,
+        hasReceiver: boolean,
+        interopConvertor?: TypeConvertor<string>,
+        interopReturnConvertor?: InteropReturnTypeConvertor,
+    },
+): Method {
+    if (idlParametersOrMethod instanceof PeerMethod) {
+        const method = idlParametersOrMethod
+        return makeInteropMethodInner(
+            library,
+            name,
+            method.method.signature.args.map((it, index) => idl.createParameter(method.method.signature.argName(index), it)),
+            method.returnType,
+            {
+                hasReceiver: method.hasReceiver(),
+                throws: !!method.method.modifiers?.includes(MethodModifier.THROWS),
+                forceContext: !!method.method.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
+            }
+        )
+    }
+    return makeInteropMethodInner(library, name, idlParametersOrMethod, idlReturnType, options!)
+}
+
+function makeInteropMethodInner(
+    library: PeerLibrary,
+    name: string,
+    idlParameters: idl.IDLParameter[],
+    idlReturnType: idl.IDLType | undefined,
+    options: {
+        forceContext: boolean,
+        throws: boolean,
+        hasReceiver: boolean,
+        interopConvertor?: TypeConvertor<string>,
+        interopReturnConvertor?: InteropReturnTypeConvertor,
+    },
+): Method {
+    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
+    const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
+    const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
         ? [{ name: 'ptr', type: idl.IDLPointerType }] : []
+    const argConvertors = idlParameters.map(it => library.typeConvertor(it.name, it.type, it.isOptional))
+    const outArgConvertor = createOutArgConvertor(library, idlReturnType, idlParameters.map(it => it.name))
     let serializerArgCreated = false
-    method.argAndOutConvertors.forEach(it => {
+    argConvertors.concat(outArgConvertor ?? []).forEach(it => {
         if (it.useArray) {
             if (!serializerArgCreated) {
-                maybeReceiver.push({ name: `thisArray`, type: idl.IDLSerializerBuffer }, { name: `thisLength`, type: idl.IDLI32Type })
+                interopParameters.push({ name: `thisArray`, type: idl.IDLSerializerBuffer }, { name: `thisLength`, type: idl.IDLI32Type })
                 serializerArgCreated = true
             }
         } else {
-            maybeReceiver.push({
+            interopParameters.push({
                 name: `${it.param}`,
                 type: idl.createReferenceType('%TEXT%:' + convertType(interopConvertor, it.interopType()))
             })
         }
     })
-    if (returnType && retConvertor.isReturnInteropBuffer(returnType)) {
-        returnType = idl.IDLInteropReturnBufferType
-    }
-    return NamedMethodSignature.make(returnType ?? idl.IDLVoidType, maybeReceiver)
+    const interopReturnType = idlReturnType && interopReturnConvertor.isReturnInteropBuffer(idlReturnType)
+        ? idl.IDLInteropReturnBufferType
+        : toNativeReturnType(idlReturnType, library) ?? idl.IDLVoidType
+    const modifiers: MethodModifier[] = []
+    if (options.forceContext || idlReturnType && idl.IDLContainerUtils.isPromise(idlReturnType))
+        modifiers.push(MethodModifier.FORCE_CONTEXT)
+    if (options.throws)
+        modifiers.push(MethodModifier.THROWS)
+    return new Method(
+        name,
+        new NamedMethodSignature(
+            interopReturnType,
+            interopParameters.map(it => it.type),
+            interopParameters.map(it => it.name)
+        ),
+        modifiers
+    )
 }
 
 function getReturnValue(type: idl.IDLType): string {

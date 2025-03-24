@@ -36,6 +36,7 @@ import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../File
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
+import { makeInteropMethod } from "./NativeModulePrinter";
 
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
@@ -215,8 +216,10 @@ export class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const needsContext = idl.isVMContextMethod(method.method)
-        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(method, this.library) ? 'DIRECT_' : ''
+        const cName = `${method.originalParentName}_${method.overloadedName}`
+        const interopMethod = makeInteropMethod(this.library, cName, method)
+        const needsContext = idl.isVMContextMethod(interopMethod)
+        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(interopMethod, this.library) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
@@ -255,7 +258,7 @@ export class BridgeCcVisitor {
 
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
-        if (idl.isVMContextMethod(method.method))
+        if (idl.isVMContextMethod(makeInteropMethod(this.library, cName, method)))
             argDecls.unshift("KVMContext vmContext")
         this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()

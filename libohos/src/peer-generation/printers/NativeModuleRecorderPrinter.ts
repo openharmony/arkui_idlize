@@ -18,14 +18,15 @@ import { LanguageWriter, createConstructPeerMethod, PeerClassBase, PeerClass, Pe
     InteropArgConvertor, createInteropArgConvertor, generateSyntheticFunctionName, createAlternativeReferenceResolver,
     Language,
     InteropReturnTypeConvertor,
-    TypeConvertor
+    TypeConvertor,
+    MethodModifier
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
     createCallback, createParameter, createReferenceType, createTypeParameterReference, createUnionType, IDLExtendedAttributes, IDLI32Type,
     IDLNumberType, IDLObjectType, IDLPointerType, IDLStringType, IDLType, IDLUint8ArrayType, IDLUndefinedType, IDLVoidType
 } from "@idlizer/core/idl"
-import { makeInteropSignature } from "./NativeModulePrinter";
+import { makeInteropMethod } from "./NativeModulePrinter";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
@@ -78,11 +79,11 @@ class NativeModuleRecorderVisitor {
     private printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
         const component = clazz.generatedName(method.isCallSignature)
         const interfaceName = clazz.getComponentName()
-        const parameters = makeInteropSignature(method, returnType, this.interopConvertor, this.interopRetConvertor)
         let name = `_${component}_${method.overloadedName}`
+        const interopMethod = makeInteropMethod(this.library, name, method)
 
-        nativeModuleRecorder.writeMethodImplementation(new Method(name, parameters), (printer) => {
-            this.nativeModuleRecorder.writeLines(`let node = this.ptr2object<${interfaceName}Interface>(${parameters.argsNames[0]})`)
+        nativeModuleRecorder.writeMethodImplementation(interopMethod, (printer) => {
+            this.nativeModuleRecorder.writeLines(`let node = this.ptr2object<${interfaceName}Interface>(${interopMethod.signature.argName(0)})`)
             var deserializerCreated = false
             for (let i = 0; i < method.argAndOutConvertors.length; i++) {
                 if (method.argAndOutConvertors[i].useArray) {
@@ -98,7 +99,7 @@ class NativeModuleRecorderVisitor {
                         }, printer)
                     )
                 } else {
-                    this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argAndOutConvertors[i].param} = ${parameters.argsNames[i + 1]}`)
+                    this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argAndOutConvertors[i].param} = ${interopMethod.signature.argName(i + 1)}`)
                 }
             }
         })

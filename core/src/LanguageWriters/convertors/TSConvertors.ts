@@ -227,6 +227,7 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLI64Type: return "KLong"
             case idl.IDLU64Type: return "KLong"
             case idl.IDLI32Type: return "KInt"
+            case idl.IDLU32Type: return "KInt"
             case idl.IDLF32Type: return "KFloat"
             case idl.IDLNumberType: return 'number'
             case idl.IDLBigintType: return 'bigint'

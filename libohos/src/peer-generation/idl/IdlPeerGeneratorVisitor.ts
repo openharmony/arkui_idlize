@@ -356,7 +356,7 @@ export class IdlPeerProcessor {
             const field = f.field
             const idlType = field.type
             const isStatic = field.modifiers.includes(FieldModifier.STATIC)
-            const getSignature = new NamedMethodSignature(idlType, [], [])
+            const getSignature = new NamedMethodSignature(idl.maybeOptional(field.type, f.isNullableOriginalTypeField), [], [])
             const getAccessor = new MaterializedMethod(
                 fullCName, implemenationParentName, [], idl.maybeOptional(field.type, f.isNullableOriginalTypeField), false,
                 new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]),
