@@ -15,6 +15,7 @@
 
 import {
     IDLEntry,
+    IDLInterface,
     IDLMethod,
     IDLNode,
     IDLType,
@@ -24,7 +25,7 @@ import {
     isReferenceType
 } from "@idlizer/core"
 import { Config } from "./Config"
-import { isIrNamespace } from "../utils/idl"
+import { isIrNamespace, nodeType } from "../utils/idl"
 
 export class Typechecker {
     constructor(private idl: IDLEntry[]) {}
@@ -79,5 +80,15 @@ export class Typechecker {
             return false
         }
         return node.name.endsWith(Config.constPostfix)
+    }
+
+    nodeTypeName(node: IDLInterface): string | undefined {
+        const value = nodeType(node)
+        const idlEnum = this.idl
+            .filter(isEnum)
+            .find(it => it.name === Config.nodeTypeAttribute)
+        return idlEnum?.elements
+            ?.find(it => it.initializer?.toString() === value)
+            ?.name
     }
 }

@@ -53,6 +53,7 @@ import { SingleFilePrinter } from "../SingleFilePrinter"
 import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
 import { BindingReturnValueTypeConvertor } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
+import { Config } from "../../general/Config"
 
 export class PeerPrinter extends SingleFilePrinter {
     constructor(
@@ -305,9 +306,14 @@ export class PeerPrinter extends SingleFilePrinter {
     }
 
     private printAddToNodeMap(): void {
+        const enumValue = this.typechecker.nodeTypeName(this.node)
+        if (enumValue === undefined) {
+            return
+        }
+        const qualified = `${this.importer.withEnumImport(Config.nodeTypeAttribute)}.${enumValue}`
         this.writer.writeExpressionStatements(
-            this.writer.makeString(`if (!nodeByType.has(${nodeType(this.node)})) {`),
-            this.writer.makeString(`    nodeByType.set(${nodeType(this.node)}, ${this.node.name})`),
+            this.writer.makeString(`if (!nodeByType.has(${qualified})) {`),
+            this.writer.makeString(`    nodeByType.set(${qualified}, ${this.node.name})`),
             this.writer.makeString(`}`)
         )
     }
