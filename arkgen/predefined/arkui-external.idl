@@ -407,3 +407,20 @@ dictionary WindowStatusType {
     number FLOATING = 4;
     number SPLIT_SCREEN = 5;
 };
+
+/*
+* from units.idl
+*/
+[Entity=Literal]
+interface EdgeStyles {
+
+    [Optional]
+    attribute BorderStyle top;
+    [Optional]
+    attribute BorderStyle right;
+    [Optional]
+    attribute BorderStyle bottom;
+    [Optional]
+    attribute BorderStyle left;
+
+};

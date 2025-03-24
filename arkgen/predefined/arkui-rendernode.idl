@@ -1,0 +1,44 @@
+package org.openharmony.arkui;
+
+[Entity=Interface]
+interface RenderNode {
+
+    constructor();
+    attribute number backgroundColor;
+    attribute boolean clipToFrame;
+    attribute number opacity;
+    attribute Size size;
+    attribute Position position;
+    attribute Frame frame;
+    attribute Pivot pivot;
+    attribute Scale scale;
+    attribute Translation translation;
+    attribute Rotation rotation;
+    attribute Matrix4 transform;
+    attribute number shadowColor;
+    attribute Offset shadowOffset;
+    attribute String label;
+    attribute number shadowAlpha;
+    attribute number shadowElevation;
+    attribute number shadowRadius;
+    attribute EdgeStyles borderStyle;
+    attribute Edges borderWidth;
+    attribute Edges borderColor;
+    attribute BorderRadiuses borderRadius;
+    attribute ShapeMask shapeMask;
+    attribute ShapeClip shapeClip;
+    attribute boolean markNodeGroup;
+    attribute LengthMetricsUnit lengthMetricsUnit;
+    void appendChild(RenderNode node);
+    void insertChildAfter(RenderNode child, (RenderNode or undefined) sibling);
+    void removeChild(RenderNode node);
+    void clearChildren();
+    (RenderNode or undefined) getChild(number index);
+    (RenderNode or undefined) getFirstChild();
+    (RenderNode or undefined) getNextSibling();
+    (RenderNode or undefined) getPreviousSibling();
+    void draw(DrawContext context);
+    void invalidate();
+    void dispose();
+
+};

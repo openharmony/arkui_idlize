@@ -252,3 +252,8 @@ Edges edgeColors(number all);
 Edges edgeWidths(number all);
 // EdgeStyles borderStyles(BorderStyle all);
 BorderRadiuses borderRadiuses(number all);
+
+typedef Vector2 Pivot;
+typedef Vector2 Scale;
+typedef Vector2 Translation;
+typedef Vector3 Rotation;
