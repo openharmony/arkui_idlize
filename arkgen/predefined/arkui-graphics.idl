@@ -25,6 +25,20 @@ interface Vector2 {
     attribute number y;
 
 };
+// Substitue TypeParameters for Vector2T to number
+[Entity=Interface]
+interface Vector2T {
+
+    attribute number x;
+    attribute number y;
+};
+// Substitue TypeParameters for SizeT to number
+[Entity=Interface]
+interface SizeT {
+
+    attribute number width;
+    attribute number height;
+};
 [Entity=Interface]
 interface Vector3 {
 
