@@ -127,18 +127,21 @@ interface ShapeAttribute: [TypeArguments="ShapeAttribute"] CommonMethod {
 };
 
 [Synthetic]
-callback onItemDragStart_event_type = CustomBuilder (ItemDragInfo event, number itemIndex);
+callback GridAttribute_onItemDragStart_event_type = CustomBuilder (ItemDragInfo event, number itemIndex);
 
 [Entity=Class]
 interface GridAttribute: [TypeArguments="GridAttribute"] ScrollableCommonMethod {
-    GridAttribute onItemDragStart(onItemDragStart_event_type event);
+    GridAttribute onItemDragStart(GridAttribute_onItemDragStart_event_type event);
     [Deprecated]
     GridAttribute onScroll(Callback_Number_Number_Void event);
 };
 
+[Synthetic]
+callback ListAttribute_onItemDragStart_event_type = CustomBuilder (ItemDragInfo event, number itemIndex);
+
 [Entity=Class]
 interface ListAttribute: [TypeArguments="ListAttribute"] ScrollableCommonMethod {
-    ListAttribute onItemDragStart(onItemDragStart_event_type event);
+    ListAttribute onItemDragStart(ListAttribute_onItemDragStart_event_type event);
     [Deprecated]
     ListAttribute onScroll(Callback_Number_Number_Void event);
 };
