@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "ESNext",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "outDir": "build/ts",
+        "sourceMap": true,
+        "baseUrl": ".",
+        "paths": {
+            "#compat": ["./src/node/compat.ts"],
+            "@ohos.security.huks": ["./generated/ts/@ohos.security.huks"],
+            "@ohos.base": ["./generated/ts/@ohos.base"],
+        }
+    },
+    "include": ["src/**/*.ts", "generated/ts/**/*.ts"],
+    "exclude": ["generated/arkts", "src/panda"]
+}

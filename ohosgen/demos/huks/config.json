@@ -1,0 +1,11 @@
+{
+    "$schema": "../../generation-config/schema.json",
+    "GenerateUnused": true,
+    "moduleName": "ohos.security.huks",
+    "modules": {
+        "ohos.security.huks": {
+            "name": "ohos.security.huks",
+            "packages": ["ohos.security.huks", "ohos.base"]
+        }
+    }
+}
