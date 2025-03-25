@@ -456,7 +456,7 @@ class ManagedCallCallbackVisitor {
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
-            writer.print('uint8_t _buffer[60 * 4];')
+            writer.print('uint8_t _buffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`Serializer`),
                 writer.makeString(`Serializer((KSerializerBuffer)&_buffer, sizeof(_buffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
