@@ -107,8 +107,8 @@ function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], wr
             break
         bestMatch++
     }
-    for (let i = bestMatch; i < alreadyWrapped.length; i++) {
-        writer.popNamespace()
+    for (let i = bestMatch, end = alreadyWrapped.length; i < end; i++) {
+        writer.popNamespace(true)
         alreadyWrapped.pop()
     }
     for (let i = bestMatch; i < ns.length; i++) {
