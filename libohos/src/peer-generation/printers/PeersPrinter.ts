@@ -50,6 +50,10 @@ export function componentToAttributesClass(component: string) {
     return `Ark${component}Attributes`
 }
 
+export function componentToInterface(component: string) {
+    return `Ark${component}Component`
+}
+
 // For TS and ArkTS
 class PeerFileVisitor {
     readonly printers = new Map<TargetFile, LanguageWriter>
@@ -72,11 +76,6 @@ class PeerFileVisitor {
         return componentToPeerClass(parent)
     }
 
-    protected generateAttributesParentClass(peer: PeerClass): string | undefined {
-        if (!isHeir(peer.originalClassName!)) return undefined
-        return componentToAttributesClass(peer.parentComponentName!)
-    }
-
     protected printImports(printer: LanguageWriter, targetBasename: string): void {
         const imports = new ImportsCollector()
         this.getDefaultPeerImports(this.library.language, imports)
@@ -84,9 +83,6 @@ class PeerFileVisitor {
             if (peer.originalParentFilename) {
                 const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
                 imports.addFeature(this.generatePeerParentName(peer), parentModule)
-                const parentAttributesClass = this.generateAttributesParentClass(peer)
-                if (parentAttributesClass)
-                    imports.addFeature(parentAttributesClass, parentModule)
             }
             const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
             collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
@@ -119,23 +115,6 @@ class PeerFileVisitor {
             .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)
             .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))
         imports.print(printer, `./peers/${targetBasename}`)
-    }
-
-    protected printAttributes(peer: PeerClass, printer: LanguageWriter) {
-        for (const attributeType of peer.attributesTypes)
-            printer.print(attributeType.content)
-
-        const parent = this.generateAttributesParentClass(peer)
-        printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
-            for (const field of peer.attributesFields) {
-                writer.writeFieldDeclaration(
-                    field.name,
-                    field.type,
-                    [],
-                    true
-                )
-            }
-        }, parent ? [parent] : undefined)
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
@@ -235,7 +214,6 @@ class PeerFileVisitor {
         this.printImports(printer, targetBasename)
         this.file.peersToGenerate.forEach(peer => {
             this.printPeer(peer, printer)
-            this.printAttributes(peer, printer)
         })
     }
 
@@ -595,4 +573,14 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
             false),
     ]
     */
+}
+
+export function generateAttributesParentClass(peer: PeerClass): string | undefined {
+    if (!isHeir(peer.originalClassName!)) return undefined
+    return componentToAttributesClass(peer.parentComponentName!)
+}
+
+export function generateInterfaceParentInterface(peer: PeerClass): string | undefined {
+    if (!isHeir(peer.originalClassName!)) return undefined
+    return componentToInterface(peer.parentComponentName!)
 }

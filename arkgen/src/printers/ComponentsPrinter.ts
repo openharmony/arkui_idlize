@@ -26,15 +26,19 @@ import { removeExt, renameDtsToComponent, Language, isCommonMethod,
 import {
     ARKOALA_PACKAGE,
     ARKOALA_PACKAGE_PATH,
+    collapseIdlPeerMethods,
     collapseSameNamedMethods,
     collectComponents,
     collectDeclDependencies,
     collectJavaImports,
     COMPONENT_BASE,
     componentToAttributesClass,
+    componentToInterface,
     componentToPeerClass,
     convertPeerFilenameToModule,
     findComponentByType,
+    generateAttributesParentClass,
+    generateInterfaceParentInterface,
     groupOverloads,
     ImportsCollector,
     OverloadsPrinter,
@@ -45,7 +49,7 @@ import {
 } from '@idlizer/libohos'
 
 export function generateArkComponentName(component: string) {
-    return `Ark${component}Component`
+    return `Ark${component}ComponentImplementation`
 }
 
 class ComponentPrintResult {
@@ -97,11 +101,17 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
             if (peer.originalParentFilename) {
                 const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.language, false)
-                imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentBasename}`)
+                const parentModule = `./${parentBasename}`
+                imports.addFeature(generateArkComponentName(peer.parentComponentName!), parentModule)
+                const parentAttributesClass = generateAttributesParentClass(peer)
+                if (parentAttributesClass)
+                    imports.addFeature(parentAttributesClass, parentModule)
+                const parentInterface = generateInterfaceParentInterface(peer)
+                if (parentInterface)
+                    imports.addFeature(parentInterface, parentModule)
             }
             const peerModule = convertPeerFilenameToModule(peer.originalFilename)
             imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
-            imports.addFeature(componentToAttributesClass(peer.componentName), peerModule)
             peer.attributesTypes.forEach((attrType) =>
                 imports.addFeature(attrType.typeName, peerModule)
             )
@@ -119,6 +129,38 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeature('unsafeCast', '@koalaui/common')
     }
 
+    protected printAttributes(peer: PeerClass) {
+        for (const attributeType of peer.attributesTypes)
+            this.printer.print(attributeType.content)
+
+        const parent = generateAttributesParentClass(peer)
+        this.printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
+            for (const field of peer.attributesFields) {
+                writer.writeFieldDeclaration(
+                    field.name,
+                    field.type,
+                    [],
+                    true
+                )
+            }
+        }, parent ? [parent] : undefined)
+    }
+
+    protected printInterface(peer: PeerClass): string {
+        const componentInterfaceName = componentToInterface(peer.componentName)
+        const parent = generateInterfaceParentInterface(peer)
+        this.printer.writeInterface(componentInterfaceName, (writer) => {
+            const filteredMethods = peer.methods.filter(it =>
+                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.language))
+            groupOverloads(filteredMethods).forEach(group => {
+                const method = collapseIdlPeerMethods(this.library, group)
+                writer.print(`/** @memo */`)
+                writer.writeMethodDeclaration(method.method.name, method.method.signature)
+            })
+        }, parent ? [parent] : undefined)
+        return componentInterfaceName
+    }
+
     private printComponent(peer: PeerClass) {
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
@@ -128,6 +170,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const componentFunctionName = `Ark${peer.componentName}`
         const peerClassName = componentToPeerClass(peer.componentName)
+
+        this.printAttributes(peer)
+        const componentInterfaceName = this.printInterface(peer)
 
         this.printer.print(`/** @memo:stable */`)
         this.printer.writeClass(componentClassName, (writer) => {
@@ -182,9 +227,10 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 }
                 writer.writeMethodCall('super', applyAttributes, ['attrs'])
             })
-        }, parentComponentClassName)
+        }, parentComponentClassName, [componentInterfaceName])
 
         this.printComponentFunction(
+            componentInterfaceName,
             componentClassName,
             componentFunctionName,
             mappedCallableParams?.join(", ") ?? "",
@@ -194,7 +240,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 
     protected printComponentFunction(
-        componentClassName: string,
+        componentInterfaceName: string,
+        componentClassImplName: string,
         componentFunctionName: string,
         mappedCallableParams: string,
         peerClassName: string,
@@ -206,13 +253,13 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 /** @memo */
 export function ${componentFunctionName}(
   /** @memo */
-  style: ((attributes: ${componentClassName}) => void) | undefined,
+  style: ((attributes: ${componentInterfaceName}) => void) | undefined,
   /** @memo */
   content_: (() => void) | undefined,
   ${mappedCallableParams}
 ) {
     const receiver = remember(() => {
-        return new ${componentClassName}()
+        return new ${componentClassImplName}()
     })
     NodeAttach<${peerClassName}>((): ${peerClassName} => ${peerClassName}.create(receiver), (_: ${peerClassName}) => {
         ${callableMethodName}

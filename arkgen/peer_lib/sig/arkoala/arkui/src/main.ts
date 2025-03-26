@@ -22,7 +22,7 @@ import { ArkCommonPeer } from "@arkoala/arkui/generated/peers/ArkCommonPeer"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/generated/peers/ArkCalendarPickerPeer"
 import { ArkFormComponentPeer } from "@arkoala/arkui/generated/peers/ArkFormComponentPeer"
 import { ArkSideBarContainerPeer } from "@arkoala/arkui/generated/peers/ArkSidebarPeer"
-import { ArkSideBarContainerComponent } from "@arkoala/arkui/generated/ArkSidebar"
+import { ArkSideBarContainerComponentImplementation } from "@arkoala/arkui/generated/ArkSidebar"
 import { ArkTabContentPeer } from "@arkoala/arkui/generated/peers/ArkTabContentPeer"
 import { SubTabBarStyle } from "@arkoala/arkui/generated/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/generated/ArkBottomTabBarStyleBuilder"
@@ -488,7 +488,7 @@ function checkCommon() {
 function checkOverloads() {
     startNativeTest(checkOverloads.name, CALL_GROUP_LOG)
 
-    class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
+    class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponentImplementation {
         constructor(peer: ArkSideBarContainerPeer) {
             super()
             this.setPeer(peer)
