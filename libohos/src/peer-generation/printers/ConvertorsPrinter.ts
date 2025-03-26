@@ -38,7 +38,11 @@ class ConvertorsPrinter {
         this.writer.print('void AssignOptionalTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [typename, selectors] of DeclarationTargets.allUnionTypes(this.library)) {
+        const allUnions = DeclarationTargets.allUnionTypes(this.library, false)
+        for (const [typename, selectors] of DeclarationTargets.allUnionTypes(this.library, true))
+            allUnions.set(typename, selectors)
+
+        for (const [typename, selectors] of allUnions) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignUnionTo(std::optional<T>& dst,`)
             this.writer.print(`                   const ${typename}& src)`)
