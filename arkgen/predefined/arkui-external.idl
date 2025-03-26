@@ -14,6 +14,12 @@ dictionary RectWidthStyle {
 };
 
 /*[Namespace=text]*/
+dictionary Affinity {
+    number UPSTREAM = 0;
+    number DOWNSTREAM = 1;
+};
+
+/*[Namespace=text]*/
 dictionary RectHeightStyle {
     number TIGHT = 0;
     number MAX = 1;
