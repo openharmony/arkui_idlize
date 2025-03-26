@@ -1,6 +1,6 @@
 // thx alakierorange
 
-declare namespace MyNamespace {
+declare namespace test_enums {
     enum MyEnum {A,B,C,D}
     class Test{
         a:number;

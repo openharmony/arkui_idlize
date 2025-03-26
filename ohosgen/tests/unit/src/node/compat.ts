@@ -1,5 +1,6 @@
 import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "../../generated/ts/unit.INTERNAL";
+import { stdout } from "node:process";
 
 export {
     // .d.ts
@@ -22,6 +23,8 @@ export { sum_numbers } from "../../generated/ts"
 // TBD: wait for the interface FQN fix for ArkTS
 export { test_buffer } from "../../generated/ts"
 export { test_materialized_classes, UtilityInterface } from "../../generated/ts"
+export { test_any } from "../../generated/ts"
+export { test_return_types, test_ret_A, test_ret_B } from "../../generated/ts"
 export {
     ForceCallbackListener,
     ForceCallbackClass,
@@ -74,21 +77,25 @@ export function runEventLoop() {
     }, 2000);
 }
 
+class UnitTestError extends Error {}
+
 export function checkEQ(value1: unknown, value2: unknown, comment?: string): void {
     if (value1 !== value2) {
-        throw new Error(comment)
+        throw new UnitTestError(comment)
     }
 }
 
 export function checkNotEQ(value1: unknown, value2: unknown, comment?: string): void {
     if (value1 === value2) {
-        throw new Error(comment)
+        throw new UnitTestError(comment)
     }
 }
 
 class Test {
-    constructor(public readonly name, public readonly test: () => void) {
-    }
+    constructor(
+        public readonly name: string,
+        public readonly test: () => void
+    ) {}
 }
 
 export class UnitTestsuite {
@@ -102,9 +109,26 @@ export class UnitTestsuite {
     }
 
     run(): void {
+        const failedTests: string[] = []
         for (const t of this.tests) {
-            console.log(`Run test: ${t.name}`)
-            t.test()
+            try {
+                t.test()
+                console.log('[ \x1b[32m%s\x1b[0m ] %s', 'PASSED', t.name);
+            } catch (ex) {
+                if (ex instanceof UnitTestError) {
+                    failedTests.push(t.name)
+                    console.log('[ \x1b[31m%s\x1b[0m ] %s', 'FAILED', t.name);
+                    console.error('...', ex.message)
+                } else {
+                    throw ex
+                }
+            }
+        }
+        if (failedTests.length) {
+            for (const name of failedTests) {
+                console.error('FAILED =>', name)
+            }
+            throw new Error("Tests failed!")
         }
     }
 }

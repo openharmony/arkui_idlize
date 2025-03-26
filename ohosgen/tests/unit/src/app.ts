@@ -1,4 +1,4 @@
-import { UnitTestsuite,  checkEQ, checkNotEQ } from '#compat'
+import { UnitTestsuite,  checkEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
 
 import {
   // .d.ts
@@ -24,6 +24,7 @@ import {
   registerForceCallbackListener,
   callForceCallbackListener,
   ClassWithComplexPropertyType,
+  test_any,
   OHAny
 } from '#compat'
 
@@ -49,6 +50,7 @@ import {
   testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
   HandwrittenComponent, IdlHandwrittenComponent,
 } from '#compat'
+import { test_ret_A } from '#compat'
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
@@ -320,14 +322,45 @@ function checkHandwritten() {
   assertEQ(1, idlHW.count)
 }
 
-// interface TestObject { x: number }
-// function checkAny() {
-//   const obj: TestObject = { x: 10 }
-//   const param: TestAny.WithAny = { field: obj, normal: 0 }
-//   TestAny.test(param, (e:OHAny) => {
-//     console.log(e, e === obj)
-//   })
-// }
+interface TestObject { x: number }
+function checkAny() {
+  const obj: TestObject = { x: 10 }
+  const param: test_any.WithAny = { field: obj, normal: 0 }
+  test_any.test(param, (e:OHAny) => {
+    console.log(e, e === obj)
+  })
+}
+
+function checkReturnTypes() {
+  test_return_types.returnNothing()
+  assertEQ(42, test_return_types.returnNumber())
+  assertEQ(true, test_return_types.returnBoolean())
+  // FIXME: failed for arkts
+  // assertEQ("text from native", test_return_types.returnString())
+  const expectedA: test_ret_A = { field: 42 }
+  assertEQ(expectedA.field, test_return_types.returnInterface().field)
+  assertEQ(42, test_return_types.returnMaterialized().action())
+
+  const numberArray = test_return_types.returnNumberArray()
+  for (let i = 0; i < 10; ++i) {
+    assertEQ(i, numberArray[i])
+  }
+
+  const stringArray = test_return_types.returnStringArray()
+  for (let i = 0; i < 10; ++i) {
+    assertEQ("123", stringArray[i])
+  }
+
+  const interfaceArray = test_return_types.returnInterfaceArray()
+  for (let i = 0; i < 10; ++i) {
+    assertEQ(i, interfaceArray[i].field)
+  }
+
+  const materializedArray = test_return_types.returnMaterializedArray()
+  for (let i = 0; i < 10; ++i) {
+    assertEQ(42 + i, materializedArray[i].action())
+  }
+}
 
 export function run() {
   console.log("Run common unit tests")
@@ -343,9 +376,10 @@ export function run() {
   suite.addTest("checkDataInterfaces", checkDataInterfaces)
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
   suite.addTest("checkMaterialized", checkMaterialized)
-  // suite.addTest("checkNativeBuffer", checkNativeBuffer)
+  suite.addTest("checkAny", checkAny)
+  suite.addTest("checkReturnTypes", checkReturnTypes)
+  suite.addTest("checkNativeBuffer", checkNativeBuffer)
   // suite.addTest("checkHandwritten", checkHandwritten)
-  // suite.addTest("checkAny", checkAny)
 
   return suite.run()
 }

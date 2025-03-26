@@ -23,6 +23,8 @@ export { sum_numbers } from "../../generated/arkts"
 // TBD: wait for the interface FQN fix for ArkTS
 export { test_buffer } from "../../generated/arkts"
 export { test_materialized_classes, UtilityInterface } from "../../generated/arkts"
+export { test_any } from "../../generated/arkts"
+export { test_return_types, test_ret_A, test_ret_B } from "../../generated/arkts"
 export {
     ForceCallbackListener,
     ForceCallbackClass,

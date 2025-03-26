@@ -525,7 +525,7 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer : OH_U
         int32_t arrayLength = utils.fieldArrayNumber.length;
         OH_Number * newArrayNumber = reinterpret_cast<OH_Number*>(calloc(arrayLength, sizeof(OH_Number)));
         toClean.push_back(newArrayNumber);
-        for (size_t i = 0; i < arrayLength; i++) {
+        for (int32_t i = 0; i < arrayLength; i++) {
             if (utils.fieldArrayNumber.array[i].tag == INTEROP_TAG_INT32) {
                 newArrayNumber[i] = OH_Number{
                     .tag = utils.fieldArrayNumber.array[i].tag,
@@ -549,7 +549,7 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer : OH_U
     Array_String method4(Array_Number array) {
         OH_String * newArrayString = reinterpret_cast<OH_String*>(calloc(array.length, sizeof(OH_String)));
         toClean.push_back(newArrayString);
-        for (size_t i = 0; i < array.length; i++) {
+        for (int32_t i = 0; i < array.length; i++) {
             std::string stringifyNum = std::to_string(array.array[i].i32);
             char* newChars = reinterpret_cast<char*>(calloc(stringifyNum.size(), sizeof(char)));
             toClean.push_back(newChars);
@@ -563,7 +563,7 @@ struct OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer : OH_U
     Array_UtilityInterface method5(Array_UtilityInterface arrayUtils) {
         OH_UNIT_UtilityInterface * modifiedUtils = reinterpret_cast<OH_UNIT_UtilityInterface*>(calloc(arrayUtils.length, sizeof(OH_UNIT_UtilityInterface)));
         toClean.push_back(modifiedUtils);
-        for (size_t i = 0; i < arrayUtils.length; i++) {
+        for (int32_t i = 0; i < arrayUtils.length; i++) {
             modifiedUtils[i] = method3(arrayUtils.array[i]);
         }
 
@@ -588,6 +588,141 @@ Array_String test_materialized_classes_MaterializedComplexArguments_method4Impl(
 Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method5Impl(OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces) {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
 }
+void GlobalScope_test_any_testImpl(const OH_UNIT_test_any_WithAny* x, const UNIT_test_any_Callback_Any_Void* f) {
+    f->call(f->resource.resourceId, x->field);
+}
+OH_UInt64 GlobalScope_test_bigint_testImpl(OH_UInt64 num) {
+    return 1ll << 54;
+}
+OH_UNIT_test_enums_TestHandle test_enums_Test_constructImpl() {
+    return (OH_UNIT_test_enums_TestHandle)42;
+}
+void test_enums_Test_destructImpl(OH_UNIT_test_enums_TestHandle thisPtr) {
+}
+OH_Number test_enums_Test_getAImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_Number GlobalScope_test_enums_MyFuncImpl(const OH_Number* a) {
+    return {};
+}
+OH_Number GlobalScope_test_enums_MyFunc2Impl(OH_UNIT_test_enums_MyEnum a) {
+    return {};
+}
+void test_enums_Test_setAImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+}
+void GlobalScope_hilog_debugImpl(const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args) {
+}
+void GlobalScope_hilog_infoImpl(const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args) {
+}
+void GlobalScope_hilog_warnImpl(const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args) {
+}
+void GlobalScope_hilog_errorImpl(const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args) {
+}
+void GlobalScope_hilog_fatalImpl(const OH_Number* domain, const OH_String* tag, const OH_String* format, const Array_ArgType* args) {
+}
+OH_Boolean GlobalScope_hilog_isLoggableImpl(const OH_Number* domain, const OH_String* tag, OH_UNIT_hilog_LogLevel level) {
+    return {};
+}
+void GlobalScope_hilog_setMinLogLevelImpl(OH_UNIT_hilog_LogLevel level) {
+}
+OH_UNIT_ExampleHandle Example_constructImpl() {
+    return (OH_UNIT_ExampleHandle)42;
+}
+void Example_destructImpl(OH_UNIT_ExampleHandle thisPtr) {
+}
+OH_UNIT_Example Example_createExampleImpl() {
+    return (OH_UNIT_Example)42;
+}
+
+/////////////////////////////////////////////
+// return entities tests
+
+OH_UNIT_test_ret_BHandle test_ret_B_constructImpl() {
+    return (OH_UNIT_test_ret_BHandle)42;
+}
+void test_ret_B_destructImpl(OH_UNIT_test_ret_BHandle thisPtr) {
+}
+OH_Number test_ret_B_actionImpl(OH_NativePointer thisPtr) {
+    OH_Number n;
+    n.i32 = reinterpret_cast<uintptr_t>(thisPtr);
+    n.tag = INTEROP_TAG_INT32;
+    return n;
+}
+
+////
+
+void GlobalScope_test_return_types_returnNothingImpl() {
+}
+OH_Number GlobalScope_test_return_types_returnNumberImpl() {
+    OH_Number n;
+    n.i32 = 42;
+    n.tag = INTEROP_TAG_INT32;
+    return n;
+}
+OH_Boolean GlobalScope_test_return_types_returnBooleanImpl() {
+    return 1;
+}
+OH_UInt64 GlobalScope_test_return_types_returnBitIntImpl() {
+    return 100;
+}
+OH_String GlobalScope_test_return_types_returnStringImpl() {
+    const char* text = "text from native";
+    OH_String str;
+    str.chars = text;
+    str.length = strlen(text);
+    return str;
+}
+OH_UNIT_test_ret_A GlobalScope_test_return_types_returnInterfaceImpl() {
+    OH_UNIT_test_ret_A entity;
+    entity.field.i32 = 42;
+    entity.field.tag = INTEROP_TAG_INT32;
+    return entity;
+}
+OH_UNIT_test_ret_B GlobalScope_test_return_types_returnMaterializedImpl() {
+    return (OH_UNIT_test_ret_B)42;
+}
+Array_Number GlobalScope_test_return_types_returnNumberArrayImpl() {
+    Array_Number arr;
+    arr.length = 10;
+    arr.array = new OH_Number[arr.length];
+    for (int i = 0; i < 10; ++i) {
+        arr.array[i].i32 = i;
+        arr.array[i].tag = INTEROP_TAG_INT32;
+    }
+    return arr;
+}
+Array_String GlobalScope_test_return_types_returnStringArrayImpl() {
+    Array_String arr;
+    arr.length = 10;
+    arr.array = new OH_String[arr.length];
+    for (int i = 0; i < 10; ++i) {
+        const char* test = "123";
+        arr.array[i].chars = test;
+        arr.array[i].length = 3;
+    }
+    return arr;
+}
+Array_test_ret_A GlobalScope_test_return_types_returnInterfaceArrayImpl() {
+    Array_test_ret_A arr;
+    arr.length = 10;
+    arr.array = new OH_UNIT_test_ret_A[arr.length];
+    for (int i = 0; i < 10; ++i) {
+        arr.array[i].field.i32 = i;
+        arr.array[i].field.tag = INTEROP_TAG_INT32;
+    }
+    return arr;
+}
+Array_test_ret_B GlobalScope_test_return_types_returnMaterializedArrayImpl() {
+    Array_test_ret_B arr;
+    arr.length = 10;
+    arr.array = new OH_UNIT_test_ret_B[arr.length];
+    for (int i = 0; i < 10; ++i) {
+        arr.array[i] = (OH_UNIT_test_ret_B)(42ll + i);
+    }
+    return arr;
+}
+
+
 
 // TBD: wait for the interface FQN fix for ArkTS
 /*
@@ -616,8 +751,5 @@ void hello_FooXXX_destructImpl(OH_UNIT_hello_FooXXXHandle thisPtr) {
 }
 OH_Number hello_FooXXX_getYImpl(OH_NativePointer thisPtr) {
     return {};
-}
-void GlobalScope_TestAny_testImpl(const OH_UNIT_TestAny_WithAny* x, const UNIT_TestAny_Callback_Any_Void* f) {
-    f->call(f->resource.resourceId, x->field);
 }
 */
