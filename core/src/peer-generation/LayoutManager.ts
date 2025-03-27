@@ -19,10 +19,22 @@ export enum LayoutNodeRole {
     PEER,
     INTERFACE,
     GLOBAL,
+    COMPONENT,
+}
+
+export type LayoutTargetDescriptionHint =
+      'component.implementation'
+    | 'component.interface'
+    | 'component.function'
+
+export interface LayoutTargetDescription {
+    node: IDLEntry
+    role: LayoutNodeRole
+    hint?: LayoutTargetDescriptionHint
 }
 
 export interface LayoutManagerStrategy {
-    resolve(node:IDLEntry, role:LayoutNodeRole): string
+    resolve(target:LayoutTargetDescription): string
 }
 
 export class LayoutManager {
@@ -30,8 +42,8 @@ export class LayoutManager {
         private strategy: LayoutManagerStrategy
     ) { }
 
-    resolve(node:IDLEntry, role:LayoutNodeRole): string {
-        return this.strategy.resolve(node, role)
+    resolve(target:LayoutTargetDescription): string {
+        return this.strategy.resolve(target)
     }
     ////////////////////////////////////////////////////////////////////
 

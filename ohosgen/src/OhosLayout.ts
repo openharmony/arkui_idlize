@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
-import { currentModule, getModuleFor, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from "@idlizer/core"
+import { currentModule, getModuleFor, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 
 function selectInternalsPath(): string {
     return currentModule().name + ".INTERNAL"
@@ -47,11 +47,12 @@ export class OhosTsLayout implements LayoutManagerStrategy {
 
     /////
 
-    resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
+    resolve({ role, node }: LayoutTargetDescription): string {
         switch (role) {
             case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
             case LayoutNodeRole.PEER: return this.selectPeer(node)
             case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
+            case LayoutNodeRole.COMPONENT: return ''
         }
     }
 }

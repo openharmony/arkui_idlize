@@ -35,7 +35,10 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
         feature = featureNs.split('.')[0]
     }
 
-    const moduleName = library.layout.resolve(node, LayoutNodeRole.INTERFACE)
+    const moduleName = library.layout.resolve({
+        node,
+        role: LayoutNodeRole.INTERFACE
+    })
     return {
         feature,
         module: `./${moduleName}`,

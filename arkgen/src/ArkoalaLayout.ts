@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
@@ -37,7 +36,7 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
         protected library: PeerLibrary,
         protected prefix: string = "",
     ) {}
-    abstract resolve(node: idl.IDLEntry, role: LayoutNodeRole): string
+    abstract resolve(target: idl.LayoutTargetDescription): string
 
 }
 
@@ -98,17 +97,29 @@ export class TsLayout extends CommonLayoutBase {
         return `GlobalScope`
     }
 
+    protected selectComponent(node:idl.IDLEntry, hint:idl.LayoutTargetDescriptionHint = 'component.implementation'): string {
+        const file = idl.getFileFor(node)
+        if (!file || !file.fileName) {
+            return `Ark${node.name}`
+        }
+        const pureFileName = file.fileName
+            .replaceAll('.d.ts', '')
+            .replaceAll('.idl', '')
+        return `Ark${path.basename(pureFileName).split(/_|\./g).map(it => idl.capitalize(it)).join('')}`
+    }
+
     /////
 
-    resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
-        if (this.tsInternalPaths.has(node.name))
-            return this.tsInternalPaths.get(node.name)!
-        if (node.name === NativeModule.Generated.name)
+    resolve(target: idl.LayoutTargetDescription): string {
+        if (this.tsInternalPaths.has(target.node.name))
+            return this.tsInternalPaths.get(target.node.name)!
+        if (target.node.name === NativeModule.Generated.name)
             return `peers/${NativeModule.Generated.name}`
-        switch (role) {
-            case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
-            case LayoutNodeRole.PEER: return this.selectPeer(node)
-            case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
+        switch (target.role) {
+            case LayoutNodeRole.INTERFACE: return this.selectInterface(target.node)
+            case LayoutNodeRole.PEER: return this.selectPeer(target.node)
+            case LayoutNodeRole.GLOBAL: return this.selectGlobal(target.node)
+            case LayoutNodeRole.COMPONENT: return this.selectComponent(target.node, target.hint)
         }
     }
 }
@@ -119,12 +130,12 @@ export class ArkTsLayout extends TsLayout {
     ])
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g
-    resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
-        if (node.name === NativeModule.Generated.name)
+    resolve(target: idl.LayoutTargetDescription): string {
+        if (target.node.name === NativeModule.Generated.name)
             return `#components`
-        if (this.arkTSInternalPaths.has(node.name))
-            return this.arkTSInternalPaths.get(node.name)!
-        return super.resolve(node, role)
+        if (this.arkTSInternalPaths.has(target.node.name))
+            return this.arkTSInternalPaths.get(target.node.name)!
+        return super.resolve(target)
     }
 }
 
@@ -133,10 +144,10 @@ export class ArkTSComponentsLayout extends ArkTsLayout {
         ["TSTypeChecker", "ts/type_check"],
         ["ArkTSTypeChecker", "arkts/type_check"],
     ])
-    resolve(node: idl.IDLEntry, role: LayoutNodeRole): string {
-        if (node.name === NativeModule.Generated.name)
+    resolve(target: idl.LayoutTargetDescription): string {
+        if (target.node.name === NativeModule.Generated.name)
             return `arkts/${NativeModule.Generated.name}`
-        return super.resolve(node, role)
+        return super.resolve(target)
     }
 }
 
@@ -147,7 +158,7 @@ export class JavaLayout extends CommonLayoutBase {
     private getPath(file:string):string {
         return path.join(this.packagePath, file)
     }
-    resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
+    resolve({ node, role }: idl.LayoutTargetDescription): string {
         switch (role) {
             case LayoutNodeRole.INTERFACE: {
                 if (idl.isEntry(node)) {
@@ -185,6 +196,9 @@ export class JavaLayout extends CommonLayoutBase {
             case LayoutNodeRole.GLOBAL: {
                 return 'GlobalScope'
             }
+            case LayoutNodeRole.COMPONENT: {
+                return 'Ark' + node.name
+            }
         }
     }
 }
@@ -193,7 +207,7 @@ export class CJLayout extends CommonLayoutBase {
     private getPath(file:string):string {
         return path.join('.', file)
     }
-    resolve(node: idl.IDLNode, role: LayoutNodeRole): string {
+    resolve({ node, role }: idl.LayoutTargetDescription): string {
         switch (role) {
             case LayoutNodeRole.INTERFACE: {
                 if (idl.isEntry(node)) {
@@ -229,6 +243,9 @@ export class CJLayout extends CommonLayoutBase {
             }
             case LayoutNodeRole.GLOBAL: {
                 return 'GlobalScope'
+            }
+            case LayoutNodeRole.COMPONENT: {
+                return 'Ark' + node.name
             }
         }
     }

@@ -15,13 +15,15 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { removeExt, renameDtsToComponent, Language, isCommonMethod,
+import {
+    removeExt, renameDtsToComponent, Language, isCommonMethod,
     LanguageWriter, PeerFile, PeerClass, PeerLibrary,
     createReferenceType, IDLVoidType, isOptionalType,
     Method,
     MethodSignature,
     MethodModifier,
-    NamedMethodSignature
+    NamedMethodSignature,
+    LayoutNodeRole
 } from '@idlizer/core'
 import {
     ARKOALA_PACKAGE,
@@ -40,9 +42,11 @@ import {
     generateAttributesParentClass,
     generateInterfaceParentInterface,
     groupOverloads,
+    IdlComponentDeclaration,
     ImportsCollector,
     OverloadsPrinter,
     peerGeneratorConfiguration,
+    PrinterResult,
     printJavaImports,
     TargetFile,
     tsCopyrightAndWarning,
@@ -57,84 +61,72 @@ class ComponentPrintResult {
 }
 
 interface ComponentFileVisitor {
-    visit(): void
-    getResults(): ComponentPrintResult[]
+    visit(): PrinterResult[]
 }
 
 class TSComponentFileVisitor implements ComponentFileVisitor {
-    private readonly language = this.library.language
-    private readonly printer = this.library.createLanguageWriter(this.language)
-    private readonly overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language)
 
     constructor(
         private readonly library: PeerLibrary,
         private readonly file: PeerFile,
     ) { }
 
-    visit(): void {
-        this.printImports()
-        this.file.peersToGenerate.forEach(peer => {
-            this.printComponent(peer)
+    private overloadsPrinter(printer:LanguageWriter) {
+        return new OverloadsPrinter(this.library, printer, this.library.language)
+    }
+
+    visit(): PrinterResult[] {
+        return this.file.peersToGenerate.flatMap(peer => {
+            return this.printComponent(peer)
         })
     }
 
-    getResults(): ComponentPrintResult[] {
-        return [new ComponentPrintResult(new TargetFile(this.targetBasename), this.printer)]
-    }
-
-    private get targetBasename() {
-        return renameDtsToComponent(path.basename(this.file.originalFilename), this.language)
-    }
-
-    private printImports(): void {
+    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
-        this.file.peersToGenerate.forEach(peer => {
-            imports.addFeatures(['int32', 'float32'], '@koalaui/common')
-            imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType"], "@koalaui/interop")
-            imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
-            imports.addFeature('ComponentBase', '../ComponentBase')
-            if (this.language === Language.TS) {
-                imports.addFeature("isInstanceOf", "@koalaui/interop")
-                imports.addFeatures(["isResource", "isPadding"], "../utils")
-            }
-            this.populateImports(imports)
+        imports.addFeatures(['int32', 'float32'], '@koalaui/common')
+        imports.addFeatures(["KStringPtr", "KBoolean", "RuntimeType", "runtimeType"], "@koalaui/interop")
+        imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
+        imports.addFeature('ComponentBase', '../ComponentBase')
+        if (this.library.language === Language.TS) {
+            imports.addFeature("isInstanceOf", "@koalaui/interop")
+            imports.addFeatures(["isResource", "isPadding"], "../utils")
+        }
+        this.populateImports(imports)
 
-            if (peer.originalParentFilename) {
-                const parentBasename = renameDtsToComponent(path.basename(peer.originalParentFilename), this.language, false)
-                const parentModule = `./${parentBasename}`
-                imports.addFeature(generateArkComponentName(peer.parentComponentName!), parentModule)
+        if (peer.originalParentFilename) {
+            const [parentRef] = component.attributeDeclaration.inheritance
+            const parentDecl = this.library.resolveTypeReference(parentRef)
+            if (parentDecl) {
+                const parentGeneratedPath = this.library.layout.resolve({
+                    node: parentDecl,
+                    role: LayoutNodeRole.COMPONENT
+                })
+                imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentGeneratedPath}`)
+
                 const parentAttributesClass = generateAttributesParentClass(peer)
                 if (parentAttributesClass)
-                    imports.addFeature(parentAttributesClass, parentModule)
+                    imports.addFeature(parentAttributesClass, `./${parentGeneratedPath}`)
                 const parentInterface = generateInterfaceParentInterface(peer)
                 if (parentInterface)
-                    imports.addFeature(parentInterface, parentModule)
+                    imports.addFeature(parentInterface, `./${parentGeneratedPath}`)
             }
-            const peerModule = convertPeerFilenameToModule(peer.originalFilename)
-            imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
-            peer.attributesTypes.forEach((attrType) =>
-                imports.addFeature(attrType.typeName, peerModule)
-            )
+        }
+        const peerModule = convertPeerFilenameToModule(peer.originalFilename)
+        imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
 
-            const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
-            collectDeclDependencies(this.library, component.attributeDeclaration, imports)
-            if (component.interfaceDeclaration)
-                collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
-        })
-
-        imports.print(this.printer, removeExt(this.targetBasename))
+        collectDeclDependencies(this.library, component.attributeDeclaration, imports)
+        if (component.interfaceDeclaration)
+            collectDeclDependencies(this.library, component.interfaceDeclaration, imports)
+        return imports
     }
 
     protected populateImports(imports: ImportsCollector) {
         imports.addFeature('unsafeCast', '@koalaui/common')
     }
 
-    protected printAttributes(peer: PeerClass) {
-        for (const attributeType of peer.attributesTypes)
-            this.printer.print(attributeType.content)
-
+    protected printAttributes(peer: PeerClass, printer:LanguageWriter) {
         const parent = generateAttributesParentClass(peer)
-        this.printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
+        printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
             for (const field of peer.attributesFields) {
                 writer.writeFieldDeclaration(
                     field.name,
@@ -146,12 +138,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         }, parent ? [parent] : undefined)
     }
 
-    protected printInterface(peer: PeerClass): string {
+    protected printInterface(peer: PeerClass, printer:LanguageWriter): string {
         const componentInterfaceName = componentToInterface(peer.componentName)
         const parent = generateInterfaceParentInterface(peer)
-        this.printer.writeInterface(componentInterfaceName, (writer) => {
+        printer.writeInterface(componentInterfaceName, (writer) => {
             const filteredMethods = peer.methods.filter(it =>
-                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.language))
+                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
             groupOverloads(filteredMethods).forEach(group => {
                 const method = collapseIdlPeerMethods(this.library, group)
                 writer.print(`/** @memo */`)
@@ -161,39 +153,45 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         return componentInterfaceName
     }
 
-    private printComponent(peer: PeerClass) {
+    private printComponent(peer: PeerClass): PrinterResult[] {
+
+        const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+
+        const imports = this.printImports(peer, component)
+        const printer = this.library.createLanguageWriter()
+
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${isOptionalType(it) ? "?" : ""}: ${this.printer.getNodeName(it)}`)
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${isOptionalType(it) ? "?" : ""}: ${printer.getNodeName(it)}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const componentFunctionName = `Ark${peer.componentName}`
         const peerClassName = componentToPeerClass(peer.componentName)
 
-        this.printAttributes(peer)
-        const componentInterfaceName = this.printInterface(peer)
+        this.printAttributes(peer, printer)
+        const componentInterfaceName = this.printInterface(peer, printer)
 
-        this.printer.print(`/** @memo:stable */`)
-        this.printer.writeClass(componentClassName, (writer) => {
+        printer.print(`/** @memo:stable */`)
+        printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
                     new MethodSignature(createReferenceType(peerClassName), []
-                ), [MethodModifier.PROTECTED], []),
+                    ), [MethodModifier.PROTECTED], []),
                 writer => writer.writeStatement(
                     writer.makeReturn(
                         writer.makeCast(
                             writer.makeFieldAccess("this", "peer"),
                             createReferenceType(peerClassName),
-                            {optional: true}
+                            { optional: true }
                         )
                     )
                 )
             )
             const filteredMethods = (peer.methods as any[]).filter(it =>
-                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.language))
+                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
             for (const grouped of groupOverloads(filteredMethods))
-                this.overloadsPrinter.printGroupedComponentOverloads(peer, grouped)
+                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
@@ -229,7 +227,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             })
         }, parentComponentClassName, [componentInterfaceName])
 
+        const componentFunction = this.library.createLanguageWriter()
         this.printComponentFunction(
+            componentFunction,
             componentInterfaceName,
             componentClassName,
             componentFunctionName,
@@ -237,9 +237,28 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             peerClassName,
             callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : "",
             peer.componentName)
+
+        return [{
+            collector: imports,
+            content: printer,
+            over: {
+                node: component.attributeDeclaration,
+                role: LayoutNodeRole.COMPONENT,
+                hint: 'component.implementation'
+            }
+        }, {
+            collector: imports,
+            content: componentFunction,
+            over: {
+                node: component.attributeDeclaration,
+                role: LayoutNodeRole.COMPONENT,
+                hint: 'component.function'
+            }
+        }]
     }
 
     protected printComponentFunction(
+        printer: LanguageWriter,
         componentInterfaceName: string,
         componentClassImplName: string,
         componentFunctionName: string,
@@ -249,7 +268,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         peerComponentName: string) {
         if (!collectComponents(this.library).find(it => it.name === peerComponentName)?.interfaceDeclaration)
             return
-        this.printer.print(`
+        printer.print(`
 /** @memo */
 export function ${componentFunctionName}(
   /** @memo */
@@ -285,12 +304,9 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
         private readonly file: PeerFile,
     ) { }
 
-    visit(): void {
-        this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
-    }
-
-    getResults(): ComponentPrintResult[] {
-        return this.results
+    visit(): PrinterResult[] {
+        // this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
+        return []
     }
 
     private printComponent(peer: PeerClass) {
@@ -348,7 +364,8 @@ class ComponentsVisitor {
         private readonly peerLibrary: PeerLibrary,
     ) { }
 
-    printComponents(): void {
+    printComponents(): PrinterResult[] {
+        const result: PrinterResult[] = []
         for (const file of this.peerLibrary.files.values()) {
             if (!file.peersToGenerate.length)
                 continue
@@ -365,24 +382,16 @@ class ComponentsVisitor {
             else {
                 throw new Error(`ComponentsVisitor not implemented for ${this.language.toString()}`)
             }
-            visitor.visit()
-            visitor.getResults().forEach(it => this.components.set(it.targetFile, it.writer))
+            result.push(...visitor.visit())
         }
+        return result
     }
 }
 
-export function printComponents(peerLibrary: PeerLibrary): Map<TargetFile, string> {
+export function printComponents(peerLibrary: PeerLibrary): PrinterResult[] {
     // TODO: support other output languages
     if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
-        return new Map()
+        return []
 
-    const visitor = new ComponentsVisitor(peerLibrary)
-    visitor.printComponents()
-    const result = new Map<TargetFile, string>()
-    for (const [key, writer] of visitor.components) {
-        if (writer.getOutput().length === 0) continue
-        const text = tsCopyrightAndWarning(writer.getOutput().join('\n'))
-        result.set(key, text)
-    }
-    return result
+    return new ComponentsVisitor(peerLibrary).printComponents()
 }

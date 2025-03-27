@@ -49,7 +49,6 @@ export class PeerClass implements PeerClassBase {
     originalParentFilename: string | undefined = undefined
     parentComponentName: string | undefined = undefined
     attributesFields: IDLProperty[] = []
-    attributesTypes: {typeName: string, content: string}[] = []
     hasGenericType: boolean = false
 }
 

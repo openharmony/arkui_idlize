@@ -14,7 +14,7 @@
  */
 
 import * as path from "path"
-import { getNamespaceName, getNamespacesPathFor, IDLEntity, IDLEntry, IDLNode, Language, LanguageWriter, LayoutManager, LayoutNodeRole, PeerLibrary } from "@idlizer/core";
+import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary } from "@idlizer/core";
 import { join } from "node:path";
 import { writeIntegratedFile } from "./common";
 import { ImportsCollector } from "./ImportsCollector"
@@ -22,10 +22,7 @@ import { tsCopyrightAndWarning } from "./FileGenerators";
 import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 
 export interface PrinterResult {
-    over: {
-        node: IDLEntry
-        role: LayoutNodeRole
-    }
+    over: LayoutTargetDescription
     collector: ImportsCollector
     content: LanguageWriter
     private?: boolean
@@ -46,7 +43,7 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[], 
     // groupBy
     const layout = options?.customLayout ?? library.layout
     printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
-        const filePath = path.normalize(layout.resolve(it.over.node, it.over.role))
+        const filePath = path.normalize(layout.resolve(it.over))
         if (!storage.has(filePath)) {
             storage.set(filePath, [])
         }

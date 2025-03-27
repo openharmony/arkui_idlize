@@ -58,7 +58,13 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             })
 
             peerImports.merge(imports)
-            imports.addFeatures([realizationHolder.name], library.layout.resolve(realizationHolder, idl.LayoutNodeRole.GLOBAL))
+            imports.addFeatures(
+                [realizationHolder.name],
+                library.layout.resolve({
+                    node: realizationHolder,
+                    role: idl.LayoutNodeRole.GLOBAL
+                })
+            )
 
             // entities
             const peerMethods = idlFreeMethodToLegacy(library, methods)

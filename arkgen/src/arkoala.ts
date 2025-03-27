@@ -161,17 +161,6 @@ export function generateArkoalaFromIdl(config: {
             message: "producing"
         })
     }
-    const components = printComponents(peerLibrary)
-    for (const [targetFile, component] of components) {
-        const outComponentFile = arkoala.component(targetFile)
-        if (config.verbose) console.log(component)
-        writeFile(outComponentFile, component,{
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-            message: "producing"
-        })
-        arkuiComponentsFiles.push(outComponentFile)
-    }
     const builderClasses = printBuilderClasses(peerLibrary, config.dumpSerialized)
     const builderClassFiles: string[] = []
     for (const [targetFile, builderClass] of builderClasses) {
@@ -210,6 +199,7 @@ export function generateArkoalaFromIdl(config: {
         peerLibrary,
         [
             createMaterializedPrinter(config.dumpSerialized),
+            printComponents,
             printGlobal,
             createSerializerPrinter(peerLibrary.language, ""),
             ...spreadIfNotLang([Language.JAVA],
