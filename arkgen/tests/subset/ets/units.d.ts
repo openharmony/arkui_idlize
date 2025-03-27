@@ -14,6 +14,10 @@
  */
 
 
+declare class ColorFilter {
+  constructor(value: number[]);
+}
+
 declare type Resource = import('../resource/resource').Resource;
 
 declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;

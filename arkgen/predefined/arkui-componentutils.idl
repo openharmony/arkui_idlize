@@ -4,9 +4,9 @@ package org.openharmony.arkui;
 interface ComponentInfo {
 
     attribute Size size;
-    attribute Offset localOffset;
-    attribute Offset windowOffset;
-    attribute Offset screenOffset;
+    attribute Offset_componentutils localOffset;
+    attribute Offset_componentutils windowOffset;
+    attribute Offset_componentutils screenOffset;
     attribute TranslateResult translate;
     attribute ScaleResult scale;
     attribute RotateResult rotate;
@@ -14,7 +14,7 @@ interface ComponentInfo {
 
 };
 [Entity=Interface]
-interface Offset {
+interface Offset_componentutils {
 
     attribute number x;
     attribute number y;

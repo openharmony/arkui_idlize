@@ -16,7 +16,7 @@ interface RenderNode {
     attribute Rotation rotation;
     attribute Matrix4 transform;
     attribute number shadowColor;
-    attribute Offset shadowOffset;
+    attribute Offset_graphics shadowOffset;
     attribute String label;
     attribute number shadowAlpha;
     attribute number shadowElevation;
@@ -24,7 +24,7 @@ interface RenderNode {
     attribute EdgeStyles borderStyle;
     attribute Edges borderWidth;
     attribute Edges borderColor;
-    attribute BorderRadiuses borderRadius;
+    attribute BorderRadiuses_graphics borderRadius;
     attribute ShapeMask shapeMask;
     attribute ShapeClip shapeClip;
     attribute boolean markNodeGroup;
