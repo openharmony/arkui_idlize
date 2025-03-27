@@ -12,7 +12,10 @@ declare class CheckExceptionClass {
 	/**
 	 * @throws { Error }
 	 */
-	checkException()
+	// declaring the method without void return value
+	// leads to SIGSEGV in ArkTS
+	// checkException()
+	checkException(): void
 
 	/**
 	 * @throws { Error }

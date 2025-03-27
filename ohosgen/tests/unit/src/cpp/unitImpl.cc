@@ -765,7 +765,9 @@ class OH_UNIT_CheckExceptionClassPeer
 };
 
 OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl() {
-    return (OH_UNIT_CheckExceptionInterfaceHandle) new OH_UNIT_CheckExceptionInterfacePeer();
+    OH_UNIT_CheckExceptionInterfacePeer* peer = new OH_UNIT_CheckExceptionInterfacePeer();
+    printf("CheckExceptionInterface construct peer: %p\n", peer);
+    return (OH_UNIT_CheckExceptionInterfaceHandle) peer;
 }
 void CheckExceptionInterface_destructImpl(OH_UNIT_CheckExceptionInterfaceHandle thisPtr) {
 }
@@ -775,13 +777,15 @@ void CheckExceptionInterface_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_
 }
 
 OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl() {
-    return (OH_UNIT_CheckExceptionClassHandle) new OH_UNIT_CheckExceptionClassPeer();
+    OH_UNIT_CheckExceptionClassPeer* peer = new OH_UNIT_CheckExceptionClassPeer();
+    printf("CheckExceptionClass construct peer: %p\n", peer);
+    return (OH_UNIT_CheckExceptionClassHandle) peer;
 }
 void CheckExceptionClass_destructImpl(OH_UNIT_CheckExceptionClassHandle thisPtr) {
 }
 void CheckExceptionClass_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
     printf("OH_UNIT_CheckExceptionClass checkException vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    // KOALA_INTEROP_THROW_STRING(vmContext, "Exception from checkException");
+    KOALA_INTEROP_THROW_STRING(vmContext, "Exception from CheckExceptionClass");
 }
 
 OH_UNIT_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {

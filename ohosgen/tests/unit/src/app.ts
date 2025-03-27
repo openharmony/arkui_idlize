@@ -366,22 +366,30 @@ function checkReturnTypes() {
 
 function checkThrowException() {
 
+  let catchException = false
   const checkExceptionClass = new CheckExceptionClass()
 
-  let catchException = false
-
-  // TBD: Runtime crash
-  // checkExceptionClass.checkException()
+  try {
+    checkExceptionClass.checkException()
+  } catch (error) {
+    catchException = true
+    console.log(`error: ${error}`)
+    // TBD: Exception is not thrown for ArkTS
+    assertEQ("Exception from CheckExceptionClass", `${error}`)
+  }
 
   // TBD: Exception is not thrown for ArkTS
+  // assertEQ(true, catchException, "Exception has not been thrown!")
+
+  catchException = false
+
   try {
     const checkExceptionInterface = checkExceptionClass.getInterface()
     checkExceptionInterface.checkException()
   } catch (error) {
     catchException = true
     console.log(`error: ${error}`)
-    // TBD: Exception is not thrown for ArkTS
-    // assertEQ("Exception from CheckExceptionInterface", `${error}`)
+    assertEQ("Exception from CheckExceptionInterface", `${error}`)
   }
 
   // TBD: Exception is not thrown for ArkTS
