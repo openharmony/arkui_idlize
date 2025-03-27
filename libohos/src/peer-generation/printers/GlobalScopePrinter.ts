@@ -45,6 +45,16 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             const imports = new ImportsCollector()
             methods.forEach(method => {
                 collectDeclDependencies(library, method, imports, { includeMaterializedInternals: true })
+                const types = [method.returnType].concat(method.parameters.map(p => p.type))
+                types.forEach(type => {
+                    if (idl.isReferenceType(type)) {
+                        const decl = library.resolveTypeReference(type)
+                        if (decl) {
+                            collectDeclItself(library, decl, peerImports)
+                            collectDeclDependencies(library, decl, peerImports)
+                        }
+                    }
+                })
             })
 
             peerImports.merge(imports)
