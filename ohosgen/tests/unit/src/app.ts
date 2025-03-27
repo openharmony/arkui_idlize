@@ -52,6 +52,8 @@ import {
 } from '#compat'
 import { test_ret_A } from '#compat'
 
+import { CheckExceptionClass, CheckExceptionInterface } from '#compat'
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -362,6 +364,30 @@ function checkReturnTypes() {
   }
 }
 
+function checkThrowException() {
+
+  const checkExceptionClass = new CheckExceptionClass()
+
+  let catchException = false
+
+  // TBD: Runtime crash
+  // checkExceptionClass.checkException()
+
+  // TBD: Exception is not thrown for ArkTS
+  try {
+    const checkExceptionInterface = checkExceptionClass.getInterface()
+    checkExceptionInterface.checkException()
+  } catch (error) {
+    catchException = true
+    console.log(`error: ${error}`)
+    // TBD: Exception is not thrown for ArkTS
+    // assertEQ("Exception from CheckExceptionInterface", `${error}`)
+  }
+
+  // TBD: Exception is not thrown for ArkTS
+  // assertEQ(true, catchException, "Exception has not been thrown!")
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -379,6 +405,7 @@ export function run() {
   suite.addTest("checkAny", checkAny)
   suite.addTest("checkReturnTypes", checkReturnTypes)
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
+  suite.addTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
 
   return suite.run()

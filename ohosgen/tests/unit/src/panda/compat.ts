@@ -53,6 +53,8 @@ export {
     HandwrittenComponent, IdlHandwrittenComponent,
 } from '../../generated/arkts'
 
+export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 

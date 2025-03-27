@@ -52,6 +52,8 @@ export {
     HandwrittenComponent, IdlHandwrittenComponent,
 } from '../../generated/ts'
 
+export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 
