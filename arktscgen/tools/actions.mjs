@@ -71,7 +71,6 @@ export function testPacked() {
             `npx --yes ./arktscgen/build/idlizer-arktscgen-*.tgz`,
             `--panda-sdk-path ./external/incremental/tools/panda/node_modules/@panda/sdk`,
             `--output-dir ./arktscgen/build`,
-            `--options-file ./external/arkoala-arkts/libarkts/generator/options.json5`
         ].join(' ')
     )
     run(paths.unpacked, `npm i`)

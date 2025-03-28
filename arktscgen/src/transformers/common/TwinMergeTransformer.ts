@@ -77,10 +77,16 @@ export class TwinMergeTransformer implements Transformer {
     }
 
     private transformInterface(node: IDLInterface): IDLInterface | undefined {
+        if (node.name === Config.astNodeCommonAncestor) { // TODO: is handwritten
+            return createUpdatedInterface(
+                node,
+                node.methods.map(it => this.transformMethod(it)),
+            )
+        }
         if (this.hasTwin(node.name) && this.hasPrefix(node.name)) {
             return undefined
         }
-        if (this.hasTwin(node.name) && node.name !== Config.astNodeCommonAncestor) { // TODO: is handwritten
+        if (this.hasTwin(node.name) || this.hasPrefix(node.name)) {
             return createUpdatedInterface(
                 node,
                 node.methods.map(it => this.transformMethod(it)),
