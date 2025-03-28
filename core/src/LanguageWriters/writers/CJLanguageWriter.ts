@@ -464,8 +464,8 @@ export class CJLanguageWriter extends LanguageWriter {
         name = name.startsWith('_') ? name.slice(1) : name
         this.print(`func ${name}(${signture}): ${this.typeForeignConvertor.convert(method.signature.returnType)}`)
     }
-    override makeEnumCast(_enumEntry: idl.IDLEnum, enumName: string): string {
-        return `${enumName}.value`
+    override i32FromEnum(value: LanguageExpression, _enumEntry: idl.IDLEnum): LanguageExpression {
+        return this.makeString(`${value.asString()}.value`)
     }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new CJAssignStatement(variableName, type, expr, isDeclared, isConst)
@@ -592,11 +592,8 @@ export class CJLanguageWriter extends LanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
-    }
-    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`Int32(${value.asString()}.value)`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
         return new CJEnumWithGetter(enumEntity, isExport)

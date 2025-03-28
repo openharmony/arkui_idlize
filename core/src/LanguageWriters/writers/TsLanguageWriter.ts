@@ -458,27 +458,19 @@ export class TSLanguageWriter extends LanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.STATIC]
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = enumEntry.name
         const ordinal = value.asString()
         return idl.isStringEnum(enumEntry)
             ? this.makeString(`Object.values(${enumName})[${ordinal}]`)
             : this.makeString(ordinal)
     }
-    ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+    override i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        const decl = idl.isReferenceType(enumEntry) ? this.resolver.resolveTypeReference(enumEntry) : undefined
-        if (decl && idl.isEnum(decl) && idl.isStringEnum(decl)) {
+        if (idl.isEnum(enumEntry) && idl.isStringEnum(enumEntry)) {
             return this.makeString(`Object.values(${enumName}).indexOf(${value.asString()})`)
         }
-        return value
-    }
-    override makeEnumCast(enumEntry: idl.IDLEnum, param: string): string {
-        // Take the ordinal value if Enum is a string, and valueOf when it is an integer
-        // Enum.valueOf() - compatible with ArkTS/TS
-        return idl.isStringEnum(enumEntry)
-            ? this.ordinalFromEnum(this.makeString(param), idl.createReferenceType(enumEntry)).asString()
-            : `${param}.valueOf()`
+        return this.makeString(`${value.asString()}.valueOf()`)
     }
     override castToBoolean(value: string): string { return `+${value}` }
     override makeCallIsObject(value: string): LanguageExpression {
@@ -500,9 +492,9 @@ export class TSLanguageWriter extends LanguageWriter {
             throwException(`The type reference ${decl?.name} must be Enum`)
         }
         const ordinal = idl.isStringEnum(decl)
-            ? this.ordinalFromEnum(
+            ? this.i32FromEnum(
                 this.makeCast(this.makeString(this.getObjectAccessor(convertor, value)), convertor.idlType),
-                idl.createReferenceType(this.getNodeName(convertor.nativeType()))
+                decl,
             )
             : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.getNodeName(idl.IDLI32Type), convertor, index)
         const {low, high} = idl.extremumOfOrdinals(decl)

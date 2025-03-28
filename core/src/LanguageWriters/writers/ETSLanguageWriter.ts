@@ -169,14 +169,14 @@ export function generateTypeCheckerName(typeName: string): string {
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
 
-export function generateEnumToOrdinalName(typeName: string): string {
+export function generateEnumToNumericName(typeName: string): string {
     typeName = typeName.split(".").join("_")
-    return `${typeName}_ToOrdinal`
+    return `${typeName}_ToNumeric`
 }
 
-export function generateEnumFromOrdinalName(typeName: string): string {
+export function generateEnumFromNumericName(typeName: string): string {
     typeName = typeName.split(".").join("_")
-    return `${typeName}_FromOrdinal`
+    return `${typeName}_FromNumeric`
 }
 
 export function makeArrayTypeCheckCall(
@@ -225,13 +225,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
         return this.makeString(`${value} as ${type}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        return this.makeMethodCall('TypeChecker', generateEnumFromOrdinalName(enumName), [this.makeString(value.asString())])
+        return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumName), [value])
     }
-    ordinalFromEnum(value: LanguageExpression, enumEntry: idl.IDLType): LanguageExpression {
+    enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        return this.makeMethodCall('TypeChecker', generateEnumToOrdinalName(enumName), [this.makeString(value.asString())])
+        return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumName), [value])
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,

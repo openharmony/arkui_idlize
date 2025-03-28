@@ -499,9 +499,8 @@ export abstract class LanguageWriter {
     abstract makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement
     abstract get supportedModifiers(): MethodModifier[]
     abstract get supportedFieldModifiers(): FieldModifier[]
-    abstract enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
-    abstract ordinalFromEnum(value: LanguageExpression, enumReference: idl.IDLType): LanguageExpression
-    abstract makeEnumCast(enumEntry: idl.IDLEnum, enumName: string): string
+    abstract enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
+    abstract i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression
     abstract getNodeName(type: idl.IDLNode): string
     abstract fork(options?: { resolver?: ReferenceResolver }): LanguageWriter
 

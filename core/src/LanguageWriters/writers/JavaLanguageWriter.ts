@@ -320,13 +320,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeTupleAccess(value: string, index: number): LanguageExpression {
         return this.makeString(`${value}.value${index}`)
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = idl.forceAsNamedNode(enumEntry).name
         const ordinal = value.asString()
         return this.makeString(`${enumName}.values()[${ordinal}]`)
-    }
-    ordinalFromEnum(value: LanguageExpression, _: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value.asString()}.ordinal`)
     }
     makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}`)
@@ -335,10 +332,11 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         this.writeStatement(this.makeAssign(valueType, undefined,
             this.makeRuntimeTypeGetterCall(value), false))
     }
-    override makeEnumCast(enumEntry: idl.IDLEnum, enumName: string): string {
-        return idl.isStringEnum(enumEntry)
-            ? `${enumName}.ordinal`
-            : `${enumName}.value`
+    override i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+        const i32Value = idl.isStringEnum(enumEntry)
+            ? `${value.asString()}.ordinal`
+            : `${value.asString()}.value`
+        return this.makeString(i32Value)
     }
     override castToBoolean(value: string): string { return value }
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {

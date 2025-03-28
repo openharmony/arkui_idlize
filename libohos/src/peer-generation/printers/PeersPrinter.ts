@@ -479,7 +479,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                             const enumEntry = library.resolveTypeReference(returnType)
                             if (enumEntry && idl.isEnum(enumEntry))
                                 result = [
-                                    writer.makeReturn(writer.enumFromOrdinal(writer.makeString(returnValName), enumEntry))
+                                    writer.makeReturn(writer.enumFromI32(writer.makeString(returnValName), enumEntry))
                                 ]
                         }
                     }

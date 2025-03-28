@@ -398,11 +398,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     get supportedFieldModifiers(): FieldModifier[] {
         return []
     }
-    enumFromOrdinal(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+    enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`static_cast<${this.typeConvertor.convert(enumEntry)}>(` + value.asString() + `)`);
-    }
-    ordinalFromEnum(value: LanguageExpression, _: IDLType): LanguageExpression {
-        return value;
     }
     makeUnsafeCast(param: string): string {
         return param
@@ -424,8 +421,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return `(${typeName}) (${value.asString()})`
     }
-    override makeEnumCast(enumEntry: idl.IDLEnum, value: string): string {
-        return `static_cast<${this.typeConvertor.convert(idl.createReferenceType(enumEntry))}>(${value})`
+    override i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
+        return this.makeString(`static_cast<${this.typeConvertor.convert(idl.createReferenceType(enumEntry))}>(${value.asString()})`)
     }
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name

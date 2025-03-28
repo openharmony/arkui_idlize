@@ -274,17 +274,17 @@ export class EnumConvertor extends BaseArgConvertor {
             false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.makeEnumCast(this.enumEntry, writer.escapeKeyword(param))
+        return writer.i32FromEnum(writer.makeString(writer.escapeKeyword(param)), this.enumEntry).asString()
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         writer.writeMethodCall(`${param}Serializer`,
             "writeInt32",
-            [writer.makeEnumCast(this.enumEntry, value)])
+            [writer.i32FromEnum(writer.makeString(value), this.enumEntry).asString()])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
         const enumExpr = idl.isStringEnum(this.enumEntry)
-            ? writer.enumFromOrdinal(readExpr, this.enumEntry)
+            ? writer.enumFromI32(readExpr, this.enumEntry)
             : writer.makeCast(readExpr, this.enumEntry)
         return assigneer(enumExpr)
     }

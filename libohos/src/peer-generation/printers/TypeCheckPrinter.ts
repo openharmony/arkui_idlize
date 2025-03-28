@@ -9,7 +9,7 @@ import {
 import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize, isStringEnumType } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
-import { convertDeclaration, generateEnumToOrdinalName, generateEnumFromOrdinalName } from '@idlizer/core';
+import { convertDeclaration, generateEnumToNumericName, generateEnumFromNumericName } from '@idlizer/core';
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils';
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
@@ -164,7 +164,7 @@ abstract class TypeCheckerPrinter {
     protected abstract writeTypeInstanceOf(): void
     protected abstract writeTypeCast(): void
 
-    protected abstract writeEnumOrdinal(type: idl.IDLEnum): void
+    protected abstract writeEnumNumeric(type: idl.IDLEnum): void
     protected abstract writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void
     protected abstract writeArrayChecker(typeName: string, type: idl.IDLContainerType): void
 
@@ -202,7 +202,7 @@ abstract class TypeCheckerPrinter {
             for (const struct of interfaces)
                 this.writeInterfaceChecker(struct.name, struct.descriptor, struct.type)
             for (const e of enums) {
-                this.writeEnumOrdinal(e)
+                this.writeEnumNumeric(e)
             }
             for (const array of arrays) {
                 const name = this.library.getInteropName(array)
@@ -297,24 +297,26 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         )
     }
 
-    protected writeEnumOrdinal(type: idl.IDLEnum): void {
+    protected writeEnumNumeric(type: idl.IDLEnum): void {
         this.writer.writeMethodImplementation(
-            new Method(generateEnumToOrdinalName(this.writer.getNodeName(type)),
+            new Method(generateEnumToNumericName(this.writer.getNodeName(type)),
                 new NamedMethodSignature(
                     idl.IDLI32Type,
                     [idl.createReferenceType(type)], ["value"]),
                 [MethodModifier.STATIC]),
             writer => {
-                writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeString(`value.getOrdinal()`),
+                isPassedByOrdinalEnum(type)
+                    ? writer.writeStatement(
+                        writer.makeReturn(writer.makeString(`value.getOrdinal()`))
                     )
-                )
+                    : writer.writeStatement(
+                        writer.makeReturn(writer.makeString(`value.valueOf()`))
+                    )
             }
         )
         const enumName = this.writer.getNodeName(type)
         this.writer.writeMethodImplementation(
-            new Method(generateEnumFromOrdinalName(this.writer.getNodeName(type)),
+            new Method(generateEnumFromNumericName(this.writer.getNodeName(type)),
                 new NamedMethodSignature(
                     idl.createReferenceType(type),
                     [idl.IDLI32Type], ["ordinal"]),
@@ -324,11 +326,8 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
                     ? writer.writeStatement(
                         writer.makeReturn(writer.makeString(`${enumName}.values()[ordinal]`))
                     )
-                    : writer.writeStatements(
-                        // Enum.values().find(...) and Enum.values().findIndex(...)
-                        // do not work for some reason
-                        writer.makeStatement(writer.makeString(`for (const v of ${enumName}.values()) { if (v == ordinal) return v }`)),
-                        writer.makeThrowError(`Enum ${enumName} does not contain \${ordinal} value`),
+                    : writer.writeStatement(
+                        writer.makeReturn(writer.makeString(`${enumName}.fromValue(ordinal)`))
                     )
             }
         )
@@ -407,9 +406,9 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
         )
     }
 
-    protected writeEnumOrdinal(type: idl.IDLEnum): void {
+    protected writeEnumNumeric(type: idl.IDLEnum): void {
         this.writer.writeMethodImplementation(
-            new Method(generateEnumToOrdinalName(this.writer.getNodeName(type)),
+            new Method(generateEnumToNumericName(this.writer.getNodeName(type)),
                 new NamedMethodSignature(
                     idl.IDLI32Type,
                     [idl.createReferenceType(type)], ["value"]),
@@ -423,7 +422,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
             }
         )
         this.writer.writeMethodImplementation(
-            new Method(generateEnumFromOrdinalName(this.writer.getNodeName(type)),
+            new Method(generateEnumFromNumericName(this.writer.getNodeName(type)),
                 new NamedMethodSignature(
                     idl.createReferenceType(type),
                     [idl.IDLI32Type], ["ordinal"]),
@@ -540,5 +539,5 @@ export function printArkTSTypeChecker(library: PeerLibrary): PrinterResult[] {
 }
 
 function isPassedByOrdinalEnum(type: idl.IDLEnum): boolean {
-    return idl.isStringEnum(type) || type.elements.every((it, index) => it.initializer === index)
+    return idl.isStringEnum(type)
 }
