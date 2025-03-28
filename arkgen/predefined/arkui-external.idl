@@ -345,13 +345,13 @@ interface TouchPoint {
 };
 
 /*
-* from @ohos.deviceStatus.dragInteraction.idl
+* from @ohos.data.unifiedDataChannel.idl
 */
 [Entity=Interface]
 interface Summary {
 
-    attribute String dataType;
-    attribute number dataSize;
+    attribute record<String, i64> summary;
+    attribute i64 totalSize;
 
 };
 
