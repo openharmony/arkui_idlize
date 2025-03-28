@@ -147,6 +147,7 @@ function main() {
         dtsInputFiles,
         [],
         options.outputDir,
+        path.resolve(__dirname, "..", "stdlib.d.ts"),
         (sourceFile, program, compilerHost) => new LinterVisitor(sourceFile, program, compilerHost),
         {
             compilerOptions: defaultCompilerOptions,

@@ -79,6 +79,7 @@ export function generate<T>(
     inputFiles: string[],
     auxInputFiles: string[],
     outputDir: string,
+    stdlibFile: string,
     visitorFactory: (sourceFile: ts.SourceFile, program: ts.Program, compilerHost: ts.CompilerHost) => GenerateVisitor<T>,
     options: GenerateOptions<T>
 ): void {
@@ -177,15 +178,12 @@ export function generate<T>(
             return resolvedModules;
         }
     }
-    
-    let stdlib = path.resolve(require.resolve("@idlizer/arkgen"), "..", "..", "stdlib.d.ts")
-    if (!fs.existsSync(stdlib))
-        stdlib = path.join(__dirname, "../stdlib.d.ts")
-    if (!fs.existsSync(stdlib))
+
+    if (!fs.existsSync(stdlibFile))
         throw new Error("Unable to find stdlib.d.ts")
 
     const program = ts.createProgram(
-        [...input.values(), ...auxInput.values(), stdlib],
+        [...input.values(), ...auxInput.values(), stdlibFile],
         options.compilerOptions,
         compilerHost
     )

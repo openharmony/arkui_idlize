@@ -171,6 +171,7 @@ if (options.dts2peer) {
         dtsInputFiles,
         dtsAuxInputFiles,
         generatedPeersDir,
+        path.resolve(__dirname, "..", "stdlib.d.ts"),
         (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,

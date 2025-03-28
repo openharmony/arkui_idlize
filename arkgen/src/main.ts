@@ -168,6 +168,7 @@ if (options.dts2skoala) {
         dtsInputFiles,
         dtsAuxInputFiles,
         outputDir,
+        path.resolve(__dirname, "..", "stdlib.d.ts"),
         (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, skoalaLibrary),
         {
             compilerOptions: {
@@ -281,6 +282,7 @@ if (options.dts2peer) {
         dtsInputFiles,
         dtsAuxInputFiles,
         generatedPeersDir,
+        path.resolve(__dirname, "..", "stdlib.d.ts"),
         (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, idlLibrary),
         {
             compilerOptions: defaultCompilerOptions,

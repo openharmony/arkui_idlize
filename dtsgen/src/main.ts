@@ -93,6 +93,7 @@ if (options.dts2idl) {
         dtsInputFiles,
         dtsAuxInputFiles,
         options.outputDir ?? "./idl",
+        path.resolve(__dirname, "..", "stdlib.d.ts"),
         (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options),
         {
             compilerOptions: defaultCompilerOptions,
