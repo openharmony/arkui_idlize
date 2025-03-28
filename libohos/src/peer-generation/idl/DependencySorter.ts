@@ -119,6 +119,8 @@ class CachedTransformer {
     }
 }
 
+export type UnionFlatteningMode = boolean | "both"
+
 export class DependencySorter {
     dependenciesCollector: SorterDependenciesCollector
     private cachedTransformer = new CachedTransformer(this.library)
@@ -128,9 +130,9 @@ export class DependencySorter {
 
     constructor(
         private library: LibraryInterface,
-        private doUnionFlattening: boolean)
+        private unionFlatteningMode: UnionFlatteningMode)
     {
-        this.dependenciesCollector = new SorterDependenciesCollector(library, this.doUnionFlattening);
+        this.dependenciesCollector = new SorterDependenciesCollector(library, this.unionFlatteningMode===true || this.unionFlatteningMode==="both");
     }
 
     private fillDependencies(target: idl.IDLNode) {
@@ -159,14 +161,34 @@ export class DependencySorter {
         this.adjMap.set(target, deps)
     }
 
-    addDep(declaration: idl.IDLNode) {
-        if (this.doUnionFlattening && idl.isUnionType(declaration))
-            declaration = flattenUnionType(this.library, declaration)
+    addDepExactly(declaration: idl.IDLNode) {
         declaration = this.cachedTransformer.transofrm(declaration)
         if (this.dependencies.has(declaration)) return
         this.dependencies.add(declaration)
         this.fillDependencies(declaration)
         // if (seen.size > 0) console.log(`${name}: depends on ${Array.from(seen.keys()).join(",")}`)
+    }
+
+    addDep(declaration: idl.IDLNode) {
+        switch (this.unionFlatteningMode) {
+        case "both":
+            this.addDepExactly(declaration)
+            if (idl.isUnionType(declaration)) {
+                const flatten = flattenUnionType(this.library, declaration)
+                if (flatten !== declaration)
+                    this.addDepExactly(flatten)
+            }
+            break;
+        case true:
+            if (idl.isUnionType(declaration))
+                this.addDepExactly(flattenUnionType(this.library, declaration))
+            else
+                this.addDepExactly(declaration)
+            break;
+        case false:
+            this.addDepExactly(declaration)
+            break;
+        }
     }
 
     // Kahn's algorithm.

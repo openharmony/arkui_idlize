@@ -38,11 +38,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignOptionalTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        const allUnions = DeclarationTargets.allUnionTypes(this.library, false)
-        for (const [typename, selectors] of DeclarationTargets.allUnionTypes(this.library, true))
-            allUnions.set(typename, selectors)
-
-        for (const [typename, selectors] of allUnions) {
+        for (const [typename, selectors] of DeclarationTargets.allUnionTypes(this.library, "both")) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignUnionTo(std::optional<T>& dst,`)
             this.writer.print(`                   const ${typename}& src)`)
@@ -94,7 +90,7 @@ class ConvertorsPrinter {
         this.writer.print("}")
         this.writer.popIndent()
         this.writer.pushIndent()
-        DeclarationTargets.allOptionalTypes(this.library).forEach(optionalName => {
+        DeclarationTargets.allOptionalTypes(this.library, "both").forEach(optionalName => {
             this.writer.print(`ASSIGN_OPT(${optionalName})`)
         })
         //this.writer.popIndent()
@@ -107,7 +103,7 @@ class ConvertorsPrinter {
         this.writer.print('void AssignLiteralTo(std::optional<T>& dst, const P& src);')
         this.writer.print("")
 
-        for (const [name, fields] of DeclarationTargets.allLiteralTypes(this.library)) {
+        for (const [name, fields] of DeclarationTargets.allLiteralTypes(this.library, "both")) {
             this.writer.print('template<typename T>')
             this.writer.print(`void AssignLiteralTo(std::optional<T>& dst,`)
             this.writer.print(`                     const ${this.writer.escapeKeyword(name)}& src)`)
