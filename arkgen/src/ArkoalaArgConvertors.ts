@@ -126,7 +126,7 @@ export class ArkoalaMaterializedClassConvertor extends MaterializedClassConverto
             const gestureType = this.declaration.name === "GestureGroupInterface"
                 ? "Group"
                 : this.declaration.name.slice(0, -"GestureInterface".length)
-            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent<Object>"), { unsafe: true })
+            const castExpr = writer.makeCast(writer.makeString(value), idl.createReferenceType("GestureComponent", [idl.IDLObjectType]), { unsafe: true })
             return writer.makeNaryOp("===", [
                 writer.makeString(`${castExpr.asString()}.type`),
                 writer.makeString(`GestureName.${gestureType}`)])

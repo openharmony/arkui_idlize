@@ -119,6 +119,7 @@ build arkoala-ts:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
+    - npm run compile
     - KOALA_BZ=1 OPENLAB_USERNAME=koala-ci OPENLAB_PASSWORD=w1llUgu3ss npm run arkoala:ts
 
 #build arkoala-ts-native-arm64:
