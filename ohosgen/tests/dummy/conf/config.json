@@ -42,12 +42,7 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": false,
+    "CollapseOverloadsARKTS": true,
     "constants": {
-        "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
-        "DataClass.propString": "''",
-        "DataClass.propObject": "[false, 0, '']",
-        "IDLDataClass.propString": "''",
-        "IDLDataClass.propObject": "[false, 0, '']"
     }
 }

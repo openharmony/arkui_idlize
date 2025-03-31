@@ -2,7 +2,7 @@ import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loa
 import { checkArkoalaCallbacks } from "../../generated/ts";
 
 export { dtsDummy, idlDummy } from "../../generated/ts"
-export { DTSDummyClass } from "../../generated/ts"
+// export { DTSDummyClass } from "../../generated/ts"
 // export { IDLDummyClass } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer

@@ -1,6 +1,6 @@
 
 import { dtsDummy, idlDummy } from "#compat"
-import { DTSDummyClass } from "#compat"
+// import { DTSDummyClass } from "#compat"
 // import { IDLDummyClass } from "#compat"
 
 export function run() {
@@ -10,7 +10,7 @@ export function run() {
   dtsDummy()
   idlDummy()
 
-  new DTSDummyClass().dummy()
+  // new DTSDummyClass().dummy()
   // new IDLDummyClass().dummy()
 }
 

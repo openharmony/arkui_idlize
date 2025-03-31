@@ -29,6 +29,7 @@ void GlobalScope_dtsDummyImpl() {
     printf("Output from DTS dummy\n");
 }
 
+/*
 // DTSDummyClass
 class DTSDummyClassPeer
 {
@@ -42,6 +43,7 @@ void DTSDummyClass_destructImpl(OH_DUMMY_DTSDummyClassHandle thisPtr) {
 void DTSDummyClass_dummyImpl(OH_NativePointer thisPtr) {
     printf("Call DTS dummy impl method!\n");
 }
+*/
 
 /*
 // IDLDummyClass

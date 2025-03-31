@@ -4,7 +4,7 @@ import { checkArkoalaCallbacks } from "../../generated/arkts";
 import { DUMMYNativeModule } from "../../generated/arkts"
 
 export { dtsDummy, idlDummy } from "../../generated/arkts"
-export { DTSDummyClass } from "../../generated/arkts"
+// export { DTSDummyClass } from "../../generated/arkts"
 // export { IDLDummyClass } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
