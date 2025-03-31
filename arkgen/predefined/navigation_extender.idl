@@ -1,6 +1,6 @@
 package org.openharmony.idlize.predefined;
 
-callback NavExtender_OnUpdateStack = void ();
+callback NavExtender_OnUpdateStack = void (String name);
 
 [Entity=Class]
 interface NavExtender {
@@ -10,28 +10,4 @@ interface NavExtender {
   static pointer navigationCreate(i32 peer, i32 flag);
   static void setNavigationOptions(pointer navigation, NavPathStack stack);
   static void setNavDestinationNode(NavPathStack peer, i32 index, pointer node);
-  static void setNavigationMode(pointer navigation, NavigationMode mode);
-};
-[Entity=Class]
-interface NavStackExtender {
-  static pointer getInfoFinalizer();
-  static pointer createNavPathInfo(String name, String navDestinationId, boolean isEntry);
-  static void setName(pointer info, String name);
-  static String getName(pointer info);
-  static void setIsEntry(pointer info, boolean isEntry);
-  static boolean getIsEntry(pointer info);
-  static String getNavDestinationId(pointer info);
-  static pointer createNavPathStack();
-  static pointer getPathStackFinalizer();
-  static void pushPath(pointer stack, pointer info, boolean isAnimated, LaunchMode mode);
-  static String pop(pointer stack, boolean isAnimated);
-  static void replacePath(pointer stack, pointer info, bool isAnimated, LaunchMode mode);
-  static void clear(pointer stack, boolean isAnimated);
-  static i32 getSize(pointer stack);
-  static sequence<String> getAllPathName(pointer stack);
-  static sequence<String> getNavDestinationIdByName(pointer stack, String name);
-  static String getNavDestinationIdByIndex(pointer stack, i32 index);
-  static void setInterception(pointer stack, NavigationInterception interception);
-  static sequence<number> getIndexByName(pointer stack, String name);
-  static void disableAllAnimation(pointer stack, boolean disabled);
 };
