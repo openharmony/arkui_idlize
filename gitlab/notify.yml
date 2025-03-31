@@ -6,7 +6,7 @@
       when: always
   script: |
     if [ $CI_JOB_STATUS == 'success' ]; then
-      node ./tools/telegram/telegram-ci.mjs ✅
+      node ./tools/telegram/telegram-ci.mjs 1
     else
-      node ./tools/telegram/telegram-ci.mjs ❌
+      node ./tools/telegram/telegram-ci.mjs 0
     fi

@@ -1,5 +1,6 @@
 import http from 'http'
 import https from 'https'
+import { argv } from 'process'
 
 const projectUrl = process.env.CI_PROJECT_URL
 const projectName = process.env.CI_PROJECT_NAME
@@ -13,7 +14,21 @@ const [userId, threadId] = groupId.split("_")
 const botToken = process.env.TELEGRAM_BOT_TOKEN
 
 const args = process.argv.slice(2);
-const status = args[0]
+const status = args[0] == 1
+const statusIcon = status ? `✅` : `❌`
+
+const stickers = [
+    "CAACAgIAAxkBAAEzF5Nn5VZCtPpuIShtIHS6EzwofhnL-gAC9ggAAlwCZQONlIN4aWCoYDYE",
+    "CAACAgIAAxkBAAEzFv5n5UgmNl2Hvb1O0Gh11l8oPe5c_wAChj4AAnj9EUorqVIjwrrubDYE",
+    "CAACAgIAAxkBAAEzF3ln5VQ0Kz1D_1c3EperO10FGSSrrAAC7ggAAlwCZQM1FgF20HH7NjYE",
+    "CAACAgIAAxkBAAEzF4ln5VUi0MxDcCDibY4wrIlu9ZhrTQAC8wgAAlwCZQMzPhhd28IVtzYE",
+    "CAACAgIAAxkBAAEzF5dn5VZwrh4YUg46wGlo_LPYu28EZAAC7wgAAlwCZQNot15knn_aCDYE",
+    "CAACAgIAAxkBAAEzF5ln5VaisovBF5YczPqXwANy_JWhlwAC5AgAAlwCZQPl4Awd5AG57zYE"
+]
+
+function randomItem(items) {
+    return items[Math.floor(Math.random() * items.length)]
+}
 
 function httpPost(url, data) {
     const protocol = url.startsWith('https') ? https : http
@@ -58,7 +73,7 @@ function httpPost(url, data) {
 }
 
 async function send() {
-    const message = `#idlize ${jobName}: ${status}\n\nURL:${projectUrl}/pipelines/${pipelineId}/\nBranch:${branchName}\nAuthor:${author}`
+    const message = `#idlize ${jobName}: ${statusIcon}\n\nURL:${projectUrl}/pipelines/${pipelineId}/\nBranch:${branchName}\nAuthor:${author}`
 
     await httpPost(`https://api.telegram.org/bot${botToken}/sendMessage`, {
         message_thread_id: threadId,
@@ -66,6 +81,13 @@ async function send() {
         disable_web_page_preview: 1,
         text: message
     })
+
+    if (!status) {
+        await httpPost(`https://api.telegram.org/bot${botToken}/sendSticker`, {
+            chat_id: userId,
+            sticker: randomItem(stickers)
+        })
+    }
 }
 
 send()
