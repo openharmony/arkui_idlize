@@ -173,17 +173,6 @@ export function generateArkoalaFromIdl(config: {
         })
     }
 
-    const interfaces = printInterfaces(peerLibrary)
-    for (const [targetFile, data] of interfaces) {
-        const outComponentFile = arkoala.interface(targetFile)
-        writeFile(outComponentFile, data, {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-            message: "producing"
-        })
-        arkuiComponentsFiles.push(outComponentFile)
-    }
-
     const spreadIfLang = <T>(langs: Language[], ...data: T[]): T[] => {
         if (langs.includes(peerLibrary.language))
             return data
@@ -199,6 +188,7 @@ export function generateArkoalaFromIdl(config: {
         peerLibrary,
         [
             createMaterializedPrinter(config.dumpSerialized),
+            printInterfaces,
             printComponents,
             printGlobal,
             createSerializerPrinter(peerLibrary.language, ""),

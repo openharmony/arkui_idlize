@@ -250,10 +250,12 @@ export class CheckOptionalStatement implements LanguageStatement {
 
 // maybe rename or move of fix
 export class TsEnumEntityStatement implements LanguageStatement {
-    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
+    constructor(
+        private readonly enumEntity: idl.IDLEnum,
+        private readonly isExport: boolean,
+    ) {}
     write(writer: LanguageWriter): void {
         // writer.print(this.enumEntity.comment)
-        idl.getNamespacesPathFor(this.enumEntity).forEach(it => writer.pushNamespace(it.name))
         writer.print(`${this.isExport ? "export " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
         this.enumEntity.elements.forEach((member, index) => {
@@ -270,7 +272,6 @@ export class TsEnumEntityStatement implements LanguageStatement {
         })
         writer.popIndent()
         writer.print(`}`)
-        idl.getNamespacesPathFor(this.enumEntity).forEach(it => writer.popNamespace())
     }
 
     private maybeQuoted(value: string|number): string {

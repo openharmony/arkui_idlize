@@ -83,7 +83,10 @@ class ArkTSMapForEachStatement implements LanguageStatement {
 }
 
 export class ArkTSEnumEntityStatement implements LanguageStatement {
-    constructor(private readonly enumEntity: IDLEnum, private readonly isExport: boolean) {}
+    constructor(
+        private readonly enumEntity: IDLEnum,
+        private readonly isExport: boolean,
+    ) {}
 
     write(writer: LanguageWriter) {
         let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
@@ -123,10 +126,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 return res
             })
 
-        const nss = idl.getNamespacesPathFor(this.enumEntity)
-        nss.forEach(it => writer.pushNamespace(it.name))
         writer.writeEnum(enumName, members)
-        nss.forEach(() => writer.popNamespace())
     }
 }
 

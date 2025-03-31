@@ -106,7 +106,10 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
                 if (seenNames.has(decl.name) && decl.name == "ContentType") continue
                 seenNames.add(decl.name)
                 enums.push(decl)
+                const ns = idl.getNamespacesPathFor(decl)
+                ns.forEach(n => writer.pushNamespace(n.name))
                 writer.writeStatement(writer.makeEnumEntity(decl, true))
+                ns.forEach(() => writer.popNamespace())
             }
         }
     printEnumsGlobalAssign(enums, writer)
