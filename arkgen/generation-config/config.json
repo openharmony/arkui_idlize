@@ -157,6 +157,8 @@
             "ISinglePropertyChangeSubscriber",
             "SystemBarStyle",
             "Navigation",
+            "NavPathStack",
+            "NavPathInfo",
             "AbstractProperty",
             "ISinglePropertyChangeSubscriber",
             "PageTransitionEnterInterface",
