@@ -84,7 +84,9 @@ async function send() {
 
     if (!status) {
         await httpPost(`https://api.telegram.org/bot${botToken}/sendSticker`, {
+            message_thread_id: threadId,
             chat_id: userId,
+            disable_web_page_preview: 1,
             sticker: randomItem(stickers)
         })
     }
