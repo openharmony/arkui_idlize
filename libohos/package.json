@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/libohos",
-  "version": "2.1.2+devel",
+  "version": "2.1.3+devel",
   "description": "",
   "types": "build/lib/src/index.d.ts",
   "exports": {
@@ -22,7 +22,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.2+devel",
+    "@idlizer/core": "2.1.3+devel",
     "@types/node": "^18.0.0"
   },
   "scripts": {
