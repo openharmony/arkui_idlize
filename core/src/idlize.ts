@@ -207,13 +207,9 @@ export function generate<T>(
     for (const sourceFile of program.getSourceFiles()) {
         const resolvedSourceFileName = path.resolve(sourceFile.fileName)
 
-        const isInput = input.has(resolvedSourceFileName)
-        const isAuxInput = auxInput.has(resolvedSourceFileName)
-        if (!isInput && !isAuxInput)
-            continue
-
+        const isAux = !input.has(resolvedSourceFileName)
         if (options.enableLog) {
-            console.log(`Processing file: ${resolvedSourceFileName}`)
+            console.log(`Processing ${isAux?"aux ":""}file: ${resolvedSourceFileName}`)
         }
 
         // Walk the tree to search for classes
@@ -223,7 +219,7 @@ export function generate<T>(
             tsSourceFile: sourceFile,
             visitor,
             result,
-            isAux: isAuxInput
+            isAux: isAux
         }
     }
 

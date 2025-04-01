@@ -42,6 +42,7 @@ import {
     isSyntheticEntry,
     linkParentBack,
     transformMethodsAsync2ReturnPromise,
+    linearizeNamespaceMembers
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
@@ -155,7 +156,7 @@ if (options.dts2skoala) {
     validatePaths(auxInputFiles, "file")
 
     const dtsInputFiles = scanInputDirs(inputDirs, '.d.ts').concat(inputFiles)
-    const dtsAuxInputFiles = scanInputDirs(auxInputDirs, '.d.ts').concat(auxInputFiles)
+    const dtsAuxInputFiles = auxInputFiles
 
     if (dtsInputFiles.length === 0) {
         console.error("Error: No input directory or files provided.")
@@ -256,8 +257,7 @@ if (options.dts2peer) {
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
         .concat(arkgenPredefinedFiles())
-    const allAuxInputFiles = scanInputDirs(auxInputDirs)
-        .concat(auxInputFiles)
+    const allAuxInputFiles = auxInputFiles
     const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
     const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
@@ -301,6 +301,11 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
+
+                linearizeNamespaceMembers(file.entries).forEach(it => {
+                    transformMethodsAsync2ReturnPromise(it)
+                })
+                linkParentBack(file)
 
                 const peerFile = new PeerFile(file)
 

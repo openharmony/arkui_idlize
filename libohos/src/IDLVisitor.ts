@@ -168,8 +168,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         idl.linkParentBack(this.file!)
         idl.linearizeNamespaceMembers(this.file.entries).forEach(it => {
-            // idl.transformMethodsReturnPromise2Async(it)
-            idl.transformMethodsAsync2ReturnPromise(it)
+            idl.transformMethodsReturnPromise2Async(it)
+            //idl.transformMethodsAsync2ReturnPromise(it)
             if (this.defaultExport && this.defaultExport === idl.getQualifiedName(it, "namespace.name")) {
                 it.extendedAttributes ||= []
                 it.extendedAttributes.push({ name: idl.IDLExtendedAttributes.DefaultExport })
@@ -641,9 +641,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
             result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${peerGeneratorConfiguration().mapComponentName(name)}"` })
-        }
-        if (node.modifiers?.filter(it => it.kind === ts.SyntaxKind.DefaultKeyword || it.kind === ts.SyntaxKind.ExportKeyword)?.length === 2) {
-            result.push({ name: idl.IDLExtendedAttributes.DefaultExport })
         }
         return this.computeDeprecatedExtendAttributes(node, result)
     }

@@ -1174,16 +1174,18 @@ export function printMethod(idl: IDLMethod): PrintedLine[] {
 }
 
 export function printPackage(idl: IDLFile): PrintedLine[] {
-    if (!idl.packageClause.length)
+    const effectiveClause = idl.packageClause.filter(it => !!it)
+    if (!effectiveClause.length)
         return []
     return [
-        `package ${idl.packageClause.join(".")};`
+        `package ${effectiveClause.join(".")};`
     ]
 }
 
 export function printImport(idl: IDLImport): PrintedLine[] {
+    const effectiveClause = idl.clause.filter(it => !!it)
     return [
-        `import ${idl.clause.join(".")}${idl.name ? " as " : ""}${idl.name};`
+        `import ${effectiveClause.join(".")||"NULL_IMPORT"}${idl.name ? " as " : ""}${idl.name};`
     ]
 }
 

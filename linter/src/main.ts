@@ -23,6 +23,8 @@ import { patchDefaultConfiguration, findVersion, generate, scanInputDirs } from 
 
 const options = program
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
+    .option('--aux-input-dir <path>', 'Path to aux input dir(s), comma separated')
+    .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
     .option('--output-dir <path>', 'Path to output dir')
     .option('-r,--recursive', 'Scan input directory recursively', false)
     .option('--input-file <name>', 'Name of file to convert, all files in input-dir if none')

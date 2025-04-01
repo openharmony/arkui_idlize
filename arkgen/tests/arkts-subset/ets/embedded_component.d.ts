@@ -15,18 +15,18 @@
 
 interface EmbeddedComponentInterface {
    (
-       loader: import('../api/@ohos.app.ability.Want').default,
+       loader: Want,
        type: EmbeddedType
    ): EmbeddedComponentAttribute;
 }
 
 declare interface TerminationInfo {
    code: number;
-   want?: import('../api/@ohos.app.ability.Want').default;
+   want?: Want;
 }
 
 declare class EmbeddedComponentAttribute extends CommonMethod<EmbeddedComponentAttribute> {
-   onTerminated(callback: import('../api/@ohos.base').Callback<TerminationInfo>): EmbeddedComponentAttribute;
+   onTerminated(callback: Callback<TerminationInfo>): EmbeddedComponentAttribute;
    onError(callback: ErrorCallback): EmbeddedComponentAttribute;
 }
 

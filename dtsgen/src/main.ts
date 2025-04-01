@@ -78,9 +78,8 @@ validatePaths(auxInputDirs, "dir")
 validatePaths(inputFiles, "file")
 validatePaths(auxInputFiles, "file")
 
-options.docs = "all"
 const dtsInputFiles = scanInputDirs(inputDirs).concat(inputFiles)
-const dtsAuxInputFiles = scanInputDirs(auxInputDirs).concat(auxInputFiles)
+const dtsAuxInputFiles = auxInputFiles
 
 if (options.dts2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
@@ -97,11 +96,15 @@ if (options.dts2idl) {
         (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options),
         {
             compilerOptions: defaultCompilerOptions,
-            onSingleFile: (file: IDLFile, outputDir, sourceFile) => {
-                console.log('producing', path.basename(sourceFile.fileName))
+            onSingleFile: (file: IDLFile, outputDir, sourceFile, isAux) => {
+                const basename = path.basename(sourceFile.fileName)
+                if (basename === "stdlib.d.ts")
+                    return
+                
+                console.log('producing', basename)
                 const outFile = path.join(
                     outputDir,
-                    path.basename(sourceFile.fileName).replace(".d.ts", ".idl")
+                    basename.replace(".d.ts", ".idl")
                 )
 
                 console.log("saved", outFile)
@@ -121,7 +124,12 @@ if (options.dts2idl) {
                 if (options.verifyIdl) {
                     verifyIDLString(generated)
                 }
-                idlLibrary.files.push(new PeerFile(file))
+
+                const peerFile = new PeerFile(file)
+                if (isAux)
+                    idlLibrary.auxFiles.push(peerFile)
+                else
+                    idlLibrary.files.push(peerFile)
             },
             onEnd(outDir: string) {
                 if (options.verifyIdl) {

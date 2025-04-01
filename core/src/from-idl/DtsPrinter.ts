@@ -66,6 +66,7 @@ import {
     SignatureTag,
     createReferenceType,
     transformMethodsAsync2ReturnPromise,
+    linearizeNamespaceMembers,
     isNamedNode,
     IDLNode,
     IDLThisType,
@@ -433,8 +434,10 @@ export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
     const idlFile = toIDLFile(name, content)
     printer.printPackage(idlFile)
-    idlFile.entries.forEach(it => {
+    linearizeNamespaceMembers(idlFile.entries).forEach(it => {
         transformMethodsAsync2ReturnPromise(it)
+    })
+    idlFile.entries.forEach(it => {
         printer.visit(it)
     })
     return printer.output.join("\n")

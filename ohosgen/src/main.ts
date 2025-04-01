@@ -34,6 +34,7 @@ import {
     isEnum,
     isInterface,
     isSyntheticEntry,
+    linearizeNamespaceMembers,
     linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
@@ -147,8 +148,7 @@ if (options.dts2peer) {
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
-    const allAuxInputFiles = scanInputDirs(auxInputDirs)
-        .concat(auxInputFiles)
+    const allAuxInputFiles = auxInputFiles
     const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
     const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
@@ -188,7 +188,7 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
-                file.entries.forEach(it => {
+                linearizeNamespaceMembers(file.entries).forEach(it => {
                     transformMethodsAsync2ReturnPromise(it)
                 })
                 linkParentBack(file)
