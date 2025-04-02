@@ -1,5 +1,67 @@
 package api.internal.component.ets;
 
+/*
+* from @ohos.graphics.drawing.idl
+*/
+dictionary BlendMode {
+
+    number CLEAR = 0;
+    number SRC = 1;
+    number DST = 2;
+    number SRC_OVER = 3;
+    number DST_OVER = 4;
+    number SRC_IN = 5;
+    number DST_IN = 6;
+    number SRC_OUT = 7;
+    number DST_OUT = 8;
+    number SRC_ATOP = 9;
+    number DST_ATOP = 10;
+    number XOR = 11;
+    number PLUS = 12;
+    number MODULATE = 13;
+    number SCREEN = 14;
+    number OVERLAY = 15;
+    number DARKEN = 16;
+    number LIGHTEN = 17;
+    number COLOR_DODGE = 18;
+    number COLOR_BURN = 19;
+    number HARD_LIGHT = 20;
+    number SOFT_LIGHT = 21;
+    number DIFFERENCE = 22;
+    number EXCLUSION = 23;
+    number MULTIPLY = 24;
+    number HUE = 25;
+    number SATURATION = 26;
+    number COLOR = 27;
+    number LUMINOSITY = 28;
+
+};
+
+[Entity=Class]
+interface ColorFilter {
+    static ColorFilter createBlendModeColorFilter(Color color, BlendMode mode);
+    static ColorFilter createBlendModeColorFilter(number color, BlendMode mode);
+    static ColorFilter createComposeColorFilter(ColorFilter outer, ColorFilter inner);
+    static ColorFilter createLinearToSRGBGamma();
+    static ColorFilter createSRGBGammaToLinear();
+    static ColorFilter createLumaColorFilter();
+    static ColorFilter createMatrixColorFilter(sequence<number> matrix);
+};
+
+typedef ColorFilter DrawingColorFilter;
+
+[Entity=Class]
+interface Lattice {
+    static Lattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<Color> fColors);
+    static Lattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<number> fColors);
+};
+
+dictionary RectType {
+    number DEFAULT = 0;
+    number TRANSPARENT = 1;
+    number FIXEDCOLOR = 2;
+};
+
 // typedef Canvas DrawingCanvas;
 
 [Entity=Class]
