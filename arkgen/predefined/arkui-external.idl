@@ -336,14 +336,6 @@ interface FontInfo {
     attribute boolean symbolic;
 };
 
-[Entity=Interface]
-interface TouchPoint {
-
-    attribute Dimension x;
-    attribute Dimension y;
-
-};
-
 /*
 * from @ohos.data.unifiedDataChannel.idl
 */
