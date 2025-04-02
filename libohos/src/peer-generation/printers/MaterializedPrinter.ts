@@ -406,8 +406,8 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
     // write "fromPtr(ptr: number): MaterializedClass" method
     const className: string = clazz.getImplementationName()
     const clazzRefType = clazz.isInterface
-        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(idl.createTypeParameterReference))
-        : idl.createReferenceType(clazz.decl, clazz.generics?.map(idl.createTypeParameterReference))
+        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(it)))
+        : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
     const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
     writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
         const objVar = `obj`

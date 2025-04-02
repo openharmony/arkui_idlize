@@ -378,8 +378,11 @@ function toIDLDictionary(file: string, node: webidl2.DictionaryType): idl.IDLEnu
 function toIDLNamespace(file: string, node: webidl2.NamespaceType): idl.IDLNamespace {
     const namespace = idl.createNamespace(
         node.name,
-        toExtendedAttributes(node.extAttrs),
-        file
+        [],
+        {
+            extendedAttributes: toExtendedAttributes(node.extAttrs),
+            fileName: file
+        }
     )
     namespace.members = node.members.map(it => toIDLNodeForward(file, it))
     return namespace
@@ -388,8 +391,10 @@ function toIDLNamespace(file: string, node: webidl2.NamespaceType): idl.IDLNames
 function toIDLVersion(file: string, node: webidl2.VersionType): idl.IDLVersion {
     return idl.createVersion(
         node.value,
-        toExtendedAttributes(node.extAttrs),
-        file
+        {
+            extendedAttributes: toExtendedAttributes(node.extAttrs),
+            fileName: file
+        }
     )
 }
 function toIDLProperty(file: string, node: webidl2.AttributeMemberType): idl.IDLProperty {

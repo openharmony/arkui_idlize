@@ -111,8 +111,9 @@ function createMaterializedInternal(library: PeerLibrary, targets: idl.IDLNode[]
 
 function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
     const declaration = idl.createInterface(NativeModule.Generated.name, idl.IDLInterfaceSubkind.Interface)
-    const file = idl.createFile([declaration], undefined, PACKAGE_IDLIZE_INTERNAL.split("."))
-    idl.linkParentBack(file)
+    const file = idl.linkParentBack(
+        idl.createFile([declaration], undefined, PACKAGE_IDLIZE_INTERNAL.split("."))
+    )
     library.files.push(new PeerFile(file))
 }
 

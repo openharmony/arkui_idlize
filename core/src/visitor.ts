@@ -56,7 +56,7 @@ export function walkIDL<T>(convertor: IDLConverter<T>, node: idl.IDLNode): T {
     }
     if (idl.isTypeParameterType(node)) return convertor.visitTypeParameter(node)
     if (idl.isPrimitiveType(node)) return convertor.visitPrimitiveType(node)
-        throw new Error(`Unknown kind ${idl.IDLKind[node.kind]}`)
+    throw new Error(`Unknown kind ${idl.IDLKind[node.kind]}`)
 }
 
 ////////////////////////////////////////////////////////////////////////////

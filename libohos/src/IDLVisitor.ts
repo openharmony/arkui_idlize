@@ -153,7 +153,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         this.file.fileName = this.sourceFile.fileName
         ts.forEachChild(this.sourceFile, (node) => this.visit(node))
         this.file.packageClause = this.detectPackageName(this.sourceFile)
-        idl.linkParentBack(this.file!)
+        this.file = idl.linkParentBack(this.file!)
         return this.file
     }
 
@@ -166,7 +166,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         this.file.entries.unshift(...this.imports)
 
-        idl.linkParentBack(this.file!)
+        this.file = idl.linkParentBack(this.file!)
         idl.linearizeNamespaceMembers(this.file.entries).forEach(it => {
             idl.transformMethodsReturnPromise2Async(it)
             //idl.transformMethodsAsync2ReturnPromise(it)
@@ -361,7 +361,14 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 // This is a namespace, visit its children
                 if (node.body) {
                     const parentNamespace = this.currentNamespace
-                    this.currentNamespace = idl.createNamespace(node.name.getText(), [], node.getSourceFile().fileName)
+                    this.currentNamespace = idl.createNamespace(
+                        node.name.getText(),
+                        [],
+                        {
+                            extendedAttributes: [],
+                            fileName: node.getSourceFile().fileName
+                        }
+                    )
                     const parentOutput = this.file.entries
                     this.file.entries = this.currentNamespace.members
                     ts.forEachChild(node.body, (node) => this.visit(node));
@@ -475,7 +482,10 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         const name = nameOrNull(node.name) ?? "UNDEFINED_Module"
         return idl.createNamespace(
             name,
-            [{ name: idl.IDLExtendedAttributes.VerbatimDts, value: `"${escapeAmbientModuleContent(this.sourceFile, node)}"` }]
+            [],
+            {
+                extendedAttributes: [{ name: idl.IDLExtendedAttributes.VerbatimDts, value: `"${escapeAmbientModuleContent(this.sourceFile, node)}"` }]
+            }
         )
     }
 
