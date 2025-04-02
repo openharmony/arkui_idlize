@@ -372,14 +372,13 @@ function checkThrowException() {
   try {
     checkExceptionClass.checkException()
   } catch (error) {
+    let errObj = error as Error
     catchException = true
-    console.log(`error: ${error}`)
-    // TBD: Exception is not thrown for ArkTS
-    assertEQ("Exception from CheckExceptionClass", `${error}`)
+    console.log(`error: ${errObj.message}`)
+    assertEQ("Exception from CheckExceptionClass", `${errObj.message}`)
   }
 
-  // TBD: Exception is not thrown for ArkTS
-  // assertEQ(true, catchException, "Exception has not been thrown!")
+  assertEQ(true, catchException, "Exception has not been thrown!")
 
   catchException = false
 
@@ -387,13 +386,13 @@ function checkThrowException() {
     const checkExceptionInterface = checkExceptionClass.getInterface()
     checkExceptionInterface.checkException()
   } catch (error) {
+    let errObj = error as Error
     catchException = true
-    console.log(`error: ${error}`)
-    assertEQ("Exception from CheckExceptionInterface", `${error}`)
+    console.log(`error: ${errObj.message}`)
+    assertEQ("Exception from CheckExceptionInterface", `${errObj.message}`)
   }
 
-  // TBD: Exception is not thrown for ArkTS
-  // assertEQ(true, catchException, "Exception has not been thrown!")
+  assertEQ(true, catchException, "Exception has not been thrown!")
 }
 
 export function run() {
