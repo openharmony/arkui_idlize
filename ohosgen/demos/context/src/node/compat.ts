@@ -6,10 +6,7 @@ export { BaseContext, Context, ApplicationContext } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("APPLICATIONNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }

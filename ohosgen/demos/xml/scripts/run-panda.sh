@@ -10,4 +10,5 @@ out_dir=build/panda
 bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc
 
 echo "Start Panda with" ${bootfiles}
-LD_LIBRARY_PATH=$PWD/$out_dir $arkts_dir/ark --ark-boot-files $bootfiles $out_dir/app.abc --ark-entry-point @xml.src.panda.main.ETSGLOBAL::main
+LD_LIBRARY_PATH=$PWD/$out_dir:$external_dir/interop/build:$LD_LIBRARY_PATH \
+    $arkts_dir/ark --ark-boot-files $bootfiles $out_dir/app.abc --ark-entry-point @xml.src.panda.main.ETSGLOBAL::main

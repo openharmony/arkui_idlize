@@ -30,7 +30,7 @@ OH_Boolean mediaquery_MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr
 OH_String mediaquery_MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
     return {};
 }
-OH_NativePointer GlobalScope_matchMediaSyncImpl(const OH_String* condition) {
+OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListener GlobalScope_matchMediaSyncImpl(const OH_String* condition) {
     return {};
 }
 OH_UInt64 GlobalScope_mediaquery_testImpl(OH_UInt64 num) {

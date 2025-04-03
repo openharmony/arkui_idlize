@@ -21,7 +21,7 @@
 #include "Serializers.h"
 #include "callbacks.h"
 
-const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
+const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
 static const %CPP_PREFIX%ArkUIFullNodeAPI* GetFullImpl() {
     return reinterpret_cast<const %CPP_PREFIX%ArkUIFullNodeAPI*>(

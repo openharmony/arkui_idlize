@@ -1,1 +1,1 @@
-export { ApplicationInfo, ModuleMetadata, MultiAppMode, PreinstalledApplicationInfo } from "./ApplictionInfo"
+export { ApplicationInfo, ModuleMetadata, MultiAppMode, PreinstalledApplicationInfo } from "./ApplicationInfo"

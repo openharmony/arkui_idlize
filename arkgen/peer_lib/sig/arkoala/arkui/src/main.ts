@@ -762,7 +762,7 @@ function main() {
 #include <cstddef>
 
 namespace OHOS::Ace::NG::GeneratedModifier {
-    EXTERN_C IDLIZE_API_EXPORT const GENERATED_ArkUIAnyAPI* GENERATED_GetArkAnyAPI(GENERATED_Ark_APIVariantKind kind, int version);
+    EXTERN_C IDLIZE_API_EXPORT const OH_AnyAPI* GENERATED_GetArkAnyAPI(GENERATED_Ark_APIVariantKind kind, int version);
 }
 
 const GENERATED_ArkUINodeModifiers* GetNodeModifiers() {

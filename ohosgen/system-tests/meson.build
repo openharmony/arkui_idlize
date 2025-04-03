@@ -14,9 +14,10 @@ is_cj = get_option('target_vm') == 'cangjie'
 
 message(f'Builds test case "@cur_test_case@" with virtual machine "@cur_target_vm@".')
 
+external_interop_build_dir = meson.current_source_dir() / '../../external/interop/build'
 external_interop_dir = '../../external/interop/src/cpp'
 
-cflags = ['-DKOALA_INTEROP_MODULE=NativeModule']
+cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
 
 include_dirs = [
@@ -28,6 +29,7 @@ include_dirs = [
 
 sources = [
     f'./@cur_test_case@/generated/native/@cur_test_case@.cc',
+    f'./@cur_test_case@/generated/native/@cur_test_case@ApiImpl_temp.cc',
     f'./@cur_test_case@/src/cpp/@cur_test_case@Impl.cc',
     external_interop_dir / 'common-interop.cc',
     external_interop_dir / 'callback-resource.cc',
@@ -78,6 +80,7 @@ elif is_panda
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += [f'-DETS_MODULE_CLASSPATH_PREFIX=@cur_test_case_package@/generated/arkts/@cur_test_case@/INTERNAL/']
+    ldflags += external_interop_build_dir / 'libInteropNativeModule.so'
     include_dirs += [
         external_interop_dir / 'ani',
     ]

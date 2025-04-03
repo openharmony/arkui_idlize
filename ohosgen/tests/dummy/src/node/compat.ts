@@ -7,10 +7,7 @@ export { dtsDummy, idlDummy } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("DUMMYNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }

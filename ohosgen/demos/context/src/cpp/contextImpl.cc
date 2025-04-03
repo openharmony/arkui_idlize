@@ -40,21 +40,21 @@ OH_APPLICATION_ContextHandle Context_constructImpl() {
 }
 void Context_destructImpl(OH_APPLICATION_ContextHandle thiz) {
 }
-OH_NativePointer Context_createBundleContextImpl(OH_NativePointer thisPtr, const OH_String* bundleName) {
+OH_APPLICATION_Context Context_createBundleContextImpl(OH_NativePointer thisPtr, const OH_String* bundleName) {
     return {};
 }
-OH_NativePointer Context_createModuleContext0Impl(OH_NativePointer thisPtr, const OH_String* moduleName) {
+OH_APPLICATION_Context Context_createModuleContext0Impl(OH_NativePointer thisPtr, const OH_String* moduleName) {
     return {};
 }
-OH_NativePointer Context_createModuleContext1Impl(OH_NativePointer thisPtr, const OH_String* bundleName, const OH_String* moduleName) {
+OH_APPLICATION_Context Context_createModuleContext1Impl(OH_NativePointer thisPtr, const OH_String* bundleName, const OH_String* moduleName) {
     return {};
 }
-OH_NativePointer Context_getApplicationContextImpl(OH_NativePointer thisPtr) {
+OH_APPLICATION_ApplicationContext Context_getApplicationContextImpl(OH_NativePointer thisPtr) {
     return {};
 }
 void Context_getGroupDirImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const OH_String* dataGroupID, const APPLICATION_Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-OH_NativePointer Context_createDisplayContextImpl(OH_NativePointer thisPtr, const OH_Number* displayId) {
+OH_APPLICATION_Context Context_createDisplayContextImpl(OH_NativePointer thisPtr, const OH_Number* displayId) {
     return {};
 }
 OH_String Context_getCacheDirImpl(OH_NativePointer thisPtr) {

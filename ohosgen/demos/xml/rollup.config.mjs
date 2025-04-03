@@ -22,9 +22,5 @@ export default defineConfig({
         resolve(),
         // TODO Runtime JS modules should be in ES6 format
         commonjs(),
-        replace({
-            "NATIVE_LIBRARY_NAME": `"${path.join(outDir, 'Xml_NativeBridgeNapi.node')}"`,
-            preventAssignment: true,
-        }),
     ]
 })

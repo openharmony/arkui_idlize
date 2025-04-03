@@ -1,8 +1,3 @@
-
-struct Ark_AnyAPI {
-    Ark_Int32 version;
-};
-
 #ifdef __cplusplus
 };
 #endif

@@ -93,6 +93,9 @@
                 "GenerateUnused": {
                     "type": "boolean"
                 },
+                "ApiKind": {
+                    "type": "number"
+                },
                 "ApiVersion": {
                     "type": "number"
                 },
@@ -328,6 +331,7 @@
                 "moduleName",
                 "modules",
                 "GenerateUnused",
+                "ApiKind",
                 "ApiVersion",
                 "dumpSerialized",
                 "boundProperties",

@@ -27,9 +27,19 @@
 #include "arkoala_api_generated.h"
 #include "Serializers.h"
 
+const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
-const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI();
-const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI();
+static const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
+        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
+        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
+}
+
+static const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
+    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
+        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
+        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
+}
 
 CustomDeserializer* DeserializerBase::customDeserializers = nullptr;
 

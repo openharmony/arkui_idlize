@@ -10,6 +10,6 @@ out_dir=./$1/build/panda
 
 bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc
 
-LD_LIBRARY_PATH=$PWD/$out_dir $arkts_dir/ark $out_dir/app.abc \
+LD_LIBRARY_PATH=$PWD/$out_dir:${external_dir}/interop/build:$LD_LIBRARY_PATH $arkts_dir/ark $out_dir/app.abc \
     --ark-boot-files $bootfiles \
     --ark-entry-point @${cur_test_case//_/-}.src.panda.main.ETSGLOBAL::main

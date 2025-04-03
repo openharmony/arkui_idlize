@@ -12,10 +12,7 @@ export const performance = {
 
 export type OHBuffer = ArrayBuffer
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("OHOS_MEDIAQUERYNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }

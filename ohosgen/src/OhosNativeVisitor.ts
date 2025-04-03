@@ -89,6 +89,9 @@ import {
     createSerializerPrinter,
     createDeserializerPrinter,
     createDeserializeAndCallPrinter,
+    readTemplate,
+    peerGeneratorConfiguration,
+    libraryCcDeclaration,
 } from '@idlizer/libohos'
 import { OhosInstall } from './OhosInstall'
 
@@ -104,6 +107,7 @@ interface SignatureDescriptor {
 
 class OHOSNativeVisitor {
     implementationStubsFile: CppSourceFile
+    implementationApiFile: CppSourceFile
 
     private readonly argTypeConvertor = new CppConvertor(this.library)
     private readonly returnTypeConvertor = new ReturnTypeConvertor(this.library)
@@ -130,6 +134,9 @@ class OHOSNativeVisitor {
         this.implementationStubsFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
         this.implementationStubsFile.addInclude("common-interop.h")
         this.implementationStubsFile.addInclude(`${fileNamePrefix}.h`)
+        this.implementationApiFile = new CppSourceFile(`${fileNamePrefix}Impl_template${Language.CPP.extension}`, library)
+        this.implementationApiFile.addInclude("common-interop.h")
+        this.implementationApiFile.addInclude(`${fileNamePrefix}.h`)
     }
 
     private apiName(clazz: IDLInterface): string {
@@ -291,7 +298,7 @@ class OHOSNativeVisitor {
     }
 
     private writeImpls() {
-        let _ = this.cppWriter
+        let _ = this.implementationApiFile.content
         let _stubs = this.implementationStubsFile.content
         this.impls.forEach((signature, name) => {
             const declaration = `${signature.returnType} ${name}(${signature.paramsCString ?? signature.params.map(it => `${it.type} ${it.name}`).join(", ")})`
@@ -306,6 +313,12 @@ class OHOSNativeVisitor {
         })
     }
 
+    private writeApiGetter(writer: CppLanguageWriter): void {
+        writer.writeLines(readTemplate("api_getter.cc")
+            .replaceAll("%API_KIND%", `OH_${this.libraryName}_APIKind::OH_${this.libraryName}_API_KIND`)
+            .replaceAll("%API_NAME%", `${generatorConfiguration().TypePrefix}${this.libraryName}_API`))
+    }
+
     private writeModifiers(writer: CppLanguageWriter) {
         this.callbacks.forEach(it => {
             this.writeCallback(it)
@@ -316,7 +329,7 @@ class OHOSNativeVisitor {
         // Create API.
         let api = this.libraryName
         let _c = writer
-        _c.print(`const ${generatorConfiguration().TypePrefix}${api}_API* Get${api}APIImpl(int version) {`)
+        _c.print(`extern "C" const ${generatorConfiguration().TypePrefix}${api}_API* Get${api}APIImpl(int version) {`)
         _c.pushIndent()
         _c.print(`const static ${generatorConfiguration().TypePrefix}${api}_API api = {`)
         _c.pushIndent()
@@ -353,6 +366,7 @@ class OHOSNativeVisitor {
                 .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
+        this.cppWriter.writeLines(libraryCcDeclaration({removeCopyright: true}))
         const interopRootPath = getInteropRootPath()
         const interopTypesPath = path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h')
         const interopTypesContent = fs.readFileSync(interopTypesPath, 'utf-8')
@@ -361,6 +375,7 @@ class OHOSNativeVisitor {
                 .replaceAll("%INTEROP_TYPES_HEADER", interopTypesContent)
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
+                .replaceAll("%API_KIND%", peerGeneratorConfiguration().ApiKind.toString())
         )
 
         let toStringsPrinter = this.library.createLanguageWriter(Language.CPP)
@@ -377,20 +392,22 @@ class OHOSNativeVisitor {
         let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, this.argTypeConvertor, PrimitiveTypesInstance)
         this.writeModifiers(writer)
         this.writeImpls()
-        this.cppWriter.concat(writer)
+        this.implementationApiFile.content.concat(writer)
+        this.writeApiGetter(this.cppWriter)
         this.cppWriter.concat(printBridgeCc(this.library).generated)
         createDeserializeAndCallPrinter(this.library.name, Language.CPP)(this.library).forEach(result => {
             this.cppWriter.concat(result.content)
         })
         // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)
-
+        this.hWriter.writeLines(readTemplate('any_api.h'))
+        this.hWriter.writeLines(readTemplate('generic_service_api.h'))
         this.hWriter.writeLines(
             readLangTemplate('ohos_api_epilogue.h', Language.CPP)
                 .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${this.libraryName.toUpperCase()}_H`)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
-        this.cppWriter.writeLines(
+        this.implementationApiFile.content.writeLines(
             readLangTemplate('api_impl_epilogue.cc', Language.CPP)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
@@ -442,7 +459,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
 
     protected getApiCall(method: PeerMethod): string {
         const libName = this.library.name;
-        return `Get${libName}APIImpl(${libName}_API_VERSION)`
+        return `Get${generatorConfiguration().TypePrefix}${this.library.name}_API(${libName}_API_VERSION)`
     }
 
 
@@ -497,7 +514,8 @@ export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, st
     return new Map([
         [new TargetFile(`${peerLibrary.name.toLowerCase()}.h`), visitor.hWriter.getOutput().join('\n')],
         [new TargetFile(`${peerLibrary.name.toLowerCase()}.cc`), visitor.cppWriter.getOutput().join('\n')],
-        [new TargetFile(`${peerLibrary.name.toLowerCase()}Impl_temp.cc`), visitor.implementationStubsFile.printToString()]
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}Impl_temp.cc`), visitor.implementationStubsFile.printToString()],
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}ApiImpl_temp.cc`), visitor.implementationApiFile.printToString()],
     ])
 }
 

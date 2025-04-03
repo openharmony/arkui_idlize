@@ -4,6 +4,7 @@
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",
     "GenerateUnused": false,
+    "ApiKind": 10,
     "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [

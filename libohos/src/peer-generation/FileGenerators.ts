@@ -85,9 +85,14 @@ import {
 } from "@koalaui/interop"
 `.trim()
 
-export function libraryCcDeclaration(): string {
-    return readTemplate('library_template.cc')
+export function libraryCcDeclaration(options?: { removeCopyright?: boolean}): string {
+    let content = readTemplate('library_template.cc')
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
+        .replaceAll(`%ANY_API%`, readTemplate('any_api.h'))
+        .replaceAll(`%GENERIC_SERVICE_API%`, readTemplate('generic_service_api.h'))
+    if (!options?.removeCopyright)
+        content = cStyleCopyright + content
+    return content
 }
 
 export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {

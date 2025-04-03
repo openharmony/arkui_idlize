@@ -17,8 +17,6 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "MEDIAQUERY_NativeBridgeArk")
-    registerNativeModuleLibraryName("OHOS_MEDIAQUERYNativeModule", "MEDIAQUERY_NativeBridgeArk")
     new OHOS_MEDIAQUERYNativeModule()
 }
 

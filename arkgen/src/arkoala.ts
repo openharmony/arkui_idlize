@@ -698,6 +698,9 @@ ${nodeTypes.getOutput().join(",\n")}
 ${readTemplate('arkoala_node_api.h')
     .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
 
+${readTemplate("generic_service_api.h")}
+${readTemplate('any_api.h')}
+
 ${readTemplate('arkoala_api_epilogue.h')
         .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
 `

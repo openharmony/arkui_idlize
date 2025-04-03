@@ -63,8 +63,6 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "UNIT_NativeModule")
-    registerNativeModuleLibraryName("UNITNativeModule", "UNIT_NativeModule")
     new UNITNativeModule()
 }
 

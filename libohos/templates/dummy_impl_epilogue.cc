@@ -84,28 +84,28 @@ const GenericServiceAPI* GetServiceAPI()
     return &serviceAPIImpl;
 }
 
-EXTERN_C IDLIZE_API_EXPORT const %CPP_PREFIX%ArkUIAnyAPI* %CPP_PREFIX%GetArkAnyAPI(
+EXTERN_C IDLIZE_API_EXPORT const OH_AnyAPI* %CPP_PREFIX%GetArkAnyAPI(
     %CPP_PREFIX%Ark_APIVariantKind kind, int version)
 {
     switch (kind) {
         case %CPP_PREFIX%FULL:
             if (version == %CPP_PREFIX%ARKUI_FULL_API_VERSION)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetFullAPI());
+                return reinterpret_cast<const OH_AnyAPI*>(%CPP_PREFIX%GetFullAPI());
             }
             break;
         case %CPP_PREFIX%BASIC:
             if (version == %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetBasicAPI());
+                return reinterpret_cast<const OH_AnyAPI*>(%CPP_PREFIX%GetBasicAPI());
             }
             break;
         case %CPP_PREFIX%EXTENDED:
             if (version == %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(%CPP_PREFIX%GetExtendedAPI());
+                return reinterpret_cast<const OH_AnyAPI*>(%CPP_PREFIX%GetExtendedAPI());
             }
             break;
-        case GENERIC_SERVICE:
+        case GENERIC_SERVICE_API_KIND:
             if (version == GENERIC_SERVICE_API_VERSION)   {
-                return reinterpret_cast<const %CPP_PREFIX%ArkUIAnyAPI*>(GetServiceAPI());
+                return reinterpret_cast<const OH_AnyAPI*>(GetServiceAPI());
             }
             break;
         default:

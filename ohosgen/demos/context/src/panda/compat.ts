@@ -13,7 +13,5 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "CONTEXT_NativeBridgeArk")
-    registerNativeModuleLibraryName("APPLICATIONNativeModule", "CONTEXT_NativeBridgeArk")
     new APPLICATIONNativeModule()
 }

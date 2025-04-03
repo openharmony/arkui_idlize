@@ -5,6 +5,7 @@
     "OptionalPrefix": "Opt_",
     "GenerateUnused": true,
     "dumpSerialized": false,
+    "ApiKind": 0,
     "ApiVersion": 9999,
     "ignoreMaterialized": [],
     "forceMaterialized": [

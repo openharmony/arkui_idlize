@@ -57,10 +57,7 @@ export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("UNITNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }

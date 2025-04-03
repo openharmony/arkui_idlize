@@ -16,4 +16,5 @@ else
     echo "Set the USE_PERF env variable to use perf 'export USE_PERF=true'."
 fi
 
-LD_LIBRARY_PATH=$PWD/$out_dir $PERF_PARAMS $arkts_dir/ark $out_dir/app.abc --ark-boot-files $bootfiles --ark-entry-point @mediaquery.src.panda.main.ETSGLOBAL::main
+LD_LIBRARY_PATH=$PWD/$out_dir:$external_dir/interop/build:$LD_LIBRARY_PATH \
+    $PERF_PARAMS $arkts_dir/ark $out_dir/app.abc --ark-boot-files $bootfiles --ark-entry-point @mediaquery.src.panda.main.ETSGLOBAL::main

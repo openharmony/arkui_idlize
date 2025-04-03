@@ -12,8 +12,6 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "XML_NativeBridgeArk")
-    registerNativeModuleLibraryName("OHOS_XMLNativeModule", "XML_NativeBridgeArk")
     new OHOS_XMLNativeModule()
 }
 

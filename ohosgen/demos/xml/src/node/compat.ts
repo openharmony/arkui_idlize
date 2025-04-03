@@ -8,10 +8,7 @@ export type EventType = xml.EventType
 export type OHBuffer = NativeBuffer
 export const EventType = xml.EventType
 
-declare const NATIVE_LIBRARY_NAME: string
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", NATIVE_LIBRARY_NAME)
-    registerNativeModuleLibraryName("OHOS_XMLNativeModule", NATIVE_LIBRARY_NAME)
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }

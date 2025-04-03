@@ -7,9 +7,10 @@ is_node = get_option('target_vm') == 'node'
 is_panda = get_option('target_vm') == 'panda'
 is_cj = get_option('target_vm') == 'cangjie'
 
+external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
 external_interop_dir = '../../../external/interop/src/cpp'
 
-cflags = ['-DKOALA_INTEROP_MODULE=NativeModule']
+cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
 
 include_dirs = [
@@ -21,11 +22,8 @@ include_dirs = [
 
 sources = [
     'generated/native/dummy.cc',
+    'generated/native/dummyApiImpl_temp.cc',
     'src/cpp/dummyImpl.cc',
-    external_interop_dir / 'common-interop.cc',
-    external_interop_dir / 'common-interop.cc',
-    external_interop_dir / 'callback-resource.cc',
-    external_interop_dir / 'interop-logging.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
@@ -66,12 +64,13 @@ name_suffix = [] # default value
 if is_node
     name_prefix = ''
     name_suffix = 'node'
-    library_name = 'Dummy_NativeBridgeNapi'
+    library_name = 'DUMMYNativeModule'
     platform_build_dir = 'build/node'
 
     node_api_headers = run_command('node', '-p', 'require.resolve("node-api-headers/package.json").slice(0, -12)', check: true).stdout().strip()
 
     cflags += ['-DKOALA_USE_NODE_VM', '-DKOALA_NAPI', '-DINTEROP_LIBRARY_NAME=' + library_name ]
+    ldflags += external_interop_build_dir / 'InteropNativeModule.node'
     include_dirs += [
         node_api_headers / 'include',
         external_interop_dir / 'napi'
@@ -83,12 +82,12 @@ if is_node
         sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cc' ]
     endif
 elif is_panda
-    library_name = 'DUMMY_NativeModule'
+    library_name = 'DUMMYNativeModule'
     platform_build_dir = 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
     cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@dummy/generated/arkts/dummy/INTERNAL/']
-
+    ldflags += external_interop_build_dir / 'libInteropNativeModule.so'
     include_dirs += [
         external_interop_dir / 'ani',
     ]
@@ -97,7 +96,7 @@ elif is_panda
         external_interop_dir / 'types/signatures.cc',
     ]
 elif is_cj
-    library_name = 'DUMMY_NativeBridgeCJ'
+    library_name = 'DUMMYNativeModule'
     platform_build_dir = 'build/cangjie'
 
     cflags += ['-DKOALA_CJ', '-DINTEROP_LIBRARY_NAME=' + library_name]

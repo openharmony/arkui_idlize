@@ -22,17 +22,21 @@
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
 
+        "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
+        "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
+        "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
+
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
 
-        "start:ts": "node build/node/index.js",
+        "start:ts": "bash scripts/run-ts.sh",
         "start:arkts": "bash scripts/run-panda.sh",
         "start-aot:arkts": "bash scripts/run-panda-aot.sh",
         "start:cj": "bash scripts/run-cj.sh",
 
-        "build": "npm run compile:${TARGET} && npm run compile:native:${TARGET}",
+        "build": "npm run compile:${TARGET} && npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",

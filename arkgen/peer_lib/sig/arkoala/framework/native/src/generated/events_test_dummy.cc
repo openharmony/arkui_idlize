@@ -4,7 +4,7 @@
 #include "Serializers.h"
 #include "arkoala_api_generated.h"
 
-const GENERATED_ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
+const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result = nullptr);
 
 static const GENERATED_ArkUIFullNodeAPI* GetFullImpl() {
     return reinterpret_cast<const GENERATED_ArkUIFullNodeAPI*>(

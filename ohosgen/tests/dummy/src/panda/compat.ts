@@ -14,7 +14,5 @@ export function pullEvents() {
 }
 
 export function init() {
-    registerNativeModuleLibraryName("InteropNativeModule", "DUMMY_NativeModule")
-    registerNativeModuleLibraryName("DUMMYNativeModule", "DUMMY_NativeModule")
     new DUMMYNativeModule()
 }

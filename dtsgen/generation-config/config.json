@@ -1,5 +1,6 @@
 {
     "ApiVersion": 0,
+    "ApiKind": 0,
     "TypePrefix": "",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",

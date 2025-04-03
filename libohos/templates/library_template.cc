@@ -1,25 +1,12 @@
-/*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 #include <tuple>
 #include <string>
 
+#include "interop-types.h"
 #include "dynamic-loader.h"
-#include "callbacks.h"
 #include "interop-logging.h"
-#include "arkoala_api_generated.h"
+
+%ANY_API%
+%GENERIC_SERVICE_API%
 
 // TODO: rework for generic OHOS case.
 void* FindModule(int kind) {
@@ -49,16 +36,28 @@ void* FindModule(int kind) {
     return nullptr;
 }
 
-static %CPP_PREFIX%ArkUIAnyAPI* impls[%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%COUNT] = { 0 };
+static const int API_KIND_MAX = 100;
+static const OH_AnyAPI* impls[API_KIND_MAX + 1] = { 0 };
 const char* getArkAnyAPIFuncName = "%CPP_PREFIX%GetArkAnyAPI";
 
-const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
+#ifdef KOALA_LIBACE_LINKED
+extern "C" const OH_AnyAPI* GENERATED_GetArkAnyAPI(int kind, int version);
+#endif
+const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
+    if (kind > API_KIND_MAX) {
+        INTEROP_FATAL("Try to get api with kind more than expected: kind=%d, max=%d", kind, API_KIND_MAX);
+    }
     if (!impls[kind]) {
         static const GroupLogger* logger = GetDefaultLogger();
 
-        %CPP_PREFIX%ArkUIAnyAPI* impl = nullptr;
-        typedef %CPP_PREFIX%ArkUIAnyAPI* (*GetAPI_t)(int, int);
+        const OH_AnyAPI* impl = nullptr;
+        typedef const OH_AnyAPI* (*GetAPI_t)(int, int);
+
+#ifdef KOALA_LIBACE_LINKED
+        static GetAPI_t getAPI = GENERATED_GetArkAnyAPI;
+#else
         static GetAPI_t getAPI = nullptr;
+#endif
 
         char* envValue = getenv("__LIBACE_ENTRY_POINT");
         if (envValue) {
@@ -86,7 +85,7 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
             }
         }
         // Provide custom logger and callback caller to loaded libs.
-        auto service = (const GenericServiceAPI*)(*getAPI)(GENERIC_SERVICE, GENERIC_SERVICE_API_VERSION);
+        auto service = (const GenericServiceAPI*)(*getAPI)(GENERIC_SERVICE_API_KIND, GENERIC_SERVICE_API_VERSION);
         if (service) {
             if (logger) service->setLogger(reinterpret_cast<const ServiceLogger*>(logger));
         }
@@ -113,16 +112,4 @@ const %CPP_PREFIX%ArkUIAnyAPI* GetAnyImpl(int kind, int version, std::string* re
         impls[kind] = impl;
     }
     return impls[kind];
-}
-
-const %CPP_PREFIX%ArkUIBasicNodeAPI* GetArkUIBasicNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIBasicNodeAPI*>(
-        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%BASIC),
-        %CPP_PREFIX%ARKUI_BASIC_NODE_API_VERSION, nullptr));
-}
-
-const %CPP_PREFIX%ArkUIExtendedNodeAPI* GetArkUIExtendedNodeAPI() {
-    return reinterpret_cast<const %CPP_PREFIX%ArkUIExtendedNodeAPI*>(
-        GetAnyImpl(static_cast<int>(%CPP_PREFIX%Ark_APIVariantKind::%CPP_PREFIX%EXTENDED),
-        %CPP_PREFIX%ARKUI_EXTENDED_NODE_API_VERSION, nullptr));
 }
