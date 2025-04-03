@@ -1,5 +1,5 @@
 @memo
-@BuildLambda("%COMPONENT_NAME%")
+@BuilderLambda("%COMPONENT_NAME%Impl")
 export function %COMPONENT_NAME%(
     %FUNCTION_PARAMETERS%
     @memo
