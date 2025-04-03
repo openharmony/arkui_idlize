@@ -16,7 +16,7 @@
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from "../LayoutManager";
-import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode, isInIdlizeInternal } from "@idlizer/core";
+import { LayoutNodeRole, PeerLibrary, isMaterialized, NamedMethodSignature, forceAsNamedNode, isInIdlizeInternal, LanguageWriter } from "@idlizer/core";
 import * as idl from '@idlizer/core'
 import { collectAllProperties, collectProperties } from "./StructPrinter";
 import { collapseSameMethodsIDL, groupOverloadsIDL, groupSameSignatureMethodsIDL } from "./OverloadsPrinter";
@@ -27,7 +27,7 @@ import { isComponentDeclaration } from "../ComponentsCollector";
  * Printer for OHOS interfaces
  */
 export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
-    return library.files.flatMap(file => {
+    return LanguageWriter.relativeReferences(true, () => library.files.flatMap(file => {
         if (!idl.isInCurrentModule(file.file) || idl.isInIdlize(file.file))
             return []
         return idl.linearizeNamespaceMembers(file.entries)
@@ -54,7 +54,7 @@ export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
                 }
                 return []
             })
-    })
+    }))
 }
 
 function printInterfaceBody(library: PeerLibrary, entry: idl.IDLInterface, printer: idl.LanguageWriter): void {

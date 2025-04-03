@@ -514,7 +514,7 @@ class MaterializedVisitor implements PrinterClass {
 }
 
 export function createMaterializedPrinter(dumpSerialized: boolean) {
-    return (peerLibrary: PeerLibrary) => printMaterialized(peerLibrary, dumpSerialized).print()
+    return (peerLibrary: PeerLibrary) => LanguageWriter.relativeReferences(true, () => printMaterialized(peerLibrary, dumpSerialized).print())
 }
 
 export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: boolean) {

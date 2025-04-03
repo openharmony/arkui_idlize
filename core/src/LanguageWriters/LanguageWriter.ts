@@ -462,7 +462,7 @@ export abstract class LanguageWriter {
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
-    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, namespaces?: idl.IDLNamespace[]): void
+    abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
@@ -854,6 +854,16 @@ export abstract class LanguageWriter {
         this.namespaceStack.pop()
         if (ident) this.popIndent()
         this.print(`}`)
+    }
+
+    public static _isReferenceRelativeToNamespaces: boolean = false
+    public static get isReferenceRelativeToNamespaces(): boolean { return this._isReferenceRelativeToNamespaces }
+    public static relativeReferences<T>(isRelative: boolean, op: () => T): T {
+        const prevIsRelative = this.isReferenceRelativeToNamespaces
+        this._isReferenceRelativeToNamespaces = isRelative
+        const result = op()
+        this._isReferenceRelativeToNamespaces = prevIsRelative
+        return result
     }
 }
 

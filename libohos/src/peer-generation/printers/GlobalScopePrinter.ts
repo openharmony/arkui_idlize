@@ -15,7 +15,7 @@
 
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { NamedMethodSignature, getMaterializedFileName, PeerLibrary } from "@idlizer/core"
+import { NamedMethodSignature, getMaterializedFileName, PeerLibrary, LanguageWriter } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
@@ -74,15 +74,16 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             // write
             const writer = library.createLanguageWriter()
 
-            const ns = idl.getNamespacesPathFor(methods[0])
             /* global scope export function */
-            writer.writeFunctionImplementation(method.name, signature, w => {
-                const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
-                const statement = method.returnType !== idl.IDLVoidType
-                    ? w.makeReturn(call)
-                    : w.makeStatement(call)
-                w.writeStatement(statement)
-            }, ns)
+            LanguageWriter.relativeReferences(true, () => {
+                writer.writeFunctionImplementation(method.name, signature, w => {
+                    const call = w.makeMethodCall(realizationHolder.name, mangledGlobalScopeName(method.methods[0]), method.parameters.map(it => w.makeString(it.name)))
+                    const statement = method.returnType !== idl.IDLVoidType
+                        ? w.makeReturn(call)
+                        : w.makeStatement(call)
+                    w.writeStatement(statement)
+                })
+            })
 
             /* global scope peer serialize function */
             new OverloadsPrinter(library, peerMethodWriter, library.language, false)

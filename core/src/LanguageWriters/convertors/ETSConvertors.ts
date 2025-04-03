@@ -16,12 +16,18 @@
 import * as idl from "../../idl"
 import { Language } from "../../Language"
 import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
+import { LanguageWriter } from "../LanguageWriter"
 import { convertDeclaration, convertType, TypeConvertor } from "../nameConvertor"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const typeName = super.convertTypeReference(type)
+        let typeName = super.convertTypeReference(type)
+        if (LanguageWriter.isReferenceRelativeToNamespaces && idl.isReferenceType(type)) {
+            const namespacesPath = idl.getNamespacesPathFor(type).map(it => `${it.name}.`).join("")
+            if (typeName.startsWith(namespacesPath))
+                typeName = typeName.substring(namespacesPath.length)
+        }
         // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
             return "Function<void>"

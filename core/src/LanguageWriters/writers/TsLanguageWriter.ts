@@ -162,7 +162,7 @@ export class TSLanguageWriter extends LanguageWriter {
         return new TSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.language)
     }
 
-    getNodeName(type: idl.IDLNode, namespaces?: idl.IDLNamespace[]): string {
+    getNodeName(type: idl.IDLNode): string {
         // another stub. Bad one.
         // I hope that I will rewrite LWs soon
         if (idl.isType(type) && idl.isReferenceType(type)) {
@@ -170,16 +170,7 @@ export class TSLanguageWriter extends LanguageWriter {
                 return type.name.substring(7)
             }
         }
-        // just stub.
-        // language writers and name convertors are subject to rework for namespaces
-        const row = this.typeConvertor.convert(type)
-        if (namespaces && namespaces.length > 0) {
-            const ns = this.typeConvertor.convert(namespaces[0])
-            if (ns && row.startsWith(`${ns}.`)) {
-                return row.substring(ns.length + 1)
-            }
-       }
-       return row
+       return this.typeConvertor.convert(type)
     }
 
     writeClass(
@@ -214,20 +205,20 @@ export class TSLanguageWriter extends LanguageWriter {
     writeFunctionDeclaration(name: string, signature: MethodSignature): void {
         this.printer.print(this.generateFunctionDeclaration(name, signature))
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, namespaces?: idl.IDLNamespace[]): void {
-        this.printer.print(`${this.generateFunctionDeclaration(name, signature, namespaces)} {`)
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
+        this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
         this.printer.pushIndent()
         op(this)
         this.printer.popIndent()
         this.printer.print('}')
     }
-    private generateFunctionDeclaration(name: string, signature: MethodSignature, namespaces?: idl.IDLNamespace[]): string {
+    private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
         const rightmostRegularParameterIndex = rightmostIndexOf(signature.args, it => !isOptionalType(it))
         const args = signature.args.map((it, index) => {
             const optionalToken = idl.isOptionalType(it) && index > rightmostRegularParameterIndex ? '?' : ''
-            return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it, namespaces)}`
+            return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it)}`
         })
-        const returnType = this.getNodeName(signature.returnType, namespaces)
+        const returnType = this.getNodeName(signature.returnType)
         return `export function ${name}(${args.join(", ")}): ${returnType}`
     }
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[]): void {
