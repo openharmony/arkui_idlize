@@ -39,7 +39,7 @@ function main() {
                 options.pandaSdkPath,
                 pandaSdkIdlFilePath
             )
-        ),
+        )[0],
         new Config(
             new IgnoreOptions(options.optionsFile),
             new NonNullableOptions(options.optionsFile),

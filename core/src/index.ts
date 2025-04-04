@@ -64,8 +64,8 @@ export * from "./LanguageWriters"
 export * from "./peer-generation/ReferenceResolver"
 export * from "./peer-generation/idl/common"
 export * from "./from-idl/IDLLinter"
-export { fromIDL }  from "./from-idl/common"
+export { fromIDL, scanIDL }  from "./from-idl/common"
 export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
-export { toIDLFile, addSyntheticType, resolveSyntheticType } from "./from-idl/deserialize"
+export { toIDLFile, addSyntheticType, resolveSyntheticType, IDLTokenInfoMap } from "./from-idl/deserialize"
 
 export { D, ConfigTypeInfer, ConfigSchema, inspectSchema } from './configDescriber'

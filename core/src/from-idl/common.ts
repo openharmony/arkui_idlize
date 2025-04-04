@@ -85,7 +85,7 @@ export function scanIDL(
             : fs.readdirSync(inputDir)
                 .map((elem: string) => path.join(inputDir, elem))
 
-    return files.map(it => toIDLFile(it))
+    return files.map(it => toIDLFile(it)[0])
 }
 
 export const licence =

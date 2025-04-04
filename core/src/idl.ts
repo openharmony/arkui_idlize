@@ -105,6 +105,7 @@ export interface IDLNode {
 export interface IDLFile extends IDLNode{
     packageClause: string[],
     entries: IDLEntry[],
+    text?: string,
     fileName?: string,
 }
 
@@ -278,17 +279,14 @@ export interface IDLCallback extends IDLEntry, IDLSignature {
 }
 
 type IDLNodeVisitorVoid = (node:IDLNode) => void
-type IDLNodeVisitorValue = (node:IDLNode) => IDLNode
+type IDLNodeVisitorValue = (node:IDLNode) => () => void
 
 type IDLNodeVisitor =
       IDLNodeVisitorVoid
     | IDLNodeVisitorValue
 
 export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (entry: IDLNode) => void): void {
-    const next = cbEnter(node)
-    if (next) {
-        node = next
-    }
+    const cleanup = cbEnter(node)
     switch (node.kind) {
         case IDLKind.File:
             (node as IDLFile).entries.forEach((value) => forEachChild(value, cbEnter, cbLeave))
@@ -366,8 +364,9 @@ export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (
             throw new Error(`Unhandled ${node.kind}`)
         }
     }
-    if (cbLeave)
-        cbLeave(node)
+
+    cbLeave?.(node)
+    cleanup?.()
 }
 
 /** Updates tree in place! */

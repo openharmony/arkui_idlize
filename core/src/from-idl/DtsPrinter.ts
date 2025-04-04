@@ -432,7 +432,7 @@ export class CustomPrintVisitor {
 
 export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
-    const idlFile = toIDLFile(name, content)
+    const [idlFile] = toIDLFile(name, content)
     printer.printPackage(idlFile)
     linearizeNamespaceMembers(idlFile.entries).forEach(it => {
         transformMethodsAsync2ReturnPromise(it)

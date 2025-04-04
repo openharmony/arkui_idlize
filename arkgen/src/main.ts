@@ -226,7 +226,7 @@ if (options.idl2peer) {
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        const file = toIDLFile(idlFilename)
+        const [file] = toIDLFile(idlFilename)
         const peerFile = new PeerFile(file)
         idlLibrary.files.push(peerFile)
     })
@@ -268,7 +268,7 @@ if (options.dts2peer) {
     {
         const pushOne = (idlFilename: string, resultFilesArray: PeerFile[]) => {
             idlFilename = path.resolve(idlFilename)
-            const file = toIDLFile(idlFilename)
+            const [file] = toIDLFile(idlFilename)
             const peerFile = new PeerFile(file)
             resultFilesArray.push(peerFile)
         }

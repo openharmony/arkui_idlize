@@ -30,17 +30,24 @@ import {
     PeerLibrary,
     scanInputDirs,
     PeerFile,
+    toIDLFile,
+    generatorConfiguration,
+    IDLLinterError,
 } from "@idlizer/core"
 import {
     IDLFile,
+    isInterface,
+    linearizeNamespaceMembers,
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor, peerGeneratorConfiguration } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor, peerGeneratorConfiguration, fillSyntheticDeclarations } from "@idlizer/libohos"
+import { scanIDL } from "@idlizer/core"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
+    .option('--lint', 'Verifies input and exits')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--aux-input-dir <path>', 'Path to aux input dir(s), comma separated')
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
@@ -81,6 +88,46 @@ validatePaths(auxInputFiles, "file")
 const dtsInputFiles = scanInputDirs(inputDirs).concat(inputFiles)
 const dtsAuxInputFiles = auxInputFiles
 
+if (options.lint) {
+    const resolver = new PeerLibrary(Language.TS)
+    const files = dtsInputFiles.map((filePath) => {
+        const result = toIDLFile(filePath)
+        resolver.files.push(new PeerFile(result[0]))
+        return result
+    })
+    fillSyntheticDeclarations(resolver)
+    let totalErrors = 0
+    const errorRecords: [string, number][] = []
+    files.forEach(([file, info]) => {
+        try {
+            verifyIDLLinter(file, resolver, {
+                checkEnumsConsistency: true,
+                checkReferencesResolved: true,
+                validEntryAttributes: peerGeneratorConfiguration().linter.validEntryAttributes
+            }, info)
+        } catch (error) {
+            if (error instanceof IDLLinterError) {
+                totalErrors += error.size
+                errorRecords.push([file.fileName ?? '', error.size])
+                console.error(error.message)
+                return
+            }
+            throw error
+        }
+    })
+    if (totalErrors > 0) {
+        process.exitCode = -1
+        console.error()
+        errorRecords.forEach(([fileName, errorNumber]) => {
+            console.error(`${errorNumber.toString().padStart(5, ' ')} ${fileName}`)
+        })
+
+        console.error('      ----------------------------')
+        console.error(`      Total errors: ${totalErrors}`)
+    }
+    didJob = true
+}
+
 if (options.dts2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
@@ -100,7 +147,7 @@ if (options.dts2idl) {
                 const basename = path.basename(sourceFile.fileName)
                 if (basename === "stdlib.d.ts")
                     return
-                
+
                 console.log('producing', basename)
                 const outFile = path.join(
                     outputDir,

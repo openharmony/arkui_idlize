@@ -170,7 +170,7 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
         parsePredefinedIDLFiles(pathBase: string) {
             const typeReplacementsFile = toIDLFile(path.resolve(path.join(pathBase, this.TypeReplacementsFilePath)))
             if (typeReplacementsFile) {
-                this.TypeReplacementsFile = typeReplacementsFile
+                this.TypeReplacementsFile = typeReplacementsFile[0]
             }
         },
 

@@ -129,18 +129,18 @@ function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType):
 
         linter: {
             validEntryAttributes: new Map([
-                [IDLKind.Import, ["Deprecated"]],
-                [IDLKind.Namespace, ["DefaultExport", "Deprecated"]],
-                [IDLKind.Const, ["DefaultExport", "Deprecated"]],
-                [IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName"]],
-                [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation"]],
-                [IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic"]],
-                [IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected"]],
-                [IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated"]],
-                [IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import"]],
-                [IDLKind.Enum, ["DefaultExport", "Deprecated"]],
-                [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated"]],
-                [IDLKind.Constructor, ["Deprecated",]]
+                [IDLKind.Import, ["Deprecated", "Documentation"]],
+                [IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
+                [IDLKind.Const, ["DefaultExport", "Deprecated", "Documentation"]],
+                [IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName", "Documentation"]],
+                [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation", "Documentation", "TypeParameters"]],
+                [IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic", "Documentation"]],
+                [IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected", "Documentation", "CallSignature", "TypeParameters"]],
+                [IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated", "Documentation", "CallSignature"]],
+                [IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import", "Documentation", "TypeParameters"]],
+                [IDLKind.Enum, ["DefaultExport", "Deprecated", "Documentation"]],
+                [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
+                [IDLKind.Constructor, ["Deprecated", "Documentation"]]
             ]),
             checkEnumsConsistency: true,
             checkReferencesResolved: false,
