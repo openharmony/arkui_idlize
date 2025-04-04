@@ -178,7 +178,7 @@ if (options.dts2skoala) {
                     "@koalaui/common": ["../external/incremental/common/src"],
                     "@koalaui/compat": ["../external/incremental/compat/src/typescript"],
                     "@koalaui/interop": ["../external/interop/src/interop"],
-                    "@koalaui/arkoala": ["../external/arkoala/framework/src"],
+                    "@koalaui/arkoala": ["../external/arkoala-arkts/framework/src"],
                 },
             },
             onSingleFile: (file: IDLFile, outputDirectory, sourceFile) => {

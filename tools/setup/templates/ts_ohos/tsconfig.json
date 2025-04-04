@@ -23,6 +23,7 @@
     },
     "include": [
         "generated/sig/arkoala/**/*",
+        "generated/sig/arkoala-arkts/framework/**/*"
     ],
     "files": [
         "generated/ts/index.d.ts"

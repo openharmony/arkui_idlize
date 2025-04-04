@@ -18,11 +18,12 @@
         "paths": {
             "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
             "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
-            "@koalaui/arkoala": ["./generated/sig/arkoala/framework/src", "./"],
+            "@koalaui/arkoala": ["./generated/sig/arkoala-arkts/framework/src", "./"],
         },
     },
     "include": [
         "generated/sig/arkoala/**/*",
+        "generated/sig/arkoala-arkts/framework/**/*"
     ],
     "files": [
         "generated/sig/arkoala/arkui-types/index-full.d.ts"

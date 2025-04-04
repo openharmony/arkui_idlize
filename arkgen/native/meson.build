@@ -30,8 +30,8 @@ if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cang
     gen_dir = '../out/' / source_set / 'generated'
 else
 endif
-arkoala_dir = gen_dir + '/sig/arkoala/framework/native/src/generated'
-external_framework_dir = '../../external/arkoala/framework/native/src'
+arkoala_dir = gen_dir + '/sig/arkoala-arkts/framework/native/src/generated'
+external_framework_dir = '../../external/arkoala-arkts/framework/native/src'
 external_interop_dir = '../../external/interop/src/cpp'
 external_incremental_cj_dir = '../../external/incremental-cj'
 libace_dir = gen_dir / 'libace'
