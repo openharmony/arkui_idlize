@@ -482,6 +482,23 @@ export function camelCaseToUpperSnakeCase(input: string) {
         .join('_')
 }
 
+export function snakeToLowCamelNode(node: idl.IDLEntry): string {
+    if (!node.fileName) {
+        throw new Error("Invalid Convert")
+    }
+    const classname = path.basename(node.fileName).replace(".idl", "").replace(".d.ts", "")
+    return classname
+        .split('_')
+        .filter(word => word !== '')
+        .map((word, index) => {
+            if (index === 0) {
+                return word.toLowerCase();
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join('');
+}
+
 export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))

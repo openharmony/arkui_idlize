@@ -43,7 +43,11 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[], 
     // groupBy
     const layout = options?.customLayout ?? library.layout
     printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
-        const filePath = path.normalize(layout.resolve(it.over))
+        const resolved = layout.resolve(it.over)
+        if (resolved == '') {
+            return;
+        }
+        const filePath = path.normalize(resolved)
         if (!storage.has(filePath)) {
             storage.set(filePath, [])
         }
@@ -74,7 +78,7 @@ export function install(outDir:string, library:PeerLibrary, printers:Printer[], 
         }
 
         const text = tsCopyrightAndWarning(
-            imports.printToLines(filePath)
+            imports.printToLines(filePath, outDir)
                 .concat(content)
                 .join('\n')
         )

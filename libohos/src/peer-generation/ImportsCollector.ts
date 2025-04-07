@@ -64,13 +64,17 @@ export class ImportsCollector {
         this.printToLines(currentModule).forEach(it => printer.print(it))
     }
 
-    printToLines(currentModule: string): string[] {
+    printToLines(currentModule: string, basePath?: string): string[] {
         const lines = new Array<string>()
-        const currentModuleDir = path.dirname(currentModule)
+        const basedModule = basePath ? path.resolve(basePath, currentModule) : currentModule
+        const currentModuleDir = path.dirname(basedModule)
         this.moduleToFeatures.forEach((features, module) => {
             if (path.relative(currentModule, module) === "")
                 return
             if (!module.startsWith('@') && !module.startsWith('#')) {
+                module = basePath ? path.resolve(basePath, module) : module
+                if (path.relative(basedModule, module) === "")
+                    return
                 module = `./${path.relative(currentModuleDir, module)}`
             }
             lines.push(`import { ${Array.from(features).join(', ')} } from "${module}"`)

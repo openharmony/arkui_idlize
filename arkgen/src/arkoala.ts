@@ -62,8 +62,8 @@ import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { printInterfaces } from "./printers/InterfacePrinter"
 import { printComponents } from "./printers/ComponentsPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
-import { printStsComponents, printStsComponentsDeclarations } from "./printers/StsComponentsPrinter"
-import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
+import { arkoalaLayout, ArkTSComponentsLayout, OHOSSDKLayout } from "./ArkoalaLayout"
+import { printETSComponents } from "./printers/OHOSComponentsPrinter"
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string|undefined,
@@ -212,6 +212,16 @@ export function generateArkoalaFromIdl(config: {
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
+
+        install(
+            selectOutDir(arkoala, peerLibrary.language),
+            peerLibrary,
+            [
+                printInterfaces,
+                printETSComponents,
+            ],
+            { customLayout: new LayoutManager(new OHOSSDKLayout(peerLibrary)) }
+        )
     }
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
@@ -280,18 +290,6 @@ export function generateArkoalaFromIdl(config: {
             }
         )
     } else if (peerLibrary.language === Language.ARKTS) {
-        install(
-            path.join(selectOutDir(arkoala, peerLibrary.language), "../sts/generated"),
-            peerLibrary,
-            [printStsComponents],
-            { fileExtension: ".sts" }
-        )
-        install(
-            path.join(selectOutDir(arkoala, peerLibrary.language), "../sts/generated"),
-            peerLibrary,
-            [printStsComponentsDeclarations],
-            { fileExtension: ".d.sts" }
-        )
         const arkuiNativeModuleFile = printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI)
         printArkUILibrariesLoader(arkuiNativeModuleFile)
         writeIntegratedFile(

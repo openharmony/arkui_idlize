@@ -14,6 +14,7 @@
     "include": ["out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/**/*.ts"],
     "exclude": [
         "out/**/index.ts",
-        "out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/ts/*.ts"
+        "out/arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/ts/*.ts",
+        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/component/**/*"
     ]
 }

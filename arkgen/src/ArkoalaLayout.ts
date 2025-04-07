@@ -14,7 +14,7 @@
  */
 
 import * as path from 'node:path'
-import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, LibraryFileInterface, LibraryInterface, PeerFile, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule } from '@idlizer/libohos'
 
@@ -137,6 +137,50 @@ export class ArkTsLayout extends TsLayout {
             return this.arkTSInternalPaths.get(target.node.name)!
         return super.resolve(target)
     }
+}
+
+export class OHOSSDKLayout extends ArkTsLayout {
+    resolve(target: idl.LayoutTargetDescription): string {
+        if (!isInComponentFile(this.library, target.node)) {
+            return ''
+        }
+        if (isComponentDeclaration(this.library, target.node) && target.role === LayoutNodeRole.INTERFACE) {
+            return ''
+        }
+        return path.join('../component', idl.snakeToLowCamelNode(target.node))
+    }
+}
+
+
+const components_file_cache = new Map<LibraryInterface, Set<LibraryFileInterface>>()
+export function collectComponentsFiles(library: LibraryInterface): Set<LibraryFileInterface> {
+    if (components_file_cache.has(library))
+        return components_file_cache.get(library)!
+
+
+    const files = new Set<LibraryFileInterface>()
+    for (const file of library.files) {
+        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+            if (!entry.fileName) {
+                continue
+            }
+            if (entry.fileName.includes("/ets/")) {
+                files.add(file)
+                break;
+            }
+        }
+    }
+    components_file_cache.set(library, files)
+    return files
+}
+
+export function isInComponentFile(library: LibraryInterface, decl: idl.IDLEntry): boolean {
+    for (const file of collectComponentsFiles(library)) {
+        if ((file as PeerFile).originalFilename === decl.fileName) {
+            return true
+        }
+    }
+    return false
 }
 
 export class ArkTSComponentsLayout extends ArkTsLayout {
