@@ -131,7 +131,7 @@
     "run:cj": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/cangjie-subset --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && npm run compile:cj:native && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
     "run:peers:call_log": "npm run check:peers:run && cd ./peer_lib/call_log && meson setup build && cd ./build && meson compile && ./run_call_log",
     "cj": "npm run compile:cj:native &&  LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
-    "external": "cd ../external && npm i && cd arkoala/tools/peer-generator && npm i && npm run --prefix ../../arkui-common interface-sdk:download",
+    "external": "cd ../external && npm i && cd arkoala/tools/peer-generator && npm i && npm run --prefix ../../../arkoala-arkts/arkui-common interface-sdk:download",
     "generate:ts": "npm run external && cd ../external/arkoala/tools/peer-generator && npm run generate:ts:current",
     "generate:arkts": "npm run external && cd ../external/arkoala/tools/peer-generator && npm run generate:arkts:current",
     "generate:all": "npm run external && cd ../external/arkoala/tools/peer-generator && npm run generate:all:current",
