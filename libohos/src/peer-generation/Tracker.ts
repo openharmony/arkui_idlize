@@ -16,21 +16,27 @@
 import * as fs from 'fs'
 import * as path from 'path'
 
-import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
+import { IndentedPrinter, PeerClass, createConstructPeerMethod, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { IDLEnum } from '@idlizer/core/idl'
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 
 class TrackerVisitor {
-    out = new IndentedPrinter()
+    private out = new IndentedPrinter()
+    private stats = new IndentedPrinter()
 
     constructor(
         protected library: PeerLibrary,
         protected track: Map<string, StatusRecord>
     ) { }
 
-    tracking(component: string, func: string): string {
-        const record = this.track.get(key(component, func))
+    private allComponents = Array(STATUSES.length).fill(0)
+    private allMaterialized = Array(STATUSES.length).fill(0)
+    private allFunctions = Array(STATUSES.length).fill(0)
+    private tracked = new Set<string>()
+
+    tracking(key: string): string {
+        const record = this.track.get(key)
         if (record) {
             return `${record.owner} | ${record.status} |`
         }
@@ -38,24 +44,28 @@ class TrackerVisitor {
     }
 
     printPeerClass(clazz: PeerClass): void {
-        let seen = new Set<string>()
-        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(clazz.componentName, "Component")}`)
-        clazz.methods.forEach(method => {
-            if (!seen.has(method.method.name)) {
-                this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.componentName, method.method.name)}`)
-                seen.add(method.method.name)
-            }
+        const compKey = key(clazz.componentName, "Component")
+        this.incAllStatus(compKey, this.allComponents)
+        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(compKey)}`)
+        let methods = [createConstructPeerMethod(clazz), ...clazz.methods]
+        methods.forEach(method => {
+            let mname = method.overloadedName
+            const funcKey = key(clazz.componentName, mname)
+            this.incAllStatus(funcKey, this.allFunctions)
+            this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)
         })
     }
 
     printMaterializedClass(clazz: MaterializedClass) {
-        let seen = new Set<string>()
-        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(clazz.className, "Class")}`)
-        clazz.methods.forEach(method => {
-            if (!seen.has(method.method.name)) {
-                this.out.print(`|\`${method.method.name}\`| Function | ${this.tracking(clazz.className, method.method.name)}`)
-                seen.add(method.method.name)
-            }
+        const classKey = key(clazz.className, "Class")
+        this.incAllStatus(classKey, this.allMaterialized)
+        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(classKey)}`)
+        let methods = clazz.ctor ? [clazz.ctor] : []
+        methods.concat(clazz.methods).forEach(method => {
+            let mname = method.overloadedName
+            const funcKey = key(clazz.className, mname)
+            this.incAllStatus(funcKey, this.allFunctions)
+            this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)
         })
     }
 
@@ -64,43 +74,19 @@ class TrackerVisitor {
     }
 
     printStats() {
-        let allComponents = Array(STATUSES.length).fill(0)
-        let allMaterialized = Array(STATUSES.length).fill(0)
-        let allFunctions = Array(STATUSES.length).fill(0)
-        const tracked = new Set<string>()
-
-        this.library.files.forEach(file => {
-            file.peers.forEach(component => {
-                const compKey = key(component.componentName, "Component")
-                this.incAllStatus(compKey, allComponents, tracked)
-                component.methods.forEach(method => {
-                    const funcKey = key(component.componentName, method.method.name)
-                    this.incAllStatus(funcKey, allFunctions, tracked)
-                })
-            })
-        })
-        this.library.materializedClasses.forEach(clazz => {
-            const classKey = key(clazz.className, "Class")
-            this.incAllStatus(classKey, allMaterialized, tracked)
-            clazz.methods.forEach(method => {
-                const funcKey = key(clazz.className, method.method.name)
-                this.incAllStatus(funcKey, allFunctions, tracked)
-            })
-        })
-
-        this.out.print(`| Status       | Components | Classes | Functions |`)
-        this.out.print(`| -----------  | ---------- | ------- | --------- |`)
+        this.stats.print(`| Status       | Components | Classes | Functions |`)
+        this.stats.print(`| -----------  | ---------- | ------- | --------- |`)
         STATUSES.forEach((status, i) => {
-            this.out.print(`| ${status.padEnd(12)} | ${allComponents[i]}      | ${allMaterialized[i]}     | ${allFunctions[i]}     |`)
+            this.stats.print(`| ${status.padEnd(12)} | ${this.allComponents[i]}      | ${this.allMaterialized[i]}     | ${this.allFunctions[i]}     |`)
         })
     }
 
-    incAllStatus(key: string, counter: number[], tracked: Set<string>) {
+    incAllStatus(key: string, counter: number[]) {
         // check overloaded methods
-        if (tracked.has(key)) {
+        if (this.tracked.has(key)) {
             return
         }
-        tracked.add(key)
+        this.tracked.add(key)
         counter[0]++
         const statusRecord = this.track.get(key)
         if (!statusRecord) return
@@ -120,15 +106,7 @@ class TrackerVisitor {
         }
     }
 
-    print() {
-        this.out.print(`# All components`)
-
-        this.out.print("\n")
-
-        this.printStats()
-
-        this.out.print("\n")
-
+    printTo(fileName: string) {
         this.out.print(`| Name | Kind | Owner | Status |`)
         this.out.print(`| ---- | ---- | ----- | ------ |`)
 
@@ -140,6 +118,15 @@ class TrackerVisitor {
         this.library.materializedClasses.forEach(clazz => {
             this.printMaterializedClass(clazz)
         })
+        this.out.print('')
+
+        this.stats.print(`# All components`)
+        this.stats.print('')
+        this.printStats()
+        this.stats.print('')
+
+        this.stats.append(this.out)
+        this.stats.printTo(fileName)
     }
 }
 
@@ -184,8 +171,7 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
     }
 
     const visitor = new TrackerVisitor(peerLibrary, track)
-    visitor.print()
-    visitor.out.printTo(path.join(outDir, "COMPONENTS.md"))
+    visitor.printTo(path.join(outDir, "COMPONENTS.md"))
     syncDemosStatus(track, verbose)
 }
 
