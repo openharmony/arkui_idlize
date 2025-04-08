@@ -2,6 +2,7 @@
     "compilerOptions": {
         "package": "@koalaui/arkts-arkui",
         "baseUrl": "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src",
+        "outDir": "out/arkts-subset/abc",
         "paths": {
             "#components": ["./generated/arkts"],
             "@arkoala/arkui": ["./generated"],
