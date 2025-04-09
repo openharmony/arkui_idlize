@@ -1,5 +1,5 @@
-declare type HelloType = number | boolean
+export type HelloType = number | boolean
 
-declare interface Hello {
+export interface Hello {
   hello(value: HelloType): void
 }

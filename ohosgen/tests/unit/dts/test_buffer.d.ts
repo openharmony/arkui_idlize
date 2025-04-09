@@ -2,12 +2,12 @@
 // TBD: wait for the interface FQN fix for ArkTS
 // import { Callback } from './@ohos.base';
 
-declare namespace test_buffer {
+export namespace test_buffer {
 
-  interface TestValue {
+  export interface TestValue {
     errorCode: number
     outData: Uint8Array
   }
 
-  function getBuffer(): TestValue
+  export function getBuffer(): TestValue
 }

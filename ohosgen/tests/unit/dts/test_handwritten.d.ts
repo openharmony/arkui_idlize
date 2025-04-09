@@ -1,4 +1,4 @@
-declare interface HandwrittenComponent {
-    id: String
+export interface HandwrittenComponent {
+    id: string
     total: number
 }

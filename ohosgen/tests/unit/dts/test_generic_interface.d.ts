@@ -1,10 +1,10 @@
 
-declare interface GenericInterface<T> {
-    setData(data: T)
-    callHandler()
+export interface GenericInterface<T> {
+    setData(data: T): void
+    callHandler(): void
 }
 
-declare interface GenericInterfaceDataHandler<T> {
+export interface GenericInterfaceDataHandler<T> {
     onData(data: T): void;
 }
 

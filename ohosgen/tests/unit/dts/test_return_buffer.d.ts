@@ -1,6 +1,6 @@
 
-declare namespace TestBuffer {
-    interface BufferGenerator {
+export namespace TestBuffer {
+    export interface BufferGenerator {
         giveMeBuffer(): ArrayBuffer
     }
 }

@@ -1,8 +1,8 @@
 
-declare namespace test_any {
-    interface WithAny {
+export namespace test_any {
+    export interface WithAny {
         field: any
         normal: number
     }
-    function test(x:WithAny, f:(x:any) => void):void
+    export function test(x:WithAny, f:(x:any) => void):void
 }

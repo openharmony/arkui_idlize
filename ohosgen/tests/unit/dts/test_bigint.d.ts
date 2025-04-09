@@ -1,3 +1,3 @@
-declare namespace test_bigint {
-    function test(num: bigint): bigint;
+export namespace test_bigint {
+    export function test(num: bigint): bigint;
 }

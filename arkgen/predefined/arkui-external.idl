@@ -416,3 +416,5 @@ interface EdgeStyles {
     attribute BorderStyle left;
 
 };
+
+interface SymbolGlyphModifier {};

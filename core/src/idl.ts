@@ -725,7 +725,7 @@ export function isEqualByQualifedName(a?: IDLNamedNode, b?: IDLNamedNode, patter
 
 export function getPackageClause(node: IDLNode): string[] {
     const file = getFileFor(node)
-    return file?.packageClause || []
+    return file?.packageClause ?? []
 }
 
 export function getPackageName(node: IDLNode): string {

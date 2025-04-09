@@ -1,11 +1,11 @@
 // thx alakierorange
 
-declare namespace test_enums {
-    enum MyEnum {A,B,C,D}
-    class Test{
+export namespace test_enums {
+    export enum MyEnum {A,B,C,D}
+    export class Test{
         a:number;
         constructor();
     }
-    function MyFunc(a: number): number
-    function MyFunc2(a: MyEnum): number
+    export function MyFunc(a: number): number
+    export function MyFunc2(a: MyEnum): number
 }

@@ -125,7 +125,7 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
 }
 
 type Siblings = { [key in string]: { tsSourceFile: ts.SourceFile, visitor: GenerateVisitor<idl.IDLFile>, result: idl.IDLFile } }
-
+type SourceFileType = 'global' | 'module'
 export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private file: idl.IDLFile = idl.createFile([])
     private imports: idl.IDLImport[] = []
@@ -155,6 +155,34 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         this.file.packageClause = this.detectPackageName(this.sourceFile)
         this.file = idl.linkParentBack(this.file!)
         return this.file
+    }
+
+    private sourceFileTypeDetected:SourceFileType | undefined = undefined
+    detectFileType(): SourceFileType {
+        if (this.sourceFileTypeDetected) {
+            return this.sourceFileTypeDetected
+        }
+        let hasImportOrExport = false
+        ts.forEachChild(this.sourceFile, node => {
+            if (ts.canHaveModifiers(node)) {
+                const modifiers = ts.getModifiers(node)
+                const found = modifiers?.find(mod => mod.kind === ts.SyntaxKind.ExportKeyword)
+                if (found) {
+                    hasImportOrExport = true
+                    return node // stop iteration
+                }
+            }
+            if (ts.isImportDeclaration(node)) {
+                hasImportOrExport = true
+                return node // stop iteration
+            }
+            if (ts.isExportAssignment(node)) {
+                hasImportOrExport = true
+                return node // stop iteration
+            }
+        })
+        this.sourceFileTypeDetected = hasImportOrExport ? 'module' : 'global'
+        return this.sourceFileTypeDetected
     }
 
     visitPhase2(siblings: Siblings): idl.IDLFile {
@@ -262,7 +290,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     detectPackageName(sourceFile: ts.SourceFile): string[] {
         let relativeFileName: string = ""
         for (const baseDir of this.baseDirs) {
-            const rel = path.normalize(path.relative(baseDir, sourceFile.fileName))
+            const rel = path.normalize(path.relative(path.resolve(baseDir), sourceFile.fileName))
             if (rel.startsWith("..")) {
                 continue
             }
@@ -272,38 +300,13 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (!relativeFileName)
             console.warn("Unable to resolve relative dts file path for `" + sourceFile.fileName + "`, check your --base-dir parameter")
 
-        const packageName = relativeFileName.replace(/[@#]/g, '').replace(/\.d\.[a-zA-Z]+$/, '').split(/[\/\.]/)
-        if (!packageName.length)
-            return packageName
-
-        const namesHere: string[] = sourceFile.statements.map(it => {
-            if (ts.isExportAssignment(it))
-                return it.name?.text || it.expression.getText()
-            if (ts.isExportDeclaration(it))
-                return it.name?.text || it.exportClause?.getText()
-            if (ts.isModuleDeclaration(it) || ts.isNamespaceExportDeclaration(it) ||
-                ts.isClassLike(it) || ts.isInterfaceDeclaration(it) ||
-                ts.isEnumDeclaration(it) ||
-                ts.isTypeAliasDeclaration(it) ||
-                ts.isFunctionDeclaration(it)) {
-                if (isExport(it.modifiers))
-                    return it.name?.text
-            }
-        }).filter(it => it).map(it => it!)
-
-        let hasMatchedNameHere = false
-        if (1 == namesHere.length) {
-            if (packageName[packageName.length - 1].toLowerCase() === namesHere[0].toLowerCase())
-                hasMatchedNameHere = true
-        } /* else {
-            for (const nameHere of namesHere)
-                if (packageName[packageName.length - 1] === nameHere) {
-                    hasMatchedNameHere = true
-                    break
-                }
-        }*/
-
-        return packageName
+        if (this.detectFileType() === 'global' && relativeFileName !== '') {
+            relativeFileName = path.dirname(relativeFileName)
+        }
+        if (relativeFileName === '.') {
+            return ['']
+        }
+        return relativeFileName.replace(/[@#]/g, '').replace(/\.d\.[a-zA-Z]+$/, '').split(/[\/\.]/)
     }
 
     /** visit nodes finding exported classes */
@@ -568,7 +571,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     clause = [...clause, ...target.split(".")]
                 if (!clause.length)
                     throw new Error("Empty import type clause is not allowed...")
-                dst.name = clause.join(".")
+                dst.name = clause.filter(x => x.length).join(".")
                 dst.typeArguments = this.mapTypeArgs(src.typeArguments, dst.name)
 
                 const found = this.predefinedTypeResolver?.resolveTypeReference(dst)

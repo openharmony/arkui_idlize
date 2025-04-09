@@ -1,12 +1,12 @@
-declare interface ForceCallbackListener {
+export interface ForceCallbackListener {
     onChange(flag: boolean, count: number): string
     onStatus(status: number): void
 }
 
-declare class ForceCallbackClass {
+export class ForceCallbackClass {
     registerListener(listener: ForceCallbackListener): void
     callListener(): number
 }
 
-declare function registerForceCallbackListener(listener: ForceCallbackListener): void
-declare function callForceCallbackListener(): number
+export function registerForceCallbackListener(listener: ForceCallbackListener): void
+export function callForceCallbackListener(): number

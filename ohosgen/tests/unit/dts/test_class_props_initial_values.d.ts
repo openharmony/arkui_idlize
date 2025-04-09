@@ -1,9 +1,9 @@
-declare class ClassWithPrimitivePropertyType {
+export class ClassWithPrimitivePropertyType {
     flag: boolean
     counter: number
     constructor(f: boolean, c: number)
 }
 
-declare class ClassWithComplexPropertyType {
+export class ClassWithComplexPropertyType {
     prop: ClassWithPrimitivePropertyType
 }

@@ -1,16 +1,16 @@
-interface ArgType {
+export interface ArgType {
     field: number
 }
 
-declare namespace hilog {
+export namespace hilog {
 
-    function debug(domain: number, tag: string, format: string, ...args: ArgType[]): void;
-    function info(domain: number, tag: string, format: string, ...args: ArgType[]): void;
-    function warn(domain: number, tag: string, format: string, ...args: ArgType[]): void;
-    function error(domain: number, tag: string, format: string, ...args: ArgType[]): void;
-    function fatal(domain: number, tag: string, format: string, ...args: ArgType[]): void;
-    function isLoggable(domain: number, tag: string, level: LogLevel): boolean;
-    function setMinLogLevel(level: LogLevel): void;
+    export function debug(domain: number, tag: string, format: string, ...args: ArgType[]): void;
+    export function info(domain: number, tag: string, format: string, ...args: ArgType[]): void;
+    export function warn(domain: number, tag: string, format: string, ...args: ArgType[]): void;
+    export function error(domain: number, tag: string, format: string, ...args: ArgType[]): void;
+    export function fatal(domain: number, tag: string, format: string, ...args: ArgType[]): void;
+    export function isLoggable(domain: number, tag: string, level: LogLevel): boolean;
+    export function setMinLogLevel(level: LogLevel): void;
 
     // namespace inner {
     //     function f(): void
@@ -23,7 +23,7 @@ declare namespace hilog {
     //     function f3(x?:number[]): void
     // }
 
-    enum LogLevel {
+    export enum LogLevel {
         DEBUG = 3,
         INFO = 4,
         WARN = 5,

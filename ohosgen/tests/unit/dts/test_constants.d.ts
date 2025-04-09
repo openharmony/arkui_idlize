@@ -1,7 +1,7 @@
 // thx to zhangziye
 
-declare namespace test_constants {
-    const att1: number;
-    const att2: string;
+export namespace test_constants {
+    export const att1: number;
+    export const att2: string;
 }
-declare const glob = 3;
+export const glob = 3;

@@ -1,5 +1,5 @@
 
-declare class CheckExceptionInterface {
+export class CheckExceptionInterface {
 
 	/**
 	 * @throws { Error }
@@ -7,7 +7,7 @@ declare class CheckExceptionInterface {
 	checkException()
 }
 
-declare class CheckExceptionClass {
+export class CheckExceptionClass {
 
 	/**
 	 * @throws { Error }
