@@ -464,8 +464,6 @@ declare interface DragPreviewOptions {
 declare interface DragInteractionOptions {
     isMultiSelectionEnabled?: boolean;
     defaultAnimationBeforeLifting?: boolean;
-    enableEdgeAutoScroll?: boolean;
-    enableHapticFeedback?: boolean;
 }
 
 declare enum GradientDirection {

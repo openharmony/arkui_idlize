@@ -4,6 +4,7 @@
 /out/
 /idl/
 /sdk/
+/sdk-patched/
 
 /native/NativeBridgeNapi.node
 /native/*.so

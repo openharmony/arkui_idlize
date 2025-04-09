@@ -9,8 +9,6 @@ declare interface CalendarOptions {
 
   hintRadius?: number | Resource;
   selected?: Date;
-  start?: Date;
-  end?: Date;
 }
 
 declare interface CalendarPickerInterface {

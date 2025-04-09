@@ -438,10 +438,10 @@ function checkCalendar() {
 
     let peer = ArkCalendarPickerPeer.create()
     checkResult("setCalendarOptions: hintRadius", () => peer.setCalendarPickerOptionsAttribute({ hintRadius: 79 }),
-        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     const date = new Date()
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
-        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=${date.getTime()}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=${date.getTime()}}}})`)
     stopNativeTest(CALL_GROUP_LOG)
 }
 
@@ -474,12 +474,12 @@ function checkCommon() {
     }
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: 10 }, { isMultiSelectionEnabled: true }),
-        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: true }, { defaultAnimationBeforeLifting: false }),
-        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_OBJECT, .value=false}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_OBJECT, .value=false}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
