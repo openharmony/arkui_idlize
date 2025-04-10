@@ -12,6 +12,7 @@
     "libohos",
     "linter",
     "dtsgen",
+    "etsgen",
     "arktscgen"
   ],
   "license": "Apache-2.0",

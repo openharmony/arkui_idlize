@@ -1,0 +1,30 @@
+{
+  "name": "@idlizer/etsgen",
+  "version": "2.1.3+devel",
+  "description": "",
+  "main": "lib/main.js",
+  "bin": "lib/main.js",
+  "files": [
+    "lib/*.js",
+    "generation-config/**/*",
+    "config.json"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [],
+  "dependencies": {
+    "@idlizer/core": "2.1.3+devel",
+    "@idlizer/libohos": "2.1.3+devel",
+    "@koalaui/libarkts": "file:///home/huawei/src/idlize/external/ui2abc/libarkts",
+    "@types/node": "^18.0.0",
+    "commander": "^10.0.0",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6"
+  },
+  "scripts": {
+    "clean": "rimraf -g build",
+    "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && rollup -c",
+    "run": "npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../interface_sdk-js/api --input-dir  ../interface_sdk-js/api/arkui --verify-idl --docs=none"
+  }
+}

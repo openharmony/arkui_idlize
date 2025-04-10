@@ -66,6 +66,7 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "libohos")),
     new Package(path.join(IDLIZE_HOME, "linter")),
     new Package(path.join(IDLIZE_HOME, "dtsgen")),
+    new Package(path.join(IDLIZE_HOME, "etsgen")),
     new Package(path.join(IDLIZE_HOME, "ohosgen"))
 ]
 

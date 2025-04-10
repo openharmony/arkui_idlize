@@ -55,7 +55,7 @@ export function scanInputDirs(
     console.log("Resolved input directories:", resolvedInputDirs)
     return resolvedInputDirs.flatMap(dir => {
         if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-            console.log(`Processing all .d.ts from directory: ${dir}`)
+            console.log(`Processing all definitions from directory: ${dir}`)
             return scanDirectory(dir, fileFilter, recursive)
         } else {
             console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)

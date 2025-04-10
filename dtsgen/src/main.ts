@@ -58,7 +58,7 @@ const options = program
     .option('--verbose', 'Verbose processing')
     .option('--verify-idl', 'Verify produced IDL')
     .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
-    .option('--language [ts|ts|java|cangjie]', 'Output language')
+    .option('--language [ts|sts|java|cangjie]', 'Output language')
     .option('--version')
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
