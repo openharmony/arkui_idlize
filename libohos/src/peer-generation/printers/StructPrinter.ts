@@ -180,7 +180,7 @@ export class StructPrinter {
                 if (!noBasicDecl && !idl.isPrimitiveType(target))
                     this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)
-                this.printOptionalIfNeeded(undefined, concreteDeclarations, writeToString, target, seenNames)
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             }
         }
         structs.concat(forwardDeclarations)
@@ -337,8 +337,9 @@ export class StructPrinter {
         printer.print(
 `
 template <>
-inline void WriteToString(std::string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
+void WriteToString(std::string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
 
+template <>
 inline void WriteToString(std::string* result, const ${name}* value) {
     int32_t count = value->length;
     result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
@@ -368,10 +369,10 @@ inline void WriteToString(std::string* result, const ${name}* value) {
 
         // Provide prototype of keys printer.
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(std::string* result, const ${keyNativeType}${isPointerKeyField ? "*" : ""} value);`)
+        printer.print(`void WriteToString(std::string* result, const ${keyNativeType}${isPointerKeyField ? "*" : ""} value);`)
         // Provide prototype of values printer.
         printer.print(`template <>`)
-        printer.print(`inline void WriteToString(std::string* result, const ${valueNativeType}${isPointerValueField ? "*" : ""} value);`)
+        printer.print(`void WriteToString(std::string* result, const ${valueNativeType}${isPointerValueField ? "*" : ""} value);`)
 
         // Printer.
         printer.print(`template <>`)

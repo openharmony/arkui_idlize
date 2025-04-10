@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { CustomPrintVisitor as DtsPrintVisitor, isInIdlize, Language, PeerLibrary } from '@idlizer/core'
+import { CustomPrintVisitor as DtsPrintVisitor, isInIdlize, Language, PeerLibrary, sorted } from '@idlizer/core'
 import { LanguageWriter } from "@idlizer/core"
 import { DependenciesCollector } from "../idl/IdlDependenciesCollector"
 import { ImportsCollector } from "../ImportsCollector"
@@ -67,7 +67,7 @@ export function printDeclarations(peerLibrary: PeerLibrary): Array<string> {
                 result.push(text)
         }
     }
-    for (const decl of collectComponents(peerLibrary)) {
+    for (const decl of sorted(collectComponents(peerLibrary), "name")) {
         const iface = decl.interfaceDeclaration
         if (iface) {
             result.push(`declare const ${decl.name}: ${iface.name}`)
@@ -112,5 +112,5 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
                 ns.forEach(() => writer.popNamespace())
             }
         }
-    printEnumsGlobalAssign(enums, writer)
+    printEnumsGlobalAssign(sorted(enums, "name"), writer)
 }

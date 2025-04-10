@@ -21,6 +21,7 @@ import {
     createMethod,
     createParameter,
     forceAsNamedNode,
+    getFQName,
     getSuperType,
     hasExtAttribute,
     IDLCallback,
@@ -69,6 +70,7 @@ import {
     isStaticMaterialized,
     isInCurrentModule,
     currentModule,
+    sorted,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
@@ -160,7 +162,7 @@ class OHOSNativeVisitor {
         _.print(`} ${callbackTypeName};`)
     }
 
-    private impls = new Map<string, SignatureDescriptor>()
+    private impls = new Array<{ name: string, signature: SignatureDescriptor }>()
 
     private getPropertiesFromInterfaces(decl: IDLInterface) {
         const superType = getSuperType(decl)
@@ -202,14 +204,14 @@ class OHOSNativeVisitor {
                 _h.print(`${handleType} (*${name})(${cppArgs});`) // TODO check
                 let implName = `${className}_${name}Impl`
                 _c.print(`&${implName},`)
-                this.impls.set(implName, { params, returnType: handleType, paramsCString: cppArgs })
+                this.impls.push({ name: implName, signature: { params, returnType: handleType, paramsCString: cppArgs } })
             })
             {
                 let destructName = `${className}_destructImpl`
                 let params = [new NameType("thisPtr", handleType)]
                 _h.print(`void (*destruct)(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
                 _c.print(`&${destructName},`)
-                this.impls.set(destructName, { params, returnType: 'void' })
+                this.impls.push({ name: destructName, signature: { params, returnType: 'void' } })
             }
         }
         generatePostfixForOverloads(clazz.methods).forEach(({ method, overloadPostfix }) => {
@@ -225,7 +227,7 @@ class OHOSNativeVisitor {
             _h.print(`${returnType} (*${method.name}${overloadPostfix})(${args});`)
             let implName = `${className}_${method.name}${overloadPostfix}Impl`
             _c.print(`&${implName},`)
-            this.impls.set(implName, { params, returnType, paramsCString: args })
+            this.impls.push({ name: implName, signature: { params, returnType, paramsCString: args } })
         })
 
         const propertiesFromInterface: IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
@@ -259,7 +261,7 @@ class OHOSNativeVisitor {
                 _h.print(`${returnType} (*${method.name})(${args});`)
                 let implName = `${className}_${method.name}Impl`
                 _c.print(`&${implName},`)
-                this.impls.set(implName, { params, returnType, paramsCString: args })
+                this.impls.push({ name: implName, signature: { params, returnType, paramsCString: args } })
             }
         })
         _h.popIndent()
@@ -300,7 +302,8 @@ class OHOSNativeVisitor {
     private writeImpls() {
         let _ = this.implementationApiFile.content
         let _stubs = this.implementationStubsFile.content
-        this.impls.forEach((signature, name) => {
+        const impls = sorted(this.impls, "name")
+        impls.forEach(({name, signature}) => {
             const declaration = `${signature.returnType} ${name}(${signature.paramsCString ?? signature.params.map(it => `${it.type} ${it.name}`).join(", ")})`
             _.print(`${declaration};`)
             _stubs.print(`${declaration} {`)
@@ -429,6 +432,10 @@ class OHOSNativeVisitor {
                 }
             })
         })
+
+        this.data = sorted(this.data, it => getFQName(it))
+        this.enums = sorted(this.enums, it => getFQName(it))
+        this.interfaces = sorted(this.interfaces, it => getFQName(it))
 
         const global = createSyntheticGlobalScope(this.library)
         if (global.methods.length) {

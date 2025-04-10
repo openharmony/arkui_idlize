@@ -147,5 +147,5 @@ function makeOhosModule(root:string, componentsFiles: string[]): string {
         const relativePath = path.relative(root, file)
         const fileNameNoExt = relativePath.replaceAll(path.extname(file), "")
         return `export * from "./${fileNameNoExt}"`
-    }).join("\n")
+    }).sort().join("\n")
 }

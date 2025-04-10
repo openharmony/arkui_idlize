@@ -713,3 +713,19 @@ export function rightmostIndexOf<T>(array: T[], predicate: (value: T) => boolean
     })
     return result
 }
+
+type StringProperties<T> = {
+    [Property in keyof T as (T[Property] extends string ? Property : never)]: T[Property]
+}
+
+// sort array using external key function or internal string property
+export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: ((value: T) => string) | N): T[] {
+    const comparator = new Intl.Collator()
+    if (typeof key === "function") {
+        return array.map(it => { return { sortKey: key(it), value: it } })
+            .sort((a, b) => comparator.compare(a.sortKey, b.sortKey))
+            .map(it => it.value)
+    }
+    return array.map(it => it)
+        .sort((a, b) => comparator.compare(a[key] as string, b[key] as string))
+}

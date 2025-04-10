@@ -30,6 +30,7 @@ import {
     CppReturnTypeConvertor,
     PrimitiveTypesInstance,
     isDirectConvertedType,
+    sorted,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
@@ -320,7 +321,8 @@ export class BridgeCcVisitor {
 
     print(): void {
         for (const file of this.library.files) {
-            for (const peer of file.peersToGenerate.values()) {
+            const peersToGenerate = sorted(file.peersToGenerate, it => it.componentName)
+            for (const peer of peersToGenerate) {
                 for (const method of [createConstructPeerMethod(peer)].concat(peer.methods)) {
                     this.printMethod(method, peer.componentName)
                 }

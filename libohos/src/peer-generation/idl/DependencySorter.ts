@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { convertNode, convertType, Language, LibraryInterface, NodeConvertor, ReferenceResolver } from "@idlizer/core";
+import { convertNode, convertType, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
 
@@ -194,7 +194,8 @@ export class DependencySorter {
     // Kahn's algorithm.
     getToposorted(): idl.IDLNode[] {
         let result = new Set<idl.IDLNode>
-        let input = [...this.dependencies]
+        const namer = this.library.createTypeNameConvertor(Language.CPP)
+        let input = sorted([...this.dependencies], it => namer.convert(it))
         while (input.length) {
             let broken: idl.IDLNode[] = []
             let processed = 0
@@ -209,7 +210,6 @@ export class DependencySorter {
             }
             if (!processed) {
                 console.warn("DependencySorter detects unsatisfiable dependencies (loops wtith consecuences):")
-                const namer = this.library.createTypeNameConvertor(Language.CPP)
                 for(const it of broken)
                     console.warn(`${namer.convert(it)} -> [${this.adjMap.get(it)?.filter(it => !result.has(it)).map(it => namer.convert(it)).join(", ")}]`)
                 console.warn("DependencySorter dependencies end")
