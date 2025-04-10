@@ -436,6 +436,13 @@ void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
 }
 KOALA_INTEROP_DIRECT_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)
 
+static const std::string PAGE_SUFFIX = "GeneratedEntry";
+static bool isPageClass(const std::string& className)
+{
+    return (PAGE_SUFFIX.size() < className.size()) &&
+            std::equal(PAGE_SUFFIX.rbegin(), PAGE_SUFFIX.rend(), className.rbegin());
+}
+
 KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, const KStringPtr& viewParams) {
 #ifdef KOALA_USE_JAVA_VM
     JNIEnv* env = reinterpret_cast<JNIEnv*>(vm);
@@ -476,7 +483,9 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     if (className == "ViewLoaderApp") {
         className = "Page.App";
     } else if (className == "EtsHarness") {
-        className = "@koalaui.ets-harness.build.unmemoized.src.Page.EtsHarness";
+        className = "@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness";
+    } else if (isPageClass(className)) {
+        className = "@koalaui.user.build.unmemoized.build.generated." + className;
     } else {
         className = "@koalaui.user.build.unmemoized.src.Page." + className;
     }
@@ -516,7 +525,9 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     if (className == "UserApp") {
         className = "L@koalaui.arkts-arkui.Application.UserView;";
     } if (className == "EtsHarness") {
-        className = "L@koalaui.ets-harness.build.unmemoized.src.Page.EtsHarness;";
+        className = "L@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness";
+    } else if (isPageClass(className)) {
+        className = "L@koalaui.user.build.unmemoized.build.generated." + className + ";";
     } else {
         className = "L@koalaui.user.build.unmemoized.src.Page." + className + ";";
     }
