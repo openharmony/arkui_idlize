@@ -507,18 +507,33 @@ class MaterializedVisitor implements PrinterClass {
 
     print(): PrinterResult[] {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        return this.library.materializedToGenerate.flatMap(it => {
+        const materializedClasses = this.library.materializedToGenerate
+        const isParent = (maybeParent: MaterializedClass, maybeDescendant: MaterializedClass): boolean => {
+            if (!maybeDescendant.superClass) return false
+            const nearestParent = this.library.resolveTypeReference(maybeDescendant.superClass)
+            if (!nearestParent) return false
+            const nearestParentFQN = idl.getFQName(nearestParent)
+            const nearestMaterializedParent = materializedClasses.find(it => idl.getFQName(it.decl) === nearestParentFQN)
+            if (nearestMaterializedParent === maybeParent)
+                return true
+            return nearestMaterializedParent
+                ? isParent(maybeParent, nearestMaterializedParent)
+                : false
+        }
+        const sortedMaterializedClasses = Array.from(materializedClasses).sort((a, b) => {
+            if (isParent(a, b)) return -1
+            if (isParent(b, a)) return 1
+            return 0
+        })
+        return sortedMaterializedClasses.flatMap(it => {
             return this.printContent(it)
         })
     }
 }
 
 export function createMaterializedPrinter(dumpSerialized: boolean) {
-    return (peerLibrary: PeerLibrary) => LanguageWriter.relativeReferences(true, () => printMaterialized(peerLibrary, dumpSerialized).print())
-}
-
-export function printMaterialized(peerLibrary: PeerLibrary, dumpSerialized: boolean) {
-    return new MaterializedVisitor(peerLibrary, dumpSerialized)
+    return (peerLibrary: PeerLibrary) => LanguageWriter.relativeReferences(true, () =>
+        new MaterializedVisitor(peerLibrary, dumpSerialized).print())
 }
 
 function getSuperName(clazz: MaterializedClass): string | undefined {

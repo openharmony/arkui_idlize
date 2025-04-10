@@ -104,7 +104,7 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers, ";")
     }
-    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
+    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op: (writer: LanguageWriter) => void): void {
         throw new Error("WriteEnum for C-family languages is not implemented")
     }
     writeMethodImplementation(method: Method, op: (writer: this) => void) {

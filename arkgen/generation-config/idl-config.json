@@ -12,6 +12,8 @@
             "Particles",
             "ParticleColorPropertyOptions",
             "ParticlePropertyOptions",
+            "IsolatedComponentInterface",
+            "IsolatedComponentAttribute",
             "AccelerationOptions",
             "ParticleOptions",
             "AccelerationOptions",

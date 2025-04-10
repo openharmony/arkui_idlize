@@ -164,26 +164,6 @@ interface LengthMetrics {
   static LengthMetrics lpx(number value);
   static LengthMetrics resource(Resource value);
 };
-[Entity=Class]
-interface ColorMetrics {
-
-    [Accessor=Getter]
-    readonly attribute String color;
-    [Accessor=Getter]
-    readonly attribute number red;
-    [Accessor=Getter]
-    readonly attribute number green;
-    [Accessor=Getter]
-    readonly attribute number blue;
-    [Accessor=Getter]
-    readonly attribute number alpha;
-    static ColorMetrics numeric(number value);
-    static ColorMetrics rgba(number red, number green, number blue, optional number alpha);
-    static ColorMetrics resourceColor(ResourceColor color);
-    ColorMetrics blendColor(ColorMetrics overlayColor);
-
-};
-
 
 [Entity=Interface]
 interface CornerRadius {
@@ -204,7 +184,6 @@ interface BorderRadiuses_graphics {
     attribute number bottomRight;
 
 };
-
 [Entity=Interface]
 interface Rect {
 

@@ -345,7 +345,7 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isMethodDeclaration(node)) {
         return identString(node.name)
     }
-    if (ts.isEnumDeclaration(node)){
+    if (ts.isEnumDeclaration(node)) {
         return identString(node.name)
     }
     if (ts.isEnumMember(node)) {
@@ -373,11 +373,11 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (ts.isParameter(node)) return `Parameter`
     if (ts.isParenthesizedTypeNode(node)) return identName(node.type)
     if (ts.isIntersectionTypeNode(node)) return node.types.map(it => identName(it)).join("&")
-    if(node.kind === ts.SyntaxKind.UnknownKeyword) return `UnknownKeyword`
+    if (node.kind === ts.SyntaxKind.UnknownKeyword) return `UnknownKeyword`
     throw new Error(`Unknown: ${ts.SyntaxKind[node.kind]}`)
 }
 
-export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName |  ts.NumericLiteral | ts.ComputedPropertyName | ts.BindingName | undefined): string | undefined {
+export function identString(node: ts.Identifier | ts.PrivateIdentifier | ts.StringLiteral | ts.QualifiedName | ts.NumericLiteral | ts.ComputedPropertyName | ts.BindingName | undefined): string | undefined {
     if (!node) return undefined
     if (ts.isStringLiteral(node)) return node.text
     if (ts.isNumericLiteral(node)) return node.text
@@ -417,7 +417,7 @@ export function serializerBaseMethods(): string[] {
     }
 }
 
-export function getNameWithoutQualifiersRight(node: ts.EntityName | undefined) : string|undefined {
+export function getNameWithoutQualifiersRight(node: ts.EntityName | undefined): string | undefined {
     if (!node) return undefined
     if (ts.isQualifiedName(node)) {
         return identName(node.right)
@@ -428,7 +428,7 @@ export function getNameWithoutQualifiersRight(node: ts.EntityName | undefined) :
     throw new Error("Impossible")
 }
 
-export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined) : string|undefined {
+export function getNameWithoutQualifiersLeft(node: ts.EntityName | undefined): string | undefined {
     if (!node) return undefined
     if (ts.isQualifiedName(node)) {
         return identName(node.left)
@@ -663,9 +663,9 @@ export function findVersion() {
     }
 }
 
-export function zipMany<T>(...xs:T[][]): Array<Array<T | undefined>> {
+export function zipMany<T>(...xs: T[][]): Array<Array<T | undefined>> {
     const max = xs.reduce((max, it) => it.length > max ? it.length : max, 0)
-    const result:Array<Array<T | undefined>> = []
+    const result: Array<Array<T | undefined>> = []
     for (let i = 0; i < max; ++i) {
         const row: Array<undefined | T> = []
         for (const x of xs) {

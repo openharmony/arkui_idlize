@@ -85,7 +85,7 @@ class ArkTSMapForEachStatement implements LanguageStatement {
 export class ArkTSEnumEntityStatement implements LanguageStatement {
     constructor(
         private readonly enumEntity: IDLEnum,
-        private readonly isExport: boolean,
+        private readonly options: { isExport: boolean, isDeclare: boolean }
     ) {}
 
     write(writer: LanguageWriter) {
@@ -126,7 +126,7 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
                 return res
             })
 
-        writer.writeEnum(enumName, members)
+        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
     }
 }
 
@@ -255,8 +255,11 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return makeInterfaceTypeCheckerCall(value, decl.name,
             decl.properties.map(it => it.name), new Set(), this)
     }
-    makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
-        return new ArkTSEnumEntityStatement(enumEntity, isExport)
+    makeEnumEntity(enumEntity: IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
+        return new ArkTSEnumEntityStatement(enumEntity, {
+            isExport: options?.isExport,
+            isDeclare: !!options?.isDeclare,
+        })
     }
     getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
         return super.getObjectAccessor(convertor, value, args)

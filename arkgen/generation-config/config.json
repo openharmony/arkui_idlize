@@ -134,6 +134,7 @@
         "Record"
     ],
     "builderClasses": [
+        "Indicator",
         "SubTabBarStyle",
         "BottomTabBarStyle",
         "DotIndicator",

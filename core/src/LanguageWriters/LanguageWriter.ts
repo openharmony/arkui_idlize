@@ -252,11 +252,11 @@ export class CheckOptionalStatement implements LanguageStatement {
 export class TsEnumEntityStatement implements LanguageStatement {
     constructor(
         private readonly enumEntity: idl.IDLEnum,
-        private readonly isExport: boolean,
+        private readonly options: { isExport: boolean, isDeclare: boolean },
     ) {}
     write(writer: LanguageWriter): void {
         // writer.print(this.enumEntity.comment)
-        writer.print(`${this.isExport ? "export " : ""}enum ${this.enumEntity.name} {`)
+        writer.print(`${this.options.isExport ? "export " : ""}${this.options.isDeclare ? "declare " : ""}enum ${this.enumEntity.name} {`)
         writer.pushIndent()
         this.enumEntity.elements.forEach((member, index) => {
             // writer.print(member.comment)
@@ -458,7 +458,7 @@ export abstract class LanguageWriter {
     maybeSemicolon() { return ";" }
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
-    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], op?: (writer: this) => void): void
+    abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature): void
@@ -719,8 +719,8 @@ export abstract class LanguageWriter {
     makeIsTypeCall(value: string, decl: idl.IDLInterface): LanguageExpression {
         return this.makeString(`is${decl.name}(${value})`)
     }
-    makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
-        return new TsEnumEntityStatement(enumEntity, isExport)
+    makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
+        return new TsEnumEntityStatement(enumEntity, { isExport: options.isExport, isDeclare: !!options.isDeclare })
     }
     makeFieldModifiersList(modifiers: FieldModifier[] | undefined, customFieldFilter?: (field :FieldModifier) => boolean) : string {
         let allowedModifiers = this.supportedFieldModifiers

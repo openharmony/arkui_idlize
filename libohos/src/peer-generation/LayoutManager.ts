@@ -30,14 +30,14 @@ export interface PrinterResult {
 }
 
 export interface PrinterClass {
-    print(library:PeerLibrary): PrinterResult[]
+    print(library: PeerLibrary): PrinterResult[]
 }
 export interface PrinterFunction {
-    (library:PeerLibrary): PrinterResult[]
+    (library: PeerLibrary): PrinterResult[]
 }
 export type Printer = PrinterClass | PrinterFunction
 
-export function install(outDir:string, library:PeerLibrary, printers:Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager }): string[] {
+export function install(outDir: string, library: PeerLibrary, printers: Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager }): string[] {
     const storage = new Map<string, PrinterResult[]>()
 
     // groupBy

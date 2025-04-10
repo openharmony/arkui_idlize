@@ -108,7 +108,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         return this.make(idl.IDLCustomObjectType.name)
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, _: string): ConvertResult {
-        return this.make(idl.IDLCustomObjectType.name)
+        return this.convertTypeReference(type)
     }
     convertTypeReference(type: idl.IDLReferenceType): ConvertResult {
         const refName = type.name

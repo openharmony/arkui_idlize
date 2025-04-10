@@ -44,7 +44,8 @@ export class EnumsPrinter extends SingleFilePrinter {
                     stringId: undefined,
                     numberId: it.initializer,
                 }
-            })
+            }),
+            { isExport: true }
         )
     }
 }

@@ -16,16 +16,16 @@ import { ArkUINativeModule, TestNativeModule } from "#components"
 import { wrapCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName, KSerializerBuffer, KBuffer } from "@koalaui/interop"
 import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
-import { ArkButtonPeer } from "@arkoala/arkui/peers/ArkButtonPeer"
-import { ArkColumnPeer } from "@arkoala/arkui/peers/ArkColumnPeer"
-import { ButtonType, LabelStyle } from '@arkoala/arkui/ArkButtonInterfaces'
-import { BlurOptions, SheetTitleOptions, CustomBuilder } from "@arkoala/arkui/ArkCommonInterfaces"
-import { ResourceStr,Font } from "@arkoala/arkui/ArkUnitsInterfaces"
+import { ArkButtonPeer } from "@arkoala/arkui/button"
+import { ArkColumnPeer } from "@arkoala/arkui/column"
+import { ButtonType, LabelStyle } from '@arkoala/arkui/button'
+import { BlurOptions, SheetTitleOptions, CustomBuilder } from "@arkoala/arkui/common"
+import { ResourceStr,Font } from "@arkoala/arkui/units"
 
-import { Resource } from "./ArkResourceInterfaces"
-import { Literal_Alignment_align } from './SyntheticDeclarations'
+import { Resource } from "./resource"
+import { Literal_Alignment_align } from './'
 
-import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/ArkEnumsInterfaces"
+import { Alignment, TextOverflow, TextHeightAdaptivePolicy } from "@arkoala/arkui/enums"
 
 import { Deserializer } from "@arkoala/arkui/peers/Deserializer"
 import { Serializer } from "@arkoala/arkui/peers/Serializer"

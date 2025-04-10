@@ -17,20 +17,20 @@ import { Serializer } from "@arkoala/arkui/generated/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/generated/peers/Deserializer"
 import { MaterializedBase } from "@koalaui/interop"
 import { checkArkoalaCallbacks } from "@arkoala/arkui/generated/peers/CallbacksChecker"
-import { ArkButtonPeer } from "@arkoala/arkui/generated/peers/ArkButtonPeer"
-import { ArkCommonPeer } from "@arkoala/arkui/generated/peers/ArkCommonPeer"
-import { ArkCalendarPickerPeer } from "@arkoala/arkui/generated/peers/ArkCalendarPickerPeer"
-import { ArkFormComponentPeer } from "@arkoala/arkui/generated/peers/ArkFormComponentPeer"
-import { ArkSideBarContainerPeer } from "@arkoala/arkui/generated/peers/ArkSidebarPeer"
-import { ArkSideBarContainerComponentImplementation } from "@arkoala/arkui/generated/ArkSidebar"
-import { ArkTabContentPeer } from "@arkoala/arkui/generated/peers/ArkTabContentPeer"
+import { ArkButtonPeer } from "@arkoala/arkui/generated/button"
+import { ArkCommonPeer } from "@arkoala/arkui/generated/common"
+import { ArkCalendarPickerPeer } from "@arkoala/arkui/generated/calendar_picker"
+import { ArkFormComponentPeer } from "@arkoala/arkui/generated/form_component"
+import { ArkSideBarContainerPeer } from "@arkoala/arkui/generated/sidebar"
+import { ArkSideBarContainerComponent } from "@arkoala/arkui/generated/sidebar"
+import { ArkTabContentPeer } from "@arkoala/arkui/generated/tab_content"
 import { SubTabBarStyle } from "@arkoala/arkui/generated/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/generated/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
 import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/generated/ArkCanvasRenderingContext2DMaterialized"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
-import { TouchTestInfo, BackgroundBlurStyleOptions } from "./generated/ArkCommonInterfaces"
+import { TouchTestInfo, BackgroundBlurStyleOptions } from "./generated/common"
 // imports required interfaces (now generation is disabled)
 // import { Resource, BackgroundBlurStyleOptions, TouchTestInfo } from "@arkoala/arkui"
 
@@ -488,7 +488,7 @@ function checkCommon() {
 function checkOverloads() {
     startNativeTest(checkOverloads.name, CALL_GROUP_LOG)
 
-    class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponentImplementation {
+    class ArkSideBarContainerComponentTest extends ArkSideBarContainerComponent {
         constructor(peer: ArkSideBarContainerPeer) {
             super()
             this.setPeer(peer)

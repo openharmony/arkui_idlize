@@ -303,6 +303,14 @@ export class OverloadsPrinter {
         })
     }
 
+    public printCollapsedDeclaration(peer: PeerClassBase, methods: PeerMethod[]) {
+        if (this.isComponent) {
+            this.printer.print(`/** @memo */`)
+        }
+        const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
+        this.printer.writeMethodDeclaration(collapsedMethod.name, collapsedMethod.signature)
+    }
+
     private printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]): boolean {
         const argsConditions: LanguageExpression[] = []
         collapsedMethod.signature.args

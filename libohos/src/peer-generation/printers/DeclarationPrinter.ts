@@ -108,7 +108,7 @@ export function printEnumsImpl(peerLibrary: PeerLibrary, writer: LanguageWriter)
                 enums.push(decl)
                 const ns = idl.getNamespacesPathFor(decl)
                 ns.forEach(n => writer.pushNamespace(n.name))
-                writer.writeStatement(writer.makeEnumEntity(decl, true))
+                writer.writeStatement(writer.makeEnumEntity(decl, { isExport: true }))
                 ns.forEach(() => writer.popNamespace())
             }
         }

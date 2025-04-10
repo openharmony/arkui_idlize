@@ -81,11 +81,10 @@ export class ImportsCollector {
         })
         return lines
     }
+
+    getFeatures(): Map<string, Set<string>> {
+        return this.moduleToFeatures
+    }
 }
 
 export type ImportFeature = { feature: string, module: string }
-
-export function convertPeerFilenameToModule(filename: string) {
-    const basename = renameDtsToPeer(path.basename(filename.replaceAll('\\', '/')), Language.TS, false)
-    return `./peers/${basename}`
-}

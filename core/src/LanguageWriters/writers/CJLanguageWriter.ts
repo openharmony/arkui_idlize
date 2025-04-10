@@ -319,7 +319,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], op: (writer: LanguageWriter) => void): void {
+    writeEnum(name: string, members: { name: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op: (writer: LanguageWriter) => void): void {
         this.printer.print(`public enum ${name}{`)
         this.pushIndent()
         for (const member of members) {
@@ -595,8 +595,8 @@ export class CJLanguageWriter extends LanguageWriter {
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
     }
-    makeEnumEntity(enumEntity: idl.IDLEnum, isExport: boolean): LanguageStatement {
-        return new CJEnumWithGetter(enumEntity, isExport)
+    makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
+        return new CJEnumWithGetter(enumEntity, options.isExport)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         return this.makeString(`refEq(${args.map(arg => `${arg.asString()}`).join(`, `)})`)

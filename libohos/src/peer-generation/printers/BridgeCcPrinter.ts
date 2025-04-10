@@ -224,6 +224,15 @@ export class BridgeCcVisitor {
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
 
+    private isDirect(method: PeerMethod): boolean {
+        let isDirect = isDirectConvertedType(method.returnType, this.library)
+        method.argAndOutConvertors.forEach(it => {
+            if (!it.useArray)
+                isDirect &&= isDirectConvertedType(it.interopType(), this.library)
+        })
+        return isDirect
+    }
+
     private generateCParameters(method: PeerMethod): [string, string][] {
         const maybeReceiver: [string, string][] = method.hasReceiver()
             ? [[PrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []

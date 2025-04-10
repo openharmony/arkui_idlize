@@ -40,9 +40,6 @@ export function isBuilderClass(declaration: IDLInterface): boolean {
     if (generatorConfiguration().builderClasses.includes(className)) {
         return true
     }
-    if (isCustomBuilderClass(className)) {
-        return true
-    }
 
     // TBD: update builder class check condition.
     // Only SubTabBarStyle, BottomTabBarStyle, DotIndicator, and DigitIndicator classes
@@ -65,12 +62,6 @@ export function isBuilderClass(declaration: IDLInterface): boolean {
 
     return methods.every(it => it.type && className == it.type.getText() && it.parameters.length === 1)
     */
-}
-
-export const CUSTOM_BUILDER_CLASSES: BuilderClass[] = []
-
-export function isCustomBuilderClass(name: string): boolean {
-    return isDefined(CUSTOM_BUILDER_CLASSES.find(it => it.name === name))
 }
 
 export function methodsGroupOverloads(methods: Method[]): Method[][] {

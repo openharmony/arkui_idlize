@@ -1,7 +1,8 @@
 import * as idl from "@idlizer/core/idl"
-import { LibraryInterface, LibraryFileInterface } from "@idlizer/core"
+import { LibraryInterface } from "@idlizer/core"
 import { isDefined, PeerFile } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
+import path from "node:path"
 
 export class IdlComponentDeclaration {
     constructor(
@@ -73,6 +74,10 @@ export function isComponentDeclaration(library: LibraryInterface, decl: idl.IDLE
 export function findComponentByDeclaration(library: LibraryInterface, iface: idl.IDLInterface): IdlComponentDeclaration | undefined {
     return collectComponents(library).find(it =>
         it.interfaceDeclaration === iface || it.attributeDeclaration === iface)
+}
+
+export function findComponentByName(library: LibraryInterface, name: string): IdlComponentDeclaration | undefined {
+    return collectComponents(library).find(it => it.name === name)
 }
 
 export function findComponentByType(library: LibraryInterface, type: idl.IDLType): IdlComponentDeclaration | undefined {

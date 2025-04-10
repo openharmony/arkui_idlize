@@ -14,9 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
+import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
@@ -96,6 +96,46 @@ export function collectDeclDependencies(
     },
 ): void {
     const collector = createDependenciesCollector(library)
+    const deps = collector.convert(node)
+    if (options?.expandTypedefs)
+        for (let i = 0; i < deps.length; i++) {
+            if (!idl.isTypedef(deps[i]))
+                continue
+            for (const subDependency of collector.convert(deps[i])) {
+                if (!deps.includes(subDependency))
+                    deps.push(subDependency)
+            }
+        }
+    if (Language.TS === library.language) {
+        // expant type literals
+        for (let i = 0; i < deps.length; i++) {
+            if (!idl.isInterface(deps[i]) && !idl.isSyntheticEntry(deps[i]))
+                continue
+            for (const subDependency of collector.convert(deps[i])) {
+                if (!deps.includes(subDependency))
+                    deps.push(subDependency)
+            }
+        }
+    }
+    for (const dep of deps) {
+        collectDeclItself(library, dep, emitter, {
+            includeMaterializedInternals: options?.includeMaterializedInternals,
+            includeTransformedCallbacks: options?.includeTransformedCallbacks,
+        })
+    }
+}
+
+export function collectInterfaceDependencies(
+    library: PeerLibrary,
+    node: idl.IDLNode,
+    emitter: ImportsCollector | ((entry: idl.IDLEntry | idl.IDLReferenceType) => void),
+    options?: {
+        expandTypedefs?: boolean,
+        includeMaterializedInternals?: boolean,
+        includeTransformedCallbacks?: boolean,
+    },
+): void {
+    const collector = new ArkTSInterfaceDependenciesCollector(library)
     const deps = collector.convert(node)
     if (options?.expandTypedefs)
         for (let i = 0; i < deps.length; i++) {

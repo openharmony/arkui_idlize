@@ -37,7 +37,6 @@ import {
     componentToAttributesClass,
     componentToInterface,
     componentToPeerClass,
-    convertPeerFilenameToModule,
     findComponentByType,
     generateAttributesParentClass,
     generateInterfaceParentInterface,
@@ -49,11 +48,10 @@ import {
     PrinterResult,
     printJavaImports,
     TargetFile,
-    tsCopyrightAndWarning,
 } from '@idlizer/libohos'
 
 export function generateArkComponentName(component: string) {
-    return `Ark${component}ComponentImplementation`
+    return `Ark${component}Component`
 }
 
 class ComponentPrintResult {
@@ -111,8 +109,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     imports.addFeature(parentInterface, `./${parentGeneratedPath}`)
             }
         }
-        const peerModule = convertPeerFilenameToModule(peer.originalFilename)
-        imports.addFeature(componentToPeerClass(peer.componentName), peerModule)
+        imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
 
         collectDeclDependencies(this.library, component.attributeDeclaration, imports)
         if (component.interfaceDeclaration)
@@ -138,21 +135,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         }, parent ? [parent] : undefined)
     }
 
-    protected printInterface(peer: PeerClass, printer:LanguageWriter): string {
-        const componentInterfaceName = componentToInterface(peer.componentName)
-        const parent = generateInterfaceParentInterface(peer)
-        printer.writeInterface(componentInterfaceName, (writer) => {
-            const filteredMethods = peer.methods.filter(it =>
-                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
-            groupOverloads(filteredMethods).forEach(group => {
-                const method = collapseIdlPeerMethods(this.library, group)
-                writer.print(`/** @memo */`)
-                writer.writeMethodDeclaration(method.method.name, method.method.signature)
-            })
-        }, parent ? [parent] : undefined)
-        return componentInterfaceName
-    }
-
     private printComponent(peer: PeerClass): PrinterResult[] {
 
         const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
@@ -167,10 +149,11 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const componentFunctionName = `Ark${peer.componentName}`
+        
         const peerClassName = componentToPeerClass(peer.componentName)
 
         this.printAttributes(peer, printer)
-        const componentInterfaceName = this.printInterface(peer, printer)
+        const componentInterfaceName = peer.originalClassName!
 
         printer.print(`/** @memo:stable */`)
         printer.writeClass(componentClassName, (writer) => {
@@ -305,7 +288,10 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
     ) { }
 
     visit(): PrinterResult[] {
-        // this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
+        this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
+        return []
+    }
+    getComponentResults(): ComponentPrintResult[] {
         return []
     }
 

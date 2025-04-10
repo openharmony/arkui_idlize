@@ -15,8 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, isEnumType, MaterializedClass, qualifiedName } from '@idlizer/core'
-import { convertPeerFilenameToModule, ImportsCollector } from "../ImportsCollector"
+import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, isEnumType, MaterializedClass, qualifiedName, createLanguageWriter, LayoutNodeRole } from '@idlizer/core'
+import { ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
     LanguageExpression,
@@ -39,8 +39,9 @@ import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, 
         IDLVoidType, isNamedNode, isPrimitiveType
 } from '@idlizer/core'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
-import { findComponentByType } from "../ComponentsCollector";
+import { findComponentByName, findComponentByType } from "../ComponentsCollector";
 import { NativeModule } from "../NativeModule";
+import { PrinterFunction, PrinterResult } from '../LayoutManager';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -51,14 +52,11 @@ export function componentToAttributesClass(component: string) {
 }
 
 export function componentToInterface(component: string) {
-    return `Ark${component}Component`
+    return component
 }
 
 // For TS and ArkTS
 class PeerFileVisitor {
-    readonly printers = new Map<TargetFile, LanguageWriter>
-    //TODO: Ignore until bugs are fixed in https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/17850
-
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly file: PeerFile,
@@ -76,19 +74,16 @@ class PeerFileVisitor {
         return componentToPeerClass(parent)
     }
 
-    protected printImports(printer: LanguageWriter, targetBasename: string): void {
-        const imports = new ImportsCollector()
+    protected printImports(peer: PeerClass, imports: ImportsCollector): void {
         this.getDefaultPeerImports(this.library.language, imports)
-        this.file.peersToGenerate.forEach(peer => {
-            if (peer.originalParentFilename) {
-                const parentModule = convertPeerFilenameToModule(peer.originalParentFilename)
-                imports.addFeature(this.generatePeerParentName(peer), parentModule)
-            }
-            const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
-            collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
-            if (component.interfaceDeclaration)
-                collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
-        })
+        if (peer.originalParentFilename) {
+            const parentComponent = findComponentByName(this.library, peer.parentComponentName!)
+            imports.addFeature(this.generatePeerParentName(peer), this.library.layout.resolve({node: parentComponent!.attributeDeclaration, role: LayoutNodeRole.PEER}))
+        }
+        const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+        collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
+        if (component.interfaceDeclaration)
+            collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         if (this.library.language === Language.TS) {
             imports.addFeature('GestureName', './shared/generated-utils')
             imports.addFeature('GestureComponent', './shared/generated-utils')
@@ -100,10 +95,10 @@ class PeerFileVisitor {
             imports.addFeature('CallbackTransformer', './peers/CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
         }
-        if (printer.language == Language.TS) {
+        if (this.library.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")
         }
-        if (printer.language == Language.ARKTS) {
+        if (this.library.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
         }
         if (this.library.language !== Language.ARKTS) {
@@ -111,10 +106,6 @@ class PeerFileVisitor {
         }
         imports.addFeatures(["MaterializedBase", "toPeerPtr", "wrapCallback"], "@koalaui/interop")
         // collectMaterializedImports(imports, this.library)
-        Array.from(this.library.builderClasses.keys())
-            .filter(it => this.library.builderClasses.get(it)?.needBeGenerated)
-            .forEach((className) => imports.addFeature(className, `./Ark${className}Builder`))
-        imports.print(printer, `./peers/${targetBasename}`)
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
@@ -206,14 +197,21 @@ class PeerFileVisitor {
         }, this.generatePeerParentName(peer))
     }
 
-    printFile(): void {
-        const printer = this.library.createLanguageWriter()
-        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
-        this.printers.set(new TargetFile(targetBasename), printer)
-
-        this.printImports(printer, targetBasename)
-        this.file.peersToGenerate.forEach(peer => {
-            this.printPeer(peer, printer)
+    printFile(): PrinterResult[] {
+        return this.file.peersToGenerate.map(peer => {
+            const component = findComponentByName(this.library, peer.componentName)
+            const imports = new ImportsCollector()
+            const content = this.library.createLanguageWriter(this.library.language)
+            this.printImports(peer, imports)
+            this.printPeer(peer, content)
+            return {
+                over: {
+                    node: component!.attributeDeclaration,
+                    role: LayoutNodeRole.PEER,
+                },
+                collector: imports,
+                content
+            }
         })
     }
 
@@ -269,12 +267,9 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
         // printer.print(`}`)
     }
 
-    printFile(): void {
-        this.file.peers.forEach(peer => {
+    printFile(): PrinterResult[] {
+        return Array.from(this.file.peers.values()).map(peer => {
             let printer = this.library.createLanguageWriter()
-            const peerName = componentToPeerClass(peer.componentName)
-            this.printers.set(new TargetFile(peerName, ARKOALA_PACKAGE_PATH), printer)
-
             this.printPackage(printer)
 
             const idlPeer = peer as PeerClass
@@ -283,6 +278,16 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
 
             this.printPeer(peer, printer)
+
+            const component = findComponentByName(this.library, peer.componentName)
+            return {
+                over: {
+                    node: component!.attributeDeclaration,
+                    role: LayoutNodeRole.PEER,
+                },
+                content: printer,
+                collector: new ImportsCollector()
+            }
 
             // TODO: attributes
             // printer = createLanguageWriter(this.library.declarationTable.language)
@@ -311,17 +316,22 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
     }
 
-    printFile(): void {
-        const printer = this.library.createLanguageWriter()
-        const targetBasename = renameDtsToPeer(path.basename(this.file.originalFilename), this.library.language, false)
-        this.printers.set(new TargetFile(targetBasename), printer)
-
-        this.printPackage(printer)
-
-        printer.print("import std.collection.*")
-        printer.print("import Interop.*")
-        this.file.peersToGenerate.forEach(peer => {
+    printFile(): PrinterResult[] {
+        return this.file.peersToGenerate.map(peer => {
+            const component = findComponentByName(this.library, peer.componentName)
+            const printer = this.library.createLanguageWriter()
+            this.printPackage(printer)
+            printer.print("import std.collection.*")
+            printer.print("import Interop.*")
             this.printPeer(peer, printer)
+            return {
+                over: {
+                    node: component!.attributeDeclaration,
+                    role: LayoutNodeRole.PEER,
+                },
+                content: printer,
+                collector: new ImportsCollector()
+            }
         })
     }
 }
@@ -334,7 +344,8 @@ class PeersVisitor {
         private readonly dumpSerialized: boolean,
     ) { }
 
-    printPeers(): void {
+    printPeers(): PrinterResult[] {
+        const results: PrinterResult[] = []
         for (const file of this.library.files.values()) {
             if (!file.peersToGenerate.length)
                 continue
@@ -343,26 +354,16 @@ class PeersVisitor {
                 : this.library.language == Language.CJ
                 ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
                 : new PeerFileVisitor(this.library, file, this.dumpSerialized)
-            visitor.printFile()
-            visitor.printers.forEach((printer, targetFile) => {
-                this.peers.set(targetFile, printer.getOutput())
-            })
+            results.push(...visitor.printFile())
         }
+        return results
     }
 }
 
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
-export function printPeers(peerLibrary: PeerLibrary, dumpSerialized: boolean): Map<TargetFile, string> {
-    const visitor = new PeersVisitor(peerLibrary, dumpSerialized)
-    visitor.printPeers()
-    const result = new Map<TargetFile, string>()
-    for (const [key, content] of visitor.peers) {
-        if (content.length === 0) continue
-        const text = tsCopyrightAndWarning(content.join('\n'))
-        result.set(key, text)
-    }
-    return result
+export function createPeersPrinter(dumpSerialized: boolean): PrinterFunction {
+    return (library: PeerLibrary) => new PeersVisitor(library, dumpSerialized).printPeers()
 }
 
 export function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): void {
@@ -582,5 +583,5 @@ export function generateAttributesParentClass(peer: PeerClass): string | undefin
 
 export function generateInterfaceParentInterface(peer: PeerClass): string | undefined {
     if (!isHeir(peer.originalClassName!)) return undefined
-    return componentToInterface(peer.parentComponentName!)
+    return componentToInterface(peer.originalParentName!)
 }

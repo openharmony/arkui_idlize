@@ -343,8 +343,6 @@ export class PeerLibrary implements LibraryInterface {
             }
         }
         if (idl.isReferenceType(type)) {
-            if (isImportAttr(type))
-                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
             // TODO: special cases for interop types.
             // TODO: this types are not references! NativeModulePrinter must be fixed
             switch (type.name.replaceAll('%TEXT%:', '')) { // this is really bad stub, to fix legacy references
@@ -358,6 +356,8 @@ export class PeerLibrary implements LibraryInterface {
                 case 'KPointer': return new PointerConvertor(param)
             }
             const decl = this.resolveTypeReference(type)
+            if (decl && isImportAttr(decl) || !decl && isImportAttr(type))
+                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
             return this.declarationConvertor(param, type, decl)
         }
         if (idl.isUnionType(type)) {
@@ -466,9 +466,6 @@ export class PeerLibrary implements LibraryInterface {
             case "object":
             case "Object": return ArkCustomObject
         }
-        if (isImportAttr(type)) {
-            return ArkCustomObject
-        }
         if (idl.isReferenceType(type)) {
             // TODO: remove all this!
             if (type.name === 'Dimension' || type.name === 'Length') {
@@ -497,6 +494,9 @@ export class PeerLibrary implements LibraryInterface {
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
                     : decl
+        }
+        if (isImportAttr(type)) {
+            return ArkCustomObject
         }
         return type
     }

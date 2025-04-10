@@ -85,7 +85,7 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
         // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
         callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
     }
-    writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
+    writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, {isExport: true}))
 }
 
 export function createCallbackKindPrinter(language: Language): PrinterFunction {
@@ -108,7 +108,7 @@ export function createCallbackKindPrinter(language: Language): PrinterFunction {
             // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
             callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
         }
-        writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, true))
+        writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, { isExport: true }))
         return [{
             over: {
                 node: library.resolveTypeReference(idl.createReferenceType("CallbackKind")) as idl.IDLEntry,
@@ -151,10 +151,6 @@ class DeserializeCallbacksVisitor {
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
                 collectDeclItself(this.library, callback, this.imports)
                 collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })
-            }
-
-            for (let builder of this.library.builderClasses.keys()) {
-                this.imports.addFeature(builder, `Ark${builder}Builder`)
             }
             if (this.writer.language === Language.TS && this.library.name !== 'arkoala') {
                 for (const callback of collectUniqueCallbacks(this.library)) {

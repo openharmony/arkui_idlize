@@ -15,9 +15,9 @@
 
 import { KPointer } from "@koalaui/interop"
 import { PeerNode } from "../../PeerNode"
-import { CustomBuilder } from "../ArkCommonInterfaces"
+import { CustomBuilder } from "../common"
 import { createUiDetachedRoot } from "@koalaui/arkoala"
-import { ArkComponentRootPeer } from "./ArkStaticComponentsPeer"
+import { ArkComponentRootPeer } from "../static_components"
 
 function componentRootPeerFactory(): PeerNode {
     return ArkComponentRootPeer.create()

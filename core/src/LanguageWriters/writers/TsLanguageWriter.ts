@@ -221,8 +221,8 @@ export class TSLanguageWriter extends LanguageWriter {
         const returnType = this.getNodeName(signature.returnType)
         return `export function ${name}(${args.join(", ")}): ${returnType}`
     }
-    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[]): void {
-        this.printer.print(`export enum ${name} {`)
+    writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
+        this.printer.print(`${options.isExport ? "export " : ""}${options.isDeclare ? "declare " : ""}enum ${name} {`)
         this.printer.pushIndent()
         for (const [index, member] of members.entries()) {
             let value

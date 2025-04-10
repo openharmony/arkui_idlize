@@ -128,7 +128,7 @@ class TSDependenciesCollector extends DependenciesCollector {
             if (resolved)
                 return [
                     resolved,
-                    ...this.convert(resolved),
+                    // ...this.convert(resolved),
                 ]
         }
         return this.convert(type)
@@ -159,6 +159,47 @@ class ArkTSDependenciesCollector extends DependenciesCollector {
             ]
         }
         return super.convertSupertype(type)
+    }
+}
+
+export class ArkTSInterfaceDependenciesCollector extends DependenciesCollector {
+    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl && idl.isSyntheticEntry(decl)) {
+            return [
+                decl,
+            ]
+        }
+        return super.convertTypeReference(type);
+    }
+    override convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
+        return [
+            ...decl.inheritance
+                .filter(it => it !== idl.IDLTopType)
+                .flatMap(it => this.convertSupertype(it)),
+            ...decl.properties
+                .filter(it => !it.isStatic)
+                .flatMap(it => this.convert(it.type)),
+            ...[...decl.constructors, ...decl.callables, ...decl.methods]
+                .flatMap(it => [
+                    ...it.parameters.flatMap(param => this.convert(param.type)),
+                    ...this.convert(it.returnType)
+                ])
+        ]
+    }
+    protected override convertSupertype(type: idl.IDLType | idl.IDLInterface): idl.IDLEntry[] {
+        if (idl.isReferenceType(type)) {
+            const resolved = this.library.resolveTypeReference(type)
+            if (resolved && idl.isInterface(resolved))
+                return this.convertSupertype(resolved)
+        }
+        if (idl.isInterface(type)) {
+            return [
+                type
+            ]
+        }
+        console.log("Cannot be converted", type?.fileName)
+        return []
     }
 }
 

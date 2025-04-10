@@ -427,7 +427,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override escapeKeyword(name: string): string {
         return cppKeywords.has(name) ? name + "_" : name
     }
-    makeEnumEntity(enumEntity: IDLEnum, isExport: boolean): LanguageStatement {
+    makeEnumEntity(enumEntity: IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
         return new CppEnumEntityStatement(enumEntity)
     }
     private decayTypeName(typeName: string) {

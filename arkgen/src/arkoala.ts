@@ -21,7 +21,7 @@ import {
     mesonBuildFile, tsCopyrightAndWarning,
     readLangTemplate,
     printRealAndDummyAccessors,
-    printRealAndDummyModifiers, printPeers, createMaterializedPrinter,
+    printRealAndDummyModifiers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
     printBuilderClasses, ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
     TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
@@ -56,17 +56,19 @@ import {
     Printer,
     printTSTypeChecker,
     printArkTSTypeChecker,
+    ScopeLibrarayLayout,
+    createPeersPrinter
 } from "@idlizer/libohos"
 import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { printInterfaces } from "./printers/InterfacePrinter"
+import { createInterfacePrinter } from "./printers/InterfacePrinter"
 import { printComponents } from "./printers/ComponentsPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
-import { arkoalaLayout, ArkTSComponentsLayout, OHOSSDKLayout } from "./ArkoalaLayout"
-import { printETSComponents } from "./printers/OHOSComponentsPrinter"
+import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
+import { printETSDeclaration } from "./printers/StsComponentsPrinter"
 
 export function generateLibaceFromIdl(config: {
-    libaceDestination: string|undefined,
+    libaceDestination: string | undefined,
     apiVersion: number,
     commentedCode: boolean,
     outDir: string
@@ -105,8 +107,8 @@ export function generateLibaceFromIdl(config: {
 }
 
 function copyArkoalaFiles(config: {
-        onlyIntegrated: boolean| undefined
-    }, arkoala: ArkoalaInstall) {
+    onlyIntegrated: boolean | undefined
+}, arkoala: ArkoalaInstall) {
     copyToArkoala(path.join(__dirname, '..', 'peer_lib'), arkoala, !config.onlyIntegrated ? undefined : [
         'sig/arkoala-arkts/framework/native/src/generated/arkoala-macros.h',
         'sig/arkoala/arkui/src/generated/peers/CallbackChecker.ts',
@@ -129,18 +131,22 @@ function copyArkoalaFiles(config: {
     ])
 }
 
+function removeSuffix(path: string, suffix: string): string {
+    return path.endsWith(suffix) ? path.slice(0, -suffix.length) : path;
+}
+
 export function generateArkoalaFromIdl(config: {
-            outDir: string,
-            arkoalaDestination: string|undefined,
-            nativeBridgeFile: string|undefined,
-            lang: Language,
-            apiVersion: number,
-            onlyIntegrated: boolean,
-            dumpSerialized: boolean,
-            callLog: boolean,
-            verbose: boolean
-        },
-        peerLibrary: PeerLibrary) {
+    outDir: string,
+    arkoalaDestination: string | undefined,
+    nativeBridgeFile: string | undefined,
+    lang: Language,
+    apiVersion: number,
+    onlyIntegrated: boolean,
+    dumpSerialized: boolean,
+    callLog: boolean,
+    verbose: boolean
+},
+    peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
         new ArkoalaInstall(config.arkoalaDestination, config.lang, false) :
         new ArkoalaInstall(config.outDir, config.lang, true)
@@ -152,26 +158,15 @@ export function generateArkoalaFromIdl(config: {
 
     const arkuiComponentsFiles: string[] = []
 
-    const peers = printPeers(peerLibrary, config.dumpSerialized ?? false)
-    for (const [targetFile, peer] of peers) {
-        const outPeerFile = arkoala.peer(targetFile)
-        writeFile(outPeerFile, peer, {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-            message: "producing"
-        })
-    }
-    const builderClasses = printBuilderClasses(peerLibrary, config.dumpSerialized)
-    const builderClassFiles: string[] = []
-    for (const [targetFile, builderClass] of builderClasses) {
-        const outBuilderFile = arkoala.builderClass(targetFile)
-        builderClassFiles.push(outBuilderFile)
-        writeFile(outBuilderFile, builderClass, {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true,
-            message: "producing"
-        })
-    }
+    // const peers = printPeers(peerLibrary, config.dumpSerialized ?? false)
+    // for (const [targetFile, peer] of peers) {
+    //     const outPeerFile = arkoala.peer(targetFile)
+    //     writeFile(outPeerFile, peer, {
+    //         onlyIntegrated: config.onlyIntegrated,
+    //         integrated: true,
+    //         message: "producing"
+    //     })
+    // }
 
     const spreadIfLang = <T>(langs: Language[], ...data: T[]): T[] => {
         if (langs.includes(peerLibrary.language))
@@ -188,9 +183,11 @@ export function generateArkoalaFromIdl(config: {
         peerLibrary,
         [
             createMaterializedPrinter(config.dumpSerialized),
-            printInterfaces,
+            createPeersPrinter(config.dumpSerialized),
+            createInterfacePrinter(false),
             printComponents,
             printGlobal,
+            printBuilderClasses,
             createSerializerPrinter(peerLibrary.language, ""),
             ...spreadIfNotLang([Language.JAVA],
                 createDeserializerPrinter(peerLibrary.language, ""),
@@ -201,6 +198,7 @@ export function generateArkoalaFromIdl(config: {
             )
         ]
     )
+
     if (peerLibrary.language === Language.ARKTS) {
         install(
             selectOutDir(arkoala, peerLibrary.language),
@@ -212,17 +210,16 @@ export function generateArkoalaFromIdl(config: {
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
-
         install(
-            selectOutDir(arkoala, peerLibrary.language),
+            path.join(selectOutDir(arkoala, peerLibrary.language), '../sdk'),
             peerLibrary,
             [
-                printInterfaces,
-                printETSComponents,
+                createInterfacePrinter(true),
+                printETSDeclaration
             ],
-            { customLayout: new LayoutManager(new OHOSSDKLayout(peerLibrary)) }
         )
     }
+
 
     if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
         let enumImpls = peerLibrary.createLanguageWriter()
@@ -306,7 +303,7 @@ export function generateArkoalaFromIdl(config: {
         // )
         writeFile(
             arkoala.arktsLib(new TargetFile('index')),
-            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles).concat(builderClassFiles), arkoala.arktsDir),
+            makeArkuiModule(arkuiComponentsFiles.concat(installedFiles), arkoala.arktsDir),
             {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
@@ -372,9 +369,9 @@ export function generateArkoalaFromIdl(config: {
     writeFile(
         arkoala.native(new TargetFile('bridge_custom.cc')),
         printBridgeCcCustom(peerLibrary, config.callLog ?? false), {
-            onlyIntegrated: config.onlyIntegrated,
-            integrated: true
-        })
+        onlyIntegrated: config.onlyIntegrated,
+        integrated: true
+    })
 
     const { api, serializers } = printSerializers(config.apiVersion, peerLibrary)
     writeFile(arkoala.native(new TargetFile('Serializers.h')), serializers, {
@@ -391,7 +388,7 @@ export function generateArkoalaFromIdl(config: {
     const apiGenFile = "arkoala_api_generated"
     writeFile(
         arkoala.native(new TargetFile('dummy_impl.cc')),
-        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion , 6, apiGenFile).getOutput().join('\n'),
+        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
@@ -431,10 +428,10 @@ export function generateArkoalaFromIdl(config: {
             integrated: true
         })
 
-    copyArkoalaFiles({onlyIntegrated: config.onlyIntegrated}, arkoala)
+    copyArkoalaFiles({ onlyIntegrated: config.onlyIntegrated }, arkoala)
 }
 
-function selectOutDir(arkoala:ArkoalaInstall, lang:Language) {
+function selectOutDir(arkoala: ArkoalaInstall, lang: Language) {
     switch (lang) {
         case Language.TS: return arkoala.tsDir
         case Language.ARKTS: return arkoala.arktsDir
@@ -571,9 +568,7 @@ function printRealModifiersAsMultipleFiles(library: PeerLibrary, libace: LibaceI
     visitor.emitRealSync(library, libace, options)
 }
 
-function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: PeerLibrary) :
-        {api: string, converterHeader: string}
-{
+function printUserConverter(headerPath: string, namespace: string, apiVersion: number, peerLibrary: PeerLibrary): { api: string, converterHeader: string } {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -589,10 +584,10 @@ function printUserConverter(headerPath: string, namespace: string, apiVersion: n
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
     makeCSerializer(peerLibrary, structs, typedefs)
     const api = makeAPI(apiVersion, apiHeader, modifierList, accessorList, eventsList, nodeTypesList, structs, typedefs)
-    return {api, converterHeader}
+    return { api, converterHeader }
 }
 
-function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): {api: string, serializers: string} {
+function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): { api: string, serializers: string } {
     const apiHeader = new IndentedPrinter()
     const modifierList = new IndentedPrinter()
     const accessorList = new IndentedPrinter()
@@ -607,7 +602,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): {api: s
 
     const serializers = makeCSerializer(peerLibrary, structs, typedefs)
     const api = makeAPI(apiVersion, apiHeader, modifierList, accessorList, eventsList, nodeTypesList, structs, typedefs)
-    return {api, serializers}
+    return { api, serializers }
 }
 
 function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
@@ -630,7 +625,7 @@ function makeConverterHeader(path: string, namespace: string, library: PeerLibra
     converter.print("")
 
     const MAX_SELECTORS_IDS = 16
-    for(let i = 0; i < MAX_SELECTORS_IDS; i++) {
+    for (let i = 0; i < MAX_SELECTORS_IDS; i++) {
         converter.print(`#define ${SELECTOR_ID_PREFIX}${i} ${i}`)
     }
     converter.print("")
@@ -658,13 +653,12 @@ ${makeCSerializers(library, structs, typedefs)}
 
 function makeAPI(apiVersion: number,
     headers: PrinterLike, modifiers: PrinterLike, accessors: PrinterLike, events: PrinterLike,
-    nodeTypes: PrinterLike, structs: PrinterLike, typedefs: PrinterLike): string
-{
+    nodeTypes: PrinterLike, structs: PrinterLike, typedefs: PrinterLike): string {
     return `
 ${readTemplate('arkoala_api_prologue.h')
-    .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion.toString())
-    .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
-    .replaceAll(`%INTEROP_TYPES_HEADER`, readInteropTypesHeader())}
+            .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, apiVersion.toString())
+            .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
+            .replaceAll(`%INTEROP_TYPES_HEADER`, readInteropTypesHeader())}
 
 ${structs.getOutput().join("\n")}
 
@@ -694,12 +688,12 @@ ${nodeTypes.getOutput().join(",\n")}
 } ${peerGeneratorConfiguration().cppPrefix}Ark_NodeType;
 
 ${readTemplate('arkoala_node_api.h')
-    .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
+            .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)}
 
 ${readTemplate("generic_service_api.h")}
 ${readTemplate('any_api.h')}
 
 ${readTemplate('arkoala_api_epilogue.h')
-        .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
+            .replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)}
 `
 }

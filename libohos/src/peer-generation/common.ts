@@ -1,12 +1,12 @@
-import { LanguageWriter } from "@idlizer/core"
+import { LanguageWriter, PeerLibrary, LayoutManagerStrategy } from "@idlizer/core"
 import * as fs from "fs"
 import * as path from "path"
 
 export function writeFile(filename: string, content: string, config: { // TODO make content a string or a writer only
-        onlyIntegrated: boolean,
-        integrated?: boolean,
-        message?: string
-    }): boolean {
+    onlyIntegrated: boolean,
+    integrated?: boolean,
+    message?: string
+}): boolean {
     if (config.integrated || !config.onlyIntegrated) {
         if (config.message)
             console.log(config.message, filename)
@@ -37,4 +37,11 @@ export function injectPatch(writer: LanguageWriter, key: string, patches: Map<st
             })
         }
     }
+}
+
+export function ScopeLibrarayLayout(library: PeerLibrary, layout: LayoutManagerStrategy, task: () => void): void {
+    const temp = library.layout
+    library.setFileLayout(layout)
+    task()
+    library.setFileLayout(temp)
 }

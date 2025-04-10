@@ -234,7 +234,7 @@ function printEnum(library: PeerLibrary, entry: idl.IDLEnum): PrinterResult {
             name: it.name,
             numberId: typeof it.initializer === 'number' ? it.initializer : idx,
             stringId: typeof it.initializer === 'string' ? it.initializer : undefined
-        })))
+        })), { isExport: true })
     }
     if (library.language === idl.Language.CJ) {
         CJDeclConvertor.makeEnum(entry, printer)

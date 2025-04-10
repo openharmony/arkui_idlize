@@ -15,6 +15,7 @@ import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorU
 import { DependenciesCollector } from '../idl/IdlDependenciesCollector';
 import { PrinterResult } from "../LayoutManager";
 import { collectDeclarationTargets } from "../DeclarationTargetCollector";
+import { isComponentDeclaration } from "../ComponentsCollector";
 
 export function importTypeChecker(library: PeerLibrary, imports: ImportsCollector): void {
     collectDeclItself(library, idl.createReferenceType("TypeChecker"), imports)
@@ -117,6 +118,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
     }
     for (const file of library.files) {
         for (const decl of idl.linearizeNamespaceMembers(file.entries)) {
+            if (isComponentDeclaration(library, decl) && decl.name.endsWith('Interface'))
+                continue
             if (idl.isImport(decl) ||
                 isInIdlize(decl) ||
                 !isInCurrentModule(decl)

@@ -17,7 +17,7 @@ import { int32 } from "@koalaui/common"
 import { Disposable, IncrementalNode, scheduleCallback } from "@koalaui/runtime"
 import { NativePeerNode } from "./NativePeerNode"
 import { nullptr, pointer } from "@koalaui/interop"
-import { ArkRootPeer } from "./generated/peers/ArkStaticComponentsPeer"
+import { ArkRootPeer } from "./generated/static_components"
 
 export const PeerNodeType = 11
 export const LazyForEachType = 13
