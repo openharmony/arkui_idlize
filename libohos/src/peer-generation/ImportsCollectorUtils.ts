@@ -97,19 +97,9 @@ export function collectDeclDependencies(
 ): void {
     const collector = createDependenciesCollector(library)
     const deps = collector.convert(node)
-    if (options?.expandTypedefs)
+    if (options?.expandTypedefs) {
         for (let i = 0; i < deps.length; i++) {
             if (!idl.isTypedef(deps[i]))
-                continue
-            for (const subDependency of collector.convert(deps[i])) {
-                if (!deps.includes(subDependency))
-                    deps.push(subDependency)
-            }
-        }
-    if (Language.TS === library.language) {
-        // expant type literals
-        for (let i = 0; i < deps.length; i++) {
-            if (!idl.isInterface(deps[i]) && !idl.isSyntheticEntry(deps[i]))
                 continue
             for (const subDependency of collector.convert(deps[i])) {
                 if (!deps.includes(subDependency))
