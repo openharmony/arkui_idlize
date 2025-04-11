@@ -68,8 +68,8 @@ interface ComponentFileVisitor {
 class TSComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
-        private readonly library: PeerLibrary,
-        private readonly file: PeerFile,
+        protected readonly library: PeerLibrary,
+        protected readonly file: PeerFile,
         protected readonly options: {
             isDeclared: boolean,
         }
@@ -162,7 +162,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
         this.printAttributes(peer, printer)
 
-        printer.print(this.library.useMemoM3 ? `@memo:stable` : `/** @memo:stable */`)
+        printer.print(this.library.useMemoM3 ? `@memo_stable` : `/** @memo:stable */`)
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
@@ -266,6 +266,10 @@ class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         if (!this.options.isDeclared)
             imports.addFeature('TypeChecker', '#components')
+        if (this.library.useMemoM3) {
+            imports.addFeatures(['memo', 'memo_stable'], '@koalaui/runtime/annotations')
+            imports.addFeatures(['BuilderLambda'], '@koalaui/builderLambda')
+        }
     }
 }
 
