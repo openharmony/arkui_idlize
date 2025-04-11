@@ -159,7 +159,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .filter(it => !it.isCallSignature)
         groupOverloads(filteredMethods).forEach(group => {
             const method = collapseIdlPeerMethods(this.peerLibrary, group)
-            printer.print(`/** @memo */`)
+            printer.print(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
             printer.writeMethodDeclaration(method.method.name, method.method.signature)
         })
         printer.popIndent()
@@ -286,7 +286,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     private printCallback(node: idl.IDLCallback | idl.IDLInterface,
         parameters: idl.IDLParameter[],
         returnType: idl.IDLType | undefined): string {
-        const maybeMemo = this.isMemo(node) ? `\n/** @memo */\n` : ``
+        const maybeMemo = this.isMemo(node) 
+            ? this.peerLibrary.useMemoM3 ? `\n/@memo\n` : `\n/** @memo */\n`
+            : ``
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
         return `export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${maybeMemo}(${paramsType}) => ${retType};`

@@ -18,7 +18,7 @@ import { Language } from '@idlizer/core'
 import { Install, TargetFile } from '@idlizer/libohos'
 
 export class ArkoalaInstall extends Install {
-    constructor (private outDir: string, private lang: Language, private test: boolean) {
+    constructor (private outDir: string, private lang: Language, private test: boolean, private useMemoM3: boolean) {
         super()
     }
     langDir(): string {
@@ -42,11 +42,13 @@ export class ArkoalaInstall extends Install {
             this.mkdir(dir)
         }
     }
+    private memoM3Postfix = this.useMemoM3 ? "-m3" : ""
     sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
 
     tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/generated/"))
     tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui-types/`))
-    arktsDir = this.mkdir(path.join(this.sig, "arkoala-arkts/arkui/src/generated/"))
+    arktsDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src/generated${this.memoM3Postfix}/`))
+    arktsSdkDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src/sdk${this.memoM3Postfix}/`))
     arktsTypesDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/types/`))
 
     frameworkDir = this.mkdir(path.join(this.sig, "arkoala-arkts/framework"))

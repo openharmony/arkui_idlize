@@ -1,11 +1,20 @@
-/** @memo */
+@memo
+@BuilderLambda("%COMPONENT_NAME%Impl")
 export function %COMPONENT_NAME%(
-  /** @memo */
-  style: ((attributes: %COMPONENT_NAME%Attribute) => void) | undefined,
-  %FUNCTION_PARAMETERS%
-  /** @memo */
-  content_?: () => void,
-) {
+    %FUNCTION_PARAMETERS%
+    @memo
+    content_?: () => void,
+): %COMPONENT_NAME%Attribute {
+    throw new Error("Not implemented")
+}
+
+@memo
+export function %COMPONENT_NAME%Impl(
+    style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
+    %FUNCTION_PARAMETERS%
+    @memo
+    content_?: () => void,
+): void {
     const receiver = remember(() => {
         return new %COMPONENT_CLASS_NAME%()
     })

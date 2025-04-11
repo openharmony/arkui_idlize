@@ -120,6 +120,7 @@ export class PeerLibrary implements LibraryInterface {
 
     constructor(
         public language: Language,
+        public readonly useMemoM3: boolean = false,
     ) {}
 
     public name: string = ""

@@ -62,7 +62,7 @@ import {
 import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/InterfacePrinter"
-import { printComponents } from "./printers/ComponentsPrinter"
+import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
@@ -144,12 +144,12 @@ export function generateArkoalaFromIdl(config: {
     onlyIntegrated: boolean,
     dumpSerialized: boolean,
     callLog: boolean,
-    verbose: boolean
+    verbose: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
-        new ArkoalaInstall(config.arkoalaDestination, config.lang, false) :
-        new ArkoalaInstall(config.outDir, config.lang, true)
+        new ArkoalaInstall(config.arkoalaDestination, config.lang, false, peerLibrary.useMemoM3) :
+        new ArkoalaInstall(config.outDir, config.lang, true, peerLibrary.useMemoM3)
     arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
     arkoala.createDirs(['', ''].map(dir => path.join(arkoala.cjDir, dir)))
 
@@ -211,11 +211,11 @@ export function generateArkoalaFromIdl(config: {
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
         install(
-            path.join(selectOutDir(arkoala, peerLibrary.language), '../sdk'),
+            arkoala.arktsSdkDir,
             peerLibrary,
             [
                 createInterfacePrinter(true),
-                printETSDeclaration
+                printComponentsDeclarations,
             ],
         )
     }

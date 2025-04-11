@@ -231,7 +231,7 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Langu
 export class OverloadsPrinter {
     private static undefinedConvertor: UndefinedConvertor | undefined
 
-    constructor(private resolver: ReferenceResolver, private printer: LanguageWriter, private language: Language, private isComponent: boolean = true) {
+    constructor(private resolver: ReferenceResolver, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
         // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
             OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
@@ -265,7 +265,7 @@ export class OverloadsPrinter {
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
         if (this.isComponent) {
-            this.printer.print(`/** @memo */`)
+            this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         const key = peer.getComponentName() + '.' + collapsedMethod.name
@@ -305,7 +305,7 @@ export class OverloadsPrinter {
 
     public printCollapsedDeclaration(peer: PeerClassBase, methods: PeerMethod[]) {
         if (this.isComponent) {
-            this.printer.print(`/** @memo */`)
+            this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         this.printer.writeMethodDeclaration(collapsedMethod.name, collapsedMethod.signature)

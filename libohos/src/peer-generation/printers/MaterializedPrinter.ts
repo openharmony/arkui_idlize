@@ -56,7 +56,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     protected readonly collector = new ImportsCollector()
     protected readonly printer = this.library.createLanguageWriter()
     protected readonly internalPrinter = this.library.createLanguageWriter(this.library.language)
-    protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false)
+    protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false, this.library.useMemoM3)
 
     constructor(
         protected readonly library: PeerLibrary,

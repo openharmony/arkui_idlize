@@ -103,6 +103,7 @@ const options = program
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
     .option('--interop-bridges <string>', "Generate interop bridges macros")
+    .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
 
     .parse()
     .opts()
@@ -218,7 +219,7 @@ if (options.idl2peer) {
     const language = Language.fromString(options.language ?? "ts")
     const { inputFiles, inputDirs } = formatInputPaths(options)
 
-    const idlLibrary = new ArkoalaPeerLibrary(language)
+    const idlLibrary = new ArkoalaPeerLibrary(language, options.useMemoM3)
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
@@ -263,7 +264,7 @@ if (options.dts2peer) {
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     const idlAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.idl'))
 
-    const idlLibrary = new ArkoalaPeerLibrary(lang)
+    const idlLibrary = new ArkoalaPeerLibrary(lang, options.useMemoM3)
 
     {
         const pushOne = (idlFilename: string, resultFilesArray: PeerFile[]) => {
@@ -335,7 +336,7 @@ if (!didJob) {
     program.help()
 }
 
-function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
+function generateTarget(idlLibrary: ArkoalaPeerLibrary, outDir: string, lang: Language) {
     if (options.generatorTarget == "arkoala" || options.generatorTarget == "all") {
         generateArkoalaFromIdl({
             outDir: outDir,
