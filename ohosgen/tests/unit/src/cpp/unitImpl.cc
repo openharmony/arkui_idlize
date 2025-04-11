@@ -792,3 +792,35 @@ OH_UNIT_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_UNIT_VMC
     printf("OH_UNIT_CheckExceptionClass getInterface vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
     return (OH_UNIT_CheckExceptionInterface) new OH_UNIT_CheckExceptionInterfacePeer();
 }
+
+// WrappedBuilder
+
+OH_UNIT_WrappedBuilder GlobalScope_wrapBuilderImpl(const UNIT_Callback_WrappedBuilder_Args_Void* builder) {
+    return {};
+}
+
+class CustomComponentSamplePeer
+{
+};
+
+OH_UNIT_CustomComponentSampleHandle CustomComponentSample_constructImpl() {
+    return (OH_UNIT_CustomComponentSampleHandle) new CustomComponentSamplePeer();
+}
+void CustomComponentSample_destructImpl(OH_UNIT_CustomComponentSampleHandle thisPtr) {
+}
+OH_UNIT_CustomComponentSample CustomComponentSample_contentModifierImpl(OH_NativePointer thisPtr, const OH_Object* modifier) {
+    printf("native CustomComponentSample.contentModifierImpl: %d\n", modifier->resource.resourceId);
+    return (OH_UNIT_CustomComponentSample) thisPtr;
+}
+
+OH_Object CustomComponentSample_getContentModifierImpl(OH_NativePointer thisPtr) {
+    printf("CustomComponentSample_contentModifierImpl!!!\n");
+    // printf("native CustomComponentSample.contentModifierImpl: %d\n", modifier->resource.resourceId);
+    // return (OH_UNIT_CustomComponentSample) thisPtr;
+    return {};
+}
+
+OH_Object CustomComponentSample_getSampleImpl(OH_NativePointer thisPtr, const OH_Object* val) {
+    printf("getSample id: %d\n", val->resource.resourceId);
+    return *val;
+}

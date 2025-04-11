@@ -75,8 +75,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
                 return new PaddingConvertor(this, param, type, declaration as idl.IDLInterface)
             case `AnimationRange`:
                 return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
-            case `ContentModifier`:
-                return new CustomTypeConvertor(param, "ContentModifier", false, "ContentModifier<any>")
         }
         if (declaration) {
             if (isImportAttr(declaration))

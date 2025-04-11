@@ -20,6 +20,9 @@
         "ForceCallbackListener",
         "GenericInterfaceDataHandler"
     ],
+    "forceResource": [
+	"ContentModifier"
+    ],
     "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],
@@ -34,6 +37,10 @@
         "ignoreEntry": [],
         "ignoreEntryJava": [],
         "ignoreComponents": [],
+        "ignoreTypeParameters": [
+            "ContentModifier",
+            "CommonConfiguration"
+	],
         "ignorePeerMethod": [],
         "ignoreMethodArkts": [],
         "invalidAttributes": [],

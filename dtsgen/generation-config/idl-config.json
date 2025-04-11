@@ -1,7 +1,6 @@
 {
     "IDLVisitor": {
         "DeletedDeclarations": [
-            "WrappedBuilder",
             "wrapBuilder",
             "IMonitorValue",
             "IMonitor",
@@ -36,7 +35,6 @@
         },
         "StubbedDeclarations": [
             "OnWillScrollCallback",
-            "ContentModifier",
             "LayoutChild",
             "EmitterProperty",
             "Layoutable",

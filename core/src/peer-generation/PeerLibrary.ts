@@ -41,6 +41,7 @@ import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
 import { isInIdlizeInternal } from '../idlize'
 import { isInCurrentModule } from './modules'
+import { generatorConfiguration } from '../config'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -356,6 +357,9 @@ export class PeerLibrary implements LibraryInterface {
                 case 'number': return new NumberConvertor(param)
                 case 'KPointer': return new PointerConvertor(param)
             }
+            if (generatorConfiguration().forceResource.includes(type.name)) {
+                return new ObjectConvertor(param, type)
+            }
             const decl = this.resolveTypeReference(type)
             if (decl && isImportAttr(decl) || !decl && isImportAttr(type))
                 return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
@@ -475,7 +479,7 @@ export class PeerLibrary implements LibraryInterface {
             if (type.name === 'Date') {
                 return ArkDate
             }
-            if (type.name === 'AnimationRange' || type.name === 'ContentModifier') {
+            if (type.name === 'AnimationRange') {
                 return ArkCustomObject
             }
             if (type.name === 'Function') {

@@ -349,6 +349,7 @@ export class BridgeCcVisitor {
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
+        if (idl.generatorConfiguration().forceResource.includes(clazz.className)) return
         for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
             this.printMethod(method)

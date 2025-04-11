@@ -54,6 +54,16 @@ import { test_ret_A } from '#compat'
 
 import { CheckExceptionClass, CheckExceptionInterface } from '#compat'
 
+import {
+  ContentModifier,
+  WrappedBuilder,
+  wrapBuilder,
+  CommonConfiguration,
+  CustomComponentConfiguration,
+  CustomComponentShape,
+  CustomComponentSample,
+} from '#compat'
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -395,6 +405,41 @@ function checkThrowException() {
   assertEQ(true, catchException, "Exception has not been thrown!")
 }
 
+function buildCustomComponent(config: CommonConfiguration): void {
+  const customConf = config as CustomComponentConfiguration
+  console.log(`Build custom component`)
+  console.log(`custom conf name: ${customConf.name}, selected: ${customConf.selected}`)
+  // { shapeStyle: 111 }
+}
+
+class CustomComponentStyle implements ContentModifier {
+
+  selectedColor: number = 0
+
+  constructor(selectedColor: number) {
+    this.selectedColor = selectedColor
+  }
+
+  applyContent(): WrappedBuilder {
+    return wrapBuilder(buildCustomComponent)
+  }
+}
+
+function checkContentModifier() {
+
+  console.log(`Call checkContentModifier`)
+  const customComponent = new CustomComponentSample()
+  const customComponentStyle = new CustomComponentStyle(123)
+  customComponent.contentModifier(customComponentStyle)
+  // const result = customComponent.getContentModifier()
+  // console.log(`result selectedColor: ${(result as CustomComponentStyle).selectedColor}`)
+
+  // console.log(`customComponent: $${customComponent}`)
+  // const res = customComponent.getSample("abc")
+  // console.log(`after res`)
+  // console.log(`res: ${res}`)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -414,6 +459,7 @@ export function run() {
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
   suite.addTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
+  suite.addTest("checkContentModifier", checkContentModifier)
 
   return suite.run()
 }

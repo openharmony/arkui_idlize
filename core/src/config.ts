@@ -39,6 +39,7 @@ export const CoreConfigurationSchema = D.object({
     builderClasses: T.stringArray(),
     forceMaterialized: T.stringArray(),
     forceCallback: T.stringArray(),
+    forceResource: T.stringArray(),
     forceContext: T.stringArray(),
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace')
@@ -58,6 +59,7 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     builderClasses: [],
     forceMaterialized: [],
     forceCallback: [],
+    forceResource: [],
     forceContext: [],
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),

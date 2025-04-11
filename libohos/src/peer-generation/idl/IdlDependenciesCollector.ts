@@ -40,10 +40,13 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
-        const result: idl.IDLEntry[] = !decl ? []
-            : idl.isEnumMember(decl) ? [decl.parent] : [decl]
+        if (!decl) return []
+        const result: idl.IDLEntry[] = idl.isEnumMember(decl) ? [decl.parent] : [decl]
         if (type.typeArguments) {
             result.push(...type.typeArguments.flatMap(it => convertType(this, it)))
+        }
+        if (idl.isCallback(decl)) {
+            result.push(...decl.parameters.flatMap(it => this.convert(it.type)))
         }
         return result
     }

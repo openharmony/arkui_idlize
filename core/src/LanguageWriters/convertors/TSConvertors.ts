@@ -185,7 +185,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
     protected mapCallback(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`)
+            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}${it.isVariadic ? "[]" : ""}`)
         return `((${params.join(", ")}) => ${this.convert(decl.returnType)})`
     }
 

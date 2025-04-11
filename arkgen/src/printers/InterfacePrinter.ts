@@ -266,7 +266,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         isOptional: boolean = false): string {
         const type = variable.type ? this.convertType(variable.type) : ""
         const optional = isOptional ? "optional " : ""
-        return `${idl.escapeIDLKeyword(variable.name!)}${optional ? "?" : ""}: ${type}`
+        const dots = isVariadic ? "..." : ""
+        const brackets = isVariadic ? "[]" : ""
+        return `${dots}${idl.escapeIDLKeyword(variable.name!)}${optional ? "?" : ""}: ${type}${brackets}`
     }
 
     protected printTypeParameters(typeParameters: string[] | undefined): string {

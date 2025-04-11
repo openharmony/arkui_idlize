@@ -203,9 +203,11 @@ function printInterface(library: PeerLibrary, entry: idl.IDLInterface): PrinterR
             if (!['RuntimeType', 'CallbackResource', 'Materialized'].includes(entry.name))
                 CJDeclConvertor.makeInterface(library, entry, printer)
         } else {
+            const inheritance = entry.inheritance
+            const superInterfaces = inheritance && inheritance.length > 0 ? inheritance.map(it => it.name) : undefined
             printer.writeInterface(entry.name, w => {
                 printInterfaceBody(library, entry, w)
-            }, undefined, entry.typeParameters)
+            }, superInterfaces, entry.typeParameters)
         }
     } else if (idl.isClassSubkind(entry)) {
         printer.writeClass(entry.name, w => {

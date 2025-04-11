@@ -56,6 +56,12 @@
                         "type": "string"
                     }
                 },
+                "forceResource": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "forceContext": {
                     "type": "array",
                     "items": {
@@ -327,6 +333,7 @@
                 "builderClasses",
                 "forceMaterialized",
                 "forceCallback",
+                "forceResource",
                 "forceContext",
                 "moduleName",
                 "modules",

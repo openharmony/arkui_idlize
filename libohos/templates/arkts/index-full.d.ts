@@ -142,7 +142,6 @@ declare function LazyForEach<T>(
 
 // Until we have full sdk
 declare interface LayoutChild {}
-declare interface ContentModifier<T>{}
 
 // Handwritten
 

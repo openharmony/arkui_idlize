@@ -12,6 +12,7 @@
         "BaseContext"
     ],
     "forceCallback": [],
+    "forceResource": [],
     "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],

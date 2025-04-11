@@ -15,6 +15,7 @@
     "ignoreMaterialized": [],
     "forceMaterialized": [],
     "forceCallback": [],
+    "forceResource": [],
     "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],

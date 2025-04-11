@@ -34,6 +34,10 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
             if (declaration.name.endsWith(ignore)) return false
     }
 
+    if (generatorConfiguration().forceResource.includes(declaration.name)) {
+        return false
+    }
+
     // A materialized class is a class or an interface with methods
     // excluding components and related classes
     if (declaration.methods.length > 0 || declaration.constructors.length > 0) return true

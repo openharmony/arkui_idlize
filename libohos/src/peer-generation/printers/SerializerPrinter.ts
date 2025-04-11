@@ -215,6 +215,7 @@ class SerializerPrinter {
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {
+                    if (isResource(decl)) continue
                     this.generateInterfaceSerializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     // callbacks goes through writeCallbackResource function
@@ -489,6 +490,7 @@ class DeserializerPrinter {
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {
+                    if (isResource(decl)) continue
                     this.generateInterfaceDeserializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     this.generateCallbackDeserializer(decl)
@@ -706,4 +708,8 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
         }
         return super.shouldAdd(node)
     }
+}
+
+function isResource(decl: idl.IDLInterface) {
+    return generatorConfiguration().forceResource.includes(decl.name)
 }

@@ -101,6 +101,7 @@ import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
 import { isInIdlize } from "../idlize"
+import { generatorConfiguration } from "../config"
 
 export class CustomPrintVisitor {
     output: string[] = []
@@ -164,10 +165,6 @@ export class CustomPrintVisitor {
     printInterface(node: IDLInterface) {
         let typeSpec = this.toTypeName(node)
 
-        // Workaround for an SDK declaration clash between `WrappedBuilder` and `ContentModifier`
-        if (node.name === "WrappedBuilder")
-            typeSpec = "WrappedBuilder<Args extends any[]>"
-
         const entity = getExtAttribute(node, IDLExtendedAttributes.Entity) ?? IDLEntity.Interface
         if (entity === IDLEntity.Literal) {
             this.print(`${isInNamespace(node) ? "" : "declare "}type ${typeSpec} = ${this.literal(node, false, true)}`)
@@ -230,8 +227,11 @@ export class CustomPrintVisitor {
     }
     paramText(paramOrTag: IDLParameter | SignatureTag): string {
         const param = paramOrTag as IDLParameter
-        if (param.kind === IDLKind.Parameter)
-        return `${param.isVariadic ? "..." : ""}${getName(param)}${param.isOptional ? "?" : ""}: ${this.printTypeForTS(param.type)}`
+        if (param.kind === IDLKind.Parameter) {
+            const dots = param.isVariadic ? "..." : ""
+            const brackets = param.isVariadic ? "[]" : ""
+            return `${dots}${getName(param)}${param.isOptional ? "?" : ""}: ${this.printTypeForTS(param.type)}${brackets}`
+        }
         const tag = paramOrTag as SignatureTag
         return `${tag.name}: ${tag.value}`
     }
