@@ -439,8 +439,7 @@ KOALA_INTEROP_DIRECT_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)
 static const std::string PAGE_SUFFIX = "GeneratedEntry";
 static bool isPageClass(const std::string& className)
 {
-    return (PAGE_SUFFIX.size() < className.size()) &&
-            std::equal(PAGE_SUFFIX.rbegin(), PAGE_SUFFIX.rend(), className.rbegin());
+    return (PAGE_SUFFIX.size() < className.size()) && std::equal(PAGE_SUFFIX.rbegin(), PAGE_SUFFIX.rend(), className.rbegin());
 }
 
 KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, const KStringPtr& viewParams) {
@@ -450,7 +449,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     std::replace(className.begin(), className.end(), '.', '/');
     jclass viewClassClass = env->FindClass(className.c_str());
     if (!viewClassClass) {
-        fprintf(stderr, "Cannot find user class %s\n", viewClass.c_str());
+        LOGE("Cannot find user class %"LOG_PUBLIC"s", viewClass.c_str());
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
@@ -459,7 +458,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     }
     jmethodID viewClassCtor = env->GetMethodID(viewClassClass, "<init>", "(Ljava/lang/String;)V");
     if (!viewClassCtor) {
-        fprintf(stderr, "Cannot find user class ctor\n");
+        LOGE("Cannot find user class ctor");
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
@@ -468,7 +467,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     }
     jobject result = env->NewObject(viewClassClass, viewClassCtor, env->NewStringUTF(viewParams.c_str()));
     if (!result) {
-        fprintf(stderr, "Cannot instantiate user class\n");
+        LOGE("Cannot instantiate user class");
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
@@ -535,7 +534,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     ani_class viewClassClass = nullptr;
     env->FindClass(className.c_str(), &viewClassClass);
     if (!viewClassClass) {
-        LOGE("Cannot find user class %s\n", viewClass.c_str());
+        LOGE("Cannot find user class %" LOG_PUBLIC "s\n", viewClass.c_str());
         ani_boolean hasError = false;
         env->ExistUnhandledError(&hasError);
         if (hasError) {
@@ -572,7 +571,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     }
     return (KVMObjectHandle)result;
 #else
-    fprintf(stderr, "LoadUserView() is not implemented yet\n");
+    LOGE("LoadUserView() is not implemented yet");
     return nullptr;
 #endif
 }

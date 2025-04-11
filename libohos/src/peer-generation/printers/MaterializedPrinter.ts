@@ -76,6 +76,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
+        //if (clazz.className == "LazyForEachOps") throw new Error("OK")
         const config = peerGeneratorConfiguration()
         const printer = this.printer
 

@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import * as path from "path"
-import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary } from "@idlizer/core";
-import { join } from "node:path";
-import { writeIntegratedFile } from "./common";
+import { join } from "node:path"
+import * as idl from "@idlizer/core"
+import { writeIntegratedFile } from "./common"
+import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 import { ImportsCollector } from "./ImportsCollector"
-import { tsCopyrightAndWarning } from "./FileGenerators";
 import { ARKOALA_PACKAGE } from "./printers/lang/Java";
+import { tsCopyrightAndWarning } from "./FileGenerators"
 
 export interface PrinterResult {
     over: LayoutTargetDescription
@@ -45,7 +45,7 @@ export function install(outDir: string, library: PeerLibrary, printers: Printer[
     printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
         const resolved = layout.resolve(it.over)
         if (resolved == '') {
-            return;
+            throw new Error(`Cannot resolve location for ${idl.getFQName(it.over.node)}`)
         }
         const filePath = path.normalize(resolved)
         if (!storage.has(filePath)) {
