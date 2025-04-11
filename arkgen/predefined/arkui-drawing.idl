@@ -38,22 +38,20 @@ dictionary BlendMode {
 };
 
 [Entity=Class]
-interface ColorFilter {
-    static ColorFilter createBlendModeColorFilter(Color color, BlendMode mode);
-    static ColorFilter createBlendModeColorFilter(number color, BlendMode mode);
-    static ColorFilter createComposeColorFilter(ColorFilter outer, ColorFilter inner);
-    static ColorFilter createLinearToSRGBGamma();
-    static ColorFilter createSRGBGammaToLinear();
-    static ColorFilter createLumaColorFilter();
-    static ColorFilter createMatrixColorFilter(sequence<number> matrix);
+interface DrawingColorFilter {
+    static DrawingColorFilter createBlendModeColorFilter(Color color, BlendMode mode);
+    static DrawingColorFilter createBlendModeColorFilter(number color, BlendMode mode);
+    static DrawingColorFilter createComposeColorFilter(DrawingColorFilter outer, DrawingColorFilter inner);
+    static DrawingColorFilter createLinearToSRGBGamma();
+    static DrawingColorFilter createSRGBGammaToLinear();
+    static DrawingColorFilter createLumaColorFilter();
+    static DrawingColorFilter createMatrixColorFilter(sequence<number> matrix);
 };
 
-typedef ColorFilter DrawingColorFilter;
-
 [Entity=Class]
-interface Lattice {
-    static Lattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<Color> fColors);
-    static Lattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<number> fColors);
+interface DrawingLattice {
+    static DrawingLattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<Color> fColors);
+    static DrawingLattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<number> fColors);
 };
 
 dictionary RectType {
@@ -117,5 +115,3 @@ interface DrawingCanvas {
     // void setMatrix(Matrix matrix);
     // void resetMatrix();
 };
-
-typedef ColorFilter DrawingColorFilter;
