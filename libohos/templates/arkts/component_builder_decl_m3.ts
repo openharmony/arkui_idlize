@@ -8,6 +8,7 @@ export declare function %COMPONENT_NAME%(
 
 @memo
 export declare function %COMPONENT_NAME%Impl(
+    @memo
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
     %FUNCTION_PARAMETERS%
     @memo
