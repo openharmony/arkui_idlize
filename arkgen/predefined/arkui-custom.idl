@@ -2,43 +2,38 @@ package api.internal.component.ets;
 
 // Context
 
-// Fails in Java
-// Materialized class Context implements BaseContext
-//[Entity=Class]
-//interface BaseContext {
-//    attribute boolean stageMode;
-//};
+[Async]
+callback Context_getGroupDir_Callback = void (String result);
 
-// [Async, Synthetic]
-// callback AsyncCallback_String_Void = void (String result);
+[Entity=Class, DefaultExport]
+interface BaseContext {
+    attribute boolean stageMode;
+};
 
-//[Entity=Class]
-//interface Context: BaseContext {
+[Entity=Class, DefaultExport]
+interface Context: BaseContext {
     // attribute resmgr.ResourceManager resourceManager;
     // attribute ApplicationInfo applicationInfo;
-    // attribute String cacheDir;
-    // attribute String tempDir;
-    // attribute String filesDir;
-    // attribute String databaseDir;
-    // attribute String preferencesDir;
-    // attribute String bundleCodeDir;
-    // attribute String distributedFilesDir;
-    // attribute String resourceDir;
-    // attribute String cloudFileDir;
+    attribute String cacheDir;
+    attribute String tempDir;
+    attribute String filesDir;
+    attribute String databaseDir;
+    attribute String preferencesDir;
+    attribute String bundleCodeDir;
+    attribute String distributedFilesDir;
+    attribute String resourceDir;
+    attribute String cloudFileDir;
     // attribute EventHub eventHub;
     // attribute contextConstant.AreaMode area;
-//    [Deprecated]
-//    Context createBundleContext(String bundleName);
-//    [Deprecated]
-//    Context createModuleContext(String moduleName);
-    // [Deprecated]
-    // Context createModuleContext(String bundleName, String moduleName);
-    // resmgr.ResourceManager createSystemHspModuleResourceManager(String bundleName, String moduleName);
-    // ApplicationContext getApplicationContext();
-    // void getGroupDir(String dataGroupID, AsyncCallback_String_Void callback_);
-    // async String getGroupDir(String dataGroupID);
-    // resmgr.ResourceManager createModuleResourceManager(String bundleName, String moduleName);
-//};
+    [Deprecated, Throws] Context createBundleContext(String bundleName);
+    [Deprecated, Throws] Context createModuleContext(String moduleName);
+    [Deprecated, Throws] Context createModuleContext(String bundleName, String moduleName);
+    // [Throws] resmgr.ResourceManager createSystemHspModuleResourceManager(String bundleName, String moduleName);
+    // [Throws] ApplicationContext getApplicationContext();
+    [Throws] void getGroupDir(String dataGroupID, Context_getGroupDir_Callback callback_);
+    [Throws] async String getGroupDir(String dataGroupID);
+    // [Throws] resmgr.ResourceManager createModuleResourceManager(String bundleName, String moduleName);
+};
 
 // Cursor
 dictionary PointerStyle {
@@ -139,4 +134,219 @@ interface SystemOps {
 [Entity=Class]
 interface FocusController {
     static void requestFocus(String key);
+};
+
+[Entity=Class]
+interface ComponentContent {
+    void update(Object args);
+    void reuse(optional Object param);
+    void recycle();
+    void dispose();
+    void updateConfiguration();
+};
+
+[Entity=Class]
+interface Scene {
+    // attribute Environment environment;
+    // readonly attribute sequence<Animation> animations;
+    // readonly attribute (Node or undefined) root;
+    static async Scene load(optional ResourceStr uri);
+    // (Node or undefined) getNodeByPath(String path, optional NodeType type);
+    // SceneResourceFactory getResourceFactory();
+    void destroy();
+};
+
+[Entity=Interface]
+interface CustomColors {
+    [Optional] attribute ResourceColor brand;
+    [Optional] attribute ResourceColor warning;
+    [Optional] attribute ResourceColor alert;
+    [Optional] attribute ResourceColor confirm;
+    [Optional] attribute ResourceColor fontPrimary;
+    [Optional] attribute ResourceColor fontSecondary;
+    [Optional] attribute ResourceColor fontTertiary;
+    [Optional] attribute ResourceColor fontFourth;
+    [Optional] attribute ResourceColor fontEmphasize;
+    [Optional] attribute ResourceColor fontOnPrimary;
+    [Optional] attribute ResourceColor fontOnSecondary;
+    [Optional] attribute ResourceColor fontOnTertiary;
+    [Optional] attribute ResourceColor fontOnFourth;
+    [Optional] attribute ResourceColor iconPrimary;
+    [Optional] attribute ResourceColor iconSecondary;
+    [Optional] attribute ResourceColor iconTertiary;
+    [Optional] attribute ResourceColor iconFourth;
+    [Optional] attribute ResourceColor iconEmphasize;
+    [Optional] attribute ResourceColor iconSubEmphasize;
+    [Optional] attribute ResourceColor iconOnPrimary;
+    [Optional] attribute ResourceColor iconOnSecondary;
+    [Optional] attribute ResourceColor iconOnTertiary;
+    [Optional] attribute ResourceColor iconOnFourth;
+    [Optional] attribute ResourceColor backgroundPrimary;
+    [Optional] attribute ResourceColor backgroundSecondary;
+    [Optional] attribute ResourceColor backgroundTertiary;
+    [Optional] attribute ResourceColor backgroundFourth;
+    [Optional] attribute ResourceColor backgroundEmphasize;
+    [Optional] attribute ResourceColor compForegroundPrimary;
+    [Optional] attribute ResourceColor compBackgroundPrimary;
+    [Optional] attribute ResourceColor compBackgroundPrimaryTran;
+    [Optional] attribute ResourceColor compBackgroundPrimaryContrary;
+    [Optional] attribute ResourceColor compBackgroundGray;
+    [Optional] attribute ResourceColor compBackgroundSecondary;
+    [Optional] attribute ResourceColor compBackgroundTertiary;
+    [Optional] attribute ResourceColor compBackgroundEmphasize;
+    [Optional] attribute ResourceColor compBackgroundNeutral;
+    [Optional] attribute ResourceColor compEmphasizeSecondary;
+    [Optional] attribute ResourceColor compEmphasizeTertiary;
+    [Optional] attribute ResourceColor compDivider;
+    [Optional] attribute ResourceColor compCommonContrary;
+    [Optional] attribute ResourceColor compBackgroundFocus;
+    [Optional] attribute ResourceColor compFocusedPrimary;
+    [Optional] attribute ResourceColor compFocusedSecondary;
+    [Optional] attribute ResourceColor compFocusedTertiary;
+    [Optional] attribute ResourceColor interactiveHover;
+    [Optional] attribute ResourceColor interactivePressed;
+    [Optional] attribute ResourceColor interactiveFocus;
+    [Optional] attribute ResourceColor interactiveActive;
+    [Optional] attribute ResourceColor interactiveSelect;
+    [Optional] attribute ResourceColor interactiveClick;
+};
+
+[Entity=Interface]
+interface CustomTheme {
+    [Optional] attribute CustomColors colors;
+};
+
+[Entity=Interface]
+interface WorkerOptions {
+    [Optional] attribute String type;
+    [Optional] attribute String name;
+    [Optional] attribute boolean shared;
+};
+
+[Entity=Interface]
+interface Event {
+    readonly attribute String type;
+    readonly attribute i64 timeStamp;
+};
+
+[Entity=Interface]
+interface ErrorEvent: Event {
+    readonly attribute String message;
+    readonly attribute String filename;
+    readonly attribute number lineno;
+    readonly attribute number colno;
+    readonly attribute Object error;
+};
+
+[Entity=Interface]
+interface MessageEvents: Event {
+    readonly attribute any data;
+};
+
+[Entity=Interface]
+interface WorkerEventListener {
+    [CallSignature]
+    async void invoke(Event event);
+};
+
+[Entity=Interface]
+interface PostMessageOptions {
+    [Optional] attribute sequence<Object> transfer;
+};
+
+callback RestrictedWorker_onexit_Callback = void (number code);
+callback RestrictedWorker_onerror_Callback = void (ErrorEvent ev);
+callback RestrictedWorker_onmessage_Callback = void (MessageEvents event);
+
+[Entity=Class]
+interface RestrictedWorker {
+    constructor(String scriptURL, optional WorkerOptions options);
+    [Optional] attribute RestrictedWorker_onexit_Callback onexit;
+    [Optional] attribute RestrictedWorker_onerror_Callback onerror;
+    [Optional] attribute RestrictedWorker_onmessage_Callback onmessage;
+    [Optional] attribute RestrictedWorker_onmessage_Callback onmessageerror;
+    [Throws] void postMessage(Object message, sequence<buffer> transfer);
+    [Throws] void postMessage(Object message, optional PostMessageOptions options);
+    [Throws] void postMessageWithSharedSendable(Object message, optional sequence<buffer> transfer);
+    [Throws] void on(String type, WorkerEventListener listener);
+    [Throws] void once(String type, WorkerEventListener listener);
+    [Throws] void off(String type, optional WorkerEventListener listener);
+    [Throws] void terminate();
+    [Throws] void addEventListener(String type, WorkerEventListener listener);
+    [Throws] boolean dispatchEvent(Event event);
+    [Throws] void removeEventListener(String type, optional WorkerEventListener callback_);
+    [Throws] void removeAllListener();
+    [Throws] void registerGlobalCallObject(String instanceName, Object globalCallObject);
+    [Throws] void unregisterGlobalCallObject(optional String instanceName);
+};
+
+[Entity=Class]
+interface UIContext {
+    Font getFont();
+    // MediaQuery getMediaQuery();
+    // UIInspector getUIInspector();
+    [Throws] String getFilteredInspectorTree(optional sequence<String> filters);
+    [Throws] String getFilteredInspectorTreeById(String id, number depth, optional sequence<String> filters);
+    // Router getRouter();
+    // PromptAction getPromptAction();
+    // ComponentUtils getComponentUtils();
+    // UIObserver getUIObserver();
+    // OverlayManager getOverlayManager();
+    // [Throws] AnimatorResult createAnimator(AnimatorOptions options);
+    void animateTo(AnimateParam value, Callback_Void event);
+    // void showAlertDialog((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
+    // void showActionSheet(ActionSheetOptions value);
+    // void showDatePickerDialog(DatePickerDialogOptions options);
+    // void showTimePickerDialog(TimePickerDialogOptions options);
+    void showTextPickerDialog(TextPickerDialogOptions options);
+    void runScopedTask(Callback_Void callback_);
+    // void setKeyboardAvoidMode(KeyboardAvoidMode value);
+    // KeyboardAvoidMode getKeyboardAvoidMode();
+    // ([TypeArguments="AtomicServiceBar"] Nullable) getAtomicServiceBar();
+    // DragController getDragController();
+    // MeasureUtils getMeasureUtils();
+    // void keyframeAnimateTo(KeyframeAnimateParam param, sequence<KeyframeState> keyframes);
+    void animateToImmediately(AnimateParam param, Callback_Void event);
+    (FrameNode or undefined) getFrameNodeById(String id);
+    (FrameNode or undefined) getAttachedFrameNodeById(String id);
+    (FrameNode or undefined) getFrameNodeByUniqueId(number id);
+    // PageInfo getPageInfoByUniqueId(number id);
+    // (NavigationInfo or undefined) getNavigationInfoByUniqueId(number id);
+    // FocusController getFocusController();
+    // CursorController getCursorController();
+    // ContextMenuController getContextMenuController();
+    // ComponentSnapshot getComponentSnapshot();
+    number vp2px(number value);
+    number px2vp(number value);
+    number fp2px(number value);
+    number px2fp(number value);
+    number lpx2px(number value);
+    number px2lpx(number value);
+    // (LocalStorage or undefined) getSharedLocalStorage();
+    (Context or undefined) getHostContext();
+    void setDynamicDimming(String id, number value);
+    (String or undefined) getWindowName();
+    // WidthBreakpoint getWindowWidthBreakpoint();
+    // HeightBreakpoint getWindowHeightBreakpoint();
+    [Throws, TypeParameters="T extends Object"]
+    async void openBindSheet(ComponentContent bindSheetContent, optional SheetOptions sheetOptions, optional number targetId);
+    [Throws, TypeParameters="T extends Object"]
+    async void updateBindSheet(ComponentContent bindSheetContent, SheetOptions sheetOptions, optional boolean partialUpdate);
+    [Throws, TypeParameters="T extends Object"]
+    async void closeBindSheet(ComponentContent bindSheetContent);
+    // void postFrameCallback(FrameCallback frameCallback);
+    // void postDelayedFrameCallback(FrameCallback frameCallback, number delayTime);
+    // sequence<DynamicSyncScene> requireDynamicSyncScene(String id);
+    [Throws] void clearResourceCache();
+    boolean isFollowingSystemFontScale();
+    number getMaxFontScale();
+    // void bindTabsToScrollable(TabsController tabsController, Scroller scroller);
+    // void unbindTabsFromScrollable(TabsController tabsController, Scroller scroller);
+    // void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
+    // void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
+};
+
+[Entity=Interface]
+interface SystemBarStyle {
+    [Optional] attribute String statusBarContentColor;
 };

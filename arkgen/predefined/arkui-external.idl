@@ -417,4 +417,5 @@ interface EdgeStyles {
 
 };
 
+interface ImageModifier {};
 interface SymbolGlyphModifier {};
