@@ -449,7 +449,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     std::replace(className.begin(), className.end(), '.', '/');
     jclass viewClassClass = env->FindClass(className.c_str());
     if (!viewClassClass) {
-        LOGE("Cannot find user class %"LOG_PUBLIC"s", viewClass.c_str());
+        LOGE("Cannot find user class %" LOG_PUBLIC "s", viewClass.c_str());
         if (env->ExceptionCheck()) {
             env->ExceptionDescribe();
             env->ExceptionClear();
