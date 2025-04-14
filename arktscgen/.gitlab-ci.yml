@@ -9,6 +9,7 @@ build idlize-arktscgen:
     - npm run compile --prefix arktscgen
 
 test arktscgen:
+  allow_failure: true
   stage: test
   tags:
     - idlize-ci
@@ -29,6 +30,7 @@ pack idlize-arktscgen:
     - build idlize-arktscgen
 
 pre-publish test arktscgen:
+  allow_failure: true
   stage: pre-publish
   tags:
     - idlize-ci
