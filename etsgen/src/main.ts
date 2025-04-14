@@ -51,13 +51,13 @@ validatePaths(auxInputDirs, "dir")
 validatePaths(inputFiles, "file")
 validatePaths(auxInputFiles, "file")
 
-const detsInputFiles = scanInputDirs(inputDirs).concat(inputFiles)
+const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets"), true).concat(inputFiles)
 
 if (options.ets2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
-    const idlLibrary = generateFromSts(detsInputFiles)
+    generateFromSts(detsInputFiles, options.outputDir)
     didJob = true
 }
 

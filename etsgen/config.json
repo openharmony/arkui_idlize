@@ -1,2 +1,10 @@
 {
+    "compilerOptions": {
+        "outDir": "out/junk",
+        "rootDir": ".",
+        "paths": {
+            "@arkoala/arkui": ["./out"],
+            "@koalaui/arkts-arkui": ["."]
+        }
+    }
 }
