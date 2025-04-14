@@ -42,13 +42,13 @@ export class ArkoalaInstall extends Install {
             this.mkdir(dir)
         }
     }
-    private memoM3Postfix = this.useMemoM3 ? "-m3" : ""
+    private memoM3Postfix = this.useMemoM3 ? "/ets" : ""
     sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
 
     tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/generated/"))
     tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui-types/`))
-    arktsDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src/generated${this.memoM3Postfix}/`))
-    arktsSdkDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src/sdk${this.memoM3Postfix}/`))
+    arktsDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src${this.memoM3Postfix}/generated/`))
+    arktsSdkDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src${this.memoM3Postfix}/sdk/`))
     arktsTypesDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/types/`))
 
     frameworkDir = this.mkdir(path.join(this.sig, "arkoala-arkts/framework"))
