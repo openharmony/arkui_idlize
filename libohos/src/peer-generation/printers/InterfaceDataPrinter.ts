@@ -28,7 +28,7 @@ import { isComponentDeclaration } from "../ComponentsCollector";
  */
 export function printInterfaceData(library: PeerLibrary): PrinterResult[] {
     return LanguageWriter.relativeReferences(true, () => library.files.flatMap(file => {
-        if (!idl.isInCurrentModule(file.file) || idl.isInIdlize(file.file))
+        if (!idl.isInCurrentModule(file) || idl.isInIdlize(file))
             return []
         return idl.linearizeNamespaceMembers(file.entries)
             .filter(it => !isInIdlizeInternal(it))

@@ -4,14 +4,10 @@ import { IdlNameConvertor } from "./LanguageWriters";
 import { ArgConvertor } from "./LanguageWriters/ArgConvertors";
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver";
 
-export interface LibraryFileInterface {
-    get entries(): idl.IDLEntry[]
-}
-
 // todo: TypeProcessor? LibraryBase?
 export interface LibraryInterface extends ReferenceResolver {
     language: Language
-    get files(): LibraryFileInterface[]
+    get files(): idl.IDLFile[]
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam?: boolean): ArgConvertor
     declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor
     getInteropName(node: idl.IDLNode): string

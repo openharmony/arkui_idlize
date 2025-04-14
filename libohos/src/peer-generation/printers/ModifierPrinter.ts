@@ -33,6 +33,7 @@ import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "..
 import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { collectPeersForFile } from "../PeersCollector";
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
     constructor(
@@ -331,7 +332,7 @@ export class ModifierVisitor {
     // TODO: have a proper Peer module visitor
     printRealAndDummyModifiers() {
         this.library.files.forEach(file => {
-            file.peers.forEach(clazz => this.printPeerClassModifiers(clazz))
+            collectPeersForFile(this.library, file).forEach(clazz => this.printPeerClassModifiers(clazz))
         })
     }
 }

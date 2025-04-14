@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core"
 import { Language, LayoutNodeRole, PeerClass, PeerLibrary } from "@idlizer/core";
-import { collapseSameNamedMethods, collectComponents, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate, OverloadsPrinter, peerGeneratorConfiguration, groupOverloads } from "@idlizer/libohos";
+import { collapseSameNamedMethods, collectComponents, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate, OverloadsPrinter, peerGeneratorConfiguration, groupOverloads, collectPeersForFile } from "@idlizer/libohos";
 import { ArkoalaPeerLibrary } from "../ArkoalaPeerLibrary";
 import { generateArkComponentName } from "./ComponentsPrinter";
 
@@ -32,6 +32,6 @@ function printETSComponent(library: PeerLibrary, peer: PeerClass, isDeclaration:
 
 export function printETSDeclaration(library: PeerLibrary): PrinterResult[] {
     return library.files.flatMap<PrinterResult>(file =>
-        file.peersToGenerate.filter(it => it.originalInterfaceName).flatMap<PrinterResult>(peer =>
+        collectPeersForFile(library, file).filter(it => it.originalInterfaceName).flatMap<PrinterResult>(peer =>
             printETSComponent(library, peer, true)))
 }

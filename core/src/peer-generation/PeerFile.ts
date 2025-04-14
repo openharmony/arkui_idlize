@@ -15,9 +15,8 @@
 
 import * as idl from '../idl'
 import { PeerClass } from "./PeerClass"
-import { LibraryFileInterface } from '../LibraryInterface'
 
-export class PeerFile implements LibraryFileInterface {
+export class PeerFile1 {
     readonly peers: Map<string, PeerClass> = new Map()
 
     constructor(

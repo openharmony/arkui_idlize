@@ -18,18 +18,18 @@ import { FieldModifier, LanguageExpression, LanguageWriter, Method, MethodSignat
 import { NativeModule } from "../../peer-generation/NativeModule"
 import { capitalize, removeExt } from "@idlizer/core"
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass"
-import { IldSkoalaFile } from "../idl/idlSkoalaLibrary"
+import { IldSkoalaOutFile } from "../idl/idlSkoalaLibrary"
 import { Skoala } from "../utils"
 
 
 export class TSWrappersVisitor {
     constructor() { }
 
-    printImports(file: IldSkoalaFile, writer: LanguageWriter): void {
+    printImports(file: IldSkoalaOutFile, writer: LanguageWriter): void {
         file.importsCollector.print(writer, removeExt(removeExt(file.baseName)))
     }
 
-    printWrappers(file: IldSkoalaFile, writer: LanguageWriter): void {
+    printWrappers(file: IldSkoalaOutFile, writer: LanguageWriter): void {
         if (!file.wrapperClasses.size) return
         for (let [name, [clazz, decl]] of file.wrapperClasses) {
             this.printWrapper(clazz, writer)

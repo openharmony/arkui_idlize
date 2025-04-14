@@ -15,6 +15,7 @@
 
 import { IndentedPrinter, PeerClass, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { makeFileNameFromClassName } from "../FileGenerators"
+import { collectPeersForFile } from '../PeersCollector'
 
 export class GniVisitor {
     gni = new IndentedPrinter()
@@ -44,7 +45,7 @@ export class GniVisitor {
         this.gni.print("generated_sources = [")
         this.gni.pushIndent()
         this.library.files.forEach(file => {
-            file.peers.forEach(clazz => this.printGniEntries(clazz))
+            collectPeersForFile(this.library, file).forEach(clazz => this.printGniEntries(clazz))
         })
         this.library.materializedClasses.forEach(clazz => {
             this.printMaterializedClassSourcePaths(clazz)

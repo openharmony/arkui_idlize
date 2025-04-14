@@ -1,5 +1,5 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PeerFile, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule } from "@idlizer/core";
+import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 import { componentToAttributesClass, componentToPeerClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
@@ -38,7 +38,7 @@ function createContinuationCallbacks(library: PeerLibrary, targets: idl.IDLNode[
         }
     })
     for (const file of library.files) {
-        if (!isInCurrentModule(file.file))
+        if (!isInCurrentModule(file))
             continue
         for (const entry of file.entries) {
             idl.forEachFunction(entry, function_ => {
@@ -114,7 +114,7 @@ function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
     const file = idl.linkParentBack(
         idl.createFile([declaration], undefined, PACKAGE_IDLIZE_INTERNAL.split("."))
     )
-    library.files.push(new PeerFile(file))
+    library.files.push(file)
 }
 
 function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {

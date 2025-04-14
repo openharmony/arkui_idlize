@@ -421,7 +421,7 @@ class OHOSNativeVisitor {
 
     prepare() {
         this.library.files.forEach(file => {
-            if (isInIdlize(file.file) || !isInCurrentModule(file.file))
+            if (isInIdlize(file) || !isInCurrentModule(file))
                 return
             linearizeNamespaceMembers(file.entries).forEach(entry => {
                 if (isInterface(entry)) {

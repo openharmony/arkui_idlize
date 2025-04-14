@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core/idl"
 import { LibraryInterface } from "@idlizer/core"
-import { isDefined, PeerFile } from "@idlizer/core"
+import { isDefined } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 import path from "node:path"
 

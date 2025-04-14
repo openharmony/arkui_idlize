@@ -21,6 +21,7 @@ export * from "./DefaultConfiguration"
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
 export * from './peer-generation/ComponentsCollector'
+export * from './peer-generation/PeersCollector'
 export * from './peer-generation/common'
 export * from './peer-generation/GlobalScopeUtils'
 export * from './peer-generation/printers/TargetFile'
@@ -67,7 +68,7 @@ export * from './skoala-generation/utils'
 export * from './skoala-generation/WrapperClass'
 export * from './skoala-generation/printers/WrappersPrinter'
 export * from './skoala-generation/printers/InterfacePrinter'
-export { IdlSkoalaLibrary, IldSkoalaFile, IdlWrapperProcessor } from './skoala-generation/idl/idlSkoalaLibrary'
+export { IdlSkoalaLibrary, IldSkoalaOutFile, IdlWrapperProcessor } from './skoala-generation/idl/idlSkoalaLibrary'
 export * from './skoala-generation/SkoalaInstall'
 export * from './skoala-generation/SkoalaGeneration'
 

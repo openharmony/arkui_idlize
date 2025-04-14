@@ -15,7 +15,7 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { PeerFile, toIDLFile, PeerLibrary, scanInputDirs, IDLFile, linearizeNamespaceMembers, isInterface } from "@idlizer/core"
+import { toIDLFile, PeerLibrary, scanInputDirs, IDLFile, linearizeNamespaceMembers, isInterface } from "@idlizer/core"
 
 function processInputOption(option: string | undefined): string[] {
     if (!option) return []
@@ -88,11 +88,6 @@ export function validatePaths(paths: string[], type: 'file' | 'dir'): void {
             console.log(`Input ${type} exists: ${pathItem}`)
         }
     })
-}
-
-export interface PredefinedFiles {
-    interop: PeerFile[]
-    root: PeerFile[]
 }
 
 const PREDEFINED_PATH = path.resolve(require.resolve('@idlizer/libohos'), '..', '..', '..', '..', 'predefined')

@@ -17,7 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import * as path from "path"
 import {
     removeExt, renameDtsToComponent, Language, isCommonMethod,
-    LanguageWriter, PeerFile, PeerClass, PeerLibrary,
+    LanguageWriter, PeerClass, PeerLibrary,
     createReferenceType, IDLVoidType, isOptionalType,
     Method,
     MethodSignature,
@@ -33,6 +33,7 @@ import {
     collectComponents,
     collectDeclDependencies,
     collectJavaImports,
+    collectPeersForFile,
     COMPONENT_BASE,
     componentToAttributesClass,
     componentToInterface,
@@ -69,7 +70,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly file: idl.IDLFile,
         protected readonly options: {
             isDeclared: boolean,
         }
@@ -81,7 +82,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
     visit(): PrinterResult[] {
         const result: PrinterResult[] = []
-        this.file.peersToGenerate.forEach(peer => {
+        collectPeersForFile(this.library, this.file).forEach(peer => {
             if (!this.options.isDeclared)
                 result.push(...this.printComponent(peer))
             result.push(...this.printComponentFunction(peer))
@@ -278,11 +279,11 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         private readonly library: PeerLibrary,
-        private readonly file: PeerFile,
+        private readonly file: idl.IDLFile,
     ) { }
 
     visit(): PrinterResult[] {
-        this.file.peersToGenerate.forEach(peer => this.printComponent(peer))
+        collectPeersForFile(this.library, this.file).forEach(peer => this.printComponent(peer))
         return []
     }
     getComponentResults(): ComponentPrintResult[] {
@@ -350,7 +351,7 @@ class ComponentsVisitor {
     printComponents(): PrinterResult[] {
         const result: PrinterResult[] = []
         for (const file of this.peerLibrary.files.values()) {
-            if (!file.peersToGenerate.length)
+            if (!collectPeersForFile(this.peerLibrary, file).length)
                 continue
             let visitor: ComponentFileVisitor
             if (this.language == Language.TS) {

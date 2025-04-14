@@ -29,7 +29,6 @@ import {
     verifyIDLLinter,
     PeerLibrary,
     scanInputDirs,
-    PeerFile,
     toIDLFile,
     generatorConfiguration,
     IDLLinterError,
@@ -99,7 +98,7 @@ function main() {
         const resolver = new PeerLibrary(Language.TS)
         const files = dtsInputFiles.map((filePath) => {
             const result = toIDLFile(filePath)
-            resolver.files.push(new PeerFile(result[0]))
+            resolver.files.push(result[0])
             return result
         })
         fillSyntheticDeclarations(resolver)
@@ -179,16 +178,15 @@ function main() {
                         verifyIDLString(generated)
                     }
 
-                    const peerFile = new PeerFile(file)
                     if (isAux)
-                        idlLibrary.auxFiles.push(peerFile)
+                        idlLibrary.auxFiles.push(file)
                     else
-                        idlLibrary.files.push(peerFile)
+                        idlLibrary.files.push(file)
                 },
                 onEnd(outDir: string) {
                     if (options.verifyIdl) {
                         idlLibrary.files.forEach(file => {
-                            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
                         })
                     }
                 },

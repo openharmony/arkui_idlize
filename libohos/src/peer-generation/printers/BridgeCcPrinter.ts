@@ -38,6 +38,7 @@ import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { makeInteropMethod } from "./NativeModulePrinter";
+import { collectPeersForFile } from "../PeersCollector";
 
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
@@ -321,7 +322,7 @@ export class BridgeCcVisitor {
 
     print(): void {
         for (const file of this.library.files) {
-            const peersToGenerate = sorted(file.peersToGenerate, it => it.componentName)
+            const peersToGenerate = sorted(collectPeersForFile(this.library, file), it => it.componentName)
             for (const peer of peersToGenerate) {
                 for (const method of [createConstructPeerMethod(peer)].concat(peer.methods)) {
                     this.printMethod(method, peer.componentName)

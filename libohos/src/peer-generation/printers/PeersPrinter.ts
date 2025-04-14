@@ -26,7 +26,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
 } from "../LanguageWriters";
-import { LanguageWriter, createConstructPeerMethod, PeerClass, PeerFile, PeerMethod,
+import { LanguageWriter, createConstructPeerMethod, PeerClass, PeerMethod,
     getInternalClassName, MaterializedMethod, PeerLibrary
 } from "@idlizer/core";
 import { tsCopyrightAndWarning } from "../FileGenerators";
@@ -42,6 +42,7 @@ import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorU
 import { findComponentByName, findComponentByType } from "../ComponentsCollector";
 import { NativeModule } from "../NativeModule";
 import { PrinterFunction, PrinterResult } from '../LayoutManager';
+import { collectPeersForFile } from '../PeersCollector';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -59,7 +60,7 @@ export function componentToInterface(component: string) {
 class PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly file: idl.IDLFile,
         protected readonly dumpSerialized: boolean,
     ) { }
 
@@ -198,7 +199,7 @@ class PeerFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        return this.file.peersToGenerate.map(peer => {
+        return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
             const imports = new ImportsCollector()
             const content = this.library.createLanguageWriter(this.library.language)
@@ -241,7 +242,7 @@ class PeerFileVisitor {
 class JavaPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly file: idl.IDLFile,
         dumpSerialized: boolean,
     ) {
         super(library, file, dumpSerialized)
@@ -268,7 +269,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        return Array.from(this.file.peers.values()).map(peer => {
+        return Array.from(collectPeersForFile(this.library, this.file).values()).map(peer => {
             let printer = this.library.createLanguageWriter()
             this.printPackage(printer)
 
@@ -303,7 +304,7 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
-        protected readonly file: PeerFile,
+        protected readonly file: idl.IDLFile,
         dumpSerialized: boolean,
     ) {
         super(library, file, dumpSerialized)
@@ -317,7 +318,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        return this.file.peersToGenerate.map(peer => {
+        return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
             const printer = this.library.createLanguageWriter()
             this.printPackage(printer)
@@ -347,7 +348,7 @@ class PeersVisitor {
     printPeers(): PrinterResult[] {
         const results: PrinterResult[] = []
         for (const file of this.library.files.values()) {
-            if (!file.peersToGenerate.length)
+            if (!collectPeersForFile(this.library, file).length)
                 continue
             const visitor = this.library.language == Language.JAVA
                 ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)

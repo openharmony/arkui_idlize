@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    createLanguageWriter, LanguageWriter, PeerFile,
+    createLanguageWriter, LanguageWriter,
     indentedBy, isBuilderClass, isMaterialized, stringOrNone, throwException, Language, PeerLibrary,
      convertDeclaration, DeclarationConvertor, maybeTransformManagedCallback,
      MethodModifier,
@@ -38,6 +38,8 @@ import { ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
     PrinterFunction,
     findComponentByDeclaration,
     collapseIdlPeerMethods,
+    collectPeersForFile,
+    collectPeers,
 } from '@idlizer/libohos'
 
 interface InterfacesVisitor {
@@ -142,11 +144,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const component = findComponentByDeclaration(this.peerLibrary, idlInterface)
         if (idlInterface !== component?.attributeDeclaration)
             return []
-        let peer: PeerClass | undefined
-        for (const file of this.peerLibrary.files) {
-            if (file.peers.has(component.name))
-                peer = file.peers.get(component.name)!
-        }
+        const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
         if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
         const printer = this.peerLibrary.createLanguageWriter()
         const declaredPrefix = this.isDeclared ? "declare " : ""
@@ -373,7 +371,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
         protected readonly peerLibrary: PeerLibrary
     ) {}
 
-    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
+    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: idl.IDLFile) {
         const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
         if (enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
@@ -860,7 +858,7 @@ class ArkTSInterfacesVisitor implements InterfacesVisitor {
         protected readonly isDeclared: boolean,
     ) {}
 
-    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: PeerFile) {
+    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: idl.IDLFile) {
         const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
         if (enums.length != 0) {
             writer.print(`Object.assign(globalThis, {`)
@@ -896,7 +894,7 @@ class ArkTSInterfacesVisitor implements InterfacesVisitor {
             registerEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
-            if (!isInCurrentModule(file.file))
+            if (!isInCurrentModule(file))
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isNamespace(entry) ||

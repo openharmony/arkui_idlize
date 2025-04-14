@@ -18,6 +18,7 @@ import * as path from 'path'
 
 import { IndentedPrinter, PeerClass, createConstructPeerMethod, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { IDLEnum } from '@idlizer/core/idl'
+import { collectPeersForFile } from './PeersCollector'
 
 const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
 
@@ -111,7 +112,7 @@ class TrackerVisitor {
         this.out.print(`| ---- | ---- | ----- | ------ |`)
 
         this.library.files.forEach(file => {
-            file.peers.forEach(clazz => this.printPeerClass(clazz))
+            collectPeersForFile(this.library, file).forEach(clazz => this.printPeerClass(clazz))
             //file.enums.forEach(enam => this.printEnum(enam))
 
         })

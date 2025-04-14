@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, PeerFile, isInCurrentModule, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core";
+import { generatorConfiguration, Language, LibraryInterface, isMaterialized, cleanPrefix, isInIdlize, isStaticMaterialized, isInCurrentModule, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core";
 import { isComponentDeclaration } from "./ComponentsCollector";
 import { UnionFlatteningMode, DependencySorter } from "./idl/DependencySorter";
 import { IdlNameConvertor } from "@idlizer/core";

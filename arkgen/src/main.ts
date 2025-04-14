@@ -22,7 +22,6 @@ import {
     defaultCompilerOptions,
     Language,
     findVersion,
-    PeerFile,
     PeerLibrary,
     verifyIDLLinter,
     isDefined,
@@ -46,7 +45,7 @@ import {
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
-    SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaFile, generateIdlSkoala,
+    SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaOutFile, generateIdlSkoala,
     IdlWrapperProcessor, fillSyntheticDeclarations,
     formatInputPaths,
     validatePaths,
@@ -190,7 +189,8 @@ if (options.dts2skoala) {
                 }
 
                 generatedIDLMap.get(fileName)?.push(...file.entries)
-                skoalaLibrary.files.push(new IldSkoalaFile(file))
+                skoalaLibrary.files.push(file)
+                skoalaLibrary.outFiles.push(new IldSkoalaOutFile(file))
             },
             onEnd: (outDir) => {
                 const wrapperProcessor = new IdlWrapperProcessor(skoalaLibrary)
@@ -228,12 +228,11 @@ if (options.idl2peer) {
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
         const [file] = toIDLFile(idlFilename)
-        const peerFile = new PeerFile(file)
-        idlLibrary.files.push(peerFile)
+        idlLibrary.files.push(file)
     })
     if (options.verifyIdl) {
         idlLibrary.files.forEach(file => {
-            verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
         })
     }
     new IdlPeerProcessor(idlLibrary).process()
@@ -267,11 +266,10 @@ if (options.dts2peer) {
     const idlLibrary = new ArkoalaPeerLibrary(lang, options.useMemoM3)
 
     {
-        const pushOne = (idlFilename: string, resultFilesArray: PeerFile[]) => {
+        const pushOne = (idlFilename: string, resultFilesArray: IDLFile[]) => {
             idlFilename = path.resolve(idlFilename)
             const [file] = toIDLFile(idlFilename)
-            const peerFile = new PeerFile(file)
-            resultFilesArray.push(peerFile)
+            resultFilesArray.push(file)
         }
         idlInputFiles.forEach(idlFilename => pushOne(idlFilename, idlLibrary.files))
         idlAuxInputFiles.forEach(auxIdlFilename => pushOne(auxIdlFilename, idlLibrary.auxFiles))
@@ -295,7 +293,7 @@ if (options.dts2peer) {
                             || [newEntry, entry].every(isEnum)
                             || [newEntry, entry].every(isSyntheticEntry))) {
                             if (newEntry.name === entry.name) {
-                                console.error("Removed duplicate", newEntry.name, 'from', file.fileName, ', another declaration found at', peerFile.file.fileName)
+                                console.error("Removed duplicate", newEntry.name, 'from', file.fileName, ', another declaration found at', peerFile.fileName)
                                 return true
                             }
                         }
@@ -308,17 +306,15 @@ if (options.dts2peer) {
                 })
                 linkParentBack(file)
 
-                const peerFile = new PeerFile(file)
-
                 if (isAux)
-                    idlLibrary.auxFiles.push(peerFile)
+                    idlLibrary.auxFiles.push(file)
                 else
-                    idlLibrary.files.push(peerFile)
+                    idlLibrary.files.push(file)
             },
             onEnd(outDir) {
                 if (options.verifyIdl) {
                     idlLibrary.files.forEach(file => {
-                        verifyIDLLinter(file.file, idlLibrary, peerGeneratorConfiguration().linter)
+                        verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
                     })
                 }
                 fillSyntheticDeclarations(idlLibrary)

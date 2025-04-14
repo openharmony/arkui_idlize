@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { ArkUINativeModule, TestNativeModule } from "#components"
-import { wrapCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName, KSerializerBuffer, KBuffer } from "@koalaui/interop"
+import { wrapCallback, disposeCallback, callCallback, wrapSystemCallback, registerNativeModuleLibraryName, KSerializerBuffer, KBuffer } from "@koalaui/interop"
 import { deserializeAndCallCallback } from './peers/CallbackDeserializeCall.ts'
 import { assertEquals, assertThrows } from "./test_utils"
 import { ArkButtonPeer } from "@arkoala/arkui/button"
@@ -385,10 +385,11 @@ function checkCallbackWithReturn() {
 function checkNativeCallback() {
     const id1 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         return 123456
-    })
+    }, false)
     assertEquals("NativeCallback without args", 123456, TestNativeModule._TestCallIntNoArgs(id1))
     assertThrows("NativeCallback without args called again", () => { callCallback(id1, 0, 0) })
     assertThrows("NativeCallback without args called again from native", () => { TestNativeModule._TestCallIntNoArgs(id1) })
+    disposeCallback(id1)
 
     const id2 = wrapCallback((args: KSerializerBuffer, length: int): int => {
         const buf = new ArrayBuffer(length)
