@@ -188,7 +188,13 @@ export class PeerLibrary implements LibraryInterface {
         return this.targetNameConvertorInstance.convert(type)
     }
 
+    private referenceCache: Map<idl.IDLReferenceType, idl.IDLEntry> | undefined
+    public enableCache() {
+        this.referenceCache = new Map()
+    }
     resolveTypeReference(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
+        if (this.referenceCache?.has(type))
+            return this.referenceCache.get(type)
         let result = this.resolveNamedNode(type.name.split("."), type.parent)
         if (!singleStep) {
             const seen = new Set<idl.IDLEntry>
@@ -214,6 +220,8 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (result && (idl.isImport(result) || idl.isNamespace(result)))
             result = undefined
+        if (result)
+            this.referenceCache?.set(type, result)
         return result
     }
 

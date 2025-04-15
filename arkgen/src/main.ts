@@ -231,6 +231,7 @@ if (options.idl2peer) {
             verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
         })
     }
+    idlLibrary.enableCache()
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)
@@ -314,6 +315,7 @@ if (options.dts2peer) {
                     })
                 }
                 fillSyntheticDeclarations(idlLibrary)
+                idlLibrary.enableCache()
                 const peerProcessor = new IdlPeerProcessor(idlLibrary)
                 peerProcessor.process()
 
