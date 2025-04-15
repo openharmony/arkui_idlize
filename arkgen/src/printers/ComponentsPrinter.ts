@@ -23,7 +23,8 @@ import {
     MethodSignature,
     MethodModifier,
     NamedMethodSignature,
-    LayoutNodeRole
+    LayoutNodeRole,
+    FieldModifier
 } from '@idlizer/core'
 import {
     ARKOALA_PACKAGE,
@@ -38,10 +39,12 @@ import {
     componentToAttributesClass,
     componentToInterface,
     componentToPeerClass,
+    componentToStyleClass,
     findComponentByName,
     findComponentByType,
     generateAttributesParentClass,
     generateInterfaceParentInterface,
+    generateStyleParentClass,
     groupOverloads,
     IdlComponentDeclaration,
     ImportsCollector,
@@ -112,10 +115,13 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                         role: LayoutNodeRole.COMPONENT
                     })
                     imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentGeneratedPath}`)
-    
+
                     const parentAttributesClass = generateAttributesParentClass(peer)
                     if (parentAttributesClass)
                         imports.addFeature(parentAttributesClass, `./${parentGeneratedPath}`)
+                    const parentStyleClass = generateStyleParentClass(peer)
+                    if (parentStyleClass)
+                        imports.addFeature(parentStyleClass, `./${parentGeneratedPath}`)
                     const parentInterface = generateInterfaceParentInterface(peer)
                     if (parentInterface)
                         imports.addFeature(parentInterface, `./${parentGeneratedPath}`)
@@ -136,18 +142,41 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeature('unsafeCast', '@koalaui/common')
     }
 
-    protected printAttributes(peer: PeerClass, printer:LanguageWriter) {
-        const parent = generateAttributesParentClass(peer)
-        printer.writeInterface(componentToAttributesClass(peer.componentName), (writer) => {
+    protected printAttributes(peer: PeerClass, printer: LanguageWriter) {
+        const parentAttributes = generateAttributesParentClass(peer)
+        const parentStyle = generateStyleParentClass(peer)
+        printer.writeInterface(componentToStyleClass(peer.componentName), (writer) => {
+            for (const field of peer.attributesFields) {
+                writer.writeMethodDeclaration(
+                    field.name, new MethodSignature(idl.IDLVoidType, [field.type]))
+            }
+
+        }, parentStyle ? [parentStyle] : undefined)
+        printer.writeClass(componentToAttributesClass(peer.componentName), (writer) => {
             for (const field of peer.attributesFields) {
                 writer.writeFieldDeclaration(
-                    field.name,
+                    field.name + "_value",
                     field.type,
                     [],
                     true
                 )
             }
-        }, parent ? [parent] : undefined)
+            for (const field of peer.attributesFields) {
+                writer.writeMethodImplementation(
+                    new Method(field.name, new MethodSignature(idl.IDLVoidType, [field.type])), (writer) => {
+                        writer.writeStatement(writer.makeAssign(`this.${field.name}_value`, undefined,
+                            writer.makeString(`arg0`), false))
+                    })
+            }
+        }, parentAttributes, [componentToStyleClass(peer.componentName)])
+    }
+
+    memoStable(): string {
+        return this.library.useMemoM3 ? `@memo_stable` : `/** @memo:stable */`
+    }
+
+    memo(): string {
+        return this.library.useMemoM3 ? `@memo` : `/** @memo */`
     }
 
     private printComponent(peer: PeerClass): PrinterResult[] {
@@ -163,7 +192,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
 
         this.printAttributes(peer, printer)
 
-        printer.print(this.library.useMemoM3 ? `@memo_stable` : `/** @memo:stable */`)
+        printer.print(this.memoStable())
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
@@ -179,7 +208,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     )
                 )
             )
-            const filteredMethods = (peer.methods as any[]).filter(it =>
+            const filteredMethods = peer.methods.filter(it =>
                 !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
@@ -190,14 +219,14 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
             writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.print('// we calls this function outside of class, so need to make it public')
+                writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
 
             const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
             const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
             const applyAttributes = 'applyAttributes'
-            writer.print(this.library.useMemoM3 ? `@memo` : `/** @memo */`)
+            writer.print(this.memo())
             writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
                 for (const field of peer.attributesFields) {
                     if (peerGeneratorConfiguration().ignoreMethod(field.name, this.library.language)) {
@@ -205,10 +234,10 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     }
                     writer.writeStatement(
                         writer.makeCondition(
-                            writer.makeDefinedCheck(`attrs.${field.name}`),
+                            writer.makeDefinedCheck(`attrs.${field.name}_value`),
                             writer.makeStatement(
                                 writer.makeMethodCall('this', field.name, [
-                                    writer.makeString(`attrs.${field.name}!`)
+                                    writer.makeString(`attrs.${field.name}_value!`)
                                 ])
                             )
                         )

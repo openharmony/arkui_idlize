@@ -52,6 +52,10 @@ export function componentToAttributesClass(component: string) {
     return `Ark${component}Attributes`
 }
 
+export function componentToStyleClass(component: string) {
+    return `${component}NonUI`
+}
+
 export function componentToInterface(component: string) {
     return component
 }
@@ -170,23 +174,6 @@ class PeerFileVisitor {
         this.library.setCurrentContext(undefined)
     }
 
-    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
-        /* Turned off due to https://gitee.com/openharmony-sig/arkcompiler_ets_frontend/issues/IBC95C */
-        return
-
-        const name = peer.originalClassName!
-        const typeParam = componentToAttributesClass(peer.componentName)
-        if (isRoot(name)) {
-            printer.print(`applyAttributes(attributes: ${typeParam}): void {}`)
-            return
-        }
-        printer.print(`applyAttributes<T extends ${typeParam}>(attributes: T): ${printer.getNodeName(IDLVoidType)} {`)
-        printer.pushIndent()
-        printer.print(`super.applyAttributes(attributes)`)
-        printer.popIndent()
-        printer.print(`}`)
-    }
-
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
             this.printPeerConstructor(peer, writer)
@@ -194,7 +181,6 @@ class PeerFileVisitor {
             (peer.methods as any[])
                 .filter(method => !peerGeneratorConfiguration().ignoreMethod(method.overloadedName, writer.language))
                 .forEach(method => this.printPeerMethod(method, writer))
-            this.printApplyMethod(peer, writer)
         }, this.generatePeerParentName(peer))
     }
 
@@ -583,6 +569,11 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
 export function generateAttributesParentClass(peer: PeerClass): string | undefined {
     if (!isHeir(peer.originalClassName!)) return undefined
     return componentToAttributesClass(peer.parentComponentName!)
+}
+
+export function generateStyleParentClass(peer: PeerClass): string | undefined {
+    if (!isHeir(peer.originalClassName!)) return undefined
+    return componentToStyleClass(peer.parentComponentName!)
 }
 
 export function generateInterfaceParentInterface(peer: PeerClass): string | undefined {

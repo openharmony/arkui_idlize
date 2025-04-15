@@ -29,13 +29,12 @@ import { createDeclarationNameConvertor } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
 import { getInternalClassName, getInternalClassQualifiedName, LayoutNodeRole } from '@idlizer/core'
-import { ArkTSSourceFile, SourceFile, TsSourceFile } from './SourceFile'
 import { collectUniqueCallbacks } from './CallbacksPrinter'
 import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
-import { PrinterFunction, PrinterResult } from '../LayoutManager'
+import { PrinterFunction } from '../LayoutManager'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -576,7 +575,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
                 "MaterializedBase", "InteropNativeModule", "ResourceHolder",
                 "nullptr", "KPointer", "isInstanceOf",
             ], "@koalaui/interop")
-            collector.addFeatures(["isResource", "isPadding"], "../utils")        
+            collector.addFeatures(["isResource", "isPadding"], "../utils")
         }
         if (!declarationPath) {
             collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
