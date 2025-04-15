@@ -8,14 +8,16 @@
     "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [
-        "Attribute",
-        "Interface",
-        "Method",
-        "Configuration",
-        "UIGestureEvent",
-        "GestureHandler",
         "AnimatableArithmetic",
-        "DynamicNode"
+        "DynamicNode",
+        "GestureHandler",
+        "LongPressGestureHandler",
+        "PanGestureHandler",
+        "PinchGestureHandler",
+        "RotationGestureHandler",
+        "SwipeGestureHandler",
+        "TapGestureHandler",
+        "UIGestureEvent"
     ],
     "forceMaterialized": [
         "TapGestureInterface",

@@ -14,7 +14,10 @@
     "dumpSerialized": false,
     "ignoreMaterialized": [],
     "forceMaterialized": [
-        "BaseContext"
+        "BaseContext",
+        "CheckExceptionInterface",
+        "GenericInterface",
+        "MaterializedWithCreateMethod"
     ],
     "forceCallback": [
         "ForceCallbackListener",

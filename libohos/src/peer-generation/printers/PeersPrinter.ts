@@ -14,8 +14,20 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import * as path from "path"
-import { renameDtsToPeer, throwException, Language, InheritanceRole, determineParentRole, isHeir, isRoot, isStructureType, isMaterializedType, isEnumType, MaterializedClass, qualifiedName, createLanguageWriter, LayoutNodeRole } from '@idlizer/core'
+import {
+    throwException,
+    Language,
+    InheritanceRole,
+    determineParentRole,
+    isHeir,
+    isRoot,
+    isStructureType,
+    isMaterializedType,
+    MaterializedClass,
+    qualifiedName,
+    LayoutNodeRole,
+    CustomTypeConvertor
+} from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
     ExpressionStatement,
@@ -460,7 +472,9 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 } else if (!isPrimitiveType(returnType)) {
                     if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType)) && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
-                    } else if (isStructureType(returnType, writer.resolver) && writer.language != Language.JAVA) {
+                    } else if (isStructureType(returnType, writer.resolver)
+                        && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)
+                        && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else {
                         // todo: implement deserialization for types other than enum

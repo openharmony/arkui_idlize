@@ -22,16 +22,20 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false
     if (idl.isHandwritten(declaration) || isBuilderClass(declaration)) return false
 
-    for (const forceMaterialized of generatorConfiguration().forceMaterialized) {
-        if (declaration.name == forceMaterialized) return true
+    if (generatorConfiguration().forceMaterialized.includes(declaration.name)) {
+        return true
     }
 
-    if (generatorConfiguration().forceCallback.includes(declaration.name)) {
+    for (const ignore of ["Attribute", "Method", "Interface"]) {
+        if (declaration.name.endsWith(ignore)) {
+            return false
+        }
+    }
+
+    if (generatorConfiguration().forceCallback.concat(
+        generatorConfiguration().ignoreMaterialized)
+        .includes(declaration.name)) {
         return false
-    }
-
-    for (const ignore of generatorConfiguration().ignoreMaterialized) {
-            if (declaration.name.endsWith(ignore)) return false
     }
 
     if (generatorConfiguration().forceResource.includes(declaration.name)) {
