@@ -273,10 +273,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             return []
         const declaredPostrix = this.options.isDeclared ? "decl_" : ""
         const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
+        let paramsList = mappedCallableParams?.join(", ")
+        if (paramsList) paramsList += ","
         printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
             .replaceAll("%COMPONENT_NAME%", component.name)
             .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-            .replaceAll("%FUNCTION_PARAMETERS%", mappedCallableParams?.map(it => it + ", ")?.join("") ?? "")
+            .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
             .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
             .replaceAll("%PEER_CLASS_NAME%", peerClassName)
             .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))

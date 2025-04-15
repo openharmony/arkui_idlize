@@ -22,9 +22,7 @@ import {
     defaultCompilerOptions,
     Language,
     findVersion,
-    PeerLibrary,
     verifyIDLLinter,
-    isDefined,
     scanInputDirs,
     toIDLFile,
     setDefaultConfiguration,
@@ -32,8 +30,6 @@ import {
     D,
 } from "@idlizer/core"
 import {
-    getFQName,
-    getPackageName,
     IDLEntry,
     IDLFile,
     isEnum,

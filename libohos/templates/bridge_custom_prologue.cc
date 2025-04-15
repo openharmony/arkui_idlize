@@ -437,7 +437,7 @@ void impl_SetChildTotalCount(Ark_NativePointer nodePtr, Ark_Int32 totalCount)
 KOALA_INTEROP_DIRECT_V2(SetChildTotalCount, Ark_NativePointer, Ark_Int32)
 
 static const std::string PAGE_SUFFIX = "GeneratedEntry";
-static bool isPageClass(const std::string& className)
+[[maybe_unused]] static bool isPageClass(const std::string& className)
 {
     return (PAGE_SUFFIX.size() < className.size()) && std::equal(PAGE_SUFFIX.rbegin(), PAGE_SUFFIX.rend(), className.rbegin());
 }
