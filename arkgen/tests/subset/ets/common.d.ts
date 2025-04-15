@@ -536,6 +536,8 @@ declare class CommonMethod<T> {
 
     size(value: SizeOptions): T;
 
+    transform(value: object): T;
+
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
     attributeModifier(modifier: AttributeModifier<T>): T

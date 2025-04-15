@@ -1,0 +1,6 @@
+package org.openharmony.arkui;
+
+[Entity=Interface]
+interface TransformationMatrix {
+    attribute sequence<number> matrix4x4; 
+};

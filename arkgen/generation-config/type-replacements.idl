@@ -112,6 +112,7 @@ interface CommonMethod {
     T clip(optional boolean clip);
     T mask(optional ProgressMask value);
     T mask(optional ProgressMask mask);
+    T transform(TransformationMatrix value);
 };
 
 [Entity=Class]
