@@ -87,7 +87,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         } else {
             result = this.printInterface(node).join("\n")
         }
-        
+
         if (result) this.writer.writeLines(result)
     }
 
@@ -286,8 +286,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     private printCallback(node: idl.IDLCallback | idl.IDLInterface,
         parameters: idl.IDLParameter[],
         returnType: idl.IDLType | undefined): string {
-        const maybeMemo = this.isMemo(node) 
-            ? this.peerLibrary.useMemoM3 ? `\n/@memo\n` : `\n/** @memo */\n`
+        const maybeMemo = this.isMemo(node)
+            ? this.peerLibrary.useMemoM3 ? `\n@memo\n` : `\n/** @memo */\n`
             : ``
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)

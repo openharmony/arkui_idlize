@@ -161,7 +161,6 @@
             "SubscribaleAbstract",
             "IPropertySubscriber",
             "ISinglePropertyChangeSubscriber",
-            "Navigation",
             "ISinglePropertyChangeSubscriber",
             "PageTransitionEnterInterface",
             "PageTransitionExitInterface",

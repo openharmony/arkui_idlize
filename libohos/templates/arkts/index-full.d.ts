@@ -147,5 +147,3 @@ declare interface LayoutChild {}
 
 declare const PageTransitionEnter: PageTransitionEnterInterface
 declare const PageTransitionExit: PageTransitionExitInterface
-
-declare const Navigation: NavigationInterface
