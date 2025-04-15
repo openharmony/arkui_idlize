@@ -10,4 +10,14 @@ interface NavExtender {
   static pointer navigationCreate(i32 peer, i32 flag);
   static void setNavigationOptions(pointer navigation, NavPathStack stack);
   static void setNavDestinationNode(NavPathStack peer, i32 index, pointer node);
+  static void setNavigationMode(pointer navigation, NavigationMode mode);
+  static void hideTitleBar(pointer navigation, boolean isHide, boolean isAnimated);
+  static void hideToolBar(pointer navigation, boolean isHide, boolean isAnimated);
+  static void hideNavBar(pointer navigation, boolean hide);
+  static void hideBackButton(pointer navigation, boolean hide);
+  static void setNavBarStateChange(pointer navigation, Callback_Boolean_Void stateCallback);
+  static void setTitleModeChange(pointer navigation, Callback_NavigationTitleMode_Void titleCallback);
+  static void setTitleMode(pointer navigation, NavigationTitleMode titleMode);
+  static void title(pointer navigation, String title, boolean hasSubTitle);
+  static void subTitle(pointer navigation, String subTitle);
 };
