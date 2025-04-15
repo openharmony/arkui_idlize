@@ -555,7 +555,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
                  * todo: check UnionType name creation for union of unnamed nodes (isNamedNode() == false)
                  */
                 const memberType = prop.isOptional
-                    ? idl.createUnionType([idl.IDLUndefinedType, prop.type!], "$NOT TO BE PRINTED%")
+                    ? idl.createUnionType([idl.IDLUndefinedType, prop.type!])
                     : prop.type
                 return writer.makeAssign(`${bufferName}_${prop.name}`, memberType, expr, true, true)
             }, writer))

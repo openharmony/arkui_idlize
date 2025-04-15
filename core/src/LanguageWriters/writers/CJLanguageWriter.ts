@@ -288,13 +288,6 @@ export class CJLanguageWriter extends LanguageWriter {
         return new CJLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.typeForeignConvertor)
     }
     getNodeName(type: idl.IDLNode): string {
-        // another stub. Bad one.
-        // I hope that I will rewrite LWs soon
-        if (idl.isType(type) && idl.isReferenceType(type)) {
-            if (type.name.startsWith('%TEXT%:')) {
-                return type.name.substring(7)
-            }
-        }
         // rework for proper namespace logic
         let name = this.typeConvertor.convert(type).split('.')
         return name[name.length - 1]
@@ -477,7 +470,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(Int64(${size ?? ''}))`)
     }
     makeMapInit(type: idl.IDLType): LanguageExpression {
-        throw new Error(`TBD`)
+        return this.makeString(`${this.getNodeName(type)}()`)
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
@@ -559,7 +552,7 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.makeString(methodCall.asString() + '.ordinal')
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
-        return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
+        return this.makeStatement(this.makeMethodCall(keyAccessor, "add", [this.makeString(key), this.makeString(value)]))
     }
     makeNull(value?: string): LanguageExpression {
         return new StringExpression(`Option.None`)
@@ -619,7 +612,7 @@ export class CJLanguageWriter extends LanguageWriter {
     override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
         return this.makeBlock([
             this.makeStatement(this.makeMethodCall(serializer, "writeInt8", [this.makeRuntimeType(RuntimeType.STRING)])),
-            this.makeStatement(this.makeMethodCall(serializer, "writeString", [this.makeString(`${value}.getValue1()`)]))
+            this.makeStatement(this.makeMethodCall(serializer, "writeString", [this.makeString(`${value}.getValue0()`)]))
         ], false)
     }
     override makeLengthDeserializer(deserializer: string): LanguageStatement | undefined {
@@ -631,15 +624,15 @@ export class CJLanguageWriter extends LanguageWriter {
             this.makeMultiBranchCondition(
                 [{
                     expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER, ''),
-                    stmt: this.makeReturn(this.makeString(`Ark_Length(${deserializer}.readFloat32())`))
+                    stmt: this.makeReturn(this.makeString(`Length(${deserializer}.readFloat64())`))
                 },
                 {
                     expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING, ''),
-                    stmt: this.makeReturn(this.makeString(`Ark_Length(${deserializer}.readString())`))
+                    stmt: this.makeReturn(this.makeString(`Length(${deserializer}.readString())`))
                 },
                 {
                     expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT, ''),
-                    stmt: this.makeReturn(this.makeString(`Ark_Length(Resource(${deserializer}.readString(), "", 0.0, Option.None, Option.None))`))
+                    stmt: this.makeReturn(this.makeString(`Length(Resource(${deserializer}.readString(), "", 0.0, Option.None, Option.None))`))
                 }],
                 this.makeReturn(this.makeUndefined())
             ),

@@ -25,6 +25,11 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     ) { }
 
     convert(node: idl.IDLNode): string {
+        if (idl.isType(node) && idl.isReferenceType(node)) {
+            if (node.name.startsWith('%TEXT%:')) {
+                return node.name.substring(7)
+            }
+        }
         return convertNode(this, node)
     }
 
@@ -41,7 +46,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
             const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
-            return `Map<${stringes[0]}, ${stringes[1]}>`
+            return `HashMap<${stringes[0]}, ${stringes[1]}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
             return `Any`
@@ -63,7 +68,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     convertCallback(type: idl.IDLCallback): string {
         const params = type.parameters.map(it =>
             `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
-        return `\{(${params.join(", ")}) => ${this.convert(type.returnType)}\}`
+        return `(${params.join(", ")}) -> ${this.convert(type.returnType)}`
     }
     convertMethod(node: idl.IDLMethod): string {
         throw new Error('Method not implemented.')
@@ -124,6 +129,8 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLBufferType: return 'Array<UInt8>'
             case idl.IDLInteropReturnBufferType: return 'Array<UInt8>'
             case idl.IDLBigintType: return 'Int64'
+            case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
+            case idl.IDLAnyType: return 'Any'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -146,6 +153,7 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
             switch (type) {
                 case idl.IDLStringType: return 'CString'
                 case idl.IDLInteropReturnBufferType: return 'KInteropReturnBuffer'
+                case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             }
         }
         if (idl.isContainerType(type)) {
@@ -178,7 +186,7 @@ export class CJInteropArgConvertor extends InteropArgConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLNumberType: return "Float64"
-            case idl.IDLLengthType: return "Ark_Length"
+            case idl.IDLLengthType: return "Length"
         }
         return super.convertPrimitiveType(type)
     }

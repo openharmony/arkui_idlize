@@ -476,7 +476,7 @@ class DeserializerPrinter {
                 idl.createUnionType([idl.IDLSerializerBuffer, idl.IDLUint8ArrayType]), idl.IDLI32Type], ["data", "length"])
         }
         else if (this.writer.language === Language.CJ) {
-            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLBufferType, idl.IDLI64Type], ["data", "length"])
+            ctorSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLBufferType, idl.IDLI32Type], ["data", "length"])
         }
         const serializerDeclarations = getSerializerDeclarations(this.library,
             createSerializerDependencyFilter(this.writer.language))

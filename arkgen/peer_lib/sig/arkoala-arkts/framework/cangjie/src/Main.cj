@@ -67,7 +67,7 @@ func checkPerf2(count: Int64) {
 
 func checkPerf3(count: Int32): Unit {
     var peer = ArkButtonPeer.create(None<ComponentBase>, 0)
-    var testLength_10_lpx = Ark_Length("10lpx")
+    var testLength_10_lpx = Length("10lpx")
     let start = DateTime.now().nanosecond
     for (i in 0..count) {
         peer.widthAttribute(testLength_10_lpx);
@@ -98,8 +98,7 @@ func peersTest(): Unit {
     labelStyle.font = Font(Option.None, Option.None, Union_String_Resource(resource), Option.None)
     checkResult("[Union + Resource] ButtonPeer.labelStyle",
         { => buttonPeer.labelStyleAttribute(labelStyle) },
-        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_OBJECT, .value={.size={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .weight={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .family={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .type_={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}}) \n"
-        )
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_OBJECT, .value={.size={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .weight={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .family={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.bundleName={.chars=\"bundle_name\", .length=11}, .moduleName={.chars=\"module_name\", .length=11}, .id={.tag=102, .i32=10}, .params={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .type={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=2000}}}}}, .style={.tag=INTEROP_TAG_UNDEFINED, .value={}}}}}) \n")
     // tuple
     let peer = ArkTestPeer.create(Option.None, 0)
     let options = BlurOptions(Tuple_Number_Number(1.0, 2.0))
@@ -153,14 +152,13 @@ func enqueueCallback(
     let serializer = Serializer.hold()
     let resourceId = writeCallback(serializer)
     ArkUINativeModule._HoldCallbackResource(resourceId)
-    let buffer = Array<UInt8>(Int64(serializer.length()), repeat: 0)
-    for (i in 0..buffer.size) {
-        buffer[i] = serializer.asArray()[i]
-    }
+    let bufferLength = serializer.length()
     serializer.release()
 
     /* libace calls stored callback */
-    let deserializer = Deserializer(buffer, buffer.size)
+    let deserializer = Deserializer(Array<UInt8>(), 0)
+    deserializer.buffer = serializer.asBuffer()
+    deserializer.length = bufferLength
     readAndCallCallback(deserializer)
     /* libace released resource */
     ArkUINativeModule._ReleaseCallbackResource(resourceId)

@@ -129,7 +129,7 @@
     "rollup:host:full": "npm run check:peers && cd out/ts-peers && rollup -c",
     "configure:cj:native": "cd ./native && meson setup -Dsource_set=cangjie-subset -Devents_test=false -Dcallbacks_test=true build-cangjie-native-dummy",
     "compile:cj:native": "npm run configure:cj:native && cd native && meson compile --verbose -C build-cangjie-native-dummy",
-    "run:cj": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/cangjie-subset --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && npm run compile:cj:native && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
+    "run:cj": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/ --input-dir ./tests/cangjie-subset/ --output-dir ./out/cangjie-subset/generated --language cangjie && npm run compile:cj:native && LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:./../external/incremental-cj/runtime/ck:$LD_LIBRARY_PATH ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
     "run:peers:call_log": "npm run check:peers:run && cd ./peer_lib/call_log && meson setup build && cd ./build && meson compile && ./run_call_log",
     "cj": "npm run compile:cj:native &&  LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy cjpm run",
     "external": "cd ../external && npm i && cd arkoala-arkts/tools/peer-generator && npm i && npm run --prefix ../../../arkoala-arkts/arkui-common interface-sdk:download",

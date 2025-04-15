@@ -216,7 +216,6 @@ cj_include_dirs = [
 cj_sources = [
     external_interop_dir / 'cangjie/convertors-cj.cc',
     external_interop_dir / 'cangjie/convertors-cj.h',
-    external_incremental_cj_dir / 'runtime/src/core/CallsiteKey.c'
 ]
 
 if is_jni

@@ -24,6 +24,8 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
     // testArray2(value: Array<number>): NavigationAttribute;
     // testBoolean(value: boolean): NavigationAttribute;
     // testNumber(value: number): NavigationAttribute;
+
+  onTitleModeChange(callback: (titleMode: NavigationTitleMode) => void): NavigationAttribute;
 }
 
 declare const Navigation: NavigationInterface
@@ -31,3 +33,9 @@ declare const Navigation: NavigationInterface
 declare interface NavPathStack { 
     (): NavigationAttribute
 }
+
+declare enum NavigationMode {
+    Stack,
+    Split,
+    Auto,
+  }

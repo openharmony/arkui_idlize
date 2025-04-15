@@ -268,13 +268,13 @@ interface RestrictedWorker {
     [Throws] void postMessage(Object message, sequence<buffer> transfer);
     [Throws] void postMessage(Object message, optional PostMessageOptions options);
     [Throws] void postMessageWithSharedSendable(Object message, optional sequence<buffer> transfer);
-    [Throws] void on(String type, WorkerEventListener listener);
-    [Throws] void once(String type, WorkerEventListener listener);
-    [Throws] void off(String type, optional WorkerEventListener listener);
+    [Throws] void on(String Type, WorkerEventListener listener);
+    [Throws] void once(String Type, WorkerEventListener listener);
+    [Throws] void off(String Type, optional WorkerEventListener listener);
     [Throws] void terminate();
-    [Throws] void addEventListener(String type, WorkerEventListener listener);
+    [Throws] void addEventListener(String Type, WorkerEventListener listener);
     [Throws] boolean dispatchEvent(Event event);
-    [Throws] void removeEventListener(String type, optional WorkerEventListener callback_);
+    [Throws] void removeEventListener(String Type, optional WorkerEventListener callback_);
     [Throws] void removeAllListener();
     [Throws] void registerGlobalCallObject(String instanceName, Object globalCallObject);
     [Throws] void unregisterGlobalCallObject(optional String instanceName);

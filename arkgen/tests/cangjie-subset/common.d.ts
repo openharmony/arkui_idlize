@@ -295,10 +295,10 @@ declare type EdgeColors = {
 // };
 
 declare type BorderRadiuses = {
-    topLeft?: Length;
-    topRight?: Length;
-    bottomLeft?: Length;
-    bottomRight?: Length;
+    topLeft: Length;
+    topRight: Length;
+    bottomLeft: Length;
+    bottomRight: Length;
 };
 
 declare interface LocalizedBorderRadiuses  {
@@ -364,3 +364,17 @@ declare interface TranslateOptions {
     y?: number | string;
     z?: number | string;
 }
+
+declare interface ContentModifier<T> {
+
+    /**
+     * Defining applyContent function.
+     *
+     * @returns { WrappedBuilder<[T]> }
+     * @syscap SystemCapability.ArkUI.ArkUI.Full
+     * @crossplatform
+     * @atomicservice
+     * @since 12
+     */
+    // applyContent(): WrappedBuilder<[T]>
+  }

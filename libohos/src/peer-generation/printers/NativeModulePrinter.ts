@@ -452,6 +452,11 @@ export function createGeneratedNativeModulePrinter(module: NativeModuleType, mor
         const content = library.createLanguageWriter()
         const imports = new ImportsCollector()
         collectNativeModuleImports(module, imports, library)
+        if (content.language == Language.CJ) {
+            (content as CJLanguageWriter).writeCJForeign(writer => {
+                writer.concat((visitor as CJNativeModuleArkUIGeneratedVisitor).nativeFunctions)
+            })
+        }
         content.writeClass(module.name, writer => {
             printNativeModuleRegistration(library.language, module, content)
             more?.(writer)

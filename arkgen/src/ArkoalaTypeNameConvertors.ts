@@ -66,18 +66,13 @@ export class ArkoalaJavaTypeNameConvertor extends JavaTypeNameConvertor {
 export class ArkoalaCJTypeNameConvertor extends CJTypeNameConvertor {
     override convertTypeReference(type: idl.IDLReferenceType): string {
         switch (type.name) {
-            case 'Dimension':
-            case 'Length': return 'Ark_Length'
-            case 'ContentModifier':
             case 'Date': return ARK_CUSTOM_OBJECT
             default: return super.convertTypeReference(type)
         }
     }
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        switch (type) {
-            case idl.IDLAnyType: return ARK_CUSTOM_OBJECT
-            case idl.IDLLengthType: return 'Ark_Length'
-            default: return super.convertPrimitiveType(type)
-        }
+        return type === idl.IDLLengthType
+            ? "Length"
+            : super.convertPrimitiveType(type)
     }
 }

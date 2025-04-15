@@ -34,7 +34,7 @@ declare type LPX = `${number}lpx`;
 
 declare type Percentage = `${number}%`;
 
-// declare type Dimension = PX | VP | FP | LPX | Percentage | Resource;
+declare type Dimension = Length // PX | VP | FP | LPX | Percentage | Resource;
 
 declare type ResourceStr = string | Resource;
 
@@ -65,7 +65,7 @@ declare interface LocalizedPadding {
   bottom?: LengthMetrics;
 
   start?: LengthMetrics;
-};
+}
 
 declare interface Font {
   size?: Length;
@@ -81,4 +81,8 @@ declare interface MarkStyle {
 declare interface SizeOptions {
   width?: Length;
   height?: Length;
+}
+
+declare class ColorFilter {
+  constructor(value: number[]);
 }

@@ -338,7 +338,7 @@ export class OverloadsPrinter {
         return argsConditions.length == 0
     }
 
-    private printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
+    public printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`

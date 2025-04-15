@@ -319,14 +319,11 @@ class CJPeerFileVisitor extends PeerFileVisitor {
         return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
             const printer = this.library.createLanguageWriter()
-            this.printPackage(printer)
-            printer.print("import std.collection.*")
-            printer.print("import Interop.*")
             this.printPeer(peer, printer)
             return {
                 over: {
                     node: component!.attributeDeclaration,
-                    role: LayoutNodeRole.PEER,
+                    role: LayoutNodeRole.GLOBAL,
                 },
                 content: printer,
                 collector: new ImportsCollector()
@@ -540,7 +537,7 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
     } else if (language === Language.JAVA) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.CJ) {
-        return `Deserializer(${returnValName}, Int64(${returnValName}.size))`
+        return `Deserializer(${returnValName}, Int32(${returnValName}.size))`
     } else {
         throw "not implemented"
     }

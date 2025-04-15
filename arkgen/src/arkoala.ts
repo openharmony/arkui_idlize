@@ -343,12 +343,12 @@ export function generateArkoalaFromIdl(config: {
                 printPredefinedNativeModule(peerLibrary, NativeModule.Test).content.getOutput().join('\n')
             )
         )
-        writeIntegratedFile(
-            arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
-            printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
-                printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
-            )
-        )
+        // writeIntegratedFile(
+        //     arkoala.cjLib(new TargetFile(NativeModule.Interop.name)),
+        //     printCJPredefinedNativeFunctions(peerLibrary, NativeModule.Interop).printToString().concat(
+        //         printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
+        //     )
+        // )
         writeFile(arkoala.peer(new TargetFile('CallbackKind', '')),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
             {

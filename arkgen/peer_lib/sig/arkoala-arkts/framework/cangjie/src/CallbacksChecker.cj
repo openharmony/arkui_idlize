@@ -14,13 +14,13 @@ class CallbackEventKind {
 }
 
 
-let bufferSize: Int64 = 1024
-let buffer = Array<UInt8>(bufferSize, repeat: 0)
+let bufferSize: Int32 = 1024
+let buffer = Array<UInt8>(Int64(bufferSize), repeat: 0)
 let deserializer = Deserializer(buffer, bufferSize)
 
 public func checkArkoalaCallbacks() {
     while (true) {
-        let result = InteropNativeModule._CheckCallbackEvent(buffer, Int32(bufferSize))
+        let result = InteropNativeModule._CheckCallbackEvent(deserializer.asBuffer(), bufferSize)
         if (result == 0) {
             break
         }
