@@ -336,7 +336,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         this.writer.print(`export declare const ${node.name} = ${node.value};`)
     }
     convertEnum(node: idl.IDLEnum): void {
-        this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: this.isDeclared}))
+        this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false}))
     }
     protected extendsClause(node: idl.IDLInterface): string {
         return ''
@@ -1434,6 +1434,13 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
             imports.push({feature: "NodeAttach", module: "@koalaui/runtime"})
             imports.push({feature: "remember", module: "@koalaui/runtime"})
             imports.push({feature: "NativeBuffer", module: "@koalaui/interop"})
+        }
+        if (language === Language.ARKTS) {
+            imports.push(
+                {feature: "memo", module: "@koalaui/runtime/annotations"},
+                {feature: "memo_stable", module: "@koalaui/runtime/annotations"},
+                {feature: "BuilderLambda", module: "@koalaui/builderLambda"},
+            )
         }
     }
     return imports

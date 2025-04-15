@@ -50,8 +50,7 @@ interface DrawingColorFilter {
 
 [Entity=Class]
 interface DrawingLattice {
-    static DrawingLattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<Color> fColors);
-    static DrawingLattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<number> fColors);
+    static DrawingLattice createImageLattice(sequence<number> xDivs, sequence<number> yDivs, number fXCount, number fYCount, optional Rect fBounds, optional sequence<RectType> fRectTypes, optional sequence<(Color or number)> fColors);
 };
 
 dictionary RectType {
