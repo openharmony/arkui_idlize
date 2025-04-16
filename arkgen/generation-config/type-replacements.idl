@@ -182,6 +182,13 @@ interface ListAttribute: [TypeArguments="ListAttribute"] ScrollableCommonMethod 
     ListAttribute onScroll(Callback_Number_Number_Void event);
 };
 
+[Synthetic]
+callback TextTimerAttribute_onTimer_event_type = void (i64 utc, i64 elapsedTime);
+
+[Entity=Class]
+interface TextTimerAttribute: [TypeArguments="TextTimerAttribute"] CommonMethod {
+    TextTimerAttribute onTimer(TextTimerAttribute_onTimer_event_type event);
+};
 
 /////////
 
