@@ -429,7 +429,7 @@ class TSInterfacesVisitor implements InterfacesVisitor {
                 const imports = new ImportsCollector()
                 const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
 
-                getCommonImports(writer.language, { isDeclared: false })
+                getCommonImports(writer.language, { isDeclared: false, useMemoM3: this.peerLibrary.useMemoM3 })
                     .forEach(it => imports.addFeature(it.feature, it.module))
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
@@ -917,7 +917,7 @@ class ArkTSInterfacesVisitor implements InterfacesVisitor {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter()
 
-                getCommonImports(writer.language, { isDeclared: this.isDeclared })
+                getCommonImports(writer.language, { isDeclared: this.isDeclared, useMemoM3: this.peerLibrary.useMemoM3 })
                     .forEach(it => imports.addFeature(it.feature, it.module))
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
@@ -1398,7 +1398,7 @@ export function createInterfacePrinter(isDeclarations: boolean): PrinterFunction
 // }
 
 
-export function getCommonImports(language: Language, options: { isDeclared: boolean }) {
+export function getCommonImports(language: Language, options: { isDeclared: boolean, useMemoM3: boolean }) {
     const imports: ImportFeature[] = []
     if (language === Language.ARKTS || language === Language.TS) {
         imports.push({feature: "int32", module: "@koalaui/common"})
@@ -1415,7 +1415,7 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
             imports.push({feature: "remember", module: "@koalaui/runtime"})
             imports.push({feature: "NativeBuffer", module: "@koalaui/interop"})
         }
-        if (language === Language.ARKTS) {
+        if (options.useMemoM3 && language === Language.ARKTS) {
             imports.push(
                 {feature: "memo", module: "@koalaui/runtime/annotations"},
                 {feature: "memo_stable", module: "@koalaui/runtime/annotations"},

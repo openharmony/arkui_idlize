@@ -371,6 +371,18 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return namespacePrefix.length ? `${idl.getNamespaceName(this.clazz.decl)}.` : ""
     }
 
+    private calcClassWeight() {
+        // correct order to fix rollup
+        let superClass = this.clazz.superClass
+        let weight = 0
+        while (superClass) {
+            weight++
+            const resolvedSuper = this.library.resolveTypeReference(superClass)
+            superClass = resolvedSuper && idl.isInterface(resolvedSuper) ? idl.getSuperType(resolvedSuper) : undefined
+        }
+        return weight
+    }
+
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
         return {
@@ -378,8 +390,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             content: this.printer,
             over: {
                 node: this.clazz.decl,
-                role: LayoutNodeRole.INTERFACE
-            }
+                role: LayoutNodeRole.INTERFACE,
+            },
+            weight: this.calcClassWeight()
         }
     }
 }

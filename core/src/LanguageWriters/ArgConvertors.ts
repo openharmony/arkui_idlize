@@ -703,7 +703,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
             printer.makeAssign(`${value}_element`,
                 this.elementType,
                 printer.makeArrayAccess(value, loopCounter), true))
-        this.elementConvertor.convertorSerialize(param, this.elementConvertor.getObjectAccessor(printer.language, `${value}_element`), printer)
+        this.elementConvertor.convertorSerialize(param, `${value}_element`, printer)
         printer.popIndent()
         printer.print(`}`)
     }
@@ -948,7 +948,7 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        const valueType = `${value}_type`
+        const valueType = `${value}_type`.replaceAll('.', '_')
         const serializedType = (printer.language == Language.JAVA ? undefined : idl.IDLI32Type)
         printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
         if (printer.language != Language.CJ) {
@@ -960,8 +960,9 @@ export class OptionConvertor extends BaseArgConvertor {
         if (printer.language == Language.CJ) {
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", ["RuntimeType.OBJECT.ordinal"]) // everything is object, except None<T>
         }
-        printer.writeStatement(printer.makeAssign(`${value}_value`, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
-        this.typeConvertor.convertorSerialize(param, this.typeConvertor.getObjectAccessor(printer.language, `${value}_value`), printer)
+        const valueValue = `${value}_value`.replaceAll('.', '_')
+        printer.writeStatement(printer.makeAssign(valueValue, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
+        this.typeConvertor.convertorSerialize(param, this.typeConvertor.getObjectAccessor(printer.language, valueValue), printer)
         printer.popIndent()
         printer.print(`}`)
         if (printer.language == Language.CJ) {

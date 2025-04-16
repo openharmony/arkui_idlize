@@ -27,7 +27,7 @@ import { ArkTabContentPeer } from "@arkoala/arkui/generated/tab_content"
 import { SubTabBarStyle } from "@arkoala/arkui/generated/ArkSubTabBarStyleBuilder"
 import { BottomTabBarStyle } from "@arkoala/arkui/generated/ArkBottomTabBarStyleBuilder"
 // TBD: It needs to be possible to use CanvasRenderingContext2D without import
-import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/generated/ArkCanvasRenderingContext2DMaterialized"
+import { CanvasRenderingContext2D, CanvasRenderingContext2DInternal } from "@arkoala/arkui/generated"
 import { startPerformanceTest } from "@arkoala/arkui/test_performance"
 import { testLength_10_lpx } from "@arkoala/arkui/test_data"
 import { TouchTestInfo, BackgroundBlurStyleOptions } from "./generated/common"
@@ -47,7 +47,7 @@ import {
     startNativeTest,
     stopNativeTest,
 } from "./test_utils"
-import { PixelMapInternal } from "@arkoala/arkui/generated/ArkPixelMapMaterialized"
+import { PixelMapInternal } from "@arkoala/arkui/generated"
 import { ArkUINativeModule, TestNativeModule } from "@koalaui/arkoala"
 import { ArkUIGeneratedNativeModule } from "./generated/peers/ArkUIGeneratedNativeModule"
 import { mkdirSync, writeFileSync } from "fs"
@@ -411,9 +411,9 @@ function checkButton() {
     const lastResourceId = ResourceHolder.instance().registerAndHold({})
     ResourceHolder.instance().release(lastResourceId)
 
-    checkResult("width", () => peer.widthAttribute("42%"),
+    checkResult("width", () => peer.width0Attribute("42%"),
         "width({.type=1, .value=42, .unit=3, .resource=0})")
-    checkResult("height", () => peer.heightAttribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
+    checkResult("height", () => peer.height0Attribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
         "height({.type=2, .value=0, .unit=1, .resource=43})")
 
     console.warn("There is an uncontrolled variance between enums.Alignment (@internal/component/ets/enums.d.ts) and common.Alignment (tests/subset/ets/common.d.ts), so, the test 'background' is not stable more")
@@ -438,10 +438,10 @@ function checkCalendar() {
 
     let peer = ArkCalendarPickerPeer.create()
     checkResult("setCalendarOptions: hintRadius", () => peer.setCalendarPickerOptionsAttribute({ hintRadius: 79 }),
-        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
-    const date = new Date()
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .disabledDateRange={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
+    const date = new Date(2025, 4, 16)
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
-        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=${date.getTime()}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=1747342800000}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .disabledDateRange={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     stopNativeTest(CALL_GROUP_LOG)
 }
 
@@ -474,12 +474,12 @@ function checkCommon() {
     }
     checkResult("Test dragPreviewOptions numberBadge with number",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: 10 }, { isMultiSelectionEnabled: true }),
-        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=10}}}, .sizeChangeEffect={.tag=INTEROP_TAG_UNDEFINED, .value={}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_OBJECT, .value=true}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .isLiftingDisabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     checkResult("Test dragPreviewOptions numberBadge with boolean",
         () => peer.dragPreviewOptionsAttribute({ numberBadge: true }, { defaultAnimationBeforeLifting: false }),
-        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=true}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_OBJECT, .value=false}}})`
+        `dragPreviewOptions({.mode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .modifier={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .numberBadge={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0=true}}, .sizeChangeEffect={.tag=INTEROP_TAG_UNDEFINED, .value={}}}, {.tag=INTEROP_TAG_OBJECT, .value={.isMultiSelectionEnabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .defaultAnimationBeforeLifting={.tag=INTEROP_TAG_OBJECT, .value=false}, .enableEdgeAutoScroll={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .enableHapticFeedback={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .isLiftingDisabled={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -587,7 +587,7 @@ function checkPerf3(count: number) {
     let peer = ArkButtonPeer.create()
     let start = performance.now()
     for (let i = 0; i < count; i++) {
-        peer.widthAttribute(testLength_10_lpx)
+        peer.width0Attribute(testLength_10_lpx)
     }
     let passed = performance.now() - start
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1000000)}ms per 1M iterations`)

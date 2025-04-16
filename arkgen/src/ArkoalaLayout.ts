@@ -69,8 +69,8 @@ export class TsLayout extends CommonLayoutBase {
                 return `${this.prefix}${toFileName(target.node.name)}Builder`
             }
             if (isMaterialized(target.node, this.library)) {
-                const name = target.node.name.endsWith('Internal') ? target.node.name.substring(0, target.node.name.length - 8) : target.node.name
-                return `${this.prefix}${toFileName(name)}Materialized`
+                // to fix rollup
+                return `AllMaterialized`
             }
         }
         let pureFileName = target.node.fileName

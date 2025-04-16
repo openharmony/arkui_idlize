@@ -1,5 +1,6 @@
 package ohos.base;
 
+[TypeParameters="T = void"]
 interface BusinessError {
     attribute String name;
     attribute String message;

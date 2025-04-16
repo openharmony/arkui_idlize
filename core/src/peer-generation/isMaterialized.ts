@@ -21,6 +21,9 @@ import { ReferenceResolver } from './ReferenceResolver'
 export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
     if (!idl.isInterfaceSubkind(declaration) && !idl.isClassSubkind(declaration)) return false
     if (idl.isHandwritten(declaration) || isBuilderClass(declaration)) return false
+    if (generatorConfiguration().forceResource.includes(declaration.name)) {
+        return false
+    }
 
     if (generatorConfiguration().forceMaterialized.includes(declaration.name)) {
         return true
@@ -35,10 +38,6 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     if (generatorConfiguration().forceCallback.concat(
         generatorConfiguration().ignoreMaterialized)
         .includes(declaration.name)) {
-        return false
-    }
-
-    if (generatorConfiguration().forceResource.includes(declaration.name)) {
         return false
     }
 

@@ -214,7 +214,6 @@ class SerializerPrinter {
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {
-                    if (isResource(decl)) continue
                     this.generateInterfaceSerializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     // callbacks goes through writeCallbackResource function
@@ -489,7 +488,6 @@ class DeserializerPrinter {
             }
             for (const decl of serializerDeclarations) {
                 if (idl.isInterface(decl)) {
-                    if (isResource(decl)) continue
                     this.generateInterfaceDeserializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
                     this.generateCallbackDeserializer(decl)
@@ -548,9 +546,11 @@ export function createDeserializerPrinter(language: Language, prefix: string): P
 export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
     const seenNames = new Set<string>()
     return collectDeclarationTargets(library)
+        .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it))
-        .filter(it => !it.typeParameters?.length)
+        .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
+        .filter(it => !it.typeParameters?.length || it.typeParameters.every(it => it.includes('=')))
         .filter(it => {
             const fullName = qualifiedName(it, "_", "namespace.name")
             const seen = seenNames.has(fullName)
@@ -678,12 +678,15 @@ export function createSerializerDependencyFilter(language: Language): Dependency
 class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
         return !peerGeneratorConfiguration().serializer.ignore.includes(node.name!)
-            && !this.isParameterized(node)
+            && (!this.isParameterized(node) || this.isParametrizedWithAllDefaults(node))
             && this.canSerializeDependency(node)
     }
     isParameterized(node: idl.IDLEntry) {
         return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
             || ["Record", "Required"].includes(node.name!)
+    }
+    isParametrizedWithAllDefaults(node: idl.IDLEntry): boolean {
+        return !!idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)?.split(',').every(it => it.includes("="))
     }
 
     canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
@@ -707,8 +710,4 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
         }
         return super.shouldAdd(node)
     }
-}
-
-function isResource(decl: idl.IDLInterface) {
-    return generatorConfiguration().forceResource.includes(decl.name)
 }

@@ -83,7 +83,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     /////////////////////////////////////////////////////////////////////////////////////////
 
     convertOptional(type: idl.IDLOptionalType): ConvertResult {
-        return this.convertNode(type.type)
+        return { text: generatorConfiguration().OptionalPrefix + this.convertNode(type.type).text, noPrefix: true }
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
         return this.make(type.name, false)
@@ -190,9 +190,6 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
 export class CppConvertor extends GenericCppConvertor implements IdlNameConvertor {
     private unwrap(type: idl.IDLNode, result: ConvertResult): string {
         const conf = generatorConfiguration()
-        if (idl.isType(type) && idl.isOptionalType(type)) {
-            return `${conf.OptionalPrefix}${result.text}`
-        }
         if (result.noPrefix) {
             return result.text
         }

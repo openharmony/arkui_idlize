@@ -314,6 +314,9 @@ export function identName(node: ts.Node | undefined): string | undefined {
     if (node.kind == ts.SyntaxKind.VoidKeyword) return `void`
     if (node.kind == ts.SyntaxKind.UndefinedKeyword) return `undefined`
 
+    if (ts.isThisTypeNode(node)) {
+        return 'this'
+    }
     if (ts.isVariableDeclaration(node)) {
         return identString(node.name)
     }

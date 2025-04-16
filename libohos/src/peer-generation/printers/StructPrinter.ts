@@ -86,11 +86,6 @@ export class StructPrinter {
         seenNames.clear()
         const noDeclaration = ["Int32", "Tag", idl.IDLNumberType.name, idl.IDLBooleanType.name, idl.IDLStringType.name, idl.IDLVoidType.name]
         const declTargets = collectDeclarationTargets(this.library, true)
-        if (generatorConfiguration().forceResource) {
-            if (!declTargets.some(it => idl.isOptionalType(it) && it.type == idl.IDLAnyType)) {
-                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLAnyType, seenNames)
-            }
-        }
         for (const target of declTargets) {
             if (target === idl.IDLVoidType) {
                 continue
@@ -119,8 +114,7 @@ export class StructPrinter {
             let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
             if (idl.isOptionalType(target)) {
-                forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
-                this.printOptionalIfNeeded(forwardDeclarations, enumsDeclarations, writeToString, target.type, seenNames, true)
+                continue
             } else if (idl.isEnum(target) || idl.isEnumMember(target)) {
                 const enumTarget = idl.isEnumMember(target) ? target.parent : target
                 const stringEnum = isStringEnum(enumTarget)

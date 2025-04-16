@@ -48,7 +48,7 @@
     "cross-env": "^7.0.3"
   },
   "scripts": {
-    "prepare:sdk": "npm run compile --prefix ../dtsgen && rimraf sdk-patched && node ../dtsgen --run-preprocessor --input-dir ../interface_sdk-js --output-dir ./sdk-patched",
+    "prepare:sdk": "rimraf sdk-patched && cd ../interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets --output ../../arkgen/sdk-patched",
     "switch:develop": "node tools/devenv.mjs on",
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",

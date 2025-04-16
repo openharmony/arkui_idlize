@@ -1,6 +1,9 @@
 {
     "IDLVisitor": {
         "DeletedDeclarations": [
+            "double",
+            "int",
+            "RepeatInterface",
             "wrapBuilder",
             "IMonitorValue",
             "IMonitor",

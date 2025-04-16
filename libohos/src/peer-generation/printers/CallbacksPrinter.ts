@@ -143,7 +143,7 @@ class DeserializeCallbacksVisitor {
             collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), this.imports)
             collectDeclItself(this.library, idl.createReferenceType("Deserializer"), this.imports)
             this.imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
-            this.imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer"], "@koalaui/interop")
+            this.imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer", "NativeBuffer"], "@koalaui/interop")
             if (this.libraryName === 'arkoala') {
                 this.imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
             }

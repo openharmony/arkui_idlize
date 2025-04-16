@@ -236,7 +236,7 @@ function checkPerf3(count: number) {
     let peer = ArkButtonPeer.create()
     let start = Date.now()
     for (let i = 0; i < count; i++) {
-        peer.widthAttribute(testString1000)
+        peer.width0Attribute(testString1000)
     }
     let passed = Date.now() - start
     console.log(`widthAttributeString: ${Math.round(passed)}ms for ${count} iteration, ${Math.round(passed / count * 1_000_000)}ms per 1M iterations`)
@@ -245,12 +245,12 @@ function checkPerf3(count: number) {
 function checkButton() {
     let peer = ArkButtonPeer.create()
 
-    checkResult("width", () => peer.widthAttribute("42%"),
+    checkResult("width", () => peer.width0Attribute("42%"),
         "width({.type=2, .value=42, .unit=3, .resource=0})")
     const resource: Resource = { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
-    checkResult("height", () => peer.heightAttribute(resource),
+    checkResult("height", () => peer.height0Attribute(resource),
         "height({.type=3, .value=0, .unit=1, .resource=43})")
-    checkResult("height", () => peer.heightAttribute(44),
+    checkResult("height", () => peer.height0Attribute(44),
         "height({.type=1, .value=44, .unit=1, .resource=0})")
     const builder: CustomBuilder = (): void => { }
     const options: Literal_Alignment_align = { align: Alignment.Center }

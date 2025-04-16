@@ -184,7 +184,10 @@ export namespace DeclarationTargets {
         const nativeNameConvertorInstance: IdlNameConvertor = library.createTypeNameConvertor(Language.CPP)
         const data = collectDeclarationTargets(library, unionFlatteningMode)
             .filter(it => it !== idl.IDLVoidType)
-            .filter(it => !(idl.isInterface(it) && peerGeneratorConfiguration().isResource(it.name)))
+            .filter(it => {
+                if (idl.isOptionalType(it)) it = it.type
+                return !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name))
+            })
             .map(it => idl.isType(it)
                 ? nativeNameConvertorInstance.convert(idl.createOptionalType(it))
                 : generatorConfiguration().OptionalPrefix + cleanPrefix(nativeNameConvertorInstance.convert(it), generatorConfiguration().TypePrefix)

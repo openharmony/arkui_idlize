@@ -389,6 +389,9 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
+        if (generatorConfiguration().forceResource.includes(type.name)) {
+            return new ObjectConvertor(param, type)
+        }
         let customConv = this.customConvertor(param, type.name, type)
         if (customConv)
             return customConv

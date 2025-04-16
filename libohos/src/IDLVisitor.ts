@@ -247,6 +247,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
             ["object", () => idl.IDLObjectType],
+            ["double", () => idl.IDLF64Type],
+            ["int", () => idl.IDLI32Type],
             ["ESObject", () => idl.IDLObjectType],
             ["string", () => idl.IDLStringType],
             ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK

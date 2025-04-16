@@ -56,10 +56,10 @@ export function startPerformanceTest() {
         peer.keyAttribute(testString1000)
     })
     RunPerformanceTest("idlize_widthAttribute_testLength_10_percent", TEST_COUNT, CALL_COUNT, () => {
-        peer.widthAttribute(testLength_10_percent)
+        peer.width0Attribute(testLength_10_percent)
     })
     RunPerformanceTest("idlize_widthAttribute_testLength_number100", TEST_COUNT, CALL_COUNT, () => {
-        peer.widthAttribute(testLength_number100)
+        peer.width0Attribute(testLength_number100)
     })
     RunPerformanceTest("idlize_paddingAttribute", TEST_COUNT, CALL_COUNT, () => {
         peer.paddingAttribute({

@@ -190,6 +190,12 @@ interface TextTimerAttribute: [TypeArguments="TextTimerAttribute"] CommonMethod 
     TextTimerAttribute onTimer(TextTimerAttribute_onTimer_event_type event);
 };
 
+[Entity=Class, TypeParameters="T"]
+interface Indicator {
+    T bottom(Length value);
+};
+
+
 /////////
 
 typedef (TextStyle_styled_string or DecorationStyle or BaselineOffsetStyle or LetterSpacingStyle or TextShadowStyle or GestureStyle or ImageAttachment or ParagraphStyle or LineHeightStyle or UrlStyle or CustomSpan or UserDataSpan or BackgroundColorStyle) StyledStringValue;

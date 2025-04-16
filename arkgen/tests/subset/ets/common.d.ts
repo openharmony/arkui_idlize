@@ -454,16 +454,28 @@ declare enum DragPreviewMode {
 }
 
 declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier; // hack
-
+declare enum DraggingSizeChangeEffect {
+    DEFAULT = 0,
+    SIZE_TRANSITION = 1,
+    SIZE_CONTENT_TRANSITION = 2,
+  }
 declare interface DragPreviewOptions {
     mode?: DragPreviewMode | Array<DragPreviewMode>;
     modifier?: ImageModifier;
     numberBadge?: boolean | number;
+    sizeChangeEffect?: DraggingSizeChangeEffect;
 }
+declare interface DateRange {
+    start?: Date;
+    end?: Date;
+  }
 
 declare interface DragInteractionOptions {
     isMultiSelectionEnabled?: boolean;
     defaultAnimationBeforeLifting?: boolean;
+    enableEdgeAutoScroll?: boolean;
+    enableHapticFeedback?: boolean;
+    isLiftingDisabled?: boolean;
 }
 
 declare enum GradientDirection {
@@ -510,8 +522,10 @@ declare class CommonMethod<T> {
     backdropBlur(radius: Optional<number>, options?: BlurOptions): T;
 
     width(value: Length): T;
+    width(widthValue: Length | LayoutPolicy): T;
 
     height(value: Length): T;
+    height(heightValue: Length | LayoutPolicy): T;
 
     key(value: string): T;
 
