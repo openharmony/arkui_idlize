@@ -137,6 +137,7 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
                 })
             }
 
+            console.log(`Replaced signature for ${classOrInterfaceName}.${methodName}(...)`)
             return [result, syntheticEntries.length ? syntheticEntries : undefined]
         },
         checkTypedefReplacement(typedef: ts.TypeAliasDeclaration): [idl.IDLType?, idl.IDLEntry?] {

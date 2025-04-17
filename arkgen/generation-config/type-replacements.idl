@@ -116,6 +116,11 @@ interface CommonMethod {
 };
 
 [Entity=Class]
+interface View {
+    pointer create(pointer value);
+};
+
+[Entity=Class]
 interface FormComponentAttribute: [TypeArguments="FormComponentAttribute"] CommonMethod {
     FormComponentAttribute size(SizeOptions value);
 };
