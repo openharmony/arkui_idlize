@@ -195,6 +195,11 @@ interface Indicator {
     T bottom(Length value);
 };
 
+[Entity=Class]
+interface NavigationAttribute: [TypeArguments="NavigationAttribute"] CommonMethod {
+    [Deprecated]
+    NavigationAttribute toolBar(CustomBuilder value);
+};
 
 /////////
 

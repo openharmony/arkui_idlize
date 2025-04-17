@@ -115,7 +115,8 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         switch (refName) {
             case "object":
             case "Object":
-                return this.make('CustomObject')
+                // treat object as interop resource
+                return this.make('Object')
         }
         if (generatorConfiguration().parameterized.includes(refName)) {
             return this.make('CustomObject')

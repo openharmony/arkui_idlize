@@ -392,7 +392,7 @@ export class BigIntToU64Convertor extends BaseArgConvertor {
 }
 
 export class ObjectConvertor extends BaseArgConvertor {
-    constructor(param: string, type: idl.IDLType = idl.IDLAnyType) {
+    constructor(param: string, type: idl.IDLType) {
         super(
             type,
             [

@@ -344,7 +344,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLUndefinedType: return new UndefinedConvertor(param)
                 case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
-                case idl.IDLAnyType: return new ObjectConvertor(param)
+                case idl.IDLAnyType: return new ObjectConvertor(param, idl.IDLAnyType)
                 case idl.IDLDate: return new DateConvertor(param)
 
                 case idl.IDLFunctionType: return new FunctionConvertor(this, param)
@@ -451,7 +451,7 @@ export class PeerLibrary implements LibraryInterface {
     private customConvertor(param: string, typeName: string, type: idl.IDLReferenceType): ArgConvertor | undefined {
         switch (typeName) {
             case `Object`:
-                return new CustomTypeConvertor(param, "Object", false, "Object")
+                return new ObjectConvertor(param, idl.IDLObjectType)
             case `Date`:
                 return new DateConvertor(param)
             case `Function`:

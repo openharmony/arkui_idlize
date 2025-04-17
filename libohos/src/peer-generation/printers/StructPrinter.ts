@@ -76,8 +76,8 @@ export class StructPrinter {
     }
 
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
-        const DEF_RESOURCE = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
-        const DEF_OPT_RESOURCE = `${generatorConfiguration().OptionalPrefix}${idl.IDLObjectType.name}`
+        const DECL_RESOURCE = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
+        const DECL_OPT_RESOURCE = `${generatorConfiguration().OptionalPrefix}${idl.IDLObjectType.name}`
         const typedefDeclarations = this.library.createLanguageWriter(Language.CPP)
         const enumsDeclarations = this.library.createLanguageWriter(Language.CPP)
         const forwardDeclarations = this.library.createLanguageWriter(Language.CPP)
@@ -104,10 +104,16 @@ export class StructPrinter {
                 continue
             }
             seenNames.add(nameAssigned)
+            if (target == idl.IDLObjectType) {
+                // Object type is already defined as interop resource
+                this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
+                continue
+            }
             if (idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)) {
-                typedefDeclarations.print(`typedef ${DEF_RESOURCE} ${nameAssigned};`)
+                typedefDeclarations.print(`typedef ${DECL_RESOURCE} ${nameAssigned};`)
                 // idl.createOptionalType(...)
-                typedefDeclarations.print(`typedef ${DEF_OPT_RESOURCE} ${generatorConfiguration().OptionalPrefix}${target.name};`)
+                const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${target.name}`
+                typedefDeclarations.print(`typedef ${DECL_OPT_RESOURCE} ${optNameAssigned};`)
                 continue
             }
             let isPointer = this.isPointerDeclaration(target)
@@ -190,6 +196,15 @@ export class StructPrinter {
                 this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             }
+        }
+        if (!seenNames.has(structs.getNodeName(idl.IDLObjectType))) {
+            if (generatorConfiguration().LibraryPrefix) {
+                // declare resource for the current library
+                const objectDecl = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
+                const objectLibDecl = `${generatorTypePrefix()}${idl.IDLObjectType.name}`
+                typedefDeclarations.print(`typedef ${objectDecl} ${objectLibDecl};`)
+            }
+            this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
         }
         structs.concat(forwardDeclarations)
         structs.concat(typedefDeclarations)
