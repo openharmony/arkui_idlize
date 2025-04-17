@@ -770,7 +770,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
     pickCallables(members: ReadonlyArray<ts.TypeElement>, nameSuggestion: NameSuggestion): idl.IDLCallable[] {
         return members.filter(ts.isCallSignatureDeclaration)
-            .map(it => this.serializeCallable(it, nameSuggestion))
+            .map((it, index) => this.serializeCallable(it, nameSuggestion.extend(`callable${index}`)))
     }
     pickAccessors(members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion | undefined): idl.IDLProperty[] {
         const properties = members
