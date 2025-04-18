@@ -424,9 +424,9 @@ function checkButton() {
     //checkResult("type", () => peer.typeAttribute(1), "type(Ark_button_ButtonType(1))")
 
     checkResult("labelStyle", () => peer.labelStyleAttribute({ maxLines: 3 }),
-        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .unselectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute({}),
-        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .unselectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
     //nativeModule()._MeausureLayoutAndDraw(peer.peer.ptr)
     assertTrue("ButtonPeer finalizer", peer!.peer!.finalizer != nullptr)
 

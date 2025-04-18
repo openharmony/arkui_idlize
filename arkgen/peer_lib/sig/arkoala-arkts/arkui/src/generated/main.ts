@@ -20,7 +20,7 @@ import { ArkButtonPeer } from "@arkoala/arkui/button"
 import { ArkColumnPeer } from "@arkoala/arkui/column"
 import { ButtonType, LabelStyle } from '@arkoala/arkui/button'
 import { BlurOptions, SheetTitleOptions, CustomBuilder } from "@arkoala/arkui/common"
-import { ResourceStr,Font } from "@arkoala/arkui/units"
+import { ResourceColor, ResourceStr, Font } from "@arkoala/arkui/units"
 
 import { Resource } from "./resource"
 import { Literal_Alignment_align } from './'
@@ -146,6 +146,8 @@ class LabelStyleImpl implements LabelStyle {
     _maxFontSize: number | ResourceStr | undefined
     _heightAdaptivePolicy: TextHeightAdaptivePolicy | undefined
     _font: Font | undefined
+    _selectedColor: ResourceColor | undefined
+    _unselectedColor: ResourceColor | undefined
 
     constructor(maxLines?: number) {
         this._maxLines = maxLines
@@ -191,6 +193,20 @@ class LabelStyleImpl implements LabelStyle {
     }
     set font(arg: Font | undefined) {
         this._font = arg
+    }
+
+    get selectedColor(): ResourceColor | undefined {
+        return this._selectedColor
+    }
+    set selectedColor(arg: ResourceColor | undefined) {
+        this._selectedColor = arg
+    }
+
+    get unselectedColor(): ResourceColor | undefined {
+        return this._unselectedColor
+    }
+    set unselectedColor(arg: ResourceColor | undefined) {
+        this._unselectedColor = arg
     }
 }
 
@@ -258,9 +274,9 @@ function checkButton() {
         "background({.resource={.resourceId=104, .hold=0, .release=0}, .call=0}, {.tag=INTEROP_TAG_OBJECT, .value={.align={.tag=INTEROP_TAG_OBJECT, .value=Ark_Alignment(4)}}})")
     checkResult("type", () => peer.typeAttribute(ButtonType.Circle), "type(Ark_ButtonType(1))")
     checkResult("labelStyle", () => peer.labelStyleAttribute(new LabelStyleImpl(3)),
-        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=3}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .unselectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
     checkResult("labelStyle2", () => peer.labelStyleAttribute(new LabelStyleImpl()),
-        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
+        "labelStyle({.overflow={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxLines={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .minFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .maxFontSize={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .heightAdaptivePolicy={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .font={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .unselectedColor={.tag=INTEROP_TAG_UNDEFINED, .value={}}})")
 }
 
 function checkCallback() {

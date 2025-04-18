@@ -209,3 +209,27 @@ interface NavigationAttribute: [TypeArguments="NavigationAttribute"] CommonMetho
 /////////
 
 typedef (TextStyle_styled_string or DecorationStyle or BaselineOffsetStyle or LetterSpacingStyle or TextShadowStyle or GestureStyle or ImageAttachment or ParagraphStyle or LineHeightStyle or UrlStyle or CustomSpan or UserDataSpan or BackgroundColorStyle) StyledStringValue;
+
+[Entity=Class]
+interface CanvasRenderer: CanvasPath {
+    [Optional] attribute number globalAlpha;
+    [Optional] attribute String globalCompositeOperation;
+    [Optional] attribute (String or number or CanvasGradient or CanvasPattern) fillStyle;
+    [Optional] attribute (String or number or CanvasGradient or CanvasPattern) strokeStyle;
+    [Optional] attribute String filter;
+    [Optional] attribute boolean imageSmoothingEnabled;
+    [Optional] attribute ImageSmoothingQuality imageSmoothingQuality;
+    [Optional] attribute CanvasLineCap lineCap;
+    [Optional] attribute number lineDashOffset;
+    [Optional] attribute CanvasLineJoin lineJoin;
+    [Optional] attribute number lineWidth;
+    [Optional] attribute number miterLimit;
+    [Optional] attribute number shadowBlur;
+    [Optional] attribute String shadowColor;
+    [Optional] attribute number shadowOffsetX;
+    [Optional] attribute number shadowOffsetY;
+    [Optional] attribute CanvasDirection direction;
+    [Optional] attribute String font;
+    [Optional] attribute CanvasTextAlign textAlign;
+    [Optional] attribute CanvasTextBaseline textBaseline;
+};

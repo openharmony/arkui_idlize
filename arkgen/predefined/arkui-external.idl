@@ -419,3 +419,31 @@ interface EdgeStyles {
 
 interface ImageModifier {};
 interface SymbolGlyphModifier {};
+
+[Entity=Interface]
+interface IndicatorStyle {
+    [Optional] attribute Length height;
+    [Optional] attribute Length width;
+    [Optional] attribute Length borderRadius;
+    [Optional] attribute Length marginTop;
+    [Optional] attribute ResourceColor color;
+    [Optional, Deprecated] attribute ResourceColor selectedColor;
+    [Optional, Deprecated] attribute Length left;
+    [Optional, Deprecated] attribute Length top;
+    [Optional, Deprecated] attribute Length right;
+    [Optional, Deprecated] attribute Length bottom;
+    [Optional, Deprecated] attribute Length size;
+    [Optional, Deprecated] attribute boolean mask;
+};
+
+[Entity=Interface]
+interface LabelStyle {
+    [Optional] attribute TextOverflow overflow;
+    [Optional] attribute number maxLines;
+    [Optional] attribute (number or ResourceStr) minFontSize;
+    [Optional] attribute (number or ResourceStr) maxFontSize;
+    [Optional] attribute TextHeightAdaptivePolicy heightAdaptivePolicy;
+    [Optional] attribute Font font;
+    [Optional] attribute ResourceColor selectedColor;
+    [Optional] attribute ResourceColor unselectedColor;
+};
