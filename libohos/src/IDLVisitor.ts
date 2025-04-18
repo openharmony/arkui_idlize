@@ -24,7 +24,6 @@ import {
     snakeCaseToCamelCase, escapeIDLKeyword, GenerateVisitor,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
     collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
-    getOrPut
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
 import { peerGeneratorConfiguration, IDLVisitorConfiguration } from "./DefaultConfiguration"
@@ -745,7 +744,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     pickProperties(parentNameSuggestion: string, members: ReadonlyArray<ts.TypeElement | ts.ClassElement>, nameSuggestion: NameSuggestion): idl.IDLProperty[] {
         const properties = members
             .filter(it => (ts.isPropertySignature(it) || ts.isPropertyDeclaration(it) || this.isCommonMethodUsedAsProperty(it) || this.isMethodUsedAsCallback(it)) && !isPrivate(it.modifiers))
-            .map(it => this.serializeProperty(it, nameSuggestion))
+            .map(it => this.isCommonMethodUsedAsProperty(it)
+                ? this.serializeCommonMethodProperty(it, nameSuggestion)
+                : this.serializeProperty(it, nameSuggestion))
             .filter(it => {
                 return !IDLVisitorConfiguration().DeletedMethods.get(parentNameSuggestion)?.includes(it.name)
             })
@@ -1382,6 +1383,29 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }
         throw new Error("Not a CommonMethod or forced callback")
     }
+    serializeCommonMethodProperty(property: ts.TypeElement | ts.ClassElement, nameSuggestion?: NameSuggestion): idl.IDLProperty {
+        const serialized = this.serializeProperty(property, nameSuggestion)
+        if (this.options.useComponentOptional) {
+            if (serialized.isOptional || idl.isOptionalType(serialized.type))
+                return serialized
+            const types = idl.isUnionType(serialized.type)
+                ? serialized.type.types.concat(idl.IDLUndefinedType)
+                : [serialized.type, idl.IDLUndefinedType]
+            return idl.createProperty(
+                serialized.name,
+                collapseTypes(types),
+                serialized.isReadonly,
+                serialized.isStatic,
+                serialized.isOptional,
+                {
+                    documentation: serialized.documentation,
+                    extendedAttributes: serialized.extendedAttributes,
+                    fileName: serialized.fileName,
+                }
+            )
+        }
+        return serialized
+    }
     serializeProperty(property: ts.TypeElement | ts.ClassElement, nameSuggestion?: NameSuggestion): idl.IDLProperty {
         const [propName, escapedName] = escapeName(this.propertyName(property.name!)!)
         nameSuggestion = nameSuggestion?.extend(escapedName)
@@ -1502,8 +1526,31 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }
         return false
     }
+    serializeCommonMethodParameter(parameter: ts.ParameterDeclaration, nameSuggestion?: NameSuggestion): idl.IDLParameter {
+        const serialized = this.serializeParameter(parameter, nameSuggestion)
+        if (this.options.useComponentOptional) {
+            if (idl.isOptionalType(serialized.type) || serialized.isOptional)
+                return serialized
+            const types = idl.isUnionType(serialized.type)
+                ? serialized.type.types.concat(idl.IDLUndefinedType)
+                : [serialized.type, idl.IDLUndefinedType]
+            return idl.createParameter(
+                serialized.name,
+                collapseTypes(types),
+                false,
+                serialized.isVariadic,
+                {
+                    documentation: serialized.documentation,
+                    extendedAttributes: serialized.extendedAttributes,
+                    fileName: serialized.fileName,
+                }
+            )
+        }
+        return serialized
+    }
     /** Serialize a signature (call or construct) */
     serializeMethod(method: ts.MethodDeclaration | ts.MethodSignature | ts.IndexSignatureDeclaration | ts.FunctionDeclaration, nameSuggestion: NameSuggestion | undefined, isFree: boolean = false): idl.IDLMethod {
+        const isCommonMethod = ts.isClassDeclaration(method.parent) && isCommonMethodOrSubclass(this.typeChecker, method.parent)
         const extendedAttributes = this.computeDeprecatedExtendAttributes(method)
         this.computeThrowsAttribute(this.sourceFile, method, extendedAttributes)
         let [methodName, escapedMethodName] = escapeName(nameOrNull(method.name) ?? "_unknown")
@@ -1581,7 +1628,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.IndexSignature })
             return idl.createMethod(
                 "indexSignature",
-                methodParameters.map(it => this.serializeParameter(it)), // check nameSuggestion
+                methodParameters.map(it => isCommonMethod ? this.serializeCommonMethodParameter(it) : this.serializeParameter(it)), // check nameSuggestion
                 this.serializeType(method.type, nameSuggestion), {
                 isStatic: false,
                 isOptional: false,
@@ -1597,7 +1644,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))
         return idl.createMethod(
             escapedMethodName,
-            methodParameters.map(it => this.serializeParameter(it, nameSuggestion)),
+            methodParameters.map(it => isCommonMethod
+                ? this.serializeCommonMethodParameter(it, nameSuggestion)
+                : this.serializeParameter(it, nameSuggestion)),
             returnType, {
             isStatic: isStatic(method.modifiers),
             isOptional: !!method.questionToken,

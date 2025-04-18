@@ -99,6 +99,7 @@ const options = program
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
     .option('--interop-bridges <string>', "Generate interop bridges macros")
     .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
+    .option('--use-component-optional', 'Make all component\'s properties nullable')
 
     .parse()
     .opts()

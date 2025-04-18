@@ -402,7 +402,6 @@ export class ObjectConvertor extends BaseArgConvertor {
                 RuntimeType.OBJECT,
                 RuntimeType.STRING,
                 RuntimeType.SYMBOL,
-                RuntimeType.UNDEFINED
             ],
             false,
             true,

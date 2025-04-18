@@ -36,6 +36,9 @@
             "EntryOptions"
         ],
         "DeletedMethods": {
+            "CommonMethod": [
+                "attributeModifier"
+            ],
             "ScrollableCommonMethod": [
                 "onWillScroll",
                 "onDidScroll"

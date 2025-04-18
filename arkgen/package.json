@@ -53,13 +53,13 @@
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
     "release": "npm run compile && npm run compile --prefix ../core && npm run compile --prefix linter && node tools/release.mjs",
-    "compile": "npm run download:sdk -C .. && npm run prepare:sdk && npm run compile -C ../libohos && rollup -c",
+    "compile": "npm run compile -C ../libohos && rollup -c",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out",
     "run:all": "npm run compile && node . --dts2peer --base-dir ./,./sdk-patched/api,./sdk-patched/kits,./sdk-patched/arkts --input-dir ./sdk-patched/api/@internal/component/ets/,./sdk-patched/api/arkui,./sdk-patched/api/global --verify-idl --common-to-attributes --docs=opt",
     "dts2skoala": "npm run compile && node . --dts2skoala --input-dir ./tests/mini_skoala/build/  --options-file ./generation-config/skoala-generator.json",
     "idl2peer:target": "node --stack_trace_limit=200 . --api-version 99 --dts2peer --base-dir ./,./sdk-patched/api,./sdk-patched/kits,./sdk-patched/arkts --input-dir ./sdk-patched/api/@internal/component/ets/,./sdk-patched/api/global --output-dir ./out/ts-peers/generated",
     "idl2peer:arkoala": "npm run idl2peer:target -- --generator-target arkoala --arkoala-destination out/ts-peers/generated/sig",
-    "idl2peer:libace": "npm run idl2peer:target -- --generator-target libace --libace-destination out/ts-peers/generated/libace",
+    "idl2peer:libace": "npm run prepare:sdk && npm run idl2peer:target -- --generator-target libace --libace-destination out/ts-peers/generated/libace",
     "idl2peer:compile": "npm run compile && npm run idl2peer:libace && npm run idl2peer:arkoala && cd out/ts-peers && tsc -p . && rollup -c",
     "tracker": "npm run compile && node . --dts2peer --base-dir ./,./sdk-patched/api,./sdk-patched/kits,./sdk-patched/arkts --input-dir ./sdk-patched/api/@internal/component/ets/,./sdk-patched/api/global --output-dir ./doc --generator-target tracker --tracker-status ./doc/COMPONENTS_STATUS.md",
     "dts2peer:all": "npm run compile && npm run dts2peer:libace && npm run dts2peer:arkoala",
@@ -154,6 +154,6 @@
     "test:root": "mocha test",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "test": "npm run test:core && npm run test:root",
-    "sanity": "npm run check:subset:run && npm run check:peers:run && npm run run:all && npm run make:arkts"
+    "sanity": "npm run prepare:sdk && npm run check:subset:run && npm run check:peers:run && npm run run:all && npm run make:arkts"
   }
 }

@@ -20,7 +20,6 @@ import { ARK_CUSTOM_OBJECT } from '@idlizer/libohos'
 export class ArkoalaTSTypeNameConvertor extends TSTypeNameConvertor {
     override convertTypeReference(type: idl.IDLReferenceType): string {
          switch (type.name) {
-            case "AttributeModifier": return "AttributeModifier<object>"
             default: return super.convertTypeReference(type)
         }
     }
@@ -34,7 +33,6 @@ export class ArkoalaTSTypeNameConvertor extends TSTypeNameConvertor {
 export class ArkoalaETSTypeNameConvertor extends ETSTypeNameConvertor {
     override convertTypeReference(type: idl.IDLReferenceType): string {
          switch (type.name) {
-            case "AttributeModifier": return type.name + "<object>"
             default: return super.convertTypeReference(type)
         }
     }

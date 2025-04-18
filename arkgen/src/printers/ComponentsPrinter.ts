@@ -14,9 +14,8 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import * as path from "path"
 import {
-    removeExt, renameDtsToComponent, Language, isCommonMethod,
+    Language, isCommonMethod,
     LanguageWriter, PeerClass, PeerLibrary,
     createReferenceType, IDLVoidType, isOptionalType,
     Method,
@@ -36,15 +35,11 @@ import {
     collectJavaImports,
     collectPeersForFile,
     COMPONENT_BASE,
-    componentToAttributesClass,
-    componentToInterface,
+    componentToUIAttributesInterface,
     componentToPeerClass,
-    componentToStyleClass,
+    componentToAttributesInterface,
     findComponentByName,
     findComponentByType,
-    generateAttributesParentClass,
-    generateInterfaceParentInterface,
-    generateStyleParentClass,
     groupOverloads,
     IdlComponentDeclaration,
     ImportsCollector,
@@ -54,11 +49,41 @@ import {
     printJavaImports,
     readLangTemplate,
     TargetFile,
+    parentToAttributesInterface,
+    parentToUIAttributesInterface,
+    collectDeclItself,
+    findComponentByDeclaration,
+    componentToStyleClass,
 } from '@idlizer/libohos'
 import { ArkoalaPeerLibrary } from '../ArkoalaPeerLibrary'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
+}
+
+function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInterface): idl.IDLInterface[] {
+    const result: idl.IDLInterface[] = []
+    while (decl) {
+        const superType = idl.getSuperType(decl)
+        const superResolved = superType ? library.resolveTypeReference(superType) : undefined
+        result.push(decl)
+        decl = superResolved as idl.IDLInterface
+    }
+    return result
+}
+
+export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): MethodSignature {
+    const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
+        idl.createReferenceType('AttributeModifier',
+            [idl.createReferenceType(componentToAttributesInterface(it.name))],
+        )
+    )
+    return new NamedMethodSignature(
+        idl.IDLThisType,
+        [idl.createUnionType([...modifiers, idl.IDLUndefinedType])],
+        // [idl.createOptionalType(modifiers.length > 1 ? idl.createUnionType(modifiers) : modifiers[0])],
+        ['value']
+    )
 }
 
 class ComponentPrintResult {
@@ -97,6 +122,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
+        collectDeclItself(this.library, idl.createReferenceType('AttributeModifier'), imports)
         if (!this.options.isDeclared) {
             imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
@@ -105,29 +131,32 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
                 imports.addFeatures(["isResource", "isPadding"], "../utils")
             }
+            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
+        }
+        if (peer.originalParentFilename) {
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            while (parentDecl) {
+                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+                const parentGeneratedPath = this.library.layout.resolve({
+                    node: parentDecl,
+                    role: LayoutNodeRole.COMPONENT
+                })
+                if (!this.options.isDeclared)
+                    imports.addFeature(generateArkComponentName(parentComponent.name), `./${parentGeneratedPath}`)
 
-            if (peer.originalParentFilename) {
-                const [parentRef] = component.attributeDeclaration.inheritance
-                const parentDecl = this.library.resolveTypeReference(parentRef)
-                if (parentDecl) {
-                    const parentGeneratedPath = this.library.layout.resolve({
-                        node: parentDecl,
-                        role: LayoutNodeRole.COMPONENT
-                    })
-                    imports.addFeature(generateArkComponentName(peer.parentComponentName!), `./${parentGeneratedPath}`)
-
-                    const parentAttributesClass = generateAttributesParentClass(peer)
-                    if (parentAttributesClass)
-                        imports.addFeature(parentAttributesClass, `./${parentGeneratedPath}`)
-                    const parentStyleClass = generateStyleParentClass(peer)
-                    if (parentStyleClass)
-                        imports.addFeature(parentStyleClass, `./${parentGeneratedPath}`)
-                    const parentInterface = generateInterfaceParentInterface(peer)
-                    if (parentInterface)
-                        imports.addFeature(parentInterface, `./${parentGeneratedPath}`)
+                imports.addFeatures([
+                    componentToStyleClass(parentComponent.attributeDeclaration.name),
+                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
+                    componentToUIAttributesInterface(parentComponent.attributeDeclaration.name),
+                ], `./${parentGeneratedPath}`)
+                if (parentComponent.attributeDeclaration.inheritance.length) {
+                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
+                    parentDecl = this.library.resolveTypeReference(parentRef)
+                } else {
+                    parentDecl = undefined
                 }
             }
-            imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
         }
         this.populateImports(imports)
 
@@ -140,35 +169,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         if (!this.options.isDeclared)
             imports.addFeature('unsafeCast', '@koalaui/common')
-    }
-
-    protected printAttributes(peer: PeerClass, printer: LanguageWriter) {
-        const parentAttributes = generateAttributesParentClass(peer)
-        const parentStyle = generateStyleParentClass(peer)
-        printer.writeInterface(componentToStyleClass(peer.componentName), (writer) => {
-            for (const field of peer.attributesFields) {
-                writer.writeMethodDeclaration(
-                    field.name, new MethodSignature(idl.IDLVoidType, [field.type]))
-            }
-
-        }, parentStyle ? [parentStyle] : undefined)
-        printer.writeClass(componentToAttributesClass(peer.componentName), (writer) => {
-            for (const field of peer.attributesFields) {
-                writer.writeFieldDeclaration(
-                    field.name + "_value",
-                    field.type,
-                    [],
-                    true
-                )
-            }
-            for (const field of peer.attributesFields) {
-                writer.writeMethodImplementation(
-                    new Method(field.name, new MethodSignature(idl.IDLVoidType, [field.type])), (writer) => {
-                        writer.writeStatement(writer.makeAssign(`this.${field.name}_value`, undefined,
-                            writer.makeString(`arg0`), false))
-                    })
-            }
-        }, parentAttributes, [componentToStyleClass(peer.componentName)])
     }
 
     memoStable(): string {
@@ -189,8 +189,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const peerClassName = componentToPeerClass(peer.componentName)
-
-        this.printAttributes(peer, printer)
 
         printer.print(this.memoStable())
         printer.writeClass(componentClassName, (writer) => {
@@ -213,8 +211,11 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
-            if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
-                writer.print(`attributeModifier(modifier: AttributeModifier<object>): this { throw new Error("not implemented") }`)
+            writer.print(this.memo())
+            writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
+                writer.writePrintLog('attributeModifier() not implemented')
+                writer.writeStatement(writer.makeReturn(writer.makeThis()))
+            })
 
             const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
             const applyAttributesFinish = 'applyAttributesFinish'
@@ -222,30 +223,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
-
-            const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
-            const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
-            const applyAttributes = 'applyAttributes'
-            writer.print(this.memo())
-            writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
-                for (const field of peer.attributesFields) {
-                    if (peerGeneratorConfiguration().ignoreMethod(field.name, this.library.language)) {
-                        continue
-                    }
-                    writer.writeStatement(
-                        writer.makeCondition(
-                            writer.makeDefinedCheck(`attrs.${field.name}_value`),
-                            writer.makeStatement(
-                                writer.makeMethodCall('this', field.name, [
-                                    writer.makeString(`attrs.${field.name}_value!`)
-                                ])
-                            )
-                        )
-                    )
-                }
-                writer.writeMethodCall('super', applyAttributes, ['attrs'])
-            })
-        }, parentComponentClassName, [peer.originalClassName!])
+        }, parentComponentClassName, [componentToUIAttributesInterface(peer.originalClassName!)])
 
         return [{
             collector: imports,
@@ -261,7 +239,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     protected printComponentFunction(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = peer.originalClassName!
+        const componentInterfaceName = componentToUIAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
@@ -270,7 +248,15 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
         const peerClassName = componentToPeerClass(peer.componentName)
         if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
-            return []
+            return [{
+                collector: this.printImports(peer, component),
+                content: printer,
+                over: {
+                    node: component.attributeDeclaration,
+                    role: LayoutNodeRole.COMPONENT,
+                    hint: 'component.function'
+                }
+            }]
         const declaredPostrix = this.options.isDeclared ? "decl_" : ""
         const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
         let paramsList = mappedCallableParams?.join(", ")

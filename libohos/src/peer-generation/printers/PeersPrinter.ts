@@ -60,16 +60,18 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-export function componentToAttributesClass(component: string) {
-    return `Ark${component}Attributes`
-}
-
 export function componentToStyleClass(component: string) {
-    return `${component}NonUI`
+    if (component.endsWith("Attribute"))
+        component = component.substring(0, component.length - 9)
+    return `Ark${component}Style`
 }
 
-export function componentToInterface(component: string) {
-    return component
+export function componentToAttributesInterface(component: string) {
+    return `${component}`
+}
+
+export function componentToUIAttributesInterface(component: string) {
+    return `UI${component}`
 }
 
 // For TS and ArkTS
@@ -577,17 +579,17 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     */
 }
 
-export function generateAttributesParentClass(peer: PeerClass): string | undefined {
-    if (!isHeir(peer.originalClassName!)) return undefined
-    return componentToAttributesClass(peer.parentComponentName!)
-}
-
 export function generateStyleParentClass(peer: PeerClass): string | undefined {
-    if (!isHeir(peer.originalClassName!)) return undefined
-    return componentToStyleClass(peer.parentComponentName!)
+     if (!isHeir(peer.originalClassName!)) return undefined
+     return componentToStyleClass(peer.parentComponentName!)
 }
 
-export function generateInterfaceParentInterface(peer: PeerClass): string | undefined {
+export function parentToAttributesInterface(peer: PeerClass): string | undefined {
     if (!isHeir(peer.originalClassName!)) return undefined
-    return componentToInterface(peer.originalParentName!)
+    return componentToAttributesInterface(peer.originalParentName!)
+}
+
+export function parentToUIAttributesInterface(peer: PeerClass): string | undefined {
+    if (!isHeir(peer.originalClassName!)) return undefined
+    return componentToUIAttributesInterface(peer.originalParentName!)
 }
