@@ -25,6 +25,12 @@ export interface JsonSchemaArray extends JsonSchemaLeaf {
 export interface JsonSchemaTuple extends JsonSchemaLeaf {
     items: JsonSchemaNode[]
 }
+export interface JsonSchemaUnion extends JsonSchemaLeaf {
+    oneOf: JsonSchemaNode[]
+}
+export interface JsonSchemaLiteral extends JsonSchemaLeaf {
+    'const': string | number | boolean | null
+}
 export interface JsonSchemaMap extends JsonSchemaLeaf {
     additionalProperties: JsonSchemaNode
 }
@@ -40,6 +46,8 @@ export type JsonSchemaNode =
     | JsonSchemaTuple
     | JsonSchemaMap
     | JsonSchemaObject
+    | JsonSchemaUnion
+    | JsonSchemaLiteral
 
 export interface JsonSchema {
     $ref: string,
@@ -53,6 +61,11 @@ type TraverseTuple<Ts extends any[]> = Ts extends []
     ? []
     : Ts extends [infer Head, ...infer Rest]
         ? [UnwrapConfigDescriberLeaf<Head>, ...TraverseTuple<Rest>]
+        : never
+type TraverseUnion<Ts extends any[]> = Ts extends []
+    ? never
+    : Ts extends [infer Head, ...infer Rest]
+        ? UnwrapConfigDescriberLeaf<Head> | TraverseUnion<Rest>
         : never
 
 export interface ValidationSuccess<T> {
@@ -397,7 +410,71 @@ export const D = {
             }
         })
     },
-
+    union<Ts extends ConfigDescriberLeaf<any>[]>(...items:Ts): ConfigDescriberLeaf<TraverseUnion<Ts>> {
+        return new ConfigDescriberLeaf(xs => {
+            for (const item of items) {
+                const r = item.validate(xs)
+                if (r.success()) {
+                    return r
+                }
+            }
+            return ValidationBox.fail('Not matched')
+        }, () => {
+            return {
+                oneOf: items.map(it => it.printSchema())
+            }
+        })
+    },
+    literal: {
+        string<T extends string>(x:T): ConfigDescriberLeaf<T> {
+            return new ConfigDescriberLeaf<T>(xs => {
+                if (typeof xs === 'string' && x === xs) {
+                    return ValidationBox.ok(xs as T)
+                }
+                return ValidationBox.fail('Not matched')
+            }, () => {
+                return {
+                    'const': x
+                }
+            })
+        },
+        number<T extends number>(x:T): ConfigDescriberLeaf<T> {
+            return new ConfigDescriberLeaf<T>(xs => {
+                if (typeof xs === 'number' && x === xs) {
+                    return ValidationBox.ok(xs as T)
+                }
+                return ValidationBox.fail('Not matched')
+            }, () => {
+                return {
+                    'const': x
+                }
+            })
+        },
+        boolean<T extends boolean>(x:T): ConfigDescriberLeaf<T> {
+            return new ConfigDescriberLeaf<T>(xs => {
+                if (typeof xs === 'boolean' && x === xs) {
+                    return ValidationBox.ok(xs as T)
+                }
+                return ValidationBox.fail('Not matched')
+            }, () => {
+                return {
+                    'const': x
+                }
+            })
+        },
+        null(x:null): ConfigDescriberLeaf<null> {
+            return new ConfigDescriberLeaf<null>(xs => {
+                if (typeof xs === 'object' && xs === null) {
+                    return ValidationBox.ok<null>(null)
+                }
+                return ValidationBox.fail('Expected null')
+            }, () => {
+                return {
+                    'const': null
+                }
+            })
+        }
+    },
     ////////////////////////////////////////
     // Utils
 
