@@ -158,6 +158,10 @@ class DeserializeCallbacksVisitor {
                 }
             }
         }
+
+        if (this.writer.language === Language.ARKTS) {
+            collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.imports)
+        }
     }
 
     private writeCallbackDeserializeAndCall(callback: idl.IDLCallback): void {

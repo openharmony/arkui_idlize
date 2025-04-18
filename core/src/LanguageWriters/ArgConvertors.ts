@@ -283,9 +283,7 @@ export class EnumConvertor extends BaseArgConvertor {
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const readExpr = writer.makeMethodCall(`${deserializerName}`, "readInt32", [])
-        const enumExpr = idl.isStringEnum(this.enumEntry)
-            ? writer.enumFromI32(readExpr, this.enumEntry)
-            : writer.makeCast(readExpr, this.enumEntry)
+        const enumExpr = writer.enumFromI32(readExpr, this.enumEntry)
         return assigneer(enumExpr)
     }
     nativeType(): idl.IDLType {

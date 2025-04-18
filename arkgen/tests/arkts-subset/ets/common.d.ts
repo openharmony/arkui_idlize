@@ -15152,6 +15152,8 @@ declare type RectShape = import('../api/@ohos.arkui.shape').RectShape;
  */
 declare type Optional<T> = T | undefined;
 
+interface LayoutPolicy {}
+
 /**
  * CommonMethod.
  *
@@ -15239,6 +15241,7 @@ declare class CommonMethod<T> {
    * @since 11
    */
   width(value: Length): T;
+  width(value: Length | LayoutPolicy): T;
 
   /**
    * Sets the height of the current component.
@@ -15279,6 +15282,7 @@ declare class CommonMethod<T> {
    * @since 11
    */
   height(value: Length): T;
+  height(value: Length | LayoutPolicy): T;
 
   /**
    * Sets the drawModifier of the current component.

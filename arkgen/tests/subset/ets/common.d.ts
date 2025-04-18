@@ -510,6 +510,7 @@ declare interface LinearGradient {
 }
 
 declare class AttributeModifier<T> {}
+interface LayoutPolicy {}
 
 declare class CommonMethod<T> {
 

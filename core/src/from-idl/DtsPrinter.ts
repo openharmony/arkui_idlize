@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, isInNamespace, stringOrNone } from "../util"
+import { indentedBy, isInNamespace, stringOrNone, throwException } from "../util"
 import {
     IDLCallback,
     IDLConstructor,
@@ -95,7 +95,8 @@ import {
     IDLBigintType,
     IDLDate,
     IDLFunctionType,
-    getQualifiedName
+    getQualifiedName,
+    isType
 } from "../idl"
 import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
@@ -396,7 +397,7 @@ export class CustomPrintVisitor {
                 }
                 let typeSpec = getQualifiedName(decl, "namespace.name")
                 if (node.typeArguments)
-                    typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.toTypeName(it))}>`
+                    typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.printTypeForTS(it))}>`
                 return typeSpec
             }
         }
@@ -407,7 +408,7 @@ export class CustomPrintVisitor {
         if ((isInterface(node) || isCallback(node) || isTypedef(node)) && node.typeParameters?.length)
             typeSpec = `${typeSpec}<${node.typeParameters?.join(",")}>`
         if (isReferenceType(node) && node.typeArguments)
-            typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.toTypeName(it))}>`
+            typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.printTypeForTS(it))}>`
         return typeSpec
     }
 
