@@ -824,3 +824,20 @@ OH_Object CustomComponentSample_getSampleImpl(OH_NativePointer thisPtr, const OH
     printf("getSample id: %d\n", val->resource.resourceId);
     return *val;
 }
+
+OH_UNIT_generics_XHandle generics_X_constructImpl() {
+    return (OH_UNIT_generics_XHandle)42;
+}
+void generics_X_destructImpl(OH_UNIT_generics_XHandle thisPtr) {
+}
+OH_CustomObject generics_X_fooImpl(OH_NativePointer thisPtr, const OH_CustomObject* x, const OH_CustomObject* y) {
+    return {};
+}
+OH_CustomObject generics_Y_barImpl(OH_NativePointer thisPtr, const OH_CustomObject* y) {
+    return {};
+}
+OH_UNIT_generics_YHandle generics_Y_constructImpl() {
+    return (OH_UNIT_generics_YHandle)42;
+}
+void generics_Y_destructImpl(OH_UNIT_generics_YHandle thisPtr) {
+}

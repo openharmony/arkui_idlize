@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -254,19 +254,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 }))
         }
 
-        // TODO: workarond for ContentModifier<T> which returns WrappedBuilder<[T]>
-        //       and the WrappedBuilder is defined as "class WrappedBuilder<Args extends Object[]>""
-        let classTypeParameters = clazz.generics
-        const hasMethodWithTypeParams = clazz.methods.find(it =>
-            it.method.signature.args.find(it => idl.isTypeParameterType(it)) !== undefined
-        )
-        // Need to restrict generic type to the Object type
-        if (hasMethodWithTypeParams) {
-            classTypeParameters = ["T extends Object"]
-        }
+        const classTypeParameters = clazz.generics?.map(sanitizeGenerics)
 
         if (clazz.isInterface) {
-            const genericsClause = clazz.generics?.length ? `<${clazz.generics.join(", ")}>` : ''
+            const genericsClause = clazz.generics?.length ? `<${clazz.generics.map(sanitizeGenerics).join(", ")}>` : ''
             interfaces.push(`${this.namespacePrefix}${this.clazz.className}${genericsClause}`)
         }
 
@@ -296,7 +287,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
                 })
             }
-            
+
             this.printFields(clazz)
 
             if (clazz.ctor) {
@@ -401,7 +392,7 @@ function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, cl
     // write "fromPtr(ptr: number): MaterializedClass" method
     const className: string = clazz.getImplementationName()
     const clazzRefType = clazz.isInterface
-        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(it)))
+        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
         : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
     const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
     writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
@@ -606,7 +597,7 @@ function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
                     m.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
                     m.parameters.map(it => it.name)));
         }
-    }, superInterface, clazz.generics)
+    }, superInterface, clazz.generics?.map(sanitizeGenerics))
 }
 
 // TBD: Refactor tagged method staff

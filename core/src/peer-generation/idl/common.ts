@@ -63,6 +63,18 @@ export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, re
     return `${refName ? refName : refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
 }
 
+export function sanitizeGenerics(genericDeclarationString:string): string {
+    const eqIdx = genericDeclarationString.indexOf('=')
+    if (eqIdx !== -1) {
+        genericDeclarationString = genericDeclarationString.substring(0, eqIdx)
+    }
+    const extendsIdx = genericDeclarationString.indexOf('extends')
+    if (extendsIdx !== -1) {
+        genericDeclarationString = genericDeclarationString.substring(0, extendsIdx)
+    }
+    return genericDeclarationString.trim()
+}
+
 export function generateSyntheticUnionName(types: idl.IDLType[]) {
     return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")}`
 }

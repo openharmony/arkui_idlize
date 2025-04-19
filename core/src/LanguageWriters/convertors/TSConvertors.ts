@@ -115,7 +115,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             }
 
             let typeSpec = type.name
-            let typeArgs = type.typeArguments?.map(it => idl.printType(it)) ?? []
+            let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
             if (typeSpec === `Optional`)
                 return `${typeArgs} | undefined`
             if (typeSpec === `Function`)
