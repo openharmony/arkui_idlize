@@ -233,6 +233,7 @@ if (options.idl2peer) {
         })
     }
     idlLibrary.enableCache()
+    fillSyntheticDeclarations(idlLibrary)
     new IdlPeerProcessor(idlLibrary).process()
 
     generateTarget(idlLibrary, outDir, language)

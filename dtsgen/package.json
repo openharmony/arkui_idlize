@@ -24,6 +24,7 @@
     "clean": "rimraf -g build",
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && rollup -c",
     "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --base-dir ../interface_sdk-js/api --input-dir  ../interface_sdk-js/api/@internal/component/ets/,../interface_sdk-js/api/arkui,../interface_sdk-js/api/global --verify-idl --docs=none",
-    "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl"
+    "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl",
+    "create:closed:subset": "npm run compile && node . --dts2idl --base-dir ../arkgen/sdk-patched/api --input-files $(cat component-closed-set.txt | tr '\\n' ' ') --output-dir out/ && cp stdlib.idl out/stdlib.idl && node . --lint --input-dir out/"
   }
 }

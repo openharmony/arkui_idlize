@@ -146,6 +146,14 @@ interface ListAttribute: [TypeArguments="ListAttribute"] ScrollableCommonMethod 
     ListAttribute onScroll(Callback_Number_Number_Void event);
 };
 
+[Synthetic]
+callback Dummy_Callback = void ();
+
+[Entity=Class, TypeParameters="Args extends Object[]"]
+interface WrappedBuilder {
+    constructor(Dummy_Callback builder);
+    attribute Dummy_Callback builder;
+};
 
 /////////
 

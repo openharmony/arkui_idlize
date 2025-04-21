@@ -362,8 +362,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                             types = it.type.types
                         } else if (idl.isPrimitiveType(it.type)) {
                             types = [it.type]
+                        } else if (idl.isReferenceType(it.type)) {
+                            types = [it.type]
                         } else {
-                            throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type)}`)
+                            throwException(`Unprocessed type: ${idl.forceAsNamedNode(it.type).name}`)
                         }
                     }
                     let property = idl.createProperty("",

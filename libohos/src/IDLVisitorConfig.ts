@@ -33,7 +33,8 @@ export const IDLVisitorConfigurationSchema = D.object({
     DeletedMethods: D.map(D.string(), T.stringArray()),
     StubbedDeclarations: T.stringArray(),
     NameReplacements: D.map(D.string(), D.array(D.tuple(D.string(), D.string()))),
-    TypeReplacementsFilePath: D.string()
+    ForceDefaultExport: D.default(D.map(D.string(), D.string()), new Map()),
+    TypeReplacementsFilePath: D.string(),
 })
 export type IDLVisitorConfigurationSchemaType = ConfigTypeInfer<typeof IDLVisitorConfigurationSchema>
 export type IDLVisitorConfiguration = IDLVisitorConfigurationSchemaType & IDLVisitorConfigurationHelpers

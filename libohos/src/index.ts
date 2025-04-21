@@ -18,6 +18,7 @@ import * as fs from 'fs'
 export * from './launch'
 export * from './IDLVisitor'
 export * from "./DefaultConfiguration"
+export { groupOverloadsTS } from './IDLVisitorConfig'
 export * from "./peer-generation/Tracker"
 export * from "./peer-generation/ImportsCollector"
 export * from './peer-generation/ComponentsCollector'

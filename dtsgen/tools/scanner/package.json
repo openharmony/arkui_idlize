@@ -1,0 +1,20 @@
+{
+  "name": "dts-scanner-util",
+  "version": "1.0.0",
+  "bin": "dist/main.js",
+  "main": "dist/main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "compile": "tsc",
+    "scan": "node .",
+    "scan:internal:components:ets": "node . ../../../arkgen/sdk-patched/api/@internal/component/ets"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.2"
+  }
+}

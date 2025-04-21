@@ -42,7 +42,9 @@ export const CoreConfigurationSchema = D.object({
     forceResource: T.stringArray(),
     forceContext: T.stringArray(),
     moduleName: D.string(),
-    modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace')
+    modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
+
+    globalPackages: T.stringArray()
 })
 
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
@@ -63,6 +65,8 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     forceContext: [],
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
+
+    globalPackages: []
 }
 
 let currentConfig: CoreConfiguration = defaultCoreConfiguration

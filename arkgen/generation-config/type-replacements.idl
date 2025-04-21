@@ -206,6 +206,13 @@ interface NavigationAttribute: [TypeArguments="NavigationAttribute"] CommonMetho
     NavigationAttribute toolBar(CustomBuilder value);
 };
 
+callback Dummy_Callback = void ();
+[Entity=Class, TypeParameters="Args extends Object[]"]
+interface WrappedBuilder {
+    constructor(Dummy_Callback builder);
+    attribute Dummy_Callback builder;
+};
+
 /////////
 
 typedef (TextStyle_styled_string or DecorationStyle or BaselineOffsetStyle or LetterSpacingStyle or TextShadowStyle or GestureStyle or ImageAttachment or ParagraphStyle or LineHeightStyle or UrlStyle or CustomSpan or UserDataSpan or BackgroundColorStyle) StyledStringValue;

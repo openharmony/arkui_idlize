@@ -47,5 +47,12 @@
             "name": "arkui",
             "packages": [""]
         }
-    }
+    },
+
+    "globalPackages": [
+        "idlize.stdlib",
+        "org.openharmony.idlize.predefined",
+        "org.openharmony.arkui",
+        "internal.component.ets"
+    ]
 }

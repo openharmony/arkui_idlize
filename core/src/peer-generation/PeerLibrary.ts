@@ -19,11 +19,12 @@ import { resolveNamedNode } from '../resolveNamedNode'
 import { Language } from '../Language'
 import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
 import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
-import { BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
-         AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
-         NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
-         ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
-         ObjectConvertor,
+import {
+    BufferConvertor, CallbackConvertor, DateConvertor, MapConvertor, PointerConvertor, TupleConvertor, TypeAliasConvertor,
+    AggregateConvertor, StringConvertor, ClassConvertor, ArrayConvertor, FunctionConvertor, OptionConvertor,
+    NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
+    ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
+    ObjectConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -54,7 +55,7 @@ export const lenses = {
             const result: GlobalScopeDeclarations[] = []
             const queue: idl.IDLNode[][] = [nodes]
             while (queue.length) {
-                const line: GlobalScopeDeclarations= {
+                const line: GlobalScopeDeclarations = {
                     constants: [],
                     methods: []
                 }
@@ -121,7 +122,7 @@ export class PeerLibrary implements LibraryInterface {
     constructor(
         public language: Language,
         public readonly useMemoM3: boolean = false,
-    ) {}
+    ) { }
 
     public name: string = ""
 
@@ -198,7 +199,7 @@ export class PeerLibrary implements LibraryInterface {
         let result = this.resolveNamedNode(type.name.split("."), type.parent)
         if (!singleStep) {
             const seen = new Set<idl.IDLEntry>
-            while(result) {
+            while (result) {
                 let nextResult: idl.IDLEntry | undefined = undefined
                 if (idl.isImport(result))
                     nextResult = this.resolveImport(result)
@@ -225,7 +226,11 @@ export class PeerLibrary implements LibraryInterface {
         return result
     }
 
-    resolveNamedNode(target: string[], pov: idl.IDLNode|undefined = undefined): idl.IDLEntry | undefined {
+    private _useFallback = true
+    disableFallback() {
+        this._useFallback = false
+    }
+    resolveNamedNode(target: string[], pov: idl.IDLNode | undefined = undefined): idl.IDLEntry | undefined {
         const qualifiedName = target.join(".")
         const entry = this._syntheticFile.entries.find(it => it.name === qualifiedName)
         if (entry)
@@ -245,11 +250,7 @@ export class PeerLibrary implements LibraryInterface {
             return result
 
         if (1 == target.length) {
-            const stdScopes = [// TODO: move to some external config
-                ["idlize", "stdlib"],
-                ["org", "openharmony", "idlize", "predefined"],
-                ["org", "openharmony", "arkui"],
-            ]
+            const stdScopes = generatorConfiguration().globalPackages.map(it => it.split('.'))
             for (const stdScope of stdScopes) {
                 result = resolveNamedNode([...stdScope, ...target], undefined, corpus)
                 if (result && idl.isEntry(result))
@@ -258,7 +259,7 @@ export class PeerLibrary implements LibraryInterface {
         }
 
         // TODO: remove the next block after namespaces out of quarantine
-        {
+        if (this._useFallback) {
             const povAsReadableString = pov
                 ? `'${idl.getFQName(pov)}'`
                 : "[root]"

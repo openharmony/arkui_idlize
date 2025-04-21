@@ -139,7 +139,7 @@ export class CustomPrintVisitor {
         } else {
             throw new Error(`Unexpected node kind: ${IDLKind[node.kind!]}`)
         }
-        for(const namespace of namespacesPath) {
+        for(const _ of namespacesPath) {
             this.popIndent();
             this.print("}");
         }
@@ -173,6 +173,8 @@ export class CustomPrintVisitor {
             this.print(`${isInNamespace(node) ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, false)}`)
         } else if (entity === IDLEntity.NamedTuple) {
             this.print(`${isInNamespace(node) ? "" : "declare "}type ${typeSpec} = ${this.literal(node, true, true)}`)
+        } else if (entity === IDLEntity.Intersection) {
+            this.print(`${isInNamespace(node) ? "" : "declare "}type ${typeSpec} = ${node.inheritance.map(it => this.printTypeForTS(it)).join(' & ')}`)
         } else {
             let interfaces = node.inheritance
             let keyword = "extends"

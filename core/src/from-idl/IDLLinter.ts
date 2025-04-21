@@ -55,6 +55,18 @@ class IDLLinterContext {
     }
 }
 
+function parseTypeParameter(param:string): string {
+    const extendsIdx = param.indexOf('extends')
+    if (extendsIdx !== -1) {
+        return param.substring(0, extendsIdx).trim()
+    }
+    const eqIdx = param.indexOf('=')
+    if (eqIdx !== -1) {
+        return param.substring(0, eqIdx).trim()
+    }
+    return param
+}
+
 export class IDLLinter {
 
     protected context = new IDLLinterContext()
@@ -81,7 +93,7 @@ export class IDLLinter {
 
     protected enter(node:idl.IDLNode): (() => void) | undefined {
         if (idl.isInterface(node) || idl.isTypedef(node) || idl.isMethod(node) || idl.isCallable(node)) {
-            this.context.enter({ typeParameters: new Set(node.typeParameters ?? []) })
+            this.context.enter({ typeParameters: new Set(node.typeParameters?.map(parseTypeParameter) ?? []) })
             return () => this.context.leave()
         }
     }

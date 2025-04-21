@@ -21,7 +21,7 @@ export function resolveNamedNode(target: string[], pov: IDLNode|undefined, corpu
     let povScope: string[] = []
     while (pov) {
         if (isFile(pov)) {
-            if (result = resolveDownFromFile(target, pov))
+            if (result = resolveDownFromFile(target, pov, corpus))
                 return result
             const importUsings = pov.entries.filter(it => isImport(it) && !it.name).map(it => it as IDLImport)
             for (const importUsing of importUsings)
@@ -30,7 +30,7 @@ export function resolveNamedNode(target: string[], pov: IDLNode|undefined, corpu
             povScope = pov.packageClause.slice()
             break
         } else {
-            if (result = resolveDownFromNode(target, pov, false))
+            if (result = resolveDownFromNode(target, pov, false, corpus))
                 return result
         }
         pov = pov.parent
@@ -48,7 +48,7 @@ export function resolveNamedNode(target: string[], pov: IDLNode|undefined, corpu
     return undefined
 }
 
-function resolveDownFromNode(target: string[], pov: IDLNode, withSelf: boolean): IDLNamedNode | undefined {
+function resolveDownFromNode(target: string[], pov: IDLNode, withSelf: boolean, corpus: IDLFile[]): IDLNamedNode | undefined {
     if (withSelf && isNamedNode(pov)) {
         if (isReferenceType(pov) || !pov.name.length)
             return undefined
@@ -60,6 +60,9 @@ function resolveDownFromNode(target: string[], pov: IDLNode, withSelf: boolean):
             return undefined
 
         target = target.slice(1)
+        if (isImport(pov)) {
+            return resolveDownFromRoot([...pov.clause, ...target], corpus)
+        }
         if (!target.length)
             return pov
     }
@@ -76,17 +79,17 @@ function resolveDownFromNode(target: string[], pov: IDLNode, withSelf: boolean):
 
     let result: IDLNamedNode | undefined
     for (const candidate of candidates) {
-        if (result = resolveDownFromNode(target, candidate, true))
+        if (result = resolveDownFromNode(target, candidate, true, corpus))
             return result
     }
 
     return undefined
 }
 
-function resolveDownFromFile(target: string[], pov: IDLFile): IDLNamedNode | undefined {
+function resolveDownFromFile(target: string[], pov: IDLFile, corpus: IDLFile[]): IDLNamedNode | undefined {
     let result: IDLNamedNode | undefined
     for (const candidate of pov.entries) {
-        if (result = resolveDownFromNode(target, candidate, true))
+        if (result = resolveDownFromNode(target, candidate, true, corpus))
             return result
     }
 
@@ -108,7 +111,7 @@ function resolveDownFromRoot(target: string[], corpus: IDLFile[]): IDLNamedNode 
         if (!match)
             continue
 
-        if (result = resolveDownFromFile(target.slice(file.packageClause.length), file))
+        if (result = resolveDownFromFile(target.slice(file.packageClause.length), file, corpus))
             return result
     }
 

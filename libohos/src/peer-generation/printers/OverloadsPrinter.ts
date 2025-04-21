@@ -103,7 +103,7 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         return idl.maybeOptional(collapseTypes(types, "%PROXY_BEFORE_PEER%"), optional)
     })
 
-    const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType), language)
+    const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.IDLVoidType), language)
     return new Method(
         methods[0].name,
         new NamedMethodSignature(

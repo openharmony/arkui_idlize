@@ -40,7 +40,7 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, loadPeerConfiguration, IDLVisitor, peerGeneratorConfiguration, fillSyntheticDeclarations } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, loadPeerConfiguration, peerGeneratorConfiguration, fillSyntheticDeclarations, IDLVisitor } from "@idlizer/libohos"
 import { runPreprocessor } from "./preprocessor"
 
 const options = program
@@ -101,7 +101,7 @@ function main() {
             resolver.files.push(result[0])
             return result
         })
-        fillSyntheticDeclarations(resolver)
+        resolver.disableFallback()
         let totalErrors = 0
         const errorRecords: [string, number][] = []
         files.forEach(([file, info]) => {
@@ -146,13 +146,22 @@ function main() {
             dtsAuxInputFiles,
             options.outputDir ?? "./idl",
             path.resolve(__dirname, "..", "stdlib.d.ts"),
-            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options),
+            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options).goNewMode(),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile: (file: IDLFile, outputDir, sourceFile, isAux) => {
-                    const basename = path.basename(sourceFile.fileName)
-                    if (basename === "stdlib.d.ts")
+                    let fileName = sourceFile.fileName
+                    baseDirs.forEach(dir => {
+                        const nextFileName = path.relative(path.resolve(dir), sourceFile.fileName)
+                        if (nextFileName.length < fileName.length) {
+                            fileName = nextFileName
+                        }
+                    })
+                    const fileBaseName = path.basename(sourceFile.fileName)
+                    if (fileBaseName === "stdlib.d.ts")
                         return
+
+                    const basename = fileName.replace(/^\.*(\/|\\)/, '').replaceAll(path.sep, '.')
 
                     console.log('producing', basename)
                     const outFile = path.join(
