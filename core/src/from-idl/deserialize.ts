@@ -26,7 +26,7 @@ import {
 import { toString } from "./toString"
 import * as idl from "../idl"
 import { isDefined, stringOrNone, warn } from "../util"
-import { generateSyntheticUnionName } from "../peer-generation/idl/common"
+import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/idl/common"
 
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
@@ -207,9 +207,13 @@ class IDLDeserializer {
             )
         }
         if (isUnionTypeDescription(type)) {
-            const types = type.idlType
+            let types = type.idlType
                 .map(it => this.toIDLType(file, it, undefined))
                 .filter(isDefined)
+            if (types.includes(idl.IDLUndefinedType)) {
+                types = types.filter(it => it !== idl.IDLUndefinedType)
+                return this.withInfo(type, idl.createOptionalType(collapseTypes(types)))
+            }
             const name = generateSyntheticUnionName(types)
             return this.withInfo(type, idl.createUnionType(types, name))
         }
