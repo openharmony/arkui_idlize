@@ -1267,6 +1267,10 @@ export class CallbackConvertor extends BaseArgConvertor {
     isPointerType(): boolean {
         return true
     }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        // We serialize callbacks as table offsets, so don't need to discriminate them. Runtime type check is enough
+        return writer.makeUnionVariantCondition(this, value, `${value}_type`, RuntimeType[RuntimeType.FUNCTION])
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
