@@ -1,6 +1,7 @@
 /.idea/
 /.vscode/
 /interface_sdk-js/
+/sdk-patched/
 /build/
 /lib/
 /core/build/
