@@ -91,16 +91,6 @@ interface LineAttribute: [TypeArguments="LineAttribute"] CommonShapeMethod {
 };
 
 [Entity=Class]
-interface PolygonAttribute: [TypeArguments="PolygonAttribute"] CommonShapeMethod {
-    PolygonAttribute points(sequence<Point> value);
-};
-
-[Entity=Class]
-interface PolylineAttribute: [TypeArguments="PolylineAttribute"] CommonShapeMethod {
-    PolylineAttribute points(sequence<Point> value);
-};
-
-[Entity=Class]
 interface RectAttribute: [TypeArguments="RectAttribute"] CommonShapeMethod {
     RectAttribute radius((number or String or sequence<(number or String)>) value);
 };

@@ -51,10 +51,10 @@ interface RotateOption {
 
 [Entity=Interface]
 interface PolyToPolyOptions {
-    attribute sequence<Point> src;
+    attribute sequence<common2D.Point> src;
     [Optional]
     attribute number srcIndex;
-    attribute sequence<Point> dst;
+    attribute sequence<common2D.Point> dst;
     [Optional]
     attribute number dstIndex;
     [Optional]

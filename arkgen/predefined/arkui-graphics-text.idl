@@ -1,17 +1,157 @@
 package org.openharmony.arkui;
 
 dictionary Affinity {
-
     number UPSTREAM = 0;
     number DOWNSTREAM = 1;
-
 };
 
-interface RunMetrics {};
+dictionary TextDecorationType {
+    number NONE = 0;
+    number UNDERLINE = 1;
+    number OVERLINE = 2;
+    number LINE_THROUGH = 3;
+};
+dictionary TextDecorationStyle {
+    number SOLID = 0;
+    number DOUBLE = 1;
+    number DOTTED = 2;
+    number DASHED = 3;
+    number WAVY = 4;
+};
+dictionary FontWeight {
+    number W100 = 0;
+    number W200 = 1;
+    number W300 = 2;
+    number W400 = 3;
+    number W500 = 4;
+    number W600 = 5;
+    number W700 = 6;
+    number W800 = 7;
+    number W900 = 8;
+};
+dictionary FontStyle {
+    number NORMAL = 0;
+    number ITALIC = 1;
+    number OBLIQUE = 2;
+};
+dictionary FontWidth {
+    number ULTRA_CONDENSED = 1;
+    number EXTRA_CONDENSED = 2;
+    number CONDENSED = 3;
+    number SEMI_CONDENSED = 4;
+    number NORMAL = 5;
+    number SEMI_EXPANDED = 6;
+    number EXPANDED = 7;
+    number EXTRA_EXPANDED = 8;
+    number ULTRA_EXPANDED = 9;
+};
+dictionary TextBaseline {
+    number ALPHABETIC = 0;
+    number IDEOGRAPHIC = 1;
+};
+dictionary EllipsisMode {
+    number START = 0;
+    number MIDDLE = 1;
+    number END = 2;
+};
+
+[Entity=Interface]
+interface Decoration {
+    [Optional]
+    attribute TextDecorationType textDecoration;
+    [Optional]
+    attribute common2D.Color color;
+    [Optional]
+    attribute TextDecorationStyle decorationStyle;
+    [Optional]
+    attribute number decorationThicknessScale;
+};
+
+[Entity=Interface]
+interface FontFeature {
+    attribute String name;
+    attribute number value;
+};
+
+[Entity=Interface]
+interface TextShadow {
+    [Optional]
+    attribute common2D.Color color;
+    [Optional]
+    attribute common2D.Point point;
+    [Optional]
+    attribute number blurRadius;
+};
+
+[Entity=Interface]
+interface RectStyle {
+    attribute common2D.Color color;
+    attribute number leftTopRadius;
+    attribute number rightTopRadius;
+    attribute number rightBottomRadius;
+    attribute number leftBottomRadius;
+};
+
+[Entity=Interface]
+interface FontVariation {
+    attribute String axis;
+    attribute number value;
+};
+
+namespace text {
+    [Entity=Interface]
+    interface TextStyle {
+        [Optional]
+        attribute Decoration decoration;
+        [Optional]
+        attribute common2D.Color color;
+        [Optional]
+        attribute FontWeight fontWeight;
+        [Optional]
+        attribute FontStyle fontStyle;
+        [Optional]
+        attribute TextBaseline baseline;
+        [Optional]
+        attribute sequence<String> fontFamilies;
+        [Optional]
+        attribute number fontSize;
+        [Optional]
+        attribute number letterSpacing;
+        [Optional]
+        attribute number wordSpacing;
+        [Optional]
+        attribute number heightScale;
+        [Optional]
+        attribute boolean halfLeading;
+        [Optional]
+        attribute boolean heightOnly;
+        [Optional]
+        attribute String ellipsis;
+        [Optional]
+        attribute EllipsisMode ellipsisMode;
+        [Optional]
+        attribute String locale;
+        [Optional]
+        attribute number baselineShift;
+        [Optional]
+        attribute sequence<FontFeature> fontFeatures;
+        [Optional]
+        attribute sequence<TextShadow> textShadows;
+        [Optional]
+        attribute RectStyle backgroundRect;
+        [Optional]
+        attribute sequence<FontVariation> fontVariations;
+    };
+};
+
+[Entity=Interface]
+interface RunMetrics {
+    attribute text.TextStyle textStyle;
+    attribute FontMetrics fontMetrics;
+};
 
 [Entity=Interface]
 interface LineMetrics {
-
     attribute number startIndex;
     attribute number endIndex;
     attribute number ascent;
@@ -23,20 +163,15 @@ interface LineMetrics {
     attribute number lineNumber;
     attribute number topHeight;
     attribute record<number, RunMetrics> runMetrics;
-
 };
 
 dictionary TextDirection {
-
     number RTL = 0;
     number LTR = 1;
-
 };
 
 [Entity=Interface]
 interface TextBox {
-
     attribute Rect rect;
     attribute TextDirection direction;
-
 };

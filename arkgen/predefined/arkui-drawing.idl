@@ -114,3 +114,42 @@ interface DrawingCanvas {
     // void setMatrix(Matrix matrix);
     // void resetMatrix();
 };
+
+dictionary FontMetricsFlags {
+    number UNDERLINE_THICKNESS_VALID = 1;
+    number UNDERLINE_POSITION_VALID = 2;
+    number STRIKETHROUGH_THICKNESS_VALID = 4;
+    number STRIKETHROUGH_POSITION_VALID = 8;
+    number BOUNDS_INVALID = 16;
+};
+
+[Entity=Interface]
+interface FontMetrics {
+    [Optional]
+    attribute FontMetricsFlags flags;
+    attribute number top;
+    attribute number ascent;
+    attribute number descent;
+    attribute number bottom;
+    attribute number leading;
+    [Optional]
+    attribute number avgCharWidth;
+    [Optional]
+    attribute number maxCharWidth;
+    [Optional]
+    attribute number xMin;
+    [Optional]
+    attribute number xMax;
+    [Optional]
+    attribute number xHeight;
+    [Optional]
+    attribute number capHeight;
+    [Optional]
+    attribute number underlineThickness;
+    [Optional]
+    attribute number underlinePosition;
+    [Optional]
+    attribute number strikethroughThickness;
+    [Optional]
+    attribute number strikethroughPosition;
+};

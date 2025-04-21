@@ -133,12 +133,12 @@ interface LineAttribute: [TypeArguments="LineAttribute"] CommonShapeMethod {
 
 [Entity=Class]
 interface PolygonAttribute: [TypeArguments="PolygonAttribute"] CommonShapeMethod {
-    PolygonAttribute points(sequence<Point> value);
+    PolygonAttribute points(sequence<common2D.Point> value);
 };
 
 [Entity=Class]
 interface PolylineAttribute: [TypeArguments="PolylineAttribute"] CommonShapeMethod {
-    PolylineAttribute points(sequence<Point> value);
+    PolylineAttribute points(sequence<common2D.Point> value);
 };
 
 [Entity=Class]
