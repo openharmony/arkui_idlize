@@ -81,7 +81,7 @@ interface FormCallbackInfo {
 
 [Entity=Interface]
 interface CustomDialogControllerOptions {
-    attribute CustomBuilder builder;
+    attribute CustomDialogControllerBuilder builder;
 };
 
 /* parameterTypeReplacements */

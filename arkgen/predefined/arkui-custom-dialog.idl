@@ -1,0 +1,13 @@
+package org.openharmony.arkui;
+
+[Entity=Interface]
+interface CustomDialogBuildOptions {
+    [Optional]
+    attribute CustomDialogController controller;
+};
+
+[Entity=Interface]
+interface CustomDialogControllerBuilder {
+    attribute CustomDialogBuildOptions buildOptions;
+    attribute CustomBuilder build;
+};
