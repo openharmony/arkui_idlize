@@ -549,7 +549,7 @@ export function makeInteropMethod(
         return makeInteropMethodInner(
             library,
             name,
-            method.method.signature.args.map((it, index) => idl.createParameter(method.method.signature.argName(index), it)),
+            method.method.signature.args.map((it, index) => idl.createParameter(method.method.signature.argName(index), it, method.method.signature.isArgOptional(index))),
             method.returnType,
             {
                 hasReceiver: method.hasReceiver(),

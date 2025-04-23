@@ -1,5 +1,5 @@
 import * as path from "path"
-import { isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, warn } from "@idlizer/core";
+import { ArgumentModifier, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
 import { collectComponents, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
 import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
@@ -31,8 +31,10 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     const argConvertors = method.parameters.map(param => library.typeConvertor(param.name, param.type, param.isOptional))
     const signature = new NamedMethodSignature(
         (isThisRet ? idl.IDLThisType : retType) ?? method.returnType!,
-        method.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
-        method.parameters.map(it => it.name)
+        method.parameters.map(it => it.type),
+        method.parameters.map(it => it.name),
+        undefined,
+        method.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
     const realRetType = isThisRet ? idl.IDLVoidType : retType
     return new PeerMethod(

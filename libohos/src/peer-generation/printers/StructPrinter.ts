@@ -260,7 +260,7 @@ export class StructPrinter {
             writer.print("template <>")
             writer.writeMethodImplementation(
                 new Method("runtimeType",
-                    new NamedMethodSignature(resultType, [idl.maybeOptional(targetType, isOptional)], ["value"], undefined, [undefined, PrintHint.AsConstReference]),
+                    new NamedMethodSignature(resultType, [idl.maybeOptional(targetType, isOptional)], ["value"], undefined, undefined, [undefined, PrintHint.AsConstReference]),
                     [MethodModifier.INLINE]),
                 op)
         }

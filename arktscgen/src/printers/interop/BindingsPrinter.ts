@@ -14,11 +14,13 @@
  */
 
 import {
+    ArgumentModifier,
     convertType,
     createEmptyReferenceResolver,
     IDLMethod,
     IndentedPrinter,
     Method,
+    MethodModifier,
     MethodSignature,
     TSLanguageWriter
 } from "@idlizer/core"
@@ -53,6 +55,7 @@ export class BindingsPrinter extends InteropPrinter {
                     this.returnConvertor.convertType(node.returnType),
                     node.parameters.map(it => it.type),
                     undefined,
+                    node.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined),
                     undefined,
                     node.parameters.map(it => it.name)
                 )

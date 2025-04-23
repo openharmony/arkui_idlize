@@ -180,6 +180,7 @@ export function makeSignature(parameters: { name: string, type: IDLType }[], ret
         parameters.map(it => it.type),
         undefined,
         undefined,
+        undefined,
         parameters
             .map(it => it.name)
             .map(mangleIfKeyword)

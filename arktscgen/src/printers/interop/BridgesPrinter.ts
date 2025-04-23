@@ -14,6 +14,7 @@
  */
 
 import {
+    ArgumentModifier,
     CppLanguageWriter,
     createEmptyReferenceResolver,
     IDLMethod,
@@ -79,6 +80,7 @@ export class BridgesPrinter extends InteropPrinter {
                 this.returnTypeConvertor.convertType(node.returnType),
                 node.parameters.map(it => it.type),
                 undefined,
+                node.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined),
                 undefined,
                 node.parameters.map(it => it.name)
             ),

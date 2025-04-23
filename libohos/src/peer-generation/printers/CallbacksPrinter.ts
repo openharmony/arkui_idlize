@@ -474,6 +474,7 @@ class ManagedCallCallbackVisitor {
             [idl.createReferenceType(`CallbackKind`)],
             [`kind`],
             undefined,
+            undefined,
             [undefined, PrintHint.AsValue]
         )
         this.writer.writeFunctionImplementation(`getManagedCallbackCaller`, signature, writer => {

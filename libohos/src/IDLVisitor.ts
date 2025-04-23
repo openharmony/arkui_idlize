@@ -1459,12 +1459,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (this.options.useComponentOptional) {
             if (serialized.isOptional || idl.isOptionalType(serialized.type))
                 return serialized
-            const types = idl.isUnionType(serialized.type)
-                ? serialized.type.types.concat(idl.IDLUndefinedType)
-                : [serialized.type, idl.IDLUndefinedType]
             return idl.createProperty(
                 serialized.name,
-                collapseTypes(types),
+                idl.createOptionalType(serialized.type),
                 serialized.isReadonly,
                 serialized.isStatic,
                 serialized.isOptional,
@@ -1602,12 +1599,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (this.options.useComponentOptional) {
             if (idl.isOptionalType(serialized.type) || serialized.isOptional)
                 return serialized
-            const types = idl.isUnionType(serialized.type)
-                ? serialized.type.types.concat(idl.IDLUndefinedType)
-                : [serialized.type, idl.IDLUndefinedType]
             return idl.createParameter(
                 serialized.name,
-                collapseTypes(types),
+                idl.createOptionalType(serialized.type),
                 false,
                 serialized.isVariadic,
                 {

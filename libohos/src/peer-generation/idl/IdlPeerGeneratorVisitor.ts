@@ -16,20 +16,15 @@
 import * as idl from '@idlizer/core/idl'
 import {
     capitalize,
-    isDefined,
-    warn,
-    GenericVisitor,
     Language,
     isRoot,
-    MethodSignature,
     generatorConfiguration,
-    VoidConvertor,
-    PointerConvertor,
     isInIdlizeInternal,
     isInIdlize,
     qualifiedName,
     isStaticMaterialized,
-    isInCurrentModule
+    isInCurrentModule,
+    ArgumentModifier
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -378,7 +373,9 @@ function generateSignature(
     return new NamedMethodSignature(
         returnType ?? method.returnType!,
         method.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
-        method.parameters.map(it => it.name)
+        method.parameters.map(it => it.name),
+        undefined,
+        method.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
 }
 

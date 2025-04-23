@@ -30,19 +30,19 @@ import {
     PeerClass,
     InterfaceConvertor,
     CJLanguageWriter,
-    PeerMethod
+    PeerMethod,
+    isCommonMethod
 } from '@idlizer/core'
 import {
     ARK_CUSTOM_OBJECT, ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH,
-    collectDeclDependencies, collectJavaImports, collectProperties, convertDeclToFeature,
+    collectDeclDependencies, collectJavaImports, convertDeclToFeature,
     DependenciesCollector, ImportFeature, ImportsCollector, isComponentDeclaration,
-    peerGeneratorConfiguration, printJavaImports, TargetFile, tsCopyrightAndWarning,
-    ARK_OBJECTBASE, collectComponents, PrinterResult, PrinterClass, collectInterfaceDependencies,
-    collapseSameNamedMethods, groupOverloads,
+    peerGeneratorConfiguration, printJavaImports, TargetFile,
+    ARK_OBJECTBASE, PrinterResult,
+    groupOverloads,
     PrinterFunction,
     findComponentByDeclaration,
     collapseIdlPeerMethods,
-    collectPeersForFile,
     collectPeers,
     collectAllProperties,
     componentToAttributesInterface,
@@ -161,7 +161,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const declaredPrefix = this.isDeclared ? "declare " : ""
         const superType = idl.getSuperType(idlInterface)
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
-        const UIExtendsClause = superType ? `extends ${componentToUIAttributesInterface(superType.name)} ` : ""
+        let UIExtendsClause = superType ? `extends ${componentToUIAttributesInterface(superType.name)} ` : ""
+        if (isCommonMethod(idlInterface.name)) UIExtendsClause = `extends UICommonBase `
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         uiPrinter.print(`export ${declaredPrefix}interface ${componentToUIAttributesInterface(idlInterface.name)} ${UIExtendsClause}{`)
         printer.pushIndent()

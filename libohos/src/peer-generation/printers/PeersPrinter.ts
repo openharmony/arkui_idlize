@@ -26,7 +26,8 @@ import {
     MaterializedClass,
     qualifiedName,
     LayoutNodeRole,
-    CustomTypeConvertor
+    CustomTypeConvertor,
+    ArgumentModifier
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
@@ -47,7 +48,7 @@ import { TargetFile } from "./TargetFile"
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { collectJavaImports } from "./lang/JavaIdlUtils";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { createOptionalType, createReferenceType, forceAsNamedNode, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
+import { createReferenceType, IDLI32Type, IDLPointerType, IDLStringType, IDLThisType, IDLType,
         IDLVoidType, isNamedNode, isPrimitiveType
 } from '@idlizer/core'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
@@ -149,9 +150,10 @@ class PeerFileVisitor {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             createReferenceType(peerClass),
-            [createOptionalType(createReferenceType('ComponentBase')), IDLI32Type],
+            [createReferenceType('ComponentBase'), IDLI32Type],
             ['component', 'flags'],
-            [undefined, '0']
+            [undefined, '0'],
+            [[ArgumentModifier.OPTIONAL], undefined]
         )
         writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
             const peerId = 'peerId'
@@ -383,7 +385,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,
-        new NamedMethodSignature(returnType, signature.args, signature.argsNames),
+        new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
         method.method.modifiers, method.method.generics
     )
     printer.writeMethodImplementation(peerMethod, (writer) => {

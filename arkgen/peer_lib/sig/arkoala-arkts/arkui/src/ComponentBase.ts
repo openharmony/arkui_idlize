@@ -16,10 +16,10 @@
 import { PeerNode } from './PeerNode'
 import { ArkUINativeModule } from "#components"
 import { AnimateParam } from './generated'
-import { _animationEnd, _animationStart } from './handwritten'
+import { _animationEnd, _animationStart, UICommonBase } from './handwritten'
 import { unsafeCast } from "@koalaui/common"
 
-export class ComponentBase {
+export class ComponentBase implements UICommonBase {
     protected peer?: PeerNode
     protected isFirstBuild: boolean = true
     setPeer(peer: PeerNode) {
@@ -47,7 +47,7 @@ export class ComponentBase {
     }
 
     /** @memo */
-    public __applyStyle<T extends ComponentBase, A>(
+    public __applyStyle<T, A>(
         /** @memo */
         func: (instance: T, arg: A) => T,  // should be ...args: A[], but that doesn't currently compile
         arg: A
@@ -57,7 +57,7 @@ export class ComponentBase {
     }
 
     /** @memo */
-    public __applyAnimatableExtend<T extends ComponentBase, A>(
+    public __applyAnimatableExtend<T, A>(
         /** @memo */
         func: (instance: T, arg: A) => T,
         arg: A

@@ -23,7 +23,8 @@ import {
     MethodModifier,
     NamedMethodSignature,
     LayoutNodeRole,
-    FieldModifier
+    FieldModifier,
+    ArgumentModifier
 } from '@idlizer/core'
 import {
     ARKOALA_PACKAGE,
@@ -127,6 +128,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             imports.addFeature('ComponentBase', '../ComponentBase')
+            imports.addFeature('UICommonBase', '../handwritten')
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
                 imports.addFeatures(["isResource", "isPadding"], "../utils")
@@ -242,8 +244,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentInterfaceName = componentToUIAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
-        const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${isOptionalType(it) ? "?" : ""}: ${printer.getNodeName(it)}`)
+        const callableMethod = callableMethods.length > 0 ? collapseSameNamedMethods(callableMethods) : undefined
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
         const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
         const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
         const peerClassName = componentToPeerClass(peer.componentName)

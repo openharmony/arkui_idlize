@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -84,9 +84,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const ctorSig = clazz.ctor!.method.signature as NamedMethodSignature
         const sigWithPointer = new NamedMethodSignature(
             ctorSig.returnType,
-            ctorSig.args.map(it => idl.createOptionalType(it)),
+            ctorSig.args,
             ctorSig.argsNames,
-            ctorSig.defaults)
+            ctorSig.defaults,
+            ctorSig.args.map(() => ArgumentModifier.OPTIONAL))
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
 
         this.printer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {

@@ -117,6 +117,7 @@ export class PeerPrinter extends SingleFilePrinter {
                 ],
                 undefined,
                 undefined,
+                undefined,
                 [
                     PeersConstructions.pointerParameter
                 ]
@@ -156,6 +157,7 @@ export class PeerPrinter extends SingleFilePrinter {
                     PeersConstructions.typeGuard.returnType(this.node.name)
                 ),
                 [createReferenceType(PeersConstructions.typeGuard.parameter.type)],
+                undefined,
                 undefined,
                 undefined,
                 [PeersConstructions.typeGuard.parameter.name]

@@ -492,6 +492,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             ],
             ["data", "dataLength", "resourceHolder"],
             [undefined, `0`, `nullptr`],
+            undefined,
             [undefined, undefined, undefined, PrintHint.AsPointer]
         )
 
@@ -500,6 +501,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             ],
             ["resourceHolder"],
             [`nullptr`],
+            undefined,
             [undefined, PrintHint.AsPointer]
         )
 

@@ -25,3 +25,4 @@ export interface CustomComponent {}
 export interface CustomComponentV2 {}
 export interface AttributeModifier<T> {}
 export interface PageTransitionEnterInterface {}
+export interface UICommonBase {}

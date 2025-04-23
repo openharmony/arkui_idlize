@@ -319,6 +319,10 @@ export abstract class LambdaExpression implements LanguageExpression {
 //                         SIGNATURES                         //
 ////////////////////////////////////////////////////////////////
 
+export enum ArgumentModifier {
+    OPTIONAL,
+}
+
 export enum FieldModifier {
     READONLY,
     PRIVATE,
@@ -385,19 +389,26 @@ export class PrintHint {
 type MethodArgPrintHintOrNone = PrintHint | undefined
 
 export class MethodSignature {
+    public argsModifiers: ArgumentModifier[][] | undefined
     constructor(
         public returnType: idl.IDLType,
         public args: idl.IDLType[],
         public defaults: stringOrNone[]|undefined = undefined,
+        argsModifiers: (ArgumentModifier[]|ArgumentModifier|undefined)[]|undefined = undefined,
         public printHints?: MethodArgPrintHintOrNone[],
         public argNames?: string[]
-    ) {}
+    ) {
+        this.argsModifiers = argsModifiers?.map(it => it===undefined ? [] : Array.isArray(it) ? it : [it])
+    }
 
     argName(index: number): string {
         return this?.argNames?.at(index) ?? `arg${index}`
     }
     argDefault(index: number): string|undefined {
         return this.defaults?.[index]
+    }
+    isArgOptional(index: number): boolean {
+        return this.argsModifiers?.[index]?.includes(ArgumentModifier.OPTIONAL) ?? false
     }
     retHint(): PrintHint | undefined {
         return this.printHints?.[0]
@@ -417,9 +428,10 @@ export class NamedMethodSignature extends MethodSignature {
         args: idl.IDLType[] = [],
         public argsNames: string[] = [],
         defaults: stringOrNone[]|undefined = undefined,
+        argsModifiers: (ArgumentModifier[]|ArgumentModifier|undefined)[]|undefined = undefined,
         printHints?: MethodArgPrintHintOrNone[]
     ) {
-        super(returnType, args, defaults, printHints)
+        super(returnType, args, defaults, argsModifiers, printHints)
     }
 
     static make(returnType: idl.IDLType, args: {name: string, type: idl.IDLType}[]): NamedMethodSignature {

@@ -22,7 +22,7 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -89,18 +89,20 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         throw new Error("Can not process defaults in collapsed method")
     const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
     const maxMethod = methods.find(it => it.signature.args.length === maxArgLength)!
+    const argsModifiers: (ArgumentModifier|undefined)[] = []
     const collapsedArgs: idl.IDLType[] = Array.from({length: maxArgLength}, (_, argIndex) => {
         if (selectMaxMethodArgs?.includes(argIndex))
             return maxMethod.signature.args[argIndex]
         const types = methods.map(it => it.signature.args[argIndex]).filter(isDefined)
         const optional = methods.some(it => {
             if (argIndex < it.signature.args.length) {
-                return idl.isOptionalType(it.signature.args[argIndex]) ?? false
+                return it.signature.isArgOptional(argIndex)
             } else {
                 return true
             }
         })
-        return idl.maybeOptional(collapseTypes(types, "%PROXY_BEFORE_PEER%"), optional)
+        argsModifiers.push(optional ? ArgumentModifier.OPTIONAL : undefined)
+        return collapseTypes(types, "%PROXY_BEFORE_PEER%")
     })
 
     const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.IDLVoidType), language)
@@ -109,7 +111,9 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
         new NamedMethodSignature(
             returnType,
             collapsedArgs,
-            (maxMethod.signature as NamedMethodSignature).argsNames
+            (maxMethod.signature as NamedMethodSignature).argsNames,
+            undefined,
+            argsModifiers
         ),
         methods[0].modifiers?.includes(MethodModifier.PRIVATE) ?
         methods[0].modifiers :

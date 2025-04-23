@@ -28,6 +28,7 @@ export interface CustomComponentV2 {}
 export interface AttributeModifier<T> {}
 export interface PageTransitionEnterInterface {}
 export interface SystemBarStyle {}
+export interface UICommonBase {}
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
 export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}
