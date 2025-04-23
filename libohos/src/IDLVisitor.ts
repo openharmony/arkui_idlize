@@ -1706,7 +1706,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             })
         }
         this.computeClassMemberExtendedAttributes(method as ts.ClassElement, methodName, escapedMethodName, extendedAttributes)
-        const returnType = this.serializeType(method.type, nameSuggestion?.extend('ret'))
+        const returnType = method.type ? this.serializeType(method.type, nameSuggestion?.extend('ret')) : idl.IDLVoidType
         return idl.createMethod(
             escapedMethodName,
             methodParameters.map(it => isCommonMethod
