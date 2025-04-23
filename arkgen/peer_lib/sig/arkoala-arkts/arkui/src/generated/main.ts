@@ -114,7 +114,7 @@ let hasTestErrors = false
 export function getNativeLog(): string {
     let ptr = InteropNativeModule._GetGroupedLog(1)
     let length = InteropNativeModule._StringLength(ptr)
-    let data = new byte[length]
+    let data: FixedArray<byte> = new byte[length]
     InteropNativeModule._StringData(ptr, data, length)
     InteropNativeModule._InvokeFinalizer(ptr, InteropNativeModule._GetStringFinalizer())
     // TODO: better string decoding.
@@ -311,7 +311,7 @@ function enqueueCallback(
     /* imitate libace holding resource */
     InteropNativeModule._HoldCallbackResource(resourceId)
     /* libace stored resource somewhere */
-    const buffer = new byte[serializer.length()]
+    const buffer:FixedArray<byte> = new byte[serializer.length()]
     for (let i = 0; i < buffer.length; i++) {
         buffer[i] = serializer.getByte(i)
     }
@@ -421,7 +421,11 @@ function checkNativeCallback() {
         }
         return sum
     })
-    const arr2: int[] = [100, 200, 300, -1000]
+    const arr2: FixedArray<int> = new int[4]
+    arr2[0] = 100
+    arr2[1] = 200
+    arr2[2] = 300
+    arr2[3] = -1000
     assertEquals("NativeCallback Int32Array sum", -400, TestNativeModule._TestCallIntIntArraySum(id2, arr2, arr2.length))
 
     const id3 = wrapCallback((args: KSerializerBuffer, length: int): int => {
@@ -440,7 +444,11 @@ function checkNativeCallback() {
         }
         return 0
     })
-    const arr3: int[] = [100, 200, 300, -1000]
+    const arr3: FixedArray<int> = new int[4]
+    arr3[0] = 100
+    arr3[1] = 200
+    arr3[2] = 300
+    arr3[3] = -1000
     TestNativeModule._TestCallVoidIntArrayPrefixSum(id3, arr3, arr3.length)
     assertEquals("NativeCallback Int32Array PrefixSum [0]", 100, arr3[0])
     assertEquals("NativeCallback Int32Array PrefixSum [1]", 300, arr3[1])
