@@ -342,7 +342,7 @@ export class OverloadsPrinter {
         const argsNames = peerMethod.argConvertors.map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`
-            const castedType = peerMethod.method.signature.args[index]
+            const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
             if (this.printer.language == Language.CJ) {
                 this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
             } else if (this.printer.language == Language.JAVA) {
