@@ -370,19 +370,19 @@ export class BigIntToU64Convertor extends BaseArgConvertor {
         return writer.escapeKeyword(param)
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, "writeUInt64", [value])
+        printer.writeMethodCall(`${param}Serializer`, "writeInt64", [value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         return assigneer(writer.makeCast(
-            writer.makeString(`${deserializerName}.readUInt64()`),
+            writer.makeString(`${deserializerName}.readInt64()`),
             this.idlType, { optional: false })
         )
     }
     nativeType(): idl.IDLType {
-        return idl.IDLU64Type
+        return idl.IDLI64Type
     }
     interopType(): idl.IDLType {
-        return idl.IDLU64Type
+        return idl.IDLI64Type
     }
     isPointerType(): boolean {
         return false

@@ -591,9 +591,24 @@ Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_me
 void GlobalScope_test_any_testImpl(const OH_UNIT_test_any_WithAny* x, const UNIT_test_any_Callback_Any_Void* f) {
     f->call(f->resource.resourceId, x->field);
 }
-OH_UInt64 GlobalScope_test_bigint_testImpl(OH_UInt64 num) {
+// BigInt
+OH_UInt64 GlobalScope_test_bigint_testImpl(OH_Int64 num) {
+    if (num != 123) INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, 123);
     return 1ll << 54;
 }
+OH_UInt64 GlobalScope_test_bigint_test_negativeImpl(OH_Int64 num) {
+    if (num != -123) INTEROP_FATAL("Input bigint: %d does not equal to: %d\n", num, -123);
+    return -(1ll << 54);
+}
+OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_paramsImpl(const OH_UNIT_test_bigint_BigIntParams* params) {
+    if (params->prime != 456) INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, 456);
+    return { prime: 1ll << 52};
+}
+OH_UNIT_test_bigint_BigIntParams GlobalScope_test_bigint_test_params_negativeImpl(const OH_UNIT_test_bigint_BigIntParams* params) {
+    if (params->prime != -789) INTEROP_FATAL("Input bigint param,: %ld does not equal to: %d\n", params->prime, 789);
+    return { prime: -(1ll << 42)};
+}
+
 OH_UNIT_test_enums_TestHandle test_enums_Test_constructImpl() {
     return (OH_UNIT_test_enums_TestHandle)42;
 }
