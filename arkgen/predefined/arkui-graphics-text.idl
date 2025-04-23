@@ -18,17 +18,6 @@ dictionary TextDecorationStyle {
     number DASHED = 3;
     number WAVY = 4;
 };
-dictionary FontWeight {
-    number W100 = 0;
-    number W200 = 1;
-    number W300 = 2;
-    number W400 = 3;
-    number W500 = 4;
-    number W600 = 5;
-    number W700 = 6;
-    number W800 = 7;
-    number W900 = 8;
-};
 dictionary FontStyle {
     number NORMAL = 0;
     number ITALIC = 1;

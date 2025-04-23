@@ -524,7 +524,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     if (className == "UserApp") {
         className = "L@koalaui.arkts-arkui.Application.UserView;";
     } if (className == "EtsHarness") {
-        className = "L@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness";
+        className = "L@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness;";
     } else if (isPageClass(className)) {
         className = "L@koalaui.user.build.unmemoized.build.generated." + className + ";";
     } else {
