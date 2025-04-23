@@ -439,9 +439,9 @@ function checkCalendar() {
     let peer = ArkCalendarPickerPeer.create()
     checkResult("setCalendarOptions: hintRadius", () => peer.setCalendarPickerOptionsAttribute({ hintRadius: 79 }),
         `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.tag=102, .i32=79}}}, .selected={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .disabledDateRange={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
-    const date = new Date(2025, 4, 16)
+    const date = new Date(Date.UTC(2025, 4, 16))
     checkResult("setCalendarOptions: selected", () => peer.setCalendarPickerOptionsAttribute({ selected: date }),
-        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=1747342800000}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .disabledDateRange={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
+        `setCalendarPickerOptions({.tag=INTEROP_TAG_OBJECT, .value={.hintRadius={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .selected={.tag=INTEROP_TAG_OBJECT, .value=1747353600000}, .start={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .end={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .disabledDateRange={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     stopNativeTest(CALL_GROUP_LOG)
 }
 

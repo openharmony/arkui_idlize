@@ -22,7 +22,6 @@
     "exclude": [
         "generated/arkoala-arkts/arkui/src/generated/arkts", 
         "generated/arkoala-arkts/arkui/src/generated/main.ts",
-        "generated/arkoala-arkts/arkui/src/generated/common.ts",
         "generated/arkoala-arkts/arkui/src/generated/test_utils.ts"
     ],
     "include": ["generated/arkoala-arkts/arkui/src/**/*.ts"],
