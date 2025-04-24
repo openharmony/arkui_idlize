@@ -29,9 +29,18 @@
         "GestureGroupInterface",
         "BaseContext"
     ],
-    "forceCallback": [
-	    "EditMenuOptions"
-    ],
+    "forceCallback": {
+        "EditMenuOptions": [],
+        "XComponentController": [
+            "onSurfaceCreated",
+            "onSurfaceChanged",
+            "onSurfaceDestroyed"
+        ],
+        "CustomSpan": [
+            "onMeasure",
+            "onDraw"
+        ]
+    },
     "forceResource": [
 	    "ContentModifier"
     ],

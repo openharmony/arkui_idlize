@@ -19,10 +19,10 @@
         "GenericInterface",
         "MaterializedWithCreateMethod"
     ],
-    "forceCallback": [
-        "ForceCallbackListener",
-        "GenericInterfaceDataHandler"
-    ],
+    "forceCallback": {
+        "ForceCallbackListener":  [],
+        "GenericInterfaceDataHandler": []
+    },
     "forceResource": [
 	"ContentModifier"
     ],

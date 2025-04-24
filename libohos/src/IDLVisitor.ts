@@ -1604,9 +1604,17 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             member.parameters.length == 1 && (returnType == "T" || returnType == className)
     }
     isMethodUsedAsCallback(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
-        const interfaceName = (ts.isInterfaceDeclaration(member.parent)) ? identName(member.parent.name) : undefined
-        if (interfaceName) {
-            return generatorConfiguration().forceCallback.includes(interfaceName)
+        const parentTypeName = ts.isInterfaceDeclaration(member.parent) || ts.isClassDeclaration(member.parent)
+            ? identName(member.parent.name) : undefined
+        if (parentTypeName) {
+            const forceCallback = generatorConfiguration().forceCallback.get(parentTypeName)
+            if (forceCallback?.length === 0) {
+                return true
+            }
+            const memberName = identName(member.name)
+            if (memberName !== undefined && forceCallback?.includes(memberName)) {
+                return true
+            }
         }
         return false
     }

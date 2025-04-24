@@ -35,9 +35,11 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
         }
     }
 
-    if (generatorConfiguration().forceCallback.concat(
-        generatorConfiguration().ignoreMaterialized)
-        .includes(declaration.name)) {
+    if (generatorConfiguration().forceCallback.get(declaration.name)?.length === 0) {
+        return false
+    }
+
+    if (generatorConfiguration().ignoreMaterialized.includes(declaration.name)) {
         return false
     }
 

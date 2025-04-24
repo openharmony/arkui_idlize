@@ -65,7 +65,20 @@ declare class UrlStyle {
 }
 
 
-declare type StyledStringValue = TextStyle | DecorationStyle | BaselineOffsetStyle | LetterSpacingStyle | TextShadowStyle | GestureStyle | ImageAttachment | ParagraphStyle | LineHeightStyle | UrlStyle | CustomSpan | UserDataSpan | BackgroundColorStyle;
+declare type StyledStringValue =
+    TextStyle
+    | DecorationStyle
+    | BaselineOffsetStyle
+    | LetterSpacingStyle
+    | TextShadowStyle
+    | GestureStyle
+    | ImageAttachment
+    | ParagraphStyle
+    | LineHeightStyle
+    | UrlStyle
+    | CustomSpan
+    | UserDataSpan
+    | BackgroundColorStyle;
 
 declare class StyledString {
 
@@ -99,15 +112,56 @@ declare interface StyleOptions {
     styledValue: StyledStringValue;
 }
 
-declare abstract class UserDataSpan { }
+declare abstract class UserDataSpan {
+}
 
-declare interface DecorationStyle {}
-declare interface BaselineOffsetStyle {}
-declare interface LetterSpacingStyle {}
-declare interface TextShadowStyle {}
-declare interface GestureStyle {}
-declare interface ImageAttachment {}
-declare interface ParagraphStyle {}
-declare interface LineHeightStyle {}
-declare interface CustomSpan {}
-declare interface BackgroundColorStyle {}
+declare interface DecorationStyle {
+}
+
+declare interface BaselineOffsetStyle {
+}
+
+declare interface LetterSpacingStyle {
+}
+
+declare interface TextShadowStyle {
+}
+
+declare interface GestureStyle {
+}
+
+declare interface ImageAttachment {
+}
+
+declare interface ParagraphStyle {
+}
+
+declare interface LineHeightStyle {
+}
+
+declare interface CustomSpanMeasureInfo {
+    fontSize: number;
+}
+
+declare interface CustomSpanMetrics {
+    width: number;
+    height?: number;
+}
+
+declare interface CustomSpanDrawInfo {
+    x: number;
+    lineTop: number;
+    lineBottom: number;
+    baseline: number;
+}
+
+declare abstract class CustomSpan {
+    abstract onMeasure(measureInfo: CustomSpanMeasureInfo): CustomSpanMetrics;
+
+    abstract onDraw(context: DrawContext, drawInfo: CustomSpanDrawInfo): void;
+
+    invalidate(): void;
+}
+
+declare interface BackgroundColorStyle {
+}
