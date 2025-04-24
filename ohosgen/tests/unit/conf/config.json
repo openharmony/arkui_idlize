@@ -35,7 +35,8 @@
         "custom": [],
         "customNodeTypes": [],
         "handWritten": [
-            "HandwrittenComponent"
+            "HandwrittenComponent",
+            "IdlHandwrittenComponent"
         ],
         "ignoreEntry": [],
         "ignoreEntryJava": [],

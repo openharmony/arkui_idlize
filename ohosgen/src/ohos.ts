@@ -38,7 +38,6 @@ import {
     NativeModule,
     TargetFile,
     install,
-    printInterfaceData,
     printCJArkUIGeneratedNativeFunctions,
     PeerGeneratorConfiguration,
     createSerializerPrinter,
@@ -50,10 +49,12 @@ import {
     createDeserializeAndCallPrinter,
     createGeneratedNativeModulePrinter,
     printArkTSTypeChecker,
+    createInterfacePrinter,
 } from '@idlizer/libohos';
 import { OhosInstall } from "./OhosInstall"
 import { generateNativeOhos, suggestLibraryName } from './OhosNativeVisitor';
 import { ohosLayout } from './OhosLayout';
+import { printDataClasses } from './OhosDataClassVisitor';
 
 function printCallbackChecker(peerLibrary: PeerLibrary): PrinterResult[] {
     const content = peerLibrary.createLanguageWriter(peerLibrary.language)
@@ -96,8 +97,9 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
         [
             createCallbackKindPrinter(peerLibrary.language),
             createMaterializedPrinter(false),
-            printInterfaceData,
+            createInterfacePrinter(false, false),
             printGlobal,
+            printDataClasses,
             createSerializerPrinter(peerLibrary.language, ""),
             createDeserializerPrinter(peerLibrary.language, ""),
             printCallbackChecker,

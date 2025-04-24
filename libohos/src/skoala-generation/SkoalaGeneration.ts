@@ -17,7 +17,7 @@ import * as path from "path"
 import * as fs from "fs"
 import { OptionValues } from "commander"
 import { SkoalaInstall } from "./SkoalaInstall"
-import { TSInterfacesVisitor } from "./printers/InterfacePrinter"
+import { SkoalaTSInterfacesVisitor } from "./printers/InterfacePrinter"
 import { TSWrappersVisitor } from "./printers/WrappersPrinter"
 import { TargetFile } from "../peer-generation/printers/TargetFile"
 import { LanguageWriter, createLanguageWriter } from "@idlizer/core"
@@ -64,7 +64,7 @@ export function printSkoala(library: IdlSkoalaLibrary): Map<TargetFile, Language
     }
 
     const writer = createLanguageWriter(Language.TS, library)
-    let intVis = new TSInterfacesVisitor(library)
+    let intVis = new SkoalaTSInterfacesVisitor(library)
     for (let file of library.outFiles) {
         intVis.printInterfaces(file, writer)
     }

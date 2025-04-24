@@ -19,7 +19,7 @@ import * as idl from "@idlizer/core/idl"
 import { convertDeclaration } from "@idlizer/core"
 
 
-export class TSInterfacesVisitor {
+export class SkoalaTSInterfacesVisitor {
     constructor(private library: IdlSkoalaLibrary) { }
 
     printInterfaces(file: IldSkoalaOutFile, writer: LanguageWriter) {

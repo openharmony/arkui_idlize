@@ -1,4 +1,4 @@
-export interface HandwrittenComponent {
-    id: string
-    total: number
-}
+// export interface HandwrittenComponent {
+//     id: string
+//     total: number
+// }

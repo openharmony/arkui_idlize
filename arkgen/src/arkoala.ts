@@ -17,7 +17,7 @@ import * as path from "path"
 import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor, PeerMethod, MethodModifier, NativeModuleType, LayoutManager } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
-    makeArkuiModule, makeCallbacksKinds, 
+    makeArkuiModule, makeCallbacksKinds,
     mesonBuildFile, tsCopyrightAndWarning,
     readLangTemplate,
     printRealAndDummyAccessors,
@@ -61,7 +61,7 @@ import {
 } from "@idlizer/libohos"
 import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
-import { createInterfacePrinter } from "./printers/InterfacePrinter"
+import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
 import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"

@@ -50,7 +50,6 @@ export {
     idlCheckStringEnums,
     DataClass, DataInterface, IDLDataClass, IDLDataInterface,
     testDataClass, testDataInterface, testIDLDataClass, testIDLDataInterface,
-    HandwrittenComponent, IdlHandwrittenComponent,
 } from '../../generated/ts'
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"

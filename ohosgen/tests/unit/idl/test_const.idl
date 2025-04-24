@@ -1,3 +1,5 @@
+package test_idl_constants;
+
 const boolean IDL_CONST_BOOLEAN_FALSE = false;
 const boolean IDL_CONST_BOOLEAN_TRUE = true;
 const number IDL_CONST_NUMBER_INT = 312;

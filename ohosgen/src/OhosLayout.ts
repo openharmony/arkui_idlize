@@ -28,10 +28,10 @@ export class OhosTsLayout implements LayoutManagerStrategy {
         }
         if (isInCurrentModule(node))
             return currentModule().useFoldersLayout
-                ? idl.getPackageClause(node).join("/")
+                ? idl.getPackageClause(node).join("/") || 'synthetic'
                 : "@" + idl.getPackageName(node)
         return getModuleFor(node).useFoldersLayout
-            ? "@" + idl.getPackageClause(node).join("/")
+            ? "@" + idl.getPackageClause(node).join("/") || 'synthetic'
             : "@" + idl.getPackageName(node)
     }
 

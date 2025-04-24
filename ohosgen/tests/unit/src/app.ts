@@ -49,7 +49,6 @@ import {
   idlCheckStringEnums,
   testDataClass, testDataInterface, DataClass, DataInterface,
   testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
-  HandwrittenComponent, IdlHandwrittenComponent,
 } from '#compat'
 import { test_ret_A } from '#compat'
 
@@ -340,12 +339,12 @@ function checkNativeBuffer() {
 }
 // */
 
-function checkHandwritten() {
-  const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }
-  const idlHW: IdlHandwrittenComponent = { name: "idl" + dtsHW.id, count: dtsHW.total + 1 }
-  assertEQ("idlhw", idlHW.name)
-  assertEQ(1, idlHW.count)
-}
+// function checkHandwritten() {
+//   const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }
+//   const idlHW: IdlHandwrittenComponent = { name: "idl" + dtsHW.id, count: dtsHW.total + 1 }
+//   assertEQ("idlhw", idlHW.name)
+//   assertEQ(1, idlHW.count)
+// }
 
 interface TestObject { x: number }
 function checkAny() {

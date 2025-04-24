@@ -51,7 +51,6 @@ export {
     idlCheckStringEnums,
     DataClass, DataInterface, IDLDataClass, IDLDataInterface,
     testDataClass, testDataInterface, testIDLDataClass, testIDLDataInterface,
-    HandwrittenComponent, IdlHandwrittenComponent,
 } from '../../generated/arkts'
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
