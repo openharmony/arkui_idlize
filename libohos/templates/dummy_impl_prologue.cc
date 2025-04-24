@@ -89,13 +89,13 @@ void busyWait(Ark_Int64 nsDelay) {
 }
 
 const int MAX_NODE_TYPE = 200;
-std::array<Ark_Int64, MAX_NODE_TYPE> createNodeDelay = {};\
+std::array<Ark_Int64, MAX_NODE_TYPE> createNodeDelay = {};
 std::array<Ark_Int64, MAX_NODE_TYPE> measureNodeDelay = {};
 std::array<Ark_Int64, MAX_NODE_TYPE> layoutNodeDelay = {};
 std::array<Ark_Int64, MAX_NODE_TYPE> drawNodeDelay = {};
 
 void CheckType(GENERATED_Ark_NodeType type) {
-    if (type >= MAX_NODE_TYPE) {
+    if (static_cast<int>(type) >= MAX_NODE_TYPE) {
         INTEROP_FATAL("Error: GENERATED_Ark_NodeType value is too big, change MAX_NODE_TYPE accordingly");
     }
 }
