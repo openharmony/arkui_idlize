@@ -339,10 +339,4 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return this.makeString(i32Value)
     }
     override castToBoolean(value: string): string { return value }
-    override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
-        return this.makeBlock([
-            this.makeStatement(this.makeMethodCall(serializer, "writeInt8", [this.makeRuntimeType(RuntimeType.STRING)])),
-            this.makeStatement(this.makeMethodCall(serializer, "writeString", [this.makeString(`${value}.value`)]))
-        ], false)
-    }
 }

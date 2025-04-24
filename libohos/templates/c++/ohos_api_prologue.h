@@ -52,7 +52,6 @@ typedef InteropVMContext OH_%LIBRARY_NAME%_VMContext;
 typedef InteropAsyncWorker OH_%LIBRARY_NAME%_AsyncWorker;
 typedef InteropAsyncWorkerPtr OH_%LIBRARY_NAME%_AsyncWorkerPtr;
 typedef InteropBuffer OH_Buffer;
-typedef InteropLength OH_Length;
 typedef InteropFunction OH_Function;
 typedef InteropObject OH_Object;
 

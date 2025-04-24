@@ -61,22 +61,6 @@ function checkSerdeResult(name: string, value: object|string|number|undefined|nu
     }
 }
 
-function checkSerdeLength() {
-    const ser = Serializer.hold()
-    ser.writeLength("10px")
-    ser.writeLength("11vp")
-    ser.writeLength("12%")
-    ser.writeLength("13lpx")
-    ser.writeLength(14)
-    const des = new Deserializer(ser.asBuffer(), ser.length())
-    checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
-    checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
-    checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
-    checkSerdeResult("Deserializer.readLength, unit lpx", des.readLength(), "13lpx")
-    checkSerdeResult("Deserializer.readLength, number", des.readLength(), 14)
-    ser.release()
-}
-
 function checkSerdeText() {
     const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
@@ -262,12 +246,12 @@ function checkButton() {
     let peer = ArkButtonPeer.create()
 
     checkResult("width", () => peer.width0Attribute("42%"),
-        "width({.type=2, .value=42, .unit=3, .resource=0})")
+        `width({.selector=0, .value0={.chars="42%", .length=3}})`)
     const resource: Resource = { id: 43, bundleName: "MyApp", moduleName: "MyApp" }
     checkResult("height", () => peer.height0Attribute(resource),
-        "height({.type=3, .value=0, .unit=1, .resource=43})")
+        `height({.selector=2, .value2={.bundleName={.chars="MyApp", .length=5}, .moduleName={.chars="MyApp", .length=5}, .id={.tag=102, .i32=43}, .params={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .type={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
     checkResult("height", () => peer.height0Attribute(44),
-        "height({.type=1, .value=44, .unit=1, .resource=0})")
+        "height({.selector=1, .value1={.tag=102, .i32=44}})")
     const builder: CustomBuilder = (): void => { }
     const options: Literal_Alignment_align = { align: Alignment.Center }
     checkResult("background", () => peer.backgroundAttribute(builder, options),
@@ -548,7 +532,6 @@ export function main(): void {
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()
 
-    checkSerdeLength()
     checkSerdeText()
     checkSerdePrimitive()
     checkSerdeCustomObject()

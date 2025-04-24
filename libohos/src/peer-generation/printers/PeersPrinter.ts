@@ -102,6 +102,13 @@ class PeerFileVisitor {
         }
         const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
         collectDeclDependencies(this.library, component.attributeDeclaration, imports, { expandTypedefs: true })
+        component.attributeDeclaration.methods.forEach(method => {
+            method.parameters.map(p => p.type).concat([method.returnType]).forEach(type => {
+                collectDeclDependencies(this.library, type, (dep) => {
+                    collectDeclDependencies(this.library, dep, imports, { expandTypedefs: true })
+                }, { expandTypedefs: true })
+            })
+        })
         if (component.interfaceDeclaration)
             collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         if (this.library.language === Language.TS) {

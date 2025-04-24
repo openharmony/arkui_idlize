@@ -639,7 +639,6 @@ export const IDLSerializerBuffer = createPrimitiveType('SerializerBuffer')
 
 // Stub for IdlPeerLibrary
 export const IDLFunctionType = createPrimitiveType('Function')
-export const IDLLengthType = createPrimitiveType('Length')
 export const IDLCustomObjectType = createPrimitiveType('CustomObject')
 export const IDLInteropReturnBufferType = createPrimitiveType('InteropReturnBuffer')
 

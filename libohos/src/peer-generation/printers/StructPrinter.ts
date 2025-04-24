@@ -44,7 +44,7 @@ export class StructPrinter {
     private isPointerDeclaration(target: idl.IDLNode, isOptional: boolean = false): boolean {
         if (isOptional) return true
         if (idl.isPrimitiveType(target))
-            return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "Length", "CustomObject"].includes(target.name)
+            return [idl.IDLAnyType.name, idl.IDLStringType.name, idl.IDLNumberType.name, "CustomObject"].includes(target.name)
         if (idl.isEnum(target)) return false
         if (idl.isReferenceType(target) && target.name === "GestureType") return false
         if (idl.isInterface(target) && isMaterialized(target, this.library)) return false
@@ -210,10 +210,6 @@ export class StructPrinter {
         structs.concat(typedefDeclarations)
         structs.concat(enumsDeclarations)
         structs.concat(concreteDeclarations)
-        // TODO: hack, remove me!
-        if (["arkoala", "libace"].includes(this.library.name)) { // TODO we probably don't need this typedef for any library except Ark
-            typedefs.print(`typedef ${generatorConfiguration().OptionalPrefix}Length ${generatorConfiguration().OptionalPrefix}Dimension;`)
-        }
     }
 
     private printOptionalIfNeeded(

@@ -14,34 +14,8 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { TSTypeNameConvertor, ETSTypeNameConvertor, JavaTypeNameConvertor, CJTypeNameConvertor } from '@idlizer/core'
+import { JavaTypeNameConvertor, CJTypeNameConvertor } from '@idlizer/core'
 import { ARK_CUSTOM_OBJECT } from '@idlizer/libohos'
-
-export class ArkoalaTSTypeNameConvertor extends TSTypeNameConvertor {
-    override convertTypeReference(type: idl.IDLReferenceType): string {
-         switch (type.name) {
-            default: return super.convertTypeReference(type)
-        }
-    }
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        return type === idl.IDLLengthType
-            ? "Length"
-            : super.convertPrimitiveType(type)
-    }
-}
-
-export class ArkoalaETSTypeNameConvertor extends ETSTypeNameConvertor {
-    override convertTypeReference(type: idl.IDLReferenceType): string {
-         switch (type.name) {
-            default: return super.convertTypeReference(type)
-        }
-    }
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        return type === idl.IDLLengthType
-            ? "Length"
-            : super.convertPrimitiveType(type)
-    }
-}
 
 export class ArkoalaJavaTypeNameConvertor extends JavaTypeNameConvertor {
     override convertTypeReference(type: idl.IDLReferenceType): string {
@@ -55,7 +29,6 @@ export class ArkoalaJavaTypeNameConvertor extends JavaTypeNameConvertor {
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
             case idl.IDLAnyType: return ARK_CUSTOM_OBJECT
-            case idl.IDLLengthType: return "Ark_Length"
             default: return super.convertPrimitiveType(type)
         }
     }
@@ -67,10 +40,5 @@ export class ArkoalaCJTypeNameConvertor extends CJTypeNameConvertor {
             case 'Date': return ARK_CUSTOM_OBJECT
             default: return super.convertTypeReference(type)
         }
-    }
-    override convertPrimitiveType(type: idl.IDLPrimitiveType): string {
-        return type === idl.IDLLengthType
-            ? "Length"
-            : super.convertPrimitiveType(type)
     }
 }

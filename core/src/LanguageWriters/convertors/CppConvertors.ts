@@ -161,7 +161,6 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case idl.IDLUnknownType:
             case idl.IDLAnyType: return this.make(`Object`)
             case idl.IDLUndefinedType: return this.make(`Undefined`)
-            case idl.IDLLengthType: return this.make(`Length`)
             case idl.IDLFunctionType: return this.make(`Function`)
             case idl.IDLDate: return this.make(`Date`)
             case idl.IDLBufferType: return this.make('Buffer')
@@ -247,7 +246,6 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLNumberType: return "KInteropNumber"
             case idl.IDLSerializerBuffer: return "KSerializerBuffer"
             case idl.IDLBufferType: return "KInteropBuffer"
-            case idl.IDLLengthType: return "KLength"
             case idl.IDLFunctionType: return PrimitiveTypesInstance.Int32.getText()
             case idl.IDLDate: return PrimitiveTypesInstance.Int64.getText()
             case idl.IDLPointerType: return PrimitiveTypesInstance.NativePointer.getText()

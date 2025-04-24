@@ -39,55 +39,6 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     }
 }
 
-export class LengthConvertor extends BaseArgConvertor {
-    private readonly ResourceDeclaration: idl.IDLInterface
-    constructor(library: PeerLibrary, name: string, param: string, language: Language) {
-        // length convertor is only optimized for NAPI interop
-        super(idl.createReferenceType(name), [RuntimeType.NUMBER, RuntimeType.STRING, RuntimeType.OBJECT], false,
-            (language !== Language.TS && language !== Language.ARKTS), param)
-        this.ResourceDeclaration = library.resolveTypeReference(idl.createReferenceType("Resource")) as idl.IDLInterface
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        switch (writer.language) {
-            case Language.CPP: return `(const ${ArkPrimitiveTypesInstance.Length.getText()}*)&${param}`
-            case Language.JAVA: return `${param}.value`
-            case Language.CJ: return `${param}.value`
-            default: return param
-        }
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(
-            printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, 'writeLength', [printer.makeString(value)])
-            )
-        )
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const readExpr = writer.makeString(`${deserializerName}.readLength()`)
-        if (writer.language === Language.CPP)
-            return assigneer(readExpr)
-        return assigneer(writer.makeCast(readExpr, this.idlType, { optional: false, unsafe: false }))
-    }
-    nativeType(): idl.IDLType {
-        return idl.IDLLengthType
-    }
-    interopType(): idl.IDLType {
-        return idl.IDLLengthType
-    }
-    isPointerType(): boolean {
-        return true
-    }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.makeNaryOp("||", [
-            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.NUMBER), writer.makeString(`${value}_type`)]),
-            writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.STRING), writer.makeString(`${value}_type`)]),
-            writer.makeNaryOp("&&", [
-                writer.makeNaryOp("==", [writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeString(`${value}_type`)]),
-                writer.makeIsTypeCall(value, this.ResourceDeclaration)
-            ])])
-    }
-}
-
 export class PaddingConvertor extends AggregateConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.makeIsTypeCall(value, this.decl)

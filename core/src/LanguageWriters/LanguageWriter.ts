@@ -793,59 +793,6 @@ export abstract class LanguageWriter {
         return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
     }
 
-    makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
-        const valueType = "valueType"
-
-        return this.makeBlock([
-            this.makeAssign(valueType, undefined, this.makeFunctionCall("runtimeType", [this.makeString(value)]), true),
-            this.makeStatement(this.makeMethodCall(serializer, "writeInt8", [this.makeString(valueType)])),
-
-            this.makeMultiBranchCondition([
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER),
-                    stmt: this.makeStatement(
-                        this.makeMethodCall(serializer, "writeFloat32", [this.makeString(`${value} as float32`)])
-                    )
-                },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
-                    stmt: this.makeStatement(
-                        this.makeMethodCall(serializer, "writeString", [this.makeString(`${value} as string`)])
-                    )
-                },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
-                    stmt: this.makeStatement(
-                        this.makeMethodCall(serializer, "writeInt32", [this.makeString(`(${value} as Resource).id as int32`)])
-                    )
-                },
-            ]),
-        ], false)
-    }
-    makeLengthDeserializer(deserializer: string): LanguageStatement | undefined {
-        const valueType = "valueType"
-
-        return this.makeBlock([
-            this.makeAssign(valueType, undefined, this.makeMethodCall(deserializer, "readInt8", []), true),
-
-            this.makeMultiBranchCondition(
-                [{
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.NUMBER),
-                    stmt: this.makeReturn(this.makeString(`${deserializer}.readFloat32() as number`))
-                },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.STRING),
-                    stmt: this.makeReturn(this.makeMethodCall(deserializer, "readString", []))
-                },
-                {
-                    expr: this.makeRuntimeTypeCondition(valueType, true, RuntimeType.OBJECT),
-                    stmt: this.makeReturn(this.makeString(`({id: ${deserializer}.readInt32(), bundleName: "", moduleName: ""}) as Resource`))
-                }],
-                this.makeReturn(this.makeUndefined())
-            ),
-        ], false)
-    }
-
     stringifyTypeOrEmpty(type: idl.IDLType | undefined): string {
         if (type === undefined) return ""
         return this.getNodeName(type)

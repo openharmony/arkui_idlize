@@ -61,7 +61,6 @@ typedef InteropCustomObject Ark_CustomObject;
 typedef InteropUndefined Ark_Undefined;
 typedef InteropVMContext Ark_VMContext;
 typedef InteropBuffer Ark_Buffer;
-typedef InteropLength Ark_Length;
 typedef InteropNodeHandle Ark_NodeHandle;
 typedef InteropPipelineContext Ark_PipelineContext;
 typedef InteropCustomObject Ark_CustomObject;

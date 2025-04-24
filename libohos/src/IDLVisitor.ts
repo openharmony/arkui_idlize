@@ -563,6 +563,22 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     serializeTypeAlias(node: ts.TypeAliasDeclaration): idl.IDLTypedef | idl.IDLCallback | idl.IDLInterface | undefined {
         // Monitor decorator differs from the rest of the decorators as it is a type not a const.
         if (ts.idText(node.name) == "MonitorDecorator") return undefined
+        const typedefName = ts.idText(node.name)
+        if (['Dimension', 'Length'].includes(typedefName) /* also package name should be checked here */) {
+            return idl.createTypedef(
+                typedefName,
+                idl.createUnionType([
+                    idl.IDLStringType,
+                    idl.IDLNumberType,
+                    idl.createReferenceType('Resource')
+                ]),
+                [],
+                {
+                    extendedAttributes: [],
+                    fileName: node.getSourceFile().fileName
+                }
+            )
+        }
         const nameSuggestion = NameSuggestion.make(nameOrNull(node.name) ?? "UNDEFINED_TYPE_NAME", true)
         let extendedAttributes = this.computeDeprecatedExtendAttributes(node)
 

@@ -111,24 +111,6 @@ class SerializerPrinter {
             writer.makeMethodCall(`valueSerializer`, `writePointer`, [peerExpr]))
     }
 
-    private generateLengthSerializer() {
-        // generate Length serializer only if there is such a type
-        if (!collectDeclarationTargets(this.library).some(it => it === idl.IDLLengthType)) return
-
-        const methodName = idl.IDLLengthType.name
-        const value = "value"
-
-        const serializerBody = this.writer.makeLengthSerializer("this", value)
-        if (!serializerBody) return
-
-        this.library.setCurrentContext(`write${methodName}()`)
-        this.writer.writeMethodImplementation(
-            new Method(`write${methodName}`,
-                new NamedMethodSignature(idl.IDLVoidType, [idl.IDLLengthType], [value])),
-            writer => writer.writeStatement(serializerBody))
-        this.library.setCurrentContext(undefined)
-    }
-
     print(prefix: string, declarationPath?: string) {
         const className = "Serializer"
         const superName = `${className}Base`
@@ -219,7 +201,6 @@ class SerializerPrinter {
                     // callbacks goes through writeCallbackResource function
                 }
             }
-            this.generateLengthSerializer()
         }, superName)
     }
 }
@@ -445,24 +426,6 @@ class DeserializerPrinter {
         })
     }
 
-    private generateLengthDeserializer() {
-        // generate Length deserializer only if there is such a type
-        if (!collectDeclarationTargets(this.library).some(it => it === idl.IDLLengthType)) return
-
-        const deserializerBody = this.writer.makeLengthDeserializer("this")
-        if (!deserializerBody) return
-
-        const methodName = idl.IDLLengthType.name
-        const value = "value"
-
-        this.library.setCurrentContext(`read${methodName}()`)
-        this.writer.writeMethodImplementation(
-            new Method(`read${methodName}`,
-                new NamedMethodSignature(idl.createOptionalType(idl.IDLLengthType))),
-            writer => writer.writeStatement(deserializerBody))
-        this.library.setCurrentContext(undefined)
-    }
-
     print(prefix: string, declarationPath?: string) {
         const className = "Deserializer"
         const superName = `${className}Base`
@@ -493,7 +456,6 @@ class DeserializerPrinter {
                     this.generateCallbackDeserializer(decl)
                 }
             }
-            this.generateLengthDeserializer()
         }, superName)
         if (this.writer.language == Language.CJ) {
             for (let valueHolder of this.continuationValueHolders) {

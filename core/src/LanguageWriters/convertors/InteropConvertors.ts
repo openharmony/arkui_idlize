@@ -138,7 +138,6 @@ export class InteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLFunctionType: return 'KInt'
             case idl.IDLStringType: return 'KStringPtr'
             case idl.IDLBufferType: return `KInteropBuffer`
-            case idl.IDLLengthType: return 'Length'
             case idl.IDLDate: return 'KLong'
             case idl.IDLUndefinedType:
             case idl.IDLVoidType:

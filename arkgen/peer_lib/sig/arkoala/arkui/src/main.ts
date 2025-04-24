@@ -68,22 +68,6 @@ function checkSerdeResult(name: string, value: any, expected: any) {
     }
 }
 
-function checkSerdeLength() {
-    const ser = Serializer.hold()
-    ser.writeLength("10px")
-    ser.writeLength("11vp")
-    ser.writeLength("12%")
-    ser.writeLength("13lpx")
-    ser.writeLength(14)
-    const des = new Deserializer(ser.asBuffer(), ser.length())
-    checkSerdeResult("Deserializer.readLength, unit px", des.readLength(), "10px")
-    checkSerdeResult("Deserializer.readLength, unit vp", des.readLength(), "11vp")
-    checkSerdeResult("Deserializer.readLength, unit %", des.readLength(), "12%")
-    checkSerdeResult("Deserializer.readLength, unit lpx", des.readLength(), "13lpx")
-    checkSerdeResult("Deserializer.readLength, number", des.readLength(), 14)
-    ser.release()
-}
-
 function checkSerdeText() {
     const ser = Serializer.hold()
     const text = "test text serialization/deserialization"
@@ -412,9 +396,9 @@ function checkButton() {
     ResourceHolder.instance().release(lastResourceId)
 
     checkResult("width", () => peer.width0Attribute("42%"),
-        "width({.type=1, .value=42, .unit=3, .resource=0})")
+        `width({.selector=0, .value0={.chars="42%", .length=3}})`)
     checkResult("height", () => peer.height0Attribute({ id: 43, bundleName: "MyApp", moduleName: "MyApp" }),
-        "height({.type=2, .value=0, .unit=1, .resource=43})")
+        `height({.selector=2, .value2={.bundleName={.chars="MyApp", .length=5}, .moduleName={.chars="MyApp", .length=5}, .id={.tag=102, .i32=43}, .params={.tag=INTEROP_TAG_UNDEFINED, .value={}}, .type={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`)
 
     console.warn("There is an uncontrolled variance between enums.Alignment (@internal/component/ets/enums.d.ts) and common.Alignment (tests/subset/ets/common.d.ts), so, the test 'background' is not stable more")
     // checkResult("background", () => peer.backgroundAttribute(() => {}, {align: 4}),
@@ -450,11 +434,11 @@ function checkFormComponent() {
 
     let peer = ArkFormComponentPeer.create()
     checkResult("size int", () => peer.sizeAttribute({ width: 5, height: 6 }),
-        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=5, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=6, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=5}}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=6}}}})`)
     checkResult("size float", () => peer.sizeAttribute({ width: 5.5, height: 6.789 }),
-        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=5.5, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=6.789, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=103, .f32=5.5}}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=103, .f32=6.789}}}})`)
     checkResult("size zero", () => peer.sizeAttribute({ width: 0.0, height: 0.0 }),
-        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.type=1, .value=0, .unit=1, .resource=0}}})`)
+        `size({.width={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=0}}}, .height={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.tag=102, .i32=0}}}})`)
 
     stopNativeTest(CALL_GROUP_LOG)
 }
@@ -507,7 +491,7 @@ function checkOverloads() {
     )
     checkResult("Test string implementation for SideBarContainer.minSideBarWidth",
         () => component.minSideBarWidth("42%"),
-        `minSideBarWidth({.type=1, .value=42, .unit=3, .resource=0})`
+        `minSideBarWidth({.selector=0, .value0={.chars="42%", .length=3}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -536,7 +520,7 @@ function checkTabContent() {
 
     checkResult("new BottomTabBarStyle()",
         () => peer.tabBar1Attribute(bottomTabBarStyle),
-        `tabBar({.selector=1, .value1={._icon={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.selector=0, .value0={.chars="Icon", .length=4}}}}, ._text={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.chars="Text", .length=4}}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.type=1, .value=10, .unit=1, .resource=0}}}, ._layoutMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._verticalAlign={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._symmetricExtensible={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="bottomId", .length=8}}, ._iconStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
+        `tabBar({.selector=1, .value1={._icon={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.selector=0, .value0={.chars="Icon", .length=4}}}}, ._text={.tag=INTEROP_TAG_OBJECT, .value={.selector=0, .value0={.chars="Text", .length=4}}}, ._labelStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._padding={.tag=INTEROP_TAG_OBJECT, .value={.selector=1, .value1={.selector=1, .value1={.tag=102, .i32=10}}}}, ._layoutMode={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._verticalAlign={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._symmetricExtensible={.tag=INTEROP_TAG_UNDEFINED, .value={}}, ._id={.tag=INTEROP_TAG_OBJECT, .value={.chars="bottomId", .length=8}}, ._iconStyle={.tag=INTEROP_TAG_UNDEFINED, .value={}}}})`
     )
 
     stopNativeTest(CALL_GROUP_LOG)
@@ -705,7 +689,6 @@ function main() {
     checkCallbackWithReturn()
     checkTwoSidesCallbackSync()
 
-    checkSerdeLength()
     checkSerdeText()
     checkSerdePrimitive()
     checkSerdeCustomObject()

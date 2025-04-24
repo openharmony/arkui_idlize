@@ -25,12 +25,12 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     ETSLanguageWriter,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor,
-    isBuilderClass
+    isBuilderClass,
+    TSTypeNameConvertor,
+    ETSTypeNameConvertor
 } from "@idlizer/core";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor, LengthConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
-import { ArkoalaTSTypeNameConvertor, ArkoalaETSTypeNameConvertor,
-    ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor
-} from './ArkoalaTypeNameConvertors';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
+import { ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
@@ -39,9 +39,9 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         const printer = new IndentedPrinter()
         switch (language) {
             case Language.TS: return new TSLanguageWriter(printer, this,
-                new ArkoalaTSTypeNameConvertor(this))
+                new TSTypeNameConvertor(this))
             case Language.ARKTS: return new ETSLanguageWriter(printer, this,
-                new ArkoalaETSTypeNameConvertor(this), new CppConvertor(this))
+                new ETSTypeNameConvertor(this), new CppConvertor(this))
             case Language.JAVA: return new JavaLanguageWriter(printer, this,
                 new ArkoalaJavaTypeNameConvertor(this))
             case Language.CPP: return new CppLanguageWriter(printer, this,
@@ -53,24 +53,18 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
     }
     override createTypeNameConvertor(language: Language): IdlNameConvertor {
         switch (language) {
-            case Language.TS: return new ArkoalaTSTypeNameConvertor(this)
-            case Language.ARKTS: return new ArkoalaETSTypeNameConvertor(this)
+            case Language.TS: return new TSTypeNameConvertor(this)
+            case Language.ARKTS: return new ETSTypeNameConvertor(this)
             case Language.JAVA: return new ArkoalaJavaTypeNameConvertor(this)
             case Language.CJ: return new ArkoalaCJTypeNameConvertor(this)
         }
         return super.createTypeNameConvertor(language)
     }
     override typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
-        switch (type) {
-            case idl.IDLLengthType: return new LengthConvertor(this, "Length", param, this.language)
-        }
         return super.typeConvertor(param, type, isOptionalParam)
     }
     override declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
         switch (type.name) {
-            case `Dimension`:
-            case `Length`:
-                return new LengthConvertor(this, type.name, param, this.language)
             case `Padding`:
                 return new PaddingConvertor(this, param, type, declaration as idl.IDLInterface)
             case `AnimationRange`:

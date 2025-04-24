@@ -507,10 +507,4 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
 
         return [ownedDataCtor, fromBufferCtor]
     }
-    override makeLengthSerializer(serializer: string, value: string): LanguageStatement | undefined {
-        return  undefined
-    }
-    override makeLengthDeserializer(deserializer: string): LanguageStatement | undefined {
-        return  undefined
-    }
 }

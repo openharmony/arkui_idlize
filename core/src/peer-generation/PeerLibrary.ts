@@ -484,9 +484,6 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isReferenceType(type)) {
             // TODO: remove all this!
-            if (type.name === 'Dimension' || type.name === 'Length') {
-                return ArkLength
-            }
             if (type.name === 'Date') {
                 return ArkDate
             }
@@ -524,7 +521,6 @@ export class PeerLibrary implements LibraryInterface {
 export const ArkInt32 = idl.IDLI32Type
 export const ArkInt64 = idl.IDLI64Type
 export const ArkFunction = idl.IDLFunctionType
-export const ArkLength = idl.IDLLengthType
 export const ArkDate = idl.IDLDate
 export const ArkCustomObject = idl.IDLCustomObjectType
 
