@@ -46,8 +46,8 @@ export class TsLayout extends CommonLayoutBase {
         ["Deserializer", "peers/Deserializer"],
         ["CallbackKind", "peers/CallbackKind"],
         ["deserializeAndCallCallback", "peers/CallbackDeserializeCall"],
-        ["checkArkoalaCallbacks", "peers/CallbacksChecker"],
-        ["CallbackTransformer", "peers/CallbackTransformer"],
+        ["checkArkoalaCallbacks", "../CallbacksChecker"],
+        ["CallbackTransformer", "../CallbackTransformer"],
     ])
 
     resolve(target: idl.LayoutTargetDescription): string {
@@ -92,8 +92,8 @@ class ArkTsLayout extends CommonLayoutBase {
         ["Deserializer", "peers/Deserializer"],
         ["CallbackKind", "peers/CallbackKind"],
         ["deserializeAndCallCallback", "peers/CallbackDeserializeCall"],
-        ["checkArkoalaCallbacks", "peers/CallbacksChecker"],
-        ["CallbackTransformer", "peers/CallbackTransformer"],
+        ["checkArkoalaCallbacks", "../CallbacksChecker"],
+        ["CallbackTransformer", "../CallbackTransformer"],
     ])
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g

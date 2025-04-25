@@ -48,6 +48,7 @@
     "cross-env": "^7.0.3"
   },
   "scripts": {
+    "prepack": "node tools/external-subset.mjs",
     "switch:develop": "node tools/devenv.mjs on",
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",

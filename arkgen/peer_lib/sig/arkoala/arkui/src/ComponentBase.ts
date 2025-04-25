@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { PeerNode } from './PeerNode'
+import { PeerNode } from "@koalaui/arkoala"
 
 export class ComponentBase {
     protected peer?: PeerNode

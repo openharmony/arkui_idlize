@@ -5,6 +5,7 @@
 /idl/
 /sdk/
 /sdk-patched/
+/peer_lib/external
 
 /native/NativeBridgeNapi.node
 /native/*.so

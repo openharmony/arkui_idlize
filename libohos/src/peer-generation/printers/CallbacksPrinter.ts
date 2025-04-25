@@ -145,7 +145,7 @@ class DeserializeCallbacksVisitor {
             this.imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
             this.imports.addFeatures(["ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback", "KPointer", "RuntimeType", "KSerializerBuffer", "NativeBuffer"], "@koalaui/interop")
             if (this.libraryName === 'arkoala') {
-                this.imports.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+                this.imports.addFeature("CallbackTransformer", "../CallbackTransformer")
             }
 
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {

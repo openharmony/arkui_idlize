@@ -66,6 +66,20 @@ import { printComponents, printComponentsDeclarations } from "./printers/Compone
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
+import {platform} from "node:os";
+
+export const PeerLib = path.join(__dirname, '../peer_lib')
+export const ExternalJson = path.join(PeerLib, 'external.json')
+
+const ExternalData = JSON.parse(fs.readFileSync(ExternalJson).toString())
+if (!ExternalData) throw new Error(`Cannot parse ${ExternalJson}`)
+
+export const External = path.join(PeerLib, ExternalData.path)
+export const ExternalSubset = path.join(PeerLib, ExternalData.subsetPath)
+
+function currentExternal() {
+    return fs.existsSync(ExternalSubset) ? ExternalSubset : External
+}
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
@@ -103,32 +117,18 @@ export function generateLibaceFromIdl(config: {
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
 
-    copyToLibace(path.join(__dirname, '..', 'peer_lib'), libace)
+    copyToLibace(currentExternal(), libace)
 }
 
 function copyArkoalaFiles(config: {
     onlyIntegrated: boolean | undefined
 }, arkoala: ArkoalaInstall) {
-    copyToArkoala(path.join(__dirname, '..', 'peer_lib'), arkoala, !config.onlyIntegrated ? undefined : [
-        'sig/arkoala-arkts/framework/native/src/generated/arkoala-macros.h',
-        'sig/arkoala/arkui/src/generated/peers/CallbackChecker.ts',
-        'sig/arkoala/arkui/src/generated/peers/CallbackTransformer.ts',
-        'sig/arkoala/arkui/src/generated/shared/generated-utils.ts',
-        'sig/arkoala-arkts/arkui/src/ComponentBase.ts',
-        'sig/arkoala-arkts/arkui/src/PeerNode.ts',
-        'sig/arkoala-arkts/arkui/src/NativePeerNode.ts',
-        'sig/arkoala-arkts/arkui/src/generated/CallbackRegistry.ts',
-        'sig/arkoala-arkts/arkui/src/generated/Events.ts',
-        'sig/arkoala-arkts/arkui/src/generated/arkts/index.ts',
-        'sig/arkoala-arkts/arkui/src/generated/ts/index.ts',
-        'sig/arkoala-arkts/arkui/src/generated/ts/arkts-stdlib.ts',
-        'sig/arkoala-arkts/arkui/src/generated/ts/ArkUINativeModule.ts',
-        'sig/arkoala-arkts/arkui/src/generated/ts/ArkUIGeneratedNativeModule.ts',
-        'sig/arkoala-arkts/arkui/src/generated/ts/TestNativeModule.ts',
-        'sig/arkoala-arkts/arkui/src/generated/peers/CallbacksChecker.ts',
-        'sig/arkoala-arkts/arkui/src/generated/peers/CallbackTransformer.ts',
-        'sig/arkoala-arkts/arkui/src/generated/shared/ArkResource.ts',
-    ])
+    if (config.onlyIntegrated) {
+        copyToArkoala(path.join(PeerLib, "sig"), arkoala, ExternalData.onlyIntegrated);
+        return
+    }
+    copyToArkoala(currentExternal(), arkoala, ExternalData.subset);
+    copyToArkoala(path.join(PeerLib, "sig"), arkoala);
 }
 
 function removeSuffix(path: string, suffix: string): string {
@@ -443,11 +443,11 @@ function selectOutDir(arkoala: ArkoalaInstall, lang: Language) {
 
 function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
     filters = filters?.map(it => path.join(from, it))
-    copyDir(path.join(from, 'sig'), arkoala.sig, true, filters)
+    copyDir(from, arkoala.sig, true, filters)
 }
 
 function copyToLibace(from: string, libace: LibaceInstall) {
-    const macros = path.join(from, 'shared', 'arkoala-macros.h')
+    const macros = path.join(from, 'arkoala-arkts/framework/native/src/arkoala-macros.h')
     fs.copyFileSync(macros, libace.arkoalaMacros)
 }
 

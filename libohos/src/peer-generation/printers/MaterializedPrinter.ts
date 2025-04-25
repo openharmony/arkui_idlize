@@ -351,9 +351,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)
         if (this.library.name === 'arkoala') {
-            this.collector.addFeatures(['CallbackTransformer'], './peers/CallbackTransformer')
+            this.collector.addFeatures(['CallbackTransformer'], '../CallbackTransformer')
             if (this.library.language === Language.TS) {
-                this.collector.addFeatures(['GestureName', 'GestureComponent'], './shared/generated-utils')
+                this.collector.addFeatures(['GestureName', 'GestureComponent'], '../ArkGesture')
             }
         }
     }

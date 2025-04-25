@@ -549,7 +549,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
                 collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
             }
             if (library.name === 'arkoala') {
-                collector.addFeature("CallbackTransformer", "./peers/CallbackTransformer")
+                collector.addFeature("CallbackTransformer", "../CallbackTransformer")
             }
             for (const callback of collectUniqueCallbacks(library)) {
                 if (idl.isSyntheticEntry(callback))

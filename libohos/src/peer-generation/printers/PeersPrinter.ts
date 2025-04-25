@@ -112,14 +112,14 @@ class PeerFileVisitor {
         if (component.interfaceDeclaration)
             collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         if (this.library.language === Language.TS) {
-            imports.addFeature('GestureName', './shared/generated-utils')
-            imports.addFeature('GestureComponent', './shared/generated-utils')
+            imports.addFeature('GestureName', '../ArkGesture')
+            imports.addFeature('GestureComponent', '../ArkGesture')
             imports.addFeatures(['isResource', 'isPadding'], '../utils')
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
             collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), imports)
-            imports.addFeature('CallbackTransformer', './peers/CallbackTransformer')
+            imports.addFeature('CallbackTransformer', '../CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
         }
         if (this.library.language == Language.TS) {

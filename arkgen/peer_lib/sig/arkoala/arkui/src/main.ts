@@ -16,7 +16,7 @@ import { pointer, nullptr, wrapCallback, callCallback, InteropNativeModule, regi
 import { Serializer } from "@arkoala/arkui/generated/peers/Serializer"
 import { Deserializer } from "@arkoala/arkui/generated/peers/Deserializer"
 import { MaterializedBase } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "@arkoala/arkui/generated/peers/CallbacksChecker"
+import { checkArkoalaCallbacks } from "@arkoala/arkui/peer_events_checker"
 import { ArkButtonPeer } from "@arkoala/arkui/generated/button"
 import { ArkCommonPeer } from "@arkoala/arkui/generated/common"
 import { ArkCalendarPickerPeer } from "@arkoala/arkui/generated/calendar_picker"
