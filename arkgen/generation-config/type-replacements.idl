@@ -120,9 +120,13 @@ interface View {
     pointer create(pointer value);
 };
 
+[Synthetic]
+callback FormComponentAttribute_onRouter_callback_type = void (String info);
+
 [Entity=Class]
 interface FormComponentAttribute: [TypeArguments="FormComponentAttribute"] CommonMethod {
     FormComponentAttribute size(SizeOptions value);
+    FormComponentAttribute onRouter(FormComponentAttribute_onRouter_callback_type callback);
 };
 
 [Entity=Class]
