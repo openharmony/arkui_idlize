@@ -353,7 +353,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], '../CallbackTransformer')
             if (this.library.language === Language.TS) {
-                this.collector.addFeatures(['GestureName', 'GestureComponent'], '../ArkGesture')
+                this.collector.addFeatures(['GestureName', 'GestureComponent'], './shared/generated-utils')
             }
         }
     }
