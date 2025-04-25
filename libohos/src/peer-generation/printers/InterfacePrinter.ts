@@ -114,7 +114,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.properties
                 // TODO ArkTS does not support static fields in interfaces
                 .filter(it => !it.isStatic)
-                .map(it => this.printIfNotSeen(it, it => this.printProperty(it, false), seenFields)).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printProperty(it), seenFields)).flat())
             // TODO enable when materialized will print methods from parent interface, now do not have time to implement this
             // .concat(idlInterface.methods
             //     .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields)).flat())
@@ -132,7 +132,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())
             .concat(idlInterface.properties
-                .map(it => this.printProperty(it, true)).flat())
+                .map(it => this.printProperty(it)).flat())
             .concat(idlInterface.methods
                 .map(it => this.printMethod(it)).flat())
             .concat(idlInterface.callables
@@ -183,10 +183,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         ]
     }
 
-    protected printProperty(prop: idl.IDLProperty, allowReadonly: boolean): stringOrNone[] {
+    protected printProperty(prop: idl.IDLProperty): stringOrNone[] {
         const staticMod = prop.isStatic ? "static " : ""
-        // TODO stub until issue 20764 is fixed
-        const readonlyMod = prop.isReadonly && allowReadonly ? "readonly " : ""
+        const readonlyMod = prop.isReadonly ? "readonly " : ""
         return [
             ...this.printExtendedAttributes(prop),
             indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1)

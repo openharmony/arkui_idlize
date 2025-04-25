@@ -16,7 +16,7 @@ export function init() {
 }
 
 function makeBuffer(len: int32, source: KPointer): OHBuffer {
-    const result = new byte[64];
+    const result: FixedArray<byte> = new byte[64];
     OHOS_XMLNativeModule._AllocateNativeBuffer(len, source, result);
     const deserializer = new DeserializerBase(result, 64);
     return deserializer.readBuffer()
