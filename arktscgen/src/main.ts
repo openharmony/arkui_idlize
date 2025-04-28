@@ -17,7 +17,7 @@ import * as path from "node:path"
 import { toIDLFile } from "@idlizer/core"
 import { DynamicEmitter } from "./emitters/DynamicEmitter"
 import { Config } from "./general/Config"
-import { IgnoreOptions } from "./options/IgnoreOptions"
+import { IgnoreOptions, IrHackOptions } from "./options/IgnoreOptions"
 import { StaticEmitter } from "./emitters/StaticEmitter"
 import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"
@@ -43,6 +43,7 @@ function main() {
         new Config(
             new IgnoreOptions(options.optionsFile),
             new NonNullableOptions(options.optionsFile),
+            new IrHackOptions(options.optionsFile),
         ),
         options.debug
     ).emit()

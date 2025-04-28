@@ -36,6 +36,7 @@ export abstract class TopLevelTypeConvertor<T> extends BaseTypeConvertor<T> {
             ...heirConversions,
             ...{
                 i8: heirConversions.number,
+                iu8: heirConversions.number,
                 i16: heirConversions.number,
                 i32: heirConversions.number,
                 iu32: heirConversions.number,

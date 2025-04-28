@@ -14,27 +14,15 @@
  */
 
 import { createUpdatedInterface, createUpdatedMethod, isSequence } from "../../utils/idl"
-import { createFile, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
+import { createFile, IDLEntity, IDLEntry, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
 import { Transformer } from "../Transformer";
 
-export class ParameterTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
-
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                })
-        )
+export class ParameterTransformer extends Transformer {
+    constructor(file: IDLFile) {
+        super(file)
     }
 
-    private transformInterface(node: IDLInterface): IDLInterface {
+    transformInterface(node: IDLInterface): IDLEntry | undefined {
         return createUpdatedInterface(
             node,
             node.methods.map(it => this.transformMethod(it, node))

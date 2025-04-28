@@ -14,14 +14,15 @@
  */
 
 import { IDLKind, IDLMethod, isTypedef, LanguageWriter, throwException } from "@idlizer/core"
-import { IDLEntry, IDLInterface, isEnum, isInterface, } from "@idlizer/core/idl"
+import { IDLEntry, IDLInterface, IDLNode, isEnum, isInterface, isNamespace, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
 import { Typechecker } from "../../general/Typechecker"
+import { AbstractVisitor } from "../SingleFilePrinter"
 
-export abstract class InteropPrinter {
-    constructor(
-        protected file: IDLFile,
-    ) { }
+export abstract class InteropPrinter extends AbstractVisitor {
+    constructor(protected file: IDLFile) {
+        super()
+    }
 
     protected abstract writer: LanguageWriter
 
@@ -32,27 +33,20 @@ export abstract class InteropPrinter {
         return this.writer.getOutput().join('\n')
     }
 
-    private visit(node: IDLEntry): void {
+    visit(node: IDLNode): void {
         if (isInterface(node)) {
-            return this.visitInterface(node)
+            this.visitInterface(node)
         }
-        if (isEnum(node)) {
-            return
-        }
-        if (isTypedef(node)) {
-            return
-        }
-
-        throwException(`Unexpected top-level node: ${IDLKind[node.kind]}`)
+        this.visitChildren(node)
     }
 
-    private visitInterface(node: IDLInterface): void {
-        node.methods.forEach(it => this.visitMethod(it))
+    visitInterface(node: IDLInterface): void {
+        node.methods.forEach(it => this.visitMethod(node, it))
     }
 
-    private visitMethod(node: IDLMethod): void {
-        this.printMethod(node)
+    visitMethod(iface: IDLInterface, node: IDLMethod): void {
+        this.printMethod(iface, node)
     }
 
-    protected printMethod(node: IDLMethod): void {}
+    protected printMethod(iface: IDLInterface, node: IDLMethod): void {}
 }

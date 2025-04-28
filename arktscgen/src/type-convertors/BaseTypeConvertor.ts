@@ -32,6 +32,8 @@ import {
     IDLType,
     IDLTypeParameterType,
     IDLU32Type,
+    IDLU64Type,
+    IDLU8Type,
     IDLUnionType,
     IDLVoidType,
     isEnum,
@@ -50,6 +52,7 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
             reference: (type: IDLReferenceType) => T
             optional: (type: IDLOptionalType) => T
             i8: (type: IDLPrimitiveType) => T
+            iu8: (type: IDLPrimitiveType) => T
             i16: (type: IDLPrimitiveType) => T
             i32: (type: IDLPrimitiveType) => T
             iu32: (type: IDLPrimitiveType) => T
@@ -74,9 +77,11 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     convertPrimitiveType(type: IDLPrimitiveType): T {
         switch (type) {
             case IDLI8Type: return this.conversions.i8(type)
+            case IDLU8Type: return this.conversions.iu8(type)
             case IDLI16Type: return this.conversions.i16(type)
             case IDLI32Type: return this.conversions.i32(type)
             case IDLU32Type: return this.conversions.iu32(type)
+            case IDLU64Type: return this.conversions.iu64(type)
             case IDLI64Type: return this.conversions.i64(type)
             case IDLF32Type: return this.conversions.f32(type)
             case IDLF64Type: return this.conversions.f64(type)

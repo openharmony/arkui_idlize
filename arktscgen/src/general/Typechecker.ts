@@ -22,23 +22,28 @@ import {
     isEnum,
     isInterface,
     isPrimitiveType,
-    isReferenceType
+    isReferenceType,
+    linearizeNamespaceMembers
 } from "@idlizer/core"
 import { Config } from "./Config"
-import { isIrNamespace, nodeType } from "../utils/idl"
+import { baseName, baseNameString, isIrNamespace, nodeType } from "../utils/idl"
 
 export class Typechecker {
-    constructor(private idl: IDLEntry[]) {}
+    constructor(private idl: IDLEntry[]) {
+        this.idl = linearizeNamespaceMembers(idl)
+    }
 
     findRealDeclaration(name: string): IDLEntry | undefined {
-        const declarations = this.idl.filter(it => name === it.name)
+        // Poor man's namespace-aware resolve.
+        // TODO: REWORK IT ALL!
+        const declarations = this.idl.filter(it => (name === it.name) || (baseNameString(name) == baseNameString(it.name)))
         if (declarations.length === 1) {
             return declarations[0]
         }
         const ir = declarations
             .filter(isInterface)
             .filter(it => isIrNamespace(it))
-        if (ir.length === 1) {
+        if (ir.length > 0) {
             return ir[0]
         }
         return undefined

@@ -24,7 +24,7 @@ import {
     MethodSignature,
     TSLanguageWriter
 } from "@idlizer/core"
-import { IDLType, } from "@idlizer/core/idl"
+import { IDLInterface, IDLType, } from "@idlizer/core/idl"
 import { IDLFile } from "@idlizer/core"
 import { InteropPrinter } from "./InteropPrinter"
 import { BindingsConstructions } from "../../constuctions/BindingsConstructions"
@@ -47,7 +47,7 @@ export class BindingsPrinter extends InteropPrinter {
 
     private returnConvertor = new ReturnTypeConvertor(this.typechecker)
 
-    override printMethod(node: IDLMethod): void {
+    override printMethod(iface: IDLInterface, node: IDLMethod): void {
         this.writer.writeMethodImplementation(
             new Method(
                 BindingsConstructions.method(node.name),

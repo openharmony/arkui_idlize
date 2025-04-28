@@ -16,7 +16,7 @@
 import JSON5 from "json5"
 import * as fs from "node:fs"
 
-type Partial = { interface: string, methods: string[] }
+type Partial = { interface: string, methods: string[], properties: string[] }
 
 export class IgnoreOptions {
     constructor(filePath?: string) {
@@ -32,10 +32,29 @@ export class IgnoreOptions {
     private readonly partial: Partial[] = []
 
     isIgnoredMethod(iface: string, method: string): boolean {
-        return this.partial?.some(it => it.interface === iface && it.methods.includes(method))
+        return this.partial?.some(it => it.interface === iface && it.methods?.includes(method))
+    }
+
+    isIgnoredProperty(iface: string, name: string): boolean {
+        return this.partial?.some(it => it.interface === iface && it.properties?.includes(name))
     }
 
     isIgnoredInterface(name: string): boolean {
         return this.full.includes(name)
+    }
+}
+
+// TODO: remove when interfaces fixed!
+export class IrHackOptions {
+    private readonly irHack: string[] = []
+    constructor(filePath?: string) {
+        if (filePath === undefined) {
+            return
+        }
+        const json = JSON5.parse(fs.readFileSync(filePath).toString())
+        this.irHack = json?.irHack ?? []
+    }
+    isIrHackInterface(name: string): boolean {
+        return this.irHack.includes(name)
     }
 }

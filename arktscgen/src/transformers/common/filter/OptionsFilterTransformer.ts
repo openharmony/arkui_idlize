@@ -32,4 +32,9 @@ export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     protected shouldFilterOutMethod(node: string, name: string): boolean {
         return this.config.ignore.isIgnoredMethod(node, name)
     }
+
+    protected shouldFilterOutProperty(node: string, name: string): boolean {
+        return this.config.ignore.isIgnoredProperty(node, name)
+    }
+
 }

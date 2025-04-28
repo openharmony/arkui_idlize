@@ -13,40 +13,27 @@
  * limitations under the License.
  */
 
-import { createFile, createParameter, createReferenceType, IDLFile, IDLMethod } from "@idlizer/core"
-import { IDLInterface, isInterface } from "@idlizer/core/idl"
+import { createParameter, createReferenceType, IDLFile, IDLMethod } from "@idlizer/core"
+import { IDLEntry, IDLInterface } from "@idlizer/core/idl"
 import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { createUpdatedInterface, createUpdatedMethod, isSequence, nodeNamespace } from "../../utils/idl"
 import { isCreateOrUpdate, mangleIfKeyword } from "../../general/common";
 import { Transformer } from "../Transformer";
+import { Config } from "../../general/Config";
 
-export class InteropTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
-
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                }),
-            this.file.fileName
-        )
+export class InteropTransformer extends Transformer {
+    constructor(private config: Config, file: IDLFile) {
+        super(file)
     }
 
-    private transformInterface(node: IDLInterface): IDLInterface {
-        node = this.withTransformedMethods(node)
-        return node
+    transformInterface(node: IDLInterface): IDLEntry|undefined {
+        return this.withTransformedMethods(node)
     }
 
-    private withTransformedMethods(node: IDLInterface): IDLInterface {
+    private withTransformedMethods(node: IDLInterface): IDLEntry {
         return createUpdatedInterface(
             node,
-            node.methods.map(it => this.transformMethod(it, node))
+            node.methods.map(it => this.transformMethod(it, node)),
         )
     }
 

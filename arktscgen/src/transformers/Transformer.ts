@@ -13,8 +13,41 @@
  * limitations under the License.
  */
 
-import { IDLFile } from "@idlizer/core";
+import { createFile, createNamespace, IDLEntry, IDLFile, IDLInterface, isDefined, isInterface, isNamespace, linearizeNamespaceMembers, linkParentBack } from "@idlizer/core";
 
-export interface Transformer {
-    transformed(): IDLFile
+export abstract class Transformer {
+    constructor(protected file: IDLFile, private removeNamespaces: boolean = false) {}
+
+    transformFile(input: IDLFile): IDLFile {
+        let entries: IDLEntry[] = this.removeNamespaces ?
+            linearizeNamespaceMembers(input.entries).filter(it => !isNamespace(it)) : input.entries
+        let file = createFile(entries
+            .map(it => this.transformDeep(it))
+            .filter(isDefined),
+            input.fileName)
+        linkParentBack(file)
+        return file
+    }
+    transformDeep(entry: IDLEntry): IDLEntry | undefined {
+        if (isNamespace(entry)) {
+            return createNamespace(entry.name,
+                entry.members
+                    .map(it => this.transformDeep(it))
+                    .filter(isDefined)
+                )
+        }
+        return this.transform(entry)
+    }
+
+    transform(entry: IDLEntry): IDLEntry | undefined {
+        if  (isInterface(entry))
+            return this.transformInterface(entry)
+        else
+            return entry
+    }
+
+    transformed(): IDLFile {
+        return this.transformFile(this.file)
+    }
+    abstract transformInterface(entry: IDLInterface): IDLEntry | undefined
 }

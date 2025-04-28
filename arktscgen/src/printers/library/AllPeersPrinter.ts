@@ -14,22 +14,22 @@
  */
 
 import { MultiFilePrinter, MultiFileOutput } from "../MultiFilePrinter"
-import { IDLInterface, isInterface } from "@idlizer/core"
+import { IDLFile, IDLInterface, IDLNode, isInterface } from "@idlizer/core"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { PeerPrinter } from "./PeerPrinter"
+import { Config } from "../../general/Config"
 
 export class AllPeersPrinter extends MultiFilePrinter {
-    print(): MultiFileOutput[] {
-        return this.idl.entries
-            .filter(isInterface)
-            .filter(it => this.typechecker.isPeer(it.name))
-            .map(it => this.printInterface(it))
+    constructor(private config: Config, idl: IDLFile) {
+        super(idl)
     }
-
-    private printInterface(node: IDLInterface): MultiFileOutput {
+    protected filterInterface(node: IDLInterface): boolean {
+        return !this.typechecker.isPeer(node.name)
+    }
+    printInterface(node: IDLInterface): MultiFileOutput {
         return {
             fileName: PeersConstructions.fileName(node.name),
-            output: new PeerPrinter(this.idl, node).print()
+            output: new PeerPrinter(this.config, this.idl, node).print()
         }
     }
 }

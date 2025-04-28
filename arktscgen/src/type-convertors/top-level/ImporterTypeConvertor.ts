@@ -26,6 +26,7 @@ import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
 import { Importer } from "../../printers/library/Importer"
 import { Typechecker } from "../../general/Typechecker"
 import { BaseTypeConvertor } from "../BaseTypeConvertor"
+import { baseName } from "../../utils/idl"
 
 export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
     constructor(
@@ -46,7 +47,7 @@ export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
                 return type
             },
             reference: (type: IDLReferenceType) => {
-                this.importer.withPeerImport(type.name)
+                this.importer.withPeerImport(baseName(type))
                 return type
             },
             string: (type: IDLPrimitiveType) => type,

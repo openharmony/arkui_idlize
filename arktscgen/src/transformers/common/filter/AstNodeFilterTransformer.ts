@@ -13,17 +13,26 @@
  * limitations under the License.
  */
 
+import { IDLFile } from "@idlizer/core/idl"
 import { Config } from "../../../general/Config"
 import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
 
 export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
+    constructor(idl: IDLFile) {
+        super(idl, true)
+    }
     protected shouldFilterOutInterface(name: string): boolean {
         if (this.typechecker.isHeir(name, Config.astNodeCommonAncestor)) return false
         if (this.typechecker.isHeir(name, Config.defaultAncestor)) return false
+        console.log(`FILTERED (AST) ${name}`)
         return true
     }
 
     protected shouldFilterOutMethod(node: string, name: string): boolean {
+        return false
+    }
+
+    protected shouldFilterOutProperty(node: string, name: string): boolean {
         return false
     }
 }

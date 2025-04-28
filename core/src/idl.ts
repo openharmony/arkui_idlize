@@ -102,7 +102,7 @@ export interface IDLNode {
     documentation?: string
 }
 
-export interface IDLFile extends IDLNode{
+export interface IDLFile extends IDLNode {
     packageClause: string[],
     entries: IDLEntry[],
     text?: string,

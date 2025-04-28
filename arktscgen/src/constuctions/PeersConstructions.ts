@@ -17,6 +17,7 @@ import { BindingsConstructions } from "./BindingsConstructions"
 import { InteropConstructions } from "./InteropConstructions"
 import { peerMethod } from "../general/common"
 import { createReferenceType } from "@idlizer/core"
+import { Config } from "../general/Config"
 
 export class PeersConstructions {
     static fileName(node: string): string {

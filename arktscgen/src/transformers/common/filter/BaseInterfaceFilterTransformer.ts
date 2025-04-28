@@ -14,43 +14,36 @@
  */
 
 import { createUpdatedInterface, innerTypeIfContainer } from "../../../utils/idl"
-import { createFile, IDLFile, IDLMethod, isInterface, isReferenceType } from "@idlizer/core"
+import { createFile, createNamespace, IDLEntry, IDLFile, IDLInterface, IDLMethod, isInterface, isNamespace, isReferenceType } from "@idlizer/core"
 import { Transformer } from "../../Transformer"
 import { Typechecker } from "../../../general/Typechecker"
 
-export abstract class BaseInterfaceFilterTransformer implements Transformer {
-    constructor(
-        protected file: IDLFile
-    ) {}
+export abstract class BaseInterfaceFilterTransformer extends Transformer {
+    constructor(file: IDLFile, removeNamespaces: boolean = false) {
+        super(file, removeNamespaces)
+    }
 
     protected typechecker = new Typechecker(this.file.entries)
 
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .flatMap(entry => {
-                    if (!isInterface(entry)) {
-                        return entry
-                    }
-                    if (this.shouldFilterOutInterface(entry.name)) {
-                        return []
-                    }
-                    return createUpdatedInterface(
-                        entry,
-                        entry.methods
-                            .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))
-                            .filter(it => !this.isReferringForbiddenOrMissing(
-                                it,
-                                (name: string) => this.shouldFilterOutInterface(name)
-                            ))
-                    )
-                }),
-            this.file.fileName
+    transformInterface(entry: IDLInterface): IDLEntry|undefined {
+        if (this.shouldFilterOutInterface(entry.name)) {
+            return undefined
+        }
+        return createUpdatedInterface(
+            entry,
+            entry.methods
+                .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))
+                .filter(it => !this.isReferringForbiddenOrMissing(it, (name: string) => this.shouldFilterOutInterface(name))),
+            entry.name,
+            entry.inheritance,
+            entry.extendedAttributes,
+            entry.properties
+                .filter(it => !this.shouldFilterOutProperty(entry.name, it.name))
         )
     }
 
     protected abstract shouldFilterOutMethod(node: string, name: string): boolean
-
+    protected abstract shouldFilterOutProperty(node: string, name: string): boolean
     protected abstract shouldFilterOutInterface(name: string): boolean
 
     protected isReferringForbiddenOrMissing(node: IDLMethod, predicate: (_: string) => boolean): boolean {
@@ -68,7 +61,6 @@ export abstract class BaseInterfaceFilterTransformer implements Transformer {
                     }
                 }
                 return false
-            })
-            .length !== 0
+            }).length !== 0
     }
 }

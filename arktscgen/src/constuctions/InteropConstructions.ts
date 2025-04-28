@@ -45,9 +45,9 @@ export class InteropConstructions {
     static method(interfaceName: string, methodName: string, namespaceName: string = ""): string {
         if (isCreateOrUpdate(methodName)) {
             const { createOrUpdate, rest } = splitCreateOrUpdate(methodName)
-            return `${createOrUpdate}${interfaceName}${capitalize(namespaceName)}${rest}`
+            return `${createOrUpdate}${interfaceName}${rest}`
         }
-        return `${interfaceName}${capitalize(namespaceName)}${methodName}`
+        return `${interfaceName}${methodName}`
     }
 
     static get keywords(): string[] {

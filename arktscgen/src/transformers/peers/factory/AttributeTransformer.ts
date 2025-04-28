@@ -18,6 +18,7 @@ import {
     createFile,
     createProperty,
     groupByIndexed,
+    IDLEntry,
     IDLFile,
     IDLInterface,
     IDLMethod,
@@ -33,10 +34,10 @@ import { LibraryTypeConvertor } from "../../../type-convertors/top-level/Library
 import { Typechecker } from "../../../general/Typechecker"
 import { remove } from "../../../utils/array"
 
-export class AttributeTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
+export class AttributeTransformer extends Transformer {
+    constructor(file: IDLFile) {
+        super(file)
+    }
 
     private convertor = new LibraryTypeConvertor(new Typechecker(this.file.entries))
 
@@ -47,19 +48,7 @@ export class AttributeTransformer implements Transformer {
         return this.convertor.convertType(type)
     }
 
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                })
-        )
-    }
-
-    private transformInterface(node: IDLInterface): IDLInterface {
+    transformInterface(node: IDLInterface): IDLEntry {
         const creates = node.methods.filter(it => isCreate(it.name))
         if (creates.length !== 1) {
             return node
@@ -67,7 +56,7 @@ export class AttributeTransformer implements Transformer {
         return this.greedilyMapped(node , creates[0]) ?? node
     }
 
-    private greedilyMapped(node: IDLInterface, create: IDLMethod): IDLInterface | undefined {
+    private greedilyMapped(node: IDLInterface, create: IDLMethod): IDLEntry | undefined {
         const mapped = this.map(
             node.methods,
             groupByIndexed(

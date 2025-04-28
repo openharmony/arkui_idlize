@@ -15,17 +15,22 @@
 
 import {
     createEmptyReferenceResolver,
+    createParameter,
     createReferenceType,
     IDLInterface,
     IDLMethod,
+    IDLNode,
+    IDLParameter,
+    IDLProperty,
     IDLType,
     IndentedPrinter,
     isInterface,
+    isOptionalType,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { makeMethod } from "../../utils/idl"
+import { flattenType, makeMethod } from "../../utils/idl"
 import { isCreate, mangleIfKeyword } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
@@ -53,42 +58,37 @@ export class FactoryPrinter extends SingleFilePrinter {
         }
     )
 
-    private withFactoryDeclaration(prints: (() => void)[]): void {
+    prologue() {
         this.writer.writeExpressionStatements(
             this.writer.makeString(FactoryConstructions.prologue)
         )
-        prints.forEach(it =>
-            this.writer.printer.withIndent(
-                (printer) => {
-                    it()
-                    printer.print(`,`)
-                }
-            )
-        )
+        this.writer.pushIndent()
+    }
+
+    epilogue() {
+        this.writer.popIndent()
         this.writer.writeExpressionStatements(
             this.writer.makeString(FactoryConstructions.epilogue)
         )
     }
 
-    visit(): void {
-        this.withFactoryDeclaration(
-            this.idl.entries
-                .filter(isInterface)
-                .filter(it => this.typechecker.isPeer(it.name))
-                .filter(it => FactoryPrinter.getUniversalCreate(it) !== undefined)
-                .flatMap(it => [
-                    () => this.printCreate(it),
-                    () => this.printUpdate(it)
-                ])
-        )
+    protected filterInterface(node: IDLInterface): boolean {
+        return !this.typechecker.isPeer(node.name) || FactoryPrinter.getUniversalCreate(node) == undefined
+    }
+
+    printInterface(node: IDLInterface) {
+        this.printCreate(node)
+        this.writer.print(',')
+        this.printUpdate(node)
+        this.writer.print(',')
     }
 
     private printCreate(node: IDLInterface): void {
         this.writer.writeMethodImplementation(
             makeMethod(
                 PeersConstructions.universalCreate(node.name),
-                node.properties,
-                createReferenceType(node.name)
+                this.makeParameters(node.properties),
+                flattenType(createReferenceType(node.name))
             ),
             () => this.writer.writeStatement(
                 this.writer.makeReturn(
@@ -104,16 +104,24 @@ export class FactoryPrinter extends SingleFilePrinter {
         )
     }
 
+    private makeParameters(properties: IDLProperty[]): IDLParameter[] {
+        // We may need to ensure optional parameters are at the end
+        return properties
+            .map(it => createParameter(it.name, flattenType(it.type), it.isOptional))
+    }
+
     private printUpdate(node: IDLInterface): void {
         this.writer.writeMethodImplementation(
             makeMethod(
                 PeersConstructions.universalUpdate(node.name),
                 [{
                     name: FactoryConstructions.original,
-                    type: id<IDLType>(createReferenceType(node.name))
+                    type: id<IDLType>(flattenType(createReferenceType(node.name))),
+                    isOptional: false
                 }]
-                    .concat(node.properties),
-                createReferenceType(node.name)
+                    .concat(this.makeParameters(node.properties)),
+                flattenType(createReferenceType(node.name)),
+
             ),
             () => {
                 this.printUnchangedBranch(node)

@@ -13,13 +13,14 @@
  * limitations under the License.
  */
 
-import { IgnoreOptions } from "../options/IgnoreOptions"
+import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions"
 import { NonNullableOptions } from "../options/NonNullableOptions"
 
 export class Config {
     constructor(
         public ignore: IgnoreOptions,
         public nonNullable: NonNullableOptions,
+        public irHack: IrHackOptions,
     ) {}
 
     static get createPrefix(): string {

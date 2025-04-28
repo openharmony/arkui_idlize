@@ -35,6 +35,7 @@ export class ReturnTypeConvertor extends BaseTypeConvertor<IDLType> {
             reference: (type: IDLReferenceType) => type,
             optional: (type: IDLOptionalType) => type,
             i8: (type: IDLPrimitiveType) => type,
+            iu8: (type: IDLPrimitiveType) => type,
             i16: (type: IDLPrimitiveType) => type,
             i32: (type: IDLPrimitiveType) => type,
             iu32: (type: IDLPrimitiveType) => type,

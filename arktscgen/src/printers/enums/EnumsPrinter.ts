@@ -14,7 +14,7 @@
  */
 
 import { createEmptyReferenceResolver, IndentedPrinter, isEnum, throwException, TSLanguageWriter } from "@idlizer/core"
-import { IDLEnum, IDLType } from "@idlizer/core/idl"
+import { IDLEntry, IDLEnum, IDLInterface, IDLType } from "@idlizer/core/idl"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { isNumber } from "../../utils/types"
 import { fixEnumPrefix } from "../../general/common"
@@ -26,13 +26,11 @@ export class EnumsPrinter extends SingleFilePrinter {
         { convert : (node: IDLType) => { throwException(`Unexpected call to covert type`) } },
     )
 
-    visit(): void {
-        this.idl.entries
-            .filter(isEnum)
-            .forEach(it => this.printEnum(it))
+    protected printInterface(node: IDLInterface): void {}
+    protected filterInterface(node: IDLInterface): boolean {
+        return true
     }
-
-    private printEnum(node: IDLEnum): void {
+    printEnum(node: IDLEnum): void {
         this.writer.writeEnum(
             fixEnumPrefix(node.name),
             node.elements.map(it => {

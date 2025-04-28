@@ -32,7 +32,7 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { makeMethod, nodeNamespace, nodeType, parent } from "../../utils/idl"
+import { flattenType, makeMethod, nodeNamespace, nodeType, parent } from "../../utils/idl"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import {
     isAbstract,
@@ -56,7 +56,21 @@ import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { Config } from "../../general/Config"
 
 export class PeerPrinter extends SingleFilePrinter {
+    protected printInterface(node: IDLInterface): void {
+        if (node != this.node) throw new Error("Must match")
+        this.printPeer()
+        if (!isDataClass(this.node)) {
+            this.printTypeGuard()
+        }
+        if (isReal(this.node)) {
+            this.printAddToNodeMap()
+        }
+    }
+    protected filterInterface(node: IDLInterface): boolean {
+        return node != this.node
+    }
     constructor(
+        private config: Config,
         idl: IDLFile,
         private node: IDLInterface
     ) {
@@ -71,7 +85,7 @@ export class PeerPrinter extends SingleFilePrinter {
 
     private bindingReturnValueTypeConvertor = new BindingReturnValueTypeConvertor(this.typechecker)
 
-    private parent = parent(this.node) ?? throwException(`expected peer to have parent: ${this.node.name}`)
+    private parent = parent(this.node) // ?? throwException(`expected peer to have parent: ${this.node.name}`)
 
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
@@ -84,21 +98,11 @@ export class PeerPrinter extends SingleFilePrinter {
         }
     )
 
-    protected visit(): void {
-        this.printPeer()
-        if (!isDataClass(this.node)) {
-            this.printTypeGuard()
-        }
-        if (isReal(this.node)) {
-            this.printAddToNodeMap()
-        }
-    }
-
     private printPeer(): void {
         this.writer.writeClass(
             this.node.name,
             () => this.printBody(),
-            this.importer.withPeerImport(this.parent)
+            this.parent ? this.importer.withPeerImport(this.parent) : undefined
         )
     }
 
@@ -196,7 +200,7 @@ export class PeerPrinter extends SingleFilePrinter {
             new Method(
                 peerMethod(node.name),
                 new MethodSignature(
-                    node.returnType,
+                    flattenType(node.returnType),
                     []
                 ),
                 [MethodModifier.GETTER]
@@ -218,8 +222,8 @@ export class PeerPrinter extends SingleFilePrinter {
         this.writer.writeMethodImplementation(
             makeMethod(
                 peerMethod(node.name),
-                node.parameters,
-                PeersConstructions.this.type
+                node.parameters.map(it => createParameter(it.name, flattenType(it.type))),
+                flattenType(PeersConstructions.this.type)
             ),
             () => {
                 this.writer.writeExpressionStatement(
@@ -259,8 +263,8 @@ export class PeerPrinter extends SingleFilePrinter {
                     this.node.name,
                     node.name
                 ),
-                node.parameters,
-                node.returnType,
+                node.parameters.map(it => createParameter(it.name, flattenType(it.type))),
+                flattenType(node.returnType),
                 [MethodModifier.STATIC]
             ),
             () => {
@@ -315,7 +319,7 @@ export class PeerPrinter extends SingleFilePrinter {
         const qualified = `${this.importer.withEnumImport(Config.nodeTypeAttribute)}.${enumValue}`
         this.writer.writeExpressionStatements(
             this.writer.makeString(`if (!nodeByType.has(${qualified})) {`),
-            this.writer.makeString(`    nodeByType.set(${qualified}, ${this.node.name})`),
+            this.writer.makeString(`    nodeByType.set(${qualified}, (peer: KNativePointer) => new ${this.node.name}(peer))`),
             this.writer.makeString(`}`)
         )
     }

@@ -13,35 +13,32 @@
  * limitations under the License.
  */
 
-import { createFile, IDLFile, isInterface } from "@idlizer/core"
-import { dropNamespace, nodeNamespace } from "../../../utils/idl"
+import { IDLEntry, IDLFile, IDLInterface, linearizeNamespaceMembers } from "@idlizer/core"
+import { baseNameString, isIrNamespace, nodeNamespace } from "../../../utils/idl"
 import { Transformer } from "../../Transformer"
+import { id } from "../../../utils/types"
+import { Config } from "../../../general/Config"
 
-export class MultipleDeclarationFilterTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
-
-    transformed(): IDLFile {
-        const seen = new Map<string, number>()
-        this.file.entries.forEach(it => {
-            const oldValue = seen.get(it.name) ?? 0
-            seen.set(it.name, oldValue+1)
+export class MultipleDeclarationFilterTransformer extends Transformer {
+    constructor(file: IDLFile) {
+        super(file)
+        // TODO: namespaces
+        linearizeNamespaceMembers(this.file.entries).forEach(it => {
+            let name = baseNameString(it.name)
+            const oldValue = this.seen.get(name) ?? 0
+            this.seen.set(name, oldValue + 1)
         })
-        return createFile(
-            this.file.entries.filter(it => {
-                if (!isInterface(it)) {
-                    return it
-                }
-                const occurence = seen.get(it.name) ?? 0
-                if (occurence < 2) {
-                    dropNamespace(it)
-                }
-                if (occurence > 1 && nodeNamespace(it) != "ir") return undefined
+    }
 
-                return it
-            }),
-            this.file.fileName
-        )
+    seen = new Map<string, number>()
+
+    transformInterface(entry: IDLInterface): IDLEntry | undefined {
+        const occurence = this.seen.get(baseNameString(entry.name)) ?? 0
+        if (occurence > 1 && !isIrNamespace(entry)) {
+            console.log(`FILTERED (MULTIPLE) ${entry.name}`)
+            this.seen.set(baseNameString(entry.name), occurence - 1)
+            return undefined
+        }
+        return entry
     }
 }

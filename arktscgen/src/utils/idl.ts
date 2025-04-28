@@ -18,11 +18,15 @@ import {
     createEmptyReferenceResolver,
     createInterface,
     createMethod,
+    getFQName,
+    getNamespacesPathFor,
     IDLContainerType,
     IDLContainerUtils,
     IDLExtendedAttribute,
     IDLInterface,
     IDLMethod,
+    IDLNamespace,
+    IDLNode,
     IDLParameter,
     IDLPrimitiveType,
     IDLProperty,
@@ -37,6 +41,7 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
+import * as idl from "@idlizer/core"
 import { Config } from "../general/Config"
 import { mangleIfKeyword } from "../general/common"
 
@@ -55,7 +60,7 @@ export function createUpdatedInterface(
     inheritance?: IDLReferenceType[],
     extendedAttributes?: IDLExtendedAttribute[],
     properties?: IDLProperty[]
-): IDLInterface {
+): idl.IDLInterface | idl.IDLNamespace {
     return createInterface(
         name ?? node.name,
         node.subkind,
@@ -72,6 +77,36 @@ export function createUpdatedInterface(
             documentation: node.documentation
         }
     )
+}
+
+export function baseName(type: IDLReferenceType): string {
+    return baseNameString(type.name)
+}
+
+export function baseNameString(name: string): string {
+    if (name.indexOf('.') > 0) {
+        return name.substring(name.lastIndexOf('.') + 1)
+    } else {
+        return name
+    }
+}
+
+// A bit of a hack, use namespaces for real later.
+export function flattenType(type: IDLType): IDLType {
+        if (idl.isUnionType(type))
+            return idl.createUnionType(type.types.map(flattenType), type.name)
+        if (idl.isOptionalType(type))
+            return idl.createOptionalType(flattenType(type.type))
+        if (isContainerType(type))
+            return createContainerType(type.containerKind, type.elementType.map(flattenType))
+        if (idl.isReferenceType(type)) {
+            if (type.name.indexOf(".") > 0) {
+                let result = idl.createReferenceType(baseName(type))
+                //console.log(`flatten ${type.name} to ${result.name}`)
+                return result
+            }
+        }
+        return type
 }
 
 export function createUpdatedMethod(
@@ -107,9 +142,7 @@ export function nodeType(node: IDLInterface): string | undefined {
 }
 
 export function nodeNamespace(node: IDLInterface): string | undefined {
-    return node.extendedAttributes
-        ?.find(it => it.name === Config.nodeNamespaceAttribute)
-        ?.value
+    return getNamespacesPathFor(node)[0]?.name
 }
 
 export function dropNamespace(node: IDLInterface) {
@@ -139,7 +172,8 @@ export function signatureTypes(node: IDLMethod): IDLType[] {
 }
 
 export function isIrNamespace(node: IDLInterface): boolean {
-    return nodeNamespace(node) === Config.irNamespace
+    let cppNamespace = node.extendedAttributes?.find(it => it.name == Config.nodeNamespaceAttribute)?.value
+    return nodeNamespace(node) === Config.irNamespace || cppNamespace == Config.irNamespace
 }
 
 export function createSequence(inner: IDLType): IDLContainerType {
@@ -162,7 +196,7 @@ export function innerTypeIfContainer(node: IDLType): IDLType {
 
 export function makeMethod(
     name: string,
-    parameters: { name: string, type: IDLType }[],
+    parameters: { name: string, type: IDLType, isOptional: boolean }[],
     returnType: IDLType,
     modifiers?: MethodModifier[]
 ): Method {
@@ -173,13 +207,20 @@ export function makeMethod(
     )
 }
 
-export function makeSignature(parameters: { name: string, type: IDLType }[], returnType: IDLType): MethodSignature {
-
+export function makeSignature(parameters: { name: string, type: IDLType, isOptional?: boolean }[], returnType: IDLType): MethodSignature {
+    let parameterModifiers = parameters.map(it => it.isOptional || idl.isOptionalType(it.type) ? idl.ArgumentModifier.OPTIONAL : undefined)
+    let lastNonOptional = -1
+    for (let i = 0; i < parameterModifiers.length; i++) {
+        if (parameterModifiers[i] == undefined) lastNonOptional = i
+    }
+    if (lastNonOptional != -1) {
+        for (let i = 0; i < lastNonOptional; i++) parameterModifiers[i] = undefined
+    }
     return new MethodSignature(
         returnType,
         parameters.map(it => it.type),
         undefined,
-        undefined,
+        parameterModifiers,
         undefined,
         parameters
             .map(it => it.name)

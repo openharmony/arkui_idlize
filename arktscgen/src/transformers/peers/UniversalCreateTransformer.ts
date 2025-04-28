@@ -14,28 +14,17 @@
  */
 
 import { createUpdatedInterface } from "../../utils/idl"
-import { createFile, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
+import { IDLEntry, IDLFile, IDLInterface, IDLMethod } from "@idlizer/core"
 import { Transformer } from "../Transformer";
 import { isCreate } from "../../general/common"
 
-export class UniversalCreateTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
+export class UniversalCreateTransformer extends Transformer {
 
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return UniversalCreateTransformer.transformInterface(it)
-                    }
-                    return it
-                })
-        )
+    constructor(file: IDLFile) {
+        super(file)
     }
 
-    private static transformInterface(node: IDLInterface): IDLInterface {
+    transformInterface(node: IDLInterface): IDLEntry | undefined {
         const universal = UniversalCreateTransformer.universalCreate(node)
         if (universal === undefined) {
             return node

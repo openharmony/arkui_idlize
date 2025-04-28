@@ -15,7 +15,7 @@
 
 import * as path from "node:path"
 import * as fs from "node:fs"
-import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
+import { forceWriteFile, getFQName, IDLFile, linkParentBack, toIDLString } from "@idlizer/core"
 import { MultiFileOutput } from "../printers/MultiFilePrinter"
 import { Config } from "../general/Config"
 import { BridgesPrinter } from "../printers/interop/BridgesPrinter"
@@ -68,7 +68,7 @@ export class DynamicEmitter {
     private logCount = 0
 
     private bridgesPrinter = new SingleFileEmitter(
-        (idl: IDLFile) => new BridgesPrinter(idl).print(),
+        (idl: IDLFile) => new BridgesPrinter(this.config, idl).print(),
         `libarkts/native/src/generated/bridges.cc`,
         `bridges.cc`,
         true
@@ -96,7 +96,7 @@ export class DynamicEmitter {
     )
 
     private peersPrinter = new MultiFileEmitter(
-        (idl: IDLFile) => new AllPeersPrinter(idl).print(),
+        (idl: IDLFile) => new AllPeersPrinter(this.config, idl).print(),
         `libarkts/src/generated/peers`,
         `peer.ts`,
         true
@@ -138,7 +138,7 @@ export class DynamicEmitter {
     }
 
     private printInterop(idl: IDLFile): void {
-        idl = this.withLog(new InteropTransformer(idl))
+        idl = this.withLog(new InteropTransformer(this.config, idl))
         this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }

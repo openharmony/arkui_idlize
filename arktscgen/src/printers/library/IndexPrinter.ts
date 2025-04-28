@@ -20,14 +20,11 @@ import { createDefaultTypescriptWriter } from "../../utils/idl"
 export class IndexPrinter extends SingleFilePrinter {
     protected writer = createDefaultTypescriptWriter()
 
-    visit(): void {
-        this.idl.entries
-            .filter(isInterface)
-            .filter(it => this.typechecker.isPeer(it.name))
-            .forEach(it => this.printInterface(it))
+    protected filterInterface(node: IDLInterface): boolean {
+        return !this.typechecker.isPeer(node.name)
     }
 
-    private printInterface(node: IDLInterface): void {
+    printInterface(node: IDLInterface): void {
         this.writer.writeExpressionStatement(
             this.writer.makeString(`export * from "./peers/${node.name}"`),
         )

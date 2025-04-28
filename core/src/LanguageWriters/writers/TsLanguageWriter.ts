@@ -295,12 +295,12 @@ export class TSLanguageWriter extends LanguageWriter {
                 getter ? getter!.op :
                 (writer) => {
                     writer.print(`return ${containerName}`)
-                } 
+                }
             )
             if (isMutable) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
                 this.writeSetterImplementation(
-                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []), 
+                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
                     setter ? setter!.op :
                     (writer) => {
                         writer.print(`${containerName} = ${propName}`)
@@ -337,7 +337,7 @@ export class TSLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
-        this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${signature.isArgOptional(index) ? "?" : ""}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
+        this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${signature.isArgOptional(index) ? "?" : ``}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }
     makeNull(): LanguageExpression {
         return new StringExpression("undefined")

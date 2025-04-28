@@ -19,7 +19,7 @@ import { BaseTypeConvertor } from "../../BaseTypeConvertor"
 import { BridgesConstructions } from "../../../constuctions/BridgesConstructions"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { Config } from "../../../general/Config"
-import { innerType } from "../../../utils/idl"
+import { baseName, innerType } from "../../../utils/idl"
 
 export class CastTypeConvertor extends BaseTypeConvertor<string> {
     private castToTypeConvertor = new CastToTypeConvertor(this.typechecker)
@@ -43,6 +43,7 @@ export class CastTypeConvertor extends BaseTypeConvertor<string> {
                 this.castToTypeConvertor.convertType(type)
             ),
             i8: primitive,
+            iu8: primitive,
             i16: primitive,
             i32: primitive,
             iu32: primitive,
@@ -77,13 +78,15 @@ class CastToTypeConvertor extends BaseTypeConvertor<string> {
                     this.convertType(innerType(type))
                 ),
             enum: (type: IDLReferenceType) => type.name,
-            reference: (type: IDLReferenceType) =>
-                BridgesConstructions.referenceType(
+            reference: (type: IDLReferenceType) => {
+                return BridgesConstructions.referenceType(
                     typechecker.isHeir(type.name, Config.astNodeCommonAncestor)
                         ? Config.astNodeCommonAncestor
-                        : type.name
-                ),
+                        : baseName(type)
+                )
+            },
             i8: primitive,
+            iu8: primitive,
             i16: primitive,
             i32: primitive,
             iu32: primitive,
@@ -94,8 +97,7 @@ class CastToTypeConvertor extends BaseTypeConvertor<string> {
             boolean: primitive,
             optional: (type: IDLOptionalType) =>
                 throwException(`no optional type allowed at interop level conversion`),
-            string: (type: IDLPrimitiveType) =>
-                throwException(`string parameters are casted by copying`),
+            string: (type: IDLPrimitiveType) => "const char*",
             void: (type: IDLPrimitiveType) =>
                 throwException(`no void typed parameters allowed`),
             pointer: (type: IDLPrimitiveType) =>

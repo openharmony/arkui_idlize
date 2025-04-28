@@ -123,12 +123,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
+        imports.addFeature('UICommonBase', '../handwritten')
         collectDeclItself(this.library, idl.createReferenceType('AttributeModifier'), imports)
         if (!this.options.isDeclared) {
             imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             imports.addFeature('ComponentBase', '../ComponentBase')
-            imports.addFeature('UICommonBase', '../handwritten')
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
                 imports.addFeatures(["isResource", "isPadding"], "../utils")

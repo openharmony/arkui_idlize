@@ -18,6 +18,7 @@ import {
     createFile,
     createOptionalType,
     createParameter,
+    IDLEntry,
     IDLFile,
     IDLInterface,
     IDLMethod,
@@ -31,27 +32,14 @@ import { Transformer } from "../Transformer"
 import { Typechecker } from "../../general/Typechecker"
 import { isCreateOrUpdate } from "../../general/common"
 
-export class NullabilityTransformer implements Transformer {
-    constructor(
-        private file: IDLFile,
-        private config: Config,
-    ) {}
+export class NullabilityTransformer extends Transformer {
+    constructor(file: IDLFile, private config: Config) {
+        super(file)
+    }
 
     private typechecker = new Typechecker(this.file.entries)
 
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                })
-        )
-    }
-
-    private transformInterface(node: IDLInterface): IDLInterface {
+    transformInterface(node: IDLInterface): IDLEntry {
         return createUpdatedInterface(
             node,
             node.methods

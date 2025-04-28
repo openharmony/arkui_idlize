@@ -14,35 +14,23 @@
  */
 
 import { createUpdatedInterface } from "../../utils/idl"
-import { createFile, IDLFile, IDLInterface, isInterface } from "@idlizer/core"
+import { IDLEntry, IDLFile, IDLInterface } from "@idlizer/core"
 import { Config } from "../../general/Config";
 import { Transformer } from "../Transformer";
 
-export class ConstMergeTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
-
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                })
-        )
+export class ConstMergeTransformer extends Transformer {
+    constructor(file: IDLFile) {
+        super(file)
     }
 
-    private transformInterface(node: IDLInterface): IDLInterface {
+    transformInterface(node: IDLInterface): IDLEntry {
         return createUpdatedInterface(
             node,
             node.methods
                 .filter(it => {
-                    const constVersion = it.name + Config.constPostfix
-                    const hasConstVersion = node.methods.some(it => it.name === constVersion)
-                    return !hasConstVersion
+                    if (!it.name.endsWith(Config.constPostfix)) return true
+                    const nonConstVersion = it.name.substring(0, it.name.length - Config.constPostfix.length)
+                    return !node.methods.some(it => it.name === nonConstVersion)
                 })
         )
     }

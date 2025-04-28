@@ -25,7 +25,7 @@ import {
     PrimitiveType,
     PrimitiveTypeList
 } from "@idlizer/core"
-import { IDLType } from "@idlizer/core/idl"
+import { IDLFile, IDLInterface, IDLType, isOptionalType } from "@idlizer/core/idl"
 import { BridgesConstructions } from "../../constuctions/BridgesConstructions"
 import { InteropPrinter } from "./InteropPrinter"
 import { isSequence, isString } from "../../utils/idl"
@@ -33,8 +33,13 @@ import { ReturnTypeConvertor } from "../../type-convertors/interop/bridges/Retur
 import { InteropMacroTypeConvertor } from "../../type-convertors/interop/bridges/InteropMacroTypeConvertor"
 import { NativeTypeConvertor } from "../../type-convertors/interop/bridges/NativeTypeConvertor"
 import { CastTypeConvertor } from "../../type-convertors/interop/bridges/CastTypeConvertor"
+import { Config } from "../../general/Config"
 
 export class BridgesPrinter extends InteropPrinter {
+    constructor(private config: Config, file: IDLFile) {
+        super(file)
+    }
+
     private castTypeConvertor = new CastTypeConvertor(this.typechecker)
 
     private nativeTypeConvertor = new NativeTypeConvertor(this.typechecker)
@@ -73,7 +78,7 @@ export class BridgesPrinter extends InteropPrinter {
         )
     }
 
-    protected printMethod(node: IDLMethod): void {
+    protected printMethod(iface: IDLInterface, node: IDLMethod): void {
         this.writer.writeFunctionImplementation(
             BridgesConstructions.implFunction(node.name),
             new MethodSignature(
@@ -84,16 +89,16 @@ export class BridgesPrinter extends InteropPrinter {
                 undefined,
                 node.parameters.map(it => it.name)
             ),
-            (_) => this.printBody(node)
+            (_) => this.printBody(iface, node)
         )
         this.printInteropMacro(node)
         this.writer.writeLines(``)
     }
 
-    private printBody(node: IDLMethod): void {
+    private printBody(iface: IDLInterface, node: IDLMethod): void {
         this.printParameters(node)
         this.printDeclarations(node)
-        this.printEs2pandaCall(node)
+        this.printEs2pandaCall(iface, node)
         this.printReturn(node)
     }
 
@@ -119,25 +124,28 @@ export class BridgesPrinter extends InteropPrinter {
         }
     }
 
-    private printEs2pandaCall(node: IDLMethod): void {
+    private printEs2pandaCall(iface: IDLInterface, node: IDLMethod): void {
         if (isVoidType(node.returnType)) {
             this.writer.writeExpressionStatement(
-                this.makeEs2pandaMethodCall(node)
+                this.makeEs2pandaMethodCall(iface, node)
             )
             return
         }
         this.writer.writeExpressionStatement(
             this.writer.makeString(
                 BridgesConstructions.resultAssignment(
-                    this.makeEs2pandaMethodCall(node).asString()
+                    this.makeEs2pandaMethodCall(iface, node).asString()
                 )
             )
         )
     }
 
-    private makeEs2pandaMethodCall(node: IDLMethod): LanguageExpression {
+    private makeEs2pandaMethodCall(iface: IDLInterface, node: IDLMethod): LanguageExpression {
+        let suffix = this.config.irHack.isIrHackInterface(iface.name) ? 'Ir' : ''
+        let method = BridgesConstructions.callMethod(node.name)
+        method = method.replace(iface.name, iface.name + suffix)
         return this.writer.makeFunctionCall(
-            BridgesConstructions.callMethod(node.name),
+            method,
             node.parameters
                 .map(it => ({
                     asString: () => BridgesConstructions.castedParameter(it.name),

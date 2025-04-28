@@ -14,6 +14,7 @@
  */
 
 import {
+    baseNameString,
     createSequence,
     createUpdatedInterface,
     createUpdatedMethod,
@@ -22,32 +23,33 @@ import {
     isSequence
 } from "../../utils/idl"
 import {
-    createFile,
     createParameter,
     createReferenceType,
+    IDLEntry,
     IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
     IDLType,
     isContainerType,
-    isDefined,
     isInterface,
-    isReferenceType
+    isReferenceType,
+    linearizeNamespaceMembers
 } from "@idlizer/core"
 import { Config } from "../../general/Config";
 import { Transformer } from "../Transformer";
 
-export class TwinMergeTransformer implements Transformer {
+export class TwinMergeTransformer extends Transformer {
     constructor(
-        private file: IDLFile
+        file: IDLFile
     ) {
-        const all = file.entries.filter(isInterface)
+        super(file)
+        const all = linearizeNamespaceMembers(file.entries).filter(isInterface)
         this.twins = new Set()
         all
             .filter(it => this.hasPrefix(it.name))
             .forEach(it => {
-                const twin = all.find(candidate => this.withPrefix(candidate.name) === it.name)
+                const twin = all.find(candidate => this.withPrefix(baseNameString(candidate.name)) === it.name)
                 if (twin === undefined) return
                 if (!isIrNamespace(twin)) return
                 this.twins.add(twin.name)
@@ -57,26 +59,14 @@ export class TwinMergeTransformer implements Transformer {
     private twins: Set<string>
 
     private hasTwin(name: string): boolean {
+        name = baseNameString(name)
         if (this.hasPrefix(name)) {
             return this.twins.has(this.withoutPrefix(name))
         }
         return this.twins.has(name)
     }
 
-    transformed(): IDLFile {
-        return createFile(
-            this.file.entries
-                .map(it => {
-                    if (isInterface(it)) {
-                        return this.transformInterface(it)
-                    }
-                    return it
-                })
-                .filter(isDefined)
-        )
-    }
-
-    private transformInterface(node: IDLInterface): IDLInterface | undefined {
+    transformInterface(node: IDLInterface): IDLEntry | undefined {
         if (node.name === Config.astNodeCommonAncestor) { // TODO: is handwritten
             return createUpdatedInterface(
                 node,

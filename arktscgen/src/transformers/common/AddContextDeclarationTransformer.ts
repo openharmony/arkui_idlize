@@ -13,17 +13,21 @@
  * limitations under the License.
  */
 
-import { createFile, createInterface, IDLFile, IDLInterfaceSubkind } from "@idlizer/core"
+import { createFile, createInterface, IDLEntry, IDLFile, IDLInterface, IDLInterfaceSubkind, linkParentBack } from "@idlizer/core"
 import { Config } from "../../general/Config";
 import { Transformer } from "../Transformer";
 
-export class AddContextDeclarationTransformer implements Transformer {
-    constructor(
-        private file: IDLFile
-    ) {}
+export class AddContextDeclarationTransformer extends Transformer {
+    constructor(file: IDLFile) {
+        super(file)
+    }
+
+    transformInterface(entry: IDLInterface): IDLEntry | undefined {
+        return entry
+    }
 
     transformed(): IDLFile {
-        return createFile(
+        let file = createFile(
             this.file.entries
                 .concat(
                     createInterface(
@@ -45,5 +49,7 @@ export class AddContextDeclarationTransformer implements Transformer {
                     )
                 )
         )
+        linkParentBack(file)
+        return file
     }
 }

@@ -14,16 +14,31 @@
  */
 
 import { Typechecker } from "../general/Typechecker"
-import { IDLFile } from "@idlizer/core"
+import { IDLFile, IDLInterface, IDLNode, isInterface } from "@idlizer/core"
+import { AbstractVisitor } from "./SingleFilePrinter"
 
 export type MultiFileOutput = { fileName: string, output: string }
 
-export abstract class MultiFilePrinter {
-    constructor(
-        protected idl: IDLFile,
-    ) { }
+export abstract class MultiFilePrinter extends AbstractVisitor {
+    constructor(protected idl: IDLFile) {
+        super()
+    }
 
     protected typechecker = new Typechecker(this.idl.entries)
+    protected output: MultiFileOutput[] = []
 
-    abstract print(): MultiFileOutput[]
+    protected abstract printInterface(node: IDLInterface): MultiFileOutput
+    protected abstract filterInterface(node: IDLInterface): boolean
+
+    visit(node: IDLNode): void {
+        if (isInterface(node) && !this.filterInterface(node)) {
+            this.output.push(this.printInterface(node))
+        }
+        this.visitChildren(node)
+    }
+
+    print(): MultiFileOutput[] {
+        this.visit(this.idl)
+        return this.output
+    }
 }
