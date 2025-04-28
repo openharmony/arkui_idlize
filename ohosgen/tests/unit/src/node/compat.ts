@@ -64,6 +64,10 @@ export {
     CustomComponentSample,
 } from '../../generated/ts'
 
+export {
+    testLength
+} from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 

@@ -64,6 +64,10 @@ import {
   CustomComponentSample,
 } from '#compat'
 
+import {
+  testLength
+} from '#compat'
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -217,6 +221,18 @@ function checkDataTestResult(msg: string, expected: DataInterface,
   assertEQ(!expected.propObject[0], actualObject[0])
   assertEQ(-expected.propObject[1], actualObject[1])
   assertEQ(expected.propObject[2].slice(6), actualObject[2])
+}
+
+function checkLength() {
+    let res = testLength(1, "length")
+    assertEQ(true, res)
+    res = testLength(1, 123)
+    assertEQ(true, res)
+
+    res = testLength(2, "")
+    assertEQ(true, res)
+    res = testLength(2, 456.789)
+    assertEQ(true, res)
 }
 
 function checkDataInterfaces() {
@@ -463,6 +479,7 @@ export function run() {
   suite.addTest("checkBigInt", checkBigInt)
   suite.addTest("checkForceCallback", checkForceCallback)
   suite.addTest("checkEnum", checkEnum)
+  suite.addTest("checkLength", checkLength)
   suite.addTest("checkClassWithComplexPropertyType", checkClassWithComplexPropertyType)
   suite.addTest("checkDataInterfaces", checkDataInterfaces)
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)

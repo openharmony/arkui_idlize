@@ -856,3 +856,31 @@ OH_UNIT_generics_YHandle generics_Y_constructImpl() {
 }
 void generics_Y_destructImpl(OH_UNIT_generics_YHandle thisPtr) {
 }
+
+// Check Length
+OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Union_String_Number_Resource* value) {
+    int s = step->i32;
+    OH_UNIT_Union_String_Number_Resource u = *value;
+    OH_Boolean OH_FALSE = (OH_Boolean) 0;
+    OH_Boolean OH_TRUE = (OH_Boolean) 1;
+
+    if (s == 1) {
+        switch(u.selector) {
+            case 0: return (u.value0.length == strlen("length") && strcmp("length", u.value0.chars) == 0);
+            case 1: return (u.value1.tag == INTEROP_TAG_INT32 && u.value1.i32 == 123);
+            case 2: return OH_TRUE; // TBD: Resource
+            default: INTEROP_FATAL("Not correct GlobalScope_testLengthImpl argument value");
+        }
+    } else if (s == 2) {
+        switch(u.selector) {
+            case 0: return (u.value0.length == strlen("") && strcmp("", u.value0.chars) == 0);
+            case 1: return (u.value1.tag == INTEROP_TAG_FLOAT32 && fabs(u.value1.f32 - 456.789) < 0.1);
+            case 2: return OH_TRUE; // TBD Resource
+            default: INTEROP_FATAL("Not correct GlobalScope_testLengthImpl argument value");
+        }
+    }
+
+    // return Length
+    // return {.selector = 1, .value1 = {.tag = INTEROP_TAG_INT32, .i32 = 456} };
+    INTEROP_FATAL("Unknown step: %d or selector: %d", s, u.selector);
+}

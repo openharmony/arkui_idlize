@@ -65,6 +65,8 @@ export {
     CustomComponentSample,
 } from '../../generated/arkts'
 
+export { testLength } from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 
