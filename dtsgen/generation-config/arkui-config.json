@@ -1,0 +1,17 @@
+{
+    "rootComponents": [
+        "Root",
+        "ComponentRoot",
+        "CommonMethod",
+        "SecurityComponentMethod",
+        "CommonTransition",
+        "CalendarAttribute",
+        "ContainerSpanAttribute"
+    ],
+    "standaloneComponents": [
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog",
+        "CanvasPattern"
+    ]
+}
