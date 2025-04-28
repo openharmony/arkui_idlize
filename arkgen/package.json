@@ -61,7 +61,7 @@
     "idl2peer:arkoala": "npm run idl2peer:target -- --generator-target arkoala --arkoala-destination out/ts-peers/generated/sig",
     "idl2peer:libace": "npm run idl2peer:target -- --generator-target libace --libace-destination out/ts-peers/generated/libace",
     "idl2peer:compile": "npm run compile && npm run idl2peer:libace && npm run idl2peer:arkoala && cd out/ts-peers && tsc -p . && rollup -c",
-    "tracker": "npm run compile && node . --dts2peer --base-dir ./,../sdk-patched/api,../sdk-patched/kits,../sdk-patched/arkts --input-dir ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --output-dir ./doc --generator-target tracker --tracker-status ./doc/COMPONENTS_STATUS.md",
+    "tracker": "npm run compile && node . --dts2peer --base-dir ./,../sdk-patched/api,../sdk-patched/kits,../sdk-patched/arkts --input-dir ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --output-dir ../doc --generator-target tracker --tracker-status ../doc/COMPONENTS_STATUS.md",
     "check:peers": "npm run setup-out -C .. -- --out arkgen/out/ts-peers  --template ts_peers && npm run idl2peer:compile",
     "check:subset": "npm run setup-out -C .. -- --out arkgen/out/ts-subset --template ts_subset && npm run make:ts:subset && cp -r tests/subset out/ts-subset/generated/tests && cd out/ts-subset && tsc -p .",
     "check:subset:run": "npm run rollup:host:subset && npm run compile:native-node-host-ts-subset && node out/ts-subset/lib/main.js",

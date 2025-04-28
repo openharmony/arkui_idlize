@@ -203,7 +203,7 @@ class DemosStatusVerboseLogger {
 }
 
 function syncDemosStatus(track: Map<string, StatusRecord>, verbose: boolean = false) {
-    const file = path.join(__dirname, "../doc/DEMOS_STATUS.md")
+    const file = path.join(__dirname, "../../doc/DEMOS_STATUS.md")
     const pattern =
         /^\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|(.*?)\|.*$/
 
