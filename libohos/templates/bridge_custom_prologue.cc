@@ -442,6 +442,11 @@ static const std::string PAGE_SUFFIX = "GeneratedEntry";
     return (PAGE_SUFFIX.size() < className.size()) && std::equal(PAGE_SUFFIX.rbegin(), PAGE_SUFFIX.rend(), className.rbegin());
 }
 
+[[maybe_unused]] static bool isClass(const std::string& className)
+{
+    return className.find("class=", 0) == 0;
+}
+
 KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, const KStringPtr& viewParams) {
 #ifdef KOALA_USE_JAVA_VM
     JNIEnv* env = reinterpret_cast<JNIEnv*>(vm);
@@ -489,6 +494,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
         className = "@koalaui.user.build.unmemoized.src.Page." + className;
     }
     std::replace(className.begin(), className.end(), '.', '/');
+    LOGE("[bridge_custom] Loading user class (NAPI) %s by %s\n", viewClass.c_str(), className.c_str());
     ets_class viewClassClass = env->FindClass(className.c_str());
     if (!viewClassClass) {
         fprintf(stderr, "Cannot find user class %s\n", viewClass.c_str());
@@ -522,15 +528,18 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     std::string className(viewClass.c_str());
     // TODO: hack, fix it!
     if (className == "UserApp") {
-        className = "L@koalaui.arkts-arkui.Application.UserView;";
+        className = "L@ohos.arkui.Application.UserView;";
     } if (className == "EtsHarness") {
         className = "L@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness;";
     } else if (isPageClass(className)) {
-        className = "L@koalaui.user.build.unmemoized.build.generated." + className + ";";
+        className = "L" + className + ";";
+    } else if (isClass(className)) {
+        className = "L@" + className.substr(6) + ";";
     } else {
         className = "L@koalaui.user.build.unmemoized.src.Page." + className + ";";
     }
     std::replace(className.begin(), className.end(), '.', '/');
+    LOGE("[bridge_custom] Loading user class (ANI) %s by %s\n", viewClass.c_str(), className.c_str());
     ani_class viewClassClass = nullptr;
     env->FindClass(className.c_str(), &viewClassClass);
     if (!viewClassClass) {
