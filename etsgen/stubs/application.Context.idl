@@ -1,0 +1,4 @@
+package application.Context;
+
+[DefaultExport]
+interface Context {};

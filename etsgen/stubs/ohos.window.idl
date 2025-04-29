@@ -1,0 +1,7 @@
+package ohos.window;
+
+[DefaultExport]
+namespace window {
+    interface WindowStatusType {};
+    interface SystemBarStyle {};
+};

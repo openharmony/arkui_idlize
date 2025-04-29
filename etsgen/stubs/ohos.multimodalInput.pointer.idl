@@ -1,0 +1,6 @@
+package ohos.multimodalInput.pointer;
+
+[DefaultExport]
+namespace pointer {
+    interface PointerStyle {};
+};
