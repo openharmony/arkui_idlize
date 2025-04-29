@@ -31,7 +31,8 @@ import {
     InterfaceConvertor,
     CJLanguageWriter,
     PeerMethod,
-    isInIdlizeStdlib
+    isInIdlizeStdlib,
+    removePoints
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -1018,12 +1019,12 @@ class CJSyntheticGenerator extends DependenciesCollector {
 class CJDeclarationConvertor implements DeclarationConvertor<void> {
     constructor(
         protected readonly writer: LanguageWriter,
-        // private readonly onNewDeclaration: (entry:idl.IDLEntry, declaration: CJDeclaration) => void,
         protected readonly seenInterfaceNames: Set<string>,
         readonly peerLibrary: PeerLibrary
     ) { }
 
     convertCallback(node: idl.IDLCallback): void {
+        this.writer.print(this.printCallback(node, node.parameters, node.returnType))
     }
     convertMethod(node: idl.IDLMethod): void {
         // TODO: namespace-related-to-rework
@@ -1037,19 +1038,23 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true }))
     }
     convertTypedef(node: idl.IDLTypedef) {
-        if (idl.isUnionType(node.type)) {
-            this.makeUnion(this.writer, node.type)
-            return
-        }
-        if (idl.isEnum(node.type)) {
-            this.makeEnum(this.writer, node.type)
-            return
-        }
-        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
-            return
         const type = this.writer.getNodeName(node.type)
-        // const typeParams = this.printTypeParameters(node.typeParameters)
-        this.writer.print(`public type ${node.name} = ${type}`)
+        if (node.name == type) {
+            if (idl.isUnionType(node.type)) {
+                this.makeUnion(this.writer, node.type)
+                return
+            }
+            if (idl.isEnum(node.type)) {
+                this.makeEnum(this.writer, node.type)
+                return
+            }
+            if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
+                return
+            // const typeParams = this.printTypeParameters(node.typeParameters)
+        }
+        else {
+            this.writer.print(`public type ${node.name} = ${type}`)
+        }
     }
     convertImport(node: idl.IDLImport): void {
         console.warn("Imports are not implemented yet")
@@ -1072,6 +1077,28 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         }
     }
 
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
+        parameters: idl.IDLParameter[],
+        returnType: idl.IDLType | undefined): string {
+        const paramsType = this.printParameters(parameters)
+        const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
+        return `public type ${node.name} = (${paramsType}) -> ${retType}`
+    }
+    protected printParameters(parameters: idl.IDLParameter[]): string {
+        return parameters
+            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional))
+            ?.join(", ") ?? ""
+    }
+    private printNameWithTypeIDLParameter(
+        variable: idl.IDLVariable,
+        isVariadic: boolean = false,
+        isOptional: boolean = false): string {
+        const type = variable.type ? this.convertType(variable.type) : ""
+        return `${idl.escapeIDLKeyword(variable.name!)}: ${isOptional ? "?" : ""}${type}`
+    }
+    protected convertType(idlType: idl.IDLType): string {
+        return this.writer.getNodeName(idlType)
+    }
     private makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
         const members = type.types.map(it => it)
         writer.writeClass(type.name, () => {
@@ -1167,7 +1194,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             }
             memberValue += 1
         }
-        writer.writeClass(enumDecl.name, () => {
+        writer.writeClass(removePoints(idl.getNamespaceName(enumDecl).concat(enumDecl.name)), () => {
             const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
@@ -1180,7 +1207,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
             const signature = new MethodSignature(idl.IDLVoidType, [intType])
-            writer.writeConstructorImplementation(enumDecl.name, signature, () => {
+            writer.writeConstructorImplementation(removePoints(idl.getNamespaceName(enumDecl).concat(enumDecl.name)), signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
@@ -1194,7 +1221,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 
         const superNames = idl.getSuperTypes(type)
 
-        writer.writeInterface(`${type.name}${isMaterialized(type, this.peerLibrary) ? '' : 'Interface'}`, (writer) => {
+        writer.writeInterface(`${removePoints(idl.getNamespaceName(type).concat(type.name))}${isMaterialized(type, this.peerLibrary) ? '' : 'Interface'}`, (writer) => {
             for (const p of ownProperties) {
                 const modifiers: FieldModifier[] = []
                 if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
@@ -1202,14 +1229,14 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
         }, superNames ? superNames.map(it => `${writer.getNodeName(it)}Interface`) : undefined) // make proper inheritance
-        writer.writeClass(type.name, () => {
+        writer.writeClass(removePoints(idl.getNamespaceName(type).concat(type.name)), () => {
             allProperties.forEach(it => {
                 let modifiers: FieldModifier[] = []
                 if (it.isReadonly) modifiers.push(FieldModifier.READONLY)
                 if (it.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(it.name, idl.maybeOptional(it.type, it.isOptional), modifiers, { method: new Method(it.name, new NamedMethodSignature(it.type, [it.type], [it.name])) })
             })
-            writer.writeConstructorImplementation(type.name,
+            writer.writeConstructorImplementation(removePoints(idl.getNamespaceName(type).concat(type.name)),
                 new NamedMethodSignature(idl.IDLVoidType,
                     allProperties.map(it => idl.maybeOptional(it.type, it.isOptional)),
                     allProperties.map(it => writer.escapeKeyword(it.name))), () => {
@@ -1217,7 +1244,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                             writer.print(`this.${i.name}_container = ${writer.escapeKeyword(i.name)}`)
                         }
                     })
-        }, undefined, [`${type.name}Interface`])
+        }, undefined, [`${removePoints(idl.getNamespaceName(type).concat(type.name))}Interface`])
     }
 }
 

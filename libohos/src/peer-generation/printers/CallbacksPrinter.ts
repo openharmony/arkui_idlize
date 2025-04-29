@@ -380,16 +380,10 @@ class DeserializeCallbacksVisitor {
     }
 
     visit(): void {
-        let nameConvertor = this.library.createTypeNameConvertor(Language.CJ)
         this.writeImports()
         const uniqCallbacks = collectUniqueCallbacks(this.library, { transformCallbacks: true })
         for (const callback of uniqCallbacks) {
             this.writeCallbackDeserializeAndCall(callback)
-            if (this.writer.language == Language.CJ) {
-                const params = callback.parameters.map(it =>
-                    `${it.name}: ${it.isOptional ? "?" : ""}${nameConvertor.convert(it.type!)}`)
-                this.writer.print(`public type ${callback.name} = (${params.join(", ")}) -> ${nameConvertor.convert(callback.returnType)}`)
-            }
         }
         this.writeInteropImplementation(uniqCallbacks)
     }

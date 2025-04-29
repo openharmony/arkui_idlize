@@ -378,3 +378,5 @@ declare interface ContentModifier<T> {
      */
     // applyContent(): WrappedBuilder<[T]>
   }
+
+declare type CustomBuilder = (() => any) | void;

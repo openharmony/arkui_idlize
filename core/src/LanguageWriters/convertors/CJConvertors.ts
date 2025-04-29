@@ -54,13 +54,13 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         throw new Error(`IDL type ${idl.DebugUtils.debugPrintType(type)} not supported`)
     }
     convertNamespace(node: idl.IDLNamespace): string {
-        throw new Error('Method not implemented.')
+        return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return node.name
+        return removePoints(idl.getNamespaceName(node).concat(node.name))
     }
     convertEnum(node: idl.IDLEnum): string {
-        return node.name
+        return removePoints(idl.getNamespaceName(node).concat(node.name))
     }
     convertTypedef(node: idl.IDLTypedef): string {
         return node.name
@@ -103,13 +103,18 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 return this.productType(decl as idl.IDLInterface, isTuple, !isTuple)
             }
         }
-        return type.name
+        let name = type.name.split('.')
+        if (decl) {
+            return idl.getNamespacesPathFor(decl).map(ns => ns.name).join().concat(name[name.length - 1])
+        }
+        return name[name.length - 1]
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
         return type.name
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
+            case idl.IDLThisType: return 'this'
             case idl.IDLStringType: return 'String'
             case idl.IDLBooleanType: return 'Bool'
             case idl.IDLNumberType: return 'Float64'
@@ -189,4 +194,8 @@ export class CJInteropArgConvertor extends InteropArgConvertor {
         }
         return super.convertPrimitiveType(type)
     }
+}
+
+export function removePoints(s: string) {
+    return s.split(/[\.\-]/g).join('_')
 }

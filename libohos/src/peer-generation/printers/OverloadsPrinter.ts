@@ -348,7 +348,11 @@ export class OverloadsPrinter {
             const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
             if (this.printer.language == Language.CJ) {
-                this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
+                if (idl.isOptionalType(collapsedMethod.signature.args[index])) {
+                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(`if (let Some(${argName}) <- ${argName}) {${argName}} else { throw Exception(\"Type has to be not None\")}`), true, true).write(this.printer)
+                } else {
+                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
+                }
             } else if (this.printer.language == Language.JAVA) {
                 this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
             }
@@ -364,10 +368,28 @@ export class OverloadsPrinter {
         const postfix = this.isComponent ? "Attribute" : "_serialize"
         const methodName = `${peerMethod.overloadedName}${postfix}`
         if (collapsedMethod.signature.returnType === idl.IDLThisType) {
-            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            if (this.printer.language == Language.CJ) {
+                if (isStatic) {
+                    this.printer.writeMethodCall(receiver, methodName, argsNames, false)
+                } else {
+                    this.printer.print(`let thisPeer = ${receiver}`)
+                    this.printer.writeMethodCall(`thisPeer`, methodName, argsNames, false)
+                }
+            } else {
+                this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
         } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {
-            this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            if (this.printer.language == Language.CJ) {
+                if (isStatic) {
+                    this.printer.writeMethodCall(receiver, methodName, argsNames, false)
+                } else {
+                    this.printer.print(`let thisPeer = ${receiver}`)
+                    this.printer.writeMethodCall(`thisPeer`, methodName, argsNames, false)
+                }
+            } else {
+                this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            }
             this.printer.writeStatement(this.printer.makeReturn())
         } else if (peerMethod.returnType === idl.IDLVoidType && idl.isUnionType(collapsedMethod.signature.returnType)) {
             // handling case when there is two original functions:

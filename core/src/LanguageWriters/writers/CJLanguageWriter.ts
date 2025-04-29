@@ -289,8 +289,7 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     getNodeName(type: idl.IDLNode): string {
         // rework for proper namespace logic
-        let name = this.typeConvertor.convert(type).split('.')
-        return name[name.length - 1]
+        return this.typeConvertor.convert(type)
     }
 
     writeClass(
@@ -349,12 +348,12 @@ export class CJLanguageWriter extends LanguageWriter {
         if (nullable) {
             if (receiver == 'this') {
                 this.printer.print('let thisObj = this')
-                super.writeMethodCall('thisObj', method, params, false)
+                super.writeMethodCall('thisObj', this.escapeKeyword(method), params, false)
                 return
             }
             this.printer.print(`if (let Some(${receiver}) <- ${receiver}) { ${receiver}.${method}(${params.join(", ")}) }`)
         } else {
-            super.writeMethodCall(receiver, method, params, nullable)
+            super.writeMethodCall(receiver, this.escapeKeyword(method), params, nullable)
         }
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
@@ -367,7 +366,21 @@ export class CJLanguageWriter extends LanguageWriter {
         this.writeDeclaration(name, signature, modifiers)
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}) {`)
+        let i = 1
+        while (signature.isArgOptional(signature.args.length - i)) {
+            let smallerSignature = signature.args.slice(0, -i)
+            this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}init (${smallerSignature.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}`).join(", ")}) {`)
+            this.pushIndent()
+            let smallerArgs = signature.args?.slice(0, -i).map((_, i) => signature.argName(i)).join(', ')
+            for (let idx = 0; idx < i; idx++) {
+                smallerArgs = smallerArgs.concat(`${i == signature.args.length && idx == 0 ? '' : ', '}Option.None`)
+            }
+            this.print(`${className}(${smallerArgs})`)
+            this.popIndent()
+            this.printer.print(`}`)
+            i += 1
+        }
+        this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(idl.maybeOptional(it, signature.isArgOptional(index)))}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
             this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
@@ -445,8 +458,8 @@ export class CJLanguageWriter extends LanguageWriter {
         let prefix = modifiers
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
-        prefix = prefix ? prefix + " " : ""
-        this.print(`${prefix}${(modifiers?.includes(MethodModifier.SETTER) || modifiers?.includes(MethodModifier.GETTER)) ? '' : 'func '}${name}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`).join(", ")}): ${this.getNodeName(signature.returnType)}${postfix ?? ""}`)
+        prefix = prefix ? prefix + " " : "public "
+        this.print(`${prefix}${(modifiers?.includes(MethodModifier.SETTER) || modifiers?.includes(MethodModifier.GETTER)) ? '' : `${(modifiers?.includes(MethodModifier.STATIC) || modifiers?.includes(MethodModifier.PRIVATE)) ? '' : 'open '}func `}${this.escapeKeyword(name)}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(idl.maybeOptional(it, signature.isArgOptional(index)))}`).join(", ")})${this.getNodeName(signature.returnType) =='this' ? '': `: ${this.getNodeName(signature.returnType)}`}${postfix ?? ""}`)
     }
     writeNativeFunctionCall(printer: LanguageWriter, name: string, signature: MethodSignature) {
         printer.print(`return unsafe { ${name}(${signature.args.map((it, index) => `${signature.argName(index)}`).join(", ")}) }`)
@@ -599,7 +612,7 @@ export class CJLanguageWriter extends LanguageWriter {
             this.makeRuntimeTypeGetterCall(value), false))
     }
     escapeKeyword(word: string): string {
-        return CJKeywords.has(word) ? word + "_" : word
+        return CJKeywords.has(word) ? word.concat("_") : word
     }
     pushNamespace(namespace: string, ident: boolean = true) {}
     popNamespace(ident: boolean = true) {}

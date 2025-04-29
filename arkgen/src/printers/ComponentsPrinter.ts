@@ -356,6 +356,142 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
     }
 }
 
+class CJComponentFileVisitor implements ComponentFileVisitor {
+
+    constructor(
+        protected readonly library: PeerLibrary,
+        protected readonly file: idl.IDLFile,
+        protected readonly options: {
+            isDeclared: boolean,
+        }
+    ) { }
+
+    private overloadsPrinter(printer:LanguageWriter) {
+        return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
+    }
+
+    visit(): PrinterResult[] {
+        const result: PrinterResult[] = []
+        collectPeersForFile(this.library, this.file).forEach(peer => {
+            if (!this.options.isDeclared)
+                result.push(...this.printComponent(peer))
+            result.push(...this.printComponentFunction(peer))
+        })
+        return result
+    }
+
+    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+        const imports = new ImportsCollector()
+        return imports
+    }
+
+    private printComponent(peer: PeerClass): PrinterResult[] {
+
+        const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
+
+        const imports = this.printImports(peer, component)
+        const printer = this.library.createLanguageWriter()
+
+        const componentClassName = generateArkComponentName(peer.componentName)
+        const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
+        const peerClassName = componentToPeerClass(peer.componentName)
+
+        printer.writeClass(componentClassName, (writer) => {
+            writer.writeMethodImplementation(
+                new Method('getPeer',
+                    new MethodSignature(createReferenceType(peerClassName), []
+                    ), [MethodModifier.PROTECTED], []),
+                writer => writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeCast(
+                            writer.makeFieldAccess("this", "peer"),
+                            createReferenceType(peerClassName),
+                            { optional: true }
+                        )
+                    )
+                )
+            )
+            const filteredMethods = peer.methods.filter(it =>
+                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
+            // for (const grouped of groupOverloads(filteredMethods))
+            for (const grouped of filteredMethods)
+                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, [grouped])
+            // todo stub until we can process AttributeModifier
+            if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
+                writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)
+
+            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
+            const applyAttributesFinish = 'applyAttributesFinish'
+            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                writer.print('// we call this function outside of class, so need to make it public')
+                writer.writeMethodCall('super', applyAttributesFinish, [])
+            })
+
+            // const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
+            // const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
+            // const applyAttributes = 'applyAttributes'
+            // writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
+            //     for (const field of peer.attributesFields) {
+            //         if (peerGeneratorConfiguration().ignoreMethod(field.name, this.library.language)) {
+            //             continue
+            //         }
+            //         writer.print(`if (let Some(attr) <- attrs.${field.name}_value) {`)
+            //         writer.pushIndent()
+            //         writer.print(`this.${writer.escapeKeyword(field.name)}(attr)`)
+            //         writer.popIndent()
+            //         writer.print(`}`)
+            //     }
+            //     writer.writeMethodCall('super', applyAttributes, ['attrs'])
+            // })
+        }, parentComponentClassName) //, [peer.originalClassName!])
+
+        return [{
+            collector: imports,
+            content: printer,
+            over: {
+                node: component.attributeDeclaration,
+                role: LayoutNodeRole.COMPONENT,
+                hint: 'component.implementation'
+            }
+        }]
+    }
+
+    protected printComponentFunction(peer: PeerClass): PrinterResult[] {
+        const printer = this.library.createLanguageWriter()
+        const component = findComponentByName(this.library, peer.componentName)!
+        const componentInterfaceName = peer.originalClassName!
+        const componentClassImplName = generateArkComponentName(peer.componentName)
+        const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
+        const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined
+        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}: ${printer.getNodeName(it)}`)
+        const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
+        const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
+        const peerClassName = componentToPeerClass(peer.componentName)
+        if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
+            return []
+        const declaredPostrix = this.options.isDeclared ? "decl_" : ""
+        const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
+        let paramsList = mappedCallableParams?.join(", ")
+        printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
+            .replaceAll("%COMPONENT_NAME%", component.name)
+            .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
+            .replaceAll("%FUNCTION_PARAMETERS%", paramsList ? `,\n${paramsList}`: "")
+            .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
+            .replaceAll("%PEER_CLASS_NAME%", peerClassName)
+            .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+        return [{
+            collector: this.printImports(peer, component),
+            content: printer,
+            over: {
+                node: component.attributeDeclaration,
+                role: LayoutNodeRole.COMPONENT,
+                hint: 'component.function'
+            }
+        }]
+    }
+}
+
+
 class ComponentsVisitor {
     readonly components: Map<TargetFile, LanguageWriter> = new Map()
     private readonly language = this.peerLibrary.language
@@ -382,6 +518,9 @@ class ComponentsVisitor {
             else if (this.language == Language.JAVA) {
                 visitor = new JavaComponentFileVisitor(this.peerLibrary, file)
             }
+            else if (this.language == Language.CJ) {
+                visitor = new CJComponentFileVisitor(this.peerLibrary, file, this.options)
+            }
             else {
                 throw new Error(`ComponentsVisitor not implemented for ${this.language.toString()}`)
             }
@@ -392,10 +531,6 @@ class ComponentsVisitor {
 }
 
 export function printComponents(peerLibrary: PeerLibrary): PrinterResult[] {
-    // TODO: support other output languages
-    if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
-        return []
-
     return new ComponentsVisitor(peerLibrary, { isDeclared: false }).printComponents()
 }
 
