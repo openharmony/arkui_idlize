@@ -210,17 +210,19 @@ export function generateArkoalaFromIdl(config: {
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
-        install(
-            arkoala.arktsSdkDir,
-            peerLibrary,
-            [
-                createInterfacePrinter(true),
-                printComponentsDeclarations,
-            ],
-            {
-                isDeclared: true,
-            }
-        )
+        if (peerLibrary.useMemoM3) {
+            install(
+                arkoala.arktsSdkDir,
+                peerLibrary,
+                [
+                    createInterfacePrinter(true),
+                    printComponentsDeclarations,
+                ],
+                {
+                    isDeclared: true,
+                }
+            )
+        }
     }
 
 
