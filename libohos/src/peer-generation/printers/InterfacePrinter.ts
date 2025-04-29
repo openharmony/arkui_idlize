@@ -58,6 +58,10 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         readonly isDeclared: boolean,
     ) { }
 
+    private needDeclaredPrefix(decl: idl.IDLEntry): boolean {
+        return this.isDeclared && idl.getNamespacesPathFor(decl).length === 0
+    }
+
     convertTypedef(node: idl.IDLTypedef) {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
@@ -107,7 +111,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     protected printInterface(idlInterface: idl.IDLInterface): stringOrNone[] {
         //TODO: CommonMethod has a method onClick and a property onClick
         const seenFields = new Set<string>()
-        const declaredPrefix = this.isDeclared ? "declare " : ""
+        const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         const kindPrefix = isBuilderClass(idlInterface) ? "class " : "interface "
         return ([`export ${declaredPrefix}${kindPrefix}${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
@@ -128,7 +132,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (!this.isDeclared && !idl.isInterfaceSubkind(idlInterface))
             // print `export interface` or `export declare class`, but not `export class`
             return []
-        const declaredPrefix = this.isDeclared ? "declare " : ""
+        const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         return ([`export ${declaredPrefix}${idl.isInterfaceSubkind(idlInterface) ? "interface" : "class"} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())

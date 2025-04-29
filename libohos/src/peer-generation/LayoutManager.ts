@@ -37,7 +37,7 @@ export interface PrinterFunction {
 }
 export type Printer = PrinterClass | PrinterFunction
 
-export function install(outDir: string, library: PeerLibrary, printers: Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager }): string[] {
+export function install(outDir: string, library: PeerLibrary, printers: Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager, isDeclared?: boolean }): string[] {
     const storage = new Map<string, PrinterResult[]>()
 
     // groupBy
@@ -68,7 +68,7 @@ export function install(outDir: string, library: PeerLibrary, printers: Printer[
         let content: string[] = []
 
         results.forEach(it => imports.merge(it.collector))
-        content = content.concat(printWithNamespaces(library, results))
+        content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
         if (library.language === Language.CJ) {
             imports.clear()
             content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*'].concat(content)
@@ -89,18 +89,18 @@ export function install(outDir: string, library: PeerLibrary, printers: Printer[
     return installedToExport
 }
 
-function printWithNamespaces(library: PeerLibrary, results: PrinterResult[]): string[] {
+function printWithNamespaces(library: PeerLibrary, results: PrinterResult[], options: { isDeclared: boolean }): string[] {
     const resultsContent = library.createLanguageWriter()
     const resultsContentCache: string[] = []
     for (const record of results) {
-        wrapNamespaces(record.over.node, resultsContentCache, resultsContent)
+        wrapNamespaces(record.over.node, resultsContentCache, resultsContent, options)
         resultsContent.concat(record.content)
     }
-    wrapNamespaces(undefined, resultsContentCache, resultsContent)
+    wrapNamespaces(undefined, resultsContentCache, resultsContent, options)
     return resultsContent.getOutput()
 }
 
-function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], writer: LanguageWriter): void {
+function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
     const ns = node ? getNamespacesPathFor(node) : []
     let bestMatch = 0
     while (bestMatch < ns.length && bestMatch < alreadyWrapped.length) {
@@ -109,11 +109,11 @@ function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], wr
         bestMatch++
     }
     for (let i = bestMatch, end = alreadyWrapped.length; i < end; i++) {
-        writer.popNamespace(true)
+        writer.popNamespace({ ident: true })
         alreadyWrapped.pop()
     }
     for (let i = bestMatch; i < ns.length; i++) {
-        writer.pushNamespace(ns[i].name, true)
+        writer.pushNamespace(ns[i].name, { ident: true, isDeclared: options.isDeclared })
         alreadyWrapped.push(ns[i].name)
     }
 }

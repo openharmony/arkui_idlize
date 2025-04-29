@@ -801,17 +801,17 @@ export abstract class LanguageWriter {
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
      */
-    pushNamespace(namespace: string, ident: boolean = true) { // TODO: namespace-related-to-rework
+    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }) { // TODO: namespace-related-to-rework
         this.print(`namespace ${namespace} {`)
-        if (ident) this.pushIndent()
+        if (options.ident) this.pushIndent()
     }
 
     /**
      * Writes closing brace of namespace block and removes one level of indent
      */
-    popNamespace(ident: boolean = true) { // TODO: namespace-related-to-rework
+    popNamespace(options: { ident: boolean }) { // TODO: namespace-related-to-rework
         this.namespaceStack.pop()
-        if (ident) this.popIndent()
+        if (options.ident) this.popIndent()
         this.print(`}`)
     }
 

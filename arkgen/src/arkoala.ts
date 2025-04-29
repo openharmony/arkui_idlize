@@ -217,6 +217,9 @@ export function generateArkoalaFromIdl(config: {
                 createInterfacePrinter(true),
                 printComponentsDeclarations,
             ],
+            {
+                isDeclared: true,
+            }
         )
     }
 
@@ -487,7 +490,7 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, false)
+        writer.pushNamespace(options.namespaces.generated, { ident: false })
     }
 
     writer.concat(state.real)
@@ -495,7 +498,7 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
     writer.concat(state.accessors)
 
     if (options.namespaces) {
-        writer.popNamespace(false)
+        writer.popNamespace({ ident: false })
     }
 
     writer.print("")
@@ -514,24 +517,24 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, false)
+        writer.pushNamespace(options.namespaces.base, { ident: false })
     }
     writer.concat(appendModifiersCommonPrologue())
 
     if (options.namespaces) {
-        writer.popNamespace(false)
+        writer.popNamespace({ ident: false })
     }
 
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.generated, false)
+        writer.pushNamespace(options.namespaces.generated, { ident: false })
     }
 
     writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
 
     if (options.namespaces) {
-        writer.popNamespace(false)
+        writer.popNamespace({ ident: false })
     }
 
     writer.print("")
@@ -550,12 +553,12 @@ function printApiImplFile(library: PeerLibrary, filePath: string, options: Modif
     writer.print("")
 
     if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, false)
+        writer.pushNamespace(options.namespaces.base, { ident: false })
     }
     writer.concat(appendViewModelBridge(library))
 
     if (options.namespaces) {
-        writer.popNamespace(false)
+        writer.popNamespace({ ident: false })
     }
 
     writer.printTo(filePath)
@@ -630,10 +633,10 @@ function makeConverterHeader(path: string, namespace: string, library: PeerLibra
     }
     converter.print("")
 
-    converter.pushNamespace(namespace, false)
+    converter.pushNamespace(namespace, { ident: false })
     converter.print("")
     writeConvertors(library, converter)
-    converter.popNamespace(false)
+    converter.popNamespace({ ident: false })
     converter.print(`\n#endif // ${includeGuardDefine}`)
     converter.print("")
     return converter

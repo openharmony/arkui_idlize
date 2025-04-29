@@ -152,10 +152,11 @@ export class TSLanguageWriter extends LanguageWriter {
 
     maybeSemicolon() { return "" }
 
-    pushNamespace(namespace: string, ident: boolean = true): void {
+    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }): void {
         this.namespaceStack.push(namespace)
-        this.print(`export namespace ${namespace} {`)
-        if (ident) this.pushIndent()
+        const declaredPrefix = options.isDeclared ? "declare " : ""
+        this.print(`export ${declaredPrefix}namespace ${namespace} {`)
+        if (options.ident) this.pushIndent()
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
