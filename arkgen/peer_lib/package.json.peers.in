@@ -1,9 +1,0 @@
-{
-    "name": "@arkoala/arkui",
-    "main": "generated/peers/sig/arkoala/arkui/src/main.js",
-    "exports": {
-        "./package.json": "./package.json",
-        "./tests/*": "./tests/*.js",
-        "./*": "./generated/peers/sig/arkoala/arkui/src/*.js"
-    }
-}

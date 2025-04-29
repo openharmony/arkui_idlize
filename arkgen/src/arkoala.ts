@@ -68,18 +68,9 @@ import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
 import {platform} from "node:os";
 
-export const PeerLib = path.join(__dirname, '../peer_lib')
-export const ExternalJson = path.join(PeerLib, 'external.json')
-
-const ExternalData = JSON.parse(fs.readFileSync(ExternalJson).toString())
-if (!ExternalData) throw new Error(`Cannot parse ${ExternalJson}`)
-
-export const External = path.join(PeerLib, ExternalData.path)
-export const ExternalSubset = path.join(PeerLib, ExternalData.subsetPath)
-
-function currentExternal() {
-    return fs.existsSync(ExternalSubset) ? ExternalSubset : External
-}
+const External = path.join(__dirname, "../../external")
+const ExternalStubs = path.join(External, "subset")
+const Subset = path.join(__dirname, "../external-subset")
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
@@ -117,18 +108,27 @@ export function generateLibaceFromIdl(config: {
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
 
-    copyToLibace(currentExternal(), libace)
+    copyToLibace(fs.existsSync(Subset) ? Subset : External, libace)
 }
 
 function copyArkoalaFiles(config: {
     onlyIntegrated: boolean | undefined
 }, arkoala: ArkoalaInstall) {
+    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : ExternalStubs, 'subset.json')
+    const subsetData = JSON.parse(fs.readFileSync(subsetJson).toString())
+    if (!subsetData) throw new Error(`Cannot parse ${subsetJson}`)
+
     if (config.onlyIntegrated) {
-        copyToArkoala(path.join(PeerLib, "sig"), arkoala, ExternalData.onlyIntegrated);
+        copyToArkoala(fs.existsSync(Subset) ? Subset : ExternalStubs, arkoala, subsetData.generatedSubset);
         return
     }
-    copyToArkoala(currentExternal(), arkoala, ExternalData.subset);
-    copyToArkoala(path.join(PeerLib, "sig"), arkoala);
+
+    if (fs.existsSync(Subset)) {
+        copyToArkoala(Subset, arkoala, subsetData.subset)
+    } else {
+        copyToArkoala(External, arkoala, subsetData.subset)
+        copyToArkoala(ExternalStubs, arkoala, subsetData.subset)
+    }
 }
 
 function removeSuffix(path: string, suffix: string): string {
