@@ -18,7 +18,9 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
-    "prepare:sdk": "rimraf sdk-patched && cd interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets --output ../../sdk-patched",
+    "prepare:sdk:ts": "rimraf sdk-patched && cd interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets --output ../../sdk-patched",
+    "prepare:sdk:arkts": "rimraf sdk-patched-arkts && cd interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets2 --output ../../sdk-patched-arkts",
+    "prepare:sdk": "npm run prepare:sdk:ts && npm run prepare:sdk:arkts",
     "download:sdk": "node ./tools/download-sdk.mjs && npm run prepare:sdk",
     "compile": "npm run compile --prefix external/incremental/compat && npm run compile --prefix external/incremental/common && npm run compile --prefix external/interop",
     "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && node tools/release.mjs",

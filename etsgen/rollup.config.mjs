@@ -15,6 +15,8 @@
 import nodeResolve from "@rollup/plugin-node-resolve"
 import typescript from "@rollup/plugin-typescript"
 import commonjs from '@rollup/plugin-commonjs'
+import * as path from "node:path";
+import * as fs from "node:fs";
 
 /** @type {import("rollup").RollupOptions} */
 export default {
@@ -22,7 +24,19 @@ export default {
     output: {
         file: "./lib/main.js",
         format: "commonjs",
-        sourcemap: false,
+        sourcemap: true,
+        sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+            const sourcemapDir = path.dirname(sourcemapPath)
+            let absolute = path.join(sourcemapDir, relativeSourcePath);
+            if(fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
+            absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
+            if(fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
+            return relativeSourcePath
+        },
         banner: [
             "#!/usr/bin/env node",
             APACHE_LICENSE_HEADER()
@@ -34,7 +48,7 @@ export default {
         typescript({
             outputToFilesystem: false,
             module: "esnext",
-            sourceMap: false,
+            sourceMap: true,
             declarationMap: false,
             declaration: false,
             composite: false,

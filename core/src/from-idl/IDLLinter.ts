@@ -92,7 +92,7 @@ export class IDLLinter {
     }
 
     protected enter(node:idl.IDLNode): (() => void) | undefined {
-        if (idl.isInterface(node) || idl.isTypedef(node) || idl.isMethod(node) || idl.isCallable(node)) {
+        if (idl.isInterface(node) || idl.isTypedef(node) || idl.isMethod(node) || idl.isCallable(node) || idl.isCallback(node)) {
             this.context.enter({ typeParameters: new Set(node.typeParameters?.map(parseTypeParameter) ?? []) })
             return () => this.context.leave()
         }

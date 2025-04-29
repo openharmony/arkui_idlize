@@ -57,7 +57,7 @@ if (options.ets2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
-    generateFromSts(detsInputFiles, options.outputDir)
+    generateFromSts(detsInputFiles, options.baseDir, options.outputDir)
     didJob = true
 }
 

@@ -2,6 +2,7 @@
 /.vscode/
 /interface_sdk-js/
 /sdk-patched/
+/sdk-patched-arkts/
 /build/
 /lib/
 /core/build/

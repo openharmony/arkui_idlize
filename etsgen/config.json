@@ -4,7 +4,15 @@
         "rootDir": ".",
         "paths": {
             "@arkoala/arkui": ["./out"],
-            "@koalaui/arkts-arkui": ["."]
+            "@koalaui/arkts-arkui": ["."],
+            "@ohos.arkui.stateManagement": ["../sdk-patched-arkts/api/@ohos.arkui.stateManagement"],
+            "@koalaui.runtime.common": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.common"],
+            "@koalaui.runtime.states.Disposable": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.Disposable"],
+            "@koalaui.runtime.tree.IncrementalNode": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.tree.IncrementalNode"],
+            "@koalaui.runtime.tree.ReadonlyTreeNode": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.tree.ReadonlyTreeNode"],
+            "@koalaui.runtime.states.State": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.State"],
+            "@koalaui.runtime.annotations": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.annotations"],
+            "@koalaui.runtime.states.GlobalStateManager": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.GlobalStateManager"]
         }
     }
 }

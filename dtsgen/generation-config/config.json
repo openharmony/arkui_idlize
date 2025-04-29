@@ -48,6 +48,9 @@
             "packages": [""]
         }
     },
+    "forceCallback": {
+
+    },
 
     "globalPackages": [
         "idlize.stdlib",
