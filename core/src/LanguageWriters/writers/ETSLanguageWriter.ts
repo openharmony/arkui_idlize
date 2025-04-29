@@ -324,6 +324,10 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // ])
     }
     override castToInt(value: string, bitness: 8 | 32): string {
+        // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
+        // The explicit cast forces ui2abc to call valueOf on an int, which fails the compilation
+        // TODO Fix this cast
+        if (bitness === 8) return value
         return `${value} as int32` // FIXME: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
