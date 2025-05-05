@@ -151,7 +151,6 @@ export function generateArkoalaFromIdl(config: {
         new ArkoalaInstall(config.arkoalaDestination, config.lang, false, peerLibrary.useMemoM3) :
         new ArkoalaInstall(config.outDir, config.lang, true, peerLibrary.useMemoM3)
     arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
-    arkoala.createDirs(['', ''].map(dir => path.join(arkoala.cjDir, dir)))
 
     peerLibrary.name = 'arkoala'
     peerLibrary.setFileLayout(arkoalaLayout(peerLibrary, 'Ark', ARKOALA_PACKAGE_PATH))

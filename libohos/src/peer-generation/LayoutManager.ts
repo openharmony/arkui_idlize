@@ -71,7 +71,7 @@ export function install(outDir: string, library: PeerLibrary, printers: Printer[
         content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
         if (library.language === Language.CJ) {
             imports.clear()
-            content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*'].concat(content)
+            content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*'].concat(content)
         }
         if (library.language === Language.JAVA) {
             content = [`package ${ARKOALA_PACKAGE};`].concat(content)

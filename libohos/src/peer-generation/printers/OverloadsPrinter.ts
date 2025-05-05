@@ -269,9 +269,16 @@ export class OverloadsPrinter {
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
         if (this.isComponent) {
-            this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
+            if (this.printer.language == Language.CJ) {
+                this.printer.print('@Memo(')
+            } else {
+                this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
+            }
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
+        if (collapsedMethod.signature.returnType == idl.IDLThisType) {
+            collapsedMethod.signature.returnType = idl.IDLVoidType
+        }
         const key = peer.getComponentName() + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
@@ -305,6 +312,11 @@ export class OverloadsPrinter {
                 this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
+        if (this.isComponent) {
+            if (this.printer.language == Language.CJ) {
+                this.printer.print(')')
+            }
+        }
     }
 
     public printCollapsedDeclaration(peer: PeerClassBase, methods: PeerMethod[]) {

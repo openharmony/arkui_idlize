@@ -426,23 +426,6 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
-
-            // const peerAttrbiutesType = idl.createReferenceType(componentToAttributesClass(peer.componentName))
-            // const applyAttributesSignature = new MethodSignature(IDLVoidType, [peerAttrbiutesType], undefined, undefined, ["attrs"])
-            // const applyAttributes = 'applyAttributes'
-            // writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
-            //     for (const field of peer.attributesFields) {
-            //         if (peerGeneratorConfiguration().ignoreMethod(field.name, this.library.language)) {
-            //             continue
-            //         }
-            //         writer.print(`if (let Some(attr) <- attrs.${field.name}_value) {`)
-            //         writer.pushIndent()
-            //         writer.print(`this.${writer.escapeKeyword(field.name)}(attr)`)
-            //         writer.popIndent()
-            //         writer.print(`}`)
-            //     }
-            //     writer.writeMethodCall('super', applyAttributes, ['attrs'])
-            // })
         }, parentComponentClassName) //, [peer.originalClassName!])
 
         return [{
