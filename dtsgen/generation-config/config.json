@@ -10,6 +10,18 @@
     "forceMaterialized": [
         "BaseContext"
     ],
+    "forceCallback": {
+        "EditMenuOptions": [],
+        "XComponentController": [
+            "onSurfaceCreated",
+            "onSurfaceChanged",
+            "onSurfaceDestroyed"
+        ],
+        "CustomSpan": [
+            "onMeasure",
+            "onDraw"
+        ]
+    },
     "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],

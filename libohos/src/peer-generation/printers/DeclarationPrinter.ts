@@ -82,13 +82,12 @@ function printEnumsGlobalAssign(enums: idl.IDLEnum[], writer: LanguageWriter) {
         return
     writer.print("Object.assign(globalThis, {")
     writer.pushIndent()
-    for (const decl of enums) {
-        const namespaces = idl.getNamespacesPathFor(decl)
-        if (namespaces.length > 0)
-            writer.print(`${namespaces[0].name}: ${namespaces[0].name},`)
-        else
-            writer.print(`${decl.name}: ${decl.name},`)
-    }
+    enums
+        .map(e => {
+            const namespaces = idl.getNamespacesPathFor(e)
+            return namespaces.length > 0 ? namespaces[0].name : e.name})
+        .filter((name, index, array) => array.indexOf(name) === index)
+        .forEach(name => writer.print(`${name}: ${name},`))
     writer.popIndent()
     writer.print("})")
 }

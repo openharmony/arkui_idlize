@@ -351,20 +351,6 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
         protected readonly printClasses: boolean,
     ) { }
 
-    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: idl.IDLFile) {
-        const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
-        if (enums.length != 0) {
-            writer.print(`Object.assign(globalThis, {`)
-            writer.pushIndent()
-            for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e))
-                writer.print(`${e.name}: ${usageTypeName},`)
-            }
-            writer.popIndent()
-            writer.print(`})`)
-        }
-    }
-
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
             || idl.isMethod(entry)
@@ -847,20 +833,6 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         protected readonly isDeclared: boolean,
         protected readonly printClasses: boolean,
     ) { }
-
-    protected printAssignEnumsToGlobalScope(writer: LanguageWriter, peerFile: idl.IDLFile) {
-        const enums = idl.linearizeNamespaceMembers(peerFile.entries).filter(idl.isEnum)
-        if (enums.length != 0) {
-            writer.print(`Object.assign(globalThis, {`)
-            writer.pushIndent()
-            for (const e of enums) {
-                const usageTypeName = this.peerLibrary.mapType(idl.createReferenceType(e))
-                writer.print(`${e.name}: ${usageTypeName},`)
-            }
-            writer.popIndent()
-            writer.print(`})`)
-        }
-    }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && !this.isDeclared && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
