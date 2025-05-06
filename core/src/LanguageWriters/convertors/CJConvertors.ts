@@ -136,6 +136,11 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLBigintType: return 'Int64'
             case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             case idl.IDLAnyType: return 'Any'
+            case idl.IDLDate: return 'DateTime'
+
+            case idl.IDLUnknownType:
+            case idl.IDLFunctionType:
+            case idl.IDLCustomObjectType: return 'Any'
         }
         throw new Error(`Unsupported IDL primitive ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -147,7 +152,6 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
 
     private productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
-        if (!isTuple) throw new Error('Only tuples supported from IDL synthetic types for now')
         return decl.name
     }
 }

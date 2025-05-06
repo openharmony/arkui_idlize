@@ -276,7 +276,7 @@ export class OverloadsPrinter {
             }
         }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
-        if (collapsedMethod.signature.returnType == idl.IDLThisType) {
+        if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
             collapsedMethod.signature.returnType = idl.IDLVoidType
         }
         const key = peer.getComponentName() + '.' + collapsedMethod.name
