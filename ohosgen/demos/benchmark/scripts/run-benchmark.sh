@@ -35,6 +35,6 @@ echo $arkdisasm_bin $out_dir/app.abc
 $arkdisasm_bin $out_dir/app.abc
 
 
-bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc
+bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc:$out_dir/app.abc
 echo LD_LIBRARY_PATH=$out_dir $arkts_dir/ark $out_dir/app.abc --ark-boot-files $bootfiles --ark-entry-point ffi_benchmark_ani.ani_main.ETSGLOBAL::main
 LD_LIBRARY_PATH=$out_dir $arkts_dir/ark --compiler-enable-jit=false $out_dir/app.abc --ark-boot-files $bootfiles --ark-entry-point ffi_benchmark_ani.ani_main.ETSGLOBAL::main

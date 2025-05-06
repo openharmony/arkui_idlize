@@ -879,6 +879,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         for (const entries of moduleToEntries.values()) {
             const seenNames = new Set<string>()
             for (const entry of entries) {
+                if (idl.isImport(entry)) continue
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter()
 

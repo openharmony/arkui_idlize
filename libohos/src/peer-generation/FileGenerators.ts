@@ -306,25 +306,23 @@ export function getInteropRootPath() {
     return path.resolve(interopPackagePath, '..', '..', '..', '..', '..')
 }
 
-export function copyDir(from: string, to: string, recursive: boolean, filters?: string[]) {
+export function copyDir(from: string, to: string, recursive: boolean) {
     fs.readdirSync(from).forEach(it => {
         const sourcePath = path.join(from, it)
         const targetPath = path.join(to, it)
         const statInfo = fs.statSync(sourcePath)
         if (statInfo.isFile()) {
-            copyFile(sourcePath, targetPath, filters)
+            copyFile(sourcePath, targetPath)
         }
         else if (recursive && statInfo.isDirectory()) {
-            if (!fs.existsSync(targetPath)) {
-                fs.mkdirSync(targetPath)
-            }
-            copyDir(sourcePath, targetPath, recursive, filters)
+            copyDir(sourcePath, targetPath, recursive)
         }
     })
 }
-function copyFile(from: string, to: string, filters?: string[]) {
-    if (filters && !filters.includes(from))
-        return
+export function copyFile(from: string, to: string) {
+    if (!fs.existsSync(path.dirname(to))) {
+        fs.mkdirSync(path.dirname(to), { recursive: true })
+    }
     fs.copyFileSync(from, to)
 }
 

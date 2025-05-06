@@ -17,8 +17,7 @@
         "module": "CommonJS",
         "paths": {
             "@arkoala/arkui": ["./generated/ts", "./"],
-            "@arkoala/arkui/*": ["./generated/ts/*", "./*"],
-            "@koalaui/arkoala": ["./generated/ts", "./"],
+            "@arkoala/arkui/*": ["./generated/ts/*", "./*"]
         },
     },
     "include": [

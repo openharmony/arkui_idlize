@@ -1,4 +1,7 @@
+[loadLibraries] Registered TEST_BUFFERNativeModule as InteropNativeModule
 Starting demo: test_buffer
+[loadLibraries] Loading TEST_BUFFERNativeModule [TEST_BUFFERNativeModule]
+[loadLibraries] Loading InteropNativeModule [TEST_BUFFERNativeModule]
 Foo_constructImpl()
 FooObject() with index = 1
 Foo_getResultImpl(thisPtr)

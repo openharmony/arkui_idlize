@@ -1,5 +1,8 @@
+[loadLibraries] Registered TEST_MODULES_MULTILEVELNativeModule as InteropNativeModule
 Starting demo: test_modules
 ======== Foo ========
+[loadLibraries] Loading TEST_MODULES_MULTILEVELNativeModule [TEST_MODULES_MULTILEVELNativeModule]
+[loadLibraries] Loading InteropNativeModule [TEST_MODULES_MULTILEVELNativeModule]
 FooInt_constructImpl(initialValue)
 GlobalScope_qux_getIntWithFooImpl(foo)
 foo->value = 42 (int32)

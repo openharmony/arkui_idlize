@@ -6,7 +6,7 @@ external_dir=../../../external
 arkts_dir=$external_dir/incremental/tools/panda/arkts
 out_dir=build/panda
 
-bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc
+bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc:$out_dir/app.abc
 
 if [-v USE_PERF]; then
     PERF_PARAMS="perf record -g --call-graph dwarf,8192 --event cycles:Pu --aio --sample-cpu"

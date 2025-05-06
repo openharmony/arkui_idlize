@@ -68,7 +68,7 @@ run arkts subset:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/arkgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
   script:
     - npm run run:panda:subset
 
@@ -82,7 +82,7 @@ compile arkts peers:
     - !reference [.setup, script]
     - npm run download:sdk
     - cd $CI_PROJECT_DIR/arkgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
   script:
     - npm run make:compile:arkts:peers
 
@@ -107,7 +107,7 @@ arkts subset sig integration:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/arkgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:install
+    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
   script:
     - npm run sig:arkts:subset:all
 

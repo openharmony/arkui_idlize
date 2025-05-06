@@ -57,7 +57,8 @@ import {
     printTSTypeChecker,
     printArkTSTypeChecker,
     ScopeLibrarayLayout,
-    createPeersPrinter
+    createPeersPrinter,
+    copyFile
 } from "@idlizer/libohos"
 import { ArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
@@ -117,17 +118,33 @@ function copyArkoalaFiles(config: {
     const subsetJson = path.join(fs.existsSync(Subset) ? Subset : ExternalStubs, 'subset.json')
     const subsetData = JSON.parse(fs.readFileSync(subsetJson).toString())
     if (!subsetData) throw new Error(`Cannot parse ${subsetJson}`)
+    const copyFiles = (files: string, ...fromFallbacks: string[]) => {
+        for (const file of files) {
+            let found = false
+            for (const from of fromFallbacks) {
+                const fromPath = path.join(from, file)
+                if (fs.existsSync(fromPath)) {
+                    found = true
+                    copyFile(fromPath, path.join(arkoala.sig, file))
+                    break
+                }
+            }
+            if (!found) {
+                throw new Error(`Template for file ${file} was not found in paths ${fromFallbacks.join(':')}`)
+            }
+        }
+        return
+    }
 
     if (config.onlyIntegrated) {
-        copyToArkoala(fs.existsSync(Subset) ? Subset : ExternalStubs, arkoala, subsetData.generatedSubset);
+        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : ExternalStubs)
         return
     }
 
     if (fs.existsSync(Subset)) {
-        copyToArkoala(Subset, arkoala, subsetData.subset)
+        copyFiles(subsetData.subset, Subset)
     } else {
-        copyToArkoala(External, arkoala, subsetData.subset)
-        copyToArkoala(ExternalStubs, arkoala, subsetData.subset)
+        copyFiles(subsetData.subset, ExternalStubs, External)
     }
 }
 
@@ -443,11 +460,6 @@ function selectOutDir(arkoala: ArkoalaInstall, lang: Language) {
         case Language.CJ: return arkoala.cjDir
     }
     return ''
-}
-
-function copyToArkoala(from: string, arkoala: ArkoalaInstall, filters?: string[]) {
-    filters = filters?.map(it => path.join(from, it))
-    copyDir(from, arkoala.sig, true, filters)
 }
 
 function copyToLibace(from: string, libace: LibaceInstall) {

@@ -1,4 +1,7 @@
+[loadLibraries] Registered HUKSNativeModule as InteropNativeModule
 Starting demo: huks
+[loadLibraries] Loading HUKSNativeModule [HUKSNativeModule]
+[loadLibraries] Loading InteropNativeModule [HUKSNativeModule]
 GlobalScope_fooVoidVoidImpl()
 GlobalScope_fooVoidNumberImpl(arg)
   arg = 100 (int32)

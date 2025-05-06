@@ -31,6 +31,7 @@
   "scripts": {
     "compile": "npm run --prefix .. download:sdk && npm run --prefix ../libohos compile && rollup -c",
     "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
+    "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",
     "run:xml:ts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --options-file ./demos/xml/config.json",
     "run:xml:arkts": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --language=arkts --options-file ./demos/xml/config.json",
     "run:xml:cj": "npm run compile && node . --use-new-ohos --dts2peer --input-files ../interface_sdk-js/api/@ohos.xml.d.ts @ohos.xml.d.ts --output-dir ./out/xml --language=cangjie --options-file ./demos/xml/config.json",

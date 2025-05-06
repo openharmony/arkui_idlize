@@ -5,6 +5,10 @@
             "name": "test_generic_callback",
             "packages": ["foo"],
             "useFoldersLayout": true
+        },
+        "__ignore__": {
+            "name": "__ignore__",
+            "packages": ["interfaces.callback"]
         }
     }
 }

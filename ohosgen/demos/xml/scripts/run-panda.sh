@@ -7,7 +7,7 @@ external_dir=${SCRIPT_DIR}/../../../../external
 arkts_dir=$external_dir/incremental/tools/panda/arkts
 out_dir=build/panda
 
-bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc
+bootfiles=$external_dir/incremental/runtime/build/incremental.abc:$external_dir/interop/build/interop.abc:$out_dir/app.abc
 
 echo "Start Panda with" ${bootfiles}
 LD_LIBRARY_PATH=$PWD/$out_dir:$external_dir/interop/build:$LD_LIBRARY_PATH \

@@ -16,6 +16,7 @@ function execOut(command) {
 
 function installExternal() {
     const externalPackagesToInstall = [
+        `arkoala-arkts/framework`,
         `incremental/compat`,
         `incremental/common`,
         `incremental/harness`,

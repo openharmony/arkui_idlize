@@ -60,7 +60,7 @@ install panda sdk:
     - !reference [ .setup, script ]
     - cd $CI_PROJECT_DIR
   script:
-    - PANDA_SDK_VERSION=next npm run --prefix ./external/incremental/tools/panda panda:sdk:install
+    - PANDA_SDK_VERSION=next npm run --prefix ./external/incremental/tools/panda panda:sdk:check-install
   artifacts:
     expire_in: 1 days
     paths:
