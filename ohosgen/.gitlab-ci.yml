@@ -13,6 +13,7 @@ workflow:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
+  PANDA_SDK_VER: "1.5.0-dev.30153"
 
 include:
     - gitlab/setup.yml
@@ -26,7 +27,8 @@ check generated XML demo:
     before_script:
       - !reference [.setup, script]
       - cd $CI_PROJECT_DIR/ohosgen
-      - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
+      - export PANDA_SDK_VERSION=$PANDA_SDK_VER
+      - npm run panda:sdk:check-install
       - npm run compile --prefix ../external/interop
       - npm run compile --prefix ../external/incremental/common
       - npm run compile --prefix ../external/incremental/compat
@@ -46,7 +48,8 @@ check ohos unit tests:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/ohosgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
+    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
+    - npm run panda:sdk:check-install
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common
     - npm run compile --prefix ../external/incremental/compat
@@ -71,7 +74,8 @@ check ohos demos:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/ohosgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
+    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
+    - npm run panda:sdk:check-install
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common
     - npm run compile --prefix ../external/incremental/compat
@@ -96,7 +100,8 @@ check ohos system tests:
   before_script:
     - !reference [.setup, script]
     - cd $CI_PROJECT_DIR/ohosgen
-    - PANDA_SDK_VERSION=next npm run panda:sdk:check-install
+    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
+    - npm run panda:sdk:check-install
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common
     - npm run compile --prefix ../external/incremental/compat
