@@ -292,6 +292,14 @@ export function zip<A, B>(left: readonly A[], right: readonly B[]): [A, B][] {
     return left.map((_, i) => [left[i], right[i]])
 }
 
+export function zipStrip<A, B>(left: readonly A[], right: readonly B[]): [A, B][] {
+    const result: [A, B][] = []
+    for (let i = 0; i < left.length && i < right.length; ++i) {
+        result.push([left[i], right[i]])
+    }
+    return result
+}
+
 export function identNameWithNamespace(node: ts.Node, language: Language): string {
     let parent = node.parent
     while (parent && !ts.isModuleDeclaration(parent)) parent = parent.parent

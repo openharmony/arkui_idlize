@@ -32,7 +32,11 @@ import {
     CJLanguageWriter,
     PeerMethod,
     isInIdlizeStdlib,
-    removePoints
+    removePoints,
+    getOrPut,
+    zipStrip,
+    zipMany,
+    collapseTypes
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -45,6 +49,7 @@ import { collectJavaImports } from './lang/JavaIdlUtils'
 import { printJavaImports } from './lang/JavaPrinters'
 import { collectAllProperties } from './StructPrinter'
 import { TargetFile } from './TargetFile'
+import { collapseSameMethodsIDL } from './OverloadsPrinter'
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }
@@ -140,11 +145,98 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 .map(it => this.printConstant(it)).flat())
             .concat(idlInterface.properties
                 .map(it => this.printProperty(it)).flat())
-            .concat(idlInterface.methods
+            .concat(this.collapseAmbiguousMethods(idlInterface.methods)
                 .map(it => this.printMethod(it)).flat())
             .concat(idlInterface.callables
                 .map(it => this.printFunction(it)).flat())
             .concat(["}"])
+    }
+
+    protected hasIntersection(a:idl.IDLType, b:idl.IDLType): boolean {
+        if (idl.printType(a) === idl.printType(b)) {
+            return true
+        }
+        if (idl.isOptionalType(a) && idl.isOptionalType(b)) {
+            return true
+        }
+        if (idl.isUnionType(a)) {
+            return this.hasIntersection(b, a)
+        }
+        if (idl.isUnionType(b)) {
+            return b.types.some(it => this.hasIntersection(a, it))
+        }
+        return false
+    }
+
+    protected collapseMethods(methodsName:string, methods:idl.IDLMethod[]): idl.IDLMethod {
+        const parameters: idl.IDLParameter[] = []
+        const maxParams = methods.map(m => m.parameters.length).reduce((a, b) => Math.max(a, b), -1)
+        for (let i = 0; i < maxParams; ++i) {
+            const names = new Set<string>()
+            const types: idl.IDLType[] = []
+            let isOptional = false
+            for (const method of methods) {
+                if (i < method.parameters.length) {
+                    const param = method.parameters[i]
+                    names.add(param.name)
+                    isOptional = isOptional || param.isOptional
+                    types.push(param.type)
+                }
+            }
+            if (types.length === 0) {
+                throw new Error("BUG")
+            }
+            parameters.push(
+                idl.createParameter(
+                    Array.from(names).join('_'),
+                    collapseTypes(types),
+                    isOptional
+                )
+            )
+        }
+        return idl.createMethod(
+            methodsName,
+            parameters,
+            collapseTypes(methods.map(m => m.returnType))
+        )
+    }
+
+    protected collapseAmbiguousMethods(methods:idl.IDLMethod[]) {
+        const groups = new Map<string, idl.IDLMethod[]>()
+        methods.forEach(method => {
+            const record = getOrPut(groups, method.name, () => [])
+            record.push(method)
+        })
+        const result:idl.IDLMethod[] = []
+        groups.forEach((group, name) => {
+            if (group.length === 1) {
+                result.push(group[0])
+                return
+            }
+            let queue = [...group]
+            while (queue.length) {
+                const method = queue.shift()!
+                const newQueue: idl.IDLMethod[] = []
+                const collapseGroup: idl.IDLMethod[] = [method]
+                for (const item of queue) {
+                    const shouldCollapse = zipStrip(method.parameters, item.parameters)
+                        .every(([x, y]) => (x.isOptional && y.isOptional) || this.hasIntersection(x.type, y.type))
+                    if (shouldCollapse) {
+                        collapseGroup.push(item)
+                    } else {
+                        newQueue.push(item)
+                    }
+                }
+                if (collapseGroup.length === 1) {
+                    result.push(collapseGroup[0])
+                } else {
+                    result.push(this.collapseMethods(name, collapseGroup))
+                }
+                queue = newQueue
+            }
+        })
+
+        return result
     }
 
     protected printInterfaceName(idlInterface: idl.IDLInterface): string {
