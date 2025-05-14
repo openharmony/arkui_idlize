@@ -134,6 +134,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             return []
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         return ([`export ${declaredPrefix}${idl.isInterfaceSubkind(idlInterface) ? "interface" : "class"} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
+            .concat(idlInterface.constructors
+                .map(it => this.printConstructor(it)).flat())
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())
             .concat(idlInterface.properties
@@ -197,6 +199,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         ]
     }
 
+    protected printConstructor(method: idl.IDLConstructor): stringOrNone[] {
+        return [
+            ...this.printExtendedAttributes(method),
+            indentedBy(`constructor(${this.printParameters(method.parameters)})`, 1)
+        ]
+    }
     protected printMethod(idl: idl.IDLMethod): stringOrNone[] {
         // TODO dirty stub. We are not processing interfaces methods as a
         // callbacks for now, so interfaces with methods can not be
