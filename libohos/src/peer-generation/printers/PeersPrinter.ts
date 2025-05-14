@@ -25,6 +25,7 @@ import {
     isMaterializedType,
     MaterializedClass,
     qualifiedName,
+    generatorConfiguration,
     LayoutNodeRole,
     CustomTypeConvertor,
     ArgumentModifier
@@ -389,6 +390,9 @@ export function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWri
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
 ) {
+    if (generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) {
+        return
+    }
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,

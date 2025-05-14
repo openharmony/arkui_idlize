@@ -68,6 +68,8 @@ import {
   testLength
 } from '#compat'
 
+import {DTSHookClass, DTSHookValue, hook_ns} from "#compat"
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -362,6 +364,14 @@ function checkNativeBuffer() {
 //   assertEQ(1, idlHW.count)
 // }
 
+function checkHooks() {
+
+  const hookClass = new DTSHookClass()
+  hookClass.method1({ count: 10 })
+  hookClass.method2({ count: 20 })
+  // hookClass.method3({ count: 30 })
+}
+
 interface TestObject { x: number }
 function checkAny() {
   const obj: TestObject = { x: 10 }
@@ -489,6 +499,7 @@ export function run() {
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
   suite.addTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
+  suite.addTest("checkHooks", checkHooks)
   suite.addTest("checkContentModifier", checkContentModifier)
 
   return suite.run()

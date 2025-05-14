@@ -247,6 +247,7 @@
             "NavPathStack"
         ]
     },
+    "hooks": {},
     "materialized": {
         "ignoreReturnTypes": [
             "Promise"

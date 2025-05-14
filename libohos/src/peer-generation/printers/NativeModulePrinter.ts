@@ -151,6 +151,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
     }
 
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
+        if (generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) return
         returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
         const name = `_${component}_${method.overloadedName}`

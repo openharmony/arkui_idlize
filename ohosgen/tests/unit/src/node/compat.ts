@@ -68,6 +68,8 @@ export {
     testLength
 } from "../../generated/ts"
 
+export { DTSHookClass, DTSHookValue } from "../../generated/ts"
+
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
 

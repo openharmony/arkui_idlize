@@ -50,6 +50,12 @@
         "invalidAttributes": [],
         "replaceThrowErrorReturn": []
     },
+    "hooks": {
+        "DTSHookClass": [
+            "method2",
+            "method3"
+        ]
+    },
     "materialized": {
         "ignoreReturnTypes": []
     },

@@ -41,6 +41,7 @@ export const CoreConfigurationSchema = D.object({
     forceCallback: D.map(D.string(), T.stringArray()).onMerge('replace'),
     forceResource: T.stringArray(),
     forceContext: T.stringArray(),
+    hooks: D.map(D.string(), T.stringArray()).onMerge('replace'),
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
 
@@ -63,6 +64,7 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     forceCallback: new Map<string, []>(),
     forceResource: [],
     forceContext: [],
+    hooks: new Map<string, []>(),
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
 

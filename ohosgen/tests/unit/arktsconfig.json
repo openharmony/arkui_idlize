@@ -6,6 +6,8 @@
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./src/panda/components"],
+            "#hooks": ["./src/panda/hooks/"],
+            "#hooks_sample": ["./src/panda/hooks/sample"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

@@ -884,3 +884,21 @@ OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Union
     // return {.selector = 1, .value1 = {.tag = INTEROP_TAG_INT32, .i32 = 456} };
     INTEROP_FATAL("Unknown step: %d or selector: %d", s, u.selector);
 }
+
+// Hooks
+class DTSHookClassPeer
+{
+};
+OH_UNIT_DTSHookClassHandle DTSHookClass_constructImpl() {
+    return (OH_UNIT_DTSHookClassHandle) new DTSHookClassPeer();
+}
+void DTSHookClass_destructImpl(OH_UNIT_DTSHookClassHandle thisPtr) {
+}
+void DTSHookClass_method1Impl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+}
+// TBD: remove implementation for the hooked method
+void DTSHookClass_method2Impl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+}
+// TBD: remove implementation for the hooked method
+void DTSHookClass_method3Impl(OH_NativePointer thisPtr, const OH_CustomObject* value) {
+}

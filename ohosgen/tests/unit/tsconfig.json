@@ -7,7 +7,9 @@
         "sourceMap": true,
         "baseUrl": ".",
         "paths": {
-            "#compat": ["./src/node/compat.ts"]
+            "#compat": ["./src/node/compat.ts"],
+            "#hooks": ["./src/node/hooks/"],
+            "#hooks_sample": ["./src/node/hooks/sample.ts"]
         }
     },
     "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],

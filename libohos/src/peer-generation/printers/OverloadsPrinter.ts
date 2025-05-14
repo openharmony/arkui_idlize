@@ -22,7 +22,7 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorConfiguration } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -282,40 +282,52 @@ export class OverloadsPrinter {
         const key = peer.getComponentName() + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
-            if (this.isComponent) {
-                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
-                this.printer.pushIndent()
-            }
-            if (methods.length > 1) {
-                const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
-                    const argName = collapsedMethod.signature.argName(argIndex)
-                    this.printer.language == Language.JAVA ?
-                        this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
-                        this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
-                    return new UnionRuntimeTypeChecker(
-                        methods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
-                })
-                let shallStop = false
-                methods.forEach((peerMethod, methodIndex) => {
-                    if (!shallStop) {
-                        shallStop ||= this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers)
-                    }
-                })
-                if (!shallStop)
-                    writer.makeThrowError(`Can not select appropriate overload`).write(writer)
+            if (generatorConfiguration().hooks.get(peer.getComponentName())?.includes(collapsedMethod.name)) {
+                const hookName = `hook_${peer.getComponentName()}_${collapsedMethod.name}`
+                const args = collapsedMethod.signature.args.map((_, i) => collapsedMethod.signature.argName(i))
+                writer.writeExpressionStatement(writer.makeFunctionCall(hookName, [
+                    writer.makeThis(), ...args.map(arg => writer.makeString(arg))
+                ]))
             } else {
-                this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
-            }
-            if (this.isComponent) {
-                this.printer.popIndent()
-                this.printer.print(`}`)
-                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
+                this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
             }
         })
         if (this.isComponent) {
             if (this.printer.language == Language.CJ) {
                 this.printer.print(')')
             }
+        }
+    }
+
+    printCollapsedOverloadsMethodBody(peer: PeerClassBase, collapsedMethod: Method, methods: PeerMethod[], writer: LanguageWriter) {
+        if (this.isComponent) {
+            writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
+            this.printer.pushIndent()
+        }
+        if (methods.length > 1) {
+            const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
+                const argName = collapsedMethod.signature.argName(argIndex)
+                this.printer.language == Language.JAVA ?
+                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
+                    this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
+                return new UnionRuntimeTypeChecker(
+                    methods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
+            })
+            let shallStop = false
+            methods.forEach((peerMethod, methodIndex) => {
+                if (!shallStop) {
+                    shallStop ||= this.printComponentOverloadSelector(peer, collapsedMethod, peerMethod, methodIndex, runtimeTypeCheckers)
+                }
+            })
+            if (!shallStop)
+                writer.makeThrowError(`Can not select appropriate overload`).write(writer)
+        } else {
+            this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
+        }
+        if (this.isComponent) {
+            this.printer.popIndent()
+            this.printer.print(`}`)
+            this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
         }
     }
 

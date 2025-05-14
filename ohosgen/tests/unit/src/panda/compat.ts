@@ -67,6 +67,9 @@ export {
 
 export { testLength } from "../../generated/arkts"
 
+export { DTSHookClass, DTSHookValue } from "../../generated/arkts"
+export { hook_ns } from "./hooks/sample"
+
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 
