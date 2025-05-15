@@ -1,0 +1,23 @@
+package ohos.graphics.common2D;
+[DefaultExport]
+namespace common2D {
+    interface Color {
+        attribute number alpha;
+        attribute number red;
+        attribute number green;
+        attribute number blue;
+    };
+    interface Rect {
+        attribute number left;
+        attribute number top;
+        attribute number right;
+        attribute number bottom;
+    };
+    interface Point {
+        attribute number x;
+        attribute number y;
+    };
+    interface Point3d: Point {
+        attribute number z;
+    };
+};

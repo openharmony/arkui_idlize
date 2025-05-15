@@ -1,0 +1,6 @@
+package ohos.matrix4;
+
+[DefaultExport]
+namespace matrix4 {
+    interface Matrix4Transit {};
+};

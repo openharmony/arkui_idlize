@@ -57,6 +57,7 @@ import {
     componentToStyleClass,
 } from '@idlizer/libohos'
 import { ArkoalaPeerLibrary } from '../ArkoalaPeerLibrary'
+import { getReferenceTo } from '../knownReferences'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -75,7 +76,7 @@ function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInterface)
 
 export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): MethodSignature {
     const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
-        idl.createReferenceType('AttributeModifier',
+        idl.createReferenceType(getReferenceTo('AttributeModifier'),
             [idl.createReferenceType(componentToAttributesInterface(it.name))],
         )
     )
@@ -124,7 +125,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
         imports.addFeature('UICommonBase', '../handwritten')
-        collectDeclItself(this.library, idl.createReferenceType('AttributeModifier'), imports)
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         if (!this.options.isDeclared) {
             imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")

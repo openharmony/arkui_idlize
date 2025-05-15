@@ -26,7 +26,7 @@ is_ohos_demo = (source_set == 'ts-ohos-context')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-if ['ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cangjie-subset', 'ts-ohos-context'].contains(source_set)
+if ['ets-ts-peers', 'ets-arkts-peers', 'ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cangjie-subset', 'ts-ohos-context'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
 else
 endif

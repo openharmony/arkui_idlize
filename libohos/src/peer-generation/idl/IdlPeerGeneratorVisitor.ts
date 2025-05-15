@@ -277,14 +277,13 @@ export class IdlPeerProcessor {
             return new MaterializedMethod(originalParentName, implemenationParentName, [], returnType, false, ctor, outArgConvertor)
         }
 
-        const methodTypeParams = idl.getExtAttribute(method, idl.IDLExtendedAttributes.TypeParameters)
         const argConvertors = method.parameters.map(param => generateArgConvertor(this.library, param))
         const signature = generateSignature(method)
         return new MaterializedMethod(originalParentName, implemenationParentName, argConvertors, returnType, false,
             new Method(methodName,
                 signature,
                 getMethodModifiers(method),
-                methodTypeParams !== undefined ? [methodTypeParams] : undefined),
+                method.typeParameters),
             outArgConvertor
         )
     }

@@ -65,6 +65,7 @@ export enum IDLExtendedAttributes {
     DtsName = "DtsName",
     DtsTag = "DtsTag",
     Entity = "Entity",
+    Extends = "Extends",
     Import = "Import",
     DefaultExport = "DefaultExport",
     IndexSignature = "IndexSignature",
@@ -589,6 +590,15 @@ export function createOptionalType(element:IDLType, nodeInitializer?: IDLNodeIni
     if (isOptionalType(element) && !nodeInitializer) {
         return element
     }
+    if (isOptionalType(element)) {
+        return {
+            kind: IDLKind.OptionalType,
+            type: element.type,
+            ...nodeInitializer,
+            _idlNodeBrand: innerIdlSymbol,
+            _idlTypeBrand: innerIdlSymbol,
+        }
+    }
     return {
         kind: IDLKind.OptionalType,
         type: element,
@@ -872,7 +882,7 @@ export function createFile(entries: IDLEntry[], fileName?: string, packageClause
 export function createImport(clause: string[], name?: string, nodeInitializer?: IDLNodeInitializer): IDLImport {
     return {
         kind: IDLKind.Import,
-        name: name || "",
+        name: name ?? "",
         clause,
         ...nodeInitializer,
         _idlNodeBrand: innerIdlSymbol,
@@ -1032,7 +1042,7 @@ export function createCallable(
     parameters: IDLParameter[],
     returnType: IDLType,
     callableInitializer: IDLCallableInitializer,
-    nodeInitializer: IDLNodeInitializer,
+    nodeInitializer?: IDLNodeInitializer,
     typeParameters: string[] = []
 ): IDLCallable {
     return {
@@ -1068,19 +1078,6 @@ export function createConstructor(
 export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType,
         nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback
 {
-    if (returnType === IDLThisType || isReferenceType(returnType) && returnType.name === "this")
-        returnType = IDLAnyType
-    parameters = parameters.map(it => {
-        if (it.type && isNamedNode(it.type) && (it.type.name === "T" || it.type.name === "this"))
-            return createParameter(
-                it.name,
-                IDLAnyType,
-                it.isOptional,
-                it.isVariadic,
-                { fileName: it.fileName },
-            )
-        return it
-    })
     return {
         kind: IDLKind.Callback,
         name, parameters, returnType, typeParameters,
@@ -1464,6 +1461,16 @@ export function clone<T extends IDLNode>(node:T): T {
     }
 }
 
+export function hasTypeParameters(entry:IDLEntry): boolean {
+    let foundTypeParameter = false
+    forEachChild(entry, n => {
+        if (isTypeParameterType(n)) {
+            foundTypeParameter = true
+        }
+    })
+    return foundTypeParameter
+}
+
 export function escapeIDLKeyword(name: string): string {
     return name + (IDLKeywords.has(name) ? "_" : "")
 }
@@ -1680,10 +1687,34 @@ export function printScoped(idl: IDLEntry): PrintedLine[] {
     throw new Error(`Unexpected scoped: ${idl.kind} ${idl.name}`)
 }
 
+function printInterfaceInherit(idl: IDLInterface): string {
+    if (idl.inheritance.length === 0) {
+        return ""
+    }
+    const inheritance = idl.inheritance
+    const types: string[] = []
+    if (idl.subkind === IDLInterfaceSubkind.Class) {
+        if (inheritance[0] !== IDLTopType) {
+            const ref = clone(inheritance[0])
+            ref.extendedAttributes ??= []
+            ref.extendedAttributes?.push({
+                name: IDLExtendedAttributes.Extends
+            })
+            types.push(`${printType(ref)}`)
+            inheritance.shift()
+        }
+    }
+    inheritance.forEach(type => {
+        types.push(printType(type))
+    })
+
+    return ": " + types.join(', ')
+}
+
 export function printInterface(idl: IDLInterface): PrintedLine[] {
     return [
         ...printExtendedAttributes(idl, 0),
-        `interface ${idl.name}${hasSuperType(idl) ? ": " + printType(idl.inheritance[0]) : ""} {`,
+        `interface ${idl.name}${printInterfaceInherit(idl)} {`,
         // TODO: type system hack!
     ]
         .concat(printedIndentInc)

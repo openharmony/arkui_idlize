@@ -22,6 +22,8 @@ import {
 } from "@idlizer/core"
 import { formatInputPaths, validatePaths, loadPeerConfiguration } from "@idlizer/libohos"
 import { generateFromSts } from "./generate"
+import { readConfig } from "./config"
+import { resolve } from "node:path"
 
 const options = program
     .option('--ets2idl', 'Convert .d.ts to IDL definitions')
@@ -57,7 +59,12 @@ if (options.ets2idl) {
     const { inputDirs, inputFiles } = formatInputPaths(options)
     validatePaths(inputDirs, 'dir')
     validatePaths(inputFiles, 'file')
-    generateFromSts(detsInputFiles, options.baseDir, options.outputDir)
+    generateFromSts({
+        inputFiles: detsInputFiles,
+        baseDir: options.baseDir,
+        outDir: options.outputDir,
+        config: readConfig(resolve(__dirname, '..', 'generator-config.json'))
+    })
     didJob = true
 }
 

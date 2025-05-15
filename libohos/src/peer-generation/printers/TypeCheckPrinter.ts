@@ -264,7 +264,11 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
             typeArguments
         ), writer => {
             //TODO: hack for now
-            typeName = typeName === "Callback" ? "Callback<void, void>" : typeName
+            typeName = typeName === "Callback"
+                ? "Callback<void, void>"
+                : typeName === "Array<T>"
+                ? "Array"
+                : typeName
             const statement = writer.makeReturn(writer.makeString(`value instanceof ${typeName}`))
             writer.writeStatement(statement)
         })

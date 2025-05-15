@@ -1,8 +1,0 @@
-package ohos.graphics.uiEffect;
-
-[DefaultExport]
-namespace uiEffect {
-    interface Blender {};
-    interface Filter {};
-    interface VisualEffect {};
-};

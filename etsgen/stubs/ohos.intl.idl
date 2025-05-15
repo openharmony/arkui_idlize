@@ -1,6 +1,0 @@
-package ohos.intl;
-
-[DefaultExport]
-namespace intl {
-    interface DateTimeOptions {};
-};

@@ -119,24 +119,11 @@ class TSDependenciesCollector extends DependenciesCollector {
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const resolved = this.library.resolveTypeReference(type)
-        if (resolved && idl.isInterface(resolved) && idl.isSyntheticEntry(resolved)) {
+        if (resolved && (idl.isInterface(resolved) || idl.isCallback(resolved)) && idl.isSyntheticEntry(resolved)) {
             // type literal
             return this.convert(resolved)
         }
         return super.convertTypeReference(type)
-    }
-}
-
-class ArkTSDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        const decl = this.library.resolveTypeReference(type)
-        if (decl && idl.isSyntheticEntry(decl)) {
-            return [
-                decl,
-                ...this.convert(decl),
-            ]
-        }
-        return super.convertTypeReference(type);
     }
 }
 
@@ -196,7 +183,7 @@ class JavaDependenciesCollector extends DependenciesCollector {
 export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
     switch (library.language) {
         case Language.TS: return new TSDependenciesCollector(library)
-        case Language.ARKTS: return new ArkTSDependenciesCollector(library)
+        case Language.ARKTS: return new TSDependenciesCollector(library)
         case Language.CJ: return new CJDependenciesCollector(library)
         case Language.JAVA: return new JavaDependenciesCollector(library)
         // in Java and CJ there is no imports (just files in the same package)

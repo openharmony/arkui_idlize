@@ -29,7 +29,7 @@ export function generateSyntheticIdlNodeName(type: idl.IDLType): string {
         }
     }
     if (idl.isNamedNode(type))
-        return type.name
+        return type.name.split('.').map(capitalize).join('_')
     if (idl.isOptionalType(type))
         return `Opt_${generateSyntheticIdlNodeName(type.type)}`
     throw `Can not compute type name of ${idl.IDLKind[type.kind]}`
@@ -79,9 +79,17 @@ export function generateSyntheticUnionName(types: idl.IDLType[]) {
     return `Union_${types.map(it => generateSyntheticIdlNodeName(it)).join("_").replaceAll(".", "_")}`
 }
 
+export function generateSyntheticFunctionParameterName(parameter:idl.IDLParameter): string {
+    let prefix = ''
+    if (parameter.isOptional) {
+        prefix = 'mb_'
+    }
+    return prefix + generateSyntheticIdlNodeName(parameter.type)
+}
+
 export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
     let prefix = isAsync ? "AsyncCallback" : "Callback"
-    const names = parameters.map(it => `${generateSyntheticIdlNodeName(it.type!)}`).concat(generateSyntheticIdlNodeName(returnType))
+    const names = parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
 }
 

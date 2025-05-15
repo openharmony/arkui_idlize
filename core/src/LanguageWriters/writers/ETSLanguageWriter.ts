@@ -164,18 +164,19 @@ export class ETSLambdaExpression extends LambdaExpression {
 ////////////////////////////////////////////////////////////////
 
 export function generateTypeCheckerName(typeName: string): string {
-    typeName = typeName.replaceAll('[]', 'BracketsArray')
-    .replaceAll('.', '') // Todo: hack for namespaces
+    typeName = typeName
+        .replaceAll('[]', 'BracketsArray')
+        .split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
 
 export function generateEnumToNumericName(typeName: string): string {
-    typeName = typeName.split(".").join("_")
+    typeName = typeName.split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
     return `${typeName}_ToNumeric`
 }
 
 export function generateEnumFromNumericName(typeName: string): string {
-    typeName = typeName.split(".").join("_")
+    typeName = typeName.split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
     return `${typeName}_FromNumeric`
 }
 
@@ -226,12 +227,22 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} as ${type}`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        const enumName = this.getNodeName(enumEntry)
-        return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumName), [value])
+        if (ETSLanguageWriter.isUseTypeChecker) {
+            const enumName = this.getNodeName(enumEntry)
+            return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumName), [value])
+        }
+        return idl.isStringEnum(enumEntry)
+            ? this.makeMethodCall(value.asString(), 'getOrdinal', [])
+            : this.makeMethodCall(value.asString(), 'valueOf', [])
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumName), [value])
+        if (ETSLanguageWriter.isUseTypeChecker) {
+            return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumName), [value])
+        }
+        return idl.isStringEnum(enumEntry)
+            ? this.makeString(`${enumName}.values()[${value.asString()}]`)
+            : this.makeMethodCall(enumName, 'fromValue', [value])
     }
     makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string},
                                 value: string,
@@ -381,6 +392,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
+    }
+
+    public static _isUseTypeChecker: boolean = true
+    public static get isUseTypeChecker(): boolean { return this._isUseTypeChecker }
+    public static useTypeChecker<T>(isUseTypeChecker: boolean, op: () => T): T {
+        const prevIsUse = this.isReferenceRelativeToNamespaces
+        this._isUseTypeChecker = isUseTypeChecker
+        const result = op()
+        this._isUseTypeChecker = prevIsUse
+        return result
     }
 }
 

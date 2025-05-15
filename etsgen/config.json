@@ -12,7 +12,9 @@
             "@koalaui.runtime.tree.ReadonlyTreeNode": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.tree.ReadonlyTreeNode"],
             "@koalaui.runtime.states.State": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.State"],
             "@koalaui.runtime.annotations": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.annotations"],
-            "@koalaui.runtime.states.GlobalStateManager": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.GlobalStateManager"]
+            "@koalaui.runtime.states.GlobalStateManager": ["../sdk-patched-arkts/api/arkui/runtime-api/@koalaui.runtime.states.GlobalStateManager"],
+            "@ohos.arkui.node": ["../sdk-patched-arkts/api/@ohos.arkui.node"],
+            "@ohos.arkui.UIContext": ["../sdk-patched-arkts/api/@ohos.arkui.UIContext"]
         }
     }
 }

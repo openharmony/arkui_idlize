@@ -586,12 +586,10 @@ export function className(node: ts.ClassDeclaration | ts.InterfaceDeclaration): 
  * Add a prefix to an enum value which camel case name coincidence
  * with the the same upper case name for an another enum value
  */
-export function nameEnumValues(enumTarget: ts.EnumDeclaration): string[] {
+export function nameEnumValues(enumTarget: string[]): string[] {
     const prefix = "LEGACY"
     const nameToIndex = new Map<string, number>()
-    enumTarget.members
-        .map(it => identName(it.name)!)
-        .forEach((name, index) => {
+    enumTarget.forEach((name, index) => {
             let upperCaseName: string
             if (isUpperCase(name)) {
                 upperCaseName = name

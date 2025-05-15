@@ -1,0 +1,15 @@
+package ohos.promptAction;
+
+dictionary LevelMode {
+    number A = 0;
+};
+dictionary ImmersiveMode {
+    number A = 0;
+};
+interface LevelOrder {};
+[DefaultExport]
+namespace promptAction {
+    interface DialogController {};
+    interface Matrix4Transit {};
+    interface Matrix4Transit {};
+};

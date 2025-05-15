@@ -1,6 +1,0 @@
-package ohos.data.uniformTypeDescriptor;
-
-[DefaultExport]
-namespace uniformTypeDescriptor {
-    interface UniformDataType {};
-};

@@ -30,10 +30,11 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     throwException
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType } from '@idlizer/core/idl'
+import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { collectPeersForFile } from "../PeersCollector";
+import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
     constructor(
@@ -376,23 +377,25 @@ class AccessorVisitor extends ModifierVisitor {
     }
 
     printMaterializedClassProlog(clazz: MaterializedClass) {
-        const accessor = `${clazz.className}Accessor`
-        this.accessors.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${accessor}* Get${accessor}()`)
+        const accessor = getAccessorName(clazz.decl)
+        const className = getDeclarationUniqueName(clazz.decl) + 'Accessor'
+        this.accessors.print(`const ${accessor}* Get${className}()`)
         this.accessors.print("{")
         this.accessors.pushIndent()
-        this.accessors.print(`static const ${peerGeneratorConfiguration().cppPrefix}ArkUI${accessor} ${accessor}Impl {`)
+        this.accessors.print(`static const ${accessor} ${className}Impl {`)
         this.accessors.pushIndent()
-        this.accessorList.print(`Get${accessor},`)
+        this.accessorList.print(`Get${className},`)
     }
 
     printMaterializedClassEpilog(clazz: MaterializedClass) {
-        const accessor = `${clazz.className}Accessor`
+        const className = getDeclarationUniqueName(clazz.decl) + 'Accessor'
+        const accessorType = getAccessorName(clazz.decl)
         this.accessors.popIndent()
         this.accessors.print(`};`)
-        this.accessors.print(`return &${accessor}Impl;`)
+        this.accessors.print(`return &${className}Impl;`)
         this.accessors.popIndent()
         this.accessors.print(`}\n`)
-        this.getterDeclarations.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${accessor}* Get${accessor}();`)
+        this.getterDeclarations.print(`const ${accessorType}* Get${className}();`)
     }
 
     printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
@@ -402,7 +405,8 @@ class AccessorVisitor extends ModifierVisitor {
     }
 
     printStruct(clazz: MaterializedClass): void {
-        const structName = `${clazz.className}Peer`
+        const className = getDeclarationUniqueName(clazz.decl)
+        const structName = `${className}Peer`
 
         this.accessors.print(`struct ${structName} {`)
         this.accessors.pushIndent()

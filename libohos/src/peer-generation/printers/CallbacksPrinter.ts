@@ -318,6 +318,9 @@ class DeserializeCallbacksVisitor {
                 writer.print(`match (kind) {`)
                 writer.pushIndent()
                 for (const callback of callbacks) {
+                    if (this.isGenericCallback(callback)) {
+                        continue
+                    }
                     const args = writer.language === Language.CPP
                         ? [`thisArray`, `thisLength`]
                         : [`thisDeserializer`]
@@ -333,6 +336,9 @@ class DeserializeCallbacksVisitor {
                     writer.print(`switch (kind) {`)
                     writer.pushIndent()
                     for (const callback of callbacks) {
+                        if (this.isGenericCallback(callback)) {
+                            continue
+                        }
                         const args = writer.language === Language.CPP
                             ? [`thisArray`, `thisLength`]
                             : [`thisDeserializer`]
@@ -364,6 +370,9 @@ class DeserializeCallbacksVisitor {
                     writer.print(`switch (kind) {`)
                     writer.pushIndent()
                     for (const callback of callbacks) {
+                        if (this.isGenericCallback(callback)) {
+                            continue
+                        }
                         const args = writer.language === Language.CPP
                             ? [`vmContext`, `thisArray`, `thisLength`]
                             : [`thisDeserializer`]
@@ -379,10 +388,23 @@ class DeserializeCallbacksVisitor {
         }
     }
 
+    private isGenericCallback(cb:idl.IDLCallback) {
+        let hasGenerics = false
+        idl.forEachChild(cb, node => {
+            if (idl.isTypeParameterType(node)) {
+                hasGenerics = true
+            }
+        })
+        return hasGenerics
+    }
+
     visit(): void {
         this.writeImports()
         const uniqCallbacks = collectUniqueCallbacks(this.library, { transformCallbacks: true })
         for (const callback of uniqCallbacks) {
+            if (this.isGenericCallback(callback)) {
+                continue
+            }
             this.writeCallbackDeserializeAndCall(callback)
         }
         this.writeInteropImplementation(uniqCallbacks)

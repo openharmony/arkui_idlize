@@ -78,7 +78,6 @@ export function isDirectConvertedType(originalType: idl.IDLType|undefined, libra
         convertor instanceof MapConvertor ||
         convertor instanceof TupleConvertor ||
         convertor instanceof AggregateConvertor ||
-        convertor instanceof UnionConvertor ||
         convertor instanceof OptionConvertor ||
         convertor instanceof ImportTypeConvertor) {
         // try { console.log(`convertor is ${convertor.constructor.name} for ${JSON.stringify(originalType)}`) } catch (e) {}
@@ -932,8 +931,15 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 export class OptionConvertor extends BaseArgConvertor {
     private readonly typeConvertor: ArgConvertor
     // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
-    constructor(private library: LibraryInterface, param: string, public type: idl.IDLType) {
+    constructor(library: LibraryInterface, param: string, public type: idl.IDLType) {
         let conv = library.typeConvertor(param, type)
+        let currentConv:ArgConvertor = conv
+        while (currentConv instanceof ProxyConvertor) {
+            currentConv = currentConv.convertor
+        }
+        if (currentConv instanceof OptionConvertor) {
+            conv = currentConv.typeConvertor
+        }
         let runtimeTypes = conv.runtimeTypes;
         if (!runtimeTypes.includes(RuntimeType.UNDEFINED)) {
             runtimeTypes.push(RuntimeType.UNDEFINED)
@@ -1068,7 +1074,7 @@ export class UnionConvertor extends BaseArgConvertor { //
             return { expr, stmt }
         })
         statements.push(writer.makeMultiBranchCondition(branches, writer.makeThrowError(`One of the branches for ${bufferName} has to be chosen through deserialisation.`)))
-        statements.push(assigneer(writer.makeCast(writer.makeString(bufferName), this.type)))
+        statements.push(assigneer(writer.makeCast(writer.makeString(bufferName), this.nativeType())))
         return new BlockStatement(statements, false)
     }
     nativeType(): idl.IDLType {

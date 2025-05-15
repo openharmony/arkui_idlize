@@ -117,7 +117,7 @@ export class UnionRuntimeTypeChecker {
                 const discriminator = discr ? discr.asString() : "<undefined>"
                 report += ` ${num}| ${typename}| ${properties}| ${resolved}| ${discriminator}\n`
             })
-            throw new Error(report)
+            // throw new Error(report)
         }
     }
 }

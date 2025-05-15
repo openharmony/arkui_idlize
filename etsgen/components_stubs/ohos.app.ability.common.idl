@@ -1,0 +1,34 @@
+package ohos.app.ability.common;
+
+import application.BaseContext.BaseContext as BaseContext;
+
+[Async]
+callback Context_getGroupDir_Callback = void (String result);
+
+[DefaultExport]
+namespace common {
+    [Entity=Class]
+    interface Context: [Extends] BaseContext {
+        // attribute resmgr.ResourceManager resourceManager;
+        // attribute ApplicationInfo applicationInfo;
+        attribute String cacheDir;
+        attribute String tempDir;
+        attribute String filesDir;
+        attribute String databaseDir;
+        attribute String preferencesDir;
+        attribute String bundleCodeDir;
+        attribute String distributedFilesDir;
+        attribute String resourceDir;
+        attribute String cloudFileDir;
+        // attribute EventHub eventHub;
+        // attribute contextConstant.AreaMode area;
+        [Deprecated, Throws] Context createBundleContext(String bundleName);
+        [Deprecated, Throws] Context createModuleContext(String moduleName);
+        [Deprecated, Throws] Context createModuleContext(String bundleName, String moduleName);
+        // [Throws] resmgr.ResourceManager createSystemHspModuleResourceManager(String bundleName, String moduleName);
+        // [Throws] ApplicationContext getApplicationContext();
+        [Throws] void getGroupDir(String dataGroupID, Context_getGroupDir_Callback callback_);
+        [Throws] async String getGroupDir(String dataGroupID);
+        // [Throws] resmgr.ResourceManager createModuleResourceManager(String bundleName, String moduleName);
+    };
+};

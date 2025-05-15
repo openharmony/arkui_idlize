@@ -18,27 +18,28 @@ import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole } from "@i
 import { LanguageWriter } from "@idlizer/core";
 
 export class ImportsCollector {
-    private readonly moduleToFeatures: Map<string, Set<string>> = new Map()
+    private readonly moduleToFeatures: Map<string, Map<string, Set<string | undefined>>> = new Map()
 
     /**
      * @param feature Feature to be imported from @module
      * @param module Module name - can be package started with `@` or relative path from current package root
      */
     addFeature(feature: ImportFeature): void
-    addFeature(feature: string, module: string): void
-    addFeature(feature: string | ImportFeature, module?: string) {
+    addFeature(feature: string, module: string, alias?: string): void
+    addFeature(feature: string | ImportFeature, module?: string, alias?: string) {
         if (typeof feature != "string")
-            return this.addFeature(feature.feature, feature.module)
+            return this.addFeature(feature.feature, feature.module, feature.alias)
         module = path.normalize(module!)
         // Checking for name collisions between modules
         // TODO: needs to be done more effectively
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
-            .find(it => it[0] !== module && it[1].has(feature))
+            .find(it => it[0] !== module && it[1].get(feature))
         if (featureInAnotherModule) {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
-            const dependencies = getOrPut(this.moduleToFeatures, module, () => new Set())
-            dependencies.add(feature)
+            const features = getOrPut(this.moduleToFeatures, module, () => new Map())
+            const aliases = getOrPut(features, feature, () => new Set())
+            aliases.add(alias)
         }
     }
 
@@ -49,9 +50,10 @@ export class ImportsCollector {
 
     merge(other: ImportsCollector) {
         for (const [module, features] of other.moduleToFeatures) {
-            const dst = getOrPut(this.moduleToFeatures, module, () => new Set())
+            const dstFeatures = getOrPut(this.moduleToFeatures, module, () => new Map<string, Set<string|undefined>>())
             for (const feature of features) {
-                dst.add(feature)
+                const dstAliases = getOrPut(dstFeatures, feature[0], () => new Set())
+                feature[1].forEach(alias => dstAliases.add(alias))
             }
         }
     }
@@ -77,14 +79,27 @@ export class ImportsCollector {
                     return
                 module = `./${path.relative(currentModuleDir, module)}`
             }
-            lines.push(`import { ${Array.from(features).join(', ')} } from "${module}"`)
+            const importNodes = Array.from(features.keys()).flatMap(feature => {
+                const aliases = Array.from(features.get(feature)!)
+                return aliases.map(alias => {
+                    if (!alias) return feature
+                    return `${feature} as ${alias}`
+                })
+            })
+            lines.push(`import { ${importNodes.join(', ')} } from "${module}"`)
         })
         return lines
     }
 
-    getFeatures(): Map<string, Set<string>> {
-        return this.moduleToFeatures
+    static resolveRelative(povModule: string, targetModule: string): string | undefined {
+        const currentModuleDir = path.dirname(povModule)
+        if (path.relative(povModule, targetModule) === "")
+            return undefined
+        if (!targetModule.startsWith('@') && !targetModule.startsWith('#')) {
+            targetModule = `./${path.relative(currentModuleDir, targetModule)}`
+        }
+        return targetModule
     }
 }
 
-export type ImportFeature = { feature: string, module: string }
+export type ImportFeature = { feature: string, alias?: string, module: string }

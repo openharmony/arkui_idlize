@@ -42,7 +42,8 @@ export function idlMethodToMaterializedMethod(library: PeerLibrary, method:IDLMe
         new Method(
             mangledGlobalScopeName(method),
             NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: maybeOptional(it.type, it.isOptional) }))),
-            [MethodModifier.STATIC]
+            [MethodModifier.STATIC],
+            method.typeParameters
         ),
         createOutArgConvertor(library, method.returnType, argConvertors.map(it => it.param)),
     )

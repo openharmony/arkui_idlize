@@ -1,0 +1,4 @@
+package arkui.NodeController;
+
+[Entity=Class]
+interface NodeController {};

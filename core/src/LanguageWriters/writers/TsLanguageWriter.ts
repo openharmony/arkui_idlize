@@ -203,24 +203,25 @@ export class TSLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeFunctionDeclaration(name: string, signature: MethodSignature): void {
-        this.printer.print(this.generateFunctionDeclaration(name, signature))
+    writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void {
+        this.printer.print(this.generateFunctionDeclaration(name, signature, generics))
     }
-    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
-        this.printer.print(`${this.generateFunctionDeclaration(name, signature)} {`)
+    writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, generics?:string[]): void {
+        this.printer.print(`${this.generateFunctionDeclaration(name, signature, generics)} {`)
         this.printer.pushIndent()
         op(this)
         this.printer.popIndent()
         this.printer.print('}')
     }
-    private generateFunctionDeclaration(name: string, signature: MethodSignature): string {
+    private generateFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): string {
         const rightmostRegularParameterIndex = rightmostIndexOf(signature.args, it => !isOptionalType(it))
         const args = signature.args.map((it, index) => {
             const optionalToken = idl.isOptionalType(it) && index > rightmostRegularParameterIndex ? '?' : ''
             return `${signature.argName(index)}${optionalToken}: ${this.getNodeName(it)}`
         })
         const returnType = this.getNodeName(signature.returnType)
-        return `export function ${name}(${args.join(", ")}): ${returnType}`
+        const typeParams = generics && generics.length ? '<' + generics?.join(', ') + '>' : ''
+        return `export function ${name}${typeParams}(${args.join(", ")}): ${returnType}`
     }
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
         this.printer.print(`${options.isExport ? "export " : ""}${options.isDeclare ? "declare " : ""}enum ${name} {`)

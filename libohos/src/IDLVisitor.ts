@@ -25,6 +25,8 @@ import {
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
     collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
     getOrPut, findRealDeclarations,
+    filterRedundantMethodsOverloads,
+    filterRedundantAttributesOverloads,
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
 import { peerGeneratorConfiguration, IDLVisitorConfiguration } from './DefaultConfiguration'
@@ -80,7 +82,6 @@ const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
             "Union_LinearStyleOptions_RingStyleOptions_CapsuleStyleOptions_ProgressStyleOptions")]])],
     ["DirectionalEdgesT", new Map([
         ["T", idl.IDLNumberType]])],
-
 ])
 
 const AdditionalPackages: string[] = [
@@ -301,6 +302,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             // TODO: rethink that
             ["\"2d\"", () => idl.IDLStringType],
             ["\"auto\"", () => idl.IDLStringType],
+            ["BusinessError", (type) => idl.createReferenceType("BusinessError")]
         ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {
@@ -811,8 +813,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 ? []
                 : node.members.filter(ts.isConstructorDeclaration).map(it => this.serializeConstructor(it as ts.ConstructorDeclaration, childNameSuggestion)),
             [],
-            props,
-            methods,
+            filterRedundantAttributesOverloads(props),
+            filterRedundantMethodsOverloads(methods),
             [],
             this.collectTypeParameters(node.typeParameters), {
             extendedAttributes: this.computeComponentExtendedAttributes(node),
@@ -951,8 +953,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             inheritance,
             this.pickConstructors(nameSuggestion.name, node.members, childNameSuggestion),
             [],
-            this.pickProperties(nameSuggestion.name, allMembers, childNameSuggestion),
-            this.pickMethods(nameSuggestion.name, allMembers, childNameSuggestion),
+            filterRedundantAttributesOverloads(this.pickProperties(nameSuggestion.name, allMembers, childNameSuggestion)),
+            filterRedundantMethodsOverloads(this.pickMethods(nameSuggestion.name, allMembers, childNameSuggestion)),
             this.pickCallables(node.members, childNameSuggestion),
             typeParemeters, {
             fileName: node.getSourceFile().fileName,
@@ -1036,7 +1038,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
     serializeEnum(node: ts.EnumDeclaration): idl.IDLEnum {
         const extendedAttributes: idl.IDLExtendedAttribute[] = this.computeDeprecatedExtendAttributes(node)
-        let names = nameEnumValues(node)
+        let names = nameEnumValues(node.members.map(it => identName(it.name)!))
         const result = idl.createEnum(
             ts.idText(node.name),
             [], {
@@ -1596,12 +1598,14 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     isCommonMethodUsedAsProperty(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
-        let className = (ts.isClassDeclaration(member.parent)) ? identName(member.parent.name) : undefined
-        let returnType = (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) ? identName(member.type) : undefined
-        return (this.options.commonToAttributes ?? true) &&
-            (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) &&
-            this.isCommonAttributeMethod(member) &&
-            member.parameters.length == 1 && (returnType == "T" || returnType == className)
+        // TODO type replacements for common methods are not working
+        return false
+        // let className = (ts.isClassDeclaration(member.parent)) ? identName(member.parent.name) : undefined
+        // let returnType = (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) ? identName(member.type) : undefined
+        // return (this.options.commonToAttributes ?? true) &&
+        //     (ts.isMethodDeclaration(member) || ts.isMethodSignature(member)) &&
+        //     this.isCommonAttributeMethod(member) &&
+        //     member.parameters.length == 1 && (returnType == "T" || returnType == className)
     }
     isMethodUsedAsCallback(member: ts.ClassElement | ts.TypeElement): member is (ts.MethodDeclaration | ts.MethodSignature) {
         const parentTypeName = ts.isInterfaceDeclaration(member.parent) || ts.isClassDeclaration(member.parent)
@@ -1675,7 +1679,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                 const tsMemberName = tagType.symbol.name
                 for (let idx = 0; idx < enumDeclarationMembers.length; ++idx) {
                     if (identString(enumDeclarationMembers[idx].name) === tsMemberName) {
-                        tagEnumValue = nameEnumValues(enumDeclaration)[idx]
+                        tagEnumValue = nameEnumValues(enumDeclaration.members.map(it => identName(it.name)!))[idx]
                         tag = `${getNameWithoutQualifiersLeft(param.type.typeName)}.${tagEnumValue}`
                         break
                     }

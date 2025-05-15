@@ -1,0 +1,5 @@
+package arkui.Content;
+[Entity=Class]
+interface Content {
+    constructor();
+};

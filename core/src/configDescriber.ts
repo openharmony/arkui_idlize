@@ -97,11 +97,11 @@ class ValidationBox<T> {
         return this.box.success
     }
 
-    unwrap(): T {
+    unwrap(message?:string): T {
         if (this.box.success) {
             return this.box.value
         }
-        throw new Error("")
+        throw new Error(message ?? 'panic')
     }
 
     error(): string {

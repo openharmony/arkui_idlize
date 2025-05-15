@@ -1,5 +1,1 @@
 ../sdk-patched-arkts/api/global/resource.d.ets
-../sdk-patched-arkts/api/@ohos.base.d.ets
-../sdk-patched-arkts/api/@ohos.graphics.text.d.ets
-../sdk-patched-arkts/api/@ohos.graphics.drawing.d.ets
-../sdk-patched-arkts/api/@ohos.graphics.common2D.d.ets

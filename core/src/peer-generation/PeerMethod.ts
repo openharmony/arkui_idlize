@@ -21,6 +21,7 @@ import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/Lan
 import { capitalize, isDefined } from "../util"
 import { PrimitiveTypesInstance } from "./PrimitiveType"
 import { ReferenceResolver } from "./ReferenceResolver"
+import { flattenUnionType } from './unions'
 
 export class PeerMethod {
     private overloadIndex?: number

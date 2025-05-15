@@ -307,7 +307,7 @@ interface SymbolEffect {
 };
 
 [Entity=Class]
-interface ScaleSymbolEffect: SymbolEffect {
+interface ScaleSymbolEffect: [Extends] SymbolEffect {
     constructor(optional EffectScope scope, optional EffectDirection direction);
     [Optional]
     attribute EffectScope scope;
@@ -316,7 +316,7 @@ interface ScaleSymbolEffect: SymbolEffect {
 };
 
 [Entity=Class]
-interface ReplaceSymbolEffect: SymbolEffect {
+interface ReplaceSymbolEffect: [Extends] SymbolEffect {
     constructor(optional EffectScope scope);
     [Optional]
     attribute EffectScope scope;

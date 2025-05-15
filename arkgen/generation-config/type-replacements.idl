@@ -113,6 +113,8 @@ interface CommonMethod {
     T mask(optional ProgressMask value);
     T mask(optional ProgressMask mask);
     T transform(TransformationMatrix value);
+    T width(Length value);
+    T height(Length value);
 };
 
 [Entity=Class]

@@ -1,0 +1,3 @@
+package arkui.TextModifier;
+
+interface TextModifier {};

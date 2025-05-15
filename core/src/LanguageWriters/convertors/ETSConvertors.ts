@@ -82,11 +82,11 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         }
         return super.convertPrimitiveType(type)
     }
-    protected override productType(decl: idl.IDLInterface, isTuple: boolean, includeFieldNames: boolean): string {
+    protected override productType(decl: idl.IDLInterface, args:idl.IDLType[] | undefined, isTuple: boolean, includeFieldNames: boolean): string {
         if (decl.subkind === idl.IDLInterfaceSubkind.AnonymousInterface) {
             return decl.name
         }
-        return super.productType(decl, isTuple, includeFieldNames)
+        return super.productType(decl, args, isTuple, includeFieldNames)
     }
     protected override processTupleType(idlProperty: idl.IDLProperty): idl.IDLProperty {
         if (idlProperty.isOptional) {

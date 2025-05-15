@@ -1,0 +1,3 @@
+package arkui.component.common;
+
+callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);

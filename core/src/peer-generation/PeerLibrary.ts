@@ -189,7 +189,7 @@ export class PeerLibrary implements LibraryInterface {
         return this.targetNameConvertorInstance.convert(type)
     }
 
-    private referenceCache: Map<idl.IDLReferenceType, idl.IDLEntry> | undefined
+    private referenceCache: Map<idl.IDLReferenceType, idl.IDLEntry | undefined> | undefined
     public enableCache() {
         this.referenceCache = new Map()
     }
@@ -221,8 +221,8 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (result && (idl.isImport(result) || idl.isNamespace(result)))
             result = undefined
-        if (result)
-            this.referenceCache?.set(type, result)
+
+        this.referenceCache?.set(type, result)
         return result
     }
 
@@ -475,12 +475,12 @@ export class PeerLibrary implements LibraryInterface {
             case idl.IDLVoidType: return idl.IDLVoidType
             case idl.IDLUndefinedType: return idl.IDLUndefinedType
             case idl.IDLUnknownType: return ArkCustomObject
-            case idl.IDLObjectType: return ArkCustomObject
+            // case idl.IDLObjectType: return ArkCustomObject
         }
         const typeName = idl.isNamedNode(type) ? type.name : undefined
         switch (typeName) {
             case "object":
-            case "Object": return ArkCustomObject
+            case "Object": return idl.IDLObjectType
         }
         if (idl.isReferenceType(type)) {
             // TODO: remove all this!

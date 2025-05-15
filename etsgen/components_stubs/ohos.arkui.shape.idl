@@ -1,0 +1,6 @@
+package ohos.arkui.shape;
+
+interface CircleShape {};
+interface EllipseShape {};
+interface PathShape {};
+interface RectShape {};

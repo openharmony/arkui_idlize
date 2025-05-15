@@ -452,7 +452,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
             `_${method.originalParentName}_${method.overloadedName}`,
             params)
 
-        if (!returnValueFilledThroughOutArg && returnType != IDLVoidType) {
+        if (!returnValueFilledThroughOutArg && returnType != IDLVoidType && returnType !== IDLThisType) {
             writer.writeStatement(writer.makeAssign(returnValName, undefined, call, true))
         } else {
             writer.writeStatement(writer.makeStatement(call))

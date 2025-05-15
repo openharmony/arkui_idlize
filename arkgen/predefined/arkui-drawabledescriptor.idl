@@ -8,7 +8,7 @@ interface DrawableDescriptor {
 
 };
 [Entity=Class]
-interface LayeredDrawableDescriptor: DrawableDescriptor {
+interface LayeredDrawableDescriptor: [Extends] DrawableDescriptor {
 
     constructor(optional DrawableDescriptor foreground, optional DrawableDescriptor background, optional DrawableDescriptor mask);
     DrawableDescriptor getForeground();
@@ -18,7 +18,7 @@ interface LayeredDrawableDescriptor: DrawableDescriptor {
 
 };
 [Entity=Class]
-interface PixelMapDrawableDescriptor: DrawableDescriptor {
+interface PixelMapDrawableDescriptor: [Extends] DrawableDescriptor {
 
     constructor(optional PixelMap src);
 
@@ -33,7 +33,7 @@ interface AnimationOptions {
 
 };
 [Entity=Class]
-interface AnimatedDrawableDescriptor: DrawableDescriptor {
+interface AnimatedDrawableDescriptor: [Extends] DrawableDescriptor {
 
     constructor(sequence<PixelMap> pixelMaps, optional AnimationOptions options);
 

@@ -1,0 +1,17 @@
+package ohos.multimedia.image;
+
+[DefaultExport]
+namespace image {
+    interface PixelMap {
+        readonly attribute boolean isEditable;
+        readonly attribute boolean isStrideAlignment;
+        void readPixelsToBufferSync(buffer dst);
+        void writeBufferToPixels(buffer src);
+    };
+
+    dictionary ResolutionQuality {
+        number LOW = 1;
+        number MEDIUM = 2;
+        number HIGH = 3;
+    };
+};

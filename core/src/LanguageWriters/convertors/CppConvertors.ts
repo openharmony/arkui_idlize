@@ -27,15 +27,16 @@ import { isInIdlizeInternal } from '../../idlize'
 
 export interface ConvertResult {
     text: string,
-    noPrefix: boolean
+    noPrefix: boolean,
+    resolvedType: idl.IDLType
 }
 
 export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
 
     constructor(protected resolver: ReferenceResolver) {}
 
-    private make(text: string, noPrefix = false): ConvertResult {
-        return { text, noPrefix }
+    private make(text: string, resolvedType: idl.IDLType, noPrefix = false): ConvertResult {
+        return { text, noPrefix, resolvedType }
     }
 
     convertNode(node: idl.IDLNode): ConvertResult {
@@ -50,62 +51,67 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         switch (node.subkind) {
             case idl.IDLInterfaceSubkind.AnonymousInterface:
                 return node.name
-                    ? this.make(this.qualifiedName(node))
-                    : this.make(this.computeTargetTypeLiteralName(node), true)
+                    ? this.make(this.qualifiedName(node), idl.createReferenceType(node))
+                    : this.make(this.computeTargetTypeLiteralName(node), idl.createReferenceType(node), true)
             case idl.IDLInterfaceSubkind.Interface:
             case idl.IDLInterfaceSubkind.Class:
                 if (isInIdlizeInternal(node)) {
-                    return this.make(this.qualifiedName(node), true)
+                    return this.make(this.qualifiedName(node), idl.createReferenceType(node), true)
                 }
-                return this.make(this.qualifiedName(node))
+                return this.make(this.qualifiedName(node), idl.createReferenceType(node))
             case idl.IDLInterfaceSubkind.Tuple:
                 return node.name
-                    ? this.make(this.qualifiedName(node))
-                    : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, true)
+                    ? this.make(this.qualifiedName(node), idl.createReferenceType(node))
+                    : this.make(`Tuple_${node.properties.map(it => this.convertNode(idl.maybeOptional(it.type, it.isOptional)).text).join("_")}`, idl.createReferenceType(node), true)
         }
     }
     convertEnum(node: idl.IDLEnum): ConvertResult {
-        return this.make(this.qualifiedName(node))
+        return this.make(this.qualifiedName(node), idl.createReferenceType(node))
     }
     convertTypedef(node: idl.IDLTypedef): ConvertResult {
-        return this.make(this.qualifiedName(node))
+        return this.make(this.qualifiedName(node), idl.createReferenceType(node))
     }
     convertCallback(node: idl.IDLCallback): ConvertResult {
-        return this.make(generatorConfiguration().LibraryPrefix + this.qualifiedName(node), true)
+        return this.make(generatorConfiguration().LibraryPrefix + this.qualifiedName(node), idl.createReferenceType(node), true)
     }
     convertMethod(node: idl.IDLMethod): ConvertResult {
-        return this.make(node.name)
+        return this.make(node.name, idl.createReferenceType(node))
     }
     convertConstant(node: idl.IDLConstant): ConvertResult {
-        return this.make(this.qualifiedName(node))
+        return this.make(this.qualifiedName(node), idl.createReferenceType(node))
     }
 
     /////////////////////////////////////////////////////////////////////////////////////////
 
     convertOptional(type: idl.IDLOptionalType): ConvertResult {
-        return { text: generatorConfiguration().OptionalPrefix + this.convertNode(type.type).text, noPrefix: true }
+        const converted = this.convertNode(type.type)
+        const prefix = generatorConfiguration().OptionalPrefix
+        if (idl.isOptionalType(converted.resolvedType)) {
+            return converted
+        }
+        return this.make(prefix + converted.text, type, true)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
-        return this.make(type.name, false)
+        return this.make(type.name, type, false)
     }
     convertContainer(type: idl.IDLContainerType): ConvertResult {
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`)
+            return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`, type)
         }
         if (idl.IDLContainerUtils.isSequence(type)) {
             if (type.elementType[0] === idl.IDLU8Type) {
-                return this.make(`uint8_t*`, true)
+                return this.make(`uint8_t*`, type, true)
             }
-            return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, true)
+            return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, type, true)
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            return this.make(`Map_${this.convertNode(type.elementType[0]).text}_${this.convertNode(type.elementType[1]).text}`, true)
+            return this.make(`Map_${this.convertNode(type.elementType[0]).text}_${this.convertNode(type.elementType[1]).text}`, type, true)
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
     convertImport(type: idl.IDLImport): ConvertResult {
         console.warn("Imports are not implemented yet")
-        return this.make(idl.IDLCustomObjectType.name)
+        return this.make(idl.IDLCustomObjectType.name, idl.IDLCustomObjectType)
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, _: string): ConvertResult {
         return this.convertTypeReference(type)
@@ -116,10 +122,10 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case "object":
             case "Object":
                 // treat object as interop resource
-                return this.make('Object')
+                return this.make('Object', idl.IDLObjectType)
         }
         if (generatorConfiguration().parameterized.includes(refName)) {
-            return this.make('CustomObject')
+            return this.make('CustomObject', idl.IDLCustomObjectType)
         }
         let decl = this.resolver.toDeclaration(type)
         if (idl.isCallback(decl)) {
@@ -127,45 +133,46 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         }
         if (idl.isType(decl)) {
             if (idl.isReferenceType(decl)) {
-                return this.make(`${capitalize(decl.name)}`)
+                return this.make(`${capitalize(decl.name)}`, decl)
             }
             return this.convertNode(decl)
         }
         let res = this.convertNode(decl as idl.IDLEntry)
         if (type.name === "Optional")
-            res = this.make("Opt_" + res.text, true)
+            res = this.make("Opt_" + res.text, idl.createOptionalType(type.typeArguments![0]), true)
         return res
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): ConvertResult {
-        return this.make('CustomObject')
+        return this.make('CustomObject', idl.IDLCustomObjectType)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
         switch (type) {
-            case idl.IDLVoidType: return this.make('void', true)
-            case idl.IDLI8Type: return this.make(`Int8`)
-            case idl.IDLU8Type: return this.make(`UInt8`)
-            case idl.IDLI16Type: return this.make(`Int16`)
-            case idl.IDLU16Type: return this.make(`UInt16`)
-            case idl.IDLI32Type: return this.make(`Int32`)
-            case idl.IDLU32Type: return this.make(`UInt32`)
-            case idl.IDLI64Type: return this.make(`Int64`)
-            case idl.IDLU64Type: return this.make(`UInt64`)
-            case idl.IDLF32Type: return this.make(`Float32`)
-            case idl.IDLF64Type: return this.make(`Float64`)
-            case idl.IDLNumberType: return this.make(`Number`)
-            case idl.IDLStringType: return this.make(`String`)
-            case idl.IDLBooleanType: return this.make(`Boolean`)
-            case idl.IDLBigintType: return this.make(`Int64`) // TODO add arbitrary precision numeric type
-            case idl.IDLPointerType: return this.make('NativePointer')
-            case idl.IDLCustomObjectType: return this.make('CustomObject')
+            case idl.IDLThisType: // maybe fix it in another level?
+            case idl.IDLVoidType: return this.make('void', type, true)
+            case idl.IDLI8Type: return this.make(`Int8`, type)
+            case idl.IDLU8Type: return this.make(`UInt8`, type)
+            case idl.IDLI16Type: return this.make(`Int16`, type)
+            case idl.IDLU16Type: return this.make(`UInt16`, type)
+            case idl.IDLI32Type: return this.make(`Int32`, type)
+            case idl.IDLU32Type: return this.make(`UInt32`, type)
+            case idl.IDLI64Type: return this.make(`Int64`, type)
+            case idl.IDLU64Type: return this.make(`UInt64`, type)
+            case idl.IDLF32Type: return this.make(`Float32`, type)
+            case idl.IDLF64Type: return this.make(`Float64`, type)
+            case idl.IDLNumberType: return this.make(`Number`, type)
+            case idl.IDLStringType: return this.make(`String`, type)
+            case idl.IDLBooleanType: return this.make(`Boolean`, type)
+            case idl.IDLBigintType: return this.make(`Int64`, type) // TODO add arbitrary precision numeric type
+            case idl.IDLPointerType: return this.make('NativePointer', type)
+            case idl.IDLCustomObjectType: return this.make('CustomObject', type)
             case idl.IDLUnknownType:
-            case idl.IDLAnyType: return this.make(`Object`)
-            case idl.IDLUndefinedType: return this.make(`Undefined`)
-            case idl.IDLFunctionType: return this.make(`Function`)
-            case idl.IDLDate: return this.make(`Date`)
-            case idl.IDLBufferType: return this.make('Buffer')
-            case idl.IDLPointerType: return this.make('Pointer')
-            case idl.IDLSerializerBuffer: return { text: 'KSerializerBuffer', noPrefix: true }
+            case idl.IDLAnyType: return this.make(`Object`, type)
+            case idl.IDLUndefinedType: return this.make(`Undefined`, type)
+            case idl.IDLFunctionType: return this.make(`Function`, type)
+            case idl.IDLDate: return this.make(`Date`, type)
+            case idl.IDLBufferType: return this.make('Buffer', type)
+            case idl.IDLPointerType: return this.make('Pointer', type)
+            case idl.IDLSerializerBuffer: return this.make('KSerializerBuffer', type, true)
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }

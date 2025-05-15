@@ -1,7 +1,0 @@
-package ohos.data.unifiedDataChannel;
-
-[DefaultExport]
-namespace unifiedDataChannel {
-    interface Summary {};
-    interface UnifiedData {};
-};

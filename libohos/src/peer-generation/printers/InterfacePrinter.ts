@@ -67,15 +67,36 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return this.isDeclared && idl.getNamespacesPathFor(decl).length === 0
     }
 
+    protected maybeConvertReexportTypedef(node: idl.IDLTypedef): string | undefined {
+        if (!idl.isReferenceType(node.type)) return undefined
+        const target = this.peerLibrary.resolveTypeReference(node.type)
+        if (target?.name != node.name || idl.getNamespaceName(target)) return undefined
+        const currentModule = this.peerLibrary.layout.resolve({node: node, role: LayoutNodeRole.INTERFACE})
+        const targetModule = this.peerLibrary.layout.resolve({node: target, role: LayoutNodeRole.INTERFACE})
+        const relative = ImportsCollector.resolveRelative(currentModule, targetModule)!
+        return `export { ${node.name} } from "${relative}"`
+    }
+
     convertTypedef(node: idl.IDLTypedef) {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
+            return
+        }
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
+        let reexportTypedef: string | undefined
+        if (reexportTypedef = this.maybeConvertReexportTypedef(node)) {
+            this.writer.print(reexportTypedef)
+            return
+        }
         const type = this.writer.getNodeName(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
         this.writer.print(`export type ${node.name}${typeParams} = ${type};`)
     }
 
     convertCallback(node: idl.IDLCallback) {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
+            return
+        }
         this.writer.print(this.printCallback(node, node.parameters, node.returnType))
     }
 
@@ -85,13 +106,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             return;
         }
         this.seenInterfaceNames.add(node.name)
-        let result: string
+        let result: string | undefined
         if (this.isCallback(node)) {
             result = this.printCallback(node,
                 node.callables[0].parameters,
                 node.callables[0].returnType)
         } else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
-            result = this.printTuple(node).join("\n")
+            // result = this.printTuple(node).join("\n")
         } else if (isMaterialized(node, this.peerLibrary)) {
             result = this.printMaterialized(node).join("\n")
         } else {
@@ -260,7 +281,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const implementsItems: string[] = []
         superTypes?.forEach(it => {
             const superDecl = this.peerLibrary.resolveTypeReference(it)
-            const parentTypeArgs = this.printTypeParameters(
+            const parentTypeArgs = this.printTypeArguments(
                 (it as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
             const clause = `${idl.forceAsNamedNode(it).name}${parentTypeArgs}`
             if (superDecl && isMaterialized(idlInterface, this.peerLibrary) && idl.isClassSubkind(idlInterface) && idl.isInterface(superDecl) && idl.isInterfaceSubkind(superDecl))
@@ -349,7 +370,16 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     protected printTypeParameters(typeParameters: string[] | undefined): string {
-        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
+        function addDefaultIfNeeded(typeParameter: string): string {
+            if (!typeParameter.includes('='))
+                return `${typeParameter} = void`
+            return typeParameter
+        }
+        return typeParameters?.length ? `<${typeParameters.map(addDefaultIfNeeded).join(",").replace("[]", "")}>` : ""
+    }
+
+    protected printTypeArguments(typeArguments: string[] | undefined): string {
+        return typeArguments?.length ? `<${typeArguments.join(",").replace("[]", "")}>` : ""
     }
 
     protected convertType(idlType: idl.IDLType): string {
@@ -381,7 +411,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 .reduce((sum, value) => value.length + sum, 0) === 0
     }
 
-    private printTuple(tuple: idl.IDLInterface) {
+    protected printTuple(tuple: idl.IDLInterface) {
         const seenFields = new Set<string>()
         return ([`export type ${this.printInterfaceName(tuple)} = [`] as stringOrNone[])
             .concat(tuple.properties
@@ -893,21 +923,21 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
     }
 
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
-        if (decl.returnType !== idl.IDLVoidType) {
-            const continuationReference = this.library.createContinuationCallbackReference(decl.returnType)
-            const continuation = this.library.resolveTypeReference(continuationReference)!
-            this.onSyntheticDeclaration(continuation)
-        }
+        // if (decl.returnType !== idl.IDLVoidType) {
+        //     const continuationReference = this.library.createContinuationCallbackReference(decl.returnType)
+        //     const continuation = this.library.resolveTypeReference(continuationReference)!
+        //     this.onSyntheticDeclaration(continuation)
+        // }
 
-        const transformed = maybeTransformManagedCallback(decl, this.library)
-        if (transformed) {
-            this.convert(transformed)
-            this.onSyntheticDeclaration(transformed)
-        }
+        // const transformed = maybeTransformManagedCallback(decl, this.library)
+        // if (transformed) {
+        //     this.convert(transformed)
+        //     this.onSyntheticDeclaration(transformed)
+        // }
 
-        const maybeTransformed = maybeTransformManagedCallback(decl, this.library)
-        if (maybeTransformed)
-            this.onSyntheticDeclaration(maybeTransformed)
+        // const maybeTransformed = maybeTransformManagedCallback(decl, this.library)
+        // if (maybeTransformed)
+        //     this.onSyntheticDeclaration(maybeTransformed)
 
         return super.convertCallback(decl)
     }
@@ -915,14 +945,14 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
     convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         if (idl.isHandwritten(decl))
             return super.convertInterface(decl)
-        idl.forEachFunction(decl, function_ => {
-            const promise = idl.asPromise(function_.returnType)
-            if (promise) {
-                const reference = this.library.createContinuationCallbackReference(promise)
-                const continuation = this.library.resolveTypeReference(reference)!
-                this.onSyntheticDeclaration(continuation)
-            }
-        })
+        // idl.forEachFunction(decl, function_ => {
+        //     const promise = idl.asPromise(function_.returnType)
+        //     if (promise) {
+        //         const reference = this.library.createContinuationCallbackReference(promise)
+        //         const continuation = this.library.resolveTypeReference(reference)!
+        //         this.onSyntheticDeclaration(continuation)
+        //     }
+        // })
         return super.convertInterface(decl)
     }
 }
@@ -964,6 +994,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isNamespace(entry) ||
+                    idl.isImport(entry) ||
                     isInIdlizeInternal(entry) ||
                     idl.isHandwritten(entry) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
@@ -979,7 +1010,9 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         for (const entries of moduleToEntries.values()) {
             const seenNames = new Set<string>()
             for (const entry of entries) {
-                if (idl.isImport(entry)) continue
+                if (idl.isImport(entry)) {
+                    continue
+                }
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter()
 

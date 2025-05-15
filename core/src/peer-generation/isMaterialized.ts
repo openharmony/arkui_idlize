@@ -29,6 +29,11 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
         return true
     }
 
+    // TODO: rework this
+    if (["BaseSpan"].includes(declaration.name)) {
+        return false
+    }
+
     for (const ignore of ["Attribute", "Method", "Interface"]) {
         if (declaration.name.endsWith(ignore)) {
             return false

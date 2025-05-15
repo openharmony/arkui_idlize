@@ -1,4 +1,6 @@
 package application.Context;
 
 [DefaultExport]
-interface Context {};
+interface Context {
+    constructor();
+};

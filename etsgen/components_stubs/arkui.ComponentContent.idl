@@ -1,0 +1,10 @@
+package arkui.ComponentContent;
+
+[Entity=Class]
+interface ComponentContent {
+    void update(Object args);
+    void reuse(optional Object param);
+    void recycle();
+    void dispose();
+    void updateConfiguration();
+};

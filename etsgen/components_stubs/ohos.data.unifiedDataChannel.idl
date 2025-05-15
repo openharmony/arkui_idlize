@@ -1,0 +1,21 @@
+package ohos.data.unifiedDataChannel;
+
+[DefaultExport]
+namespace unifiedDataChannel {
+    [Entity=Interface]
+    interface Summary {
+        attribute record<String, i64> summary;
+        attribute i64 totalSize;
+    };
+
+    [Entity=Class]
+    interface UnifiedData {
+        // constructor(UnifiedRecord record_);
+        constructor();
+        // attribute UnifiedDataProperties properties;
+        // void addRecord(UnifiedRecord record_);
+        // sequence<UnifiedRecord> getRecords();
+        boolean hasType(String UnifiedData_type);
+        sequence<String> getTypes();
+    };
+};

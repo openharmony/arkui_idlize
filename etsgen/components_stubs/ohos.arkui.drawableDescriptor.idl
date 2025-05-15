@@ -1,0 +1,9 @@
+package ohos.arkui.drawableDescriptor;
+
+import ohos.multimedia.image.image.PixelMap as PixelMap;
+
+[Entity=Class]
+interface DrawableDescriptor {
+    constructor();
+    PixelMap getPixelMap();
+};

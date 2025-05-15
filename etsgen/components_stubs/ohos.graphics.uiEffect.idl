@@ -1,0 +1,39 @@
+package ohos.graphics.uiEffect;
+import ohos.base.AsyncCallback as AsyncCallback;
+[DefaultExport]
+namespace uiEffect {
+    interface Filter {
+    };
+    interface VisualEffect {
+        VisualEffect backgroundColorBlender(BrightnessBlender blender);
+    };
+    typedef BrightnessBlender Blender;
+    [Synthetic, Entity=Tuple]
+    interface Tuple_Number_Number_Number {
+        attribute number value0;
+        attribute number value1;
+        attribute number value2;
+    };
+    interface BrightnessBlender {
+        attribute number cubicRate;
+        attribute number quadraticRate;
+        attribute number linearRate;
+        attribute number degree;
+        attribute number saturation;
+        attribute Tuple_Number_Number_Number positiveCoefficient;
+        attribute Tuple_Number_Number_Number negativeCoefficient;
+        attribute number fraction;
+    };
+    VisualEffect createEffect();
+    BrightnessBlender createBrightnessBlender(BrightnessBlenderParam param);
+    interface BrightnessBlenderParam {
+        attribute number cubicRate;
+        attribute number quadraticRate;
+        attribute number linearRate;
+        attribute number degree;
+        attribute number saturation;
+        attribute Tuple_Number_Number_Number positiveCoefficient;
+        attribute Tuple_Number_Number_Number negativeCoefficient;
+        attribute number fraction;
+    };
+};

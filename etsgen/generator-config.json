@@ -1,0 +1,100 @@
+{
+    "DeletedDeclarations": [
+        "double",
+        "int",
+        "RepeatInterface",
+        "WrappedBuilder",
+        "wrapBuilder",
+        "IMonitorValue",
+        "IMonitor",
+        "MethodDecorator",
+        "ParticleInterface",
+        "ParticleAttribute",
+        "ParticleModifier",
+        "Particles",
+        "ParticleColorPropertyOptions",
+        "ParticlePropertyOptions",
+        "IsolatedComponentInterface",
+        "IsolatedComponentAttribute",
+        "AccelerationOptions",
+        "ParticleOptions",
+        "AccelerationOptions",
+        "EmitterOptions",
+        "ForEachInterface",
+        "ForEachAttribute",
+        "LazyForEachAttribute",
+        "LazyForEachInterface",
+        "IDataSource",
+        "DisturbanceFieldOptions",
+        "RepeatItem",
+        "RepeatItemBuilder",
+        "RepeatAttribute",
+        "TemplateTypedFunc",
+        "EntryOptions",
+        "UIBaseSpan",
+        "UICommonMethod",
+        "UICommonShapeMethod",
+        "UIScrollableCommonMethod",
+        "UIRepeatAttribute",
+        "UIPluginComponentAttribute",
+        "UISecurityComponentMethod",
+        "UIRichEditorAttribute",
+        "$$",
+        "CommonTransition",
+        "PageTransitionEnter",
+        "PageTransitionExit",
+        "UICommonTransition",
+        "UIPageTransitionEnter",
+        "UIPageTransitionExit"
+    ],
+    "DeletedMembers": {
+        "CommonMethod": [
+            "attributeModifier"
+        ],
+        "ScrollableCommonMethod": [
+            "onWillScroll",
+            "onDidScroll"
+        ],
+        "WrappedBuilder": [
+            "constructor"
+        ],
+        "SliderBlockStyle": [
+            "shape"
+        ]
+    },
+    "StubbedDeclarations": [
+        "OnWillScrollCallback",
+        "LayoutChild",
+        "EmitterProperty",
+        "Layoutable",
+        "GestureGroupGestureHandlerOptions",
+        "ColumnOptionsV2",
+        "RowOptionsV2",
+        "AlignRuleOption"
+    ],
+    "Components": [
+        "BaseSpan",
+        "CommonMethod"
+    ],
+    "NameReplacements": {
+        "common.d.ts": [
+            [
+                "LinearGradient",
+                "LinearGradient_common"
+            ]
+        ],
+        "alert_dialog.d.ts": [
+            [
+                "TextStyle",
+                "TextStyle_alert_dialog"
+            ]
+        ],
+        "styled_string.d.ts": [
+            [
+                "TextStyle",
+                "TextStyle_styled_string"
+            ]
+        ]
+    },
+    "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
+}

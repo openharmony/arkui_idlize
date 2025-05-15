@@ -54,8 +54,16 @@ export function collectDeclItself(
         includeTransformedCallbacks?: boolean,
     },
 ) {
-    if (idl.isSyntheticEntry(node) && Language.TS === library.language)
+    if (idl.isSyntheticEntry(node) && [Language.TS, Language.ARKTS].includes(library.language))
         return
+    if ([Language.TS, Language.ARKTS].includes(library.language)) {
+        if (idl.isReferenceType(node)) {
+            const decl = library.resolveTypeReference(node)
+            if (decl && (idl.isCallback(decl) || idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple)) {
+                return
+            }
+        }
+    }
     if (emitter instanceof ImportsCollector) {
         if (idl.isSyntheticEntry(node) && library.language === Language.ARKTS && library.name !== 'arkoala' // or if target is not arkoala
             ) {
@@ -100,46 +108,6 @@ export function collectDeclDependencies(
     if (options?.expandTypedefs) {
         for (let i = 0; i < deps.length; i++) {
             if (!idl.isTypedef(deps[i]))
-                continue
-            for (const subDependency of collector.convert(deps[i])) {
-                if (!deps.includes(subDependency))
-                    deps.push(subDependency)
-            }
-        }
-    }
-    for (const dep of deps) {
-        collectDeclItself(library, dep, emitter, {
-            includeMaterializedInternals: options?.includeMaterializedInternals,
-            includeTransformedCallbacks: options?.includeTransformedCallbacks,
-        })
-    }
-}
-
-export function collectInterfaceDependencies(
-    library: PeerLibrary,
-    node: idl.IDLNode,
-    emitter: ImportsCollector | ((entry: idl.IDLEntry | idl.IDLReferenceType) => void),
-    options?: {
-        expandTypedefs?: boolean,
-        includeMaterializedInternals?: boolean,
-        includeTransformedCallbacks?: boolean,
-    },
-): void {
-    const collector = new ArkTSInterfaceDependenciesCollector(library)
-    const deps = collector.convert(node)
-    if (options?.expandTypedefs)
-        for (let i = 0; i < deps.length; i++) {
-            if (!idl.isTypedef(deps[i]))
-                continue
-            for (const subDependency of collector.convert(deps[i])) {
-                if (!deps.includes(subDependency))
-                    deps.push(subDependency)
-            }
-        }
-    if (Language.TS === library.language) {
-        // expant type literals
-        for (let i = 0; i < deps.length; i++) {
-            if (!idl.isInterface(deps[i]) && !idl.isSyntheticEntry(deps[i]))
                 continue
             for (const subDependency of collector.convert(deps[i])) {
                 if (!deps.includes(subDependency))

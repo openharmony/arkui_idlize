@@ -173,7 +173,7 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         return undefined
     }
     return new MaterializedMethod(
-            clazz.className,
+            idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
             clazz.getImplementationName(),
             [],
             idl.IDLVoidType,
@@ -182,7 +182,7 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
                 'destroyPeer',
                 new NamedMethodSignature(
                     idl.IDLVoidType,
-                    [idl.createReferenceType(clazz.className)],
+                    [idl.createReferenceType(clazz.decl)],
                     ['peer']
                 )
             )

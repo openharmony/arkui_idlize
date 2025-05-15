@@ -316,6 +316,14 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             includeTransformedCallbacks: true,
             includeMaterializedInternals: true,
         })
+        this.clazz.fields.forEach(field => {
+            if (idl.isReferenceType(field.field.type)) {
+                collectDeclItself(this.library, field.field.type, imports, {
+                    includeMaterializedInternals: true,
+                    includeTransformedCallbacks: true
+                })
+            }
+        })
     }
 
     override printImports() {

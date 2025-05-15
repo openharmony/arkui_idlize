@@ -146,3 +146,112 @@ export class IDLDependencyCollector implements IDLConverter<idl.IDLNode[]> {
 export function collectDependencies(resolver: ReferenceResolver, node:idl.IDLNode): idl.IDLNode[] {
     return walkIDL(new IDLDependencyCollector(resolver), node)
 }
+
+function isFirstTypeSubsetOfSecond(first: idl.IDLType, second: idl.IDLType): boolean {
+    if (idl.isOptionalType(second)) {
+        return isFirstTypeSubsetOfSecond(idl.maybeUnwrapOptionalType(first), idl.maybeUnwrapOptionalType(second))
+    }
+    if (idl.isUnionType(second)) {
+        const firstTypes = idl.isUnionType(first) ? first.types : [first]
+        const secondTypes = second.types
+        return firstTypes.every(firstType => secondTypes.some(secondType => isFirstTypeSubsetOfSecond(firstType, secondType)))
+    }
+    return idl.printType(first) === idl.printType(second)
+}
+function isFirstParameterSubsetOfSecond(first: idl.IDLParameter | undefined, second: idl.IDLParameter): boolean {
+    if (first === undefined)
+        return second.isOptional
+    if (first.isOptional && !second.isOptional)
+        return false
+    if (second.isOptional)
+        return isFirstTypeSubsetOfSecond(idl.maybeUnwrapOptionalType(first.type), idl.maybeUnwrapOptionalType(second.type))
+    return isFirstTypeSubsetOfSecond(first.type, second.type)
+}
+function isFirstMethodSubsetOfSecond(first: idl.IDLMethod, second: idl.IDLMethod): boolean {
+    if (first.parameters.length > second.parameters.length)
+        return false
+    if (first.isAsync !== second.isAsync)
+        return false
+    if (first.isStatic !== second.isStatic)
+        return false
+    if (second.parameters.some((secondParameter, idx) => !isFirstParameterSubsetOfSecond(first.parameters.at(idx), secondParameter)))
+        return false
+    if (!isFirstTypeSubsetOfSecond(first.returnType, second.returnType))
+        return false
+    return true
+}
+function isFirstPropertySubsetOfSecond(first: idl.IDLProperty, second: idl.IDLProperty): boolean {
+    if (idl.getExtAttribute(first, idl.IDLExtendedAttributes.Accessor) !==
+        idl.getExtAttribute(second, idl.IDLExtendedAttributes.Accessor))
+        return false
+    if (first.isStatic !== second.isStatic)
+        return false
+    if (first.isOptional && !second.isOptional)
+        return false
+    if (second.isOptional)
+        return isFirstTypeSubsetOfSecond(idl.maybeUnwrapOptionalType(first.type), idl.maybeUnwrapOptionalType(second.type))
+    return isFirstTypeSubsetOfSecond(first.type, second.type)
+}
+
+function filterRedundantOverloadsSameNamed<T extends idl.IDLEntry>(entries: T[]): T[] {
+    const entryToSupersets = new Map<T, T[]>()
+    for (const entry of entries) {
+        entryToSupersets.set(entry, [])
+        for (const other of entries) {
+            if (entry === other) continue
+            if (idl.isMethod(entry) && idl.isMethod(other)) {
+                if (isFirstMethodSubsetOfSecond(entry, other))
+                    entryToSupersets.get(entry)!.push(other)
+            } else if (idl.isProperty(entry) && idl.isProperty(other)) {
+                if (isFirstPropertySubsetOfSecond(entry, other))
+                    entryToSupersets.get(entry)!.push(other)
+            } else {
+                throw new Error("Not implemented")
+            }
+        }
+    }
+    const visited: T[] = []
+    const roots: T[] = []
+    const visit = (method: T): void => {
+        if (visited.includes(method)) return
+        visited.push(method)
+        for (const superset of entryToSupersets.get(method)!) {
+            visit(superset)
+        }
+        if (!entryToSupersets.get(method)!.some(it => roots.includes(it)))
+            roots.push(method)
+    }
+    entries.forEach(visit)
+    return roots
+}
+
+export function filterRedundantMethodsOverloads(methods: idl.IDLMethod[]): idl.IDLMethod[] {
+    const sameNamedGroups = new Map<string, idl.IDLMethod[]>()
+    for (const method of methods) {
+        if (!sameNamedGroups.has(method.name))
+            sameNamedGroups.set(method.name, [])
+        sameNamedGroups.get(method.name)!.push(method)
+    }
+    const filtered: idl.IDLMethod[] = []
+    for (const sameNamed of sameNamedGroups.values()) {
+        filtered.push(...filterRedundantOverloadsSameNamed(sameNamed))
+    }
+    // stabilizing order
+    return methods.filter(it => filtered.includes(it))
+}
+
+export function filterRedundantAttributesOverloads(properties: idl.IDLProperty[]): idl.IDLProperty[] {
+    const sameNamedGroups = new Map<string, idl.IDLProperty[]>()
+    for (const property of properties) {
+        if (!sameNamedGroups.has(property.name))
+            sameNamedGroups.set(property.name, [])
+        sameNamedGroups.get(property.name)!.push(property)
+    }
+    const filtered: idl.IDLProperty[] = []
+    for (const sameNamed of sameNamedGroups.values()) {
+        filtered.push(...filterRedundantOverloadsSameNamed(sameNamed))
+    }
+    // stabilizing order
+    return properties.filter(it => filtered.includes(it))
+
+}

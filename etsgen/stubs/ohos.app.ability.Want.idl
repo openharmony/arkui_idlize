@@ -1,4 +1,0 @@
-package ohos.app.ability.Want;
-
-[DefaultExport]
-interface Want {};

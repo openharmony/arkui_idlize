@@ -1,0 +1,4 @@
+package arkui.SymbolGlyphModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+
+interface SymbolGlyphModifier {};

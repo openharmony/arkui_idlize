@@ -45,7 +45,7 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
         if (!idl.isReferenceType(parent))
             throw new Error("Expected component parent type to be a reference type")
         const parentDecl = library.resolveTypeReference(parent)
-        if (!parentDecl || !idl.isInterface(parentDecl) || parentDecl.subkind !== idl.IDLInterfaceSubkind.Class) {
+        if (!parentDecl || !idl.isInterface(parentDecl)) {
             throw new Error("Expected parent to be a class")
         }
         if (!isCollectedComponent(parentDecl)) {

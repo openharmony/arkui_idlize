@@ -42,8 +42,8 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                         if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(method.name))
                             continue
                         for (const parameter of method.parameters)
-                            orderer.addDep(idl.maybeOptional(parameter.type!, parameter.isOptional))
-                        orderer.addDep(method.returnType)
+                            orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
+                        orderer.addDep(library.toDeclaration(method.returnType))
                     }
                     for (const constructor of entry.constructors) {
                         for (const parameter of constructor.parameters)
@@ -66,10 +66,10 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
                 orderer.addDep(library.toDeclaration(entry))
             } else if (idl.isMethod(entry)) {
                 for (const parameter of entry.parameters)
-                    orderer.addDep(idl.maybeOptional(parameter.type!, parameter.isOptional))
-                orderer.addDep(entry.returnType)
+                    orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
+                orderer.addDep(library.toDeclaration(entry.returnType))
             } else if (idl.isConstant(entry)) {
-                orderer.addDep(entry.type)
+                orderer.addDep(library.toDeclaration(entry.type))
             } else if (idl.isCallback(entry)) {
                 orderer.addDep(entry)
             }
@@ -80,6 +80,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
     }
     let orderedDependencies = orderer.getToposorted()
     orderedDependencies.unshift(idl.IDLI32Type)
+    orderedDependencies.unshift(idl.IDLObjectType)
     return orderedDependencies
 }
 
@@ -137,9 +138,6 @@ function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorte
             // can not process callbacks with type arguments used inside
             // (value: SomeInterface<T>) => void
             if (subtypes.some(it => idl.isReferenceType(it) && it.typeArguments))
-                return false
-            // (value: T) => void
-            if (subtypes.some(it => idl.isTypeParameterType(it)))
                 return false
             // (value: IgnoredInterface) => void
             if (subtypes.some(it => idl.isNamedNode(it) && peerGeneratorConfiguration().ignoreEntry(it.name, library.language)))

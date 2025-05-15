@@ -20,6 +20,7 @@ import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWri
 import { ImportsCollector } from "./ImportsCollector"
 import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 import { tsCopyrightAndWarning } from "./FileGenerators"
+import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 
 export interface PrinterResult {
     over: LayoutTargetDescription
@@ -37,7 +38,25 @@ export interface PrinterFunction {
 }
 export type Printer = PrinterClass | PrinterFunction
 
-export function install(outDir: string, library: PeerLibrary, printers: Printer[], options?: { fileExtension?: string, customLayout?: LayoutManager, isDeclared?: boolean }): string[] {
+function isEntryExported(entry: idl.IDLEntry): boolean {
+    if (!peerGeneratorConfiguration().currentModuleExportedPackages)
+        return true
+    const entryPackage = idl.getPackageClause(entry)
+    return peerGeneratorConfiguration().currentModuleExportedPackages!.some(it => {
+        const packageClause = it.split('.')
+        return packageClause.every((part, index) => part === entryPackage.at(index))
+    })
+}
+
+export function install(
+    outDir: string,
+    library: PeerLibrary,
+    printers: Printer[],
+    options?: {
+        fileExtension?: string,
+        customLayout?: LayoutManager,
+        isDeclared?: boolean,
+    }): string[] {
     const storage = new Map<string, PrinterResult[]>()
 
     // groupBy
@@ -58,7 +77,7 @@ export function install(outDir: string, library: PeerLibrary, printers: Printer[
     const installedToExport: string[] = []
     Array.from(storage.entries()).forEach(([filePath, results]) => {
         const installPath = join(outDir, filePath) + (options?.fileExtension ?? library.language.extension)
-        if (!results.every(it => !!it.private)) {
+        if (!results.every(it => !!it.private || !isEntryExported(it.over.node))) {
             installedToExport.push(installPath)
         }
         results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))

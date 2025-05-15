@@ -35,6 +35,7 @@ import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
 import { NativeModule } from '../NativeModule'
 import { PrinterFunction } from '../LayoutManager'
+import { isComponentDeclaration } from '../ComponentsCollector'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 
@@ -84,6 +85,13 @@ class SerializerPrinter {
             let field = `value_${it.name}`
             const type = flattenUnionType(this.library, it.type)
             let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
+            // import collection!!!
+            if (idl.isReferenceType(type)) {
+                const resolved = this.library.resolveTypeReference(type)
+                if (resolved) {
+                    collectDeclItself(this.library, type, this.imports)
+                }
+            }
 
             let memberAccess = writer.makeString(`value.${writer.escapeKeyword(it.name)}`)
             writer.writeStatement(writer.makeAssign(field, undefined, memberAccess, true))
@@ -195,6 +203,8 @@ class SerializerPrinter {
                 }
             }
             for (const decl of serializerDeclarations) {
+                if (isComponentDeclaration(this.library, decl))
+                    continue
                 if (idl.isInterface(decl)) {
                     this.generateInterfaceSerializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {
@@ -259,6 +269,13 @@ class DeserializerPrinter {
             }
             properties.forEach(it => {
                 const type = flattenUnionType(this.library, it.type)
+                // import collection!!!
+                if (idl.isReferenceType(type)) {
+                    const resolved = this.library.resolveTypeReference(type)
+                    if (resolved) {
+                        collectDeclItself(this.library, type, this.imports)
+                    }
+                }
                 let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
                 this.writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
                     if (this.writer.language === Language.CPP)
@@ -314,6 +331,9 @@ class DeserializerPrinter {
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
+        if (idl.hasTypeParameters(target)) {
+            return
+        }
         this.continuationValueHolders.add(target.returnType)
         if (this.writer.language === Language.CPP)
             // callbacks in native are just CallbackResource while in managed we need to convert them to
@@ -450,6 +470,8 @@ class DeserializerPrinter {
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
             }
             for (const decl of serializerDeclarations) {
+                if (isComponentDeclaration(this.library, decl))
+                    continue
                 if (idl.isInterface(decl)) {
                     this.generateInterfaceDeserializer(decl, prefix)
                 } else if (idl.isCallback(decl)) {

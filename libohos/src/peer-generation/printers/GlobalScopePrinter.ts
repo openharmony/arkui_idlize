@@ -24,6 +24,7 @@ import { createOutArgConvertor } from "../PromiseConvertors"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
 import { importTypeChecker } from "./TypeCheckPrinter"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
@@ -38,7 +39,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
     const printed = library.globals.flatMap(scope => {
 
-        const groupedMethods = groupOverloadsIDL(scope.methods)
+        const groupedMethods = groupOverloadsIDL(scope.methods.filter(it => !peerGeneratorConfiguration().components.handWritten.includes(it.name)))
         const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
 
             // imports
@@ -82,7 +83,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                         ? w.makeReturn(call)
                         : w.makeStatement(call)
                     w.writeStatement(statement)
-                })
+                }, method.methods[0].typeParameters)
             })
 
             /* global scope peer serialize function */

@@ -1,7 +1,0 @@
-package ohos.multimedia.image;
-
-[DefaultExport]
-namespace image {
-    interface PixelMap {};
-    interface ResolutionQuality {};
-};

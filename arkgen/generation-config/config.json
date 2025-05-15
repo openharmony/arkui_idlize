@@ -17,7 +17,9 @@
         "RotationGestureHandler",
         "SwipeGestureHandler",
         "TapGestureHandler",
-        "UIGestureEvent"
+        "UIGestureEvent",
+        "MenuItemConfiguration",
+        "WrappedBuilder"
     ],
     "forceMaterialized": [
         "TapGestureInterface",
@@ -27,7 +29,8 @@
         "PinchGestureInterface",
         "RotationGestureInterface",
         "GestureGroupInterface",
-        "BaseContext"
+        "BaseContext",
+        "ClickEvent"
     ],
     "forceCallback": {
         "EditMenuOptions": [],
@@ -175,7 +178,8 @@
             "ISinglePropertyChangeSubscriber",
             "PageTransitionEnterInterface",
             "PageTransitionExitInterface",
-            "CommonTransition"
+            "CommonTransition",
+            "wrapBuilder"
         ],
         "ignoreEntry": [
             "Optional",
@@ -300,7 +304,11 @@
             "packages": [""]
         }
     },
-
+    "currentModuleExportedPackages": [
+        "arkui.component",
+        "internal.component.ets",
+        "arkui.idlize"
+    ],
     "globalPackages": [
         "idlize.stdlib",
         "org.openharmony.idlize.predefined",

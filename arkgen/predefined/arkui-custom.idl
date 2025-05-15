@@ -11,7 +11,7 @@ interface BaseContext {
 };
 
 [Entity=Class, DefaultExport]
-interface Context: BaseContext {
+interface Context: [Extends] BaseContext {
     // attribute resmgr.ResourceManager resourceManager;
     // attribute ApplicationInfo applicationInfo;
     attribute String cacheDir;

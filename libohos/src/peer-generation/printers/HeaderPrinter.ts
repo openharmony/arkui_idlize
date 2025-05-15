@@ -23,6 +23,7 @@ import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 import { collectPeersForFile } from '../PeersCollector';
+import { getAccessorName, getDeclarationUniqueName } from './NativeUtils';
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`
@@ -67,7 +68,9 @@ export class HeaderVisitor {
         this.accessorsList.pushIndent()
         this.library.materializedClasses.forEach(c => {
             this.printAccessor(c)
-            this.accessorsList.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUI${c.className}Accessor* (*get${c.className}Accessor)();`)
+            const accessorName = getAccessorName(c.decl)
+            const className = getDeclarationUniqueName(c.decl)
+            this.accessorsList.print(`const ${accessorName}* (*get${className}Accessor)();`)
         })
         const globals = createGlobalScopeLegacy(this.library)
         if (globals.methods.length) {
@@ -78,8 +81,7 @@ export class HeaderVisitor {
     }
 
     private printAccessor(clazz: MaterializedClass) {
-        let peerName = `${clazz.className}Peer`
-        let accessorName = `${peerGeneratorConfiguration().cppPrefix}ArkUI${clazz.className}Accessor`
+        const accessorName = getAccessorName(clazz.decl)
         this.api.print(`typedef struct ${accessorName} {`)
         this.api.pushIndent()
         const mDestroyPeer = createDestroyPeerMethod(clazz)

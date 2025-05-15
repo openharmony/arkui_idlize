@@ -1,0 +1,18 @@
+package ohos.window;
+
+[DefaultExport]
+namespace window {
+    dictionary WindowStatusType {
+        number UNDEFINED = 0;
+        number FULL_SCREEN = 1;
+        number MAXIMIZE = 2;
+        number MINIMIZE = 3;
+        number FLOATING = 4;
+        number SPLIT_SCREEN = 5;
+    };
+
+    [Entity=Interface]
+    interface SystemBarStyle {
+        [Optional] attribute String statusBarContentColor;
+    };
+};

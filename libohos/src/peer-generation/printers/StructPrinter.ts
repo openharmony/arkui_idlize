@@ -32,14 +32,25 @@ import {
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter } from "@idlizer/core"
-import { peerGeneratorConfiguration} from "../../DefaultConfiguration"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 import { PrintHint } from "@idlizer/core"
 import { LibraryInterface } from "@idlizer/core"
 import { collectDeclarationTargets } from "../DeclarationTargetCollector"
 import { flattenUnionType, generateCallbackAPIArguments } from "@idlizer/core"
 
 export class StructPrinter {
-    constructor(private library: PeerLibrary) {}
+
+    private isGenericEntry(cb: idl.IDLEntry) {
+        let hasGenerics = false
+        idl.forEachChild(cb, node => {
+            if (idl.isTypeParameterType(node)) {
+                hasGenerics = true
+            }
+        })
+        return hasGenerics
+    }
+
+    constructor(private library: PeerLibrary) { }
 
     private isPointerDeclaration(target: idl.IDLNode, isOptional: boolean = false): boolean {
         if (isOptional) return true
@@ -131,8 +142,7 @@ export class StructPrinter {
                 enumsDeclarations.print(`typedef enum ${nameAssigned} {`)
                 enumsDeclarations.pushIndent()
                 for (let member of enumTarget.elements) {
-                    const memberName = member.documentation?.includes("@deprecated")
-                        ? member.name : camelCaseToUpperSnakeCase(member.name)
+                    const memberName = member.name
                     const initializer = (!stringEnum && (member.initializer !== undefined)) ? " = " + member.initializer : ""
                     enumsDeclarations.print(`${camelCaseToUpperSnakeCase(nameAssigned)}_${memberName}${initializer},`)
                 }
@@ -144,6 +154,7 @@ export class StructPrinter {
             } else if (!noBasicDecl && !this.ignoreTarget(target)) {
                 forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
                 this.printStructsCHead(nameAssigned, target, concreteDeclarations)
+                concreteDeclarations.print(`/* kind: ${idl.IDLKind[target.kind]} */`)
                 if (idl.isUnionType(target)) {
                     concreteDeclarations.print(`${generatorConfiguration().TypePrefix}Int32 selector;`)
                     concreteDeclarations.print("union {")
@@ -168,7 +179,7 @@ export class StructPrinter {
                     }
                     if (idl.IDLContainerUtils.isRecord(target)) {
                         concreteDeclarations.print(`${PrimitiveTypesInstance.Int32.getText()} size;`)
-                            fieldNames = ["keys", "values"]
+                        fieldNames = ["keys", "values"]
                     }
                     target.elementType.forEach((it, index) => {
                         concreteDeclarations.print(`${structs.getNodeName(it)}* ${fieldNames[index]};`)
@@ -268,8 +279,7 @@ export class StructPrinter {
 
     private writeRuntimeTypeOp(
         target: idl.IDLNode, targetType: idl.IDLType, resultType: idl.IDLType, isOptional: boolean, writer: LanguageWriter
-    ) : ((writer: LanguageWriter) => void) | undefined
-    {
+    ): ((writer: LanguageWriter) => void) | undefined {
         let result: LanguageExpression
         if (isOptional) {
             result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
@@ -359,7 +369,7 @@ export class StructPrinter {
         let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
         printer.print(
-`
+            `
 template <>
 void WriteToString(std::string* result, const ${elementNativeType}${isPointerField ? "*" : ""} value);
 
@@ -585,13 +595,13 @@ function collectBuilderProperties(decl: idl.IDLInterface, library: LibraryInterf
         return []
     }
     return groupProps([
-            ...decl.constructors
-                .flatMap(cons =>
-                    cons.parameters.map(param => new NameWithType(param.name, param.type!))),
-            ...decl.methods
-                .filter(m => !m.isStatic && m.parameters.length === 1)
-                .map(m => new NameWithType(m.name, m.parameters[0].type!))
-        ])
+        ...decl.constructors
+            .flatMap(cons =>
+                cons.parameters.map(param => new NameWithType(param.name, param.type!))),
+        ...decl.methods
+            .filter(m => !m.isStatic && m.parameters.length === 1)
+            .map(m => new NameWithType(m.name, m.parameters[0].type!))
+    ])
         .map(it => {
             return {
                 kind: idl.IDLKind.Property,

@@ -26,7 +26,7 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     const isCallSignature = idl.isCallable(method)
     const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
     const retType = method.returnType!
-    const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T")
+    const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T" || retType === idl.IDLThisType)
     const originalParentName = parentName ?? peer.originalClassName!
     const argConvertors = method.parameters.map(param => library.typeConvertor(param.name, param.type, param.isOptional))
     const signature = new NamedMethodSignature(
