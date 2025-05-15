@@ -69,6 +69,7 @@ export {
 } from "../../generated/ts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/ts"
+export { ImportedHookValue } from "./hooks/sample"
 
 export type OHBuffer = ArrayBuffer
 export type OHAny = any

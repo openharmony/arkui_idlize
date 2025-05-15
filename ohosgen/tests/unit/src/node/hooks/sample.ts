@@ -1,6 +1,9 @@
-namespace hook_ns {
-	interface ImportedHookValue {
+export interface ImportedHookValue {
+	count: number
+}
+
+export namespace hook_ns {
+	export interface ImportedNSHookValue {
 		count: number
 	}
 }
-

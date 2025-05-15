@@ -39,6 +39,8 @@
         "invalidAttributes": [],
         "replaceThrowErrorReturn": []
     },
+    "hooks": {},
+    "externalModuleTypes": {},
     "materialized": {
         "ignoreReturnTypes": []
     },

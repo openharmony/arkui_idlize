@@ -894,11 +894,17 @@ OH_UNIT_DTSHookClassHandle DTSHookClass_constructImpl() {
 }
 void DTSHookClass_destructImpl(OH_UNIT_DTSHookClassHandle thisPtr) {
 }
-void DTSHookClass_method1Impl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+void DTSHookClass_methodImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+    printf("[native] [0] call DTSHookClass_methodImpl, count: %d\n", value->count.i32);
 }
 // TBD: remove implementation for the hooked method
-void DTSHookClass_method2Impl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+void DTSHookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
 }
-// TBD: remove implementation for the hooked method
-void DTSHookClass_method3Impl(OH_NativePointer thisPtr, const OH_CustomObject* value) {
+OH_UNIT_DTSHookValue DTSHookClass_methodReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+}
+OH_UNIT_ImportedHookValue DTSHookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+    return {};
 }

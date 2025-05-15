@@ -1,6 +1,7 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
 import { currentModule, getModuleFor, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { peerGeneratorConfiguration } from "@idlizer/libohos"
 
 function selectInternalsPath(): string {
     return currentModule().name + ".INTERNAL"
@@ -21,6 +22,10 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     ) { }
 
     protected selectInterface(node: idl.IDLEntry): string {
+        const hookImport = idl.isNamedNode(node) && peerGeneratorConfiguration().externalModuleTypes.get(node.name)
+        if (hookImport) {
+            return hookImport
+        }
         if (isInIdlize(node))
             return selectInternalsPath()
         if (idl.isHandwritten(node)) {

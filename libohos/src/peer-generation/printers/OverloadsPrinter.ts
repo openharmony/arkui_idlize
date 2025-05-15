@@ -283,11 +283,7 @@ export class OverloadsPrinter {
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             if (generatorConfiguration().hooks.get(peer.getComponentName())?.includes(collapsedMethod.name)) {
-                const hookName = `hook_${peer.getComponentName()}_${collapsedMethod.name}`
-                const args = collapsedMethod.signature.args.map((_, i) => collapsedMethod.signature.argName(i))
-                writer.writeExpressionStatement(writer.makeFunctionCall(hookName, [
-                    writer.makeThis(), ...args.map(arg => writer.makeString(arg))
-                ]))
+                this.printHookedMethodBody(peer, collapsedMethod, writer)
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
             }
@@ -296,6 +292,19 @@ export class OverloadsPrinter {
             if (this.printer.language == Language.CJ) {
                 this.printer.print(')')
             }
+        }
+    }
+
+    printHookedMethodBody(peer: PeerClassBase, method: Method, writer: LanguageWriter) {
+        const hookName = `hook_${peer.getComponentName()}_${method.name}`
+        const args = method.signature.args.map((_, i) => method.signature.argName(i))
+        const hookCall = writer.makeFunctionCall(hookName, [
+            writer.makeThis(), ...args.map(arg => writer.makeString(arg))
+        ])
+        if (method.signature.returnType === idl.IDLVoidType) {
+            writer.writeExpressionStatement(hookCall)
+        } else {
+            writer.writeStatement(writer.makeReturn(hookCall))
         }
     }
 

@@ -108,6 +108,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             continue
         if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
             continue
+        if (peerGeneratorConfiguration().externalModuleTypes.get(decl.name))
+            continue
         syntheticCollector.convert(decl)
         if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||
             idl.isEnum(decl))
@@ -126,6 +128,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             )
                 continue
             if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
+                continue
+            if (peerGeneratorConfiguration().externalModuleTypes.get(decl.name))
                 continue
             syntheticCollector.convert(decl)
         }

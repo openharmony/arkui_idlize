@@ -68,7 +68,8 @@ import {
   testLength
 } from '#compat'
 
-import {DTSHookClass, DTSHookValue, hook_ns} from "#compat"
+import { DTSHookClass, DTSHookValue } from "#compat"
+import { ImportedHookValue } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
@@ -367,9 +368,13 @@ function checkNativeBuffer() {
 function checkHooks() {
 
   const hookClass = new DTSHookClass()
-  hookClass.method1({ count: 10 })
-  hookClass.method2({ count: 20 })
-  // hookClass.method3({ count: 30 })
+  hookClass.method({ count: 900 })
+  hookClass.methodArg({ count: 901 })
+  const hookValue = hookClass.methodReturn()
+  console.log(`  hook return value: ${hookValue.count}`)
+  hookClass.methodImportedArg({ count: 902 })
+  const importedHookValue = hookClass.methodImportedReturn()
+  console.log(`  hook return value: ${importedHookValue.count}`)
 }
 
 interface TestObject { x: number }
