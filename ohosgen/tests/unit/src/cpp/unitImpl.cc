@@ -858,9 +858,9 @@ void generics_Y_destructImpl(OH_UNIT_generics_YHandle thisPtr) {
 }
 
 // Check Length
-OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Union_String_Number_Resource* value) {
+OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Length* value) {
     int s = step->i32;
-    OH_UNIT_Union_String_Number_Resource u = *value;
+    OH_UNIT_Length u = *value;
     OH_Boolean OH_FALSE = (OH_Boolean) 0;
     OH_Boolean OH_TRUE = (OH_Boolean) 1;
 

@@ -571,7 +571,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     idl.IDLStringType,
                     idl.IDLNumberType,
                     idl.createReferenceType('Resource')
-                ]),
+                ], typedefName),
                 [],
                 {
                     extendedAttributes: [],

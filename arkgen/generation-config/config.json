@@ -258,7 +258,6 @@
         "ignore": [
             "Array",
             "Callback",
-            "Length",
             "AttributeModifier",
             "Number",
             "String",
