@@ -159,8 +159,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             // print `export interface` or `export declare class`, but not `export class`
             return []
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
-        return ([`export ${declaredPrefix}${idl.isInterfaceSubkind(idlInterface) ? "interface" : "class"} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
-            .concat(idlInterface.constructors
+        const isInterface = idl.isInterfaceSubkind(idlInterface)
+        return ([`export ${declaredPrefix}${isInterface ? "interface" : "class"} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
+            .concat(isInterface ? [] : idlInterface.constructors
                 .map(it => this.printConstructor(it)).flat())
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())
@@ -315,7 +316,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     protected printConstructor(method: idl.IDLConstructor): stringOrNone[] {
         return [
             ...this.printExtendedAttributes(method),
-            indentedBy(`constructor(${this.printParameters(method.parameters)})`, 1)
+            indentedBy(`constructor(${this.printConstructorParametersWithOptionalFix(method.parameters)})`, 1)
         ]
     }
     protected printMethod(idl: idl.IDLMethod): stringOrNone[] {
@@ -358,15 +359,25 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             ?.join(", ") ?? ""
     }
 
+    protected printConstructorParametersWithOptionalFix(parameters: idl.IDLParameter[]): string {
+        // Using constructor overloads, which differ only by the presense or absence of optional parameter
+        // confuses the ui2abc, considering replacing all optional parameters with explicit "| undefined" type
+        return parameters
+            ?.map(it => this.printNameWithTypeIDLParameter(it, it.isVariadic, it.isOptional, true))
+            ?.join(", ") ?? ""
+    }
+
     private printNameWithTypeIDLParameter(
         variable: idl.IDLVariable,
         isVariadic: boolean = false,
-        isOptional: boolean = false): string {
-        const type = variable.type ? this.convertType(variable.type) : ""
-        const optional = isOptional ? "optional " : ""
+        isOptional: boolean = false,
+        optAsUndefined = false
+    ): string {
+        const type = variable.type ? this.convertType(idl.maybeOptional(variable.type, isOptional && optAsUndefined)) : ""
+        const optional = isOptional && !optAsUndefined ? "?" : ""
         const dots = isVariadic ? "..." : ""
         const brackets = isVariadic ? "[]" : ""
-        return `${dots}${idl.escapeIDLKeyword(variable.name!)}${optional ? "?" : ""}: ${type}${brackets}`
+        return `${dots}${idl.escapeIDLKeyword(variable.name!)}${optional}: ${type}${brackets}`
     }
 
     protected printTypeParameters(typeParameters: string[] | undefined): string {
