@@ -484,9 +484,8 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     EtsEnv* env = reinterpret_cast<EtsEnv*>(vm);
     std:: string className(viewClass.c_str());
     // TODO: hack, fix it!
-    if (className == "ViewLoaderApp") {
-        className = "Page.App";
-    } else if (className == "EtsHarness") {
+    // TODO: remove EtsHarness!
+    if (className == "EtsHarness") {
         className = "@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness";
     } else if (isPageClass(className)) {
         className = "@koalaui.user.build.unmemoized.build.generated." + className;
@@ -527,19 +526,18 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     ani_env* env = reinterpret_cast<ani_env*>(vm);
     std::string className(viewClass.c_str());
     // TODO: hack, fix it!
-    if (className == "UserApp") {
-        className = "L@ohos.arkui.Application.UserView;";
-    } if (className == "EtsHarness") {
+    // TODO: remove EtsHarness!
+    if (className == "EtsHarness") {
         className = "L@koalaui.ets-harness.build.unmemoized.build.Page.EtsHarness;";
     } else if (isPageClass(className)) {
         className = "L" + className + ";";
     } else if (isClass(className)) {
         className = "L@" + className.substr(6) + ";";
     } else {
-        className = "L@koalaui.user.build.unmemoized.src.Page." + className + ";";
+        INTEROP_FATAL("No idea how to load " LOG_PUBLIC "s", className)
     }
     std::replace(className.begin(), className.end(), '.', '/');
-    LOGE("[bridge_custom] Loading user class (ANI) %s by %s\n", viewClass.c_str(), className.c_str());
+    LOGE("[bridge_custom] Loading user class (ANI) %" LOG_PUBLIC "s by %" LOG_PUBLIC "s\n", viewClass.c_str(), className.c_str());
     ani_class viewClassClass = nullptr;
     env->FindClass(className.c_str(), &viewClassClass);
     if (!viewClassClass) {

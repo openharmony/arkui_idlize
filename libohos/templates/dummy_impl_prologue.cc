@@ -791,7 +791,7 @@ void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback cal
     using namespace std::chrono_literals;
     auto producer = std::thread([pipelineContext, callback] {
         while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(16));
             callback(pipelineContext);
         }
     });
