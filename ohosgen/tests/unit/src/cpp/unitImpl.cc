@@ -420,11 +420,8 @@ OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle test_mater
 void test_materialized_classes_MaterializedOverloadedMethods_destructImpl(OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle thisPtr) {
     delete reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedOverloadedMethodsHandle*>(thisPtr);
 }
-void test_materialized_classes_MaterializedOverloadedMethods_method10Impl(OH_NativePointer thisPtr, OH_Boolean valBoolean, const OH_String* valString) {
-    reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1(valBoolean, *valString);
-}
 
-void test_materialized_classes_MaterializedOverloadedMethods_method11Impl(OH_NativePointer thisPtr, const Opt_Boolean* valBoolean, const Opt_String* valString) {
+void test_materialized_classes_MaterializedOverloadedMethods_method1Impl(OH_NativePointer thisPtr, const Opt_Boolean* valBoolean, const Opt_String* valString) {
     if (valString->tag == INTEROP_TAG_UNDEFINED) {
         if (valBoolean->tag == INTEROP_TAG_UNDEFINED) {
             reinterpret_cast<UNIT_test_materialized_classes_MaterializedOverloadedMethodsPeer*>(thisPtr)->method1();
