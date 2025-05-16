@@ -297,7 +297,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Callback", (type, name) => this.makeCallbackType("Callback", type, name)],
             ["AsyncCallback", (type, name) => this.makeCallbackType("AsyncCallback", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
-            ["Object", () => idl.IDLObjectType],
+            ["Object", () => idl.IDLCustomObjectType],
             ["Function", () => idl.IDLFunctionType],
             // TODO: rethink that
             ["\"2d\"", () => idl.IDLStringType],

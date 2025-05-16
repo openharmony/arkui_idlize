@@ -80,7 +80,6 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
     }
     let orderedDependencies = orderer.getToposorted()
     orderedDependencies.unshift(idl.IDLI32Type)
-    orderedDependencies.unshift(idl.IDLObjectType)
     return orderedDependencies
 }
 
