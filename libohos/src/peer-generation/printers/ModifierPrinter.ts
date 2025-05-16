@@ -27,7 +27,8 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     ReferenceResolver,
     isMaterialized,
     PrimitiveTypesInstance,
-    throwException
+    throwException,
+    generatorConfiguration,
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName } from '@idlizer/core/idl'
@@ -257,6 +258,9 @@ export class ModifierVisitor {
     }
 
     printRealAndDummyModifier(method: PeerMethod, clazz: PeerClass) {
+        if (generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) {
+            return
+        }
         this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
         if (peerGeneratorConfiguration().noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
             return

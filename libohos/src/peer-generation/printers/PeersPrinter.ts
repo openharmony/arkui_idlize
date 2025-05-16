@@ -122,6 +122,13 @@ class PeerFileVisitor {
             collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), imports)
             imports.addFeature('CallbackTransformer', '../CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
+
+            generatorConfiguration().hooks.get(peer.componentName)
+                ?.forEach(method => {
+                    const hookName = `hook_${peer.componentName}_${method}`
+                    imports.addFeature(hookName, "./../handwritten")
+                })
+
         }
         if (this.library.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")

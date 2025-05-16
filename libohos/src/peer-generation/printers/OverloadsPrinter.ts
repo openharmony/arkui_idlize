@@ -282,10 +282,19 @@ export class OverloadsPrinter {
         const key = peer.getComponentName() + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
+            if (this.isComponent) {
+                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
+                this.printer.pushIndent()
+            }
             if (generatorConfiguration().hooks.get(peer.getComponentName())?.includes(collapsedMethod.name)) {
                 this.printHookedMethodBody(peer, collapsedMethod, writer)
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
+            }
+            if (this.isComponent) {
+                this.printer.popIndent()
+                this.printer.print(`}`)
+                this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
         if (this.isComponent) {
@@ -301,7 +310,7 @@ export class OverloadsPrinter {
         const hookCall = writer.makeFunctionCall(hookName, [
             writer.makeThis(), ...args.map(arg => writer.makeString(arg))
         ])
-        if (method.signature.returnType === idl.IDLVoidType) {
+        if (this.isComponent || method.signature.returnType === idl.IDLVoidType) {
             writer.writeExpressionStatement(hookCall)
         } else {
             writer.writeStatement(writer.makeReturn(hookCall))
@@ -309,10 +318,6 @@ export class OverloadsPrinter {
     }
 
     printCollapsedOverloadsMethodBody(peer: PeerClassBase, collapsedMethod: Method, methods: PeerMethod[], writer: LanguageWriter) {
-        if (this.isComponent) {
-            writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
-            this.printer.pushIndent()
-        }
         if (methods.length > 1) {
             const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                 const argName = collapsedMethod.signature.argName(argIndex)
@@ -332,11 +337,6 @@ export class OverloadsPrinter {
                 writer.makeThrowError(`Can not select appropriate overload`).write(writer)
         } else {
             this.printPeerCallAndReturn(peer, collapsedMethod, methods[0])
-        }
-        if (this.isComponent) {
-            this.printer.popIndent()
-            this.printer.print(`}`)
-            this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
         }
     }
 
