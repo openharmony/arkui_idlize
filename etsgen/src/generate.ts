@@ -424,7 +424,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 func.id!.name,
                 func.params.map(it => {
                     const param = it as arkts.ETSParameterExpression
-                    return idl.createParameter(param.name, this.serializeType(param.typeAnnotation))
+                    return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
                 }),
                 this.serializeType(func.returnTypeAnnotation),
                 {
