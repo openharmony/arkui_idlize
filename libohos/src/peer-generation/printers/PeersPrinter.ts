@@ -25,10 +25,12 @@ import {
     isMaterializedType,
     MaterializedClass,
     qualifiedName,
+    generatorHookName,
     generatorConfiguration,
     LayoutNodeRole,
     CustomTypeConvertor,
-    ArgumentModifier
+    ArgumentModifier,
+    capitalize
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
@@ -123,12 +125,13 @@ class PeerFileVisitor {
             imports.addFeature('CallbackTransformer', '../CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
 
-            generatorConfiguration().hooks.get(peer.componentName)
-                ?.forEach(method => {
-                    const hookName = `hook_${peer.componentName}_${method}`
+            const hookMethods = generatorConfiguration().hooks.get(peer.componentName)
+            if (hookMethods) {
+                for (const [methodName, hook] of hookMethods.entries()) {
+                    const hookName = hook ? hook.hookName : `hook${peer.componentName}${capitalize(methodName)}`
                     imports.addFeature(hookName, "./../handwritten")
-                })
-
+                }
+            }
         }
         if (this.library.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")
@@ -397,9 +400,7 @@ export function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWri
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
 ) {
-    if (generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) {
-        return
-    }
+    if (generatorHookName(method.originalParentName, method.method.name)) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.overloadedName}${methodPostfix}`,

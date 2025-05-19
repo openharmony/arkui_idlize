@@ -356,12 +356,13 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             collectDeclItself(this.library, idl.createReferenceType("Deserializer"), this.collector)
         }
 
-        // console.log(`${this.clazz.className} Collect imports for ${generatorConfiguration().hooks.get(this.clazz.className)}`)
-        generatorConfiguration().hooks.get(this.clazz.className)
-            ?.forEach(method => {
-                const hookName = `hook_${this.clazz.className}_${method}`
+        const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)
+        if (hookMethods) {
+            for (const [methodName, hook] of hookMethods.entries()) {
+                const hookName = hook ? hook.hookName : `hook${this.clazz.className}${capitalize(methodName)}`
                 this.collector.addFeature(hookName, "#hooks")
-            })
+            }
+        }
 
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)

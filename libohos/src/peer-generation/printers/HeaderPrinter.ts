@@ -16,7 +16,7 @@
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppConvertor,
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
     MaterializedClass,
-    generatorConfiguration,
+    generatorHookName,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
@@ -52,7 +52,7 @@ export class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        if (generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) return
+        if (generatorHookName(method.originalParentName, method.method.name)) return
         const apiParameters = method.generateAPIParameters(this.library.createTypeNameConvertor(Language.CPP))
         printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.returnType), `(*${method.fullMethodName})`, apiParameters, `;`)
     }

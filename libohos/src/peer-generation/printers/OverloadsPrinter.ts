@@ -22,7 +22,7 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorConfiguration } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorHookName } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -286,8 +286,9 @@ export class OverloadsPrinter {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
             }
-            if (generatorConfiguration().hooks.get(peer.getComponentName())?.includes(collapsedMethod.name)) {
-                this.printHookedMethodBody(peer, collapsedMethod, writer)
+            const hookName = generatorHookName(peer.getComponentName(), collapsedMethod.name)
+            if (hookName) {
+                this.printHookedMethodBody(peer, collapsedMethod, hookName, writer)
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
             }
@@ -304,8 +305,7 @@ export class OverloadsPrinter {
         }
     }
 
-    printHookedMethodBody(peer: PeerClassBase, method: Method, writer: LanguageWriter) {
-        const hookName = `hook_${peer.getComponentName()}_${method.name}`
+    printHookedMethodBody(peer: PeerClassBase, method: Method, hookName: string, writer: LanguageWriter) {
         const args = method.signature.args.map((_, i) => method.signature.argName(i))
         const hookCall = writer.makeFunctionCall(hookName, [
             writer.makeThis(), ...args.map(arg => writer.makeString(arg))

@@ -263,7 +263,7 @@ export class BridgeCcVisitor {
     }
 
     protected printMethod(method: PeerMethod, modifierName?: string) {
-        if (idl.generatorConfiguration().hooks.get(method.originalParentName)?.includes(method.method.name)) return
+        if (idl.generatorHookName(method.originalParentName, method.method.name)) return
         const cName = `${method.originalParentName}_${method.overloadedName}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
         const argTypesAndNames = this.generateCParameters(method)

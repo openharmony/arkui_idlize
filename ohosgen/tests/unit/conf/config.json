@@ -51,12 +51,20 @@
         "replaceThrowErrorReturn": []
     },
     "hooks": {
-        "DTSHookClass": [
-            "methodArg",
-            "methodReturn",
-            "methodImportedArg",
-            "methodImportedReturn"
-        ]
+        "DTSHookClass": {
+            "methodArg": {
+                "hookName": "customHookDTSHookClassMethodArg"
+            },
+            "methodReturn": {
+                "hookName": "hookDTSHookClassMethodReturn"
+            },
+            "methodImportedArg": {
+                "hookName": "hookDTSHookClassImportedArg"
+            },
+            "methodImportedReturn": {
+                "hookName": "customHookDTSHookClassMethodImportedReturn"
+            }
+        }
     },
     "externalModuleTypes": {
         "ImportedHookValue" : "#hooks_sample"

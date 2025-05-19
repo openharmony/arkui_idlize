@@ -14,6 +14,7 @@
  */
 
 import { D, ConfigTypeInfer } from "./configDescriber"
+import { capitalize } from "./util"
 
 const T = {
     stringArray: () => D.array(D.string())
@@ -23,6 +24,10 @@ export const ModuleConfigurationSchema = D.object({
     name: D.string(),
     packages: T.stringArray(),
     useFoldersLayout: D.maybe(D.boolean()),
+})
+
+export const HookMethodSchema = D.object({
+    hookName: D.string(),
 })
 
 export type ModuleConfiguration = ConfigTypeInfer<typeof ModuleConfigurationSchema>
@@ -41,7 +46,7 @@ export const CoreConfigurationSchema = D.object({
     forceCallback: D.map(D.string(), T.stringArray()).onMerge('replace'),
     forceResource: T.stringArray(),
     forceContext: T.stringArray(),
-    hooks: D.map(D.string(), T.stringArray()).onMerge('replace'),
+    hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
     externalModuleTypes: D.map(D.string(), D.string()).onMerge('replace'),
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
@@ -65,7 +70,7 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     forceCallback: new Map<string, []>(),
     forceResource: [],
     forceContext: [],
-    hooks: new Map<string, []>(),
+    hooks: new Map<string, Map<string, HookMethod>>(),
     externalModuleTypes: new Map<string, string>(),
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
@@ -90,4 +95,16 @@ export function generatorConfiguration<T extends CoreConfiguration>(): T {
 export function generatorTypePrefix() {
     const conf = generatorConfiguration()
     return `${conf.TypePrefix}${conf.LibraryPrefix}`
+}
+
+interface HookMethod {
+    hookName: string
+}
+
+export function generatorHookName(className: string, methodName: string): string | undefined {
+    const hookMethods = generatorConfiguration().hooks.get(className)
+    if (!hookMethods) return undefined
+    const hook = hookMethods.get(methodName)
+    if (!hook) return undefined
+    return hook.hookName ?? `hook${className}${capitalize(methodName)}`
 }

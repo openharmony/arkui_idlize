@@ -372,7 +372,7 @@ function checkHooks() {
   hookClass.methodArg({ count: 901 })
   const hookValue = hookClass.methodReturn()
   console.log(`  hook return value: ${hookValue.count}`)
-  hookClass.methodImportedArg({ count: 902 })
+  hookClass.methodImportedArg({ count: 903 })
   const importedHookValue = hookClass.methodImportedReturn()
   console.log(`  hook return value: ${importedHookValue.count}`)
 }
