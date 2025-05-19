@@ -118,12 +118,6 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
     convertTypeReference(type: idl.IDLReferenceType): ConvertResult {
         const refName = type.name
-        switch (refName) {
-            case "object":
-            case "Object":
-                // treat object as interop resource
-                return this.make('Object', idl.IDLObjectType)
-        }
         if (generatorConfiguration().parameterized.includes(refName)) {
             return this.make('CustomObject', idl.IDLCustomObjectType)
         }
@@ -166,6 +160,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
             case idl.IDLPointerType: return this.make('NativePointer', type)
             case idl.IDLCustomObjectType: return this.make('CustomObject', type)
             case idl.IDLUnknownType:
+            case idl.IDLObjectType:
             case idl.IDLAnyType: return this.make(`Object`, type)
             case idl.IDLUndefinedType: return this.make(`Undefined`, type)
             case idl.IDLFunctionType: return this.make(`Function`, type)

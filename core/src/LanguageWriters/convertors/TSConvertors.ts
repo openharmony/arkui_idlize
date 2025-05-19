@@ -91,9 +91,6 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return `${type.name}${maybeTypeArguments}`
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        if (type.name === idl.IDLObjectType.name) {
-            return type.name
-        }
         let decl = this.resolver.resolveTypeReference(type)
         if (decl) {
             if (idl.isSyntheticEntry(decl)) {
@@ -141,6 +138,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLUnknownType:
             case idl.IDLCustomObjectType: return 'any'
             case idl.IDLThisType: return 'this'
+            case idl.IDLObjectType: return 'Object'
             case idl.IDLAnyType: return 'any'
             case idl.IDLUndefinedType: return 'undefined'
             case idl.IDLPointerType: return 'KPointer'

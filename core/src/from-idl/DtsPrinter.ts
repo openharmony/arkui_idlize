@@ -96,7 +96,8 @@ import {
     IDLDate,
     IDLFunctionType,
     getQualifiedName,
-    isType
+    isType,
+    IDLObjectType
 } from "../idl"
 import { resolveSyntheticType, toIDLFile } from "./deserialize"
 import { Language } from "../Language"
@@ -357,6 +358,7 @@ export class CustomPrintVisitor {
                 case IDLNumberType:
                     return "number"
                 case IDLAnyType: return "any"
+                case IDLObjectType: return "Object"
                 case IDLUnknownType: return "unknown"
                 case IDLBufferType: return "ArrayBuffer"
                 case IDLBooleanType: return "boolean"

@@ -158,6 +158,7 @@ export class IdlSkoalaLibrary implements LibraryInterface {
                 case idl.IDLNumberType: return new NumberConvertor(param)
                 case idl.IDLUndefinedType:
                 case idl.IDLVoidType: return new UndefinedConvertor(param)
+                case idl.IDLObjectType: return new CustomTypeConvertor(param, "Object", false, "Object")
                 default: throw new Error(`Unconverted ${type}`)
             }
         }
@@ -167,8 +168,6 @@ export class IdlSkoalaLibrary implements LibraryInterface {
         }
 
         if (idl.isReferenceType(type)) {
-            if (type == idl.IDLObjectType)
-                return new CustomTypeConvertor(param, "Object", false, "Object")
             if (isImport(type)) {
                 // return new ImportTypeConvertor(param, type)
                 console.log('todo: type converter for import')

@@ -534,7 +534,7 @@ KVMObjectHandle impl_LoadUserView(KVMContext vm, const KStringPtr& viewClass, co
     } else if (isClass(className)) {
         className = "L@" + className.substr(6) + ";";
     } else {
-        INTEROP_FATAL("No idea how to load " LOG_PUBLIC "s", className)
+        INTEROP_FATAL("No idea how to load %" LOG_PUBLIC "s", className.c_str());
     }
     std::replace(className.begin(), className.end(), '.', '/');
     LOGE("[bridge_custom] Loading user class (ANI) %" LOG_PUBLIC "s by %" LOG_PUBLIC "s\n", viewClass.c_str(), className.c_str());

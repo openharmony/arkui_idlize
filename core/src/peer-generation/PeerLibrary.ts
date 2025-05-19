@@ -345,6 +345,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLUndefinedType: return new UndefinedConvertor(param)
                 case idl.IDLVoidType: return new VoidConvertor(param)
                 case idl.IDLUnknownType:
+                case idl.IDLObjectType:
                 case idl.IDLAnyType: return new ObjectConvertor(param, idl.IDLAnyType)
                 case idl.IDLDate: return new DateConvertor(param)
 
