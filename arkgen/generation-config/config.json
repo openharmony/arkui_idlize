@@ -39,6 +39,11 @@
             "onSurfaceChanged",
             "onSurfaceDestroyed"
         ],
+        "DrawModifier": [
+            "drawBehind",
+            "drawContent",
+            "drawFront"
+        ],
         "CustomSpan": [
             "onMeasure",
             "onDraw"
