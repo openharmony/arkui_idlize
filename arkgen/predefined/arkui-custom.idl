@@ -1,116 +1,7 @@
-package api.internal.component.ets;
+package arkui.component.idlize;
 
-// Context
-
-[Async]
-callback Context_getGroupDir_Callback = void (String result);
-
-[Entity=Class, DefaultExport]
-interface BaseContext {
-    attribute boolean stageMode;
-};
-
-[Entity=Class, DefaultExport]
-interface Context: [Extends] BaseContext {
-    // attribute resmgr.ResourceManager resourceManager;
-    // attribute ApplicationInfo applicationInfo;
-    attribute String cacheDir;
-    attribute String tempDir;
-    attribute String filesDir;
-    attribute String databaseDir;
-    attribute String preferencesDir;
-    attribute String bundleCodeDir;
-    attribute String distributedFilesDir;
-    attribute String resourceDir;
-    attribute String cloudFileDir;
-    // attribute EventHub eventHub;
-    // attribute contextConstant.AreaMode area;
-    [Deprecated, Throws] Context createBundleContext(String bundleName);
-    [Deprecated, Throws] Context createModuleContext(String moduleName);
-    [Deprecated, Throws] Context createModuleContext(String bundleName, String moduleName);
-    // [Throws] resmgr.ResourceManager createSystemHspModuleResourceManager(String bundleName, String moduleName);
-    // [Throws] ApplicationContext getApplicationContext();
-    [Throws] void getGroupDir(String dataGroupID, Context_getGroupDir_Callback callback_);
-    [Throws] async String getGroupDir(String dataGroupID);
-    // [Throws] resmgr.ResourceManager createModuleResourceManager(String bundleName, String moduleName);
-};
-
-// Cursor
-dictionary PointerStyle {
-    number DEFAULT = 0;
-    number EAST = 1;
-    number WEST = 2;
-    number SOUTH = 3;
-    number NORTH = 4;
-    number WEST_EAST = 5;
-    number NORTH_SOUTH = 6;
-    number NORTH_EAST = 7;
-    number NORTH_WEST = 8;
-    number SOUTH_EAST = 9;
-    number SOUTH_WEST = 10;
-    number NORTH_EAST_SOUTH_WEST = 11;
-    number NORTH_WEST_SOUTH_EAST = 12;
-    number CROSS = 13;
-    number CURSOR_COPY = 14;
-    number CURSOR_FORBID = 15;
-    number COLOR_SUCKER = 16;
-    number HAND_GRABBING = 17;
-    number HAND_OPEN = 18;
-    number HAND_POINTING = 19;
-    number HELP = 20;
-    number MOVE = 21;
-    number RESIZE_LEFT_RIGHT = 22;
-    number RESIZE_UP_DOWN = 23;
-    number SCREENSHOT_CHOOSE = 24;
-    number SCREENSHOT_CURSOR = 25;
-    number TEXT_CURSOR = 26;
-    number ZOOM_IN = 27;
-    number ZOOM_OUT = 28;
-    number MIDDLE_BTN_EAST = 29;
-    number MIDDLE_BTN_WEST = 30;
-    number MIDDLE_BTN_SOUTH = 31;
-    number MIDDLE_BTN_NORTH = 32;
-    number MIDDLE_BTN_NORTH_SOUTH = 33;
-    number MIDDLE_BTN_NORTH_EAST = 34;
-    number MIDDLE_BTN_NORTH_WEST = 35;
-    number MIDDLE_BTN_SOUTH_EAST = 36;
-    number MIDDLE_BTN_SOUTH_WEST = 37;
-    number MIDDLE_BTN_NORTH_SOUTH_WEST_EAST = 38;
-    number HORIZONTAL_TEXT_CURSOR = 39;
-    number CURSOR_CROSS = 40;
-    number CURSOR_CIRCLE = 41;
-    number LOADING = 42;
-    number RUNNING = 43;
-};
-
-// UnifiedData
-
-// [Entity=Class]
-// interface UnifiedDataProperties {
-    // [Optional]
-    // attribute record<String, Object> extras;
-    // [Optional]
-    // attribute String tag;
-    // [Optional]
-    // readonly attribute Date timestamp;
-    // [Optional]
-    // attribute ShareOptions shareOptions;
-    // [Optional]
-    // attribute GetDelayData getDelayData;
-// };
-
-[Entity=Class]
-interface UnifiedData {
-    // constructor(UnifiedRecord record_);
-    constructor();
-    // attribute UnifiedDataProperties properties;
-    // void addRecord(UnifiedRecord record_);
-    // sequence<UnifiedRecord> getRecords();
-    boolean hasType(String UnifiedData_type);
-    sequence<String> getTypes();
-};
-
-callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
+import arkui.component.units;
+import arkui.component.common;
 
 [Entity=Class]
 interface LazyForEachOps {
@@ -134,15 +25,6 @@ interface SystemOps {
 [Entity=Class]
 interface FocusController {
     static void requestFocus(String key);
-};
-
-[Entity=Class]
-interface ComponentContent {
-    void update(Object args);
-    void reuse(optional Object param);
-    void recycle();
-    void dispose();
-    void updateConfiguration();
 };
 
 [Entity=Class]
@@ -212,11 +94,6 @@ interface CustomColors {
 };
 
 [Entity=Interface]
-interface CustomTheme {
-    [Optional] attribute CustomColors colors;
-};
-
-[Entity=Interface]
 interface WorkerOptions {
     [Optional] attribute String type;
     [Optional] attribute String name;
@@ -279,78 +156,6 @@ interface RestrictedWorker {
     [Throws] void registerGlobalCallObject(String instanceName, Object globalCallObject);
     [Throws] void unregisterGlobalCallObject(optional String instanceName);
 };
-
-[Entity=Class]
-interface UIContext {
-    Font getFont();
-    // MediaQuery getMediaQuery();
-    // UIInspector getUIInspector();
-    [Throws] String getFilteredInspectorTree(optional sequence<String> filters);
-    [Throws] String getFilteredInspectorTreeById(String id, number depth, optional sequence<String> filters);
-    // Router getRouter();
-    // PromptAction getPromptAction();
-    // ComponentUtils getComponentUtils();
-    // UIObserver getUIObserver();
-    // OverlayManager getOverlayManager();
-    // [Throws] AnimatorResult createAnimator(AnimatorOptions options);
-    void animateTo(AnimateParam value, Callback_Void event);
-    // void showAlertDialog((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
-    // void showActionSheet(ActionSheetOptions value);
-    // void showDatePickerDialog(DatePickerDialogOptions options);
-    // void showTimePickerDialog(TimePickerDialogOptions options);
-    void showTextPickerDialog(TextPickerDialogOptions options);
-    void runScopedTask(Callback_Void callback_);
-    // void setKeyboardAvoidMode(KeyboardAvoidMode value);
-    // KeyboardAvoidMode getKeyboardAvoidMode();
-    // ([TypeArguments="AtomicServiceBar"] Nullable) getAtomicServiceBar();
-    // DragController getDragController();
-    // MeasureUtils getMeasureUtils();
-    // void keyframeAnimateTo(KeyframeAnimateParam param, sequence<KeyframeState> keyframes);
-    void animateToImmediately(AnimateParam param, Callback_Void event);
-    (FrameNode or undefined) getFrameNodeById(String id);
-    (FrameNode or undefined) getAttachedFrameNodeById(String id);
-    (FrameNode or undefined) getFrameNodeByUniqueId(number id);
-    // PageInfo getPageInfoByUniqueId(number id);
-    // (NavigationInfo or undefined) getNavigationInfoByUniqueId(number id);
-    // FocusController getFocusController();
-    // CursorController getCursorController();
-    // ContextMenuController getContextMenuController();
-    // ComponentSnapshot getComponentSnapshot();
-    number vp2px(number value);
-    number px2vp(number value);
-    number fp2px(number value);
-    number px2fp(number value);
-    number lpx2px(number value);
-    number px2lpx(number value);
-    // (LocalStorage or undefined) getSharedLocalStorage();
-    (Context or undefined) getHostContext();
-    void setDynamicDimming(String id, number value);
-    (String or undefined) getWindowName();
-    // WidthBreakpoint getWindowWidthBreakpoint();
-    // HeightBreakpoint getWindowHeightBreakpoint();
-    [Throws, TypeParameters="T extends Object"]
-    async void openBindSheet(ComponentContent bindSheetContent, optional SheetOptions sheetOptions, optional number targetId);
-    [Throws, TypeParameters="T extends Object"]
-    async void updateBindSheet(ComponentContent bindSheetContent, SheetOptions sheetOptions, optional boolean partialUpdate);
-    [Throws, TypeParameters="T extends Object"]
-    async void closeBindSheet(ComponentContent bindSheetContent);
-    // void postFrameCallback(FrameCallback frameCallback);
-    // void postDelayedFrameCallback(FrameCallback frameCallback, number delayTime);
-    // sequence<DynamicSyncScene> requireDynamicSyncScene(String id);
-    [Throws] void clearResourceCache();
-    boolean isFollowingSystemFontScale();
-    number getMaxFontScale();
-    // void bindTabsToScrollable(TabsController tabsController, Scroller scroller);
-    // void unbindTabsFromScrollable(TabsController tabsController, Scroller scroller);
-    // void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
-    // void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
-};
-
-[Entity=Interface]
-interface SystemBarStyle {
-    [Optional] attribute String statusBarContentColor;
-};
-
 callback Callback_StateStylesChange = void (i32 currentState);
 
 [Entity=Interface]

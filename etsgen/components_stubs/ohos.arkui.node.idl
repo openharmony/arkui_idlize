@@ -1,0 +1,5 @@
+package ohos.arkui.node;
+
+interface Content {
+
+};

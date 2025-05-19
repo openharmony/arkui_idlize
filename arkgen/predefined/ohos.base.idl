@@ -1,3 +1,0 @@
-package ohos.base;
-
-callback ErrorCallback = void (BusinessError err);

@@ -1,59 +1,14 @@
-package api.internal.component.ets;
+package arkui.component.idlize;
 
-
-/**
- * Defines Text Modifier
- */
-[Entity=Class, Interfaces="AttributeModifier", ParentTypeArguments="<object>"]
-interface TextModifier {};
-
-/*[Namespace=text]*/
-dictionary RectWidthStyle {
-    number TIGHT = 0;
-    number MAX = 1;
-};
-
-/*[Namespace=text]*/
-dictionary RectHeightStyle {
-    number TIGHT = 0;
-    number MAX = 1;
-    number INCLUDE_LINE_SPACE_MIDDLE = 2;
-    number INCLUDE_LINE_SPACE_TOP = 3;
-    number INCLUDE_LINE_SPACE_BOTTOM = 4;
-    number STRUT = 5;
-};
-
-/**
- * The ColorMetrics API declaration, part for M2 app
- */
-[Entity=Class]
-interface ColorMetrics {
-    [Accessor=Getter]
-    readonly attribute String color;
-    [Accessor=Getter]
-    readonly attribute number red;
-    [Accessor=Getter]
-    readonly attribute number green;
-    [Accessor=Getter]
-    readonly attribute number blue;
-    [Accessor=Getter]
-    readonly attribute number alpha;
-    static ColorMetrics numeric(number value);
-    static ColorMetrics rgba(number red, number green, number blue, optional number alpha);
-    static ColorMetrics resourceColor(ResourceColor color);
-    ColorMetrics blendColor(ColorMetrics overlayColor);
-};
+import arkui.component.units;
+import ohos.graphics.text.text;
+import arkui.component.enums;
+import ohos.multimedia.image.image;
 
 [Entity=Interface]
 interface WebHeader {
     attribute String headerKey;
     attribute String headerValue;
-};
-
-[Entity=Class]
-interface WebviewController {
-  static void initializeWebEngine();
-  void loadUrl((String or Resource) url, optional sequence<WebHeader> headers);
 };
 
 /**
@@ -70,7 +25,7 @@ interface SnapshotOptions {
 callback AsyncCallback_image_PixelMap_Void = void (PixelMap result);
 
 [Entity=Class]
-interface GlobalScope_ohos_arkui_componentSnapshot {
+interface GlobalScope_ohos_arkui_componentSnapshot { // TODO WTF? Why GlobalScope in the name?
     static void get(String id, AsyncCallback_image_PixelMap_Void callback, optional SnapshotOptions options);
 };
 
@@ -117,126 +72,12 @@ interface BaseShape {
 };
 
 /**
- * The RectShape declaration
- */
-[Entity=Interface]
-interface ShapeSize {
-    [Optional]
-    attribute (number or String) width;
-    [Optional]
-    attribute (number or String) height;
-};
-[Entity=Interface]
-interface RectShapeOptions: ShapeSize {
-    [Optional]
-    attribute (number or String or sequence<(number or String)>) radius;
-};
-[Entity=Interface]
-interface RoundRectShapeOptions: ShapeSize {
-    [Optional]
-    attribute (number or String) radiusWidth;
-    [Optional]
-    attribute (number or String) radiusHeight;
-};
-
-[Entity=Class]
-interface RectShape {
-    constructor(optional (RectShapeOptions or RoundRectShapeOptions) options);
-
-    // the CommonShapeMethod part
-    RectShape offset(Position offset);
-    RectShape fill(ResourceColor color);
-    RectShape position(Position position);
-
-    // the BaseShape part
-    RectShape width(Length width);
-    RectShape height(Length height);
-    RectShape size(SizeOptions size);
-
-    RectShape radiusWidth((number or String) rWidth);
-    RectShape radiusHeight((number or String) rHeight);
-    RectShape radius((number or String or sequence<(number or String)>) radius);
-};
-
-/**
- *  The CircleShape declaration
- */
-[Entity=Class]
-interface CircleShape {
-
-    constructor(optional ShapeSize options);
-
-    // the CommonShapeMethod part
-    CircleShape offset(Position offset);
-    CircleShape fill(ResourceColor color);
-    CircleShape position(Position position);
-
-    // the BaseShape part
-    CircleShape width(Length width);
-    CircleShape height(Length height);
-    CircleShape size(SizeOptions size);
-};
-
-/**
- *  The EllipseShape declaration
- */
-[Entity=Class]
-interface EllipseShape {
-    constructor(optional ShapeSize options);
-
-    // the CommonShapeMethod part
-    EllipseShape offset(Position offset);
-    EllipseShape fill(ResourceColor color);
-    EllipseShape position(Position position);
-
-    // the BaseShape part
-    EllipseShape width(Length width);
-    EllipseShape height(Length height);
-    EllipseShape size(SizeOptions size);
-};
-
-/**
- *  The PathShape declaration
- */
-[Entity=Interface]
-interface PathShapeOptions {
-    [Optional]
-    attribute String commands;
-};
-
-[Entity=Class]
-interface PathShape {
-    constructor(optional PathShapeOptions options);
-
-    // the CommonShapeMethod part
-    PathShape offset(Position offset);
-    PathShape fill(ResourceColor color);
-    PathShape position(Position position);
-
-    PathShape commands(String commands);
-};
-
-/**
  * The font API declaration, part for M2 app
  */
 [Entity=Interface]
 interface FontOptions {
     attribute (String or Resource) familyName;
     attribute (String or Resource) familySrc;
-};
-
-[Entity=Interface]
-interface FontInfo {
-    attribute String path;
-    attribute String postScriptName;
-    attribute String fullName;
-    attribute String family;
-    attribute String subfamily;
-    attribute number weight;
-    attribute number width;
-    attribute boolean italic;
-    attribute boolean monoSpace;
-    attribute boolean symbolic;
 };
 
 [Entity=Class]
@@ -291,36 +132,6 @@ interface GlobalScope_ohos_measure_utils {
 /**
  * The SymbolEffect,ReplaceSymbolEffect,ScaleSymbolEffect API declaration, part for M2 app
  */
-dictionary EffectDirection {
-    number DOWN = 0;
-    number UP = 1;
-};
-
-dictionary EffectScope {
-    number LAYER = 0;
-    number WHOLE = 1;
-};
-
-[Entity=Class]
-interface SymbolEffect {
-    void dummyForAccessorGenerate();
-};
-
-[Entity=Class]
-interface ScaleSymbolEffect: [Extends] SymbolEffect {
-    constructor(optional EffectScope scope, optional EffectDirection direction);
-    [Optional]
-    attribute EffectScope scope;
-    [Optional]
-    attribute EffectDirection direction;
-};
-
-[Entity=Class]
-interface ReplaceSymbolEffect: [Extends] SymbolEffect {
-    constructor(optional EffectScope scope);
-    [Optional]
-    attribute EffectScope scope;
-};
 
 [Entity=Interface]
 interface FontInfo {
@@ -336,90 +147,6 @@ interface FontInfo {
     attribute boolean symbolic;
 };
 
-/*
-* from @ohos.data.unifiedDataChannel.idl
-*/
-[Entity=Interface]
-interface Summary {
-
-    attribute record<String, i64> summary;
-    attribute i64 totalSize;
-
-};
-
-/*
-* from ui_extension_component.idl
-*/
-callback ReceiveCallback = void (record<String, Object> data);
-
-/*
-* from @ohos.multimedia.image.idl
-*/
-dictionary ResolutionQuality {
-
-    number LOW = 1;
-    number MEDIUM = 2;
-    number HIGH = 3;
-
-};
-
-/*
-* from image.idl
-*/
-typedef Matrix4Transit ImageMatrix;
-
-/*
-* from @ohos.multimodalInput.intentionCode.idl
-*/
-dictionary IntentionCode {
-    number INTENTION_UNKNOWN = -1;
-    number INTENTION_UP = 1;
-    number INTENTION_DOWN = 2;
-    number INTENTION_LEFT = 3;
-    number INTENTION_RIGHT = 4;
-    number INTENTION_SELECT = 5;
-    number INTENTION_ESCAPE = 6;
-    number INTENTION_BACK = 7;
-    number INTENTION_FORWARD = 8;
-    number INTENTION_MENU = 9;
-    number INTENTION_PAGE_UP = 11;
-    number INTENTION_PAGE_DOWN = 12;
-    number INTENTION_ZOOM_OUT = 13;
-    number INTENTION_ZOOM_IN = 14;
-};
-
-/*
-* from @ohos.window.idl
-*/
-dictionary WindowStatusType {
-    number UNDEFINED = 0;
-    number FULL_SCREEN = 1;
-    number MAXIMIZE = 2;
-    number MINIMIZE = 3;
-    number FLOATING = 4;
-    number SPLIT_SCREEN = 5;
-};
-
-/*
-* from units.idl
-*/
-[Entity=Literal]
-interface EdgeStyles {
-
-    [Optional]
-    attribute BorderStyle top;
-    [Optional]
-    attribute BorderStyle right;
-    [Optional]
-    attribute BorderStyle bottom;
-    [Optional]
-    attribute BorderStyle left;
-
-};
-
-interface ImageModifier {};
-interface SymbolGlyphModifier {};
-
 [Entity=Interface]
 interface IndicatorStyle {
     [Optional] attribute Length height;
@@ -434,16 +161,4 @@ interface IndicatorStyle {
     [Optional, Deprecated] attribute Length bottom;
     [Optional, Deprecated] attribute Length size;
     [Optional, Deprecated] attribute boolean mask;
-};
-
-[Entity=Interface]
-interface LabelStyle {
-    [Optional] attribute TextOverflow overflow;
-    [Optional] attribute number maxLines;
-    [Optional] attribute (number or ResourceStr) minFontSize;
-    [Optional] attribute (number or ResourceStr) maxFontSize;
-    [Optional] attribute TextHeightAdaptivePolicy heightAdaptivePolicy;
-    [Optional] attribute Font font;
-    [Optional] attribute ResourceColor selectedColor;
-    [Optional] attribute ResourceColor unselectedColor;
 };

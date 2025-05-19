@@ -1,10 +1,13 @@
 package arkui.Graphics;
+
 import ohos.graphics.drawing.default as drawing;
 import ohos.graphics.common2D.default as common2D;
 import global.resource.Resource as Resource;
 import arkui.component.enums.BorderStyle as BorderStyle;
 import arkui.component.units.ResourceColor as ResourceColor;
 import arkui.component.units.Edges as Edges;
+import arkui.component.units.BorderRadiuses as BorderRadiuses;
+
 interface Size {
     attribute number width;
     attribute number height;

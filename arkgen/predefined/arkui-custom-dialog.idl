@@ -1,4 +1,7 @@
-package org.openharmony.arkui;
+package arkui.component.idlize;
+
+import arkui.component.builder;
+import arkui.component.customDialogController;
 
 [Entity=Interface]
 interface CustomDialogBuildOptions {

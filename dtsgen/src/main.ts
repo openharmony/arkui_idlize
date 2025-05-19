@@ -40,8 +40,9 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, loadPeerConfiguration, peerGeneratorConfiguration, fillSyntheticDeclarations, IDLVisitor } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, peerGeneratorConfiguration, IDLVisitor } from "@idlizer/libohos"
 import { runPreprocessor } from "./preprocessor"
+import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
 
 const options = program
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
@@ -78,7 +79,7 @@ function main() {
 
     Language.ARKTS.extension = options.arktsExtension as string
 
-    setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
+    setDefaultConfiguration(loadDtsgenConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
 
     if (process.env.npm_package_version) {
         console.log(`IDLize version ${findVersion()}`)
@@ -146,7 +147,7 @@ function main() {
             dtsAuxInputFiles,
             options.outputDir ?? "./idl",
             path.resolve(__dirname, "..", "stdlib.d.ts"),
-            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options).goNewMode(),
+            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, undefined, dtsgenConfiguration().packageTransformation).goNewMode(),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile: (file: IDLFile, outputDir, sourceFile, isAux) => {

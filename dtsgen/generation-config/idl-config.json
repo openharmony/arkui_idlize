@@ -28,7 +28,9 @@
             "RepeatItemBuilder",
             "RepeatAttribute",
             "TemplateTypedFunc",
-            "EntryOptions"
+            "EntryOptions",
+            "float",
+            "long"
         ],
         "DeletedMethods": {
             "ScrollableCommonMethod": [

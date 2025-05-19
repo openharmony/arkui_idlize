@@ -1,9 +1,0 @@
-package api.internal.component.ets;
-
-[/*Namespace=image,*/ Entity=Interface]
-interface PixelMap {
-    readonly attribute boolean isEditable;
-    readonly attribute boolean isStrideAlignment;
-    void readPixelsToBufferSync(buffer dst);
-    void writeBufferToPixels(buffer src);
-};

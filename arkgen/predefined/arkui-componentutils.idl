@@ -1,4 +1,6 @@
-package org.openharmony.arkui;
+package arkui.component.idlize;
+
+import arkui.Graphics;
 
 [Entity=Interface]
 interface ComponentInfo {
@@ -49,7 +51,7 @@ interface RotateResult {
     attribute number angle;
 
 };
-[Entity=Tuple]
+[Synthetic, Entity=Tuple]
 interface Matrix4Result {
 
     attribute number value0;

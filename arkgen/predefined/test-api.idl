@@ -1,4 +1,7 @@
-package org.openharmony.idlize.predefined;
+package arkui.component.idlize;
+
+import arkui.component.common;
+
 [Entity=Class]
 interface EventEmulator {
   static void emitClickEvent(pointer node, ClickEvent event);

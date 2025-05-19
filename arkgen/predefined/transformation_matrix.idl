@@ -1,4 +1,4 @@
-package org.openharmony.arkui;
+package arkui.component.idlize;
 
 [Entity=Interface]
 interface TransformationMatrix {

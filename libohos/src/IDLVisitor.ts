@@ -151,6 +151,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         private compilerHost: ts.CompilerHost,
         private options: OptionValues,
         private predefinedTypeResolver?: ReferenceResolver,
+        private packageTransformation?: Map<string, string>,
     ) {
         this.typeChecker = program.getTypeChecker()
     }
@@ -270,6 +271,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["object", () => idl.IDLObjectType],
             ["double", () => idl.IDLF64Type],
             ["int", () => idl.IDLI32Type],
+            ["float", () => idl.IDLF32Type],
             ["ESObject", () => idl.IDLObjectType],
             ["string", () => idl.IDLStringType],
             ["Boolean", () => idl.IDLBooleanType], // nasty typo in SDK
@@ -330,7 +332,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (relativeFileName === '.') {
             return ['']
         }
-        return relativeFileName.replace(/[@#]/g, '').replace(/\.d\.[a-zA-Z]+$/, '').split(/[\/\.]/)
+        relativeFileName = relativeFileName.replace(/[@#]/g, '').replace(/\.d\.[a-zA-Z]+$/, '').replaceAll(/[\/]/g, '.')
+        if (this.packageTransformation)
+            for (const transformer of this.packageTransformation.entries())
+                relativeFileName = relativeFileName.replaceAll(transformer[0], transformer[1])
+        return relativeFileName.split(/[\.]/)
     }
 
     /** visit nodes finding exported classes */

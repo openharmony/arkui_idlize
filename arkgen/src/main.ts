@@ -215,13 +215,6 @@ function arkgenPredefinedFiles(): string[] {
     return scanInputDirs([path.join(__dirname, "../predefined")])
 }
 
-function arkgenBasicPredefinedFiles(): string[] {
-    return [
-        path.resolve(__dirname, '..', 'predefined', 'arkui-idlize-internal.idl'),
-        path.resolve(__dirname, '..', 'predefined', 'static_components.idl'),
-    ]
-}
-
 if (options.idl2peer) {
     const outDir = options.outputDir ?? "./out"
     const language = Language.fromString(options.language ?? "ts")
@@ -231,7 +224,7 @@ if (options.idl2peer) {
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
-        .concat(arkgenBasicPredefinedFiles())
+        .concat(arkgenPredefinedFiles())
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)

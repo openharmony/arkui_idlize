@@ -1,4 +1,4 @@
-package internal.component.ets;
+package arkui.component.idlize;
 
 callback OnHoverCallback = void ();
 callback MenuCallback = void ();

@@ -65,7 +65,9 @@
     "forceCallback": {
 
     },
-
+    "packageTransformation": {
+        "internal.component.ets": "arkui.component"
+    },
     "globalPackages": [
         "idlize.stdlib",
         "org.openharmony.idlize.predefined",

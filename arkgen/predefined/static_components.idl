@@ -1,4 +1,4 @@
-package api.internal.component.ets;
+package arkui.component.idlize;
 
 [Component="Root"]
 interface Root {};

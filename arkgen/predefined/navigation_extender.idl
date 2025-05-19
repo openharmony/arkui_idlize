@@ -1,4 +1,4 @@
-package org.openharmony.idlize.predefined;
+package arkui.component.idlize;
 
 callback NavExtender_OnUpdateStack = void ();
 

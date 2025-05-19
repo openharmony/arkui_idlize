@@ -353,7 +353,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
             .filter((it): it is idl.IDLReferenceType => isReferenceType(it))
             .flatMap(it => it.typeArguments ?? [])
             .map(it => this.writer.getNodeName(it))
-        this.writeInstanceofChecker(this.writer.getNodeName(type), generateTypeCheckerName(typeName), 0, typeArguments)
+        this.writeInstanceofChecker('Array', generateTypeCheckerName(typeName), 0, typeArguments)
     }
 }
 

@@ -1,6 +1,38 @@
 package ohos.matrix4;
 
+import arkui.component.common;
+import ohos.graphics.common2D.default as common2D;
+
 [DefaultExport]
 namespace matrix4 {
-    interface Matrix4Transit {};
+    [Synthetic, Entity=Tuple]
+    interface Matrix4TransformPoint {
+        attribute number value0;
+        attribute number value1;
+    };
+
+    [Entity=Interface]
+    interface PolyToPolyOptions {
+        attribute sequence<common2D.Point> src;
+        [Optional]
+        attribute number srcIndex;
+        attribute sequence<common2D.Point> dst;
+        [Optional]
+        attribute number dstIndex;
+        [Optional]
+        attribute number pointCount;
+    };
+
+    [Entity=Interface]
+    interface Matrix4Transit {
+        Matrix4Transit copy();
+        Matrix4Transit invert();
+        Matrix4Transit combine(Matrix4Transit options);
+        Matrix4Transit translate(TranslateOptions options);
+        Matrix4Transit scale(ScaleOptions options);
+        Matrix4Transit skew(number x, number y);
+        Matrix4Transit rotate(RotateOptions options);
+        Matrix4TransformPoint transformPoint(Matrix4TransformPoint options);
+        Matrix4Transit setPolyToPoly(PolyToPolyOptions options);
+    };
 };

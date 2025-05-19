@@ -1,1 +1,0 @@
-../sdk-patched-arkts/api/global/resource.d.ets

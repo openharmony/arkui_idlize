@@ -140,6 +140,8 @@ export class IdlPeerProcessor {
             ...target.inheritance
                 .filter(it => it !== idl.IDLTopType)
                 .filter(it => {
+                    if (it.name === idl.IDLTopType.name)
+                        return false
                     if (!this.library.resolveTypeReference(it))
                         console.log(`Cannot resolve ${it.name}`)
                     return true

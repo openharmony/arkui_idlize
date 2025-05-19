@@ -10,6 +10,4 @@ interface LevelOrder {};
 [DefaultExport]
 namespace promptAction {
     interface DialogController {};
-    interface Matrix4Transit {};
-    interface Matrix4Transit {};
 };

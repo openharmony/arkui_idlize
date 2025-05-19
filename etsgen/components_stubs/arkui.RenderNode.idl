@@ -1,8 +1,20 @@
-package org.openharmony.arkui;
+package arkui.RenderNode;
+
+import arkui.component.units;
+import arkui.Graphics;
+
+typedef Vector2 Offset_graphics;  // TODO must be removed when names collision problem is resolved
+
+[Entity=Interface]
+interface BorderRadiuses_graphics { // TODO must be removed when names collision problem is resolved
+    attribute number topLeft;
+    attribute number topRight;
+    attribute number bottomLeft;
+    attribute number bottomRight;
+};
 
 [Entity=Interface]
 interface RenderNode {
-
     constructor();
     attribute number backgroundColor;
     attribute boolean clipToFrame;
@@ -40,5 +52,4 @@ interface RenderNode {
     void draw(DrawContext context);
     void invalidate();
     void dispose();
-
 };

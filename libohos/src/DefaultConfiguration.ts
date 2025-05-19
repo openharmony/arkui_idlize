@@ -96,8 +96,8 @@ export interface PeerGeneratorConfigurationExtension {
     linter: IDLLinterOptions
 }
 
-function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType): PeerGeneratorConfiguration {
-    return {
+export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType): PeerGeneratorConfiguration {
+    const config = {
         ...data,
         mapComponentName(originalName: string): string {
             if (originalName.endsWith("Attribute"))
@@ -157,6 +157,8 @@ function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType):
         },
         IDLVisitor: expandIDLVisitorConfig(data.IDLVisitor),
     }
+    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, '..'))
+    return config
 }
 
 function isWhole(methods: string[]): boolean {
@@ -195,11 +197,7 @@ export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles?
 }
 
 export function loadPeerConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): PeerGeneratorConfiguration {
-    const config = expandPeerGeneratorConfiguration(
-        parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles, ignoreDefaultConfig)
-    )
-    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, '..'))
-    return config
+    return expandPeerGeneratorConfiguration(parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles, ignoreDefaultConfig))
 }
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {

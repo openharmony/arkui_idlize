@@ -1,8 +1,0 @@
-package ohos.arkui.node;
-
-/**
- * Defines the controller of node container.Provides lifecycle callbacks for the associated NodeContainer
- * and methods to control the child node of the NodeContainer.
- */
-[Entity=Class]
-interface NodeController {};

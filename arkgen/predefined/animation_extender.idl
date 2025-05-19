@@ -1,4 +1,6 @@
-package org.openharmony.idlize.predefined;
+package arkui.component.idlize;
+
+import arkui.component.common;
 
 callback Callback_Extender_OnProgress = void (f32 value);
 callback Callback_Extender_OnFinish = void ();
