@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/etsgen",
-  "version": "2.1.5+devel",
+  "version": "2.1.7+devel",
   "description": "",
   "main": "lib/main.js",
   "bin": "lib/main.js",
@@ -12,8 +12,8 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.5+devel",
-    "@idlizer/libohos": "2.1.5+devel",
+    "@idlizer/core": "2.1.7+devel",
+    "@idlizer/libohos": "2.1.7+devel",
     "@koalaui/libarkts": "file:../external/ui2abc/libarkts",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",

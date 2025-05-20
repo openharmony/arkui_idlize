@@ -17,7 +17,6 @@ import fs from "fs"
 import path from "path"
 import { Version, Git, IDLIZE_HOME, EXTERNAL_HOME, all_packages } from "./utils.mjs"
 
-
 const CURRENT_VERSION = readVersion()
 const CURRENT_EXTERNAL_VERSION = readExternalVersion().toString()
 const git = new Git
