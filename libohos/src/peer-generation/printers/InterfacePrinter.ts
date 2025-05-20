@@ -112,7 +112,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 node.callables[0].parameters,
                 node.callables[0].returnType)
         } else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
-            // result = this.printTuple(node).join("\n")
+            result = this.printTuple(node).join("\n")
         } else if (isMaterialized(node, this.peerLibrary)) {
             result = this.printMaterialized(node).join("\n")
         } else {
