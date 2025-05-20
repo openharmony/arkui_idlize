@@ -662,3 +662,16 @@ index eac19b4aa..b30176bd1 100644
  /**
   * Get Callback from @ohos.base.
   *
+diff --git a/build-tools/arkui_transformer/src/interface_converter.ts b/build-tools/arkui_transformer/src/interface_converter.ts
+index 62bf4b49c..eb12c1862 100644
+--- a/build-tools/arkui_transformer/src/interface_converter.ts
++++ b/build-tools/arkui_transformer/src/interface_converter.ts
+@@ -109,7 +109,7 @@ function getAllInterfaceCallSignature(node: ts.InterfaceDeclaration, originalCod
+ }
+ 
+ function handleComponentInterface(node: ts.InterfaceDeclaration, file: ComponentFile) {
+-    const result = getAllInterfaceCallSignature(node, file.sourceFile, true)
++    const result = getAllInterfaceCallSignature(node, file.sourceFile, false)
+     const declPattern = readLangTemplate()
+     const declComponentFunction: string[] = []
+     result.forEach(p => {

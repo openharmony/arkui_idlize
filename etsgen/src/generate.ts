@@ -440,36 +440,43 @@ class IDLVisitor extends arkts.AbstractVisitor {
             )
             /* arkgen specialization */
             if (node.annotations.find(it => arkts.isIdentifier(it.expr) && it.expr.name === "ComponentBuilder")) {
-                this.entries.push(idl.createInterface(
-                    method.name + 'Interface',
-                    idl.IDLInterfaceSubkind.Interface,
-                    [],
-                    [],
-                    [],
-                    [],
-                    [],
-                    [idl.createCallable(
-                        "invoke",
-                        method.parameters.slice(0, method.parameters.length - 1),
-                        method.returnType,
-                        {
-                            isAsync: method.isAsync,
-                            isStatic: method.isStatic
-                        },
-                        {
-                            extendedAttributes: [
-                                { name: idl.IDLExtendedAttributes.CallSignature },
-                            ]
-                        }
-                    )],
-                    method.typeParameters,
+                const callable = idl.createCallable(
+                    "invoke",
+                    method.parameters.slice(0, method.parameters.length - 1),
+                    method.returnType,
                     {
-                        fileName: this.fileName,
+                        isAsync: method.isAsync,
+                        isStatic: method.isStatic
+                    },
+                    {
                         extendedAttributes: [
-                            { name: idl.IDLExtendedAttributes.ComponentInterface },
+                            { name: idl.IDLExtendedAttributes.CallSignature },
                         ]
                     }
-                ))
+                )
+                const ifaceName = method.name + 'Interface'
+                let iface: idl.IDLInterface | undefined
+                if (iface = this.entries.filter(idl.isInterface).find(it => it.name === ifaceName)) {
+                    iface.callables.push(callable)
+                } else {
+                    this.entries.push(idl.createInterface(
+                        method.name + 'Interface',
+                        idl.IDLInterfaceSubkind.Interface,
+                        [],
+                        [],
+                        [],
+                        [],
+                        [],
+                        [callable],
+                        method.typeParameters,
+                        {
+                            fileName: this.fileName,
+                            extendedAttributes: [
+                                { name: idl.IDLExtendedAttributes.ComponentInterface },
+                            ]
+                        }
+                    ))
+                }
             } else {
                 this.entries.push(method)
             }
