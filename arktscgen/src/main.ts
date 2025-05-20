@@ -38,7 +38,8 @@ function main() {
             path.join(
                 options.pandaSdkPath,
                 pandaSdkIdlFilePath
-            )
+            ),
+            { inheritanceMode: 'single' }
         )[0],
         new Config(
             new IgnoreOptions(options.optionsFile),

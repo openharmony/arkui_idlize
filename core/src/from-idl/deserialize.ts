@@ -31,7 +31,7 @@ import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/id
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
 
-function getTokens(node:webidl2.AbstractBase): WebIDLTokenCollection {
+function getTokens(node: webidl2.AbstractBase): WebIDLTokenCollection {
     return (node as any).tokens
 }
 
@@ -48,33 +48,35 @@ export function resolveSyntheticType(type: idl.IDLReferenceType): idl.IDLEntry |
     return syntheticTypes.get(type.name)
 }
 
+type IDLInheritanceMode = 'single' | 'multiple'
 class IDLDeserializer {
 
     private namespacePathNames: string[] = []
     private currentPackage: string[] = []
     private genericsScopes: Set<string>[] = []
 
-    enterGenericScope(generics:string[] | undefined) {
+    enterGenericScope(generics: string[] | undefined) {
         this.genericsScopes.push(new Set(generics ?? []))
     }
 
     constructor(
-        private info: IDLTokenInfoMap
-    ) {}
+        private info: IDLTokenInfoMap,
+        private inheritanceMode: IDLInheritanceMode = 'multiple'
+    ) { }
 
     ///
 
-    withInfo<T>(from:webidl2.AbstractBase, result:T): T {
+    withInfo<T>(from: webidl2.AbstractBase, result: T): T {
         this.info.set(result, getTokens(from))
         return result
     }
-    setPackage(pkg:string[]) {
+    setPackage(pkg: string[]) {
         this.currentPackage = pkg
     }
 
     ///
 
-    sanitizeTypeParameter(param:string): string {
+    sanitizeTypeParameter(param: string): string {
         const extendsIdx = param.indexOf('extends')
         if (extendsIdx !== -1) {
             return param.substring(0, extendsIdx).trim()
@@ -86,7 +88,7 @@ class IDLDeserializer {
         return param
     }
 
-    extractGenerics(extAttrs:webidl2.ExtendedAttribute[]): string[] | undefined {
+    extractGenerics(extAttrs: webidl2.ExtendedAttribute[]): string[] | undefined {
         return this.findExtendedAttribute(extAttrs, idl.IDLExtendedAttributes.TypeParameters)
             ?.split(",")
             ?.map(it => this.sanitizeTypeParameter(it))
@@ -137,7 +139,7 @@ class IDLDeserializer {
         throw new Error(`unexpected node type: ${toString(node)}`)
     }
     toIDLImport(node: webidl2.ImportType): idl.IDLImport {
-        return this.withInfo(node, idl.createImport(node.clause.split("."), node.alias||undefined))
+        return this.withInfo(node, idl.createImport(node.clause.split("."), node.alias || undefined))
     }
     interfaceSubkind(node: webidl2.InterfaceType): idl.IDLInterfaceSubkind {
         const nodeIDLEntity = node.extAttrs.find(it => it.name === "Entity")?.rhs?.value
@@ -153,9 +155,10 @@ class IDLDeserializer {
         const result = idl.createInterface(
             node.name,
             subkind,
-            (()=>{
-                if (!node.inheritance)
+            (() => {
+                if (!node.inheritance) {
                     return []
+                }
                 const implementations: idl.IDLReferenceType[] = []
                 let extension: idl.IDLReferenceType | undefined = undefined
                 node.inheritance.forEach(it => {
@@ -172,7 +175,7 @@ class IDLDeserializer {
                         implementations.push(ref)
                     }
                 })
-                if (subkind === idl.IDLInterfaceSubkind.Class && extension === undefined) {
+                if (subkind === idl.IDLInterfaceSubkind.Class && extension === undefined && this.inheritanceMode === 'multiple') {
                     extension = idl.IDLTopType
                 }
                 if (extension) {
@@ -190,7 +193,7 @@ class IDLDeserializer {
             node.members
                 .filter(isOperation)
                 .filter(it => !this.isCallable(it))
-                .map(it =>this.toIDLMethod(file, it, false)),
+                .map(it => this.toIDLMethod(file, it, false)),
             node.members
                 .filter(isOperation)
                 .filter(it => this.isCallable(it))
@@ -210,7 +213,7 @@ class IDLDeserializer {
         }
         return result
     }
-    toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[], suggestedName?:string): idl.IDLType {
+    toIDLType(file: string, type: webidl2.IDLTypeDescription | string, extAttrs?: webidl2.ExtendedAttribute[], suggestedName?: string): idl.IDLType {
         if (typeof type === "string") {
             // is it IDLStringType?
             const refType = idl.createReferenceType(type)
@@ -315,14 +318,13 @@ class IDLDeserializer {
                 isStatic: node.special === "static",
                 isAsync: node.async,
             }, {
-                documentation: this.makeDocs(node),
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
-            }, generics,
-        ))
+            documentation: this.makeDocs(node),
+            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+        }, generics))
         this.genericsScopes.pop()
         return result
     }
-    toIDLMethod(file: string, node: webidl2.OperationMemberType, isFree:boolean = false): idl.IDLMethod {
+    toIDLMethod(file: string, node: webidl2.OperationMemberType, isFree: boolean = false): idl.IDLMethod {
         if (!node.idlType) {
             throw new Error(`method with no type ${toString(node)}`)
         }
@@ -341,9 +343,9 @@ class IDLDeserializer {
                 isOptional: isOptional(node),
                 isFree
             }, {
-                documentation: this.makeDocs(node),
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
-            }, generics,
+            documentation: this.makeDocs(node),
+            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+        }, generics,
         ))
         this.genericsScopes.pop()
         return result
@@ -477,7 +479,7 @@ class IDLDeserializer {
         // TODO: be smarter about RHS.
         if (attr.rhs?.value instanceof Array)
             return attr.rhs.value.map(v => v.value).join(",")
-        if (typeof(attr.rhs?.value) === 'string')
+        if (typeof (attr.rhs?.value) === 'string')
             return this.unescapeString(attr.rhs.value)
         return
     }
@@ -518,7 +520,7 @@ class IDLDeserializer {
 
     ///
 
-    splitTypeArguments(line:string): string[] {
+    splitTypeArguments(line: string): string[] {
         let buffer: string = ""
         let brackets: number = 0
         const result: string[] = []
@@ -578,7 +580,7 @@ class IDLDeserializer {
     unescapeString(value: string): string {
         if (!value.length || value[0] !== '"')
             return value
-        value = value.slice(1,-1)
+        value = value.slice(1, -1)
         value = value.replace(/\\((['"\\bfnrtv])|([0-7]{1-3})|x([0-9a-fA-F]{2})|u([0-9a-fA-F]{4}))/g, (_, all, c, oct, h2, u4) => {
             if (c !== undefined) {
                 switch (c) {
@@ -617,9 +619,14 @@ class IDLDeserializer {
     }
 }
 
-export function toIDLFile(fileName: string, content?: string): [idl.IDLFile, IDLTokenInfoMap] {
+interface ToIDLFileProps {
+    inheritanceMode?:IDLInheritanceMode
+    content?: string
+}
+
+export function toIDLFile(fileName: string, { content, inheritanceMode = 'multiple' }:ToIDLFileProps = {}): [idl.IDLFile, IDLTokenInfoMap] {
     const lexicalInfo: IDLTokenInfoMap = new Map()
-    const deserializer = new IDLDeserializer(lexicalInfo)
+    const deserializer = new IDLDeserializer(lexicalInfo, inheritanceMode)
     if (undefined === content)
         content = fs.readFileSync(fileName).toString()
     let packageClause: string[] = []

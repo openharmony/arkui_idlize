@@ -1144,7 +1144,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.typeParameters?.map(it => it),
                     {
                         documentation: node.documentation,
-                        extendedAttributes: node.extendedAttributes,
+                        extendedAttributes: node.extendedAttributes?.slice(),
                         fileName: node.fileName
                     }
                 )
@@ -1158,7 +1158,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.name,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1173,7 +1173,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     clone(entry.returnType),
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     },
                     entry.typeParameters
@@ -1189,7 +1189,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.value,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1206,7 +1206,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.isOptional,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1222,7 +1222,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.isVariadic,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1243,7 +1243,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     },
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     },
                     entry.typeParameters
@@ -1263,7 +1263,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     },
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.documentation
                     },
                     entry.typeParameters
@@ -1278,7 +1278,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.returnType ? clone(entry.returnType) : undefined,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1291,7 +1291,7 @@ export function clone<T extends IDLNode>(node:T): T {
                 entry.elements.map(clone),
                 {
                     documentation: entry.documentation,
-                    extendedAttributes: entry.extendedAttributes,
+                    extendedAttributes: entry.extendedAttributes?.slice(),
                     fileName: entry.fileName
                 }
             )
@@ -1310,7 +1310,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.initializer,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1325,7 +1325,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.typeParameters,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1342,7 +1342,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     type.elementType.map(clone),
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1356,7 +1356,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     type.typeArguments.map(clone),
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1370,7 +1370,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     type.typeArguments?.map(clone),
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1384,7 +1384,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     type.name,
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1397,7 +1397,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     type.name,
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1410,7 +1410,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     clone(type.type),
                     {
                         documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes,
+                        extendedAttributes: type.extendedAttributes?.slice(),
                         fileName: type.fileName
                     }
                 )
@@ -1423,7 +1423,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     entry.value,
                     {
                         documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes,
+                        extendedAttributes: entry.extendedAttributes?.slice(),
                         fileName: entry.fileName
                     }
                 )
@@ -1437,7 +1437,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     ns.members.map(clone),
                     {
                         documentation: ns.documentation,
-                        extendedAttributes: ns.extendedAttributes,
+                        extendedAttributes: ns.extendedAttributes?.slice(),
                         fileName: ns.fileName
                     }
                 )
@@ -1452,7 +1452,7 @@ export function clone<T extends IDLNode>(node:T): T {
                     file.packageClause,
                     {
                         documentation: file.documentation,
-                        extendedAttributes: file.extendedAttributes,
+                        extendedAttributes: file.extendedAttributes?.slice(),
                         fileName: file.fileName
                     }
                 )
@@ -1691,15 +1691,17 @@ function printInterfaceInherit(idl: IDLInterface): string {
     if (idl.inheritance.length === 0) {
         return ""
     }
-    const inheritance = idl.inheritance
+    const inheritance = [...idl.inheritance]
     const types: string[] = []
     if (idl.subkind === IDLInterfaceSubkind.Class) {
         if (inheritance[0] !== IDLTopType) {
             const ref = clone(inheritance[0])
             ref.extendedAttributes ??= []
-            ref.extendedAttributes?.push({
-                name: IDLExtendedAttributes.Extends
-            })
+            if (!hasExtAttribute(ref, IDLExtendedAttributes.Extends)) {
+                ref.extendedAttributes = ref.extendedAttributes.concat([
+                    { name: IDLExtendedAttributes.Extends }
+                ])
+            }
             types.push(`${printType(ref)}`)
             inheritance.shift()
         }

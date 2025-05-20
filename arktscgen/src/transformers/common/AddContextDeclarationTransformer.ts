@@ -47,9 +47,10 @@ export class AddContextDeclarationTransformer extends Transformer {
                             }]
                         }
                     )
-                )
+                ),
+            this.file.fileName,
+            this.file.packageClause,
         )
-        linkParentBack(file)
-        return file
+        return linkParentBack(file)
     }
 }
