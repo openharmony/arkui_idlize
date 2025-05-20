@@ -57,11 +57,11 @@ export class Typechecker {
         if (declaration === undefined || !isInterface(declaration)) {
             return false
         }
-        const parent = declaration.inheritance[0]
-        if (parent === undefined) {
-            return declaration.name === ancestor
-        }
-        return this.isHeir(parent.name, ancestor)
+        let isHeir = declaration.name === ancestor
+        declaration.inheritance.forEach(parent => {
+            isHeir ||= this.isHeir(parent.name, ancestor)
+        })
+        return isHeir
     }
 
     isPeer(node: string): boolean {

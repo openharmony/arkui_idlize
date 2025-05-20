@@ -47,11 +47,11 @@ export class BridgesConstructions {
     }
 
     static stringConstructor(name: string): string {
-        return `new std::string(${name})`
+        return `StageArena::strdup(${name})`
     }
 
     static sequenceConstructor(first: string, length: string): string {
-        return `new std::vector<void*>(${first}, ${first} + ${length})`
+        return `StageArena::cloneVector(${first}, ${length})`
     }
 
     static referenceTypeCast(type: string): string {
