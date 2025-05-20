@@ -106,7 +106,8 @@ interface MeasureOptions {
     [Optional]
     attribute (number or String) letterSpacing;
     [Optional]
-    attribute (number or TextAlign) textAlign;
+    attribute TextAlign textAlign;
+    // attribute (number or TextAlign) textAlign; // bug in panda compiler #25958
     [Optional]
     attribute (number or TextOverflow) overflow;
     [Optional]

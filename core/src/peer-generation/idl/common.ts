@@ -80,11 +80,10 @@ export function generateSyntheticUnionName(types: idl.IDLType[]) {
 }
 
 export function generateSyntheticFunctionParameterName(parameter:idl.IDLParameter): string {
-    let prefix = ''
     if (parameter.isOptional) {
-        prefix = 'mb_'
+        return generateSyntheticIdlNodeName(idl.createOptionalType(parameter.type))
     }
-    return prefix + generateSyntheticIdlNodeName(parameter.type)
+    return generateSyntheticIdlNodeName(parameter.type)
 }
 
 export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
