@@ -76,6 +76,10 @@
         "BaseSpan",
         "CommonMethod"
     ],
+    "Throws": [
+        "CanvasRenderingContext2D.onOnAttach",
+        "CanvasRenderingContext2D.offOnAttach"
+    ],
     "NameReplacements": {
         "common.d.ts": [
             [

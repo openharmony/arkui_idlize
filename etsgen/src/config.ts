@@ -20,13 +20,15 @@ import {
 import { readFileSync } from "node:fs";
 
 const T = {
-    stringArray: () => D.array(D.string())
+    stringArray: () => D.array(D.string()),
+    stringMap: () => D.map(D.string(), D.string()),
 }
 
 export const ETSConfigScheme = D.object({
     DeletedDeclarations: T.stringArray(),
     DeletedMembers: D.map(D.string(), T.stringArray()),
     Components: T.stringArray(),
+    Throws: T.stringArray(),
     StubbedDeclarations: T.stringArray(),
     ForceDefaultExport: D.default(D.map(D.string(), D.string()), new Map()),
 })

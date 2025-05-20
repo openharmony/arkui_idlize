@@ -577,7 +577,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     properties.push(prop)
                     return
                 }
-                const serializedMethod = this.serializeMethod(member)
+                const serializedMethod = this.serializeMethod(member, scopeName)
                 if (idl.isConstructor(serializedMethod))
                     constructors.push(serializedMethod)
                 else
@@ -754,10 +754,16 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
     }
 
-    serializeMethod(method: arkts.MethodDefinition): idl.IDLMethod | idl.IDLConstructor {
+    serializeMethod(method: arkts.MethodDefinition, parentName:string): idl.IDLMethod | idl.IDLConstructor {
         const { set: paramsSet, parameters: typeParameters } = this.extractTypeParameters((method.value as arkts.FunctionExpression).function?.typeParams)
         return this.withTypeParamContext(paramsSet, () => {
             const { methodName, parameters: arktsParameters, extendedAttributes } = this.processMethodLiteralParameters(method)
+            const key = parentName + '.' + methodName
+            if (this.config.Throws.includes(key)) {
+                extendedAttributes.push({
+                    name: idl.IDLExtendedAttributes.Throws
+                })
+            }
             const parameters = arktsParameters.map(param => {
                 return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
             })
