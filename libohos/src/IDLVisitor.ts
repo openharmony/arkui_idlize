@@ -269,6 +269,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     private readonly TypeMapper =
         new Map<string, (type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion) => idl.IDLType>([
             ["object", () => idl.IDLObjectType],
+            ["Object", () => idl.IDLObjectType],
             ["double", () => idl.IDLF64Type],
             ["int", () => idl.IDLI32Type],
             ["float", () => idl.IDLF32Type],
@@ -299,7 +300,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Callback", (type, name) => this.makeCallbackType("Callback", type, name)],
             ["AsyncCallback", (type, name) => this.makeCallbackType("AsyncCallback", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
-            ["Object", () => idl.IDLCustomObjectType],
             ["Function", () => idl.IDLFunctionType],
             // TODO: rethink that
             ["\"2d\"", () => idl.IDLStringType],
