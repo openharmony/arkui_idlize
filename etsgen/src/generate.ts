@@ -912,6 +912,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'number': return idl.IDLNumberType
                 case 'ErrorCallback': return idl.createReferenceType(name)
                 case 'BusinessError': return idl.createReferenceType(name)
+                case 'Required':
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
                 case 'ParticleTuple':
