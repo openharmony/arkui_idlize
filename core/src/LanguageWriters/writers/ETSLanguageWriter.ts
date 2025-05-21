@@ -166,17 +166,17 @@ export class ETSLambdaExpression extends LambdaExpression {
 export function generateTypeCheckerName(typeName: string): string {
     typeName = typeName
         .replaceAll('[]', 'BracketsArray')
-        .split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
+        .split('.').join('_')
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
 
-export function generateEnumToNumericName(typeName: string): string {
-    typeName = typeName.split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
+export function generateEnumToNumericName(entry: idl.IDLEntry): string {
+    const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_ToNumeric`
 }
 
-export function generateEnumFromNumericName(typeName: string): string {
-    typeName = typeName.split('.').at(-1)! // Todo: hack for namespaces. Remove when ready to use FQNames
+export function generateEnumFromNumericName(entry: idl.IDLEntry): string {
+    const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_FromNumeric`
 }
 
@@ -228,8 +228,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         if (ETSLanguageWriter.isUseTypeChecker) {
-            const enumName = this.getNodeName(enumEntry)
-            return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumName), [value])
+            return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumEntry), [value])
         }
         return idl.isStringEnum(enumEntry)
             ? this.makeMethodCall(value.asString(), 'getOrdinal', [])
@@ -238,7 +237,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
         if (ETSLanguageWriter.isUseTypeChecker) {
-            return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumName), [value])
+            return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumEntry), [value])
         }
         return idl.isStringEnum(enumEntry)
             ? this.makeString(`${enumName}.values()[${value.asString()}]`)

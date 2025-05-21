@@ -1,3 +1,27 @@
 package arkui.component.common;
+import arkui.component.enums.TransitionType as TransitionType;
+import arkui.component.units.Position as Position;
+import arkui.component.units.ConstraintSizeOptions as ConstraintSizeOptions;
 
 callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
+interface TransitionOptions {
+    [Optional]
+    attribute TransitionType type;
+    [Optional]
+    attribute number opacity;
+    [Optional]
+    attribute TranslateOptions translate;
+    [Optional]
+    attribute ScaleOptions scale;
+    [Optional]
+    attribute RotateOptions rotate;
+};
+
+interface LayoutChild {
+    attribute String name;
+    attribute String id;
+    // attribute LayoutBorderInfo borderInfo;
+    attribute Position position;
+    void measure(ConstraintSizeOptions childConstraint);
+    // void layout(LayoutInfo childLayoutInfo);
+};

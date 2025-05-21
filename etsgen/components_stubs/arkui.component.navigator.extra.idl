@@ -1,0 +1,7 @@
+package arkui.component.navigator;
+
+dictionary NavigationType {
+    number PUSH = 0;
+    number BACK = 1;
+    number REPLACE = 2;
+};

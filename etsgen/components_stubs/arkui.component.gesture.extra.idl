@@ -1,0 +1,87 @@
+package arkui.component.gesture;
+
+import arkui.component.common.SourceTool as SourceTool;
+
+[TypeParameters="T"]
+interface GestureInterface {
+    T tag(String tag);
+    T allowedTypes(sequence<SourceTool> types);
+};
+
+[Synthetic]
+callback Callback_GestureEvent_Void = void (GestureEvent event);
+interface TapGestureInterface: [Extends, TypeArguments="TapGestureInterface"] GestureInterface {
+    [CallSignature]
+    TapGestureInterface invoke ([Optional] TapGestureParameters value);
+    TapGestureInterface onAction(Callback_GestureEvent_Void event);
+};
+
+interface LongPressGestureInterface_Invoke_Literal {
+    [Optional]
+    attribute number fingers;
+    [Optional]
+    attribute boolean repeat;
+    [Optional]
+    attribute number duration;
+};
+
+[Synthetic]
+callback Callback_GestureEvent_Void = void (GestureEvent event);
+[Synthetic]
+callback Callback_Void = void ();
+interface LongPressGestureInterface: [Extends, TypeArguments="LongPressGestureInterface"] GestureInterface {
+    [CallSignature]
+    LongPressGestureInterface invoke([Optional] LongPressGestureInterface_Invoke_Literal value);
+    [CallSignature]
+    LongPressGestureInterface invoke([Optional] LongPressGestureHandlerOptions options);
+    LongPressGestureInterface onAction(Callback_GestureEvent_Void event);
+    LongPressGestureInterface onActionEnd(Callback_GestureEvent_Void event);
+    LongPressGestureInterface onActionCancel(Callback_Void event);
+    LongPressGestureInterface onActionCancel(Callback_GestureEvent_Void event);
+};
+
+interface PanGestureInterface_Invoke_Literal {
+    [Optional]
+    attribute number fingers;
+    [Optional]
+    attribute PanDirection direction;
+    [Optional]
+    attribute number distance;
+};
+
+interface PanGestureInterface: [Extends, TypeArguments="PanGestureInterface"] GestureInterface {
+    [CallSignature]
+    PanGestureInterface invoke([Optional] (PanGestureInterface_Invoke_Literal or PanGestureOptions) value);
+    [CallSignature]
+    PanGestureInterface invoke([Optional] PanGestureHandlerOptions options);
+    PanGestureInterface onActionStart(Callback_GestureEvent_Void event);
+    PanGestureInterface onActionUpdate(Callback_GestureEvent_Void event);
+    PanGestureInterface onActionEnd(Callback_GestureEvent_Void event);
+    PanGestureInterface onActionCancel(Callback_Void event);
+    PanGestureInterface onActionCancel(Callback_GestureEvent_Void event);
+};
+
+interface PinchGestureInterface_Invoke_Literal {
+    [Optional]
+    attribute number fingers;
+    [Optional]
+    attribute number distance;
+};
+
+interface PinchGestureInterface: [Extends, TypeArguments="PinchGestureInterface"] GestureInterface {
+    [CallSignature]
+    PinchGestureInterface invoke([Optional] PinchGestureInterface_Invoke_Literal value);
+    [CallSignature]
+    PinchGestureInterface invoke([Optional] PinchGestureHandlerOptions options);
+    PinchGestureInterface onActionStart(Callback_GestureEvent_Void event);
+    PinchGestureInterface onActionUpdate(Callback_GestureEvent_Void event);
+    PinchGestureInterface onActionEnd(Callback_GestureEvent_Void event);
+    PinchGestureInterface onActionCancel(Callback_Void event);
+    PinchGestureInterface onActionCancel(Callback_GestureEvent_Void event);
+};
+
+interface GestureGroupInterface {
+    [CallSignature]
+    GestureGroupInterface invoke(GestureMode mode, sequence<GestureType> gesture);
+    GestureGroupInterface onCancel(Callback_Void event);
+};

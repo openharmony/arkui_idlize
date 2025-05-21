@@ -93,7 +93,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
     const syntheticCollector = new TypeCheckSyntheticCollector(library, (entry) => {
         const name = idl.isContainerType(entry)
             ? library.getInteropName(entry)
-            : entry.name
+            : idl.getFQName(entry)
         if (!seenNames.has(name)) {
             seenNames.add(name)
             res.push(entry)
@@ -111,10 +111,12 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
         if (peerGeneratorConfiguration().externalModuleTypes.get(decl.name))
             continue
         syntheticCollector.convert(decl)
+        const declName = idl.getFQName(decl)
         if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||
             idl.isEnum(decl))
-            && !seenNames.has(decl.name)) {
-            seenNames.add(decl.name)
+            && !seenNames.has(declName))
+        {
+            seenNames.add(declName)
             res.push(decl)
         }
     }
@@ -310,7 +312,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
 
     protected writeEnumNumeric(type: idl.IDLEnum): void {
         this.writer.writeMethodImplementation(
-            new Method(generateEnumToNumericName(this.writer.getNodeName(type)),
+            new Method(generateEnumToNumericName(type),
                 new NamedMethodSignature(
                     idl.IDLI32Type,
                     [idl.createReferenceType(type)], ["value"]),
@@ -327,7 +329,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         )
         const enumName = this.writer.getNodeName(type)
         this.writer.writeMethodImplementation(
-            new Method(generateEnumFromNumericName(this.writer.getNodeName(type)),
+            new Method(generateEnumFromNumericName(type),
                 new NamedMethodSignature(
                     idl.createReferenceType(type),
                     [idl.IDLI32Type], ["ordinal"]),
@@ -419,7 +421,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
 
     protected writeEnumNumeric(type: idl.IDLEnum): void {
         this.writer.writeMethodImplementation(
-            new Method(generateEnumToNumericName(this.writer.getNodeName(type)),
+            new Method(generateEnumToNumericName(type),
                 new NamedMethodSignature(
                     idl.IDLI32Type,
                     [idl.createReferenceType(type)], ["value"]),
@@ -433,7 +435,7 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
             }
         )
         this.writer.writeMethodImplementation(
-            new Method(generateEnumFromNumericName(this.writer.getNodeName(type)),
+            new Method(generateEnumFromNumericName(type),
                 new NamedMethodSignature(
                     idl.createReferenceType(type),
                     [idl.IDLI32Type], ["ordinal"]),

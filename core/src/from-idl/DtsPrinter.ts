@@ -208,8 +208,11 @@ export class CustomPrintVisitor {
     }
 
     printMethod(node: IDLMethod | IDLConstructor | IDLCallable, forceAsFree: boolean = false) {
-        const returnType = node.returnType && !(isConstructor(node) && this.currentInterface!.subkind === IDLInterfaceSubkind.Class)
+        let returnType = node.returnType && !(isConstructor(node) && this.currentInterface!.subkind === IDLInterfaceSubkind.Class)
             ? `: ${this.printTypeForTS(node.returnType, true)}` : ""
+        if (hasExtAttribute(node, IDLExtendedAttributes.CommonMethod)) {
+            returnType =`: ${this.currentInterface!.name}`
+        }
         const name = isConstructor(node)
             ? this.currentInterface!.subkind === IDLInterfaceSubkind.Class ? "constructor" : "new"
             : getName(node)
@@ -264,11 +267,11 @@ export class CustomPrintVisitor {
         this.print(`${isInNamespace(node) ? "" : "declare "}enum ${node.name} {`)
         this.pushIndent()
         node.elements.forEach(it => {
-            const initializer = (it.type === IDLStringType ? `"${it.initializer}"` : `${it.initializer}`)
-            this.print(`${getName(it)} = ${initializer},`)
+            const initializer = it.initializer ? (it.type === IDLStringType ? ` = "${it.initializer}"` : ` = ${it.initializer}`) : ""
+            this.print(`${getName(it)}${initializer},`)
             let originalName = getExtAttribute(it, IDLExtendedAttributes.OriginalEnumMemberName)
             if (originalName && originalName != getName(it)) {
-                this.print(`${originalName} = ${initializer},`)
+                this.print(`${originalName}${initializer},`)
             }
         })
         this.popIndent()
@@ -365,7 +368,7 @@ export class CustomPrintVisitor {
                 case IDLUndefinedType: return undefinedToVoid ? "void" : "undefined"
                 case IDLStringType: return "string"
                 case IDLVoidType: return "void"
-                case IDLThisType: return "T"
+                case IDLThisType: return this.currentInterface!.name
                 case IDLBigintType:
                 case IDLPointerType: return "number|bigint"
                 case IDLDate: return "Date"

@@ -662,16 +662,16 @@ index eac19b4aa..b30176bd1 100644
  /**
   * Get Callback from @ohos.base.
   *
-diff --git a/build-tools/arkui_transformer/src/interface_converter.ts b/build-tools/arkui_transformer/src/interface_converter.ts
-index 62bf4b49c..eb12c1862 100644
---- a/build-tools/arkui_transformer/src/interface_converter.ts
-+++ b/build-tools/arkui_transformer/src/interface_converter.ts
-@@ -109,7 +109,7 @@ function getAllInterfaceCallSignature(node: ts.InterfaceDeclaration, originalCod
- }
+diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
+index 6ebfe1cd8..f86705b18 100644
+--- a/api/global/resource.d.ts
++++ b/api/global/resource.d.ts
+@@ -121,7 +121,7 @@ export interface Resource {
+    * @since 20
+    * @arkts 1.2
+    */
+-  params?: Array<Object | undefined>;
++  params?: Array<string>;
  
- function handleComponentInterface(node: ts.InterfaceDeclaration, file: ComponentFile) {
--    const result = getAllInterfaceCallSignature(node, file.sourceFile, true)
-+    const result = getAllInterfaceCallSignature(node, file.sourceFile, false)
-     const declPattern = readLangTemplate()
-     const declComponentFunction: string[] = []
-     result.forEach(p => {
+   /**
+    * Set type.

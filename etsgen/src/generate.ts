@@ -1008,8 +1008,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.IDLDate
                 case 'date': return idl.IDLDate
-                case 'Object': return idl.IDLCustomObjectType
-                case 'object': return idl.IDLCustomObjectType
+                case 'Object': return idl.IDLObjectType
+                case 'object': return idl.IDLObjectType
                 case 'ArrayBuffer': return idl.IDLBufferType
                 case 'Uint8Array': return idl.IDLBufferType
                 case 'Uint8ClampedArray': return idl.IDLBufferType
@@ -1023,13 +1023,23 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Required':
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
-                case 'ParticleTuple':
-                    const tuple = this.createTuple(typeArgs!)
+                case 'ParticleTuple': {
+                    const typeParameters = new Set<string>()
+                    typeArgs?.forEach(arg => {
+                        idl.forEachChild(arg, node => {
+                            if (idl.isTypeParameterType(node)) {
+                                typeParameters.add(node.name)
+                            }
+                        })
+                    })
+                    const typeParametersOrdered = typeParameters.size === 0 ? undefined : Array.from(typeParameters)
+                    const tuple = this.createTuple(typeArgs!, typeParametersOrdered)
                     if (!this.seenTypes.has(tuple.name)) {
                         this.seenTypes.add(tuple.name)
                         this.addSyntheticType(tuple)
                     }
-                    return idl.createReferenceType(tuple.name)
+                    return idl.createReferenceType(tuple.name, typeParametersOrdered?.map(it => idl.createTypeParameterReference(it)))
+                }
                 case 'Bindable': return typeArgs![0]
             }
             return idl.createReferenceType(name, typeArgs)
@@ -1064,6 +1074,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         throw new Error(`Failed type conversion for ${type ? this.printNode(type) : "undefined"}`)
     }
+
+    // possible bug: entires collected here using .name, not FQName
     private seenTypes = new Set<string>()
 
     serializePrimitive(type: arkts.Es2pandaPrimitiveType): idl.IDLType {
@@ -1213,6 +1225,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
     }
 
+    postprocessComponent(iface:idl.IDLInterface) {
+        iface.extendedAttributes ??= []
+        iface.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Component })
+    }
+
     postprocessEntires() {
         if (this.mode === 'arkoala') {
             /* arkgen specialization */
@@ -1249,9 +1266,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     if (entry.name === componentUIAttributeName) {
                         return
                     }
-                    if (entry.name === componentAttributeName) {
-                        entry.extendedAttributes ??= []
-                        entry.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Component })
+                    if (entry.name === componentAttributeName && idl.isInterface(entry)) {
+                         this.postprocessComponent(entry)
                     }
                     if (idl.isCallback((entry))) {
                         let hasComponentInReferences = false
@@ -1270,8 +1286,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
             this.entries.forEach(entry => {
                 if (idl.isInterface(entry) && this.config.Components.includes(entry.name)) {
-                    entry.extendedAttributes ??= []
-                    entry.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Component })
+                    this.postprocessComponent(entry)
                 }
             })
 
@@ -1286,9 +1301,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
                                 false,
                                 false,
                                 method.parameters[0].isOptional,
+                                {
+                                    extendedAttributes: (method.extendedAttributes ?? []).concat([{ name: idl.IDLExtendedAttributes.CommonMethod }])
+                                }
                             ))
                             return false
                         }
+                        method.extendedAttributes ??= []
+                        method.extendedAttributes.push({ name: idl.IDLExtendedAttributes.CommonMethod })
                         return true
                     })
                 }

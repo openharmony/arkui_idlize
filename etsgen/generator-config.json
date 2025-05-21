@@ -46,7 +46,15 @@
         "PageTransitionExit",
         "UICommonTransition",
         "UIPageTransitionEnter",
-        "UIPageTransitionExit"
+        "UIPageTransitionExit",
+        "ForEach",
+        "GestureGroup",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "TapGesture",
+        "_r",
+        "_rawfile"
     ],
     "DeletedMembers": {
         "CommonMethod": [

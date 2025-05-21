@@ -70,6 +70,7 @@
     "check:peers:ets:generate": "node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/ets-ts-peers/generated",
     "check:peers:ets:generate:only:integrated": "node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/ets-ts-peers/generated --only-integrated",
     "check:peers:arkts:ets:generate:only:integrated": "node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/ets-ts-peers/generated --language=arkts --only-integrated",
+    "check:peers:m3:ets:generate:only:integrated": "node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/ets-ts-peers/generated --generator-target arkoala --language=arkts --only-integrated --use-memo-m3 --arkts-extension .ets",
     "check:peers:ets": "npm run run:sdk --prefix ../etsgen && npm run setup-out -C .. -- --out arkgen/out/ets-ts-peers  --template ts_peers && npm run compile && npm run check:peers:ets:generate && cd out/ets-ts-peers && tsc -p . && rollup -c",
     "check:peers:ets:run": "npm run check:peers:ets && npm run compile:native-node-host-full-ets && node out/ets-ts-peers/lib/main.js",
     "test:subset": "npm run check:subset && mocha ./out/ts-subset/build/tests/subset/unit/",

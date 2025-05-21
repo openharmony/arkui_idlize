@@ -4,6 +4,7 @@ callback NavExtender_OnUpdateStack = void ();
 
 [Entity=Class]
 interface NavExtender {
+  static void setNavigationOptions(pointer ptr, NavPathStack pathStack);
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
   static void syncStack(NavPathStack peer);
   static boolean checkNeedCreate(pointer navigation, i32 index);
