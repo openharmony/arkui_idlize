@@ -538,13 +538,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return declaration
         }
         if (this.mode === 'arkoala') {
-            if (['Length', 'Dimension'].includes(name)) {
+            if (['Dimension'].includes(name)) {
                 this.entries.push(idl.createTypedef(
                     name,
                     idl.createUnionType([
                         idl.IDLStringType,
                         idl.IDLNumberType,
-                        idl.createReferenceType('Resource_')
+                        idl.createReferenceType('_Resource')
                     ]),
                     [],
                     {
