@@ -902,9 +902,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
 
     namespace CommonMethodModifier {
         void OnClick0Impl(Ark_NativePointer node,
-                      const Callback_ClickEvent_Void* event)
+                      const Opt_Callback_ClickEvent_Void* event)
     {
-        RegisterOnClick(node, event);
+        RegisterOnClick(node, &event->value);
         if (!needGroupedLog(1))
             return;
         string out("onClick(");
@@ -913,10 +913,10 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         appendGroupedLog(1, out);
     }
     void OnClick1Impl(Ark_NativePointer node,
-                      const Callback_ClickEvent_Void* event,
-                      const Ark_Number* distanceThreshold)
+                      const Opt_Callback_ClickEvent_Void* event,
+                      const Opt_Number* distanceThreshold)
     {
-        RegisterOnClick(node, event);
+        RegisterOnClick(node, &event->value);
         if (!needGroupedLog(1))
             return;
         string out("onClick(");

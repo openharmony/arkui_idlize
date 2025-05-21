@@ -80,6 +80,16 @@
         "CanvasRenderingContext2D.onOnAttach",
         "CanvasRenderingContext2D.offOnAttach"
     ],
+    "ForceCallback": [
+        "XComponentController.onSurfaceCreated",
+        "XComponentController.onSurfaceChanged",
+        "XComponentController.onSurfaceDestroyed",
+        "DrawModifier.drawBehind",
+        "DrawModifier.drawContent",
+        "DrawModifier.drawFront",
+        "CustomSpan.onMeasure",
+        "CustomSpan.onDraw"
+    ],
     "NameReplacements": {
         "common.d.ts": [
             [

@@ -578,10 +578,35 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     return
                 }
                 const serializedMethod = this.serializeMethod(member, scopeName)
-                if (idl.isConstructor(serializedMethod))
+                const key = scopeName + '.' + serializedMethod.name
+                if (this.config.ForceCallback.includes(key) && idl.isMethod(serializedMethod)) {
+                    const syntheticName = generateSyntheticFunctionName(
+                        serializedMethod.parameters,
+                        serializedMethod.returnType,
+                        serializedMethod.isAsync
+                    )
+                    this.addSyntheticType(
+                        idl.createCallback(
+                            syntheticName,
+                            serializedMethod.parameters,
+                            serializedMethod.returnType,
+                            {
+                                extendedAttributes: (serializedMethod.extendedAttributes ?? []).concat({ name: idl.IDLExtendedAttributes.Synthetic })
+                            }
+                        )
+                    )
+                    properties.push(idl.createProperty(
+                        serializedMethod.name,
+                        idl.createReferenceType(syntheticName),
+                        false,
+                        serializedMethod.isStatic,
+                        serializedMethod.isOptional,
+                    ))
+                } else if (idl.isConstructor(serializedMethod)) {
                     constructors.push(serializedMethod)
-                else
+                } else {
                     methods.push(serializedMethod)
+                }
                 const found = member.function!.annotations.find(ann => arkts.isIdentifier(ann.expr) && ann.expr.name === 'memo')
                 if (found) {
                     hasMemoAnnotation = true
