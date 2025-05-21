@@ -125,7 +125,9 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
         imports.addFeature('UICommonBase', '../handwritten')
+        imports.addFeature('CommonMethod', './common')
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
             imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
@@ -192,6 +194,11 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const peerClassName = componentToPeerClass(peer.componentName)
+        const supers = expandComponentWithSupers(this.library, component.attributeDeclaration)
+        const rootSuper = supers[supers.length - 1]
+        const asType = idl.hasSuperType(component.attributeDeclaration)
+            ? ` as AttributeModifier<${rootSuper.name}>`
+            : ``
 
         printer.print(this.memoStable())
         printer.writeClass(componentClassName, (writer) => {
@@ -214,9 +221,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
+            if (!idl.hasSuperType(component.attributeDeclaration)) {
+                writer.writeFieldDeclaration(`_modifier`, generateAttributeModifierSignature(this.library, component).args[0], undefined, true)
+            }
             writer.print(this.memo())
             writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
-                writer.writePrintLog('attributeModifier() not implemented')
+                writer.writeLines(`this._modifier = value${asType}`)
                 writer.writeStatement(writer.makeReturn(writer.makeThis()))
             })
 
@@ -227,6 +237,40 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
         }, parentComponentClassName, [componentToUIAttributesInterface(peer.originalClassName!)])
+
+        printer.print(this.memo())
+        const withStyleMethodSignature = new NamedMethodSignature(
+            IDLVoidType,
+            [
+                idl.createReferenceType(componentToUIAttributesInterface(component.attributeDeclaration.name)),
+                idl.createUnionType([...expandComponentWithSupers(this.library, component.attributeDeclaration).map(it =>
+                    idl.createReferenceType(getReferenceTo('AttributeModifier'),
+                    [idl.createReferenceType(componentToAttributesInterface(it.name))])), idl.IDLUndefinedType])
+            ],
+            ['receiver', 'modifier']
+        )
+        printer.writeFunctionImplementation(`with${component.name}Style`, withStyleMethodSignature, writer => {
+            const style = 'style'
+            writer.writeStatement(
+                writer.makeCondition(
+                    writer.makeString(`modifier !== undefined`),
+                    writer.makeBlock([
+                        writer.makeAssign(
+                            style,
+                            undefined,
+                            writer.makeNewObject(componentToStyleClass(component.attributeDeclaration.name)),
+                            true,
+                            false
+                        ),
+                        writer.makeCondition(writer.makeString(`modifier!.isUpdater`),
+                            writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeUpdater<${rootSuper.name}>)`, `initializeModifier`, [writer.makeString(style)])),
+                            writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeModifier<${rootSuper.name}>)`, `applyNormalAttribute`, [writer.makeString(style)])),
+                        ),
+                        writer.makeStatement(writer.makeMethodCall(style, 'apply', [writer.makeString('receiver')]))
+                    ])
+                )
+            )
+        })
 
         return [{
             collector: imports,

@@ -1,0 +1,3 @@
+package arkui.AttributeUpdater;
+
+interface AttributeUpdater {};

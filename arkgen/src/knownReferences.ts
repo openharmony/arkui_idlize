@@ -17,7 +17,8 @@ import { ConfigTypeInfer, D } from "@idlizer/core"
 import { readFileSync } from "fs"
 
 const KnownReferencesSchema = D.object({
-    AttributeModifier: D.string()
+    AttributeModifier: D.string(),
+    AttributeUpdater: D.string(),
 })
 export type KnownReferencesType = ConfigTypeInfer<typeof KnownReferencesSchema>
 export let referenceNames: KnownReferencesType | undefined = undefined

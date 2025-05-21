@@ -16,7 +16,7 @@
 import * as path from 'node:path'
 import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
-import { isComponentDeclaration, NativeModule } from '@idlizer/libohos'
+import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
 export const SyntheticModule = "./SyntheticDeclarations"
 export function HandwrittenModule(language: Language) {
@@ -103,7 +103,7 @@ class ArkTsLayout extends CommonLayoutBase {
         if (this.arkTSInternalPaths.has(target.node.name))
             return this.arkTSInternalPaths.get(target.node.name)!
 
-        if (idl.isHandwritten(target.node)) {
+        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language)
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName

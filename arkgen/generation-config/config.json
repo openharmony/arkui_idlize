@@ -176,6 +176,7 @@
             "SubscribedAbstractProperty",
             "SyncedPropertyTwoWay",
             "AttributeModifier",
+            "AttributeUpdater",
             "AbstractProperty",
             "SubscribaleAbstract",
             "IPropertySubscriber",

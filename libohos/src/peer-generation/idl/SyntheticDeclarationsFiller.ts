@@ -1,7 +1,7 @@
 import * as idl from '@idlizer/core/idl'
 import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule, generatorConfiguration } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
-import { componentToPeerClass } from '../printers/PeersPrinter';
+import { componentToPeerClass, componentToStyleClass, componentToUIAttributesInterface } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
 import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
@@ -138,8 +138,12 @@ function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<stri
     library.files.forEach(file => {
         file.entries.forEach(it => {
             if (isComponentDeclaration(library, it)) {
-                const name = componentToPeerClass(it.name.replace('Attribute', ''))
-                synthesizedEntries.set(name, idl.createInterface(name, idl.IDLInterfaceSubkind.Class))
+                const peerName = componentToPeerClass(it.name.replace('Attribute', ''))
+                synthesizedEntries.set(peerName, idl.createInterface(peerName, idl.IDLInterfaceSubkind.Class))
+                const uiComponentName = componentToUIAttributesInterface(it.name)
+                synthesizedEntries.set(uiComponentName, idl.createInterface(uiComponentName, idl.IDLInterfaceSubkind.Class))
+                const styleComponentName = componentToStyleClass(it.name)
+                synthesizedEntries.set(styleComponentName, idl.createInterface(styleComponentName, idl.IDLInterfaceSubkind.Interface))
             }
         })
     })

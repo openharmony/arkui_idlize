@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, componentToUIAttributesInterface, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, PeerLibrary, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 
 class ArkoalaTSDeclConvertor extends TSDeclConvertor {
@@ -67,18 +67,44 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             }
             groupOverloads(filteredMethods).forEach(group => {
                 const method = collapseIdlPeerMethods(this.peerLibrary, group)
+                const existInAttributes: boolean = peer.attributesFields.find(element => {
+                    element.name == method.method.name
+                }) !== undefined
+
                 // TODO: temporary hack
                 stylePrinter.writeMethodImplementation(method.method, (writer) => {
                     if (method.method.signature.returnType == idl.IDLThisType) {
-                        // writer.writeStatement(writer.makeAssign(`this.${method.method.name}_value`, undefined,
-                        //    writer.makeString(method.method.signature.argNames![0]), false))
+                        if (existInAttributes) {
+                            writer.writeStatement(
+                                writer.makeAssign(
+                                    `this.${method.method.name}_value`, undefined, writer.makeString('value'), false))
+                        }
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
                     } else
-                        writer.writeStatement(writer.makeThrowError("Unimplmented"))
+                        writer.writeStatement(writer.makeThrowError("Unimplemented"))
                 })
             })
             stylePrinter.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                 writer.writeStatement(writer.makeThrowError("Not implemented"))
+            })
+            const target = 'target'
+            const applySignature = new NamedMethodSignature(
+                idl.IDLVoidType,
+                [idl.createReferenceType(componentToUIAttributesInterface(component.attributeDeclaration.name))],
+                [target]
+            )
+            writer.writeLines(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
+            stylePrinter.writeMethodImplementation(new Method('apply', applySignature, [MethodModifier.PUBLIC]), writer => {
+                if (idl.hasSuperType(component.attributeDeclaration)) {
+                    writer.writeMethodCall('super','apply', [target])
+                }
+                for (const field of peer.attributesFields) {
+                    if (field.name == 'attributeModifier') continue
+                    writer.writeStatement(writer.makeCondition(
+                        writer.makeString(`this.${field.name}_value !== undefined`),
+                        writer.makeStatement(writer.makeMethodCall(target, field.name, [writer.makeString(`this.${field.name}_value!`)]))
+                    ))
+                }
             })
         }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
         return printer.getOutput().concat(uiPrinter.getOutput()).concat(stylePrinter.getOutput())
