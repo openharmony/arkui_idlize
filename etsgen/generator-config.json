@@ -1,5 +1,6 @@
 {
     "DeletedDeclarations": [
+        "Callback",
         "double",
         "int",
         "RepeatInterface",
@@ -74,7 +75,8 @@
     ],
     "Components": [
         "BaseSpan",
-        "CommonMethod"
+        "CommonMethod",
+        "CommonShapeMethod"
     ],
     "Throws": [
         "CanvasRenderingContext2D.onOnAttach",

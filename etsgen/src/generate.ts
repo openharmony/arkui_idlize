@@ -20,6 +20,7 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 import { ETSVisitorConfig } from "./config"
 
+const MaxSyntheticTypeLength = 60
 // must be moved to config!
 const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
     ["DirectionalEdgesT", new Map([
@@ -212,11 +213,58 @@ interface ExtractTypeParameterInfo {
     attrs: idl.IDLExtendedAttribute[]
 }
 
+export class NameSuggestion {
+    private suggestions: { name: string, forced: boolean }[] = []
+    get name(): string {
+        if (!this.hasSuggestion) throw new Error("Has not suggestions")
+        return this.suggestions.at(-1)!.name
+    }
+    get forced(): boolean {
+        if (!this.hasSuggestion) throw new Error("Has not suggestions")
+        return this.suggestions.at(-1)!.forced
+    }
+    get hasSuggestion(): boolean {
+        return this.suggestions.length > 0
+    }
+
+    suggest<T>(name: string, forced: boolean, op: () => T): T {
+        this.suggestions.push({ name, forced })
+        const result = op()
+        this.suggestions.pop()
+        return result
+    }
+
+    suggestWithTypePrefix<T>(name: string, op: () => T): T
+    suggestWithTypePrefix<T>(name: string, forced: boolean, op: () => T): T
+    suggestWithTypePrefix<T>(name: string, forcedOrOp: boolean | (() => T), op?: () => T): T {
+        if (typeof forcedOrOp === 'function')
+            return this.suggestWithTypePrefix(name, false, forcedOrOp)
+        return this.suggest(`Type_${name}`, forcedOrOp, op!)
+    }
+
+    extend<T>(postfix: string, op: () => T): T
+    extend<T>(postfix: string, forced: boolean, op: () => T): T
+    extend<T>(postfix: string, forcedOrOp: boolean | (() => T), op?: () => T): T {
+        if (typeof forcedOrOp === 'function')
+            return this.extend(postfix, false, forcedOrOp)
+        const prefix = this.hasSuggestion ? this.name! + "_" : ""
+        return this.suggest(prefix + postfix, forcedOrOp, op!)
+    }
+}
+
 class IDLVisitor extends arkts.AbstractVisitor {
     //writer = new IDLLanguageWriter()
     entries: idl.IDLEntry[] = []
     fileName: string
     packageClause: string[] = []
+    contextual: NameSuggestion = new NameSuggestion
+    private contextualSelectName(synthetic: string): string {
+        if (!this.contextual.hasSuggestion)
+            return synthetic
+        if (this.contextual.forced || synthetic.length > MaxSyntheticTypeLength)
+            return this.contextual.name
+        return synthetic
+    }
 
     private defaultExportName?: string
     private typeParamsStack: Set<string>[] = []
@@ -419,7 +467,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return node
         }
         const { set: paramsSet, parameters } = this.extractTypeParameters(func.typeParams)
-        this.withTypeParamContext(paramsSet, () => {
+        this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(func.id!.name, false, () => {
             const method = idl.createMethod(
                 func.id!.name,
                 func.params.map(it => {
@@ -480,12 +528,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
             } else {
                 this.entries.push(method)
             }
-        })
+        }))
         return node
     }
 
     visitTSTypeAliasDeclaration(declaration: arkts.TSTypeAliasDeclaration): arkts.TSTypeAliasDeclaration {
         const name = declaration.id!.name
+        if (this.config.DeletedDeclarations.includes(name)) {
+            return declaration
+        }
         if (this.mode === 'arkoala') {
             if (['Length', 'Dimension'].includes(name)) {
                 this.entries.push(idl.createTypedef(
@@ -504,17 +555,27 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 return declaration
             }
         }
-        const { set: paramsSet, parameters } = this.extractTypeParameters(declaration.typeParams)
-        this.withTypeParamContext(paramsSet, () => {
-            this.entries.push(idl.createTypedef(
-                name,
-                this.serializeType(declaration.typeAnnotation),
-                parameters,
-                {
-                    fileName: this.fileName,
-                })
-            )
-        })
+        if (arkts.isETSFunctionType(declaration.typeAnnotation)) {
+            this.contextual.suggest(name, true, () => {
+                this.entries.push(this.serializeFunctionType(declaration.typeAnnotation as arkts.ETSFunctionType)[0])
+            })
+        } else if (arkts.isETSTuple(declaration.typeAnnotation)) {
+            this.contextual.suggest(name, true, () => {
+                this.entries.push(this.serializeTupleType(declaration.typeAnnotation as arkts.ETSTuple)[0])
+            })
+        } else {
+            const { set: paramsSet, parameters } = this.extractTypeParameters(declaration.typeParams)
+            this.withTypeParamContext(paramsSet, () => {
+                this.entries.push(idl.createTypedef(
+                    name,
+                    this.serializeType(declaration.typeAnnotation),
+                    parameters,
+                    {
+                        fileName: this.fileName,
+                    })
+                )
+            })
+        }
         return declaration
     }
 
@@ -556,7 +617,10 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 }
                 if (member.isGetter) {
                     const propType = member.function!.returnTypeAnnotation!
-                    const prop = idl.createProperty((member.key as arkts.Identifier).name, this.serializeType(propType))
+                    const propName = (member.key as arkts.Identifier).name
+                    const prop = this.contextual.extend(propName, () => {
+                        return idl.createProperty(propName, this.serializeType(propType))
+                    })
                     prop.extendedAttributes ??= []
                     if (arkts.hasModifierFlag(propType, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                         prop.isStatic = true
@@ -568,7 +632,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 if (member.isSetter) {
                     const firstParameter = member.function!.params[0]
                     const propType = arkts.isETSParameterExpression(firstParameter) ? firstParameter.typeAnnotation! : throwException("Expected parameter")
-                    const prop = idl.createProperty((member.key as arkts.Identifier).name, this.serializeType(propType))
+                    const propName = (member.key as arkts.Identifier).name
+                    const prop = this.contextual.extend(propName, () => idl.createProperty(propName, this.serializeType(propType)))
                     prop.extendedAttributes ??= []
                     if (arkts.hasModifierFlag(propType, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                         prop.isStatic = true
@@ -633,7 +698,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const definition = declaration.definition!
         const { set: paramsSet, parameters } = this.extractTypeParameters(definition.typeParams)
         this.withReplacementContext(name, (replacementUsed) => {
-            this.withTypeParamContext(paramsSet, () => {
+            this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(name, false, () => {
                 const inheritance: idl.IDLReferenceType[] = []
                 if (definition.super) {
                     const sup = this.serializeType(definition.super)
@@ -674,7 +739,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         extendedAttributes: attrs.length === 0 ? undefined : attrs
                     }
                 ))
-            })
+            }))
         })
         return declaration
     }
@@ -703,7 +768,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         const { set: paramsSet, parameters } = this.extractTypeParameters(declaration.typeParams)
         this.withReplacementContext(name, (replacementUsed) => {
-            this.withTypeParamContext(paramsSet, () => {
+            this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(name, () => {
                 const inheritance: idl.IDLReferenceType[] = []
                 if (declaration.extends.length) {
                     declaration.extends.forEach(int => {
@@ -731,7 +796,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         extendedAttributes: attrs.length === 0 ? undefined : attrs
                     }
                 ))
-            })
+            }))
         })
         return declaration
     }
@@ -783,60 +848,65 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const { set: paramsSet, parameters: typeParameters } = this.extractTypeParameters((method.value as arkts.FunctionExpression).function?.typeParams)
         return this.withTypeParamContext(paramsSet, () => {
             const { methodName, parameters: arktsParameters, extendedAttributes } = this.processMethodLiteralParameters(method)
-            const key = parentName + '.' + methodName
-            if (this.config.Throws.includes(key)) {
-                extendedAttributes.push({
-                    name: idl.IDLExtendedAttributes.Throws
-                })
-            }
-            const parameters = arktsParameters.map(param => {
-                return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
-            })
-            let ii = parameters.length - 1
-            while (ii >= 0) {
-                const last = parameters.at(-1)!
-                if (last.type === idl.IDLUndefinedType) {
-                    parameters.pop()
-                } else {
-                    break
+            return this.contextual.extend(methodName, () => {
+                const key = parentName + '.' + methodName
+                if (this.config.Throws.includes(key)) {
+                    extendedAttributes.push({
+                        name: idl.IDLExtendedAttributes.Throws
+                    })
                 }
-                --ii
-            }
-            const returnType = this.serializeType(method.function!.returnTypeAnnotation!)
-            if (method.id!.name === 'constructor') {
-                return idl.createConstructor(
+                const parameters = arktsParameters.map(param => {
+                    return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
+                })
+                let ii = parameters.length - 1
+                while (ii >= 0) {
+                    const last = parameters.at(-1)!
+                    if (last.type === idl.IDLUndefinedType) {
+                        parameters.pop()
+                    } else {
+                        break
+                    }
+                    --ii
+                }
+                const returnType = this.serializeType(method.function!.returnTypeAnnotation!)
+                if (method.id!.name === 'constructor') {
+                    return idl.createConstructor(
+                        parameters,
+                        returnType,
+                    )
+                }
+                return idl.createMethod(methodName,
                     parameters,
                     returnType,
+                    {
+                        isStatic: !!(method.modifierFlags & arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC),
+                        isAsync: false,
+                        isFree: false,
+                        isOptional: false,
+                    },
+                    {
+                        extendedAttributes: extendedAttributes,
+                    },
+                    typeParameters
                 )
-            }
-            return idl.createMethod(methodName,
-                parameters,
-                returnType,
-                {
-                    isStatic: !!(method.modifierFlags & arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC),
-                    isAsync: false,
-                    isFree: false,
-                    isOptional: false,
-                },
-                {
-                    extendedAttributes: extendedAttributes,
-                },
-                typeParameters
-            )
+            })
         })
     }
 
     serializeClassProperty(property: arkts.ClassProperty): idl.IDLProperty {
-        const prop = idl.createProperty((property.key as arkts.Identifier).name, this.serializeType(property.typeAnnotation!))
-        if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
-            prop.extendedAttributes ??= []
-            prop.isOptional = true
-            prop.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Optional })
-        }
-        if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
-            prop.isStatic = true
-        }
-        return prop
+        const name = (property.key as arkts.Identifier).name
+        return this.contextual.extend(name, false, () => {
+            const prop = idl.createProperty(name, this.serializeType(property.typeAnnotation!))
+            if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
+                prop.extendedAttributes ??= []
+                prop.isOptional = true
+                prop.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Optional })
+            }
+            if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
+                prop.isStatic = true
+            }
+            return prop
+        })
     }
 
     private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]+$/g)
@@ -853,14 +923,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return typeArgs
         })
         const orderedTrappedParams = Array.from(trappedParams)
-        const returnType = name === 'Callback' ? idl.IDLVoidType : typeArgs?.at(1) ?? idl.IDLVoidType
+        const returnType = name === 'Callback' ? typeArgs?.at(1) ?? idl.IDLVoidType : typeArgs?.at(0) ?? idl.IDLVoidType
         let paramsTypes = name === 'Callback' ? [typeArgs!.at(0)!] : typeArgs?.slice(0, -1)
         if (paramsTypes?.length === 1 && paramsTypes[0] === idl.IDLVoidType) {
             paramsTypes = []
         }
         const parameters = paramsTypes?.map((it, index) => idl.createParameter(`value${index}`, it)) ?? []
         const callback = idl.createCallback(
-            generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC)),
+            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC))),
             parameters,
             returnType,
             { fileName: this.fileName, extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }] },
@@ -1022,14 +1092,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
         })
         const orderedTypeParameters = Array.from(typeParams)
         const result = idl.createCallback(
-            generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC)),
+            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC))),
             parameters,
             returnType,
             { fileName: this.fileName },
             orderedTypeParameters.length ? orderedTypeParameters : undefined
         )
         result.extendedAttributes ??= []
-        result.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Synthetic })
+        if (!this.contextual.hasSuggestion)
+            result.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Synthetic })
 
         return [result, orderedTypeParameters]
     }
@@ -1046,8 +1117,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
     }
 
     private createTuple(properties: idl.IDLType[], typeParameters?: string[]): idl.IDLInterface {
+        const extendedAttributes: idl.IDLExtendedAttribute[] = [
+            { name: idl.IDLExtendedAttributes.Entity, value: idl.IDLEntity.Tuple }
+        ]
+        if (!this.contextual.hasSuggestion)
+            extendedAttributes.push({ name: idl.IDLExtendedAttributes.Synthetic })
+
         return idl.createInterface(
-            'Tuple_' + properties.map(it => generateSyntheticIdlNodeName(it)).join('_'),
+            this.contextualSelectName('Tuple_' + properties.map(it => generateSyntheticIdlNodeName(it)).join('_')),
             idl.IDLInterfaceSubkind.Tuple,
             [], [], [],
             properties.map((it, idx) => {
@@ -1057,10 +1134,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             typeParameters,
             {
                 fileName: this.fileName,
-                extendedAttributes: [
-                    { name: idl.IDLExtendedAttributes.Synthetic },
-                    { name: idl.IDLExtendedAttributes.Entity, value: idl.IDLEntity.Tuple }
-                ]
+                extendedAttributes
             }
         )
     }

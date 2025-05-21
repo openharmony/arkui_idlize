@@ -30,7 +30,21 @@
         "RotationGestureInterface",
         "GestureGroupInterface",
         "BaseContext",
-        "ClickEvent"
+        "ClickEvent",
+        "AccessibilityHoverEvent",
+        "BaseEvent",
+        "BaseGestureEvent",
+        "FocusAxisEvent",
+        "GestureEvent",
+        "HoverEvent",
+        "KeyEvent",
+        "LongPressGestureEvent",
+        "MouseEvent",
+        "PanGestureEvent",
+        "PinchGestureEvent",
+        "RotationGestureEvent",
+        "SwipeGestureEvent",
+        "TapGestureEvent"
     ],
     "forceCallback": {
         "EditMenuOptions": [],
