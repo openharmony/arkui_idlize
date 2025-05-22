@@ -400,7 +400,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 let element = (it as arkts.TSEnumMember)
                 let [type, value] = this.convertEnumInitializer(element.init)
                 if (typeof value === 'number')
-                    currentValue = value
+                    currentValue = value + 1
                 if (typeof value === 'undefined') {
                     value = currentValue
                     currentValue++
