@@ -57,7 +57,7 @@ export class TsLayout extends CommonLayoutBase {
             return this.tsInternalPaths.get(target.node.name)!
         if (target.node.name === NativeModule.Generated.name)
             return `peers/${NativeModule.Generated.name}`
-        if (idl.isHandwritten(target.node)) {
+        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language)
         }
         // if (idl.isSyntheticEntry(target.node)) {

@@ -524,7 +524,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
                     isInIdlizeInternal(entry) ||
-                    idl.isHandwritten(entry) ||
+                    idl.isHandwritten(entry) || peerGeneratorConfiguration().isHandWritten(entry.name) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses)

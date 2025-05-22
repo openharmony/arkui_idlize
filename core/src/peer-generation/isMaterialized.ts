@@ -30,7 +30,8 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     }
 
     // TODO: rework this
-    if (["BaseSpan"].includes(declaration.name)) {
+    // TODO: CustomComponent from components.custom config file
+    if (["BaseSpan", "CustomComponent"].includes(declaration.name)) {
         return false
     }
 
