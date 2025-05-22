@@ -19,7 +19,9 @@
         "TapGestureHandler",
         "UIGestureEvent",
         "MenuItemConfiguration",
-        "WrappedBuilder"
+        "WrappedBuilder",
+        "TouchTestInfo",
+        "TouchResult"
     ],
     "forceMaterialized": [
         "TapGestureInterface",
