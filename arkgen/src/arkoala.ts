@@ -473,7 +473,6 @@ function copyToLibace(from: string, libace: LibaceInstall) {
 class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
     emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
         const modifierList = library.createLanguageWriter(Language.CPP)
-        const accessorList = library.createLanguageWriter(Language.CPP)
         const getterDeclarations = library.createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.stateByFile) {
@@ -482,14 +481,13 @@ class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
             if (state.hasAccessors)
                 printModifiersImplFile(libace.accessorCpp(slug), state, options)
             modifierList.concat(state.modifierList)
-            accessorList.concat(state.accessorList)
             getterDeclarations.concat(state.getterDeclarations)
         }
 
         const commonFilePath = libace.allModifiers
         const commonFileContent = getterDeclarations
             .concat(modifierStructList(modifierList))
-            .concat(accessorStructList(accessorList))
+            .concat(accessorStructList(this.accessorList))
 
         printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
         printApiImplFile(library, libace.viewModelBridge, options)

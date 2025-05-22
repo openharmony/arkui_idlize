@@ -422,7 +422,6 @@ class AccessorVisitor extends ModifierVisitor {
 export class MultiFileModifiersVisitorState {
     dummy = createLanguageWriter(Language.CPP)
     real = createLanguageWriter(Language.CPP)
-    accessorList = createLanguageWriter(Language.CPP)
     accessors = createLanguageWriter(Language.CPP)
     modifierList = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
@@ -453,7 +452,6 @@ export class MultiFileModifiersVisitor extends AccessorVisitor {
         this.dummy = state.dummy
         this.real = state.real
         this.accessors = state.accessors
-        this.accessorList = state.accessorList
         this.modifiers = state.modifiers
         this.modifierList = state.modifierList
         this.getterDeclarations = state.getterDeclarations
