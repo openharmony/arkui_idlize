@@ -21,7 +21,8 @@
         "MenuItemConfiguration",
         "WrappedBuilder",
         "TouchTestInfo",
-        "TouchResult"
+        "TouchResult",
+        "SectionOptions"
     ],
     "forceMaterialized": [
         "TapGestureInterface",
