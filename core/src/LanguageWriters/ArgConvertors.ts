@@ -30,7 +30,7 @@ import {
 import { RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { hashCodeFromString, warn } from "../util";
+import { getExtractorName, hashCodeFromString, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
@@ -1137,6 +1137,57 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
                 return `MaterializedBase.toPeerPtr(${param})`
             default:
                 return `toPeerPtr(${param})`
+        }
+    }
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        printer.writeStatement(
+            printer.makeStatement(
+                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_", "namespace.name")}`, [
+                    printer.makeString(value)
+                ])))
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        const readStatement = writer.makeCast(
+            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_", "namespace.name")}`, []),
+            this.declaration)
+        return assigneer(readStatement)
+    }
+    nativeType(): idl.IDLType {
+        return idl.createReferenceType(this.declaration)
+    }
+    interopType(): idl.IDLType {
+        return idl.IDLPointerType
+    }
+    isPointerType(): boolean {
+        return false
+    }
+    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
+        if (idl.isInterface(this.declaration)) {
+            if (this.declaration.subkind === idl.IDLInterfaceSubkind.Class) {
+                return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
+                    [writer.instanceOf(this, value, duplicates)])
+            }
+            if (this.declaration.subkind === idl.IDLInterfaceSubkind.Interface) {
+                const uniqueFields = this.declaration.properties.filter(it => !duplicates.has(it.name))
+                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+            }
+        }
+    }
+}
+
+export class ExternalTypeConvertor extends BaseArgConvertor {
+    constructor(param: string, public declaration: idl.IDLInterface) {
+        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
+        console.log(`ExternalType convertor for type: ${declaration.name}`)
+    }
+
+    convertorArg(param: string, writer: LanguageWriter): string {
+        const lang = writer.language
+        switch (lang) {
+            case Language.CPP:
+                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
+            default:
+                return `extractors.${getExtractorName(this.declaration, lang, true)}(${param})`
         }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {

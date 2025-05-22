@@ -8,8 +8,8 @@
         "baseUrl": ".",
         "paths": {
             "#compat": ["./src/node/compat.ts"],
-            "#hooks": ["./src/node/hooks/"],
-            "#hooks_sample": ["./src/node/hooks/sample.ts"]
+            "#handwritten": ["./src/node/handwritten/"],
+            "#external_lib": ["./src/node/handwritten/external_lib.ts"]
         }
     },
     "include": ["src/*.ts", "src/node/**/*.ts", "generated/ts/**/*.ts"],

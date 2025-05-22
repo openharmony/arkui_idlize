@@ -108,7 +108,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             continue
         if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
             continue
-        if (peerGeneratorConfiguration().externalModuleTypes.get(decl.name))
+        if (peerGeneratorConfiguration().externalTypes.get(decl.name))
             continue
         syntheticCollector.convert(decl)
         const declName = idl.getFQName(decl)
@@ -131,7 +131,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
                 continue
             if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
                 continue
-            if (peerGeneratorConfiguration().externalModuleTypes.get(decl.name))
+            if (peerGeneratorConfiguration().externalTypes.get(decl.name))
                 continue
             syntheticCollector.convert(decl)
         }

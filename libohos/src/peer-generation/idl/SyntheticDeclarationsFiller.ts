@@ -110,7 +110,7 @@ function createMaterializedInternal(library: PeerLibrary, targets: idl.IDLNode[]
 }
 
 function createExternalModuleType(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    for (const name of generatorConfiguration().externalModuleTypes.keys()) {
+    for (const name of generatorConfiguration().externalTypes.keys()) {
         synthesizedEntries.set(name, idl.createInterface(
             name,
             idl.IDLInterfaceSubkind.Interface,

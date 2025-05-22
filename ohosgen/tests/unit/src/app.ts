@@ -1,6 +1,10 @@
 import { UnitTestsuite,  checkEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
 
 import {
+  toBigInt
+} from "#compat"
+
+import {
   // .d.ts
   CONST_BOOLEAN_FALSE,
   CONST_BOOLEAN_TRUE,
@@ -68,8 +72,11 @@ import {
   testLength
 } from '#compat'
 
-import { DTSHookClass, DTSHookValue } from "#compat"
 import { ImportedHookValue } from "#compat"
+import { DTSHookClass, DTSHookValue } from "#compat"
+
+import { ExternalType } from "#external_lib"
+import { DTSCheckExternalLib, InternalType } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
@@ -130,14 +137,14 @@ function checkNumber() {
 
 function checkBigInt() {
 
-  let b = test_bigint.test(123)
+  let b = test_bigint.test(toBigInt(123))
   assertEQ(`${Math.pow(2, 54)}`, `${b}`)
-  b = test_bigint.test_negative(-123)
+  b = test_bigint.test_negative(toBigInt(-123))
   assertEQ(`-${Math.pow(2, 54)}`, `${b}`)
 
-  let param = test_bigint.test_params({ prime: 456 })
+  let param = test_bigint.test_params({ prime: toBigInt(456) })
   assertEQ(`${Math.pow(2, 52)}`, `${param.prime}`)
-  param = test_bigint.test_params_negative({ prime: -789 })
+  param = test_bigint.test_params_negative({ prime: toBigInt(-789) })
   assertEQ(`-${Math.pow(2, 42)}`, `${param.prime}`)
 }
 
@@ -377,6 +384,17 @@ function checkHooks() {
   console.log(`  hook return value: ${importedHookValue.count}`)
 }
 
+function checkExternalTypes() {
+  const externalType: ExternalType = { nativePointer: toBigInt(7) }
+  const internalType: InternalType = {
+    index: 123,
+    external: { nativePointer: toBigInt(9) }
+  }
+  const check = new DTSCheckExternalLib()
+  check.checkExternalType(externalType)
+  check.checkInternalTypeWithExternalType(internalType)
+}
+
 interface TestObject { x: number }
 function checkAny() {
   const obj: TestObject = { x: 10 }
@@ -505,6 +523,7 @@ export function run() {
   suite.addTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
   suite.addTest("checkHooks", checkHooks)
+  suite.addTest("checkExternalTypes", checkExternalTypes)
   suite.addTest("checkContentModifier", checkContentModifier)
 
   return suite.run()

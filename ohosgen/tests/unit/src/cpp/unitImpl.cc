@@ -902,6 +902,29 @@ OH_UNIT_DTSHookValue DTSHookClass_methodReturnImpl(OH_NativePointer thisPtr) {
 }
 void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
 }
+
+// TBD: update
+void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
+}
 OH_UNIT_ImportedHookValue DTSHookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
     return {};
+}
+
+// ExternalType
+class DTSCheckExternalLibPeer
+{
+};
+
+OH_UNIT_DTSCheckExternalLibHandle DTSCheckExternalLib_constructImpl() {
+    return (OH_UNIT_DTSCheckExternalLibHandle) new DTSCheckExternalLibPeer();
+}
+void DTSCheckExternalLib_destructImpl(OH_UNIT_DTSCheckExternalLibHandle thisPtr) {
+}
+
+void DTSCheckExternalLib_checkExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_ExternalType externalType) {
+    printf("[native] checkExternalType: %p\n", externalType);
+}
+
+void DTSCheckExternalLib_checkInternalTypeWithExternalTypeImpl(OH_NativePointer thisPtr, const OH_UNIT_InternalType* internalType) {
+    printf("[native] checkInternalTypeWithExternalType: %p\n", internalType->external);
 }

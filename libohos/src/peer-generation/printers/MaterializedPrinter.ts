@@ -357,12 +357,14 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
 
         const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)
+        const handwrittenPackage = this.library.layout.handwrittenPackage()
         if (hookMethods) {
             for (const [methodName, hook] of hookMethods.entries()) {
                 const hookName = hook ? hook.hookName : `hook${this.clazz.className}${capitalize(methodName)}`
-                this.collector.addFeature(hookName, "#hooks")
+                this.collector.addFeature(hookName, handwrittenPackage)
             }
         }
+        this.collector.addFeature("extractors", handwrittenPackage)
 
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)

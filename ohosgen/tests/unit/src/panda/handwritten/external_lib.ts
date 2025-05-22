@@ -1,3 +1,8 @@
+
+export interface ExternalType {
+	nativePointer: long
+}
+
 export interface ImportedHookValue {
 	count: number
 }

@@ -120,10 +120,6 @@ export class StructPrinter {
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, idl.IDLObjectType, seenNames)
                 continue
             }
-            // TBD: Exclude external module types
-            // if (idl.isInterface(target) && generatorConfiguration().externalModuleTypes.includes(target.name)) {
-            //     continue
-            // }
             if (idl.isInterface(target) && generatorConfiguration().forceResource.includes(target.name)) {
                 typedefDeclarations.print(`typedef ${DECL_RESOURCE} ${nameAssigned};`)
                 // idl.createOptionalType(...)
@@ -131,6 +127,11 @@ export class StructPrinter {
                 typedefDeclarations.print(`typedef ${DECL_OPT_RESOURCE} ${optNameAssigned};`)
                 continue
             }
+            if (idl.isInterface(target) && generatorConfiguration().externalTypes.get(target.name)) {
+                typedefDeclarations.print(`typedef OH_NativePointer ${nameAssigned};`)
+                continue
+            }
+
             let isPointer = this.isPointerDeclaration(target)
             let isAccessor = idl.isInterface(target) && isMaterialized(target, this.library)
             let noBasicDecl = isAccessor || noDeclaration.includes(nameAssigned)
@@ -526,8 +527,6 @@ inline void WriteToString(std::string* result, const ${name}* value) {
 
     private ignoreTarget(target: idl.IDLNode): target is idl.IDLPrimitiveType | idl.IDLEnum {
         if (idl.isNamedNode(target) && peerGeneratorConfiguration().serializer.ignore.includes(target.name)) return true
-        // TBD: Exclude external module types
-        // if (idl.isNamedNode(target) && peerGeneratorConfiguration().externalModuleTypes.includes(target.name)) return true
         if (idl.isPrimitiveType(target)) return true
         if (idl.isEnum(target)) return true
         if (isImportAttr(target)) return true

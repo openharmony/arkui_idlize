@@ -738,3 +738,8 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
     return array.map(it => it)
         .sort((a, b) => comparator.compare(a[key] as string, b[key] as string))
 }
+
+export function getExtractorName(target: idl.IDLInterface, language: Language, toPtr: boolean = true): string {
+    // TODO: Update for CJ
+    return toPtr ? `to${target.name}Ptr` : `from${target.name}Ptr`
+}

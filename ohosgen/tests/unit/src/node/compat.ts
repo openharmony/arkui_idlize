@@ -69,7 +69,9 @@ export {
 } from "../../generated/ts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/ts"
-export { ImportedHookValue } from "./hooks/sample"
+export { ImportedHookValue } from "./handwritten/external_lib"
+
+export { DTSCheckExternalLib, InternalType } from "../../generated/ts"
 
 export type OHBuffer = ArrayBuffer
 export type OHAny = any
@@ -94,6 +96,10 @@ export function runEventLoop() {
 }
 
 class UnitTestError extends Error {}
+
+export function toBigInt(value: number): bigint {
+    return BigInt(value)
+}
 
 export function checkEQ(value1: unknown, value2: unknown, comment?: string): void {
     if (value1 !== value2) {

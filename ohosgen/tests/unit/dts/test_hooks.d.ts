@@ -1,5 +1,5 @@
-import { ImportedHookValue } from "#hooks_sample"
-// import { hook_ns } from "#hooks_sample"
+import { ImportedHookValue } from "#external_lib"
+// import { hook_ns } from "#external_lib"
 
 export interface DTSHookValue {
     count: number

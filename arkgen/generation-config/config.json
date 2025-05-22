@@ -274,7 +274,7 @@
         ]
     },
     "hooks": {},
-    "externalModuleTypes": {},
+    "externalTypes": {},
     "materialized": {
         "ignoreReturnTypes": [
             "Promise"

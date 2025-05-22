@@ -68,7 +68,9 @@ export {
 export { testLength } from "../../generated/arkts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/arkts"
-export { ImportedHookValue } from "./hooks/sample"
+export { ImportedHookValue } from "./handwritten/external_lib"
+
+export { DTSCheckExternalLib, InternalType } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 export type OHAny = object
@@ -79,6 +81,10 @@ export function pullEvents() {
 
 export function init() {
     new UNITNativeModule()
+}
+
+export function toBigInt(value: long): long {
+    return value
 }
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {

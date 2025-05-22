@@ -66,8 +66,9 @@
             }
         }
     },
-    "externalModuleTypes": {
-        "ImportedHookValue" : "#hooks_sample"
+    "externalTypes": {
+        "ExternalType" : "#external_lib",
+        "ImportedHookValue" : "#external_lib"
     },
     "materialized": {
         "ignoreReturnTypes": []

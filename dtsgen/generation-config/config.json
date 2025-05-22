@@ -40,7 +40,7 @@
         "replaceThrowErrorReturn": []
     },
     "hooks": {},
-    "externalModuleTypes": {},
+    "externalTypes": {},
     "materialized": {
         "ignoreReturnTypes": []
     },

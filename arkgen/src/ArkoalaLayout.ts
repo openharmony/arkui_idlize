@@ -37,7 +37,9 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
         protected prefix: string = "",
     ) {}
     abstract resolve(target: idl.LayoutTargetDescription): string
-
+    handwrittenPackage(): string {
+        return HandwrittenModule(this.library.language)
+    }
 }
 
 export class TsLayout extends CommonLayoutBase {

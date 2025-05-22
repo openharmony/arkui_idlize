@@ -21,8 +21,12 @@ export class OhosTsLayout implements LayoutManagerStrategy {
         protected library: PeerLibrary
     ) { }
 
+    handwrittenPackage(): string {
+        return "#handwritten"
+    }
+
     protected selectInterface(node: idl.IDLEntry): string {
-        const hookImport = idl.isNamedNode(node) && peerGeneratorConfiguration().externalModuleTypes.get(node.name)
+        const hookImport = idl.isNamedNode(node) && peerGeneratorConfiguration().externalTypes.get(node.name)
         if (hookImport) {
             return hookImport
         }

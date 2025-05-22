@@ -35,6 +35,8 @@ export interface LayoutTargetDescription {
 
 export interface LayoutManagerStrategy {
     resolve(target:LayoutTargetDescription): string
+    // TBD: properly define package for external types extractors
+    handwrittenPackage(): string
 }
 
 export class LayoutManager {
@@ -45,9 +47,13 @@ export class LayoutManager {
     resolve(target:LayoutTargetDescription): string {
         return this.strategy.resolve(target)
     }
+    handwrittenPackage(): string {
+        return this.strategy.handwrittenPackage()
+    }
+
     ////////////////////////////////////////////////////////////////////
 
     static Empty(): LayoutManager {
-        return new LayoutManager({ resolve: () => '' })
+        return new LayoutManager({ resolve: () => '', handwrittenPackage: () => '' })
     }
 }

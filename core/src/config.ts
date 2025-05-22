@@ -47,7 +47,7 @@ export const CoreConfigurationSchema = D.object({
     forceResource: T.stringArray(),
     forceContext: T.stringArray(),
     hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
-    externalModuleTypes: D.map(D.string(), D.string()).onMerge('replace'),
+    externalTypes: D.map(D.string(), D.string()).onMerge('replace'),
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
 
@@ -71,7 +71,7 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     forceResource: [],
     forceContext: [],
     hooks: new Map<string, Map<string, HookMethod>>(),
-    externalModuleTypes: new Map<string, string>(),
+    externalTypes: new Map<string, string>(),
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
 

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isExternalType, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib, getExtractorName } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -56,6 +56,8 @@ class SerializerPrinter {
             writer => {
                 if (isMaterialized(target, this.library)) {
                     this.generateMaterializedBodySerializer(writer)
+                } else if (isExternalType(target, this.library)) {
+                    this.generateExternalTypeBodySerializer(target, writer)
                 } else {
                     this.generateInterfaceBodySerializer(target, writer)
                 }
@@ -118,7 +120,22 @@ class SerializerPrinter {
         writer.writeExpressionStatement(
             writer.makeMethodCall(`valueSerializer`, `writePointer`, [peerExpr]))
     }
-
+    private generateExternalTypeBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {
+        this.declareSerializer(writer)
+        const valueExpr = writer.makeString("value")
+        let peerExpr: LanguageExpression
+        const extractor = `extractors.${getExtractorName(target, writer.language)}`
+        switch (writer.language) {
+            case Language.CPP:
+                peerExpr = valueExpr
+                break
+            default:
+                peerExpr = writer.makeFunctionCall(extractor, [valueExpr])
+                break
+        }
+        writer.writeExpressionStatement(
+            writer.makeMethodCall(`valueSerializer`, `writePointer`, [peerExpr]))
+    }
     print(prefix: string, declarationPath?: string) {
         const className = "Serializer"
         const superName = `${className}Base`
@@ -231,6 +248,8 @@ class DeserializerPrinter {
         this.writer.writeMethodImplementation(new Method(`read${methodName}`, new NamedMethodSignature(type, [], []), [MethodModifier.PUBLIC]), writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(target)
+            } else if (isExternalType(target, this.library)) {
+                this.generateExternalTypeBodyDeserializer(target)
             } else if (isBuilderClass(target)) {
                 this.generateBuilderClassDeserializer(target, type)
             } else {
@@ -328,6 +347,23 @@ class DeserializerPrinter {
                         this.writer.language == Language.CJ ?
                         getInternalClassName(this.writer.getNodeName(target)) :
                         getInternalClassQualifiedName(target, "namespace.name"), "fromPtr", [this.writer.makeString(`ptr`)])))
+    }
+
+    private generateExternalTypeBodyDeserializer(target: idl.IDLInterface) {
+        this.declareDeserializer()
+        this.writer.writeStatement(
+            this.writer.makeAssign(`ptr`, idl.IDLPointerType,
+                this.writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
+        const lang = this.writer.language
+        if (lang === Language.CPP)
+            this.writer.writeStatement(
+                this.writer.makeReturn(this.writer.makeCast(this.writer.makeString(`ptr`), target)))
+        else
+            this.writer.writeStatement(
+                this.writer.makeReturn(
+                    this.writer.makeFunctionCall(
+                        `extractors.${getExtractorName(target, lang, false)}`,
+                        [this.writer.makeString(`ptr`)])))
     }
 
     private generateCallbackDeserializer(target: idl.IDLCallback): void {
@@ -561,6 +597,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             ], "@koalaui/interop")
             collector.addFeatures(["isResource", "isPadding"], "../utils")
         }
+        collector.addFeature("extractors", library.layout.handwrittenPackage())
         if (!declarationPath) {
             collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
             if (language === Language.TS) {
@@ -662,7 +699,6 @@ export function createSerializerDependencyFilter(language: Language): Dependency
 class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
         return !peerGeneratorConfiguration().serializer.ignore.includes(node.name!)
-            && !peerGeneratorConfiguration().externalModuleTypes.get(node.name!)
             && (!this.isParameterized(node) || this.isParametrizedWithAllDefaults(node))
             && this.canSerializeDependency(node)
     }
