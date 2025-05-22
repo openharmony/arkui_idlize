@@ -24,7 +24,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     if (idl.isReferenceType(node)) {
         const decl = library.resolveTypeReference(node)
         if (!decl) {
-            throw new Error("Expected to have an entry")
+            throw new Error(`Expected to have an entry: ${node.name}`)
         }
         return convertDeclToFeature(library, decl)
     }
