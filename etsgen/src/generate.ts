@@ -63,10 +63,14 @@ function processFile(outDir: string, baseDir: string, file: string, config: ETSV
     if (!fs.existsSync(outFileDir)) {
         fs.mkdirSync(outFileDir, { recursive: true })
     }
-    if (idlFile.file.entries.length) {
-        fs.writeFileSync(outFile, idl.toIDLString(idlFile.file, {}), 'utf8')
-    } else {
+    if (!idlFile.file.entries.length) {
         idlFile.skipped = true
+    } else if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
+        console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
+        idlFile.skipped = true
+    }
+    if (!idlFile.skipped) {
+        fs.writeFileSync(outFile, idl.toIDLString(idlFile.file, {}), 'utf8')
     }
     idlFile.writeFilePath = outFile
     return idlFile
@@ -96,7 +100,11 @@ export function generateFromSts({ inputFiles, baseDir, outDir, config }: Generat
         try {
             doJob(file, () => {
                 const idlFile = processFile(outDir, baseDir, file, config)
-                library.push(idlFile)
+                if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
+                    console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
+                } else {
+                    library.push(idlFile)
+                }
                 return idlFile
             })
         } catch (e: any) {

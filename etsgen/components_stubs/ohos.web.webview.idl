@@ -1,6 +1,0 @@
-package ohos.web.webview;
-
-[DefaultExport]
-namespace webview {
-    interface WebviewController {};
-};

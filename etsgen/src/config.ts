@@ -25,6 +25,7 @@ const T = {
 }
 
 export const ETSConfigScheme = D.object({
+    DeletedPackages: T.stringArray(),
     DeletedDeclarations: T.stringArray(),
     DeletedMembers: D.map(D.string(), T.stringArray()),
     Components: T.stringArray(),
