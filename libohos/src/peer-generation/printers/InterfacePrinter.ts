@@ -101,6 +101,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     convertInterface(node: idl.IDLInterface) {
+        // FQ_BUG: use fq names instead
         if (this.seenInterfaceNames.has(node.name)) {
             console.log(`interface name: '${node.name}' already exists`)
             return;
@@ -285,7 +286,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             const superDecl = this.peerLibrary.resolveTypeReference(it)
             const parentTypeArgs = this.printTypeArguments(
                 (it as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
-            const clause = `${idl.forceAsNamedNode(it).name}${parentTypeArgs}`
+            const clause = `${it.name}${parentTypeArgs}`
             if (superDecl && isMaterialized(idlInterface, this.peerLibrary) && idl.isClassSubkind(idlInterface) && idl.isInterface(superDecl) && idl.isInterfaceSubkind(superDecl))
                 implementsItems.push(clause)
             else

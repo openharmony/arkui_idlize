@@ -1694,7 +1694,7 @@ function printInterfaceInherit(idl: IDLInterface): string {
     const inheritance = [...idl.inheritance]
     const types: string[] = []
     if (idl.subkind === IDLInterfaceSubkind.Class) {
-        if (inheritance[0] !== IDLTopType) {
+        if (inheritance[0].name !== IDLTopType.name) {
             const ref = clone(inheritance[0])
             ref.extendedAttributes ??= []
             if (!hasExtAttribute(ref, IDLExtendedAttributes.Extends)) {
@@ -1702,9 +1702,9 @@ function printInterfaceInherit(idl: IDLInterface): string {
                     { name: IDLExtendedAttributes.Extends }
                 ])
             }
-            types.push(`${printType(ref)}`)
-            inheritance.shift()
+            types.push(printType(ref))
         }
+        inheritance.shift()
     }
     inheritance.forEach(type => {
         types.push(printType(type))
@@ -1732,12 +1732,12 @@ export function printInterface(idl: IDLInterface): PrintedLine[] {
 export function getSuperType(idl: IDLInterface): IDLReferenceType | undefined {
     if (!idl.inheritance) return undefined
     const parent = idl.inheritance[0]
-    return parent && parent !== IDLTopType ? parent : undefined
+    return parent && parent.name !== IDLTopType.name ? parent : undefined
 }
 
 export function getSuperTypes(idl: IDLInterface): IDLReferenceType[] | undefined {
     if (!idl.inheritance) return undefined
-    if (idl.inheritance[0] == IDLTopType) {
+    if (idl.inheritance[0]?.name === IDLTopType.name) {
         return idl.inheritance.length == 1 ? undefined : idl.inheritance.slice(1)
     } else {
         return idl.inheritance.length == 0 ? undefined : idl.inheritance
