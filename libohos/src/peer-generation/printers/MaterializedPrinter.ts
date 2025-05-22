@@ -364,8 +364,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 this.collector.addFeature(hookName, handwrittenPackage)
             }
         }
-        this.collector.addFeature("extractors", handwrittenPackage)
-
+        if (generatorConfiguration().externalTypes.size > 0) {
+            this.collector.addFeature("extractors", handwrittenPackage)
+        }
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)
         if (this.library.name === 'arkoala') {

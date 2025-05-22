@@ -597,7 +597,9 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             ], "@koalaui/interop")
             collector.addFeatures(["isResource", "isPadding"], "../utils")
         }
-        collector.addFeature("extractors", library.layout.handwrittenPackage())
+        if (generatorConfiguration().externalTypes.size > 0) {
+            collector.addFeature("extractors", library.layout.handwrittenPackage())
+        }
         if (!declarationPath) {
             collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
             if (language === Language.TS) {
