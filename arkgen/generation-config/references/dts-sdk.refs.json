@@ -1,3 +1,4 @@
 {
-    "AttributeModifier": "AttributeModifier"
+    "AttributeModifier": "AttributeModifier",
+    "AttributeUpdater": "AttributeUpdater"
 }
