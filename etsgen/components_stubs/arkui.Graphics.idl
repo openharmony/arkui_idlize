@@ -34,7 +34,7 @@ interface Vector3 {
     attribute number z;
 };
 [Synthetic, Entity=Tuple]
-interface Tuple_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number {
+interface Matrix4 {
     attribute number value0;
     attribute number value1;
     attribute number value2;
@@ -52,7 +52,6 @@ interface Tuple_Number_Number_Number_Number_Number_Number_Number_Number_Number_N
     attribute number value14;
     attribute number value15;
 };
-typedef Tuple_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number_Number Matrix4;
 typedef Vector2 Offset;
 typedef Vector2 Position;
 [TypeParameters="T = void"]
