@@ -129,7 +129,7 @@ export class StructPrinter {
                 continue
             }
             if (idl.isInterface(target) && isExternalType(target, this.library)) {
-                typedefDeclarations.print(`typedef OH_NativePointer ${nameAssigned};`)
+                typedefDeclarations.print(`typedef ${generatorConfiguration().TypePrefix}NativePointer ${nameAssigned};`)
                 continue
             }
 
