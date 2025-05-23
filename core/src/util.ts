@@ -18,6 +18,7 @@ import * as fs from "fs"
 import * as ts from "typescript"
 import * as idl from "./idl"
 import { Language } from './Language'
+import { generatorConfiguration } from './config'
 
 export interface NameWithType {
     name?: ts.DeclarationName
@@ -742,4 +743,11 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
 export function getExtractorName(target: idl.IDLInterface, language: Language, toPtr: boolean = true): string {
     // TODO: Update for CJ
     return toPtr ? `to${target.name}Ptr` : `from${target.name}Ptr`
+}
+
+export function getExternalTypePackage(node: idl.IDLEntry): string | undefined {
+    if (!idl.isInterface(node)) return undefined
+    const pack = idl.getPackageName(node)
+    if (generatorConfiguration().externalPackages.includes(pack)) return `@${pack}`
+    return generatorConfiguration().externalTypes.get(node.name)
 }

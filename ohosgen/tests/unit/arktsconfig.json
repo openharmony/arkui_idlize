@@ -8,6 +8,7 @@
             "#components": ["./src/panda/components"],
             "#handwritten": ["./src/panda/handwritten/"],
             "#external_lib": ["./src/panda/handwritten/external_lib"],
+            "@external.lib.sdk": ["./src/panda/handwritten/external_lib_sdk"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../external/incremental/compat/src/arkts"],

@@ -276,6 +276,7 @@
     },
     "hooks": {},
     "externalTypes": {},
+    "externalPackages": [],
     "materialized": {
         "ignoreReturnTypes": [
             "Promise"

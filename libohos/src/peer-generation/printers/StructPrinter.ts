@@ -28,6 +28,7 @@ import {
     PeerLibrary,
     PrimitiveTypesInstance,
     PrimitiveTypeList,
+    isExternalType,
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -127,7 +128,7 @@ export class StructPrinter {
                 typedefDeclarations.print(`typedef ${DECL_OPT_RESOURCE} ${optNameAssigned};`)
                 continue
             }
-            if (idl.isInterface(target) && generatorConfiguration().externalTypes.get(target.name)) {
+            if (idl.isInterface(target) && isExternalType(target, this.library)) {
                 typedefDeclarations.print(`typedef OH_NativePointer ${nameAssigned};`)
                 continue
             }

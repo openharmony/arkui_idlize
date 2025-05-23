@@ -26,6 +26,7 @@ import {
     isInIdlize,
     isInIdlizeInternal,
     isInCurrentModule,
+    isExternalType,
     LayoutNodeRole,
     PeerClass,
     InterfaceConvertor,
@@ -495,7 +496,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry) || isExternalType(entry, this.peerLibrary))
             || idl.isMethod(entry)
     }
 

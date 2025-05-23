@@ -76,6 +76,7 @@ import { ImportedHookValue } from "#compat"
 import { DTSHookClass, DTSHookValue } from "#compat"
 
 import { ExternalType } from "#external_lib"
+import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
@@ -385,14 +386,17 @@ function checkHooks() {
 }
 
 function checkExternalTypes() {
-  const externalType: ExternalType = { nativePointer: toBigInt(7) }
+  const externalType: ExternalType = { nativePointer: toBigInt(5) }
   const internalType: InternalType = {
     index: 123,
-    external: { nativePointer: toBigInt(9) }
+    external: { nativePointer: toBigInt(7) }
   }
   const check = new DTSCheckExternalLib()
   check.checkExternalType(externalType)
   check.checkInternalTypeWithExternalType(internalType)
+
+  const sdkExternalType: SDKExternalType = { sdkNativePointer: toBigInt(9) }
+  check.checkSDKExternalType(sdkExternalType)
 }
 
 interface TestObject { x: number }

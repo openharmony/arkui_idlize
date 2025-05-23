@@ -1,5 +1,6 @@
 
 import { ExternalType, ImportedHookValue } from "#external_lib"
+import { SDKExternalType } from "@external.lib.sdk"
 
 export namespace extractors {
 
@@ -18,6 +19,15 @@ export namespace extractors {
 
     export function fromImportedHookValuePtr(value: long): ImportedHookValue {
         const result: ImportedHookValue = { count: 22 }
+        return result
+    }
+
+    export function toSDKExternalTypePtr(value: SDKExternalType): long {
+        return value.sdkNativePointer
+    }
+
+    export function fromSDKExternalTypePtr(ptr: long): SDKExternalType {
+        const result: SDKExternalType = { sdkNativePointer: ptr }
         return result
     }
 }

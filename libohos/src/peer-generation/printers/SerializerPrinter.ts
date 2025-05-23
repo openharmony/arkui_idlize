@@ -597,7 +597,8 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             ], "@koalaui/interop")
             collector.addFeatures(["isResource", "isPadding"], "../utils")
         }
-        if (generatorConfiguration().externalTypes.size > 0) {
+        if (generatorConfiguration().externalTypes.size > 0
+            || generatorConfiguration().externalPackages.length > 0) {
             collector.addFeature("extractors", library.layout.handwrittenPackage())
         }
         if (!declarationPath) {

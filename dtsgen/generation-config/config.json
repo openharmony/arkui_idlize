@@ -41,6 +41,7 @@
     },
     "hooks": {},
     "externalTypes": {},
+    "externalPackages": [],
     "materialized": {
         "ignoreReturnTypes": []
     },

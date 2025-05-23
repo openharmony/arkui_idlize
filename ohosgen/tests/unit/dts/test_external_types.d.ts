@@ -1,4 +1,5 @@
 import { ExternalType } from "#external_lib"
+import { SDKExternalType } from "@external.lib.sdk"
 
 export interface InternalType {
     index: number
@@ -7,4 +8,6 @@ export interface InternalType {
 export class DTSCheckExternalLib {
     checkExternalType(externalType: ExternalType)
     checkInternalTypeWithExternalType(internalType: InternalType)
+
+    checkSDKExternalType(externalType: SDKExternalType)
 }

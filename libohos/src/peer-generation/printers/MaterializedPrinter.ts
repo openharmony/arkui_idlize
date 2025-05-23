@@ -364,7 +364,8 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 this.collector.addFeature(hookName, handwrittenPackage)
             }
         }
-        if (generatorConfiguration().externalTypes.size > 0) {
+        if (generatorConfiguration().externalTypes.size > 0
+            || generatorConfiguration().externalPackages.length > 0) {
             this.collector.addFeature("extractors", handwrittenPackage)
         }
         // specific runtime dependencies

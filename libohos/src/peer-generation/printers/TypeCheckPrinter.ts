@@ -6,7 +6,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize, isStringEnumType } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isExternalType, isInCurrentModule, isInIdlize, isStringEnumType } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToNumericName, generateEnumFromNumericName } from '@idlizer/core';
@@ -108,7 +108,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             continue
         if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
             continue
-        if (peerGeneratorConfiguration().externalTypes.get(decl.name))
+        if (idl.isInterface(decl) && isExternalType(decl, library))
             continue
         syntheticCollector.convert(decl)
         const declName = idl.getFQName(decl)
@@ -131,9 +131,9 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
                 continue
             if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
                 continue
-            if (peerGeneratorConfiguration().externalTypes.get(decl.name))
+            if (idl.isInterface(decl) && isExternalType(decl, library))
                 continue
-            syntheticCollector.convert(decl)
+                syntheticCollector.convert(decl)
         }
     }
     return res
