@@ -1,0 +1,7 @@
+package arkui.component.idlize;
+
+[Entity=Class]
+interface IUIContext {
+    static void freezeUINode(String id , boolean isFrozen );
+    static void freezeUINode(number id , boolean isFrozen );
+};

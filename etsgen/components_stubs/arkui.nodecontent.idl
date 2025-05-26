@@ -1,0 +1,8 @@
+package arkui.NodeContent;
+
+[Entity=Class]
+interface NodeContent : Content {
+    constructor();
+    void addFrameNode( FrameNode node);
+    void removeFrameNode( FrameNode node);
+};

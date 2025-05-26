@@ -18,7 +18,7 @@ interface FrameNode {
     void insertChildAfter(FrameNode child, [Optional] FrameNode sibling);
     void removeChild(FrameNode node);
     void clearChildren();
-    [Optional] FrameNode getChild(number index);
+    [Optional] FrameNode getChild(number index, number expandMode);
     [Optional] FrameNode getFirstChild();
     [Optional] FrameNode getNextSibling();
     [Optional] FrameNode getPreviousSibling();
@@ -60,4 +60,12 @@ interface FrameNode {
     // [TypeParameters="T"]
     // void addComponentContent([TypeArguments="T"] ComponentContent content);
     static FrameNode getFrameNodeByKey(String name);
+    number getIdByFrameNode(FrameNode node);
+    void moveTo(FrameNode targetParent, number index);
+    number getFirstChildIndexWithoutExpand();
+    number getLastChildIndexWithoutExpand();
+    static FrameNode getAttachedFrameNodeById(String id);
+    static FrameNode getFrameNodeById(number id);
+    static FrameNode getFrameNodeByUniqueId(number id);
+    static pointer getFrameNodePtr(FrameNode node);
 };
