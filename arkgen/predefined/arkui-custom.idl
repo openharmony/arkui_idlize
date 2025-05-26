@@ -3,6 +3,8 @@ package arkui.component.idlize;
 import arkui.component.units;
 import arkui.component.common;
 
+import arkui.Graphics.Frame as Frame;
+
 [Entity=Class]
 interface LazyForEachOps {
     static pointer NeedMoreElements(pointer node, pointer mark, i32 direction);
@@ -161,4 +163,9 @@ callback Callback_StateStylesChange = void (i32 currentState);
 [Entity=Interface]
 interface StateStylesOps {
     static void onStateStyleChange(pointer node, Callback_StateStylesChange stateStyleChange);
+};
+
+[Entity=Class]
+interface UIContextAtomicServiceBar {
+    static Frame getBarRect();
 };
