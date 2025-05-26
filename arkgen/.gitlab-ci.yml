@@ -278,13 +278,17 @@ check index-full:
     before_script:
       - !reference [.setup, script]
       - npm run download:sdk
+      - npm run compile --prefix external/ui2abc/libarkts
+      - npm install --prefix etsgen
+      - npm run compile --prefix etsgen
+      - npm run libarkts:reinstall:regenerate --prefix etsgen
       - cd $CI_PROJECT_DIR/arkgen
     script:
-        - npm run check:peers
+        - npm run check:peers:ets
         - npm run check:index-full:ts
         - npm run make:ts:subset
         - npm run check:index-full:subset:ts
         - npm run make:arkts
         - npm run check:index-full:arkts:subset
-        - npm run make:arkts:peers
+        - npm run make:arkts:peers:ets
         - npm run check:index-full:arkts

@@ -14653,6 +14653,9 @@ declare interface AttributeModifier<T> {
   applySelectedAttribute?(instance: T) : void;
 }
 
+declare interface AttributeUpdater<T>{
+}
+
 /**
  * Defines the content modifier.
  *
