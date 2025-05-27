@@ -1148,7 +1148,8 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     ) { }
 
     convertCallback(node: idl.IDLCallback): void {
-        this.writer.print(this.printCallback(node, node.parameters, node.returnType))
+        if (!idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
+            this.writer.print(this.printCallback(node, node.parameters, node.returnType))
     }
     convertMethod(node: idl.IDLMethod): void {
         // TODO: namespace-related-to-rework
@@ -1162,6 +1163,8 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true }))
     }
     convertTypedef(node: idl.IDLTypedef) {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
+            return
         const type = this.writer.getNodeName(node.type)
         if (node.name == type) {
             if (idl.isUnionType(node.type)) {
@@ -1174,10 +1177,10 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             }
             if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
                 return
-            // const typeParams = this.printTypeParameters(node.typeParameters)
         }
         else {
-            this.writer.print(`public type ${node.name} = ${type}`)
+            const typeParams = this.printTypeParameters(node.typeParameters)
+            this.writer.print(`public type ${node.name}${typeParams} = ${type}`)
         }
     }
     convertImport(node: idl.IDLImport): void {
@@ -1218,7 +1221,10 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         isVariadic: boolean = false,
         isOptional: boolean = false): string {
         const type = variable.type ? this.convertType(variable.type) : ""
-        return `${idl.escapeIDLKeyword(variable.name!)}: ${isOptional ? "?" : ""}${type}`
+        return `${this.writer.escapeKeyword(idl.escapeIDLKeyword(variable.name!))}: ${isOptional ? "?" : ""}${type}`
+    }
+    protected printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
     }
     protected convertType(idlType: idl.IDLType): string {
         return this.writer.getNodeName(idlType)
@@ -1274,9 +1280,12 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeTuple(writer: LanguageWriter, type: idl.IDLInterface): void {
+        if (['AnimationRange'].includes(type.name))
+            return
         const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
         const memberNames: string[] = members.map((_, index) => `value${index}`)
-        writer.writeClass(type.name, () => {
+        const typeParams = type.typeParameters && type.typeParameters?.length != 0 ? `<${type.typeParameters.map(it => it.split('extends')[0].split('=')[0]).join(', ')}>` : ''
+        writer.writeClass(type.name.concat(typeParams), () => {
             for (let i = 0; i < memberNames.length; i++) {
                 writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], idl.isOptionalType(members[i]) ?? false)
             }
@@ -1318,7 +1327,8 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             }
             memberValue += 1
         }
-        writer.writeClass(removePoints(idl.getNamespaceName(enumDecl).concat(enumDecl.name)), () => {
+        let mangledName = removePoints(`${idl.getNamespaceName(enumDecl)}${enumDecl.name}`)
+        writer.writeClass(mangledName, () => {
             const enumType = idl.createReferenceType(enumDecl)
             members.forEach(it => {
                 writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
@@ -1331,7 +1341,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
             writer.writeFieldDeclaration(value, intType, [FieldModifier.PUBLIC, FieldModifier.FINAL], false)
 
             const signature = new MethodSignature(idl.IDLVoidType, [intType])
-            writer.writeConstructorImplementation(removePoints(idl.getNamespaceName(enumDecl).concat(enumDecl.name)), signature, () => {
+            writer.writeConstructorImplementation(mangledName, signature, () => {
                 writer.writeStatement(
                     writer.makeAssign(value, undefined, writer.makeString(signature.argName(0)), false)
                 )
@@ -1340,35 +1350,48 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
-        let allProperties: idl.IDLProperty[] = isComponentDeclaration(this.peerLibrary, type) ? [] : collectAllProperties(type, this.peerLibrary)
-        let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.peerLibrary, type) ? [] : type.properties
-
         const superNames = idl.getSuperTypes(type)
+        let parentProperties: idl.IDLProperty[] = []
+        if (superNames) {
+            const superDecls = superNames ? superNames.map(t => this.peerLibrary.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
+            parentProperties = superDecls!.map(decl => collectAllProperties(decl as idl.IDLInterface, this.peerLibrary)).flat()
+        }
+        let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.peerLibrary, type) ? [] : type.properties.filter(it => !parentProperties.map(prop => prop.name).includes(it.name))
 
-        writer.writeInterface(`${removePoints(idl.getNamespaceName(type).concat(type.name))}${isMaterialized(type, this.peerLibrary) ? '' : 'Interface'}`, (writer) => {
+        let FQInterfaceName = removePoints(idl.getNamespaceName(type)).concat(type.name)
+        let typeParams = type.typeParameters && type.typeParameters?.length != 0 ? `<${type.typeParameters.map(it => it.split('extends')[0].split('=')[0]).join(', ')}>` : ''
+        if (['CommonMethod', 'CommonShapeMethod', 'BaseSpan',
+            'ScrollableCommonMethod', 'LazyGridLayoutAttribute',
+            'LazyVGridLayoutAttributeInterfaces', 'SecurityComponentMethod',
+            'GestureHandler', 'GestureInterface'].includes(type.name) || (superNames ? writer.getNodeName(superNames[0]) == "CommonMethod" : false)) {
+            typeParams = ''
+        }
+
+        writer.writeInterface(`${FQInterfaceName}${isMaterialized(type, this.peerLibrary) ? '' : 'Interfaces'}${typeParams}`, (writer) => {
             for (const p of ownProperties) {
                 const modifiers: FieldModifier[] = []
                 if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
                 if (p.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
-        }, superNames ? superNames.map(it => `${writer.getNodeName(it)}Interface`) : undefined) // make proper inheritance
-        writer.writeClass(removePoints(idl.getNamespaceName(type).concat(type.name)), () => {
-            allProperties.forEach(it => {
+        }, superNames ? superNames.map(it => `${removePoints(idl.getNamespaceName(it as unknown as idl.IDLEntry))}${it.name}Interfaces${typeParams}`) : undefined) // make proper inheritance
+        
+        writer.writeClass(`${FQInterfaceName}${typeParams}`, () => {
+            ownProperties.concat(parentProperties).forEach(it => {
                 let modifiers: FieldModifier[] = []
                 if (it.isReadonly) modifiers.push(FieldModifier.READONLY)
                 if (it.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(it.name, idl.maybeOptional(it.type, it.isOptional), modifiers, { method: new Method(it.name, new NamedMethodSignature(it.type, [it.type], [it.name])) })
             })
-            writer.writeConstructorImplementation(removePoints(idl.getNamespaceName(type).concat(type.name)),
+            writer.writeConstructorImplementation(`${FQInterfaceName}`,
                 new NamedMethodSignature(idl.IDLVoidType,
-                    allProperties.map(it => idl.maybeOptional(it.type, it.isOptional)),
-                    allProperties.map(it => writer.escapeKeyword(it.name))), () => {
-                        for (let i of allProperties) {
+                    ownProperties.concat(parentProperties).map(it => idl.maybeOptional(it.type, it.isOptional)),
+                    ownProperties.concat(parentProperties).map(it => writer.escapeKeyword(it.name))), () => {
+                        for (let i of ownProperties.concat(parentProperties)) {
                             writer.print(`this.${i.name}_container = ${writer.escapeKeyword(i.name)}`)
                         }
                     })
-        }, undefined, [`${removePoints(idl.getNamespaceName(type).concat(type.name))}Interface`])
+        }, undefined, [`${FQInterfaceName}Interfaces${typeParams}`])
     }
 }
 

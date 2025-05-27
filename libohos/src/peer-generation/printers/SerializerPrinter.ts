@@ -23,7 +23,7 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectFunctions, collectProperties } from '../printers/StructPrinter'
+import { collectAllProperties, collectFunctions, collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
 import { createDeclarationNameConvertor } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
@@ -233,7 +233,7 @@ class SerializerPrinter {
 }
 
 class DeserializerPrinter {
-    private continuationValueHolders = new Set<idl.IDLType>()
+    private continuationValueHolders = new Array<idl.IDLType>()
 
     constructor(
         private readonly library: PeerLibrary,
@@ -307,7 +307,15 @@ class DeserializerPrinter {
                     return `${it.name}: ${it.name}_result`
                 })
                 if (this.writer.language == Language.CJ) {
-                    this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`${this.writer.getNodeName(valueType)}(${properties.map(it => it.name.concat('_result')).join(', ')})`), true, false))
+                    let parentProperties: idl.IDLProperty[] = []
+                    const superNames = idl.getSuperTypes(target)
+                    if (superNames) {
+                        const superDecls = superNames ? superNames.map(t => this.library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
+                        parentProperties = superDecls!.map(decl => collectAllProperties(decl as idl.IDLInterface, this.library)).flat()
+                    }
+                    let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.library, target) ? [] : target.properties.filter(it => !parentProperties.map(prop => prop.name).includes(it.name))
+                    
+                    this.writer.writeStatement(this.writer.makeAssign("value", valueType, this.writer.makeString(`${this.writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('_result')).join(', ')})`), true, false))
                 } else {
                     if (this.writer.language === Language.ARKTS) {
                         if (collectFunctions(target, this.library).length > 0) {
@@ -370,7 +378,9 @@ class DeserializerPrinter {
         if (idl.hasTypeParameters(target)) {
             return
         }
-        this.continuationValueHolders.add(target.returnType)
+        if (!this.continuationValueHolders.map(it => this.writer.getNodeName(it)).includes(this.writer.getNodeName(target.returnType))) {
+            this.continuationValueHolders.push(target.returnType)
+        }
         if (this.writer.language === Language.CPP)
             // callbacks in native are just CallbackResource while in managed we need to convert them to
             // target language callable
@@ -422,7 +432,7 @@ class DeserializerPrinter {
                 const optionalReturnType = idl.createOptionalType(target.returnType)
                 continuation = [
                     writer.language == Language.CJ ?
-                    writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(target.returnType)}Holder(None<${writer.getNodeName(target.returnType)}>)`), true, true) :
+                    writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(target.returnType).replace(/[\<\>]/g, '')}Holder(None<${writer.getNodeName(target.returnType)}>)`), true, true) :
                     writer.makeAssign(continuationValueName, optionalReturnType, undefined, true, false),
                     writer.makeAssign(
                         continuationCallbackName,
@@ -450,7 +460,7 @@ class DeserializerPrinter {
                 ...target.parameters.map(it => {
                     const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
                     return new ProxyStatement((writer: LanguageWriter) => {
-                        convertor.convertorSerialize(argsSerializer, it.name, writer)
+                        convertor.convertorSerialize(argsSerializer, writer.escapeKeyword(it.name), writer)
                     })
                 }),
                 ...continuation,
@@ -517,7 +527,7 @@ class DeserializerPrinter {
         }, superName)
         if (this.writer.language == Language.CJ) {
             for (let valueHolder of this.continuationValueHolders) {
-                let className = `${this.writer.getNodeName(valueHolder)}Holder`
+                let className = `${this.writer.getNodeName(valueHolder).replace(/[\<\>]/g, '')}Holder`
                 this.writer.writeClass(className, (writer) => {
                     writer.makeAssign("value", idl.maybeOptional(valueHolder, true), undefined, true, false).write(writer)
                     writer.writeConstructorImplementation(className, new MethodSignature(idl.IDLAnyType, [idl.maybeOptional(valueHolder, true)]), () => {

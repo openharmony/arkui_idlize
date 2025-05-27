@@ -522,7 +522,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         this.memberConvertors.forEach((it, index) => {
             let memberName = this.members[index][0]
-            let memberAccess = `${value}.${memberName}`
+            let memberAccess = `${value}.${printer.escapeKeyword(memberName)}`
             printer.writeStatement(
                 printer.makeAssign(`${value}_${memberName}`, undefined,
                     printer.makeString(memberAccess), true))
@@ -550,9 +550,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
                 /**
                  * todo: check UnionType name creation for union of unnamed nodes (isNamedNode() == false)
                  */
-                const memberType = prop.isOptional
-                    ? idl.createUnionType([idl.IDLUndefinedType, prop.type!])
-                    : prop.type
+                const memberType = idl.maybeOptional(prop.type, prop.isOptional)
                 return writer.makeAssign(`${bufferName}_${prop.name}`, memberType, expr, true, true)
             }, writer))
         }
@@ -828,6 +826,10 @@ export class DateConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
         if (writer.language === Language.CPP) {
             writer.writeMethodCall(`${param}Serializer`, "writeInt64", [value])
+        } else if (writer.language === Language.CJ){
+            writer.writeMethodCall(`${param}Serializer`, "writeInt64", [
+                writer.makeCast(writer.makeString(`${value}`), idl.IDLI64Type).asString()
+            ])
         } else {
             writer.writeMethodCall(`${param}Serializer`, "writeInt64", [
                 writer.makeCast(writer.makeString(`${value}.getTime()`), idl.IDLI64Type).asString()
@@ -838,6 +840,9 @@ export class DateConvertor extends BaseArgConvertor {
         const deserializeTime = writer.makeMethodCall(`${deserializerName}`, "readInt64", [])
         if (writer.language === Language.CPP) {
             return assigneer(deserializeTime)
+        }
+        if (writer.language === Language.CJ) {
+            return assigneer(writer.makeString(`DateTime.now()`))
         }
         return assigneer(writer.makeString(`new Date(${deserializeTime.asString()})`))
     }
@@ -1013,7 +1018,7 @@ export class OptionConvertor extends BaseArgConvertor {
     }
 }
 
-export class UnionConvertor extends BaseArgConvertor { //
+export class UnionConvertor extends BaseArgConvertor {
     private readonly memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
 
@@ -1134,7 +1139,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
                 return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
             case Language.JAVA:
             case Language.CJ:
-                return `MaterializedBase.toPeerPtr(${param})`
+                return `MaterializedBase.toPeerPtr(${writer.escapeKeyword(param)})`
             default:
                 return `toPeerPtr(${param})`
         }

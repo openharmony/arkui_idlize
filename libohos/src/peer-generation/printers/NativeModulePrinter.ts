@@ -228,7 +228,7 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
                 printer.print(`let handle_${ordinal} = acquireArrayRawData(${signature.argsNames[ordinal]})`) :
                 printer.print(`let handle_${ordinal} = acquireArrayRawData(${signature.argsNames[ordinal]}.toArray())`)
             } else if (cjStringLikeTypes.has(nativeModule.getNodeName(param))) {
-                printer.print(`let ${signature.argsNames[ordinal]} =  LibC.mallocCString(${signature.argsNames[ordinal]})`)
+                printer.print(`let ${printer.escapeKeyword(signature.argsNames[ordinal])} = LibC.mallocCString(${printer.escapeKeyword(signature.argsNames[ordinal])})`)
                 functionCallArgs.push(signature.argsNames[ordinal])
             } else {
                 functionCallArgs.push(signature.argsNames[ordinal])
@@ -237,13 +237,13 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
         let resultVarName = 'result'
         let shouldReturn = false
         if (signature.returnType === idl.IDLVoidType) {
-            printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))).asString()}`)
+            printer.print(`${new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(printer.escapeKeyword(it)))).asString()}`)
         } else if (signature.returnType === idl.IDLInteropReturnBufferType) {
             printer.writeStatement(
                 printer.makeAssign(
                     resultVarName,
                     undefined,
-                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
+                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(printer.escapeKeyword(it)))),
                     true
                 )
             )
@@ -256,7 +256,7 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
                 printer.makeAssign(
                     resultVarName,
                     undefined,
-                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(it))),
+                    new FunctionCallExpression(nativeName, functionCallArgs.map(it => printer.makeString(printer.escapeKeyword(it)))),
                     true
                 )
             )
@@ -267,7 +267,7 @@ function writeCJNativeModuleMethod(method: Method, nativeModule: LanguageWriter,
             if (idl.isContainerType(param) || cjArrayLikeTypes.has(nativeModule.getNodeName(param))) {
                 printer.print(`releaseArrayRawData(handle_${ordinal})`)
             } else if (cjStringLikeTypes.has(nativeModule.getNodeName(param))) {
-                printer.print(`LibC.free(${signature.argsNames[ordinal]})`)
+                printer.print(`LibC.free(${printer.escapeKeyword(signature.argsNames[ordinal])})`)
             }
         }
 

@@ -549,9 +549,13 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
     const superTypes = idl.getSuperTypes(decl)
     const superDecls = superTypes ? superTypes.map(t => library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
     return [
-        ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : []),
-        ...decl.properties,
-        ...collectBuilderProperties(decl, library)
+        ...new Set<idl.IDLProperty>(
+            [
+                ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : Array()),
+                ...decl.properties,
+                ...collectBuilderProperties(decl, library)
+            ]
+        )
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 

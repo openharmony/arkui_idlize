@@ -14,6 +14,7 @@
  */
 
 import * as idl from '../../idl'
+import { CJKeywords } from '../../languageSpecificKeywords'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import { InteropArgConvertor } from './InteropConvertors'
@@ -67,7 +68,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
     convertCallback(type: idl.IDLCallback): string {
         const params = type.parameters.map(it =>
-            `${it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
+            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
         return `(${params.join(", ")}) -> ${this.convert(type.returnType)}`
     }
     convertMethod(node: idl.IDLMethod): string {
@@ -81,16 +82,18 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return type.name
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
-        return type.name
+        const maybeTypeArguments = type.typeArguments?.length ? `<${type.typeArguments.join(', ')}>` : ""
+        let decl = this.resolver.resolveTypeReference(type)
+        if (decl)
+            return `${decl.name}${maybeTypeArguments}`
+        return this.convert(idl.IDLCustomObjectType)
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        if (type.name === "Object")
+        if (type.name === idl.IDLObjectType.name)
             return "KPointer"
+        if (type.name == 'BusinessError')
+            return 'BusinessError<Unit>'
 
-        const importAttr = idl.getExtAttribute(type, idl.IDLExtendedAttributes.Import)
-        if (importAttr) {
-            return this.convertTypeReferenceAsImport(type, importAttr)
-        }
         // resolve synthetic types
         const decl = this.resolver.resolveTypeReference(type)!
         if (decl && idl.isSyntheticEntry(decl)) {
@@ -104,10 +107,12 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             }
         }
         let name = type.name.split('.')
+        let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
+        const maybeTypeArguments = !typeArgs?.length ? '' : `<${typeArgs.join(', ')}>`
         if (decl) {
-            return idl.getNamespacesPathFor(decl).map(ns => ns.name).join().concat(name[name.length - 1])
+            return idl.getNamespacesPathFor(decl).map(ns => ns.name).join().concat(name[name.length - 1].concat(maybeTypeArguments))
         }
-        return name[name.length - 1]
+        return this.convert(idl.IDLCustomObjectType)
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): string {
         return type.name
@@ -137,6 +142,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             case idl.IDLAnyType: return 'Any'
             case idl.IDLDate: return 'DateTime'
+            case idl.IDLObjectType: return 'Any'
 
             case idl.IDLUnknownType:
             case idl.IDLFunctionType:
@@ -147,7 +153,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
     private callbackType(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${it.name}: ${this.convert(it.type!)}`)
+            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${this.convert(it.type!)}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 

@@ -441,6 +441,8 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const peerClassName = componentToPeerClass(peer.componentName)
 
+        printer.writeInterface(componentToUIAttributesInterface(peer.originalClassName!), () => {})
+
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
@@ -471,7 +473,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
-        }, parentComponentClassName) //, [peer.originalClassName!])
+        }, parentComponentClassName, [componentToUIAttributesInterface(peer.originalClassName!)])
 
         return [{
             collector: imports,

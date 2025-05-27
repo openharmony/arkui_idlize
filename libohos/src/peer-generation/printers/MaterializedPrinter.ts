@@ -90,7 +90,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             ctorSig.args.map(() => ArgumentModifier.OPTIONAL))
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
 
-        this.printer.writeConstructorImplementation(implementationClassName, sigWithPointer, writer => {
+        this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
             if (superClassName) {
                 let params: string[] = []
                 // workaround for MutableStyledString which does not have a constructor
@@ -236,6 +236,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     protected get namespacePrefix(): string {
         return ""
     }
+    protected mangle(className: string): string {
+        return className
+    }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
         const printer = this.printer
@@ -251,7 +254,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             interfaces.push(
                 ...clazz.interfaces.map(it => {
                     const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
-                    return `${this.namespacePrefix}${it.name}${printer.language == Language.CJ ? 'Interface' : ''}${typeArgs}`
+                    return `${this.namespacePrefix}${it.name}${printer.language == Language.CJ ? 'Interfaces' : ''}` // ${typeArgs}`
                 }))
         }
 
@@ -267,7 +270,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         } else if (!clazz.isStaticMaterialized) {
             // Write internal Materialized class with fromPtr(ptr) method
             printer.writeClass(
-                getInternalClassName(clazz.className),
+                this.mangle(getInternalClassName(clazz.className)),
                 writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
                 undefined,
                 undefined,
@@ -279,7 +282,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const implementationClassName = clazz.getImplementationName()
 
-        printer.writeClass(implementationClassName, writer => {
+        printer.writeClass(this.mangle(implementationClassName), writer => {
             if (!superClassName && !clazz.isStaticMaterialized) {
                 writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
                 // write getPeer() method
@@ -411,9 +414,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
 function writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, classTypeParameters?: string[]) {
     // write "fromPtr(ptr: number): MaterializedClass" method
-    const className: string = clazz.getImplementationName()
+    const classNamespace = writer.language == Language.CJ ? idl.getNamespaceName(clazz.decl) : ""
+    const className: string = `${classNamespace}${clazz.getImplementationName()}`
     const clazzRefType = clazz.isInterface
-        ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
+        ? idl.createReferenceType(classNamespace.concat(getInternalClassName(clazz.className)), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
         : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
     const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
     writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
@@ -521,6 +525,13 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
     }
 
+    override mangle(className: string): string {
+        return this.namespacePrefix.concat(className)
+    }
+    override get namespacePrefix(): string {
+        return idl.getNamespaceName(this.clazz.decl)
+    }
+
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
         return {
@@ -604,7 +615,7 @@ function getSuperName(clazz: MaterializedClass): string | undefined {
 function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
     const decl: idl.IDLInterface = clazz.decl
     const superInterface = writer.language == Language.JAVA ? ["Ark_Object"] : undefined
-    writer.writeInterface(decl.name, writer => {
+    writer.writeInterface(`${writer.language == Language.CJ ? idl.getNamespaceName(clazz.decl) : ""}${decl.name}`, () => {
         for (const p of decl.properties) {
             const modifiers: FieldModifier[] = []
             if (p.isReadonly) modifiers.push(FieldModifier.READONLY)

@@ -225,7 +225,7 @@ class DeserializeCallbacksVisitor {
                     cppArgsNames.push(`_continuation`)
                 writer.writeExpressionStatement(writer.makeFunctionCall(callName, cppArgsNames.map(it => writer.makeString(it))))
             } else {
-                let callExpression = writer.makeFunctionCall(callName, argsNames.map(it => writer.makeString(it)))
+                let callExpression = writer.makeFunctionCall(callName, argsNames.map(it => writer.makeString(writer.escapeKeyword(it))))
                 if (hasContinuation) {
                     // TODO: Uses temporary variable `callResultRef` to fix ArkTS error: 'TypeError: Member type must be the same for all union objects.'
                     // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21332

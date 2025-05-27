@@ -299,6 +299,90 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 }
 
+class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+        private readonly builderClass: BuilderClass
+    ) { }
+
+    private printBuilderClass(builderClass: BuilderClass, imports: ImportsCollector, content: LanguageWriter) {
+        const writer = content
+        const clazz = processCJBuilderClass(builderClass)
+        // processTSBuilderClass(builderClass)
+
+        collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
+        if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
+            const maybeParents = [
+                ...this.peerLibrary.buildersToGenerate.values()
+            ]
+            const parentDecl = maybeParents.find(it => it.name === clazz.declaration.inheritance[0].name)
+            collectDeclDependencies(this.peerLibrary, parentDecl!.declaration, imports)
+        }
+        const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
+
+        const superType = generifiedTypeName(clazz.superClass)
+
+        writer.writeClass(clazz.name, writer => {
+
+            clazz.fields.forEach(field => {
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, isOptionalType(field.type), writer.makeNull())
+            })
+
+            clazz.constructors
+                .forEach(ctor => {
+                    writer.writeConstructorImplementation('init', ctor.signature, writer => {
+                        if (superType) {
+                            writer.writeSuperCall([])
+                        }
+                        ctor.signature.args
+                            .forEach((it, i) => {
+                                const argName = ctor.signature.argName(i)
+                                const fieldName = syntheticName(argName)
+                                writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
+                            })
+                    })
+                })
+
+            // clazz.methods
+            //     .filter(method => method.modifiers?.includes(MethodModifier.STATIC))
+            //     .forEach(staticMethod => {
+            //         writer.writeMethodImplementation(staticMethod, writer => {
+            //             const sig = staticMethod.signature
+            //             const args = sig.args.map((_, i) => sig.argName(i)).join(", ")
+            //             const obj = forceAsNamedNode(sig.returnType).name
+            //             // TBD: Use writer.makeObjectAlloc()
+            //             writer.writeStatement(writer.makeReturn(writer.makeString(`${obj}(${args})`)))
+            //         })
+            //     })
+
+            // clazz.methods
+            //     .filter(method => !method.modifiers?.includes(MethodModifier.STATIC))
+            //     .forEach(method => {
+            //         writer.writeMethodImplementation(method, writer => {
+            //             const argName = method.signature.argName(0)
+            //             const fieldName = syntheticName(method.name)
+            //             writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
+            //             writer.writeStatement(writer.makeReturn(writer.makeString("this")))
+            //         })
+            //     })
+        }, superType, clazz.generics?.map(it => it))
+    }
+
+    printFile(): PrinterResult[] {
+        const content = this.peerLibrary.createLanguageWriter(Language.CJ)
+        const imports = new ImportsCollector()
+        this.printBuilderClass(this.builderClass, imports, content)
+        return [{
+            over: {
+                node: this.builderClass.declaration,
+                role: LayoutNodeRole.INTERFACE
+            },
+            collector: imports,
+            content: content,
+        }]
+    }
+}
+
 class BuilderClassVisitor {
     constructor(
         private readonly library: PeerLibrary,
@@ -319,6 +403,9 @@ class BuilderClassVisitor {
             else if ([Language.JAVA].includes(language)) {
                 visitor = new JavaBuilderClassFileVisitor(this.library, clazz)
             }
+            else if ([Language.CJ].includes(language)) {
+                visitor = new CJBuilderClassFileVisitor(this.library, clazz)
+            }
             else {
                 throw new Error(`Unsupported language ${language.toString()} in BuilderClassPrinter`)
             }
@@ -329,11 +416,6 @@ class BuilderClassVisitor {
 }
 
 export function printBuilderClasses(peerLibrary: PeerLibrary): PrinterResult[] {
-    // TODO: support other output languages
-    if (peerLibrary.language != Language.TS && peerLibrary.language != Language.ARKTS && peerLibrary.language != Language.JAVA) {
-        return []
-    }
-
     const visitor = new BuilderClassVisitor(peerLibrary)
     const result = visitor.printBuilderClasses()
     return result
@@ -367,6 +449,46 @@ function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
             const args = staticSig.args
             const ctorSig = new NamedMethodSignature(IDLVoidType, args, args.map((_, i) => staticSig.argName(i)))
             constructors = [new Method("constructor", ctorSig)]
+        }
+    }
+
+    const ctorFields = constructors.flatMap(cons => {
+        const ctorSig = cons.signature
+        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), createOptionalType(type)))
+    })
+
+    const syntheticFields = methods
+        .filter(it => !it.modifiers?.includes(MethodModifier.STATIC))
+        .map(it => toSyntheticField(it))
+
+    const fields = [...clazz.fields, ...ctorFields, ...syntheticFields]
+
+    return new BuilderClass(
+        clazz.declaration,
+        clazz.name,
+        clazz.generics,
+        clazz.isInterface,
+        clazz.superClass,
+        fields,
+        constructors,
+        methods,
+    )
+}
+
+function processCJBuilderClass(clazz: BuilderClass): BuilderClass {
+    const methods = clazz.methods
+    let constructors = clazz.constructors
+
+    if (!constructors || constructors.length == 0) {
+        // make a constructor from a static method parameters
+        const staticMethods = methods.
+            filter(method => method.modifiers?.includes(MethodModifier.STATIC))
+
+        if (staticMethods.length > 0) {
+            const staticSig = staticMethods[0].signature
+            const args = staticSig.args
+            const ctorSig = new NamedMethodSignature(IDLVoidType, args, args.map((_, i) => staticSig.argName(i)))
+            constructors = [new Method("init", ctorSig)]
         }
     }
 

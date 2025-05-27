@@ -102,7 +102,7 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             }
         })
         argsModifiers.push(optional ? ArgumentModifier.OPTIONAL : undefined)
-        return collapseTypes(types, "%PROXY_BEFORE_PEER%")
+        return collapseTypes(types) //, "%PROXY_BEFORE_PEER%")
     })
 
     const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.IDLVoidType), language)
@@ -382,9 +382,9 @@ export class OverloadsPrinter {
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
             if (this.printer.language == Language.CJ) {
                 if (idl.isOptionalType(collapsedMethod.signature.args[index])) {
-                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(`if (let Some(${argName}) <- ${argName}) {${argName}} else { throw Exception(\"Type has to be not None\")}`), true, true).write(this.printer)
+                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(`if (let Some(${this.printer.escapeKeyword(argName)}) <- ${this.printer.escapeKeyword(argName)}) {${this.printer.escapeKeyword(argName)}} else { throw Exception(\"Type has to be not None\")}`), true, true).write(this.printer)
                 } else {
-                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
+                    this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(this.printer.escapeKeyword(argName)), true, true).write(this.printer)
                 }
             } else if (this.printer.language == Language.JAVA) {
                 this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
