@@ -294,24 +294,24 @@ export const D = {
                 value: result
             })
         },
-            () => {
-                const properties: Record<string, JsonSchemaNode> = {}
-                const required: string[] = []
-                for (const key in schema) {
-                    const leaf = schema[key]
-                    properties[key] = leaf.printSchema()
-                    if (!(leaf instanceof ConfigDescriberOptionalLeaf)) {
-                        required.push(key)
-                    }
+        () => {
+            const properties: Record<string, JsonSchemaNode> = {}
+            const required: string[] = []
+            for (const key in schema) {
+                const leaf = schema[key]
+                properties[key] = leaf.printSchema()
+                if (!(leaf instanceof ConfigDescriberOptionalLeaf)) {
+                    required.push(key)
                 }
-                return {
-                    additionalProperties: false,
-                    properties,
-                    required,
-                    type: "object"
-                }
-            },
-            schema)
+            }
+            return {
+                additionalProperties: false,
+                properties,
+                required,
+                type: "object"
+            }
+        },
+        schema)
     },
 
     ////////////////////////////////////////
@@ -462,7 +462,7 @@ export const D = {
                 }
             })
         },
-        null(x:null): ConfigDescriberLeaf<null> {
+        null(): ConfigDescriberLeaf<null> {
             return new ConfigDescriberLeaf<null>(xs => {
                 if (typeof xs === 'object' && xs === null) {
                     return ValidationBox.ok<null>(null)

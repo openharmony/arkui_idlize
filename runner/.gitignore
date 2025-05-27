@@ -1,0 +1,5 @@
+/.rollup.cache/
+/build/
+/lib/
+/node_modules/
+/out/

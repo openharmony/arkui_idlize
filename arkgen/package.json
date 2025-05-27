@@ -4,7 +4,20 @@
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
+  "exports": {
+    "./app": [
+      "./lib/library.js"
+    ]
+  },
+  "typesVersions": {
+    "*": {
+      "app": [
+        "build/lib/src/app.d.ts"
+      ]
+    }
+  },
   "files": [
+    "build/lib/src/app.d.ts",
     "lib/*.js",
     "stdlib.d.ts",
     "whitelist.json",
@@ -53,7 +66,7 @@
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
     "release": "npm run compile && npm run compile --prefix ../core && npm run compile --prefix linter && node tools/release.mjs",
-    "compile": "npm run compile -C ../libohos && rollup -c",
+    "compile": "npm run compile -C ../libohos && tsc && rollup -c",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out external-subset",
     "run:all": "npm run compile && node . --dts2peer --base-dir ./,../sdk-patched/api,../sdk-patched/kits,../sdk-patched/arkts --input-dir ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/arkui,../sdk-patched/api/global --verify-idl --common-to-attributes --docs=opt",
     "dts2skoala": "npm run compile && node . --dts2skoala --input-dir ./tests/mini_skoala/build/  --options-file ./generation-config/skoala-generator.json",

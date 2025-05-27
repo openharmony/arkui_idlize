@@ -27,10 +27,9 @@ const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
         ["T", idl.IDLNumberType]])],
 ])
 
-function processFile(outDir: string, baseDir: string, file: string, config: ETSVisitorConfig): IDLSuperFile {
+function processFile(outDir: string, baseDir: string, file: string, configPath:string, config: ETSVisitorConfig): IDLSuperFile {
     let input = fs.readFileSync(file).toString()
     //let module = arkts.createETSModuleFromSource(input, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
-    const configPath = path.resolve(__dirname, "..", "config.json")
     const configText = fs.readFileSync(configPath, 'utf-8')
     const configContent = JSON.parse(configText)
     const paths = configContent.compilerOptions.paths ?? {};
@@ -80,10 +79,11 @@ export interface GenerateFromSTSContext {
     inputFiles: string[]
     baseDir: string
     outDir: string
+    etsConfigPath: string
     config: ETSVisitorConfig
 }
 
-export function generateFromSts({ inputFiles, baseDir, outDir, config }: GenerateFromSTSContext): PeerLibrary {
+export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config }: GenerateFromSTSContext): PeerLibrary {
     if (!process.env.PANDA_SDK_PATH) {
         process.env.PANDA_SDK_PATH = path.resolve(__dirname, "../../external/incremental/tools/panda/node_modules/@panda/sdk")
     }
@@ -99,7 +99,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, config }: Generat
     inputFiles.forEach(file => {
         try {
             doJob(file, () => {
-                const idlFile = processFile(outDir, baseDir, file, config)
+                const idlFile = processFile(outDir, baseDir, file, etsConfigPath, config)
                 if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
                     console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
                 } else {

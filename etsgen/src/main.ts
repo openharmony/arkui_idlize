@@ -13,65 +13,6 @@
  * limitations under the License.
  */
 
+import { etsgen } from "./app";
 
-import { program } from "commander"
-import {
-    findVersion,
-    setDefaultConfiguration,
-    scanInputDirs
-} from "@idlizer/core"
-import { formatInputPaths, validatePaths, loadPeerConfiguration } from "@idlizer/libohos"
-import { generateFromSts } from "./generate"
-import { readConfig } from "./config"
-import { resolve } from "node:path"
-
-const options = program
-    .option('--ets2idl', 'Convert .d.ts to IDL definitions')
-    .option('--idl2ets', 'Convert IDL to .d.sts definitions')
-    .option('--input-dir <path>', 'Path to input dir(s), comma separated')
-    .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
-    .option('--output-dir <path>', 'Path to output dir')
-    .option('--input-files <files...>', 'Comma-separated list of specific files to process')
-    .option('--verify-idl', 'Verify produced IDL')
-    .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
-    .option('--version')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
-    .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
-    .parse()
-    .opts()
-
-if (process.env.npm_package_version) {
-    console.log(`IDLize version ${findVersion()}`)
-}
-
-let didJob = false
-
-const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles } = formatInputPaths(options)
-validatePaths(baseDirs, "dir")
-validatePaths(inputDirs, "dir")
-validatePaths(auxInputDirs, "dir")
-validatePaths(inputFiles, "file")
-validatePaths(auxInputFiles, "file")
-
-const detsInputFiles = scanInputDirs(inputDirs, (it) => it.endsWith("d.ets"), true).concat(inputFiles)
-
-if (options.ets2idl) {
-    const { inputDirs, inputFiles } = formatInputPaths(options)
-    validatePaths(inputDirs, 'dir')
-    validatePaths(inputFiles, 'file')
-    generateFromSts({
-        inputFiles: detsInputFiles,
-        baseDir: options.baseDir,
-        outDir: options.outputDir,
-        config: readConfig(resolve(__dirname, '..', 'generator-config.json'))
-    })
-    didJob = true
-}
-
-if (options.idl2sts) {
-    throw new Error("Not yet implemented")
-}
-
-if (!didJob) {
-    program.help()
-}
+etsgen(process.argv.slice(2))

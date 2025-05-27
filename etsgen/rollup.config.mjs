@@ -18,46 +18,58 @@ import commonjs from '@rollup/plugin-commonjs'
 import * as path from "node:path";
 import * as fs from "node:fs";
 
-/** @type {import("rollup").RollupOptions} */
-export default {
-    input: "./src/main.ts",
-    output: {
-        file: "./lib/main.js",
-        format: "commonjs",
-        sourcemap: true,
-        sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-            const sourcemapDir = path.dirname(sourcemapPath)
-            let absolute = path.join(sourcemapDir, relativeSourcePath);
-            if(fs.existsSync(absolute))
-                return path.relative(sourcemapDir, absolute)
-            // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
-            absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
-            if(fs.existsSync(absolute))
-                return path.relative(sourcemapDir, absolute)
-            console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
-            return relativeSourcePath
+/**
+ * @param {string} sourcePath
+ * @param {string} resultPath
+ * @returns {import("rollup").RollupOptions}
+ * */
+export function createTarget(sourcePath, resultPath) {
+    return {
+        input: sourcePath,
+        output: {
+            file: resultPath,
+            format: "commonjs",
+            sourcemap: true,
+            sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+                const sourcemapDir = path.dirname(sourcemapPath)
+                let absolute = path.join(sourcemapDir, relativeSourcePath);
+                if (fs.existsSync(absolute))
+                    return path.relative(sourcemapDir, absolute)
+                // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
+                absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
+                if (fs.existsSync(absolute))
+                    return path.relative(sourcemapDir, absolute)
+                console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
+                return relativeSourcePath
+            },
+            banner: [
+                "#!/usr/bin/env node",
+                APACHE_LICENSE_HEADER()
+            ].join("\n"),
         },
-        banner: [
-            "#!/usr/bin/env node",
-            APACHE_LICENSE_HEADER()
-        ].join("\n"),
-    },
-    external: ["commander", "typescript", "@koalaui/libarkts"],
-    plugins: [
-        commonjs(),
-        typescript({
-            outputToFilesystem: false,
-            module: "esnext",
-            sourceMap: true,
-            declarationMap: false,
-            declaration: false,
-            composite: false,
-        }),
-        nodeResolve({
-            extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
-        })
-    ],
+        external: ["commander", "typescript", "@koalaui/libarkts"],
+        plugins: [
+            commonjs(),
+            typescript({
+                outputToFilesystem: false,
+                module: "esnext",
+                sourceMap: true,
+                declarationMap: false,
+                declaration: false,
+                composite: false,
+            }),
+            nodeResolve({
+                extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
+            })
+        ],
+    }
 }
+
+/** @type {import("rollup").RollupOptions} */
+export default [
+    createTarget("./src/main.ts", "./lib/main.js"),
+    createTarget("./src/app.ts", "./lib/library.js")
+]
 
 function APACHE_LICENSE_HEADER() {
     return `

@@ -5,10 +5,24 @@
   "main": "lib/main.js",
   "bin": "lib/main.js",
   "files": [
+    "build/lib/src/app.d.ts",
     "lib/*.js",
     "generation-config/**/*",
-    "config.json"
+    "config.json",
+    "components_stubs/**/*"
   ],
+  "exports": {
+    "./app": [
+      "./lib/library.js"
+    ]
+  },
+  "typesVersions": {
+    "*": {
+      "app": [
+        "./build/lib/src/app.d.ts"
+      ]
+    }
+  },
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
@@ -26,8 +40,6 @@
     "clean": "rimraf -g build",
     "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && rollup -c",
-    "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets && cp -r components_stubs/* out/idl/",
-    "run:extended:only": "npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-files $(cat extended-input.txt | tr '\\n' ' ')",
-    "run": "npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ./input --input-dir  ./input --verify-idl --docs=none"
+    "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --use-component-stubs --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets"
   }
 }

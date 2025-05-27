@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "outDir": "out/junk",
+        "rootDir": ".",
+        "paths": {
+            "@ohos.arkui.stateManagement": ["%PATCHED_SDK_PATH%/api/@ohos.arkui.stateManagement"],
+            "@koalaui.runtime.common": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.common"],
+            "@koalaui.runtime.states.Disposable": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.states.Disposable"],
+            "@koalaui.runtime.tree.IncrementalNode": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.tree.IncrementalNode"],
+            "@koalaui.runtime.tree.ReadonlyTreeNode": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.tree.ReadonlyTreeNode"],
+            "@koalaui.runtime.states.State": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.states.State"],
+            "@koalaui.runtime.annotations": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.annotations"],
+            "@koalaui.runtime.states.GlobalStateManager": ["%PATCHED_SDK_PATH%/api/arkui/runtime-api/@koalaui.runtime.states.GlobalStateManager"],
+            "@ohos.arkui.node": ["%PATCHED_SDK_PATH%/api/@ohos.arkui.node"],
+            "@ohos.arkui.UIContext": ["%PATCHED_SDK_PATH%/api/@ohos.arkui.UIContext"]
+        }
+    }
+}
