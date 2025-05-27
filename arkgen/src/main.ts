@@ -101,7 +101,7 @@ const options = program
     .option('--interop-bridges <string>', "Generate interop bridges macros")
     .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
     .option('--use-component-optional', 'Make all component\'s properties nullable')
-    .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'default'))
+    .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
     .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
 
     .parse()
