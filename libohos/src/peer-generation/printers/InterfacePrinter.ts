@@ -171,6 +171,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.properties
                 .map(it => this.printProperty(it)).flat())
             .concat(this.collapseAmbiguousMethods(idlInterface.methods)
+                .filter(it => !idl.isInterfaceSubkind(idlInterface) || !it.isStatic)
                 .map(it => this.printMethod(it)).flat())
             .concat(idlInterface.callables
                 .map(it => this.printFunction(it)).flat())
@@ -196,6 +197,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     protected collapseMethods(methodsName:string, methods:idl.IDLMethod[]): idl.IDLMethod {
         const parameters: idl.IDLParameter[] = []
         const maxParams = methods.map(m => m.parameters.length).reduce((a, b) => Math.max(a, b), -1)
+
+        // todo: better code and better logic here
+        const isStatic = methods.every(it => it.isStatic)
+        const isAsync = methods.every(it => it.isAsync)
+        const isFree = methods.every(it => it.isFree)
+        const isOptional = methods.some(it => it.isOptional)
+
         for (let i = 0; i < maxParams; ++i) {
             const names = new Set<string>()
             const types: idl.IDLType[] = []
@@ -222,7 +230,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return idl.createMethod(
             methodsName,
             parameters,
-            collapseTypes(methods.map(m => m.returnType))
+            collapseTypes(methods.map(m => m.returnType)),
+            {
+                isStatic,
+                isAsync,
+                isFree,
+                isOptional
+            }
         )
     }
 
@@ -1375,7 +1389,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
         }, superNames ? superNames.map(it => `${removePoints(idl.getNamespaceName(it as unknown as idl.IDLEntry))}${it.name}Interfaces${typeParams}`) : undefined) // make proper inheritance
-        
+
         writer.writeClass(`${FQInterfaceName}${typeParams}`, () => {
             ownProperties.concat(parentProperties).forEach(it => {
                 let modifiers: FieldModifier[] = []
