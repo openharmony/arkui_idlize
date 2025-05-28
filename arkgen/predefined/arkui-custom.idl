@@ -19,6 +19,8 @@ interface LazyForEachOps {
 interface SystemOps {
     static pointer StartFrame();
     static void EndFrame(pointer root);
+    static void syncInstanceId(i32 instanceId);
+    static void restoreInstanceId();
     static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
     static void resourceManagerReset();
     static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
