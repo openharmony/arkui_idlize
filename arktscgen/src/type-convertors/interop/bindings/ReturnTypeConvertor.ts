@@ -19,7 +19,8 @@ import {
     IDLPointerType,
     IDLPrimitiveType,
     IDLReferenceType,
-    IDLType
+    IDLType,
+    throwException
 } from "@idlizer/core"
 import { Typechecker } from "../../../general/Typechecker"
 import { BaseTypeConvertor } from "../../BaseTypeConvertor"
@@ -45,7 +46,8 @@ export class ReturnTypeConvertor extends BaseTypeConvertor<IDLType> {
             boolean: (type: IDLPrimitiveType) => type,
             string: (type: IDLPrimitiveType) => type,
             void: (type: IDLPrimitiveType) => type,
-            pointer: (type: IDLPrimitiveType) => type
+            pointer: (type: IDLPrimitiveType) => type,
+            undefined: (type: IDLPrimitiveType) => throwException(`undefined type is not allowed`)
         })
     }
 }

@@ -16,8 +16,7 @@
 import { BindingsConstructions } from "./BindingsConstructions"
 import { InteropConstructions } from "./InteropConstructions"
 import { peerMethod } from "../general/common"
-import { createReferenceType } from "@idlizer/core"
-import { Config } from "../general/Config"
+import { capitalize, createReferenceType } from "@idlizer/core"
 
 export class PeersConstructions {
     static fileName(node: string): string {
@@ -131,5 +130,9 @@ export class PeersConstructions {
 
     static callPeerMethod(iface: string, method: string): string {
         return `${iface}.${method}`
+    }
+
+    static brand(iface: string): string {
+        return `brand${capitalize(iface)}`
     }
 }

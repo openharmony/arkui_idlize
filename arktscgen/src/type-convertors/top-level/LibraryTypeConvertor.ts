@@ -32,7 +32,8 @@ export class LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
             number: (type: IDLPrimitiveType) => `number`,
             void: (type: IDLPrimitiveType) => `void`,
             boolean: (type: IDLPrimitiveType) => `boolean`,
-            pointer: (type: IDLPrimitiveType) => `KNativePointer`
+            pointer: (type: IDLPrimitiveType) => `KNativePointer`,
+            undefined: (type: IDLPrimitiveType) => `undefined`
         })
     }
 }

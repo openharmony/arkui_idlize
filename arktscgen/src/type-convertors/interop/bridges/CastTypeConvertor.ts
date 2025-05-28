@@ -58,7 +58,9 @@ export class CastTypeConvertor extends BaseTypeConvertor<string> {
             void: (type: IDLPrimitiveType) =>
                 throwException(`no void typed parameters allowed`),
             pointer: (type: IDLPrimitiveType) =>
-                throwException(`no pointer typed parameters allowed`)
+                throwException(`no pointer typed parameters allowed`),
+            undefined: (type: IDLPrimitiveType) =>
+                throwException(`no undefined typed parameters allowed`)
         })
     }
 }
@@ -101,7 +103,9 @@ class CastToTypeConvertor extends BaseTypeConvertor<string> {
             void: (type: IDLPrimitiveType) =>
                 throwException(`no void typed parameters allowed`),
             pointer: (type: IDLPrimitiveType) =>
-                throwException(`no pointer typed parameters allowed`)
+                throwException(`no pointer typed parameters allowed`),
+            undefined: (type: IDLPrimitiveType) =>
+                throwException(`no undefined typed parameters allowed`)
         })
     }
 }

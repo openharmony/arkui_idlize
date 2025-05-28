@@ -17,12 +17,14 @@ import {
     createEmptyReferenceResolver,
     createParameter,
     createReferenceType,
+    FieldModifier,
     IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
     IDLPointerType,
     IDLType,
+    IDLUndefinedType,
     IDLVoidType,
     IndentedPrinter,
     LanguageExpression,
@@ -109,6 +111,7 @@ export class PeerPrinter extends SingleFilePrinter {
     private printBody(): void {
         this.printConstructor()
         this.printMethods()
+        this.printBrands()
     }
 
     private printConstructor(): void {
@@ -321,6 +324,16 @@ export class PeerPrinter extends SingleFilePrinter {
             this.writer.makeString(`if (!nodeByType.has(${qualified})) {`),
             this.writer.makeString(`    nodeByType.set(${qualified}, (peer: KNativePointer) => new ${this.node.name}(peer))`),
             this.writer.makeString(`}`)
+        )
+    }
+
+    private printBrands(): void {
+        this.typechecker.ancestry(this.node).forEach(it =>
+            this.writer.writeProperty(
+                PeersConstructions.brand(it.name),
+                IDLUndefinedType,
+                [FieldModifier.PROTECTED, FieldModifier.READONLY]
+            )
         )
     }
 }

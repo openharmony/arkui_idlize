@@ -93,20 +93,20 @@ export function baseNameString(name: string): string {
 
 // A bit of a hack, use namespaces for real later.
 export function flattenType(type: IDLType): IDLType {
-        if (idl.isUnionType(type))
-            return idl.createUnionType(type.types.map(flattenType), type.name)
-        if (idl.isOptionalType(type))
-            return idl.createOptionalType(flattenType(type.type))
-        if (isContainerType(type))
-            return createContainerType(type.containerKind, type.elementType.map(flattenType))
-        if (idl.isReferenceType(type)) {
-            if (type.name.indexOf(".") > 0) {
-                let result = idl.createReferenceType(baseName(type))
-                //console.log(`flatten ${type.name} to ${result.name}`)
-                return result
-            }
+    if (idl.isUnionType(type))
+        return idl.createUnionType(type.types.map(flattenType), type.name)
+    if (idl.isOptionalType(type))
+        return idl.createOptionalType(flattenType(type.type))
+    if (isContainerType(type))
+        return createContainerType(type.containerKind, type.elementType.map(flattenType))
+    if (idl.isReferenceType(type)) {
+        if (type.name.indexOf(".") > 0) {
+            let result = idl.createReferenceType(baseName(type))
+            //console.log(`flatten ${type.name} to ${result.name}`)
+            return result
         }
-        return type
+    }
+    return type
 }
 
 export function createUpdatedMethod(

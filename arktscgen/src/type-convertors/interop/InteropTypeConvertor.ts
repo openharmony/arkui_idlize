@@ -29,6 +29,7 @@ export abstract class InteropTypeConvertor extends BaseTypeConvertor<string> {
             enum: (type: IDLReferenceType) => `KInt`,
             reference: (type: IDLReferenceType) => `KNativePointer`,
             optional: (type: IDLOptionalType) => throwException(`no nullable allowed at interop level`),
+            undefined: (type: IDLPrimitiveType) => throwException(`no nullable allowed at interop level`),
             i8: (type: IDLPrimitiveType) => `KBoolean`,
             iu8: (type: IDLPrimitiveType) => 'KInt',
             i16: (type: IDLPrimitiveType) => `KInt`,

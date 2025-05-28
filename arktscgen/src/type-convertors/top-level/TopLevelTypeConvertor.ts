@@ -30,6 +30,7 @@ export abstract class TopLevelTypeConvertor<T> extends BaseTypeConvertor<T> {
             void: (type: IDLPrimitiveType) => T,
             pointer: (type: IDLPrimitiveType) => T,
             boolean: (type: IDLPrimitiveType) => T,
+            undefined: (type: IDLPrimitiveType) => T
         }
     ) {
         super(typechecker, {
@@ -46,7 +47,8 @@ export abstract class TopLevelTypeConvertor<T> extends BaseTypeConvertor<T> {
                 f64: heirConversions.number,
                 void: heirConversions.void,
                 boolean: heirConversions.boolean,
-                pointer: heirConversions.pointer
+                pointer: heirConversions.pointer,
+                undefined: heirConversions.undefined
             }
         })
     }

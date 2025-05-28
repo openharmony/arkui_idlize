@@ -61,6 +61,7 @@ export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
             void: plain,
             pointer: plain,
             boolean: plain,
+            undefined: plain
         })
     }
 }

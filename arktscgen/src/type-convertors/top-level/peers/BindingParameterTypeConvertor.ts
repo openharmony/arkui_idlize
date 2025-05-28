@@ -43,6 +43,7 @@ export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
             void: (type: IDLPrimitiveType) => (parameter: string) => parameter,
             pointer: (type: IDLPrimitiveType) => (parameter: string) => parameter,
             boolean: (type: IDLPrimitiveType) => (parameter: string) => parameter,
+            undefined: (type: IDLPrimitiveType) => (parameter: string) => parameter
         })
     }
 }

@@ -26,7 +26,7 @@ import {
     linearizeNamespaceMembers
 } from "@idlizer/core"
 import { Config } from "./Config"
-import { baseName, baseNameString, isIrNamespace, nodeType } from "../utils/idl"
+import { baseNameString, isIrNamespace, nodeType, parent } from "../utils/idl"
 
 export class Typechecker {
     constructor(private idl: IDLEntry[]) {
@@ -95,5 +95,27 @@ export class Typechecker {
         return idlEnum?.elements
             ?.find(it => it.initializer?.toString() === value)
             ?.name
+    }
+
+    parent(node: IDLInterface): IDLInterface | undefined {
+        const parentName = parent(node)
+        if (parentName === undefined) return undefined
+        const decl = this.findRealDeclaration(parentName)
+        if (decl === undefined) return undefined
+        if (!isInterface(decl)) return undefined
+        return decl
+    }
+
+    ancestry(node: IDLInterface): IDLInterface[] {
+        let current = node
+        const res = []
+        while (true) {
+            res.push(current)
+            const parent = this.parent(current)
+            if (parent === undefined) {
+                return res
+            }
+            current = parent
+        }
     }
 }

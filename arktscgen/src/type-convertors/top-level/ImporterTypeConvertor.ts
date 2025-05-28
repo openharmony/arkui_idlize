@@ -13,19 +13,10 @@
  * limitations under the License.
  */
 
-import {
-    convertType,
-    IDLContainerType,
-    IDLOptionalType,
-    IDLPrimitiveType,
-    IDLReferenceType,
-    IDLType,
-    throwException
-} from "@idlizer/core"
+import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
 import { Importer } from "../../printers/library/Importer"
 import { Typechecker } from "../../general/Typechecker"
-import { BaseTypeConvertor } from "../BaseTypeConvertor"
 import { baseName } from "../../utils/idl"
 
 export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
@@ -54,7 +45,8 @@ export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
             number: (type: IDLPrimitiveType) => type,
             boolean: (type: IDLPrimitiveType) => type,
             void: (type: IDLPrimitiveType) => type,
-            pointer: (type: IDLPrimitiveType) => type
+            pointer: (type: IDLPrimitiveType) => type,
+            undefined: (type: IDLPrimitiveType) => type
         })
     }
 }

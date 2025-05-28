@@ -45,7 +45,8 @@ export class ReturnTypeConvertor extends BaseTypeConvertor<IDLType> {
             f64: (type: IDLPrimitiveType) => type,
             boolean: (type: IDLPrimitiveType) => type,
             void: (type: IDLPrimitiveType) => type,
-            pointer: (type: IDLPrimitiveType) => type
+            pointer: (type: IDLPrimitiveType) => type,
+            undefined: (type: IDLPrimitiveType) => type
         })
     }
 }

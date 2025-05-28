@@ -34,6 +34,7 @@ import {
     IDLU32Type,
     IDLU64Type,
     IDLU8Type,
+    IDLUndefinedType,
     IDLUnionType,
     IDLVoidType,
     isEnum,
@@ -64,6 +65,7 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
             string: (type: IDLPrimitiveType) => T
             void: (type: IDLPrimitiveType) => T
             pointer: (type: IDLPrimitiveType) => T
+            undefined: (type: IDLPrimitiveType) => T
         }
     ) {}
 
@@ -89,6 +91,7 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
             case IDLStringType: return this.conversions.string(type)
             case IDLVoidType: return this.conversions.void(type)
             case IDLPointerType: return this.conversions.pointer(type)
+            case IDLUndefinedType: return this.conversions.undefined(type)
         }
         throwException(`unsupported primitive type: ${JSON.stringify(type)}`)
     }
