@@ -111,7 +111,7 @@ export class PeerPrinter extends SingleFilePrinter {
     private printBody(): void {
         this.printConstructor()
         this.printMethods()
-        this.printBrands()
+        this.printBrand()
     }
 
     private printConstructor(): void {
@@ -327,13 +327,11 @@ export class PeerPrinter extends SingleFilePrinter {
         )
     }
 
-    private printBrands(): void {
-        this.typechecker.ancestry(this.node).forEach(it =>
-            this.writer.writeProperty(
-                PeersConstructions.brand(it.name),
-                IDLUndefinedType,
-                [FieldModifier.PROTECTED, FieldModifier.READONLY]
-            )
+    private printBrand(): void {
+        this.writer.writeProperty(
+            PeersConstructions.brand(this.node.name),
+            IDLUndefinedType,
+            [FieldModifier.PROTECTED, FieldModifier.READONLY]
         )
     }
 }
