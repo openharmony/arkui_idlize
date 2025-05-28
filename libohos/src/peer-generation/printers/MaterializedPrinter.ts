@@ -200,17 +200,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const mField = field.field
 
             // TBD: use deserializer to get complex type from native
-            const isSimpleType = !field.argConvertor.useArray // type needs to be deserialized from the native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
-            const isReadOnly = mField.modifiers.includes(FieldModifier.READONLY)
             this.printer.writeProperty(mField.name, this.convertToPropertyType(field), mField.modifiers,
                 {
                     method: new Method('get', new MethodSignature(this.convertToPropertyType(field), [])), op: () => {
                         this.printer.writeStatement(
-                        isSimpleType
-                            ? this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
-                            : this.printer.makeThrowError("Not implemented")
+                            this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                         )
                     }
                 },
