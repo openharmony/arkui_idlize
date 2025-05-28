@@ -67,5 +67,7 @@ interface FrameNode {
     static FrameNode getAttachedFrameNodeById(String id);
     static FrameNode getFrameNodeById(number id);
     static FrameNode getFrameNodeByUniqueId(number id);
+    void reuse();
+    void recycle();
     static pointer getFrameNodePtr(FrameNode node);
 };
