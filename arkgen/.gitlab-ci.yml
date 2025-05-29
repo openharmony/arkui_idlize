@@ -14,7 +14,6 @@ workflow:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  PANDA_SDK_VER: "1.5.0-dev.30153"
 
 include:
     - gitlab/setup.yml
@@ -43,6 +42,8 @@ idlize sanity:
     - koala-ci
   before_script:
     - !reference [.setup, script]
+    - !reference [.setup, panda-sdk]
+    - !reference [.setup, libarkts]
   script:
     - npm run download:sdk
     - npm run sanity
@@ -68,9 +69,8 @@ run arkts subset:
     - koala-ci
   before_script:
     - !reference [.setup, script]
+    - !reference [.setup, panda-sdk]
     - cd $CI_PROJECT_DIR/arkgen
-    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
-    - npm run panda:sdk:check-install
   script:
     - npm run run:panda:subset
 
@@ -82,10 +82,10 @@ compile arkts peers:
     - koala-ci
   before_script:
     - !reference [.setup, script]
+    - !reference [.setup, panda-sdk]
+    - !reference [.setup, libarkts]
     - npm run download:sdk
     - cd $CI_PROJECT_DIR/arkgen
-    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
-    - npm run panda:sdk:check-install
   script:
     - npm run make:compile:arkts:peers
 
@@ -109,9 +109,8 @@ arkts subset sig integration:
     - koala-ci
   before_script:
     - !reference [.setup, script]
+    - !reference [.setup, panda-sdk]
     - cd $CI_PROJECT_DIR/arkgen
-    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
-    - npm run panda:sdk:check-install
   script:
     - npm run sig:arkts:subset:all
 
@@ -277,11 +276,8 @@ check index-full:
       - koala-ci
     before_script:
       - !reference [.setup, script]
+      - !reference [.setup, libarkts]
       - npm run download:sdk
-      - npm run compile --prefix external/ui2abc/libarkts
-      - npm install --prefix etsgen
-      - npm run compile --prefix etsgen
-      - npm run libarkts:reinstall:regenerate --prefix etsgen
       - cd $CI_PROJECT_DIR/arkgen
     script:
         - npm run check:peers:ets

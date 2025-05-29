@@ -28,7 +28,7 @@
   "dependencies": {
     "@idlizer/core": "2.1.7+devel",
     "@idlizer/libohos": "2.1.7+devel",
-    "@koalaui/libarkts": "1.7.3",
+    "@koalaui/libarkts": "file:../external/ui2abc/libarkts",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "@rollup/plugin-commonjs": "^26.0.1",

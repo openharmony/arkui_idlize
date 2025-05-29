@@ -102,7 +102,7 @@ declare class CanvasRenderingContext2D extends CanvasRenderer {
 
   stopImageAnalyzer(): void;
 
-  constructor(settings?: RenderingContextSettings);
+  constructor(settings?: RenderingContextSettings, unit?: LengthMetricsUnit);
 
   static of(): CanvasRenderingContext2D
 }

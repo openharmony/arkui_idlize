@@ -109,7 +109,7 @@
     "compile:native-node-host-full-ets": "npm run configure:native-node-host-full-ets && cd native && meson compile --verbose -C build-node-host-full && meson install -C build-node-host-full",
     "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
     "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",
-    "make:ts:subset": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/subset/api --input-dir ./tests/subset/api/@internal/component/ets/,./tests/subset/api,./tests/subset/api/arkui --output-dir ./out/ts-subset/generated",
+    "make:ts:subset": "npm run compile && node . --api-version 99 --dts2peer --use-component-optional --base-dir ./,./tests/subset/api --input-dir ./tests/subset/api/@internal/component/ets/,./tests/subset/api,./tests/subset/api/arkui --output-dir ./out/ts-subset/generated",
     "make:arkts": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/arkts-subset/api --input-dir ./tests/arkts-subset/api/@internal/component/ets/ --output-dir ./out/arkts-subset/generated --language arkts",
     "make:arkts:subset:tsc": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,./tests/arkts-subset/api --input-dir ./tests/arkts-subset/api/@internal/component/ets/ --arkoala-destination ./out/arkts-subset-tsc/generated --generator-target arkoala --language=arkts",
     "make:arkts:peers:tsc": "npm run compile && node . --api-version 99 --dts2peer --base-dir ./,../sdk-patched/api,../sdk-patched/kits,../sdk-patched/arkts --input-dir ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --arkoala-destination ./out/arkts-peers-tsc/generated --generator-target arkoala --language=arkts",
@@ -184,6 +184,6 @@
     "test:root": "mocha test",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "test": "npm run test:core && npm run test:root",
-    "sanity": "npm run check:subset:run && npm run check:peers:ets:run && npm run run:panda:peers:ets"
+    "sanity": "npm run check:subset:run && npm run check:peers:ets:run"
   }
 }

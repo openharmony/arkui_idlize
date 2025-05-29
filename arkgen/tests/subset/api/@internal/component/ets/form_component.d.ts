@@ -10,9 +10,6 @@ declare interface FormComponentInterface {
 }
 
 declare class FormComponentAttribute extends CommonMethod<FormComponentAttribute> {
-
-    size(value: { width: number; height: number }): FormComponentAttribute;
-
     onAcquired(callback: Callback<FormCallbackInfo>): FormComponentAttribute;
 }
 

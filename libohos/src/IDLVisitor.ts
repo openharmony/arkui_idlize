@@ -84,12 +84,6 @@ const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
         ["T", idl.IDLNumberType]])],
 ])
 
-const AdditionalPackages: string[] = [
-    'ohos.app.ability',
-    'ohos.arkui.node',
-    'ohos.base'
-]
-
 class Context {
     typeParameterMap: Map<string, idl.IDLType | undefined> | undefined
 
@@ -605,7 +599,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         }
 
         if (ts.isImportTypeNode(node.type)) {
-            extendedAttributes.push({ name: idl.IDLExtendedAttributes.Import, value: `${node.type.getText(node.getSourceFile())}` })
             return idl.createTypedef(
                 nameSuggestion.name,
                 this.serializeImportTypeNode(nameSuggestion, node.type),
@@ -663,13 +656,9 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
                     clause = [...clause, ...target.split(".")]
                 if (!clause.length)
                     throw new Error("Empty import type clause is not allowed...")
-                dst.name = clause.filter(x => x.length).join(".")
-                dst.typeArguments = this.mapTypeArgs(src.typeArguments, dst.name)
-                const found = this.predefinedTypeResolver?.resolveTypeReference(dst)
-                if (!found || !AdditionalPackages.find(it => dst.name.startsWith(it))) {
-                    dst.extendedAttributes ??= []
-                    dst.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Import, value: src.getText(src.getSourceFile()) })
-                }
+                dst.name = "_" + clause.at(-1)!
+                dst.typeArguments = this.mapTypeArgs(src.typeArguments, clause.at(-1)!)
+                this.imports.push(idl.createImport(clause, dst.name))
             }
 
             // if (this.predefinedTypeResolver?.resolveTypeReference(type)) {
@@ -1836,11 +1825,14 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     private collectTypeParameters(typeParameters: ts.NodeArray<ts.Node> | undefined): string[] | undefined {
+        function removeExtendsFromTypeParameter(value: string) {
+            return value.split(/(extends|implements)/g)[0]
+        }
         return this.context.typeParameterMap ? undefined : typeParameters?.flatMap(it => {
             if (ts.isTupleTypeNode(it)) {
                 return it.elements.map(it => it.getText())
             }
-            return it.getText()
+            return removeExtendsFromTypeParameter(it.getText())
         })
     }
 }

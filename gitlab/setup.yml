@@ -8,3 +8,11 @@
         - npm config set //nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
         - npm i --no-audit --no-fund
         - npm i --prefix external --no-audit --no-fund
+    libarkts:
+        - cd external/ui2abc/libarkts
+        - npm run reinstall:regenerate
+        - npm run compile
+        - npm run compile:plugins
+        - cd -
+    panda-sdk:
+        - PANDA_SDK_VERSION=1.5.0-dev.31052 npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda

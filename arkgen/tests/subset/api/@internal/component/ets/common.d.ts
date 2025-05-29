@@ -146,6 +146,7 @@ declare interface StateStyles {
 }
 
 declare interface AttributeModifier<T>{}
+declare interface AttributeUpdater<T>{}
 declare interface ContentModifier<T>{}
 
 declare interface SheetTitleOptions {

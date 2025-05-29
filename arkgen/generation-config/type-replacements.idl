@@ -107,14 +107,11 @@ interface ScrollAttribute: [TypeArguments="ScrollAttribute"] ScrollableCommonMet
 
 [Entity=Class, TypeParameters="T"]
 interface CommonMethod {
-    T size(SizeOptions value);
     T clip(optional boolean value);
     T clip(optional boolean clip);
     T mask(optional ProgressMask value);
     T mask(optional ProgressMask mask);
     T transform(TransformationMatrix value);
-    T width(Length value);
-    T height(Length value);
 };
 
 [Entity=Class]
@@ -127,7 +124,6 @@ callback FormComponentAttribute_onRouter_callback_type = void (String info);
 
 [Entity=Class]
 interface FormComponentAttribute: [TypeArguments="FormComponentAttribute"] CommonMethod {
-    FormComponentAttribute size(SizeOptions value);
     FormComponentAttribute onRouter(FormComponentAttribute_onRouter_callback_type callback);
 };
 

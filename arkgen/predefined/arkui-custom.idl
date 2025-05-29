@@ -2,8 +2,9 @@ package arkui.component.idlize;
 
 import arkui.component.units;
 import arkui.component.common;
-
 import arkui.Graphics.Frame as Frame;
+
+callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
 
 [Entity=Class]
 interface LazyForEachOps {

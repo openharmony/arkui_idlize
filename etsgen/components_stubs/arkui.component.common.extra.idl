@@ -3,7 +3,6 @@ import arkui.component.enums.TransitionType as TransitionType;
 import arkui.component.units.Position as Position;
 import arkui.component.units.ConstraintSizeOptions as ConstraintSizeOptions;
 
-callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
 interface TransitionOptions {
     [Optional]
     attribute TransitionType type;

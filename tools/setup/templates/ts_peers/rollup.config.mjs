@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+import MagicString from 'magic-string'
 import nodeResolve from "@rollup/plugin-node-resolve";
 import commonJs from "@rollup/plugin-commonjs"
 import os from 'os';
@@ -31,6 +32,36 @@ function crossPathRelative(from, to) {
     }
 }
 
+function enforceOrder(order) {
+    return {
+        name: "enforce-module-order",
+        renderChunk(code, chunk) {
+            const moduleIds = [...chunk.moduleIds]
+            for (let i = 0; i < moduleIds.length; i++) {
+                for (let j = i + 1; j < moduleIds.length; j++) {
+                    const idx1 = order.findIndex(it => moduleIds[i].includes(it))
+                    const idx2 = order.findIndex(it => moduleIds[j].includes(it))
+                    if (idx1 >= 0 && idx2 >= 0 && idx1 > idx2) {
+                        const t = moduleIds[i]
+                        moduleIds[i] = moduleIds[j]
+                        moduleIds[j] = t
+                    }
+                }
+            }
+            let magicString = new MagicString(code)
+            for (let i = 0; i < moduleIds.length; i++) {
+                if (moduleIds[i] !== chunk.moduleIds[i]) {
+                    const oldId = chunk.moduleIds[i]
+                    const newId = moduleIds[i]
+                    console.log(`Replace chunk ${oldId} to ${newId}`)
+                    magicString.replace(chunk.modules[oldId].code, chunk.modules[newId].code)
+                }
+            }
+            return { code: magicString.toString(), map: magicString.generateMap() }
+        }
+    }
+}
+
 const arch = process.env.arch
 
 console.log(`rollup args: arch = ${arch}`)
@@ -39,6 +70,7 @@ const arkoalaArkuiSrcDir = `${generatedDir}/sig/arkoala/arkui/src`
 const tsconfigFile = path.resolve(`tsconfig.json`)
 const outDir = path.resolve('lib')
 
+const enforcedOrder = ["src/generated/common.ts", "src/generated/gesture.ts", "src/generated/textInput.ts"]
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
 /** @type {import("rollup").RollupOptions} */
@@ -64,6 +96,7 @@ export default {
     },
     external: [],
     plugins: [
+        enforceOrder(enforcedOrder),
         typescript({
             outputToFilesystem: false,
             module: "ESNext",
@@ -82,7 +115,7 @@ export default {
             'NATIVE_LIBRARY_NAME': `"${crossPathRelative(outDir, '../../native/NativeBridgeNapi.node')}"`,
             preventAssignment: true
         })
-    ]
+    ],
 }
 
 function APACHE_LICENSE_HEADER() {

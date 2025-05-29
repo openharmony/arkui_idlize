@@ -70,10 +70,6 @@ export class TsLayout extends CommonLayoutBase {
             if (idl.isBuilderClass(target.node)) {
                 return `${this.prefix}${toFileName(target.node.name)}Builder`
             }
-            if (isMaterialized(target.node, this.library)) {
-                const packageClause = idl.getPackageClause(target.node).join('.')
-                return packageClause
-            }
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')

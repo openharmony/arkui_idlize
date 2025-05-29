@@ -1,6 +1,3 @@
-variables:
-  PANDA_SDK_VER: "1.5.0-dev.30153"
-
 build idlize-arktscgen:
   stage: build
   tags:
@@ -63,8 +60,7 @@ install panda sdk:
     - !reference [ .setup, script ]
     - cd $CI_PROJECT_DIR
   script:
-    - export PANDA_SDK_VERSION=$PANDA_SDK_VER
-    - npm run --prefix ./external/incremental/tools/panda panda:sdk:check-install
+    - !reference [.setup, panda-sdk]
   artifacts:
     expire_in: 1 days
     paths:
