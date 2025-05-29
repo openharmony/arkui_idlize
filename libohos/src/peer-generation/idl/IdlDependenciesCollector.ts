@@ -121,7 +121,12 @@ class TSDependenciesCollector extends DependenciesCollector {
         const resolved = this.library.resolveTypeReference(type)
         if (resolved && (idl.isInterface(resolved) || idl.isCallback(resolved)) && idl.isSyntheticEntry(resolved)) {
             // type literal
-            return this.convert(resolved)
+            const result = this.convert(resolved)
+            if (this.library.language === Language.ARKTS) {
+                // ArkTS needs synthetic type literals as dependencies
+                result.push(resolved)
+            }
+            return result
         }
         return super.convertTypeReference(type)
     }

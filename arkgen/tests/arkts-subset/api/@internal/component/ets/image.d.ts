@@ -56,17 +56,6 @@ declare type DrawingColorFilter = import('../api/@ohos.graphics.drawing').defaul
 declare type ResolutionQuality  = import('../api/@ohos.multimedia.image').default.ResolutionQuality;
 
 /**
- * Lattice for dividing an image into grids.
- *
- * @typedef { import('../api/@ohos.graphics.drawing').default.Lattice } Lattice
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare type DrawingLattice  = import('../api/@ohos.graphics.drawing').default.Lattice;
-
-/**
  * Object matrix used for setting image transformations.
  *
  * @typedef { import('../api/@ohos.matrix4').default.Matrix4Transit } Matrix4Transit

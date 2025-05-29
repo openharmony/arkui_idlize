@@ -54,8 +54,14 @@ export function collectDeclItself(
         includeTransformedCallbacks?: boolean,
     },
 ) {
-    if (idl.isSyntheticEntry(node) && [Language.TS, Language.ARKTS].includes(library.language))
-        return
+    if (idl.isSyntheticEntry(node)) {
+        // TS needs no synthetic types
+        if (library.language === Language.TS)
+            return
+        // ArkTS can inline callbacks and tuples, but not type literals
+        if (library.language === Language.ARKTS && !(idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface))
+            return
+    }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
         if (idl.isReferenceType(node)) {
             const decl = library.resolveTypeReference(node)
