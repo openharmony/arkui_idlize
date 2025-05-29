@@ -45,7 +45,6 @@
             "OnWillScrollCallback",
             "LayoutChild",
             "EmitterProperty",
-            "Layoutable",
             "GestureGroupGestureHandlerOptions",
             "ColumnOptionsV2",
             "RowOptionsV2"

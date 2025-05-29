@@ -10,7 +10,8 @@
         "SecurityComponentMethod",
         "CommonTransition",
         "CalendarAttribute",
-        "ContainerSpanAttribute"
+        "ContainerSpanAttribute",
+        "CustomLayoutRoot"
     ],
     "standaloneComponents": [
         "TextPickerDialog",

@@ -125,6 +125,7 @@ function main() {
             "CommonTransition",
             "CalendarAttribute",
             "ContainerSpanAttribute",
+            "CustomLayoutRoot"
         ],
         standaloneComponents: [
             "TextPickerDialog",

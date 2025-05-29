@@ -9,6 +9,7 @@
     "dumpSerialized": false,
     "ignoreMaterialized": [
         "AnimatableArithmetic",
+        "CustomLayoutRoot",
         "DynamicNode",
         "GestureHandler",
         "LongPressGestureHandler",
@@ -155,7 +156,8 @@
         "SecurityComponentMethod",
         "CommonTransition",
         "CalendarAttribute",
-        "ContainerSpanAttribute"
+        "ContainerSpanAttribute",
+        "CustomLayoutRoot"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
