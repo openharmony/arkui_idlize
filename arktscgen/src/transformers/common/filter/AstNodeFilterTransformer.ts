@@ -24,6 +24,8 @@ export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
     protected shouldFilterOutInterface(name: string): boolean {
         if (this.typechecker.isHeir(name, Config.astNodeCommonAncestor)) return false
         if (this.typechecker.isHeir(name, Config.defaultAncestor)) return false
+        // TODO: fix
+        if (name === "Program") return false
         console.log(`FILTERED (AST) ${name}`)
         return true
     }

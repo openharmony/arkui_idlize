@@ -87,7 +87,7 @@ export class PeerPrinter extends SingleFilePrinter {
 
     private bindingReturnValueTypeConvertor = new BindingReturnValueTypeConvertor(this.typechecker)
 
-    private parent = parent(this.node) // ?? throwException(`expected peer to have parent: ${this.node.name}`)
+    private parent = parent(this.node) ?? Config.defaultAncestor
 
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),

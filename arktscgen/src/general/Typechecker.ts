@@ -69,6 +69,8 @@ export class Typechecker {
         if (node === Config.context) return false // TODO: is handwritten
         if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
         if (this.isHeir(node, Config.defaultAncestor)) return true
+        // TODO: fix
+        if (node === "Program") return true
         return false
     }
 
