@@ -1706,9 +1706,9 @@ function printInterfaceInherit(idl: IDLInterface): string {
         }
         inheritance.shift()
     }
-    inheritance.forEach(type => {
-        types.push(printType(type))
-    })
+    inheritance
+        .filter(type => type.name !== IDLTopType.name)
+        .forEach(type => types.push(printType(type)))
 
     return ": " + types.join(', ')
 }

@@ -6,15 +6,16 @@
         "Callback",
         "double",
         "int",
-        "RepeatInterface",
         "WrappedBuilder",
         "wrapBuilder",
+        "AnimatableArithmetic",
         "IMonitorValue",
         "IMonitor",
         "MethodDecorator",
         "ParticleInterface",
         "ParticleAttribute",
         "ParticleModifier",
+        "ParticleTuple",
         "Particles",
         "ParticleColorPropertyOptions",
         "ParticlePropertyOptions",
@@ -22,7 +23,6 @@
         "IsolatedComponentAttribute",
         "AccelerationOptions",
         "ParticleOptions",
-        "AccelerationOptions",
         "EmitterOptions",
         "ForEachInterface",
         "ForEachAttribute",
@@ -33,12 +33,16 @@
         "RepeatItem",
         "RepeatItemBuilder",
         "RepeatAttribute",
+        "RepeatInterface",
         "TemplateTypedFunc",
         "EntryOptions",
         "UIBaseSpan",
         "UICommonMethod",
         "UICommonShapeMethod",
         "UIScrollableCommonMethod",
+        "UIIsolatedComponentAttribute",
+        "UILazyForEachAttribute",
+        "UIParticleAttribute",
         "UIRepeatAttribute",
         "UIPluginComponentAttribute",
         "UISecurityComponentMethod",
@@ -124,6 +128,5 @@
                 "TextStyle_styled_string"
             ]
         ]
-    },
-    "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
+    }
 }

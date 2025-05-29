@@ -90,7 +90,8 @@ declare const LocalStorageProp: (value: string) => PropertyDecorator;
 
 declare const Reusable: ClassDecorator;
 
-declare class ForEachAttribute extends DynamicNode<ForEachAttribute> {
+declare class ForEachAttribute implements DynamicNode {
+    onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
 }
 
 interface ForEachInterface {
@@ -135,7 +136,8 @@ declare interface IDataSource {
     unregisterDataChangeListener(listener: DataChangeListener): void;
 }
 
-declare class LazyForEachAttribute extends DynamicNode<LazyForEachAttribute> {
+declare class LazyForEachAttribute implements DynamicNode {
+    onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
 }
 
 interface LazyForEachInterface {
@@ -162,3 +164,56 @@ declare class performance {
     static now(): number;
 }
 
+declare interface ComponentOptions {
+    freezeWhenInactive : boolean,
+}
+
+declare interface PreviewParams {
+    title?: string;
+    width?: number;
+    height?: number;
+    locale?: string;
+    colorMode?: string;
+    deviceType?: string;
+    dpi?: number;
+    orientation?: string;
+    roundScreen?: boolean;
+}
+
+declare class CommonModifier {
+}
+
+declare class ProvideDecoratedVariable {
+}
+
+declare class WrappedBuilder {
+    builder: ((arg: Object) => void);
+}
+
+declare namespace window {
+    enum Orientation {
+        UNSPECIFIED = 0,
+        PORTRAIT = 1,
+        LANDSCAPE = 2,
+        PORTRAIT_INVERTED = 3,
+        LANDSCAPE_INVERTED = 4,
+        AUTO_ROTATION = 5,
+        AUTO_ROTATION_PORTRAIT = 6,
+        AUTO_ROTATION_LANDSCAPE = 7,
+        AUTO_ROTATION_RESTRICTED = 8,
+        AUTO_ROTATION_PORTRAIT_RESTRICTED = 9,
+        AUTO_ROTATION_LANDSCAPE_RESTRICTED = 10,
+        LOCKED = 11,
+        AUTO_ROTATION_UNSPECIFIED = 12,
+        USER_ROTATION_PORTRAIT = 13,
+        USER_ROTATION_LANDSCAPE = 14,
+        USER_ROTATION_PORTRAIT_INVERTED = 15,
+        USER_ROTATION_LANDSCAPE_INVERTED = 16,
+        FOLLOW_DESKTOP = 17
+    }
+}
+
+declare class GestureGroup {
+    static $_instantiate(factory: () => GestureGroup, mode: GestureMode, ...gesture: GestureType[]): GestureGroup;
+    onCancel(event: () => void): GestureGroup;
+}

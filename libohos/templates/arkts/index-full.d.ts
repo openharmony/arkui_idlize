@@ -100,7 +100,10 @@ declare interface IDataSource<T> {
     unregisterDataChangeListener(listener: DataChangeListener): void;
 }
 
-declare class LazyForEachAttribute extends DynamicNode<LazyForEachAttribute> {}
+declare class LazyForEachAttribute implements DynamicNode {
+    onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
+}
+
 interface LazyForEachInterface<T> {
     (
         dataSource: IDataSource<T>,
@@ -115,7 +118,8 @@ declare function ForEach<T> (
     keyGenerator?: (item: T, index: number) => string,
 ): ForEachAttribute<T>;
 
-declare class ForEachAttribute<T> extends DynamicNode<ForEachAttribute<T>> {
+declare class ForEachAttribute<T> implements DynamicNode {
+    onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
 }
 
 interface ForEachInterface<T> {
@@ -143,7 +147,56 @@ declare function LazyForEach<T>(
 // Until we have full sdk
 declare interface LayoutChild {}
 
-// Handwritten
+declare interface ComponentOptions {
+    freezeWhenInactive : boolean,
+}
 
-declare const PageTransitionEnter: PageTransitionEnterInterface
-declare const PageTransitionExit: PageTransitionExitInterface
+declare interface PreviewParams {
+    title?: string;
+    width?: number;
+    height?: number;
+    locale?: string;
+    colorMode?: string;
+    deviceType?: string;
+    dpi?: number;
+    orientation?: string;
+    roundScreen?: boolean;
+}
+
+declare class CommonModifier {
+}
+
+declare class ProvideDecoratedVariable {
+}
+
+declare class WrappedBuilder {
+    builder: ((arg: Object) => void);
+}
+
+declare namespace window {
+    enum Orientation {
+        UNSPECIFIED = 0,
+        PORTRAIT = 1,
+        LANDSCAPE = 2,
+        PORTRAIT_INVERTED = 3,
+        LANDSCAPE_INVERTED = 4,
+        AUTO_ROTATION = 5,
+        AUTO_ROTATION_PORTRAIT = 6,
+        AUTO_ROTATION_LANDSCAPE = 7,
+        AUTO_ROTATION_RESTRICTED = 8,
+        AUTO_ROTATION_PORTRAIT_RESTRICTED = 9,
+        AUTO_ROTATION_LANDSCAPE_RESTRICTED = 10,
+        LOCKED = 11,
+        AUTO_ROTATION_UNSPECIFIED = 12,
+        USER_ROTATION_PORTRAIT = 13,
+        USER_ROTATION_LANDSCAPE = 14,
+        USER_ROTATION_PORTRAIT_INVERTED = 15,
+        USER_ROTATION_LANDSCAPE_INVERTED = 16,
+        FOLLOW_DESKTOP = 17
+    }
+}
+
+declare class GestureGroup {
+    static $_instantiate(factory: () => GestureGroup, mode: GestureMode, ...gesture: GestureType[]): GestureGroup;
+    onCancel(event: () => void): GestureGroup;
+}

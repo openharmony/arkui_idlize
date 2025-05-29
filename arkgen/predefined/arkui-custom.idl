@@ -163,7 +163,7 @@ interface RestrictedWorker {
 };
 callback Callback_StateStylesChange = void (i32 currentState);
 
-[Entity=Interface]
+[Entity=Class]
 interface StateStylesOps {
     static void onStateStyleChange(pointer node, Callback_StateStylesChange stateStyleChange);
 };

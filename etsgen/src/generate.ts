@@ -514,9 +514,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 let iface: idl.IDLInterface | undefined
                 if (iface = this.entries.filter(idl.isInterface).find(it => it.name === ifaceName)) {
                     iface.callables.push(callable)
-                } else {
+                } else if (!this.config.DeletedDeclarations.includes(ifaceName)) {
                     this.entries.push(idl.createInterface(
-                        method.name + 'Interface',
+                        ifaceName,
                         idl.IDLInterfaceSubkind.Interface,
                         [],
                         [],

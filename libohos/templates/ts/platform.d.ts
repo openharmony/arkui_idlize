@@ -52,11 +52,11 @@ declare const console: {
 // perform @Styles no-receiver recovery 
 // and imitate this.$name struct members
 
-declare interface CommonMethod<T> {
+declare interface CommonMethod {
     /**
      * Koala extension
      */
-    __applyStyle(style: (instance: T, ...args: any) => this, ...args: any): T
+    __applyStyle(style: (instance: CommonMethod, ...args: any) => this, ...args: any): CommonMethod
 
     /**
      * TODO: adding .$fields should be done before the type checker.
