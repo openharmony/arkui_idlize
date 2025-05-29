@@ -252,26 +252,52 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 result.push(group[0])
                 return
             }
-            let queue = [...group]
-            while (queue.length) {
-                const method = queue.shift()!
-                const newQueue: idl.IDLMethod[] = []
-                const collapseGroup: idl.IDLMethod[] = [method]
-                for (const item of queue) {
-                    const shouldCollapse = zipStrip(method.parameters, item.parameters)
-                        .every(([x, y]) => (x.isOptional && y.isOptional) || this.hasIntersection(x.type, y.type))
-                    if (shouldCollapse) {
-                        collapseGroup.push(item)
-                    } else {
-                        newQueue.push(item)
+            const graph = new Map<idl.IDLMethod, idl.IDLMethod[]>()
+            for (let i = 0; i < group.length; ++i) {
+                for (let j = i + 1; j < group.length; ++j) {
+                    const item1 = group[i]
+                    const item2 = group[j]
+
+                    const isIntersects = zipStrip(item1.parameters, item2.parameters)
+                        .every(([a, b]) => a.isOptional && b.isOptional || this.hasIntersection(a.type, b.type))
+                    const children1 = getOrPut(graph, item1, () => [])
+                    const children2 = getOrPut(graph, item2, () => [])
+                    if (isIntersects) {
+                        children1.push(item2)
+                        children2.push(item1)
                     }
                 }
-                if (collapseGroup.length === 1) {
-                    result.push(collapseGroup[0])
-                } else {
-                    result.push(this.collapseMethods(name, collapseGroup))
+            }
+
+            const components: idl.IDLMethod[][] = []
+            const stack: idl.IDLMethod[] = []
+            const seenNodes = new Set<idl.IDLMethod>()
+            Array.from(graph.keys()).forEach(method => {
+                if (seenNodes.has(method)) {
+                    return
                 }
-                queue = newQueue
+                const component: idl.IDLMethod[] = []
+                stack.push(method)
+                while (stack.length) {
+                    const current = stack.pop()!
+                    if (seenNodes.has(current)) {
+                        continue
+                    }
+                    seenNodes.add(current)
+                    component.push(current)
+                    stack.push(...graph.get(current)!)
+                }
+                components.push(component)
+            })
+
+            for (const component of components) {
+                if (component.length === 1) {
+                    result.push(component[0])
+                } else {
+                    result.push(
+                        this.collapseMethods(name, component)
+                    )
+                }
             }
         })
 
