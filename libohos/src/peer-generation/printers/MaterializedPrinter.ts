@@ -573,7 +573,7 @@ class MaterializedVisitor implements PrinterClass {
 
     print(): PrinterResult[] {
         console.log(`Materialized classes: ${this.library.materializedClasses.size}`)
-        const materializedClasses = this.library.materializedToGenerate
+        const materializedClasses = this.library.orderedMaterialized
         const isParent = (maybeParent: MaterializedClass, maybeDescendant: MaterializedClass): boolean => {
             if (!maybeDescendant.superClass) return false
             const nearestParent = this.library.resolveTypeReference(maybeDescendant.superClass)

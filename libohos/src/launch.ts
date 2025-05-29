@@ -27,6 +27,11 @@ function processInputOption(option: string | undefined): string[] {
     return []
 }
 
+// iterate through files in the same order even if input order changes
+function sortFiles(files: string[]): string[] {
+    return files.sort((a, b) => path.basename(a).localeCompare(path.basename(b)))
+}
+
 export type InputPaths = {
     baseDirs: string[]
     inputDirs: string[]
@@ -73,8 +78,8 @@ export function formatInputPaths(options: any): InputPaths {
         baseDirs,
         inputDirs,
         auxInputDirs,
-        inputFiles,
-        auxInputFiles,
+        inputFiles: sortFiles(inputFiles),
+        auxInputFiles: sortFiles(auxInputFiles),
         libraryPackages
     }
 }

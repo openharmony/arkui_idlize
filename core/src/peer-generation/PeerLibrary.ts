@@ -117,8 +117,12 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
-    public get materializedToGenerate(): MaterializedClass[] {
+    public get orderedMaterialized(): MaterializedClass[] {
+        function accessorName(decl: idl.IDLEntry): string {
+            return idl.getQualifiedName(decl, "namespace.name")
+        }
         return Array.from(this.materializedClasses.values()).filter(it => it.needBeGenerated)
+            .sort((a, b) => accessorName(a.decl).localeCompare(accessorName(b.decl)))
     }
 
     constructor(

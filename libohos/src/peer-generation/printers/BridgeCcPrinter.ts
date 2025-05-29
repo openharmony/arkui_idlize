@@ -332,7 +332,7 @@ export class BridgeCcVisitor {
         }
 
         this.generatedApi.print("\n// Accessors\n")
-        for (const clazz of this.library.materializedToGenerate) {
+        for (const clazz of this.library.orderedMaterialized) {
             this.printMaterializedClass(clazz);
         }
         const global = createGlobalScopeLegacy(this.library)

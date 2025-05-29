@@ -34,7 +34,7 @@ import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "..
 import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName, IDLObjectType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { collectPeersForFile } from "../PeersCollector";
+import { collectOrderedPeers, collectPeers, collectPeersForFile } from "../PeersCollector";
 import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
@@ -335,9 +335,7 @@ export class ModifierVisitor {
 
     // TODO: have a proper Peer module visitor
     printRealAndDummyModifiers() {
-        this.library.files.forEach(file => {
-            collectPeersForFile(this.library, file).forEach(clazz => this.printPeerClassModifiers(clazz))
-        })
+        collectOrderedPeers(this.library).forEach(clazz => this.printPeerClassModifiers(clazz))
     }
 }
 
@@ -351,7 +349,7 @@ class AccessorVisitor extends ModifierVisitor {
 
     override printRealAndDummyModifiers() {
         super.printRealAndDummyModifiers()
-        this.library.materializedClasses.forEach(c => this.printRealAndDummyAccessor(c))
+        this.library.orderedMaterialized.forEach(c => this.printRealAndDummyAccessor(c))
         const globals = createGlobalScopeLegacy(this.library)
         if (globals.methods.length) {
             this.printRealAndDummyAccessor(globals)
@@ -423,7 +421,6 @@ export class MultiFileModifiersVisitorState {
     dummy = createLanguageWriter(Language.CPP)
     real = createLanguageWriter(Language.CPP)
     accessors = createLanguageWriter(Language.CPP)
-    modifierList = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
     getterDeclarations = createLanguageWriter(Language.CPP)
     hasModifiers = false
@@ -453,7 +450,6 @@ export class MultiFileModifiersVisitor extends AccessorVisitor {
         this.real = state.real
         this.accessors = state.accessors
         this.modifiers = state.modifiers
-        this.modifierList = state.modifierList
         this.getterDeclarations = state.getterDeclarations
         this.hasModifiers = false
         this.hasAccessors = false
@@ -486,7 +482,7 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: bo
 
 export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new AccessorVisitor(peerLibrary)
-    peerLibrary.materializedClasses.forEach(c => visitor.printRealAndDummyAccessor(c))
+    peerLibrary.orderedMaterialized.forEach(c => visitor.printRealAndDummyAccessor(c))
     const globals = createGlobalScopeLegacy(peerLibrary)
     if (globals.methods.length) {
         visitor.printRealAndDummyAccessor(globals)

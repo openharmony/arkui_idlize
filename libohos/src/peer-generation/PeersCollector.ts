@@ -13,6 +13,10 @@ export function collectPeers(library: PeerLibrary): PeerClass[] {
     return collectPeers_cache.get(library)!
 }
 
+export function collectOrderedPeers(library: PeerLibrary): PeerClass[] {
+    return Array.from(collectPeers(library)).sort((a, b) => a.componentName.localeCompare(b.componentName))
+}
+
 export function collectPeersForFile(library: PeerLibrary, file: idl.IDLFile): PeerClass[] {
     return collectPeers(library).filter(it => it.file === file)
 }

@@ -22,7 +22,7 @@ import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
 import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
-import { collectPeersForFile } from '../PeersCollector';
+import { collectOrderedPeers } from '../PeersCollector';
 import { getAccessorName, getDeclarationUniqueName } from './NativeUtils';
 
 export function generateEventReceiverName(componentName: string) {
@@ -66,7 +66,7 @@ export class HeaderVisitor {
     private printAccessors() {
         this.api.print("// Accessors\n")
         this.accessorsList.pushIndent()
-        this.library.materializedClasses.forEach(c => {
+        this.library.orderedMaterialized.forEach(c => {
             this.printAccessor(c)
             const accessorName = getAccessorName(c.decl)
             const className = getDeclarationUniqueName(c.decl)
@@ -102,15 +102,13 @@ export class HeaderVisitor {
 
     // TODO: have a proper Peer module visitor
     printApiAndDeserializer() {
-        this.library.files.forEach(file => {
-            collectPeersForFile(this.library, file).forEach(clazz => {
-                this.printClassProlog(clazz)
-                this.printMethod(createConstructPeerMethod(clazz))
-                clazz.methods.forEach(method => {
-                    this.printMethod(method)
-                })
-                this.printClassEpilog(clazz)
+        collectOrderedPeers(this.library).forEach(clazz => {
+            this.printClassProlog(clazz)
+            this.printMethod(createConstructPeerMethod(clazz))
+            clazz.methods.forEach(method => {
+                this.printMethod(method)
             })
+            this.printClassEpilog(clazz)
         })
         this.printAccessors()
         this.printNodeTypes()

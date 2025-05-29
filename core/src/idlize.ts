@@ -61,6 +61,8 @@ export function scanInputDirs(
             console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
             return []
         }
+    }).sort((a, b) => {
+        return path.basename(a).localeCompare(path.basename(b))
     })
 }
 
