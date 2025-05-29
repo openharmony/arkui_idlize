@@ -302,10 +302,18 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             const parentTypeArgs = this.printTypeArguments(
                 (it as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
             const clause = `${it.name}${parentTypeArgs}`
-            if (superDecl && isMaterialized(idlInterface, this.peerLibrary) && idl.isClassSubkind(idlInterface) && idl.isInterface(superDecl) && idl.isInterfaceSubkind(superDecl))
+
+            const shouldPrintAsImplements = superDecl
+                && isMaterialized(idlInterface, this.peerLibrary)
+                && idl.isClassSubkind(idlInterface)
+                && idl.isInterface(superDecl)
+                && (idl.isInterfaceSubkind(superDecl) || idl.isClassSubkind(superDecl) && !isMaterialized(superDecl, this.peerLibrary))
+
+            if (shouldPrintAsImplements) {
                 implementsItems.push(clause)
-            else
+            } else {
                 extendsItems.push(clause)
+            }
         })
         const extendsClause = extendsItems.length ? ` extends ${extendsItems.join(", ")}` : ""
         const implementsClause = implementsItems.length ? ` implements ${implementsItems.join(", ")}` : ""
