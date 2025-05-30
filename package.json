@@ -21,7 +21,7 @@
   "scripts": {
     "prepare:sdk:ts": "rimraf sdk-patched && cd interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets --output ../../sdk-patched",
     "prepare:sdk:arkts:dts2ets": "cd interface_sdk-js/build-tools && npm i && node handleApiFiles --path .. --type ets2 --output ../../sdk-patched-arkts",
-    "prepare:sdk:arkts:ets2arkui": "cd interface_sdk-js/build-tools/arkui_transformer && npm i && npm run compile:arkui && node . --input-dir ../../../sdk-patched-arkts/api/@internal/component/ets/ --target-dir ../../../sdk-patched-arkts/api/arkui/component/",
+    "prepare:sdk:arkts:ets2arkui": "cd interface_sdk-js/build-tools/arkui_transformer && npm i && npm run compile:arkui && node . --input-dir ../../../sdk-patched-arkts/api/@internal/component/ets/ --target-dir ../../../sdk-patched-arkts/api/arkui/component/ --use-memo-m3",
     "prepare:sdk:arkts": "rimraf sdk-patched-arkts && npm run prepare:sdk:arkts:dts2ets && npm run prepare:sdk:arkts:ets2arkui",
     "prepare:sdk": "npm run prepare:sdk:ts && npm run prepare:sdk:arkts",
     "patch:sdk": "cd interface_sdk-js && git apply ../interface_sdk-js.patch",

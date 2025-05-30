@@ -113,9 +113,10 @@ export function collectDeclDependencies(
     const deps = collector.convert(node)
     if (options?.expandTypedefs) {
         for (let i = 0; i < deps.length; i++) {
-            if (!idl.isTypedef(deps[i]))
+            const dep = deps[i]
+            if (!idl.isTypedef(dep) && !(idl.isInterface(dep) && dep.subkind === idl.IDLInterfaceSubkind.Tuple))
                 continue
-            for (const subDependency of collector.convert(deps[i])) {
+            for (const subDependency of collector.convert(dep)) {
                 if (!deps.includes(subDependency))
                     deps.push(subDependency)
             }

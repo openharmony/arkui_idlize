@@ -64,7 +64,7 @@ declare class SubTabBarStyle {
 
     board(value: BoardStyle): SubTabBarStyle;
 
-    labelStyle(value: LabelStyle): SubTabBarStyle;
+    labelStyle(value: ButtonLabelStyle): SubTabBarStyle;
 
     padding(value: Padding | Dimension): SubTabBarStyle;
 
@@ -79,7 +79,7 @@ declare class BottomTabBarStyle {
 
   static of(icon: ResourceStr | TabBarSymbol, text: ResourceStr): BottomTabBarStyle;
 
-  labelStyle(value: LabelStyle): BottomTabBarStyle;
+  labelStyle(value: ButtonLabelStyle): BottomTabBarStyle;
 
   padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
 

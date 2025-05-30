@@ -16,6 +16,8 @@
         "ParticleAttribute",
         "ParticleModifier",
         "ParticleTuple",
+        "Particle",
+        "ParticleAttribute",
         "Particles",
         "ParticleColorPropertyOptions",
         "ParticlePropertyOptions",

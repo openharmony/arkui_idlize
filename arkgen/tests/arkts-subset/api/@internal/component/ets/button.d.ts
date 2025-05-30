@@ -714,31 +714,16 @@ interface ButtonInterface {
 }
 
 /**
- * LabelStyle object.
+ * ButtonLabelStyle object.
  *
- * @interface LabelStyle
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @since 10
- */
-/**
- * LabelStyle object.
- *
- * @interface LabelStyle
+ * @interface ButtonLabelStyle
  * @syscap SystemCapability.ArkUI.ArkUI.Full
  * @crossplatform
  * @atomicservice
- * @since 11
+ * @since 20
+ * @arkts 1.2
  */
-declare interface LabelStyle {
-  /**
-   * overflow mode.
-   *
-   * @type { ?TextOverflow }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
+declare interface ButtonLabelStyle {
   /**
    * overflow mode.
    *
@@ -746,7 +731,8 @@ declare interface LabelStyle {
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   overflow?: TextOverflow;
 
@@ -756,16 +742,9 @@ declare interface LabelStyle {
    * @type { ?number }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
-   * @since 10
-   */
-  /**
-   * Label max lines.
-   *
-   * @type { ?number }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   maxLines?: number;
 
@@ -775,16 +754,9 @@ declare interface LabelStyle {
    * @type { ?(number | ResourceStr) }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
-   * @since 10
-   */
-  /**
-   * Min font size for adapted height.
-   *
-   * @type { ?(number | ResourceStr) }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   minFontSize?: number | ResourceStr;
 
@@ -794,16 +766,9 @@ declare interface LabelStyle {
    * @type { ?(number | ResourceStr) }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
-   * @since 10
-   */
-  /**
-   * Max font size for adapted height.
-   *
-   * @type { ?(number | ResourceStr) }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   maxFontSize?: number | ResourceStr;
 
@@ -813,16 +778,9 @@ declare interface LabelStyle {
    * @type { ?TextHeightAdaptivePolicy }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
-   * @since 10
-   */
-  /**
-   * Adapt text height option.
-   *
-   * @type { ?TextHeightAdaptivePolicy }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   heightAdaptivePolicy?: TextHeightAdaptivePolicy;
 
@@ -832,16 +790,9 @@ declare interface LabelStyle {
    * @type { ?Font }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
-   * @since 10
-   */
-  /**
-   * Font style.
-   *
-   * @type { ?Font }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
    * @atomicservice
-   * @since 11
+   * @since 20
+   * @arkts 1.2
    */
   font?: Font;
 }
@@ -1235,7 +1186,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
   /**
    * Set button label style.
    *
-   * @param { LabelStyle } value - The label style configuration on button.
+   * @param { ButtonLabelStyle } value - The label style configuration on button.
    * @returns { ButtonAttribute }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
@@ -1244,14 +1195,14 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
   /**
    * Set button label style.
    *
-   * @param { LabelStyle } value - The label style configuration on button.
+   * @param { ButtonLabelStyle } value - The label style configuration on button.
    * @returns { ButtonAttribute }
    * @syscap SystemCapability.ArkUI.ArkUI.Full
    * @crossplatform
    * @atomicservice
    * @since 11
    */
-  labelStyle(value: LabelStyle): ButtonAttribute;
+  labelStyle(value: ButtonLabelStyle): ButtonAttribute;
 }
 
 /**

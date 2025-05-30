@@ -1,11 +1,11 @@
 diff --git a/api/@internal/component/ets/action_sheet.d.ts b/api/@internal/component/ets/action_sheet.d.ts
-index 3f489ff9f..d12a5da03 100644
+index 166a48deb..3c8e00efa 100644
 --- a/api/@internal/component/ets/action_sheet.d.ts
 +++ b/api/@internal/component/ets/action_sheet.d.ts
 @@ -20,6 +20,7 @@
  
  /*** if arkts 1.2 */
- import { Resource } from "../../global/resource";
+ import { Resource } from '../../global/resource';
 +import { DismissDialogAction } from "./alert_dialog"
  import {
    VoidCallback, ResourceStr, ResourceColor, Dimension, BorderRadiuses, LocalizedEdgeColors, EdgeColors,
@@ -54,7 +54,7 @@ index 3f489ff9f..d12a5da03 100644
   * Base button params used for ActionSheet.
   *
 diff --git a/api/@internal/component/ets/alert_dialog.d.ts b/api/@internal/component/ets/alert_dialog.d.ts
-index 72589404d..094fb613b 100644
+index 047b8a924..a46f27331 100644
 --- a/api/@internal/component/ets/alert_dialog.d.ts
 +++ b/api/@internal/component/ets/alert_dialog.d.ts
 @@ -591,7 +591,7 @@ declare interface AlertDialogButtonOptions extends AlertDialogButtonBaseOptions
@@ -76,10 +76,10 @@ index 72589404d..094fb613b 100644
    /**
     * Defines whether to respond to the hover mode.
 diff --git a/api/@internal/component/ets/canvas.d.ts b/api/@internal/component/ets/canvas.d.ts
-index 3e6779af0..f3fbd726a 100644
+index 113776a48..10229d83f 100644
 --- a/api/@internal/component/ets/canvas.d.ts
 +++ b/api/@internal/component/ets/canvas.d.ts
-@@ -25,6 +25,7 @@ import { FrameNode } from '../FrameNode';
+@@ -24,6 +24,7 @@ import { FrameNode } from '../FrameNode';
  import { ImageAIOptions, ImageAnalyzerConfig } from './imageCommon';
  import { Matrix2D } from './matrix2d';
  import { VoidCallback, LengthMetricsUnit, LengthMetrics } from './units';
@@ -87,7 +87,7 @@ index 3e6779af0..f3fbd726a 100644
  /*** endif */
  
  /**
-@@ -6145,42 +6146,6 @@ declare class OffscreenCanvas {
+@@ -6132,42 +6133,6 @@ declare class OffscreenCanvas {
    constructor(width: number, height: number, unit: LengthMetricsUnit);
  }
  
@@ -131,10 +131,10 @@ index 3e6779af0..f3fbd726a 100644
   * Defines DrawingRenderingContext.
   *
 diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
-index 524566b4d..37a1944c9 100644
+index e54660855..1808f4ac6 100644
 --- a/api/@internal/component/ets/common.d.ts
 +++ b/api/@internal/component/ets/common.d.ts
-@@ -11524,7 +11524,7 @@ declare interface BorderImageOption {
+@@ -11404,7 +11404,7 @@ declare interface BorderImageOption {
     * @since arkts {'1.1':'11','1.2':'20'}
     * @arkts 1.1&1.2
     */
@@ -143,17 +143,16 @@ index 524566b4d..37a1944c9 100644
  
    /**
     * Border image width
-@@ -16564,7 +16564,8 @@ declare interface StateStyles {
+@@ -16181,7 +16181,7 @@ declare interface SheetOptions extends BindOptions {
   * @since 20
   * @arkts 1.2
   */
 -declare type CustomStyles = (instance: CommonMethod) => void;
-+// We can not handle components as arguments in a general way, each case is special
 +declare type CustomStyles = (instance: string) => void;
  
  /**
   * Component State Styles.
-@@ -28812,7 +28813,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
+@@ -28634,7 +28634,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
   * @since arkts {'1.1':'11','1.2':'20'}
   * @arkts 1.1&1.2
   */
@@ -163,18 +162,18 @@ index 524566b4d..37a1944c9 100644
     * Linear Gradient Angle
     *
 diff --git a/api/@internal/component/ets/custom_dialog_controller.d.ts b/api/@internal/component/ets/custom_dialog_controller.d.ts
-index 94f24266a..a66c6d2d7 100644
+index 9d3c60c4a..8d2f1be7a 100644
 --- a/api/@internal/component/ets/custom_dialog_controller.d.ts
 +++ b/api/@internal/component/ets/custom_dialog_controller.d.ts
-@@ -28,6 +28,7 @@ import { Offset, ResourceColor, Dimension, BorderRadiuses, EdgeWidths, EdgeColor
- import { BorderStyle } from './enums'
+@@ -30,6 +30,7 @@ import { BorderStyle } from './enums';
  import { LengthMetrics } from '../Graphics';
- import { LevelMode,LevelOrder,ImmersiveMode } from '../../@ohos.promptAction'
+ import { LevelMode, LevelOrder, ImmersiveMode } from '../../@ohos.promptAction';
+ import { CustomBuilder } from './builder';
 +import { DismissDialogAction } from './alert_dialog'
  /*** endif */
  
  /**
-@@ -711,31 +712,6 @@ declare interface CustomDialogControllerOptions {
+@@ -714,31 +715,6 @@ declare interface CustomDialogControllerOptions {
   * @since arkts {'1.1':'12','1.2':'20'}
   * @arkts 1.1&1.2
   */
@@ -487,18 +486,18 @@ index 6af657932..81c455d53 100644
 - */
 -declare const Repeat: RepeatInterface;
 diff --git a/api/@internal/component/ets/sidebar.d.ts b/api/@internal/component/ets/sidebar.d.ts
-index 365faad5d..932538068 100644
+index 4a79fdd13..2de1c4130 100644
 --- a/api/@internal/component/ets/sidebar.d.ts
 +++ b/api/@internal/component/ets/sidebar.d.ts
 @@ -21,7 +21,7 @@
  /*** if arkts 1.2 */
  import { Resource } from '../../global/resource'
  import { Length, ResourceColor, Dimension } from './units'
--import { CommonMethod } from './common'
-+import { CommonMethod, DividerStyle } from './common'
- import image from '../../@ohos.multimedia.image';
+-import { CommonMethod, PixelMap } from './common'
++import { CommonMethod, PixelMap, DividerStyle } from './common'
  /*** endif */
  
+ /**
 @@ -553,110 +553,6 @@ interface SideBarContainerInterface {
    (type?: SideBarContainerType): SideBarContainerAttribute;
  }
@@ -683,16 +682,19 @@ index 6ebfe1cd8..7d6443619 100644
  
    /**
     * Set type.
-diff --git a/build-tools/arkui_transformer/src/interface_converter.ts b/build-tools/arkui_transformer/src/interface_converter.ts
-index 62bf4b49c..eb12c1862 100644
---- a/build-tools/arkui_transformer/src/interface_converter.ts
-+++ b/build-tools/arkui_transformer/src/interface_converter.ts
-@@ -109,7 +109,7 @@ function getAllInterfaceCallSignature(node: ts.InterfaceDeclaration, originalCod
- }
+diff --git a/build-tools/arkui_transformer/src/arkui_transformer.ts b/build-tools/arkui_transformer/src/arkui_transformer.ts
+index 65a17e6bf..f8506e5f2 100644
+--- a/build-tools/arkui_transformer/src/arkui_transformer.ts
++++ b/build-tools/arkui_transformer/src/arkui_transformer.ts
+@@ -54,9 +54,10 @@ function printResult(source: string, file: ComponentFile) {
  
- function handleComponentInterface(node: ts.InterfaceDeclaration, file: ComponentFile) {
--    const result = getAllInterfaceCallSignature(node, file.sourceFile, true)
-+    const result = getAllInterfaceCallSignature(node, file.sourceFile, false)
-     const declPattern = readLangTemplate()
-     const declComponentFunction: string[] = []
-     result.forEach(p => {
+ function withM3Config(f: string, func: () => void) {
+   if (uiconfig.withM3File(f)) {
++    let prevUseMemoM3 = uiconfig.useMemoM3
+     uiconfig.useMemoM3 = true;
+     func()
+-    uiconfig.useMemoM3 = false;
++    uiconfig.useMemoM3 = prevUseMemoM3;
+     return;
+   }
+   func()
