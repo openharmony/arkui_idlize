@@ -1,5 +1,5 @@
 @memo
-@BuilderLambda("%COMPONENT_NAME%")
+@BuilderLambda("%COMPONENT_NAME%Impl")
 export function %COMPONENT_NAME%(
     %FUNCTION_PARAMETERS%
     @memo
@@ -9,7 +9,7 @@ export function %COMPONENT_NAME%(
 }
 
 @memo
-export function %COMPONENT_NAME%(
+export function %COMPONENT_NAME%Impl(
     @memo
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
     %FUNCTION_PARAMETERS%
