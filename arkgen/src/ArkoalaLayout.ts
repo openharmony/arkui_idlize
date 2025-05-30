@@ -212,7 +212,7 @@ export class CJLayout extends CommonLayoutBase {
             case LayoutNodeRole.PEER: {
                 if (idl.isInterface(node)) {
                     if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`peers/${this.prefix}${toFileName(node.name)}Peer`)
+                        return this.getPath(`${this.prefix}${toFileName(node.name)}`)
                     }
                 }
                 return this.getPath(`CommonPeer`)

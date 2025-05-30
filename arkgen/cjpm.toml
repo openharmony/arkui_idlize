@@ -3,7 +3,7 @@
   Interop = { path = "../external/interop/src/cangjie" }
 [package]
   cjc-version = "0.59.6"
-  compile-option = "--warn-off all -L ./native/build-cangjie-native-dummy -l NativeBridgeCJ -L ./../external/incremental-cj/runtime/ck -l CallsiteKey"
+  compile-option = "--error-count-limit all --warn-off all -L ./native/build-cangjie-native-dummy -l NativeBridgeCJ -L ./../external/incremental-cj/runtime/ck -l CallsiteKey"
   description = "config file for cj build"
   link-option = ""
   name = "idlize"

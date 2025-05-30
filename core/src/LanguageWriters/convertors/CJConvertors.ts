@@ -47,6 +47,12 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
             const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
+            if (idl.isReferenceType(type.elementType[0])) {
+                const keyValueType = this.resolver.resolveTypeReference(type.elementType[0])!
+                if (idl.isInterface(keyValueType) || idl.isEnum(keyValueType)) {
+                    return `HashMap<Int64, ${stringes[1]}>`
+                }
+            }
             return `HashMap<${stringes[0]}, ${stringes[1]}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
@@ -91,9 +97,6 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     convertTypeReference(type: idl.IDLReferenceType): string {
         if (type.name === idl.IDLObjectType.name)
             return "KPointer"
-        if (type.name == 'BusinessError')
-            return 'BusinessError<Unit>'
-
         // resolve synthetic types
         const decl = this.resolver.resolveTypeReference(type)!
         if (decl && idl.isSyntheticEntry(decl)) {
@@ -169,6 +172,7 @@ export class CJIDLTypeToForeignStringConvertor extends CJTypeNameConvertor {
                 case idl.IDLStringType: return 'CString'
                 case idl.IDLInteropReturnBufferType: return 'KInteropReturnBuffer'
                 case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
+                case idl.IDLObjectType: return 'Unit'
             }
         }
         if (idl.isContainerType(type)) {

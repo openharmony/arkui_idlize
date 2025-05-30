@@ -345,7 +345,7 @@ class CJPeerFileVisitor extends PeerFileVisitor {
             return {
                 over: {
                     node: component!.attributeDeclaration,
-                    role: LayoutNodeRole.GLOBAL,
+                    role: LayoutNodeRole.PEER,
                 },
                 content: printer,
                 collector: new ImportsCollector()

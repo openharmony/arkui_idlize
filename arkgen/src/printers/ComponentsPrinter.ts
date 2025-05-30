@@ -448,15 +448,21 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 new Method('getPeer',
                     new MethodSignature(createReferenceType(peerClassName), []
                     ), [MethodModifier.PROTECTED], []),
-                writer => writer.writeStatement(
-                    writer.makeReturn(
-                        writer.makeCast(
-                            writer.makeFieldAccess("this", "peer"),
-                            createReferenceType(peerClassName),
-                            { optional: true }
+                writer => {
+                    writer.print('if (let Some(peer) <- this.peer) {')
+                    writer.pushIndent()
+                    writer.writeStatement(
+                        writer.makeReturn(
+                            writer.makeCast(
+                                writer.makeString("peer"),
+                                createReferenceType(peerClassName),
+                                { optional: true }
+                            )
                         )
                     )
-                )
+                    writer.popIndent()
+                    writer.print('} else { throw Exception()}')
+                }
             )
             const filteredMethods = peer.methods.filter(it =>
                 !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
@@ -489,7 +495,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
     protected printComponentFunction(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = peer.originalClassName!
+        const componentInterfaceName = componentToUIAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined

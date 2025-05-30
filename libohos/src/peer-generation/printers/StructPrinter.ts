@@ -549,7 +549,7 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
     const superTypes = idl.getSuperTypes(decl)
     const superDecls = superTypes ? superTypes.map(t => library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
     return [
-        ...new Set<idl.IDLProperty>(
+        ...distinctValues(
             [
                 ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : Array()),
                 ...decl.properties,
@@ -616,4 +616,8 @@ function collectBuilderProperties(decl: idl.IDLInterface, library: LibraryInterf
                 isOptional: true
             } as idl.IDLProperty
         })
+}
+
+export function distinctValues<T>(arr: Array<T>) {
+    return [... new Set(arr)]
 }
