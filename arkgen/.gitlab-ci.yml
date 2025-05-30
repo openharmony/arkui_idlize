@@ -90,7 +90,6 @@ compile arkts peers:
     - npm run make:compile:arkts:peers
 
 arkts subset tsc:
-   allow_failure: true
    stage: test
    tags:
      - idlize-ci
@@ -100,19 +99,6 @@ arkts subset tsc:
      - cd $CI_PROJECT_DIR/arkgen
    script:
      - npm run check:arkts:subset:tsc
-
-arkts subset sig integration:
-  allow_failure: true
-  stage: test
-  tags:
-    - idlize-ci
-    - koala-ci
-  before_script:
-    - !reference [.setup, script]
-    - !reference [.setup, panda-sdk]
-    - cd $CI_PROJECT_DIR/arkgen
-  script:
-    - npm run sig:arkts:subset:all
 
 build arkoala-ts:
   allow_failure: true

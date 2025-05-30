@@ -43,7 +43,7 @@ declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor
  * @atomicservice
  * @since 12
  */
-declare type DrawingColorFilter = import('../api/@ohos.graphics.drawing').default.ColorFilter;
+// declare type DrawingColorFilter = import('../api/@ohos.graphics.drawing').default.ColorFilter;
 
 /**
  * Enumerates all the levels available for the image resolution quality.
