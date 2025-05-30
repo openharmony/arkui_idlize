@@ -16,6 +16,7 @@
 
 import * as fs from "fs"
 import { indentedBy, stringOrNone } from "./util"
+import path from "path"
 
 export class IndentedPrinter {
     constructor (private output: string[] = []) {}
@@ -48,6 +49,7 @@ export class IndentedPrinter {
     }
 
     printTo(file: string): void {
+        fs.mkdirSync(path.dirname(file), { recursive: true })
         fs.writeFileSync(file, this.getOutput().join("\n"))
     }
 

@@ -17,85 +17,113 @@ import * as path from 'path'
 import { Language } from '@idlizer/core'
 import { Install, TargetFile } from '@idlizer/libohos'
 
-export class ArkoalaInstall extends Install {
-    constructor (private outDir: string, private lang: Language, private test: boolean, private useMemoM3: boolean) {
-        super()
-    }
-    langDir(): string {
-        switch (this.lang) {
-            case Language.TS: return this.tsDir
-            case Language.ARKTS: return this.arktsDir
-            case Language.JAVA: return this.javaDir
-            case Language.CJ: return this.cjDir
-            default: throw new Error("unsupported")
-        }
-    }
-    indexDir(): string {
-        switch (this.lang) {
-            case Language.TS: return this.tsTypesDir
-            case Language.ARKTS: return this.arktsTypesDir
-            default: return this.langDir()
-        }
-    }
-    createDirs(dirs: string[]) {
-        for (const dir of dirs) {
-            this.mkdir(dir)
-        }
-    }
-    private memoM3Postfix = this.useMemoM3 ? "/ets" : ""
-    sig = this.mkdir(this.test ? path.join(this.outDir, "sig") : this.outDir)
+export interface ArkoalaInstall {
+    get root(): string
+    get managedDir(): string
+    get managedSdkDir(): string
+    get nativeDir(): string
+    get tsTypesDir(): string
+    get tsArkoalaDir(): string
+}
 
-    tsDir = this.mkdir(path.join(this.sig, "arkoala/arkui/src/generated/"))
-    tsTypesDir = this.mkdir(path.join(this.sig, `arkoala/arkui-types/`))
-    arktsDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/src${this.memoM3Postfix}/generated/`))
-    arktsSdkDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/sdk/generated`))
-    arktsTypesDir = this.mkdir(path.join(this.sig, `arkoala-arkts/arkui/types/`))
+export function createArkoalaInstall(options: {
+    outDir: string,
+    lang: Language,
+    test: boolean,
+    useMemoM3: boolean,
+}): ArkoalaInstall {
+    switch (options.lang) {
+        case Language.TS:
+            return new TSArkoalaInstall(options.outDir, options.test)
+        case Language.ARKTS:
+            return options.useMemoM3
+                ? new ArkTSM3ArkoalaInstall(options.outDir, options.test)
+                : new ArkTSArkoalaInstall(options.outDir, options.test)
+        case Language.JAVA:
+            return new JavaArkoalaInstall(options.outDir, options.test)
+        case Language.CJ:
+            return new CJArkoalaInstall(options.outDir, options.test)
+        default: throw new Error("Not implemented")
+    }
+}
 
-    frameworkDir = this.mkdir(path.join(this.sig, "arkoala-arkts/framework"))
-    tsArkoalaDir = this.mkdir(path.join(this.frameworkDir, "src/generated/"))
-    nativeDir = this.mkdir(path.join(this.frameworkDir, "native/src/generated/"))
-    javaDir = this.mkdir(path.join(this.frameworkDir, "java/src/"))
-    cjFrameworkDir = this.mkdir(path.join(this.sig, "arkoala-cj/framework"))
-    cjDir = this.mkdir(path.join(this.cjFrameworkDir, "cangjie/src/"))
-    peer(targetFile: TargetFile): string {
-        const peerDir = this.mkdir(path.join(this.langDir(), this.lang === Language.JAVA || this.lang === Language.CJ ? '.' : 'peers'))
-        return path.join(peerDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+abstract class BaseArkoalaInstall implements ArkoalaInstall {
+    constructor(private outDir: string, private test: boolean) {}
+    abstract get managedDir(): string
+    abstract get managedSdkDir(): string
+    abstract get tsTypesDir(): string
+    abstract get tsArkoalaDir(): string
+    get root(): string {
+        return this.test ? path.join(this.outDir, "sig") : this.outDir
     }
-    component(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+    get nativeDir(): string {
+        return path.join(this.root, "arkoala-arkts/framework/native/src/generated")
     }
-    builderClass(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+}
+
+class TSArkoalaInstall extends BaseArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala/arkui/src/generated")
     }
-    globalFile(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+    get managedSdkDir(): string {
+        throw new Error("Not implemented")
     }
-    materialized(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+    get tsTypesDir(): string {
+        return path.join(this.root, "arkoala/arkui-types")
     }
-    interface(targetFile: TargetFile): string {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name)
+    get tsArkoalaDir(): string {
+        return path.join(this.root, "arkoala-arkts/framework/src/generated")
     }
-    langLib(targetFile: TargetFile) {
-        return path.join(this.langDir(), targetFile.path ?? "", targetFile.name + this.lang.extension)
+}
+
+class ArkTSArkoalaInstall extends BaseArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala-arkts/arkui/src/generated")
     }
-    tsLib(targetFile: TargetFile) {
-        return path.join(this.tsDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+    get managedSdkDir(): string {
+        return path.join(this.root, "arkoala-arkts/arkui/sdk/generated")
     }
-    tsArkoalaLib(targetFile: TargetFile) {
-        return path.join(this.tsArkoalaDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+    get tsTypesDir(): string {
+        return path.join(this.root, "arkoala-arkts/arkui/types/")
     }
-    arktsLib(targetFile: TargetFile) {
-        return path.join(this.arktsDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+    get tsArkoalaDir(): string {
+        throw new Error("Not implemented")
     }
-    javaLib(targetFile: TargetFile) {
-        return path.join(this.javaDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+}
+
+class ArkTSM3ArkoalaInstall extends ArkTSArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala-arkts/arkui/src/ets/generated")
     }
-    cjLib(targetFile: TargetFile) {
-        return path.join(this.cjDir, targetFile.path ?? "", targetFile.name + this.lang.extension)
+}
+
+class JavaArkoalaInstall extends BaseArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala-arkts/framework/java/src")
     }
-    native(targetFile: TargetFile) {
-        return path.join(this.nativeDir, targetFile.path ?? "", targetFile.name)
+    get managedSdkDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsTypesDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsArkoalaDir(): string {
+        throw new Error("Not implemented")
+    }
+}
+
+class CJArkoalaInstall extends BaseArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala-arkts/framework/java/src")
+    }
+    get managedSdkDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsTypesDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsArkoalaDir(): string {
+        throw new Error("Not implemented")
     }
 }
 
