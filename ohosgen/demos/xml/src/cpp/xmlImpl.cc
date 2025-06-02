@@ -45,6 +45,34 @@ void xml_XmlSerializer_setTextImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePoi
 }
 void xml_XmlSerializer_setDocTypeImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
 }
+void xml_XmlDynamicSerializer_addEmptyElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+}
+OH_OHOS_XML_xml_XmlDynamicSerializerHandle xml_XmlDynamicSerializer_constructImpl(const Opt_String* encoding) {
+    return {};
+}
+void xml_XmlDynamicSerializer_destructImpl(OH_OHOS_XML_xml_XmlDynamicSerializerHandle thisPtr) {
+}
+void xml_XmlDynamicSerializer_endElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr) {
+}
+OH_Buffer xml_XmlDynamicSerializer_getOutputImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+void xml_XmlDynamicSerializer_setAttributesImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
+}
+void xml_XmlDynamicSerializer_setCdataImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+}
+void xml_XmlDynamicSerializer_setCommentImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+}
+void xml_XmlDynamicSerializer_setDeclarationImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr) {
+}
+void xml_XmlDynamicSerializer_setDocTypeImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+}
+void xml_XmlDynamicSerializer_setNamespaceImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* prefix, const OH_String* namespace_) {
+}
+void xml_XmlDynamicSerializer_setTextImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* text) {
+}
+void xml_XmlDynamicSerializer_startElementImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name) {
+}
 OH_OHOS_XML_xml_ParseInfoHandle xml_ParseInfo_constructImpl() {
     return {};
 }
