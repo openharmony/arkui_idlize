@@ -1245,32 +1245,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 if (!idl.isInterface(componentInterface)) {
                     throw new Error("ComponentInterface must be interface!")
                 }
-                const componentUIAttributeRef = componentInterface.callables.at(0)?.returnType
-                if (!componentUIAttributeRef || !idl.isReferenceType(componentUIAttributeRef)) {
-                    throw new Error("No component attribute found!")
+                const componentAttributeNameRef = componentInterface.callables.at(0)!.returnType
+                if (!idl.isReferenceType(componentAttributeNameRef)) {
+                    throw new Error("Expected @ComponentBuilder function return type to be a reference")
                 }
-                if (!componentUIAttributeRef.name.startsWith("UI")) {
-                    throw new Error("Expecting component attribute to be started with UI like UICommonMethod. If it is not match this criteria, please ensure SDK is correct")
-                }
-                const componentUIAttributeName = componentUIAttributeRef.name
-                const componentAttributeName = componentUIAttributeRef.name.slice(2)
-                if (componentUIAttributeRef.name.startsWith("UI")) {
-                    componentInterface.callables.forEach(it => it.returnType = idl.createReferenceType(
-                        componentAttributeName,
-                        componentUIAttributeRef.typeArguments,
-                        {
-                            documentation: componentUIAttributeRef.documentation,
-                            extendedAttributes: componentUIAttributeRef.extendedAttributes,
-                            fileName: componentUIAttributeRef.fileName
-                        }
-                    ))
-                }
+                const componentAttributeName = componentAttributeNameRef.name
                 const processedEntries: idl.IDLEntry[] = []
                 this.entries.forEach(entry => {
                     if (entry.name === componentInterface.name && entry !== componentInterface) {
-                        return
-                    }
-                    if (entry.name === componentUIAttributeName) {
                         return
                     }
                     if (entry.name === componentAttributeName && idl.isInterface(entry)) {
@@ -1279,7 +1261,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     if (idl.isCallback((entry))) {
                         let hasComponentInReferences = false
                         idl.forEachChild(entry, (node) => {
-                            if (idl.isNamedNode(node) && [componentUIAttributeName, componentAttributeName].includes(node.name))
+                            if (idl.isNamedNode(node) && [componentAttributeName].includes(node.name))
                                 hasComponentInReferences = true
                         })
                         if (hasComponentInReferences) {
