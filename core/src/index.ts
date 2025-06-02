@@ -60,6 +60,7 @@ export * from "./peer-generation/isExternalType"
 export * from "./peer-generation/isStructureType"
 export * from "./peer-generation/isEnumType"
 export * from "./peer-generation/unions"
+export * from "./peer-generation/getSuperType"
 
 export * from "./LanguageWriters"
 export * from "./peer-generation/ReferenceResolver"

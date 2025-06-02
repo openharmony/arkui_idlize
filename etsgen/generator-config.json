@@ -93,7 +93,8 @@
     "Components": [
         "BaseSpan",
         "CommonMethod",
-        "CommonShapeMethod"
+        "CommonShapeMethod",
+        "ScrollableCommonMethod"
     ],
     "Throws": [
         "CanvasRenderingContext2D.onOnAttach",

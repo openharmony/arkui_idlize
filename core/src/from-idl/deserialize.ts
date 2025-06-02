@@ -160,27 +160,15 @@ class IDLDeserializer {
                     return []
                 }
                 const implementations: idl.IDLReferenceType[] = []
-                let extension: idl.IDLReferenceType | undefined = undefined
                 node.inheritance.forEach(it => {
                     const attributes = it.extAttrs
                     const parentTypeArgs = this.extractTypeArguments(file, attributes ?? [], idl.IDLExtendedAttributes.TypeArguments)
                     const attrs = this.toExtendedAttributes(attributes ?? [])?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
-                    const baseClass = attrs?.find(it => it.name === idl.IDLExtendedAttributes.Extends)
                     const ref = idl.createReferenceType(it.inheritance, parentTypeArgs, {
                         extendedAttributes: attrs
                     })
-                    if (baseClass) {
-                        extension = ref
-                    } else {
-                        implementations.push(ref)
-                    }
+                    implementations.push(ref)
                 })
-                if (subkind === idl.IDLInterfaceSubkind.Class && extension === undefined && this.inheritanceMode === 'multiple') {
-                    extension = idl.IDLTopType
-                }
-                if (extension) {
-                    return [extension, ...implementations]
-                }
                 return implementations
             })(),
             node.members

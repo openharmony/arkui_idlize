@@ -153,13 +153,7 @@ export class IDLLinter {
         }
     }
 
-    private static builtinReferences = [
-        idl.IDLTopType.name,
-        idl.IDLObjectType.name,
-    ]
     protected checkReferenceResolved(reference: idl.IDLReferenceType): void {
-        if (IDLLinter.builtinReferences.includes(reference.name))
-            return
         if (this.context.hasTypeParameter(reference.name)) {
             return
         }

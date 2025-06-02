@@ -62,7 +62,6 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         return [
             ...decl.inheritance
-                .filter(it => it !== idl.IDLTopType)
                 .flatMap(it => this.convertSupertype(it)),
             ...decl.properties
                 .filter(it => !it.isStatic)
@@ -145,7 +144,6 @@ export class ArkTSInterfaceDependenciesCollector extends DependenciesCollector {
     override convertInterface(decl: idl.IDLInterface): idl.IDLEntry[] {
         return [
             ...decl.inheritance
-                .filter(it => it !== idl.IDLTopType)
                 .flatMap(it => this.convertSupertype(it)),
             ...decl.properties
                 .filter(it => !it.isStatic)

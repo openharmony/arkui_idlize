@@ -100,7 +100,6 @@ export class IDLDependencyCollector implements IDLConverter<idl.IDLNode[]> {
     visitInterface(decl: idl.IDLInterface): idl.IDLNode[] {
         return [
             ...decl.inheritance
-                .filter(it => it !== idl.IDLTopType)
                 .flatMap(it => this.walk(it)),
             ...decl.properties
                 .filter(it => !it.isStatic)

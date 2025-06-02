@@ -22,7 +22,6 @@ import {
     createParameter,
     forceAsNamedNode,
     getFQName,
-    getSuperType,
     hasExtAttribute,
     IDLCallback,
     IDLConstructor,
@@ -71,6 +70,7 @@ import {
     isInCurrentModule,
     currentModule,
     sorted,
+    getSuper,
 } from '@idlizer/core'
 import {
     createOutArgConvertor,
@@ -165,13 +165,10 @@ class OHOSNativeVisitor {
     private impls = new Array<{ name: string, signature: SignatureDescriptor }>()
 
     private getPropertiesFromInterfaces(decl: IDLInterface) {
-        const superType = getSuperType(decl)
+        const resolvedType = getSuper(decl, this.library)
         const propertiesFromInterface: IDLProperty[] = []
-        if (superType) {
-            const resolvedType = this.library.resolveTypeReference(superType) as (IDLInterface | undefined)
-            if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
-                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
-            }
+        if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
+            propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
         }
         return propertiesFromInterface
     }

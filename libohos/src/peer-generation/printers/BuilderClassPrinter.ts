@@ -22,7 +22,7 @@ import { collapseSameNamedMethods } from "./OverloadsPrinter";
 import { TargetFile } from "./TargetFile"
 import { ImportsCollector } from "../ImportsCollector"
 import { ARKOALA_PACKAGE, ARKOALA_PACKAGE_PATH } from "./lang/Java";
-import { createOptionalType, createReferenceType, forceAsNamedNode, IDLTopType, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
+import { createOptionalType, createReferenceType, forceAsNamedNode, IDLType, IDLVoidType, isOptionalType } from '@idlizer/core/idl'
 import { collectDeclDependencies } from "../ImportsCollectorUtils";
 import { PrinterResult } from '../LayoutManager';
 
@@ -43,7 +43,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
         imports.addFeature('KBoolean', '@koalaui/interop')
         imports.addFeature('KStringPtr', '@koalaui/interop')
         collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
-        if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
+        if (clazz.declaration.inheritance.length) {
             const maybeParents = [
                 ...this.peerLibrary.buildersToGenerate.values()
             ]
@@ -311,7 +311,7 @@ class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
         // processTSBuilderClass(builderClass)
 
         collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
-        if (clazz.declaration.inheritance.length && clazz.declaration.inheritance[0] !== IDLTopType) {
+        if (clazz.declaration.inheritance.length) {
             const maybeParents = [
                 ...this.peerLibrary.buildersToGenerate.values()
             ]

@@ -608,16 +608,6 @@ export function createOptionalType(element:IDLType, nodeInitializer?: IDLNodeIni
     }
 }
 
-/**
- * This placeholder is used when a class has no superclass.
- * Examples:
- *  class definition:               inheritance:
- * `C extends T`                  :  [T]
- * `C implements T`               :  [Top, T]
- * `C extends T implements I, J`  :  [T, I, J]
- */
-export const IDLTopType: IDLReferenceType = createReferenceType("__TOP__")
-
 // must match with toIDLType in deserialize.ts
 export const IDLPointerType = createPrimitiveType('pointer')
 export const IDLVoidType = createPrimitiveType('void')
@@ -670,16 +660,10 @@ export function createNamespace(name:string, members?: IDLEntry[], nodeInitializ
     }
 }
 
-function isSpecialNodes(node:IDLNode) {
-    return node === IDLTopType
-        || node === IDLObjectType
-        || isPrimitiveType(node)
-}
-
 export function linkParentBack<T extends IDLNode>(node: T): T {
     const parentStack: IDLNode[] = []
     updateEachChild(node, (node) => {
-        if (isSpecialNodes(node)) {
+        if (isPrimitiveType(node)) {
             return node
         }
         if (parentStack.length) {
@@ -692,7 +676,7 @@ export function linkParentBack<T extends IDLNode>(node: T): T {
         parentStack.push(node)
         return node
     }, (node) => {
-        if (isSpecialNodes(node)) {
+        if (isPrimitiveType(node)) {
             return
         }
         parentStack.pop()
@@ -1691,25 +1675,7 @@ function printInterfaceInherit(idl: IDLInterface): string {
     if (idl.inheritance.length === 0) {
         return ""
     }
-    const inheritance = [...idl.inheritance]
-    const types: string[] = []
-    if (idl.subkind === IDLInterfaceSubkind.Class) {
-        if (inheritance[0].name !== IDLTopType.name) {
-            const ref = clone(inheritance[0])
-            ref.extendedAttributes ??= []
-            if (!hasExtAttribute(ref, IDLExtendedAttributes.Extends)) {
-                ref.extendedAttributes = ref.extendedAttributes.concat([
-                    { name: IDLExtendedAttributes.Extends }
-                ])
-            }
-            types.push(printType(ref))
-        }
-        inheritance.shift()
-    }
-    inheritance
-        .filter(type => type.name !== IDLTopType.name)
-        .forEach(type => types.push(printType(type)))
-
+    const types = idl.inheritance.map(type => printType(type))
     return ": " + types.join(', ')
 }
 
@@ -1727,25 +1693,6 @@ export function printInterface(idl: IDLInterface): PrintedLine[] {
         .concat(idl.callables.map(printFunction).flat())
         .concat(printedIndentDec)
         .concat(["};"])
-}
-
-export function getSuperType(idl: IDLInterface): IDLReferenceType | undefined {
-    if (!idl.inheritance) return undefined
-    const parent = idl.inheritance[0]
-    return parent && parent.name !== IDLTopType.name ? parent : undefined
-}
-
-export function getSuperTypes(idl: IDLInterface): IDLReferenceType[] | undefined {
-    if (!idl.inheritance) return undefined
-    if (idl.inheritance[0]?.name === IDLTopType.name) {
-        return idl.inheritance.length == 1 ? undefined : idl.inheritance.slice(1)
-    } else {
-        return idl.inheritance.length == 0 ? undefined : idl.inheritance
-    }
-}
-
-export function hasSuperType(idl: IDLInterface) {
-    return isDefined(getSuperType(idl))
 }
 
 export function printEnumMember(idl: IDLEnumMember): PrintedLine[] {

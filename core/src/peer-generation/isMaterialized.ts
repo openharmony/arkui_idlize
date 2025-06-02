@@ -17,6 +17,7 @@ import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
 import { isBuilderClass } from './BuilderClass'
 import { isExternalType } from './isExternalType'
+import { getSuper } from './getSuperType'
 import { ReferenceResolver } from './ReferenceResolver'
 
 export function isMaterialized(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
@@ -59,10 +60,11 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     if (declaration.methods.length > 0 || declaration.constructors.length > 0) return true
 
     // Or a class or an interface derived from materialized class
-    if (idl.hasSuperType(declaration)) {
-        const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
+    const superClass = getSuper(declaration, resolver)
+    if (superClass) {
+        const superType = superClass
         if (!superType || !idl.isInterface(superType)) {
-            console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
+            console.log(`Unable to resolve ${superClass.name} type, consider ${declaration.name} to be not materialized`)
             return false
         }
         return isMaterialized(superType, resolver)
@@ -85,10 +87,11 @@ export function isStaticMaterialized(declaration: idl.IDLInterface, resolver: Re
     if (isMaterialized(declaration, resolver)) {
         if (declaration.properties.length || declaration.constructors.length) return false
         if (!declaration.methods.every(it => it.isStatic && !isSelfReturnMethod(it, declaration, resolver))) return false
-        if (idl.hasSuperType(declaration)) {
-            const superType = resolver.resolveTypeReference(idl.getSuperType(declaration)!)
+        const superClass = getSuper(declaration, resolver)
+        if (superClass) {
+            const superType = superClass
             if (!superType || !idl.isInterface(superType)) {
-                console.log(`Unable to resolve ${idl.getSuperType(declaration)!.name} type, consider ${declaration.name} to be not materialized`)
+                console.log(`Unable to resolve ${superClass!.name} type, consider ${declaration.name} to be not materialized`)
                 return false
             }
             return isStaticMaterialized(superType, resolver)

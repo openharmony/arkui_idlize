@@ -713,12 +713,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     if (!idl.isReferenceType(sup)) {
                         throw new Error("Expected reference type")
                     }
+                    sup.extendedAttributes ??= []
+                    sup.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Extends })
                     inheritance.push(sup)
                 }
                 if (definition.implements.length) {
-                    if (inheritance.length === 0) {
-                        inheritance.push(idl.IDLTopType)
-                    }
                     definition.implements.forEach(int => {
                         const type = this.serializeType(int.expr)
                         if (!idl.isReferenceType(type)) {

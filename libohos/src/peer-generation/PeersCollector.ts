@@ -1,7 +1,7 @@
 import * as path from "path"
-import { ArgumentModifier, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, warn } from "@idlizer/core";
+import { ArgumentModifier, getSuper, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
-import { collectComponents, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
+import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
 import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
 import { createOutArgConvertor } from "./PromiseConvertors";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
@@ -96,11 +96,11 @@ function createComponentAttributesDeclaration(clazz: idl.IDLInterface, peer: Pee
 
 function fillClass(library: PeerLibrary, peer: PeerClass, clazz: idl.IDLInterface) {
     peer.originalClassName = clazz.name
-    const parent = idl.getSuperType(clazz)
-    if (parent) {
-        const parentComponent = findComponentByType(library, parent)!
-        const parentDecl = library.resolveTypeReference(parent as idl.IDLReferenceType)
-        peer.originalParentName = idl.forceAsNamedNode(parent).name
+    const parentDecl = getSuper(clazz, library)
+    // TODO: should we check other parents?
+    if (parentDecl) {
+        const parentComponent = findComponentByDeclaration(library, parentDecl)!
+        peer.originalParentName = parentDecl?.name
         peer.originalParentFilename = parentDecl?.fileName
         peer.parentComponentName = parentComponent.name
     }

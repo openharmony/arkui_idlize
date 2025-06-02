@@ -37,7 +37,8 @@ import {
     getOrPut,
     zipStrip,
     zipMany,
-    collapseTypes
+    collapseTypes,
+    getSuper
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -320,7 +321,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             return it
         })
 
-        let superTypes = idl.getSuperTypes(idlInterface)
+        let superTypes = idlInterface.inheritance
         const extendsItems: string[] = []
         const implementsItems: string[] = []
         superTypes?.forEach(it => {
@@ -895,16 +896,9 @@ class JavaDeclarationConvertor implements DeclarationConvertor<void> {
             })
 
         let superName = undefined as string | undefined
-        const superType = idl.getSuperType(type)
-        if (superType) {
-            if (idl.isReferenceType(superType)) {
-                const superDecl = this.peerLibrary.resolveTypeReference(superType)
-                if (superDecl) {
-                    superName = superDecl.name
-                }
-            } else {
-                superName = idl.forceAsNamedNode(superType).name
-            }
+        const superDecl = getSuper(type, this.peerLibrary)
+        if (superDecl) {
+            superName = superDecl.name
         }
         writer.writeClass(alias, () => {
             members.forEach(it => {
@@ -1398,7 +1392,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
-        const superNames = idl.getSuperTypes(type)
+        const superNames = type.inheritance
         let parentProperties: idl.IDLProperty[] = []
         if (superNames) {
             const superDecls = superNames ? superNames.map(t => this.peerLibrary.resolveTypeReference(t as idl.IDLReferenceType)) : undefined

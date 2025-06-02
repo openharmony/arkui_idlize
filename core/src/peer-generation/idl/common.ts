@@ -59,7 +59,7 @@ export function collapseTypes(types: idl.IDLType[], name?: string): idl.IDLType 
 
 export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, refName?: string): string | undefined {
     if (!refType) return undefined
-    const typeArgs = refType.typeArguments?.map(it => idl.printType(it)).join(",")
+    const typeArgs = refType.typeArguments?.map(it => idl.printType(it) /* FIXME: BUG! */).join(",")
     return `${refName ? refName : refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
 }
 

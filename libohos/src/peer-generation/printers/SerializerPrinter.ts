@@ -308,7 +308,7 @@ class DeserializerPrinter {
                 })
                 if (this.writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
-                    const superNames = idl.getSuperTypes(target)
+                    const superNames = target.inheritance
                     if (superNames) {
                         const superDecls = superNames ? superNames.map(t => this.library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
                         parentProperties = superDecls!.map(decl => collectAllProperties(decl as idl.IDLInterface, this.library)).flat()

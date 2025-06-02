@@ -79,7 +79,6 @@ class CJDeclarationImportsCollector implements DeclarationConvertor<ImportFeatur
     convertInterface(decl: idl.IDLInterface): ImportFeature[] {
         return [
             ...decl.inheritance
-                .filter(it => it !== idl.IDLTopType)
                 .flatMap(it => this.typeDepsCollector.convert(it)),
             ...decl.properties.flatMap(it => this.typeDepsCollector.convert(it.type)),
             ...[...decl.callables, ...decl.methods].flatMap(it => [

@@ -54,7 +54,6 @@ import {
     IDLStringType,
     IDLUndefinedType,
     isCallable,
-    getSuperType,
     IDLReferenceType,
     IDLCallable,
     IDLAnyType,
@@ -180,7 +179,7 @@ export class CustomPrintVisitor {
             let interfaces = node.inheritance
             let keyword = "extends"
             if (node.subkind === IDLInterfaceSubkind.Class) {
-                const superType = getSuperType(node)
+                const superType = node.inheritance.find(it => hasExtAttribute(it, IDLExtendedAttributes.Extends))
                 if (superType)
                     typeSpec += ` extends ${this.printTypeForTS(superType)}`
                 interfaces = interfaces.slice(1)

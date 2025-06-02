@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, componentToUIAttributesInterface, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 
 class ArkoalaTSDeclConvertor extends TSDeclConvertor {
@@ -29,7 +29,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const printer = this.peerLibrary.createLanguageWriter()
         const uiPrinter = this.peerLibrary.createLanguageWriter()
         const declaredPrefix = this.isDeclared ? "declare " : ""
-        const superType = idl.getSuperType(idlInterface)
+        const superType = getSuper(idlInterface, this.peerLibrary)
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
         let UIExtendsClause = superType ? `extends ${componentToUIAttributesInterface(superType.name)} ` : ""
         if (isCommonMethod(idlInterface.name)) UIExtendsClause = `extends UICommonBase `
@@ -95,7 +95,8 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             )
             writer.writeLines(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
             stylePrinter.writeMethodImplementation(new Method('apply', applySignature, [MethodModifier.PUBLIC]), writer => {
-                if (idl.hasSuperType(component.attributeDeclaration)) {
+                const superDecl = getSuper(component.attributeDeclaration, this.peerLibrary)
+                if (superDecl) {
                     writer.writeMethodCall('super','apply', [target])
                 }
                 for (const field of peer.attributesFields) {

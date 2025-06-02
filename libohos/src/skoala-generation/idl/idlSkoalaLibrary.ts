@@ -31,7 +31,8 @@ import {
     LibraryInterface,
     InterfaceConvertor,
     PrimitiveTypesInstance,
-    resolveNamedNode
+    resolveNamedNode,
+    getSuper
 } from '@idlizer/core'
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
@@ -474,7 +475,7 @@ export class IdlWrapperProcessor {
     }
 
     private findHeritageClasses(declaration: idl.IDLInterface, heritageClasses: string[] = []): string[] | undefined {
-        const superClassType = idl.getSuperType(declaration)
+        const superClassType = getSuper(declaration, this.library)
         if (superClassType) {
             let superClassName = this.library.nameConvertorInstance.convert(superClassType)
             heritageClasses.push(superClassName)

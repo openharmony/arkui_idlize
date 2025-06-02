@@ -24,7 +24,8 @@ import {
     NamedMethodSignature,
     LayoutNodeRole,
     FieldModifier,
-    ArgumentModifier
+    ArgumentModifier,
+    getSuper
 } from '@idlizer/core'
 import {
     ARKOALA_PACKAGE,
@@ -66,8 +67,7 @@ export function generateArkComponentName(component: string) {
 function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInterface): idl.IDLInterface[] {
     const result: idl.IDLInterface[] = []
     while (decl) {
-        const superType = idl.getSuperType(decl)
-        const superResolved = superType ? library.resolveTypeReference(superType) : undefined
+        const superResolved = getSuper(decl, library)
         result.push(decl)
         decl = superResolved as idl.IDLInterface
     }
@@ -196,7 +196,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const peerClassName = componentToPeerClass(peer.componentName)
         const supers = expandComponentWithSupers(this.library, component.attributeDeclaration)
         const rootSuper = supers[supers.length - 1]
-        const asType = idl.hasSuperType(component.attributeDeclaration)
+        const superDecl = getSuper(component.attributeDeclaration, this.library)
+        const asType = superDecl
             ? ` as AttributeModifier<${rootSuper.name}>`
             : ``
 
@@ -221,7 +222,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             for (const grouped of groupOverloads(filteredMethods))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
-            if (!idl.hasSuperType(component.attributeDeclaration)) {
+            if (!superDecl) {
                 writer.writeFieldDeclaration(`_modifier`, generateAttributeModifierSignature(this.library, component).args[0], undefined, true)
             }
             writer.print(this.memo())

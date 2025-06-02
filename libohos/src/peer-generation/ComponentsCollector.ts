@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { LibraryInterface } from "@idlizer/core"
+import { getSuper, LibraryInterface } from "@idlizer/core"
 import { isDefined } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 import path from "node:path"
@@ -39,13 +39,11 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
 
     for (let i = 0; i < components.length; i++) {
         const attributes = components[i].attributeDeclaration
-        const parent = idl.getSuperType(attributes)
-        if (!parent)
+        const parentDecl = getSuper(attributes, library)
+        if (!parentDecl) {
             continue
-        if (!idl.isReferenceType(parent))
-            throw new Error("Expected component parent type to be a reference type")
-        const parentDecl = library.resolveTypeReference(parent)
-        if (!parentDecl || !idl.isInterface(parentDecl)) {
+        }
+        if (!idl.isInterface(parentDecl)) {
             throw new Error("Expected parent to be a class")
         }
         if (!isCollectedComponent(parentDecl)) {
@@ -91,8 +89,7 @@ function isSubclassComponent(library: LibraryInterface, a: IdlComponentDeclarati
 }
 
 function isSubclass(library: LibraryInterface, component: idl.IDLInterface, maybeParent: idl.IDLInterface): boolean {
-    const parentRef = idl.getSuperType(component)
-    const parentDecl = parentRef ? library.resolveTypeReference(parentRef) : undefined
+    const parentDecl = getSuper(component, library)
     return isDefined(parentDecl) && (
         parentDecl.name === maybeParent.name ||
         idl.isInterface(parentDecl) && isSubclass(library, parentDecl, maybeParent))

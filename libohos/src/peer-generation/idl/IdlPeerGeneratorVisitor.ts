@@ -24,7 +24,9 @@ import {
     qualifiedName,
     isStaticMaterialized,
     isInCurrentModule,
-    ArgumentModifier
+    ArgumentModifier,
+    getSuper,
+    getSuperType
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary } from "@idlizer/core"
 import { createOutArgConvertor } from "../PromiseConvertors"
@@ -138,10 +140,7 @@ export class IdlPeerProcessor {
     private getBuilderMethods(target: idl.IDLInterface, className?: string): Method[] {
         return [
             ...target.inheritance
-                .filter(it => it !== idl.IDLTopType)
                 .filter(it => {
-                    if (it.name === idl.IDLTopType.name)
-                        return false
                     if (!this.library.resolveTypeReference(it))
                         console.log(`Cannot resolve ${it.name}`)
                     return true
@@ -177,14 +176,15 @@ export class IdlPeerProcessor {
 
         const isDeclInterface = idl.isInterfaceSubkind(decl) && !isStaticMaterialized
         const implemenationParentName = isDeclInterface ? getInternalClassName(decl.name) : decl.name
-        let superType = idl.getSuperType(decl)
+        const resolvedDecl = getSuper(decl, this.library)
         const interfaces: idl.IDLReferenceType[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []
-        if (superType) {
-            const resolvedType = this.library.resolveTypeReference(superType)
-            if (!resolvedType || !idl.isInterface(resolvedType) || !isMaterialized(resolvedType, this.library)) {
+        let superType: idl.IDLReferenceType | undefined = undefined
+        if (resolvedDecl) {
+            superType = getSuperType(decl, this.library)
+            if (!resolvedDecl || !idl.isInterface(resolvedDecl) || !isMaterialized(resolvedDecl, this.library)) {
                 propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
-                interfaces.push(superType)
+                interfaces.push(superType!)
                 superType = undefined
             }
         }
@@ -344,9 +344,8 @@ export function isCommonMethodOrSubclass(library: PeerLibrary, decl?: idl.IDLEnt
     if (!decl || !idl.isInterface(decl))
         return false
     let isSubclass = isRoot(decl.name)
-    const superType = idl.getSuperType(decl)
-    if (superType && idl.isReferenceType(superType)) {
-        const superDecl = library.resolveTypeReference(superType)
+    const superDecl = getSuper(decl, library)
+    if (superDecl) {
         isSubclass ||= isCommonMethodOrSubclass(library, superDecl)
     }
     return isSubclass
@@ -376,12 +375,11 @@ function generateSignature(
 }
 
 export function forEachSuperType(declaration: idl.IDLInterface, resolver: ReferenceResolver, callback: (superType: idl.IDLInterface) => void) {
-    if (!idl.hasSuperType(declaration)) return
-    const resolvedType = resolver.resolveTypeReference(idl.getSuperType(declaration)!) as (idl.IDLInterface | undefined)
-    if (!resolvedType) return
+    const superDecl = getSuper(declaration, resolver)
+    if (!superDecl) return
 
-    callback(resolvedType as idl.IDLInterface)
-    forEachSuperType(resolvedType as idl.IDLInterface, resolver, callback)
+    callback(superDecl)
+    forEachSuperType(superDecl, resolver, callback)
 }
 
 export function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLProperty[] {

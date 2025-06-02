@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Language, LanguageWriter, createLanguageWriter, Method, NamedMethodSignature } from "@idlizer/core"
+import { Language, LanguageWriter, createLanguageWriter, Method, NamedMethodSignature, getSuper } from "@idlizer/core"
 import * as idl from '@idlizer/core/idl'
 import { IdlSkoalaLibrary } from "../idl/idlSkoalaLibrary"
 
@@ -97,8 +97,7 @@ class IdlSerializerPrinter {
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: IdlSkoalaLibrary): idl.IDLProperty[] {
-    const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
+    const superDecl = getSuper(decl, library)
     return [
         ...((superDecl && idl.isInterface(superDecl)) ? collectProperties(superDecl, library) : []),
         ...decl.properties,

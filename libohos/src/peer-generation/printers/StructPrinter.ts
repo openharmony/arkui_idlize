@@ -29,6 +29,7 @@ import {
     PrimitiveTypesInstance,
     PrimitiveTypeList,
     isExternalType,
+    getSuper,
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -536,8 +537,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
+    const superDecl = getSuper(decl, library)
     return [
         ...((superDecl && idl.isInterface(superDecl)) ? collectProperties(superDecl, library) : []),
         ...decl.properties,
@@ -546,7 +546,7 @@ export function collectProperties(decl: idl.IDLInterface, library: LibraryInterf
 }
 
 export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superTypes = idl.getSuperTypes(decl)
+    const superTypes = decl.inheritance
     const superDecls = superTypes ? superTypes.map(t => library.resolveTypeReference(t as idl.IDLReferenceType)) : undefined
     return [
         ...distinctValues(
@@ -560,8 +560,7 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
 }
 
 export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLFunction[] {
-    const superType = idl.getSuperType(decl)
-    const superDecl = superType ? library.resolveTypeReference(superType) : undefined
+    const superDecl = getSuper(decl, library)
     return [
         ...((superDecl && idl.isInterface(superDecl)) ? collectFunctions(superDecl, library) : []),
         ...decl.methods,

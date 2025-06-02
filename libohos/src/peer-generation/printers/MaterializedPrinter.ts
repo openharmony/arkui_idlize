@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -241,7 +241,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printImports()
 
-        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz))
+        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz, this.library))
         if (!superClassName && printer.language == Language.JAVA) {
             superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
         }
@@ -249,8 +249,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         if (clazz.interfaces) {
             interfaces.push(
                 ...clazz.interfaces.map(it => {
+                    const decl = this.library.resolveTypeReference(it)
+                    if (!decl) {
+                        throw new Error(`Not found declaration "${it.name}"`)
+                    }
                     const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
-                    return `${this.namespacePrefix}${it.name}${printer.language == Language.CJ ? 'Interfaces' : ''}` // ${typeArgs}`
+                    const nsName = printer.language === Language.CJ ? decl.name : idl.getQualifiedName(decl, 'namespace.name')
+                    return `${this.namespacePrefix}${nsName}${printer.language == Language.CJ ? 'Interface' : ''}${typeArgs}`
                 }))
         }
 
@@ -258,7 +263,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         if (clazz.isInterface) {
             const genericsClause = clazz.generics?.length ? `<${clazz.generics.map(sanitizeGenerics).join(", ")}>` : ''
-            interfaces.push(`${this.namespacePrefix}${this.clazz.className}${genericsClause}`)
+            const nsName = printer.language === Language.CJ ? clazz.className : idl.getQualifiedName(clazz.decl, "namespace.name")
+            interfaces.push(`${this.namespacePrefix}${nsName}${genericsClause}`)
         }
 
         if (clazz.isInterface) {
@@ -377,19 +383,16 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
     }
 
-    override get namespacePrefix(): string {
-        const namespacePrefix = idl.getNamespaceName(this.clazz.decl)
-        return namespacePrefix.length ? `${idl.getNamespaceName(this.clazz.decl)}.` : ""
-    }
-
     private calcClassWeight() {
         // correct order to fix rollup
-        let superClass = this.clazz.superClass
+        if (!this.clazz.superClass) {
+            return 0
+        }
+        let superClass = this.library.resolveTypeReference(this.clazz.superClass)
         let weight = 0
         while (superClass) {
             weight++
-            const resolvedSuper = this.library.resolveTypeReference(superClass)
-            superClass = resolvedSuper && idl.isInterface(resolvedSuper) ? idl.getSuperType(resolvedSuper) : undefined
+            superClass = idl.isInterface(superClass) ? getSuper(superClass, this.library) : undefined
         }
         return weight
     }
@@ -602,10 +605,13 @@ export function createMaterializedPrinter(dumpSerialized: boolean) {
         new MaterializedVisitor(peerLibrary, dumpSerialized).print())
 }
 
-function getSuperName(clazz: MaterializedClass): string | undefined {
+function getSuperName(clazz: MaterializedClass, resolver:ReferenceResolver): string | undefined {
     const superClass = clazz.superClass
     if (!superClass) return undefined
-    return clazz.isInterface ? getInternalClassName(superClass.name) : superClass.name
+    const decl = resolver.resolveTypeReference(superClass)
+    if (!decl) return undefined
+    const nsName = idl.getQualifiedName(decl, 'namespace.name')
+    return clazz.isInterface ? getInternalClassName(nsName) : nsName
 }
 
 function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {

@@ -790,8 +790,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         const hasSuperClass = node.heritageClauses
             ?.filter(it => it.token === ts.SyntaxKind.ExtendsKeyword)
             .flatMap(it => it.types)
-            .find(_ => true)
-        if (!hasSuperClass) inheritance.unshift(idl.IDLTopType)
+            .at(0)
+        if (hasSuperClass && inheritance.length > 0) {
+            inheritance[0].extendedAttributes ??= []
+            inheritance[0].extendedAttributes.push({ name: idl.IDLExtendedAttributes.Extends })
+        }
         const nameSuggestion = NameSuggestion.make(getExportedDeclarationNameByDecl(node) ?? "UNDEFINED")
         const childNameSuggestion = nameSuggestion.prependType()
         this.context.enter(nameSuggestion.name)
