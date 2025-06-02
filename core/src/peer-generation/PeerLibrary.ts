@@ -195,11 +195,21 @@ export class PeerLibrary implements LibraryInterface {
         return this.targetNameConvertorInstance.convert(type)
     }
 
-    private referenceCache: Map<idl.IDLReferenceType, idl.IDLEntry | undefined> | undefined
+    private referenceCache: Map<idl.IDLReferenceType | string, idl.IDLEntry | undefined> | undefined
     public enableCache() {
         this.referenceCache = new Map()
     }
+
     resolveTypeReference(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
+        const key = type.parent ? type : type.name // does entry have resolve context or just FQN
+        let result: idl.IDLEntry | undefined = this.referenceCache?.has(key)
+            ? this.referenceCache.get(key)
+            : this.resolveTypeReferenceUncached(type, singleStep)
+        this.referenceCache?.set(key, result)
+        return result
+    }
+
+    private resolveTypeReferenceUncached(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
         if (this.referenceCache?.has(type))
             return this.referenceCache.get(type)
         let result = this.resolveNamedNode(type.name.split("."), type.parent)

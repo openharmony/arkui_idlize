@@ -221,8 +221,8 @@ export function arkgen(argv:string[]) {
                 verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
             })
         }
-        idlLibrary.enableCache()
         fillSyntheticDeclarations(idlLibrary)
+        idlLibrary.enableCache()
         new IdlPeerProcessor(idlLibrary).process()
 
         generateTarget(idlLibrary, outDir, language)
