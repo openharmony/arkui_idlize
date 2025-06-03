@@ -112,6 +112,7 @@ if (options.idl2peer) {
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
         const [file] = toIDLFile(idlFilename)
+        linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
         idlLibrary.files.push(file)
     })
     if (options.verifyIdl) {
@@ -186,9 +187,7 @@ if (options.dts2peer) {
                         return false
                     }))
                 )
-                linearizeNamespaceMembers(file.entries).forEach(it => {
-                    transformMethodsAsync2ReturnPromise(it)
-                })
+                linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
                 file = linkParentBack(file)
 
                 if (isAux)
