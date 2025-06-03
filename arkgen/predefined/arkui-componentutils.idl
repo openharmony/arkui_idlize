@@ -51,7 +51,7 @@ interface RotateResult {
     attribute number angle;
 
 };
-[Synthetic, Entity=Tuple]
+[Entity=Tuple]
 interface Matrix4Result {
 
     attribute number value0;
