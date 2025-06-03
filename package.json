@@ -14,7 +14,8 @@
     "dtsgen",
     "etsgen",
     "arktscgen",
-    "runner"
+    "runner",
+    "idlinter"
   ],
   "license": "Apache-2.0",
   "keywords": [],
