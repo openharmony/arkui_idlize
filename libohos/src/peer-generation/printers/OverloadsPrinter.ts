@@ -268,13 +268,6 @@ export class OverloadsPrinter {
     }
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
-        if (this.isComponent) {
-            if (this.printer.language == Language.CJ) {
-                this.printer.print('@Memo(')
-            } else {
-                this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
-            }
-        }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
             collapsedMethod.signature.returnType = idl.IDLVoidType
@@ -341,9 +334,6 @@ export class OverloadsPrinter {
     }
 
     public printCollapsedDeclaration(peer: PeerClassBase, methods: PeerMethod[]) {
-        if (this.isComponent) {
-            this.printer.print(this.useMemoM3 ? `@memo` :`/** @memo */`)
-        }
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
         this.printer.writeMethodDeclaration(collapsedMethod.name, collapsedMethod.signature)
     }

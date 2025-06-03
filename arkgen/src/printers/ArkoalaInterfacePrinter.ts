@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, componentToUIAttributesInterface, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
+import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
@@ -27,33 +27,22 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
         if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
         const printer = this.peerLibrary.createLanguageWriter()
-        const uiPrinter = this.peerLibrary.createLanguageWriter()
         const declaredPrefix = this.isDeclared ? "declare " : ""
         const superType = getSuper(idlInterface, this.peerLibrary)
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
-        let UIExtendsClause = superType ? `extends ${componentToUIAttributesInterface(superType.name)} ` : ""
-        if (isCommonMethod(idlInterface.name)) UIExtendsClause = `extends UICommonBase `
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
-        uiPrinter.print(`export ${declaredPrefix}interface ${componentToUIAttributesInterface(idlInterface.name)} ${UIExtendsClause}{`)
         printer.pushIndent()
-        uiPrinter.pushIndent()
         const filteredMethods = peer!.methods
             .filter(it => !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.peerLibrary.language))
             .filter(it => !it.isCallSignature)
         groupOverloads(filteredMethods).forEach(group => {
             const method = collapseIdlPeerMethods(this.peerLibrary, group)
             printer.writeMethodDeclaration(method.method.name, method.method.signature)
-            uiPrinter.print(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
-            uiPrinter.writeMethodDeclaration(method.method.name, method.method.signature)
         })
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
-        uiPrinter.print(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
-        uiPrinter.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         printer.popIndent()
-        uiPrinter.popIndent()
         printer.print('}')
-        uiPrinter.print('}')
         const stylePrinter = this.peerLibrary.createLanguageWriter()
         const parentStyle = generateStyleParentClass(peer)
         stylePrinter.writeClass(componentToStyleClass(idlInterface.name), (writer) => {
@@ -90,10 +79,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             const target = 'target'
             const applySignature = new NamedMethodSignature(
                 idl.IDLVoidType,
-                [idl.createReferenceType(componentToUIAttributesInterface(component.attributeDeclaration.name))],
+                [idl.createReferenceType(componentToAttributesInterface(component.attributeDeclaration.name))],
                 [target]
             )
-            writer.writeLines(this.peerLibrary.useMemoM3 ? `@memo` : `/** @memo */`)
             stylePrinter.writeMethodImplementation(new Method('apply', applySignature, [MethodModifier.PUBLIC]), writer => {
                 const superDecl = getSuper(component.attributeDeclaration, this.peerLibrary)
                 if (superDecl) {
@@ -108,7 +96,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                 }
             })
         }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
-        return printer.getOutput().concat(uiPrinter.getOutput()).concat(stylePrinter.getOutput())
+        return printer.getOutput().concat(stylePrinter.getOutput())
     }
     convertInterface(node: idl.IDLInterface) {
         if (this.seenInterfaceNames.has(node.name)) {

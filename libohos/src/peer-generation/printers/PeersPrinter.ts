@@ -74,10 +74,6 @@ export function componentToAttributesInterface(component: string) {
     return `${component}`
 }
 
-export function componentToUIAttributesInterface(component: string) {
-    return `UI${component}`
-}
-
 // For TS and ArkTS
 class PeerFileVisitor {
     constructor(
@@ -608,9 +604,4 @@ export function generateStyleParentClass(peer: PeerClass): string | undefined {
 export function parentToAttributesInterface(peer: PeerClass): string | undefined {
     if (!isHeir(peer.originalClassName!)) return undefined
     return componentToAttributesInterface(peer.originalParentName!)
-}
-
-export function parentToUIAttributesInterface(peer: PeerClass): string | undefined {
-    if (!isHeir(peer.originalClassName!)) return undefined
-    return componentToUIAttributesInterface(peer.originalParentName!)
 }

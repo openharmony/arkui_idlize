@@ -37,7 +37,6 @@ import {
     collectJavaImports,
     collectPeersForFile,
     COMPONENT_BASE,
-    componentToUIAttributesInterface,
     componentToPeerClass,
     componentToAttributesInterface,
     findComponentByName,
@@ -51,8 +50,6 @@ import {
     printJavaImports,
     readLangTemplate,
     TargetFile,
-    parentToAttributesInterface,
-    parentToUIAttributesInterface,
     collectDeclItself,
     findComponentByDeclaration,
     componentToStyleClass,
@@ -153,7 +150,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 imports.addFeatures([
                     componentToStyleClass(parentComponent.attributeDeclaration.name),
                     componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                    componentToUIAttributesInterface(parentComponent.attributeDeclaration.name),
                 ], `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
                     let [parentRef] = parentComponent.attributeDeclaration.inheritance
@@ -176,14 +172,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeature('unsafeCast', '@koalaui/common')
     }
 
-    memoStable(): string {
-        return this.library.useMemoM3 ? `@memo_stable` : `/** @memo:stable */`
-    }
-
-    memo(): string {
-        return this.library.useMemoM3 ? `@memo` : `/** @memo */`
-    }
-
     private printComponent(peer: PeerClass): PrinterResult[] {
 
         const component = findComponentByType(this.library, idl.createReferenceType(peer.originalClassName!))!
@@ -201,7 +189,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             ? ` as AttributeModifier<${rootSuper.name}>`
             : ``
 
-        printer.print(this.memoStable())
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
                 new Method('getPeer',
@@ -225,7 +212,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             if (!superDecl) {
                 writer.writeFieldDeclaration(`_modifier`, generateAttributeModifierSignature(this.library, component).args[0], undefined, true)
             }
-            writer.print(this.memo())
             writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
                 writer.writeLines(`this._modifier = value${asType}`)
                 writer.writeStatement(writer.makeReturn(writer.makeThis()))
@@ -237,13 +223,12 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
-        }, parentComponentClassName, [componentToUIAttributesInterface(peer.originalClassName!)])
+        }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
 
-        printer.print(this.memo())
         const withStyleMethodSignature = new NamedMethodSignature(
             IDLVoidType,
             [
-                idl.createReferenceType(componentToUIAttributesInterface(component.attributeDeclaration.name)),
+                idl.createReferenceType(componentToAttributesInterface(component.attributeDeclaration.name)),
                 idl.createUnionType([...expandComponentWithSupers(this.library, component.attributeDeclaration).map(it =>
                     idl.createReferenceType(getReferenceTo('AttributeModifier'),
                     [idl.createReferenceType(componentToAttributesInterface(it.name))])), idl.IDLUndefinedType])
@@ -287,7 +272,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     protected printComponentFunction(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = componentToUIAttributesInterface(peer.originalClassName!)
+        const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length > 0 ? collapseSameNamedMethods(callableMethods) : undefined
@@ -442,7 +427,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const peerClassName = componentToPeerClass(peer.componentName)
 
-        printer.writeInterface(componentToUIAttributesInterface(peer.originalClassName!), () => {})
+        printer.writeInterface(componentToAttributesInterface(peer.originalClassName!), () => {})
 
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
@@ -480,7 +465,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
-        }, parentComponentClassName, [componentToUIAttributesInterface(peer.originalClassName!)])
+        }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
 
         return [{
             collector: imports,
@@ -496,7 +481,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
     protected printComponentFunction(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
-        const componentInterfaceName = componentToUIAttributesInterface(peer.originalClassName!)
+        const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
         const callableMethod = callableMethods.length ? collapseSameNamedMethods(callableMethods) : undefined

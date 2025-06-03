@@ -1,7 +1,7 @@
 import * as idl from '@idlizer/core/idl'
 import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule, generatorConfiguration } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
-import { componentToPeerClass, componentToStyleClass, componentToUIAttributesInterface } from '../printers/PeersPrinter';
+import { componentToPeerClass, componentToStyleClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
 import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
@@ -140,8 +140,6 @@ function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<stri
             if (isComponentDeclaration(library, it)) {
                 const peerName = componentToPeerClass(it.name.replace('Attribute', ''))
                 synthesizedEntries.set(peerName, idl.createInterface(peerName, idl.IDLInterfaceSubkind.Class))
-                const uiComponentName = componentToUIAttributesInterface(it.name)
-                synthesizedEntries.set(uiComponentName, idl.createInterface(uiComponentName, idl.IDLInterfaceSubkind.Class))
                 const styleComponentName = componentToStyleClass(it.name)
                 synthesizedEntries.set(styleComponentName, idl.createInterface(styleComponentName, idl.IDLInterfaceSubkind.Interface))
             }
