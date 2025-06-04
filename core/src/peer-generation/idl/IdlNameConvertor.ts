@@ -94,6 +94,13 @@ export class CJFeatureNameConvertor extends DeclarationNameConvertor {
     static readonly I = new CJFeatureNameConvertor()
 }
 
+export class KotlinFeatureNameConvertor extends DeclarationNameConvertor {
+    override convertEnum(decl: idl.IDLEnum): string {
+        return decl.name
+    }
+    static readonly I = new KotlinFeatureNameConvertor()
+}
+
 export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSDeclarationNameConvertor.I
@@ -112,6 +119,7 @@ export function createFeatureNameConvertor(language: Language): DeclarationNameC
         case Language.CPP:
         case Language.TS: return TSFeatureNameConvertor.I
         case Language.CJ: return CJFeatureNameConvertor.I
+        case Language.KOTLIN: return KotlinFeatureNameConvertor.I
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

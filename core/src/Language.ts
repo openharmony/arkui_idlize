@@ -19,6 +19,7 @@ export class Language {
     public static JAVA = new Language("Java", ".java", false)
     public static CPP = new Language("C++", ".cc", false)
     public static CJ = new Language("CangJie", ".cj", false)
+    public static KOTLIN = new Language("Kotlin", ".kt", false)
 
     private constructor(public name: string, public extension: string, public needsUnionDiscrimination: boolean) {}
 
@@ -36,6 +37,8 @@ export class Language {
             case "java": return Language.JAVA
             case "ts": return Language.TS
             case "cangjie": return Language.CJ
+            case "cpp": return Language.CPP
+            case "kotlin": return Language.KOTLIN
             default: throw new Error(`Unsupported language ${name}`)
         }
     }

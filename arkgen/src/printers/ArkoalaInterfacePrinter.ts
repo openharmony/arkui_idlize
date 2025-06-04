@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
+import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
@@ -146,6 +146,9 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): Interfac
     }
     if (peerLibrary.language == Language.CJ) {
         return new CJInterfacesVisitor(peerLibrary)
+    }
+    if (peerLibrary.language == Language.KOTLIN) {
+        return new KotlinInterfacesVisitor(peerLibrary)
     }
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }

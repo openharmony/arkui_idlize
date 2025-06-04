@@ -43,6 +43,8 @@ export function createArkoalaInstall(options: {
             return new JavaArkoalaInstall(options.outDir, options.test)
         case Language.CJ:
             return new CJArkoalaInstall(options.outDir, options.test)
+        case Language.KOTLIN:
+            return new KotlinArkoalaInstall(options.outDir, options.test)
         default: throw new Error("Not implemented")
     }
 }
@@ -115,6 +117,21 @@ class JavaArkoalaInstall extends BaseArkoalaInstall {
 class CJArkoalaInstall extends BaseArkoalaInstall {
     get managedDir(): string {
         return path.join(this.root, "arkoala-arkts/framework/java/src")
+    }
+    get managedSdkDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsTypesDir(): string {
+        throw new Error("Not implemented")
+    }
+    get tsArkoalaDir(): string {
+        throw new Error("Not implemented")
+    }
+}
+
+class KotlinArkoalaInstall extends BaseArkoalaInstall {
+    get managedDir(): string {
+        return path.join(this.root, "arkoala-kt/framework/kotlin/src")
     }
     get managedSdkDir(): string {
         throw new Error("Not implemented")

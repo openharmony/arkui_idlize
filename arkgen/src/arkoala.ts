@@ -198,6 +198,8 @@ export function generateArkoalaFromIdl(config: {
     const installedFiles = ETSLanguageWriter.useTypeChecker(config.useTypeChecker, () => install(
         arkoala.managedDir,
         peerLibrary,
+        peerLibrary.language == Language.KOTLIN ?
+        [] :
         [
             createMaterializedPrinter(config.dumpSerialized),
             createPeersPrinter(config.dumpSerialized),

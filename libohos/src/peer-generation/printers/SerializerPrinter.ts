@@ -705,6 +705,7 @@ export function createSerializerDependencyFilter(language: Language): Dependency
         case Language.JAVA: return new DefaultSerializerDependencyFilter()
         case Language.CJ: return new DefaultSerializerDependencyFilter()
         case Language.CPP: return new DefaultSerializerDependencyFilter()
+        case Language.KOTLIN: return new DefaultSerializerDependencyFilter()
     }
     throwException("Unimplemented filter")
 }

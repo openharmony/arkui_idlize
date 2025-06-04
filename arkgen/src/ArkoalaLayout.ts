@@ -227,6 +227,28 @@ export class CJLayout extends CommonLayoutBase {
     }
 }
 
+export class KotlinLayout extends CommonLayoutBase {
+    private getPath(file:string):string {
+        return path.join('.', file)
+    }
+    resolve({ node, role }: idl.LayoutTargetDescription): string {
+        switch (role) {
+            case LayoutNodeRole.INTERFACE: {
+                return 'GlobalScope'
+            }
+            case LayoutNodeRole.PEER: {
+                return 'GlobalScope'
+            }
+            case LayoutNodeRole.GLOBAL: {
+                return 'GlobalScope'
+            }
+            case LayoutNodeRole.COMPONENT: {
+                return 'GlobalScope'
+            }
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////
 
 export function arkoalaLayout(library: PeerLibrary, prefix: string = '', packagePath: string = ''): LayoutManagerStrategy {
@@ -235,6 +257,7 @@ export function arkoalaLayout(library: PeerLibrary, prefix: string = '', package
         case idl.Language.ARKTS: return new ArkTsLayout(library, prefix)
         case idl.Language.JAVA: return new JavaLayout(library, prefix, packagePath)
         case idl.Language.CJ: return new CJLayout(library, prefix)
+        case idl.Language.KOTLIN: return new KotlinLayout(library, prefix)
     }
     throw new Error(`Unimplemented language "${library.language}"`)
 }

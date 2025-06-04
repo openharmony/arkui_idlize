@@ -44,6 +44,7 @@ import { isInIdlizeInternal } from '../idlize'
 import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
 import { isExternalType } from './isExternalType'
+import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertor'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -145,6 +146,7 @@ export class PeerLibrary implements LibraryInterface {
             case Language.JAVA: return new JavaTypeNameConvertor(this)
             case Language.CJ: return new CJTypeNameConvertor(this)
             case Language.CPP: return new CppConvertor(this)
+            case Language.KOTLIN: return new KotlinTypeNameConvertor(this)
         }
         throw new Error(`IdlNameConvertor for ${language} is not implemented`)
     }

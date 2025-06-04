@@ -1437,6 +1437,16 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
     }
 }
 
+export class KotlinInterfacesVisitor implements InterfacesVisitor {
+    constructor(
+        protected readonly peerLibrary: PeerLibrary
+    ) { }
+
+    printInterfaces(): PrinterResult[] {
+        return []
+    }
+}
+
 
 function getVisitor(peerLibrary: PeerLibrary, isDeclarations:boolean, printClasses:boolean): InterfacesVisitor {
     if (peerLibrary.language == Language.TS) {
@@ -1450,6 +1460,9 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations:boolean, printClass
     }
     if (peerLibrary.language == Language.CJ) {
         return new CJInterfacesVisitor(peerLibrary)
+    }
+    if (peerLibrary.language == Language.CJ) {
+        return new KotlinInterfacesVisitor(peerLibrary)
     }
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }

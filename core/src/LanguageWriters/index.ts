@@ -7,6 +7,7 @@ import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors
 import { ETSInteropArgConvertor, ETSTypeNameConvertor } from "./convertors/ETSConvertors"
 import { InteropArgConvertor } from "./convertors/InteropConvertors"
 import { JavaInteropArgConvertor, JavaTypeNameConvertor } from "./convertors/JavaConvertors"
+import { KotlinTypeNameConvertor } from "./convertors/KotlinConvertor"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./convertors/TSConvertors"
 import { LanguageWriter } from "./LanguageWriter"
 import { TypeConvertor } from "./nameConvertor"
@@ -14,6 +15,7 @@ import { CJLanguageWriter } from "./writers/CJLanguageWriter"
 import { CppLanguageWriter } from "./writers/CppLanguageWriter"
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter"
 import { JavaLanguageWriter } from "./writers/JavaLanguageWriter"
+import { KotlinLanguageWriter } from "./writers/KotlinLanguageWriter"
 import { TSLanguageWriter } from "./writers/TsLanguageWriter"
 
 export * from "./nameConvertor"
@@ -32,6 +34,8 @@ export function createLanguageWriter(language: Language, resolver?: ReferenceRes
             new CppConvertor(resolver), PrimitiveTypesInstance)
         case Language.CJ: return new CJLanguageWriter(printer, resolver,
             new CJTypeNameConvertor(resolver), new CJIDLTypeToForeignStringConvertor(resolver))
+        case Language.KOTLIN: return new KotlinLanguageWriter(printer, resolver,
+            new KotlinTypeNameConvertor(resolver))
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

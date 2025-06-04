@@ -180,6 +180,9 @@
     "test:root": "mocha test",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "test": "npm run test:core && npm run test:root",
-    "sanity": "npm run check:subset:run && npm run check:peers:ets:run"
+    "sanity": "npm run check:subset:run && npm run check:peers:ets:run",
+    "make:kt": "node . --api-version 99 --dts2peer --base-dir ./,./tests/kotlin-subset --input-dir ./tests/kotlin-subset/, --output-dir ./out/kotlin-subset/generated --language kotlin && mkdir ./out/kotlin-subset/bin && kotlinc ./out/kotlin-subset/generated/sig/arkoala-kotlin/framework/kotlin/src/*.kt -d ./out/kotlin-subset/bin/output.jar",
+    "compile:kt": "npm run compile && npm run make:kt",
+    "run:kt": "npm run compile:kt && kotlin -classpath ./out/kotlin-subset/bin/output.jar MainKt"
   }
 }
