@@ -3,6 +3,10 @@ package arkui.FrameNode;
 import arkui.component.units.Position as Position;
 import ohos.arkui.UIContext.UIContext as UIContext;
 
+interface CrossLanguageOptions {
+   [Optional]
+   attribute boolean attributeSetting;
+};
 [Entity=Class]
 interface FrameNode {
     constructor(UIContext uiContext);
@@ -33,14 +37,18 @@ interface FrameNode {
     // ([TypeArguments="LengthMetrics"] Edges) getUserConfigPadding();
     // ([TypeArguments="LengthMetrics"] Edges) getUserConfigMargin();
     // ([TypeArguments="LengthMetrics"] SizeT) getUserConfigSize();
-    // String getId();
-    // number getUniqueId();
+    String getId();
+    number getUniqueId();
     // String getNodeType();
     number getOpacity();
-    // boolean isVisible();
-    // boolean isClipToFrame();
-    // boolean isAttached();
-    // Object getInspectorInfo();
+    boolean isVisible();
+    boolean isClipToFrame();
+    boolean isAttached();
+    Object getInspectorInfo();
+    void invalidate();
+    void disposeTree();
+    setCrossLanguageOptions(CrossLanguageOptions options);
+    CrossLanguageOptions getCrossLanguageOptions();
     // (Object or undefined) getCustomProperty(String name);
     // [Optional]
     // void onDraw(DrawContext context);
@@ -51,12 +59,10 @@ interface FrameNode {
     // void measure(LayoutConstraint constraint);
     // void layout(Position position);
     // void setNeedsLayout();
-    // void invalidate();
     // Position getPositionToScreen();
     Position getPositionToWindowWithTransform();
     // Position getPositionToParentWithTransform();
     // Position getPositionToScreenWithTransform();
-    // void disposeTree();
     // [TypeParameters="T"]
     // void addComponentContent([TypeArguments="T"] ComponentContent content);
     static FrameNode getFrameNodeByKey(String name);
