@@ -13,7 +13,22 @@
  * limitations under the License.
  */
 
-import { capitalize, collapseTypes, filterRedundantAttributesOverloads, filterRedundantMethodsOverloads, flattenUnionType, generateSyntheticFunctionName, generateSyntheticIdlNodeName, IDLFile, Language, nameEnumValues, PeerLibrary, throwException, zip } from "@idlizer/core"
+import {
+    camelCaseToUpperSnakeCase,
+    capitalize,
+    collapseTypes,
+    filterRedundantAttributesOverloads,
+    filterRedundantMethodsOverloads,
+    flattenUnionType,
+    generateSyntheticFunctionName,
+    generateSyntheticIdlNodeName,
+    IDLFile,
+    Language,
+    nameEnumValues,
+    PeerLibrary,
+    throwException,
+    zip
+} from "@idlizer/core"
 import * as arkts from "@koalaui/libarkts"
 import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
@@ -27,7 +42,47 @@ const TypeParameterMap: Map<string, Map<string, idl.IDLType>> = new Map([
         ["T", idl.IDLNumberType]])],
 ])
 
-function processFile(outDir: string, baseDir: string, file: string, configPath:string, config: ETSVisitorConfig): IDLSuperFile {
+class StatusRecord {
+    constructor(
+        public fullPackage: string,
+        public pkg: string,
+        public parent: string,
+        public name: string,
+        public override: number,
+        public type: string,
+        public status: string,
+        public src: string,
+    ) {}
+
+    ToString(): string {
+        let statusStr = this.status ? `Deleted because of ${this.status}` : ''
+        return `| ${this.fullPackage} | ${this.pkg} | ${this.parent} | ${this.name} | ${this.override} | ${this.type} | ${statusStr} | \`${this.src}\` |`
+    }
+
+    static Header(): string {
+        return '| Full package | Package | Parent | Name | Override | Type | Status | Source |'
+    }
+}
+
+class StatusTracker {
+    status: StatusRecord[] = []
+    od: Map<string, number> = new Map()
+    enabled: boolean
+
+    constructor(enabled: boolean) {
+        this.enabled = enabled
+    }
+
+    Concat(src: StatusTracker) {
+        this.status.push(...src.status)
+    }
+
+    Print(): string {
+        return [StatusRecord.Header(), ...this.status.map(it => it.ToString())].join("\n")
+    }
+}
+
+function processFile(outDir: string, baseDir: string, file: string, configPath:string, config: ETSVisitorConfig, status: StatusTracker): IDLSuperFile {
     let input = fs.readFileSync(file).toString()
     //let module = arkts.createETSModuleFromSource(input, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
     const configText = fs.readFileSync(configPath, 'utf-8')
@@ -53,7 +108,8 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     arkts.arktsGlobal.compilerContext = arkts.Context.createFromString(input)
     arkts.proceedToState(arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
     const script = arkts.createETSModuleFromContext()
-    let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config)
+    let localStatus = new StatusTracker(status.enabled)
+    let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)
     idlVisitor.visitor(script)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
@@ -67,11 +123,13 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     } else if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
         console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
         idlFile.skipped = true
+        localStatus.status.forEach(it => it.status = `DeletedPackages`)
     }
     if (!idlFile.skipped) {
         fs.writeFileSync(outFile, idl.toIDLString(idlFile.file, {}), 'utf8')
     }
     idlFile.writeFilePath = outFile
+    status.Concat(localStatus)
     return idlFile
 }
 
@@ -81,9 +139,10 @@ export interface GenerateFromSTSContext {
     outDir: string
     etsConfigPath: string
     config: ETSVisitorConfig
+    traceStatus: string
 }
 
-export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config }: GenerateFromSTSContext): PeerLibrary {
+export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config, traceStatus }: GenerateFromSTSContext): PeerLibrary {
     if (!process.env.PANDA_SDK_PATH) {
         process.env.PANDA_SDK_PATH = path.resolve(__dirname, "../../external/incremental/tools/panda/node_modules/@panda/sdk")
     }
@@ -96,10 +155,11 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     console.log(`Use Panda from ${process.env.PANDA_SDK_PATH}`)
     const doJob = processLogger(inputFiles.length)
     const library: IDLSuperFile[] = []
+    let status = new StatusTracker(!!traceStatus)
     inputFiles.forEach(file => {
         try {
             doJob(file, () => {
-                const idlFile = processFile(outDir, baseDir, file, etsConfigPath, config)
+                const idlFile = processFile(outDir, baseDir, file, etsConfigPath, config, status)
                 if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
                     console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
                 } else {
@@ -115,6 +175,9 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
             // throw e
         }
     })
+    if (traceStatus) {
+        fs.writeFileSync(traceStatus, status.Print())
+    }
     console.log('Adjusting imports...')
     const adjusted = adjustImports(library)
     const doAdjustJob = processLogger(adjusted.length)
@@ -274,6 +337,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return synthetic
     }
 
+    private processNodeStack: arkts.AstNode[] = []
+    private processNode<T extends (...args: any[]) => any>(op: T, ...args: Parameters<T>): ReturnType<T> {
+        this.processNodeStack.unshift(args[0])
+        let result = op.call(this, ...args)
+        this.processNodeStack.shift()
+        return result
+    }
+
     private defaultExportName?: string
     private typeParamsStack: Set<string>[] = []
 
@@ -301,6 +372,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         protected originalFileName: string,
         protected importPathMap: Map<string, string>,
         protected config: ETSVisitorConfig,
+        protected status: StatusTracker,
     ) {
         super()
         this.fileName = this.originalFileName.replace(".d.ets", ".idl")
@@ -352,28 +424,28 @@ class IDLVisitor extends arkts.AbstractVisitor {
         //////////////////
 
         if (arkts.isScriptFunction(node)) {
-            return this.visitScriptFunction(node)
+            return this.processNode(this.visitScriptFunction, node)
         }
         if (arkts.isClassDeclaration(node)) {
-            return this.visitClassDeclaration(node)
+            return this.processNode(this.visitClassDeclaration, node)
         }
         if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) {
-            return this.visitInterfaceDeclaration(node)
+            return this.processNode(this.visitInterfaceDeclaration, node)
         }
         if (arkts.isImportDeclaration(node)) {
-            return this.visitImportDeclaration(node)
+            return this.processNode(this.visitImportDeclaration, node)
         }
         if (arkts.isTSEnumDeclaration(node)) {
-            return this.visitEnumDeclaration(node)
+            return this.processNode(this.visitEnumDeclaration, node)
         }
         if (arkts.isTSTypeAliasDeclaration(node)) {
-            return this.visitTSTypeAliasDeclaration(node)
+            return this.processNode(this.visitTSTypeAliasDeclaration, node)
         }
         if (arkts.isFunctionDeclaration(node)) {
-            return this.visitFunctionDeclaration(node)
+            return this.processNode(this.visitFunctionDeclaration, node)
         }
         if (arkts.isETSModule(node) && node.ident?.name !== 'ETSGLOBAL') {
-            return this.visitETSModule(node)
+            return this.processNode(this.visitETSModule, node)
         }
 
         //////////////////
@@ -384,13 +456,17 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitETSModule(node: arkts.ETSModule): arkts.ETSModule {
         const old = this.entries
         this.entries = []
+        let extendedAttributes = this.traceAttrs()
         this.visitEachChild(node)
         const members = this.entries
         this.entries = old
         this.entries.push(idl.createNamespace(
             node.ident!.name,
             members,
-            { fileName: this.fileName }
+            {
+                extendedAttributes,
+                fileName: this.fileName,
+            }
         ))
         return node
     }
@@ -398,13 +474,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitEnumDeclaration(node: arkts.TSEnumDeclaration): arkts.TSEnumDeclaration {
         const name = node.key!.name
         if (this.config.DeletedDeclarations.includes(name)) {
+            this.traceDeleted('DeletedDeclarations')
             return node
         }
-        let result = idl.createEnum(name, [], {})
+        let extendedAttributes = this.traceAttrs()
+        let result = idl.createEnum(name, [], { extendedAttributes })
         let currentValue = 0
         let enumNames = nameEnumValues(node.members.map(it => (it as arkts.TSEnumMember).name))
         result.elements =
-            node.members.map((it, index) => {
+            node.members.map((it, index) => this.processNode((it, index) => {
                 let element = (it as arkts.TSEnumMember)
                 let [type, value] = this.convertEnumInitializer(element.init)
                 if (typeof value === 'number')
@@ -413,12 +491,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     value = currentValue
                     currentValue++
                 }
-                let extendedAttributes: idl.IDLExtendedAttribute[] = []
+                let extendedAttributes: idl.IDLExtendedAttribute[] = this.traceAttrs()
                 if (enumNames[index] != element.name) {
                     extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: element.name })
                 }
                 return idl.createEnumMember(enumNames[index], result, type, value, { extendedAttributes })
-            })
+            }, it, index))
         this.entries.push(result)
         return node
     }
@@ -472,10 +550,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitFunctionDeclaration(node: arkts.FunctionDeclaration): arkts.FunctionDeclaration {
         const func = node.function!
         if (func.id?.name && this.config.DeletedDeclarations.includes(func.id.name)) {
+            this.traceDeleted('DeletedDeclarations')
             return node
         }
         const { set: paramsSet, parameters } = this.extractTypeParameters(func.typeParams)
         this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(func.id!.name, false, () => {
+            let extendedAttributes = this.traceAttrs()
             const method = idl.createMethod(
                 func.id!.name,
                 func.params.map(it => {
@@ -490,6 +570,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     isStatic: func.isStaticBlock
                 },
                 {
+                    extendedAttributes: extendedAttributes,
                     fileName: this.fileName,
                 },
                 parameters
@@ -506,6 +587,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     },
                     {
                         extendedAttributes: [
+                            ...extendedAttributes,
                             { name: idl.IDLExtendedAttributes.CallSignature },
                         ]
                     }
@@ -543,6 +625,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitTSTypeAliasDeclaration(declaration: arkts.TSTypeAliasDeclaration): arkts.TSTypeAliasDeclaration {
         const name = declaration.id!.name
         if (this.config.DeletedDeclarations.includes(name)) {
+            this.traceDeleted('DeletedDeclarations')
             return declaration
         }
         if (this.mode === 'arkoala') {
@@ -574,11 +657,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
         } else {
             const { set: paramsSet, parameters } = this.extractTypeParameters(declaration.typeParams)
             this.withTypeParamContext(paramsSet, () => {
+                let extendedAttributes = this.traceAttrs()
                 this.entries.push(idl.createTypedef(
                     name,
                     this.serializeType(declaration.typeAnnotation),
                     parameters,
                     {
+                        extendedAttributes,
                         fileName: this.fileName,
                     })
                 )
@@ -607,9 +692,10 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const methods: idl.IDLMethod[] = []
         const constructors: idl.IDLConstructor[] = []
 
-        members?.forEach(member => {
+        members?.forEach(member => this.processNode((member) => {
             if (arkts.isClassProperty(member)) {
                  if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
+                    this.traceDeleted('DeletedMembers')
                     return
                 }
                 properties.push(this.serializeClassProperty(member))
@@ -621,6 +707,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             }
             if (arkts.isMethodDefinition(member)) {
                 if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
+                    this.traceDeleted('DeletedMembers')
                     return
                 }
                 if (member.isGetter) {
@@ -634,6 +721,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         prop.isStatic = true
                     }
                     prop.extendedAttributes?.push({name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter})
+                    prop.extendedAttributes.push(...this.traceAttrs())
                     properties.push(prop)
                     return
                 }
@@ -646,7 +734,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     if (arkts.hasModifierFlag(propType, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                         prop.isStatic = true
                     }
-                    prop.extendedAttributes?.push({name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter})
+                    prop.extendedAttributes.push({name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter})
+                    prop.extendedAttributes.push(...this.traceAttrs())
                     properties.push(prop)
                     return
                 }
@@ -688,7 +777,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             }
             console.error(member)
             throw new Error("Unhandled member!")
-        })
+        }, member))
 
         return {
             properties,
@@ -701,6 +790,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitClassDeclaration(declaration: arkts.ClassDeclaration): arkts.ClassDeclaration {
         const name = declaration.definition!.ident!.name
         if (this.config.DeletedDeclarations.includes(name)) {
+            this.traceDeleted('DeletedDeclarations')
             return declaration
         }
         const definition = declaration.definition!
@@ -727,10 +817,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     })
                 }
 
-                const { properties, methods, constructors } = this.processBody(name, declaration.definition?.body)
                 const attrs: idl.IDLExtendedAttribute[] = [
+                    ...this.traceAttrs(),
                     { name: idl.IDLExtendedAttributes.Entity, value: idl.IDLEntity.Class }
                 ]
+                const { properties, methods, constructors } = this.processBody(name, declaration.definition?.body)
                 this.entries.push(idl.createInterface(
                     name,
                     idl.IDLInterfaceSubkind.Class,
@@ -754,9 +845,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitInterfaceDeclaration(declaration: arkts.InterfaceDecl | arkts.TSInterfaceDeclaration): arkts.InterfaceDecl | arkts.TSInterfaceDeclaration {
         const name = declaration.id!.name
         if (this.config.DeletedDeclarations.includes(name)) {
+            this.traceDeleted('DeletedDeclarations')
             return declaration
         }
         if (this.config.StubbedDeclarations.includes(name)) {
+            this.traceDeleted('StubbedDeclarations')
             this.entries.push(idl.createInterface(
                 name,
                 idl.IDLInterfaceSubkind.Interface,
@@ -786,8 +879,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         inheritance.push(type)
                     })
                 }
+                const attrs: idl.IDLExtendedAttribute[] = this.traceAttrs()
                 const { properties, methods, constructors } = this.processBody(name, declaration.body?.getChildren())
-                const attrs: idl.IDLExtendedAttribute[] = []
                 this.entries.push(idl.createInterface(
                     name,
                     idl.IDLInterfaceSubkind.Interface,
@@ -855,6 +948,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const { set: paramsSet, parameters: typeParameters } = this.extractTypeParameters((method.value as arkts.FunctionExpression).function?.typeParams)
         return this.withTypeParamContext(paramsSet, () => {
             const { methodName, parameters: arktsParameters, extendedAttributes } = this.processMethodLiteralParameters(method)
+            let traceAttrs = this.traceAttrs()
+            extendedAttributes.push(...traceAttrs)
             return this.contextual.extend(methodName, () => {
                 const key = parentName + '.' + methodName
                 if (this.config.Throws.includes(key)) {
@@ -880,6 +975,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     return idl.createConstructor(
                         parameters,
                         returnType,
+                        {
+                            extendedAttributes: traceAttrs,
+                        },
                     )
                 }
                 return idl.createMethod(methodName,
@@ -904,8 +1002,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const name = (property.key as arkts.Identifier).name
         return this.contextual.extend(name, false, () => {
             const prop = idl.createProperty(name, this.serializeType(property.typeAnnotation!))
+            prop.extendedAttributes ??= []
+            prop.extendedAttributes.push(...this.traceAttrs())
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
-                prop.extendedAttributes ??= []
                 prop.isOptional = true
                 prop.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Optional })
             }
@@ -1120,6 +1219,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         result.extendedAttributes ??= []
         if (!this.contextual.hasSuggestion || !this.contextual.forced)
             result.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Synthetic })
+        else
+            result.extendedAttributes.push(...this.traceAttrs())
 
         return [result, orderedTypeParameters]
     }
@@ -1141,6 +1242,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         ]
         if (!this.contextual.hasSuggestion || !this.contextual.forced)
             extendedAttributes.push({ name: idl.IDLExtendedAttributes.Synthetic })
+        else
+            extendedAttributes.push(...this.traceAttrs())
 
         return idl.createInterface(
             this.contextualSelectName('Tuple_' + properties.map(it => generateSyntheticIdlNodeName(it)).join('_')),
@@ -1396,5 +1499,56 @@ class IDLVisitor extends arkts.AbstractVisitor {
             exports: this.fileReExports,
         }
     }
-}
 
+    private getNodeType(node: arkts.AstNode): string {
+        if (arkts.isClassDeclaration(node)) return 'class'
+        if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) return 'interface'
+        if (arkts.isTSEnumDeclaration(node)) return 'enum_class'
+        if (arkts.isTSEnumMember(node)) return 'enum_instance'
+        if (arkts.isFunctionDeclaration(node)) return 'function'
+        if (arkts.isETSModule(node)) return 'namespace'
+        if (arkts.isClassProperty(node)) return 'field'
+        if (arkts.isMethodDefinition(node)) return 'method'
+        if (arkts.isTSTypeAliasDeclaration(node)) return 'field' // !!!
+        throw new Error("Unknown node type!")
+    }
+
+    private getNodeName(node: arkts.AstNode): string {
+        if (arkts.isClassDeclaration(node)) return node.definition!.ident!.name
+        if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) return node.id!.name
+        if (arkts.isTSEnumDeclaration(node)) return node.key!.name
+        if (arkts.isTSEnumMember(node)) return node.name
+        if (arkts.isFunctionDeclaration(node)) return node.function!.id!.name
+        if (arkts.isETSModule(node)) return node.ident!.name
+        if (arkts.isClassProperty(node)) return node.id!.name
+        if (arkts.isMethodDefinition(node)) return node.id!.name
+        if (arkts.isTSTypeAliasDeclaration(node)) return node.id!.name
+        throw new Error("Unknown node type!")
+    }
+
+    private saveStatus(status?: string): string {
+        let pkg = camelCaseToUpperSnakeCase(this.packageClause.at(-1) ?? '').toLowerCase()
+        let fpkg = this.packageClause.join('.')
+
+        const [node, ...tail] = this.processNodeStack
+        let name = this.getNodeName(node)
+        let parent = tail.map(it => this.getNodeName(it)).reverse().join('.')
+        if (parent == '') parent = 'unnamed'
+        let type = this.getNodeType(node)
+
+        let ok = `${parent}:${name}`
+        let override = (this.status.od.get(ok) ?? -1) + 1
+        this.status.od.set(ok, override)
+        this.status.status.push(new StatusRecord(fpkg, pkg, parent, name, override, type, status ?? '', node.dumpSrc().split("\n")[0]));
+        return `${fpkg}:${parent}:${name}:${override}`
+    }
+
+    private traceAttrs(): idl.IDLExtendedAttribute[] {
+        let traceKey = this.saveStatus()
+        return this.status.enabled ? [{ name: idl.IDLExtendedAttributes.TraceKey, value: traceKey }] : []
+    }
+
+    private traceDeleted(reason: string) {
+        this.saveStatus(reason)
+    }
+}

@@ -77,6 +77,7 @@ export enum IDLExtendedAttributes {
     Protected = "Protected",
     Synthetic = "Synthetic",
     Throws = "Throws",
+    TraceKey = "TraceKey",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",
     VerbatimDts = "VerbatimDts",
@@ -1513,7 +1514,10 @@ export function printParameters(parameters: IDLParameter[] | undefined): string 
 }
 
 export function printConstructor(idl: IDLConstructor): PrintedLine[] {
-    return [`constructor(${printParameters(idl.parameters)});`]
+    return [
+        ...printExtendedAttributes(idl, 1),
+        `constructor(${printParameters(idl.parameters)});`
+    ]
 }
 
 export function nameWithType(
@@ -1590,6 +1594,7 @@ export const attributesToQuote = new Set([
     IDLExtendedAttributes.DtsTag,
     IDLExtendedAttributes.Import,
     IDLExtendedAttributes.Interfaces,
+    IDLExtendedAttributes.TraceKey,
     IDLExtendedAttributes.TypeArguments,
     IDLExtendedAttributes.TypeParameters,
 ])

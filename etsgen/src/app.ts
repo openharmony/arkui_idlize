@@ -38,6 +38,7 @@ export function etsgen(argv:string[]) {
         .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--ets-config <path>', 'Path to ets config file', resolve(__dirname, "..", "config.json"))
+        .option('--trace-status <filename>', 'Add trace information to generated IDL and save status in specified file')
         .parse(argv, { from: 'user' })
         .opts()
 
@@ -63,6 +64,7 @@ export function etsgen(argv:string[]) {
             baseDir: options.baseDir,
             outDir: options.outputDir,
             etsConfigPath: options.etsConfig,
+            traceStatus: options.traceStatus,
             config: readConfig(resolve(__dirname, '..', 'generator-config.json'))
         })
         if (options.useComponentStubs) {

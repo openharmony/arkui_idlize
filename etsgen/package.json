@@ -40,6 +40,7 @@
     "clean": "rimraf -g build",
     "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && rollup -c",
+    "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
     "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --use-component-stubs --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets"
   }
 }
