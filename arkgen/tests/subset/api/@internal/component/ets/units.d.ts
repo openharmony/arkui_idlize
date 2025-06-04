@@ -18,9 +18,15 @@ declare class ColorFilter {
   constructor(value: number[]);
 }
 
-declare type Resource = import('../resource/resource').Resource;
+declare type Resource = import('../api/global/resource').Resource;
 
 declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+
+declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+
+declare type ErrorCallback = import('../api/@ohos.base').ErrorCallback;
+
+declare type Want = import('../api/@ohos.base').Want;
 
 declare type Length = string | number | Resource;
 

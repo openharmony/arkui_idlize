@@ -28,6 +28,10 @@ declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationIn
 
 declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
 
+declare type PixelMap = import('../api/@ohos.multimedia.image').default.PixelMap;
+
+declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
+
 declare interface AnimateParam {
     duration?: number;
 }

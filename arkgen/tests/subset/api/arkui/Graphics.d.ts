@@ -9,3 +9,4 @@ export interface Circle {}
 export interface CommandPath {}
 export declare class ShapeMask {}
 export declare class ShapeClip {}
+export interface LengthMetrics {}

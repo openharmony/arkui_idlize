@@ -47,7 +47,7 @@ interface FrameNode {
     Object getInspectorInfo();
     void invalidate();
     void disposeTree();
-    setCrossLanguageOptions(CrossLanguageOptions options);
+    void setCrossLanguageOptions(CrossLanguageOptions options);
     CrossLanguageOptions getCrossLanguageOptions();
     // (Object or undefined) getCustomProperty(String name);
     // [Optional]
