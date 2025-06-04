@@ -65,7 +65,7 @@ export function etsgen(argv:string[]) {
             outDir: options.outputDir,
             etsConfigPath: options.etsConfig,
             traceStatus: options.traceStatus,
-            config: readConfig(resolve(__dirname, '..', 'generator-config.json'))
+            config: readConfig(options.optionsFile ?? resolve(__dirname, '..', 'generator-config.json'))
         })
         if (options.useComponentStubs) {
             cpSync(

@@ -1,0 +1,4 @@
+package stubbet_declarations;
+interface MyStubbedDeclaration {
+    attribute i32 _stub;
+};

@@ -25,3 +25,4 @@ include:
     - ohosgen/.gitlab-ci.yml
     - arktscgen/.gitlab-ci.yml
     - dtsgen/.gitlab-ci.yml
+    - etsgen/.gitlab-ci.yml

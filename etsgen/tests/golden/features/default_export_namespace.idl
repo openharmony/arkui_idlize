@@ -1,0 +1,6 @@
+package default_export_namespace;
+[DefaultExport]
+namespace Namespace {
+    interface InterfaceInsideNamespace {
+    };
+};

@@ -1,0 +1,12 @@
+etsgen golden:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.setup, script]
+    - !reference [.setup, panda-sdk]
+    - !reference [.setup, libarkts]
+    - cd $CI_PROJECT_DIR/etsgen
+  script:
+    - npm test

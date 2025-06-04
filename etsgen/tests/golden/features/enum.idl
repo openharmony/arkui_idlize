@@ -1,0 +1,39 @@
+package enum;
+dictionary EnumWithoutInitializers {
+    [OriginalEnumMemberName=Value1]
+    number VALUE_1 = 0;
+    [OriginalEnumMemberName=Value2]
+    number VALUE_2 = 1;
+};
+dictionary NumberEnum {
+    [OriginalEnumMemberName=Value1]
+    number VALUE_1 = 0;
+    [OriginalEnumMemberName=Value2]
+    number VALUE_2 = 1;
+    [OriginalEnumMemberName=Value3]
+    number VALUE_3 = 3;
+    [OriginalEnumMemberName=Value4]
+    number VALUE_4 = 8;
+    [OriginalEnumMemberName=Value5]
+    number VALUE_5 = 9;
+    [OriginalEnumMemberName=Value6]
+    number VALUE_6 = 13;
+};
+dictionary StringEnum {
+    [OriginalEnumMemberName=Value1]
+    String VALUE_1 = "'one'";
+    [OriginalEnumMemberName=Value2]
+    String VALUE_2 = "'two'";
+    [OriginalEnumMemberName=Value2]
+    String LEGACY_VALUE_2 = "'three'";
+};
+namespace ns {
+    dictionary EnumInNamespace {
+        [OriginalEnumMemberName=Value1]
+        String VALUE_1 = "'one'";
+        [OriginalEnumMemberName=Value2]
+        String VALUE_2 = "'two'";
+        [OriginalEnumMemberName=Value2]
+        String LEGACY_VALUE_2 = "'three'";
+    };
+};

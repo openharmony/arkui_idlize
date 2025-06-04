@@ -1,0 +1,57 @@
+package suggesting_names;
+interface ShortValue {
+};
+interface VeryVeryLongValue1 {
+};
+interface VeryVeryLongValue2 {
+};
+interface VeryVeryLongValue3 {
+};
+interface VeryVeryLongValue4 {
+};
+interface VeryVeryLongValue5 {
+};
+interface VeryVeryLongValue6 {
+};
+interface VeryVeryLongValue7 {
+};
+[Synthetic]
+callback Callback_ShortValue_Void = void (ShortValue value);
+[Synthetic]
+callback Callback_VeryVeryLongValue1_Void = void (VeryVeryLongValue1 value);
+[Synthetic]
+callback Callback_Union_VeryVeryLongValue1_VeryVeryLongValue2_Void = void ((VeryVeryLongValue1 or VeryVeryLongValue2) value);
+[Synthetic]
+callback Type_Iface_foo3 = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3) value);
+[Synthetic]
+callback Type_Iface_foo4 = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3 or VeryVeryLongValue4) value);
+[Synthetic]
+callback Type_Iface_foo5 = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3 or VeryVeryLongValue4 or VeryVeryLongValue5) value);
+[Synthetic]
+callback Type_Iface_getterSuggestor = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3 or VeryVeryLongValue4 or VeryVeryLongValue5) value);
+[Synthetic]
+callback Type_Iface_setterSuggestor = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3 or VeryVeryLongValue4 or VeryVeryLongValue5) value);
+[Synthetic]
+callback Type_Iface_staticSuggestor = void ((VeryVeryLongValue1 or VeryVeryLongValue2 or VeryVeryLongValue3 or VeryVeryLongValue4 or VeryVeryLongValue5) value);
+[Entity=Tuple, Synthetic]
+interface Type_Iface_tupleSuggestor {
+    attribute VeryVeryLongValue1 value0;
+    attribute VeryVeryLongValue1 value1;
+    attribute VeryVeryLongValue1 value2;
+    attribute VeryVeryLongValue1 value3;
+    attribute VeryVeryLongValue1 value4;
+};
+interface Iface {
+    [Accessor=Getter]
+    attribute Type_Iface_getterSuggestor getterSuggestor;
+    [Accessor=Setter]
+    attribute Type_Iface_setterSuggestor setterSuggestor;
+    void foo6(Callback_ShortValue_Void cb);
+    void foo1(Callback_VeryVeryLongValue1_Void cb);
+    void foo2(Callback_Union_VeryVeryLongValue1_VeryVeryLongValue2_Void cb);
+    void foo3(Type_Iface_foo3 cb);
+    void foo4(Type_Iface_foo4 cb);
+    void foo5(Type_Iface_foo5 cb);
+    void staticSuggestor(Type_Iface_staticSuggestor cb);
+    void tupleSuggestor(Type_Iface_tupleSuggestor value);
+};

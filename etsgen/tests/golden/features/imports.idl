@@ -1,0 +1,10 @@
+package imports;
+import default_export_interface.default as DefalutExportInterface;
+import default_export_interface.default as ChangedName;
+import default_export_interface.default as NameWithoutUsage;
+import resource.Resource as _Resource;
+import resource.Resource as Resource;
+import default_export_namespace.Namespace as Namespace;
+import default_export_namespace.default as DefaultNamespace;
+void boo(Namespace.InterfaceInsideNamespace value);
+void goo(DefaultNamespace.InterfaceInsideNamespace value);

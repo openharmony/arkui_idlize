@@ -1,0 +1,6 @@
+package force_callback;
+[Synthetic]
+callback Callback_String_Void = void (String value);
+interface EditMenuOptions {
+    attribute Callback_String_Void onCreateMenu;
+};

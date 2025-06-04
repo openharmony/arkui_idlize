@@ -1,0 +1,16 @@
+package heir_components;
+import root_components.CommonMethod as CommonMethod;
+[Component]
+interface ButtonAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (String or undefined) label;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface ButtonInterface {
+    [CallSignature]
+    ButtonAttribute invoke();
+    [CallSignature]
+    ButtonAttribute invoke(String label);
+};

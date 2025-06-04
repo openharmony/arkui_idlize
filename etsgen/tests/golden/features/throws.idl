@@ -1,0 +1,11 @@
+package throws;
+interface ThrowableInterface {
+    [Throws]
+    void foo();
+};
+[Entity=Class]
+interface ThrowableClass {
+    constructor();
+    [Throws]
+    void boo();
+};

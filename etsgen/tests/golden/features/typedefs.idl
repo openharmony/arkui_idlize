@@ -1,0 +1,9 @@
+package typedefs;
+import resource.Resource as _Resource;
+typedef _Resource Resource;
+callback TypedefToCallback = void ();
+[Entity=Tuple]
+interface TypedefToTuple {
+    attribute number value0;
+    attribute String value1;
+};

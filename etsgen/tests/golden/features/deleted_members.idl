@@ -1,0 +1,7 @@
+package deleted_members;
+interface InterfaceWithExtraMethod {
+};
+[Entity=Class]
+interface ClassWithExtraMethod {
+    constructor();
+};

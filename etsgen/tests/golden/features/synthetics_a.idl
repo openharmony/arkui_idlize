@@ -1,0 +1,4 @@
+package synthetics_a;
+[Synthetic]
+callback Callback_Void = void ();
+void foo(Callback_Void cb);

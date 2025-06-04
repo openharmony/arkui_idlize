@@ -1,0 +1,4 @@
+package resource;
+interface Resource {
+    attribute String name;
+};

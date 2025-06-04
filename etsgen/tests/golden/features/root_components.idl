@@ -1,0 +1,21 @@
+package root_components;
+[Component]
+interface BaseSpan {
+    [CommonMethod]
+    attribute (number or undefined) width;
+};
+[Component]
+interface CommonMethod {
+    [CommonMethod]
+    attribute (number or undefined) width;
+};
+[Component]
+interface CommonShapeMethod {
+    [CommonMethod]
+    attribute (number or undefined) width;
+};
+[Component]
+interface ScrollableCommonMethod {
+    [CommonMethod]
+    attribute (number or undefined) width;
+};

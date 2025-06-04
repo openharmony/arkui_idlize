@@ -1,0 +1,36 @@
+{
+    "DeletedPackages": [
+        "package_to_delete"
+    ],
+    "DeletedDeclarations": [
+        "MyInterfaceToDelete",
+        "MyClassToDelete",
+        "MyTypedefToDelete",
+        "MyFunctionToDelete",
+        "MyEnumToDelete"
+    ],
+    "DeletedMembers": {
+        "ClassWithExtraMethod": [
+            "extraMethod"
+        ],
+        "InterfaceWithExtraMethod": [
+            "extraMethod"
+        ]
+    },
+    "StubbedDeclarations": [
+        "MyStubbedDeclaration"
+    ],
+    "Components": [
+        "BaseSpan",
+        "CommonMethod",
+        "CommonShapeMethod",
+        "ScrollableCommonMethod"
+    ],
+    "Throws": [
+        "ThrowableInterface.foo",
+        "ThrowableClass.boo"
+    ],
+    "ForceCallback": [
+        "EditMenuOptions.onCreateMenu"
+    ]
+}
