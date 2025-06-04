@@ -130,6 +130,63 @@ index 113776a48..10229d83f 100644
  /**
   * Defines DrawingRenderingContext.
   *
+diff --git a/api/@internal/component/ets/column.d.ts b/api/@internal/component/ets/column.d.ts
+index 02be253b6..08a92d535 100644
+--- a/api/@internal/component/ets/column.d.ts
++++ b/api/@internal/component/ets/column.d.ts
+@@ -84,32 +84,6 @@ interface ColumnOptions {
+    * @since arkts {'1.1':'11','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Column constructor options.
+- *
+- * @interface ColumnOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface ColumnOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -208,19 +182,6 @@ interface ColumnInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: ColumnOptions): ColumnAttribute;
+-  /**
+-   * Set the options.
+-   *
+-   * @param { ColumnOptions | ColumnOptionsV2 } [options] - column options
+-   * @returns { ColumnAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: ColumnOptions | ColumnOptionsV2): ColumnAttribute;
+ }
+ 
+ /**
 diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
 index e54660855..1808f4ac6 100644
 --- a/api/@internal/component/ets/common.d.ts
@@ -485,6 +542,63 @@ index 6af657932..81c455d53 100644
 - * @since 18
 - */
 -declare const Repeat: RepeatInterface;
+diff --git a/api/@internal/component/ets/row.d.ts b/api/@internal/component/ets/row.d.ts
+index ee3b6bf64..7951b1bab 100644
+--- a/api/@internal/component/ets/row.d.ts
++++ b/api/@internal/component/ets/row.d.ts
+@@ -72,32 +72,6 @@ declare interface RowOptions {
+    * @since arkts {'1.1':'11','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Define options used to construct a row.
+- *
+- * @interface RowOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface RowOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -188,19 +162,6 @@ interface RowInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: RowOptions): RowAttribute;
+-  /**
+-   * Called when the layout is set in the horizontal direction.
+-   *
+-   * @param { ?(RowOptions | RowOptionsV2) } options - row options
+-   * @returns { RowAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: RowOptions | RowOptionsV2): RowAttribute;
+ }
+ 
+ /**
 diff --git a/api/@internal/component/ets/sidebar.d.ts b/api/@internal/component/ets/sidebar.d.ts
 index 4a79fdd13..2de1c4130 100644
 --- a/api/@internal/component/ets/sidebar.d.ts
