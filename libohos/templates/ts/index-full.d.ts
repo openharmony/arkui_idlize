@@ -180,12 +180,6 @@ declare interface PreviewParams {
     roundScreen?: boolean;
 }
 
-declare class CommonModifier {
-}
-
-declare class ProvideDecoratedVariable {
-}
-
 declare class WrappedBuilder {
     builder: ((arg: Object) => void);
 }

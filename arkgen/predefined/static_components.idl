@@ -1,5 +1,11 @@
 package arkui.component.idlize;
 
+import arkui.component.common.SizeResult as SizeResult;
+import arkui.component.common.GeometryInfo as GeometryInfo;
+import arkui.component.common.Measurable as Measurable;
+import arkui.component.common.Layoutable as Layoutable;
+import arkui.component.units.ConstraintSizeOptions as ConstraintSizeOptions;
+
 [Component="Root"]
 interface Root {};
 

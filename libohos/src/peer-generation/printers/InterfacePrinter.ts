@@ -305,6 +305,15 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return result
     }
 
+    // TBD: Properly handle FQN in type parameters
+    private toFQN(target: idl.IDLType): string {
+        if (idl.isTypeParameterType(target)) return target.name
+        if (!idl.isReferenceType(target)) throw Error(`Not a reference type: ${target}`)
+        const type = this.peerLibrary.resolveTypeReference(target)
+        if (!type) throw Error(`Unable to resolve the type: ${target.name}`)
+        return [...idl.getNamespacesPathFor(type), type.name].join(".")
+    }
+
     protected printInterfaceName(idlInterface: idl.IDLInterface): string {
 
         // Built-in enums cannot be used as constrained type parameters
@@ -327,7 +336,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         superTypes?.forEach(it => {
             const superDecl = this.peerLibrary.resolveTypeReference(it)
             const parentTypeArgs = this.printTypeArguments(
-                (it as idl.IDLReferenceType)?.typeArguments?.map(it => idl.printType(it)))
+                (it as idl.IDLReferenceType)?.typeArguments?.map(it => this.toFQN(it)))
             const clause = `${it.name}${parentTypeArgs}`
 
             const shouldPrintAsImplements = superDecl

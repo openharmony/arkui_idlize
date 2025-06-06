@@ -1,0 +1,4 @@
+package arkui.CommonModifier;
+
+[Entity=Class]
+interface CommonModifier {};

@@ -1,5 +1,9 @@
 package arkui.component.idlize;
 
+import arkui.component.navigation.NavPathInfo as NavPathInfo;
+import arkui.component.navigation.NavPathStack as NavPathStack;
+import arkui.component.navigation.NavigationOptions as NavigationOptions;
+
 callback NavExtender_OnUpdateStack = void ();
 
 [Entity=Class]

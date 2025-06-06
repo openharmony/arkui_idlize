@@ -847,7 +847,7 @@ export class DateConvertor extends BaseArgConvertor {
         return assigneer(writer.makeString(`new Date(${deserializeTime.asString()})`))
     }
     nativeType(): idl.IDLType {
-        return idl.createReferenceType('Date')
+        return idl.IDLDate
     }
     interopType(): idl.IDLType {
         return idl.IDLDate

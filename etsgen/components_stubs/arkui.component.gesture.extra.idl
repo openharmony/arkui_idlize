@@ -1,4 +1,9 @@
-package arkui.component.gesture;
+package arkui.component.gesture.extra;
+
+import arkui.component.gesture.GestureType as GestureType;
+import arkui.component.gesture.GestureMode as GestureMode;
+import arkui.component.gesture.GestureEvent as GestureEvent;
+import arkui.component.gesture.LongPressGestureHandlerOptions as LongPressGestureHandlerOptions;
 
 import arkui.component.common.SourceTool as SourceTool;
 

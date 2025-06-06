@@ -743,6 +743,10 @@ export type QNPattern =
     "namespace.name" |
     "name";
 
+export function deriveQualifiedNameFrom(name: string, from: IDLNode): string {
+    return [...getPackageClause(from), ...getNamespacesPathFor(from).map(it => it.name), name].join(".")
+}
+
 export function getQualifiedName(a:IDLNode, pattern: QNPattern): string {
     const result: string[] = []
     if ("package.namespace.name" === pattern)

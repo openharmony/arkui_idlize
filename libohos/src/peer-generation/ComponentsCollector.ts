@@ -30,7 +30,8 @@ export function collectComponents(library: LibraryInterface): IdlComponentDeclar
                 continue
             if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation))
                 continue
-            const compInterface = library.resolveTypeReference(idl.createReferenceType(`${componentName}Interface`))
+            const fqn = idl.deriveQualifiedNameFrom(`${componentName}Interface`, entry)
+            const compInterface = library.resolveTypeReference(idl.createReferenceType(fqn))
             if (!compInterface || idl.isInterface(compInterface)) {
                 components.push(new IdlComponentDeclaration(componentName, compInterface, entry))
             }
