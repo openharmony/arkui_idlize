@@ -4,16 +4,13 @@ import arkui.component.units;
 import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
 
-callback Callback_RangeUpdate = void (i32 index, pointer mark, i32 end);
+callback Callback_RangeUpdate = void (i32 start, i32 end);
+callback Callback_CreateItem = pointer (i32 index);
 
 [Entity=Class]
 interface LazyForEachOps {
-    static pointer NeedMoreElements(pointer node, pointer mark, i32 direction);
-    static void OnRangeUpdate(pointer node, i32 totalCount, Callback_RangeUpdate updater);
-    // Test method to enforce current index update.
-    static void SetCurrentIndex(pointer node, i32 index);
-    static void Prepare(pointer node, i32 itemCount, i32 offset);
-    static void NotifyChange(pointer node, i32 startIndex, i32 endIndex, i32 count);
+    // provide necessary info and callbacks to the ScrollView in the backend
+    static void Sync(pointer node, i32 totalCount, Callback_CreateItem creator, Callback_RangeUpdate updater);
 };
 
 [Entity=Class]
