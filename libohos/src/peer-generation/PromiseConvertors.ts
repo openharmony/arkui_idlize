@@ -28,10 +28,10 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
         readonly promise: idl.IDLContainerType)
     {
         super(library.createContinuationCallbackReference(promise), [RuntimeType.FUNCTION], false, true, param)
-
-        const callbackEntry = library.resolveTypeReference(this.idlType as idl.IDLReferenceType)
+        const type = this.idlType as idl.IDLReferenceType
+        const callbackEntry = library.resolveTypeReference(type)
         if (!callbackEntry)
-            throw new Error("Internal error: no callback for Promise resolved")
+            throw new Error(`Internal error: no callback for ${type.name} resolved`)
         this.callback = callbackEntry as idl.IDLCallback
         this.callbackConvertor = new CallbackConvertor(library, param, this.callback)
     }

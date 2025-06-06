@@ -120,12 +120,10 @@ if (options.idl2peer) {
             verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
         })
     }
-    new IdlPeerProcessor(idlLibrary).process()
 
     initLibraryName(idlLibrary)
     fillSyntheticDeclarations(idlLibrary)
-    const peerProcessor = new IdlPeerProcessor(idlLibrary)
-    peerProcessor.process()
+    new IdlPeerProcessor(idlLibrary).process()
     generateTarget(idlLibrary, outDir, language)
 
     didJob = true

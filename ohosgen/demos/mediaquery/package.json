@@ -13,7 +13,7 @@
         "clean:cj": "rm -rf generated/cj",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:ohos:mediaquery:${TARGET} -C ../.. -- --output-dir demos/mediaquery",
+        "generate": "npm run run:mediaquery:${TARGET} -C ../.. -- --output-dir demos/mediaquery",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",

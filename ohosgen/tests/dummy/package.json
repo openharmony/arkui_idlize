@@ -13,7 +13,7 @@
         "clean:cj": "rm -rf generated/cj",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:ohos:dummy:${TARGET} -C ../.. -- --output-dir tests/dummy --options-file tests/dummy/conf/config.json",
+        "generate": "npm run run:dummy:${TARGET} -C ../.. -- --output-dir tests/dummy --options-file tests/dummy/conf/config.json",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate",

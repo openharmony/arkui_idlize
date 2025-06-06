@@ -13,7 +13,7 @@
         "clean:cj": "rm -rf generated/cangjie",
         "clean:native": "rm -rf generated/native",
 
-        "generate": "npm run run:ohos:huks:${TARGET} -C ../.. -- --output-dir demos/huks",
+        "generate": "npm run run:huks:${TARGET} -C ../.. -- --output-dir demos/huks",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
