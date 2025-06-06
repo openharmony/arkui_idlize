@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "package": "@test-string-array",
+        "baseUrl": ".",
+        "outDir": "build/panda/out",
+        "rootDir": "src/panda",
+        "paths": {
+            "#compat": ["./src/panda/compat"],
+            "#components": ["./src/panda/components"],
+            "@koalaui/interop": ["../../../../external/interop/src/arkts"],
+            "@koalaui/common": ["../../../../external/incremental/common/src"],
+            "@koalaui/compat": ["../../../../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../../external/incremental/runtime/src"]
+        }
+    },
+    "include": ["src/panda/main.ts"]
+}

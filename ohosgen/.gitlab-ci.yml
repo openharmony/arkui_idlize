@@ -104,6 +104,6 @@ check ohos system tests:
     - npm run build:interop:inc --prefix ../external/interop
     - npm run build:incremental:inc --prefix ../external/incremental/runtime
   script:
-    - cd $CI_PROJECT_DIR/ohosgen/system-tests
+    - cd $CI_PROJECT_DIR/ohosgen/tests/system
     - npm i -d
     - python3 run-system-tests.py

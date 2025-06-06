@@ -1,0 +1,42 @@
+{
+    "name": "run-system-test-cases",
+    "private": true,
+    "devDependencies": {
+        "@rollup/plugin-inject": "^5.0.5",
+        "@rollup/plugin-node-resolve": "^15.3.0",
+        "@rollup/plugin-typescript": "^12.1.1",
+        "rollup": "^4.24.4"
+    },
+    "scripts": {
+        "_meson:setup": "meson setup ./${TEST_CASE}/build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} -Dtest_case=${TEST_CASE}",
+        "_meson:compile": "meson compile -C ./${TEST_CASE}/build/native/${TARGET_VM}",
+        "_meson:install": "meson install -C ./${TEST_CASE}/build/native/${TARGET_VM}",
+        "_meson": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",
+
+        "prepare": "rm -rf ./__temp__ && npm run compile -C ../..",
+
+        "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
+        "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
+        "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
+
+        "clean": "rm -rf ./${TEST_CASE}/build ./${TEST_CASE}/generated",
+        "generate:dts:arkts": "node ../../../dtsgen --dts2idl --input-dir ./${TEST_CASE}/dts --output-dir ./${TEST_CASE}/generated/idl && node ../.. --idl2peer --use-new-ohos --language=arkts --input-dir ./${TEST_CASE}/generated/idl",
+        "generate:idl:arkts": "node ../.. --use-new-ohos --language=arkts --idl2peer --input-dir ./${TEST_CASE}/idl",
+        "generate:arkts": "npm run generate:${INPUT_TYPE}:arkts -- --options-file ./${TEST_CASE}/generation_config.json --output-dir ./${TEST_CASE}",
+        "compile:arkts": "bash ./build-panda.sh ${TEST_CASE}",
+        "compile:native": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",
+        "compile:native:arkts": "TARGET_VM=panda npm run _meson",
+        "start:arkts": "bash ./run-panda.sh ${TEST_CASE}",
+
+        "build": "npm run compile:${TARGET} && npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET}",
+        "build:arkts": "TARGET=arkts npm run build",
+        "pre-start": "npm run clean && npm run generate:${TARGET} && npm run build:${TARGET}",
+        "pre-start:arkts": "TARGET=arkts npm run pre-start",
+        "check": "npm run clean && npm run pre-start:${TARGET} && npm run start:${TARGET}",
+        "check:arkts": "TARGET=arkts npm run check"
+    },
+    "dependencies": {
+        "@koalaui/interop": "next",
+        "@koalaui/runtime": "next"
+    }
+}
