@@ -1011,6 +1011,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                 prop.isStatic = true
             }
+            if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_READONLY)) {
+                prop.isReadonly = true
+            }
             return prop
         })
     }
