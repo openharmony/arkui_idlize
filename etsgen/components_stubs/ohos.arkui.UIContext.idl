@@ -7,6 +7,8 @@ import arkui.FrameNode.FrameNode as FrameNode;
 import arkui.component.common.AnimateParam as AnimateParam;
 import arkui.component.textPicker.TextPickerDialogOptions as TextPickerDialogOptions;
 import ohos.graphics.drawing.drawing.Font as Font;
+import arkui.componen.enums.HeightBreakpoint as HeightBreakpoint;
+import arkui.componen.enums.WidthBreakpoint as WidthBreakpoint;
 
 [Synthetic]
 callback Callback_Void = void ();
@@ -57,8 +59,8 @@ interface UIContext {
     (Context or undefined) getHostContext();
     void setDynamicDimming(String id, number value);
     (String or undefined) getWindowName();
-    // WidthBreakpoint getWindowWidthBreakpoint();
-    // HeightBreakpoint getWindowHeightBreakpoint();
+    WidthBreakpoint getWindowWidthBreakpoint();
+    HeightBreakpoint getWindowHeightBreakpoint();
     [Throws, TypeParameters="T extends Object"]
     async void openBindSheet(ComponentContent bindSheetContent, optional SheetOptions sheetOptions, optional number targetId);
     [Throws, TypeParameters="T extends Object"]
