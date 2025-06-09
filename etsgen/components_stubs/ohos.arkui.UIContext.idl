@@ -76,3 +76,8 @@ interface UIContext {
     // void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
     // void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
 };
+
+[Entity=Class]
+interface TextMenuController {
+  void setMenuOptions(TextMenuOptions options);
+};

@@ -8,7 +8,6 @@ interface Transferable {};
 interface TextModifier {};
 interface BusinessError {};
 callback OnHoverCallback = void ();
-callback MenuCallback = void ();
 
 // stub, not yet implemented
 [TypeParameters="T"] interface Partial {};

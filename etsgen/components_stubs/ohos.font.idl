@@ -1,0 +1,43 @@
+package ohos.font;
+
+namespace font {
+    [Entity=Interface]
+    interface UIFontFallbackInfo {
+        attribute String language;
+        attribute String family;
+    };
+
+    [Entity=Interface]
+    interface UIFontAliasInfo {
+        attribute String name;
+        attribute number weight;
+    };
+
+    [Entity=Interface]
+    interface UIFontAdjustInfo {
+        attribute number weight;
+        attribute number to;
+    };
+
+    [Entity=Interface]
+    interface UIFontGenericInfo {
+        attribute String family;
+        attribute sequence<UIFontAliasInfo> alias;
+        attribute sequence<UIFontAdjustInfo> adjust;
+    };
+
+    [Entity=Interface]
+    interface UIFontFallbackGroupInfo {
+        attribute String fontSetName;
+        attribute sequence<UIFontFallbackInfo> fallback;
+    };
+
+    [Entity=Interface]
+    interface UIFontConfig {
+        attribute sequence<String> fontDir;
+        attribute sequence<UIFontGenericInfo> generic;
+        attribute sequence<UIFontFallbackGroupInfo> fallbackGroups;
+    };
+
+    UIFontConfig getUIFontConfig();
+};
