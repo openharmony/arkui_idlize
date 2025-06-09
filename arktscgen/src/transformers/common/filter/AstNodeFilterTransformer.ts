@@ -26,6 +26,7 @@ export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
         if (this.typechecker.isHeir(name, Config.defaultAncestor)) return false
         // TODO: fix
         if (name === "Program") return false
+        if (name === "ArkTsConfig") return false
         console.log(`FILTERED (AST) ${name}`)
         return true
     }

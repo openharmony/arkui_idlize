@@ -71,6 +71,7 @@ export class Typechecker {
         if (this.isHeir(node, Config.defaultAncestor)) return true
         // TODO: fix
         if (node === "Program") return true
+        if (node === "ArkTsConfig") return true
         return false
     }
 
