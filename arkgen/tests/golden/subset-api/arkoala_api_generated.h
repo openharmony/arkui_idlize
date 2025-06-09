@@ -855,6 +855,8 @@ typedef struct Callback_ClickEvent_Void Callback_ClickEvent_Void;
 typedef struct Opt_Callback_ClickEvent_Void Opt_Callback_ClickEvent_Void;
 typedef struct Callback_CopyEvent_Void Callback_CopyEvent_Void;
 typedef struct Opt_Callback_CopyEvent_Void Opt_Callback_CopyEvent_Void;
+typedef struct Callback_CreateItem Callback_CreateItem;
+typedef struct Opt_Callback_CreateItem Opt_Callback_CreateItem;
 typedef struct Callback_CustomBuilder_Void Callback_CustomBuilder_Void;
 typedef struct Opt_Callback_CustomBuilder_Void Opt_Callback_CustomBuilder_Void;
 typedef struct Callback_CustomSpanMetrics_Void Callback_CustomSpanMetrics_Void;
@@ -6098,6 +6100,16 @@ typedef struct Opt_Callback_CopyEvent_Void {
     Ark_Tag tag;
     Callback_CopyEvent_Void value;
 } Opt_Callback_CopyEvent_Void;
+typedef struct Callback_CreateItem {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_Int32 index, const Callback_Pointer_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Int32 index, const Callback_Pointer_Void continuation);
+} Callback_CreateItem;
+typedef struct Opt_Callback_CreateItem {
+    Ark_Tag tag;
+    Callback_CreateItem value;
+} Opt_Callback_CreateItem;
 typedef struct Callback_CustomBuilder_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -6681,8 +6693,8 @@ typedef struct Opt_Callback_PreDragStatus_Void {
 typedef struct Callback_RangeUpdate {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Int32 index, const Ark_NativePointer mark, const Ark_Int32 end);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Int32 index, const Ark_NativePointer mark, const Ark_Int32 end);
+    void (*call)(const Ark_Int32 resourceId, const Ark_Int32 start, const Ark_Int32 end);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Int32 start, const Ark_Int32 end);
 } Callback_RangeUpdate;
 typedef struct Opt_Callback_RangeUpdate {
     Ark_Tag tag;
@@ -14884,21 +14896,10 @@ typedef struct GENERATED_ArkUILayoutManagerAccessor {
 } GENERATED_ArkUILayoutManagerAccessor;
 
 typedef struct GENERATED_ArkUILazyForEachOpsAccessor {
-    Ark_NativePointer (*NeedMoreElements)(Ark_NativePointer node,
-                                          Ark_NativePointer mark,
-                                          Ark_Int32 direction);
-    void (*OnRangeUpdate)(Ark_NativePointer node,
-                          Ark_Int32 totalCount,
-                          const Callback_RangeUpdate* updater);
-    void (*SetCurrentIndex)(Ark_NativePointer node,
-                            Ark_Int32 index);
-    void (*Prepare)(Ark_NativePointer node,
-                    Ark_Int32 itemCount,
-                    Ark_Int32 offset);
-    void (*NotifyChange)(Ark_NativePointer node,
-                         Ark_Int32 startIndex,
-                         Ark_Int32 endIndex,
-                         Ark_Int32 count);
+    void (*Sync)(Ark_NativePointer node,
+                 Ark_Int32 totalCount,
+                 const Callback_CreateItem* creator,
+                 const Callback_RangeUpdate* updater);
 } GENERATED_ArkUILazyForEachOpsAccessor;
 
 typedef struct GENERATED_ArkUILetterSpacingStyleAccessor {

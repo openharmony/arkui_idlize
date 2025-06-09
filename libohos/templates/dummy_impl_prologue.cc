@@ -800,106 +800,10 @@ void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback cal
 void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
 void ShowCrash(Ark_CharPtr message) {}
 }
-
-Ark_NativePointer NeedMoreElements(Ark_NativePointer node,
-                                   Ark_NativePointer mark,
-                                   Ark_Int32 direction) {
-    return AsNode(node)->needMoreElements(mark, direction);
-}
-
-struct NodeData {
-    Callback_RangeUpdate updater;
-    NodeData(const Callback_RangeUpdate* updater): updater(*updater) {}
-};
-void OnRangeUpdate(Ark_NativePointer nodePtr,
-                   Ark_Int32 totalCount,
-                  const Callback_RangeUpdate* updater) {
-    auto* node = AsNode(nodePtr);
-    updater->resource.hold(updater->resource.resourceId);
-    node->setCustomVoidData(new NodeData(updater));
-}
-
-void SetCurrentIndex(Ark_NativePointer nodePtr,
-                     Ark_Int32 index) {
-    auto* node = AsNode(nodePtr);
-    Ark_NativePointer mark = (Ark_NativePointer)0x1;
-    if (index >= 0 && index < (int)node->children()->size()) {
-        mark = (*node->children())[index];
-    }
-    NodeData* data = (NodeData*)node->customVoidData();
-    if (data) {
-        data->updater.call(data->updater.resource.resourceId, index, mark, 1000);
-    }
-}
 }
 
 // handWritten implementations
 namespace OHOS::Ace::NG::GeneratedModifier {
-    namespace LazyForEachOpsAccessor {
-    Ark_NativePointer NeedMoreElementsImpl(Ark_NativePointer node,
-                                           Ark_NativePointer mark,
-                                           Ark_Int32 direction)
-    {
-        if (!needGroupedLog(1))
-            return (void*) 300;
-        string out("NeedMoreElements(");
-        WriteToString(&out, node);
-        out.append(", ");
-        WriteToString(&out, mark);
-        out.append(", ");
-        WriteToString(&out, direction);
-        out.append(") \n");
-        out.append("[return (void*) 300] \n");
-        appendGroupedLog(1, out);
-        return (void*) 300;
-    }
-    void OnRangeUpdateImpl(Ark_NativePointer node,
-                           Ark_Int32 totalCount,
-                           const Callback_RangeUpdate* updater)
-    {
-        if (!needGroupedLog(1))
-            return;
-        string out("OnRangeUpdate(");
-        WriteToString(&out, node);
-        out.append(", ");
-        WriteToString(&out, totalCount);
-        out.append(", ");
-        WriteToString(&out, updater);
-        out.append(") \n");
-        appendGroupedLog(1, out);
-    }
-    void SetCurrentIndexImpl(Ark_NativePointer node,
-                             Ark_Int32 index)
-    {
-        if (!needGroupedLog(1))
-            return;
-        string out("SetCurrentIndex(");
-        WriteToString(&out, node);
-        out.append(", ");
-        WriteToString(&out, index);
-        out.append(") \n");
-        appendGroupedLog(1, out);
-    }
-    void PrepareImpl(Ark_NativePointer node, Ark_Int32 itemCount, Ark_Int32 offset)
-    {
-        if (!needGroupedLog(1))
-            return;
-        string out("Prepare(");
-        WriteToString(&out, node);
-        out.append(") \n");
-        appendGroupedLog(1, out);
-    }
-    void NotifyChangeImpl(Ark_NativePointer node, Ark_Int32 startIndex, Ark_Int32 endIndex, Ark_Int32 count)
-    {
-        if (!needGroupedLog(1))
-            return;
-        string out("NotifyChangeImpl(");
-        WriteToString(&out, node);
-        out.append(") \n");
-        appendGroupedLog(1, out);
-    }
-    } // LazyForEachOpsAccessor
-
     namespace CommonMethodModifier {
         void OnClick0Impl(Ark_NativePointer node,
                       const Opt_Callback_ClickEvent_Void* event)
