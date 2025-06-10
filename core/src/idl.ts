@@ -355,7 +355,10 @@ export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (
             (node as IDLUnspecifiedGenericType).typeArguments.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             break
         }
-        case IDLKind.ReferenceType:
+        case IDLKind.ReferenceType: {
+            (node as IDLReferenceType).typeArguments?.forEach((value) => forEachChild(value, cbEnter, cbLeave))
+            break
+        }
         case IDLKind.TypeParameterType:
         case IDLKind.EnumMember:
         case IDLKind.Import:
@@ -455,7 +458,11 @@ function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cbLeave?:
             concrete.typeArguments = concrete.typeArguments.map(it => updateEachChild(it, op, cbLeave) as IDLType)
             break
         }
-        case IDLKind.ReferenceType:
+        case IDLKind.ReferenceType: {
+            const concrete = node as IDLReferenceType
+            concrete.typeArguments = concrete.typeArguments?.map(it => updateEachChild(it, op, cbLeave) as IDLType)
+            break
+        }
         case IDLKind.TypeParameterType:
         case IDLKind.EnumMember:
         case IDLKind.Import:
