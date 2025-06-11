@@ -2458,7 +2458,7 @@ declare class NavigationAttribute extends CommonMethod<NavigationAttribute> {
    * @deprecated since 10
    * @useinstead navigation/NavigationAttribute#toolbarConfiguration
    */
-  toolBar(value: object | CustomBuilder): NavigationAttribute;
+  toolBar(value: CustomBuilder): NavigationAttribute;
 
   /**
     * Configure toolbar with default style parameter or custom parameter.

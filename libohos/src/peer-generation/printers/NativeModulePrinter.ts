@@ -349,10 +349,6 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "NativeBuffer",
         ], "@koalaui/interop")
         imports.addFeatures(["int32", "int64", "float32"], "@koalaui/common")
-        if (module === NativeModule.Generated && library.name === 'arkoala') {
-            if (library.language === Language.TS || library.language === Language.ARKTS)
-                imports.addFeature('Length', './units')
-        }
     }
 }
 

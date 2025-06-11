@@ -46,7 +46,7 @@ declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComp
        callback: Callback<UIExtensionProxy>
    ): UIExtensionComponentAttribute;
    onReceive(
-       callback: Callback<{ [key: string]: Object }>
+       callback: Callback<Record<string, Object>>
    ): UIExtensionComponentAttribute;
    onResult(
        callback: Callback<{

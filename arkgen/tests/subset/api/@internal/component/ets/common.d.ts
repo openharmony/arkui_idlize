@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-declare type SymbolGlyphModifier = import('../resource/symbol').SymbolGlyphModifier;
-
 declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 
 declare type AnimationRange<T> = [from: T, to: T];
@@ -458,7 +456,6 @@ declare enum DragPreviewMode {
   ENABLE_DEFAULT_RADIUS = 4,
 }
 
-declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier; // hack
 declare enum DraggingSizeChangeEffect {
     DEFAULT = 0,
     SIZE_TRANSITION = 1,
@@ -466,7 +463,6 @@ declare enum DraggingSizeChangeEffect {
   }
 declare interface DragPreviewOptions {
     mode?: DragPreviewMode | Array<DragPreviewMode>;
-    modifier?: ImageModifier;
     numberBadge?: boolean | number;
     sizeChangeEffect?: DraggingSizeChangeEffect;
 }
@@ -526,11 +522,11 @@ declare class CommonMethod<T> {
 
     backdropBlur(radius: Optional<number>, options?: BlurOptions): T;
 
-    width(value: Length): T;
-    width(widthValue: Length | LayoutPolicy): T;
+    width(value?: Length): T;
+    width(widthValue?: Length | LayoutPolicy): T;
 
-    height(value: Length): T;
-    height(heightValue: Length | LayoutPolicy): T;
+    height(value?: Length): T;
+    height(heightValue?: Length | LayoutPolicy): T;
 
     key(value: string): T;
 
@@ -551,11 +547,11 @@ declare class CommonMethod<T> {
 
     linearGradient(options: Optional<LinearGradientOptions>): T;
 
-    border(value: BorderOptions): T;
+    border(value?: BorderOptions): T;
 
-    size(value: SizeOptions): T;
+    size(value?: SizeOptions): T;
 
-    transform(value: object): T;
+    transform(value?: object): T;
 
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
@@ -565,7 +561,7 @@ declare class CommonMethod<T> {
 
     onGestureRecognizerJudgeBegin(callback: GestureRecognizerJudgeBeginCallback): T;
 
-    onClick(event: (event: ClickEvent) => void): T;
+    // onClick(event?: (event: ClickEvent) => void): T;
     onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
 
     backgroundColor(value: ResourceColor): T;

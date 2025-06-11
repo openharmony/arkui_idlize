@@ -70,20 +70,6 @@ interface ScrollAttribute: [TypeArguments="ScrollAttribute"] ScrollableCommonMet
     ScrollAttribute onDidScroll(ScrollOnScrollCallback handler);
 };
 
-[Entity=Class, TypeParameters="T"]
-interface CommonMethod {
-    T size(SizeOptions value);
-    T clip(optional boolean value);
-    T clip(optional boolean clip);
-    T mask(optional ProgressMask value);
-    T mask(optional ProgressMask mask);
-};
-
-[Entity=Class]
-interface FormComponentAttribute: [TypeArguments="FormComponentAttribute"] CommonMethod {
-    FormComponentAttribute size(SizeOptions value);
-};
-
 [Entity=Class]
 interface LineAttribute: [TypeArguments="LineAttribute"] CommonShapeMethod {
     LineAttribute startPoint(sequence<Length> value);

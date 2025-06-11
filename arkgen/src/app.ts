@@ -214,6 +214,7 @@ export function arkgen(argv:string[]) {
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)
             const [file] = toIDLFile(idlFilename)
+            linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
             idlLibrary.files.push(file)
         })
         if (options.verifyIdl) {
@@ -289,9 +290,7 @@ export function arkgen(argv:string[]) {
                         }))
                     )
 
-                    linearizeNamespaceMembers(file.entries).forEach(it => {
-                        transformMethodsAsync2ReturnPromise(it)
-                    })
+                    linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
                     linkParentBack(file)
 
                     if (isAux)

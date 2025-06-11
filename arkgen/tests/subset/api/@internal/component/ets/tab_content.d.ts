@@ -24,11 +24,6 @@ interface BoardStyle {
   borderRadius?: Length;
 }
 
-interface IndicatorStyle {
-
-    color?: ResourceColor;
-}
-
 declare class TabBarSymbol {
 
     normal: SymbolGlyphModifier;

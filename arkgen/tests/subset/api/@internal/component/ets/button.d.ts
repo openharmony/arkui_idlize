@@ -43,7 +43,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
 
     // fontColor(value: ResourceColor): ButtonAttribute;
 
-    labelStyle(value: LabelStyle): ButtonAttribute;
+    labelStyle(value?: LabelStyle): ButtonAttribute;
 }
 
 

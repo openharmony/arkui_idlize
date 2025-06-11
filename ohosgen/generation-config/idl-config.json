@@ -1,56 +1,9 @@
 {
     "IDLVisitor": {
-        "DeletedDeclarations": [
-            "IMonitorValue",
-            "IMonitor",
-            "MethodDecorator",
-            "ParticleInterface",
-            "ParticleAttribute",
-            "ParticleModifier",
-            "Particles",
-            "ParticleColorPropertyOptions",
-            "ParticlePropertyOptions",
-            "AccelerationOptions",
-            "ParticleOptions",
-            "AccelerationOptions",
-            "EmitterOptions",
-            "ForEachInterface",
-            "ForEachAttribute",
-            "LazyForEachAttribute",
-            "LazyForEachInterface",
-            "IDataSource",
-            "DisturbanceFieldOptions",
-            "RepeatItem",
-            "RepeatItemBuilder",
-            "RepeatAttribute",
-            "TemplateTypedFunc",
-            "EntryOptions"
-        ],
-        "DeletedMethods": {
-            "ScrollableCommonMethod": [
-                "onWillScroll",
-                "onDidScroll"
-            ]
-        },
-        "StubbedDeclarations": [
-            "OnWillScrollCallback",
-            "LayoutChild",
-            "EmitterProperty",
-            "GestureGroupGestureHandlerOptions",
-            "ColumnOptionsV2",
-            "RowOptionsV2"
-        ],
-        "NameReplacements": {
-            "common.d.ts": [
-                ["LinearGradient", "LinearGradient_common"]
-            ],
-            "alert_dialog.d.ts": [
-                ["TextStyle", "TextStyle_alert_dialog"]
-            ],
-            "styled_string.d.ts" : [
-                ["TextStyle", "TextStyle_styled_string"]
-            ]
-        },
+        "DeletedDeclarations": [],
+        "DeletedMethods": {},
+        "StubbedDeclarations": [],
+        "NameReplacements": {},
         "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
     }
 }
