@@ -275,7 +275,6 @@ export class TSLanguageWriter extends LanguageWriter {
         op(this)
         this.popIndent()
         this.printer.print(`}`)
-
     }
     writeMethodImplementation(method: Method, op: (writer: this) => void) {
         this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics)

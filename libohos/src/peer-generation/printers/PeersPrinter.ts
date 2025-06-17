@@ -169,32 +169,34 @@ class PeerFileVisitor {
             [undefined, '0'],
             [[ArgumentModifier.OPTIONAL], undefined]
         )
-        writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
-            const peerId = 'peerId'
-            writer.writeStatement(
-                writer.makeAssign(peerId, undefined, writer.makeString('PeerNode.nextId()'), true)
-            )
-            const _peerPtr = '_peerPtr'
-            writer.writeStatement(
-                writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
-                    NativeModule.Generated,
-                    `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
-                    [writer.makeString(peerId), writer.makeString(signature.argName(1))]
-                ), true)
-            )
-
-            const _peer = '_peer'
-            writer.writeStatement(
-                writer.makeAssign(_peer, undefined,
-                    writer.makeNewObject(peerClass, [
-                        writer.makeString(_peerPtr),
-                        writer.makeString(peerId),
-                        writer.makeString(`"${peer.componentName}"`),
-                        writer.makeString('flags')]),
-                    true)
-            )
-            writer.writeMethodCall(signature.argName(0), 'setPeer', [_peer], true)
-            writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
+        writer.makeStaticBlock(() => {
+            writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
+                const peerId = 'peerId'
+                writer.writeStatement(
+                    writer.makeAssign(peerId, undefined, writer.makeString('PeerNode.nextId()'), true)
+                )
+                const _peerPtr = '_peerPtr'
+                writer.writeStatement(
+                    writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
+                        NativeModule.Generated,
+                        `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
+                        [writer.makeString(peerId), writer.makeString(signature.argName(1))]
+                    ), true)
+                )
+    
+                const _peer = '_peer'
+                writer.writeStatement(
+                    writer.makeAssign(_peer, undefined,
+                        writer.makeNewObject(peerClass, [
+                            writer.makeString(_peerPtr),
+                            writer.makeString(peerId),
+                            writer.makeString(`"${peer.componentName}"`),
+                            writer.makeString('flags')]),
+                        true)
+                )
+                writer.writeMethodCall(signature.argName(0), 'setPeer', [_peer], true)
+                writer.writeStatement(writer.makeReturn(writer.makeString(_peer)))
+            })
         })
     }
 
@@ -326,11 +328,33 @@ class CJPeerFileVisitor extends PeerFileVisitor {
         super(library, file, dumpSerialized)
     }
 
-    private printPackage(printer: LanguageWriter): void {
-        printer.print(`package idlize\n`)
+    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
     }
 
-    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
+    printFile(): PrinterResult[] {
+        return collectPeersForFile(this.library, this.file).map(peer => {
+            const component = findComponentByName(this.library, peer.componentName)
+            const printer = this.library.createLanguageWriter()
+            this.printPeer(peer, printer)
+            return {
+                over: {
+                    node: component!.attributeDeclaration,
+                    role: LayoutNodeRole.PEER,
+                },
+                content: printer,
+                collector: new ImportsCollector()
+            }
+        })
+    }
+}
+
+class KotlinPeerFileVisitor extends PeerFileVisitor {
+    constructor(
+        protected readonly library: PeerLibrary,
+        protected readonly file: idl.IDLFile,
+        dumpSerialized: boolean,
+    ) {
+        super(library, file, dumpSerialized)
     }
 
     printFile(): PrinterResult[] {
@@ -367,6 +391,8 @@ class PeersVisitor {
                 ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)
                 : this.library.language == Language.CJ
                 ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
+                : this.library.language == Language.KOTLIN
+                ? new KotlinPeerFileVisitor(this.library, file, this.dumpSerialized)
                 : new PeerFileVisitor(this.library, file, this.dumpSerialized)
             results.push(...visitor.printFile())
         }
@@ -557,6 +583,8 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
         return `new Deserializer(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.CJ) {
         return `Deserializer(${returnValName}, Int32(${returnValName}.size))`
+    } else if (language === Language.KOTLIN) {
+        return `Deserializer(${returnValName}, ${returnValName}.size)`
     } else {
         throw "not implemented"
     }

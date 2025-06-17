@@ -229,24 +229,41 @@ export class CJLayout extends CommonLayoutBase {
 }
 
 export class KotlinLayout extends CommonLayoutBase {
-    private getPath(file:string):string {
-        return path.join('.', file)
-    }
-    resolve({ node, role }: idl.LayoutTargetDescription): string {
-        switch (role) {
-            case LayoutNodeRole.INTERFACE: {
-                return 'GlobalScope'
-            }
-            case LayoutNodeRole.PEER: {
-                return 'GlobalScope'
-            }
-            case LayoutNodeRole.GLOBAL: {
-                return 'GlobalScope'
-            }
-            case LayoutNodeRole.COMPONENT: {
-                return 'GlobalScope'
+    protected KotlinInternalPaths = new Map<string, string>([
+        ["TypeChecker", "#components"],
+        ["Serializer", "Serializer"],
+        ["Deserializer", "Deserializer"],
+        ["CallbackKind", "CallbackKind"],
+        ["deserializeAndCallCallback", "CallbackDeserializeCall"],
+        ["checkArkoalaCallbacks", "../CallbacksChecker"],
+        ["CallbackTransformer", "../CallbackTransformer"],
+    ])
+    resolve(target: idl.LayoutTargetDescription): string {
+        if (this.KotlinInternalPaths.has(target.node.name))
+            return this.KotlinInternalPaths.get(target.node.name)!
+        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
+            return HandwrittenModule(this.library.language)
+        }
+        if (idl.isSyntheticEntry(target.node)) {
+            return SyntheticModule
+        }
+        if (idl.isTypedef(target.node)) {
+            return SyntheticModule
+        }
+        if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
+            if (idl.isBuilderClass(target.node)) {
+                return `${this.prefix}${toFileName(target.node.name)}Builder`
             }
         }
+        let pureFileName = idl.getFileFor(target.node)?.fileName
+            ?.replaceAll('.d.ts', '')
+            ?.replaceAll('.idl', '')
+            ?.replaceAll('@', '')
+        if (pureFileName) {
+            pureFileName = path.basename(pureFileName)
+        }
+        const entryName = pureFileName ?? target.node.name
+        return entryName
     }
 }
 

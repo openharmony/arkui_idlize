@@ -131,7 +131,7 @@ class CJArkoalaInstall extends BaseArkoalaInstall {
 
 class KotlinArkoalaInstall extends BaseArkoalaInstall {
     get managedDir(): string {
-        return path.join(this.root, "arkoala-kt/framework/kotlin/src")
+        return path.join(this.root, "arkoala-kotlin/framework/kotlin/src")
     }
     get managedSdkDir(): string {
         throw new Error("Not implemented")

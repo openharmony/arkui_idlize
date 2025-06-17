@@ -88,6 +88,9 @@ export function install(
 
         results.forEach(it => imports.merge(it.collector))
         content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
+        if (library.language === Language.KOTLIN) {
+            content = ['package idlize', 'import interop.*'].concat(content)
+        }
         if (library.language === Language.CJ) {
             imports.clear()
             content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime'].concat(content)

@@ -512,7 +512,30 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
     }
 }
 
+class KotlinComponentFileVisitor implements ComponentFileVisitor {
 
+    constructor(
+        protected readonly library: PeerLibrary,
+        protected readonly file: idl.IDLFile,
+        protected readonly options: {
+            isDeclared: boolean,
+        }
+    ) { }
+
+    private overloadsPrinter(printer:LanguageWriter) {
+        return new OverloadsPrinter(this.library, printer, this.library.language, true, this.library.useMemoM3)
+    }
+
+    visit(): PrinterResult[] {
+        const result: PrinterResult[] = []
+        collectPeersForFile(this.library, this.file).forEach(peer => {
+            // if (!this.options.isDeclared)
+            //     result.push(...this.printComponent(peer))
+            // result.push(...this.printComponentFunction(peer))
+        })
+        return result
+    }
+}
 class ComponentsVisitor {
     readonly components: Map<TargetFile, LanguageWriter> = new Map()
     private readonly language = this.peerLibrary.language
@@ -541,6 +564,9 @@ class ComponentsVisitor {
             }
             else if (this.language == Language.CJ) {
                 visitor = new CJComponentFileVisitor(this.peerLibrary, file, this.options)
+            }
+            else if (this.language == Language.KOTLIN) {
+                visitor = new KotlinComponentFileVisitor(this.peerLibrary, file, this.options)
             }
             else {
                 throw new Error(`ComponentsVisitor not implemented for ${this.language.toString()}`)

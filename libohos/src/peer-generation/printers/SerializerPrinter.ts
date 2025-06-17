@@ -110,6 +110,7 @@ class SerializerPrinter {
                 peerExpr = valueExpr
                 break
             case Language.JAVA:
+            case Language.KOTLIN:
             case Language.CJ:
                 peerExpr = writer.makeMethodCall("MaterializedBase", "toPeerPtr", [valueExpr])
                 break
@@ -157,37 +158,43 @@ class SerializerPrinter {
             if (writer.language != Language.CPP) {
                 const poolType = idl.createContainerType('sequence', [idl.createReferenceType("Serializer")])
 
-                writer.writeFieldDeclaration("pool", idl.createOptionalType(poolType), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull('ArrayList<Serializer>'))
-                writer.writeFieldDeclaration("poolTop", idl.IDLI32Type, [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeString('-1'))
-
-                writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
-                writer => {
-                    writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock(
-                        writer.language == Language.CJ ?
-                        [
-                            new ExpressionStatement(writer.makeString("Serializer.pool = ArrayList<Serializer>(8, {idx => Serializer()})"))
-                        ]:
-                        [
-                            writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType, 8) : undefined, false),
-                            writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
-                            writer.makeLoop("idx", "8", writer.makeAssign(
-                                `pool[idx]`,
-                                undefined,
-                                writer.makeNewObject('Serializer'),
-                                false
-                            ))
-                        ]
-                    )))
-                    writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
-                        writer.makeString("Serializer.pool")), true, true))
-                    writer.writeStatement(writer.makeCondition(writer.makeString(`Serializer.poolTop >= ${writer.language == Language.CJ ? "Int32(pool.size)" : "pool.length"} - 1`),
-                        writer.makeBlock([writer.makeThrowError(("Serializer pool is full. Check if you had released serializers before"))])),
-                    )
-                    writer.writeStatement(writer.makeAssign("Serializer.poolTop", undefined,
-                        writer.makeString("Serializer.poolTop + 1"), false))
-                    writer.writeStatement(writer.makeAssign("serializer", undefined,
-                            writer.makeArrayAccess("pool", "Serializer.poolTop"), true, false))
-                    writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
+                writer.makeStaticBlock(() => {
+                    writer.writeFieldDeclaration("pool", idl.createOptionalType(poolType), [FieldModifier.PRIVATE, FieldModifier.STATIC], true, writer.makeNull('ArrayList<Serializer>'))
+                    writer.writeFieldDeclaration("poolTop", idl.IDLI32Type, [FieldModifier.PRIVATE, FieldModifier.STATIC], false, writer.makeString('-1'))
+    
+                    writer.writeMethodImplementation(new Method("hold", new MethodSignature(idl.createReferenceType("Serializer"), []), [MethodModifier.STATIC]),
+                    writer => {
+                        writer.writeStatement(writer.makeCondition(writer.makeNot(writer.makeDefinedCheck('Serializer.pool')), writer.makeBlock(
+                            writer.language == Language.CJ ?
+                            [
+                                new ExpressionStatement(writer.makeString("Serializer.pool = ArrayList<Serializer>(8, {idx => Serializer()})"))
+                            ]:
+                            writer.language == Language.KOTLIN ?
+                            [
+                                new ExpressionStatement(writer.makeString("Serializer.pool = Array<Serializer>(8) {idx -> Serializer()}"))
+                            ] :
+                            [
+                                writer.makeAssign("Serializer.pool", undefined, idl.isContainerType(poolType) ? writer.makeArrayInit(poolType, 8) : undefined, false),
+                                writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(writer.makeString("Serializer.pool")), true, true),
+                                writer.makeLoop("idx", "8", writer.makeAssign(
+                                    `pool[idx]`,
+                                    undefined,
+                                    writer.makeNewObject('Serializer'),
+                                    false
+                                ))
+                            ]
+                        )))
+                        writer.writeStatement(writer.makeAssign("pool", poolType, writer.makeUnwrapOptional(
+                            writer.makeString("Serializer.pool")), true, true))
+                        writer.writeStatement(writer.makeCondition(writer.makeString(`Serializer.poolTop >= ${writer.castToInt(writer.makeArrayLength('pool').asString(), 32)} - 1`),
+                            writer.makeBlock([writer.makeThrowError(("Serializer pool is full. Check if you had released serializers before"))])),
+                        )
+                        writer.writeStatement(writer.makeAssign("Serializer.poolTop", undefined,
+                            writer.makeString("Serializer.poolTop + 1"), false))
+                        writer.writeStatement(writer.makeAssign("serializer", undefined,
+                                writer.makeArrayAccess("pool", "Serializer.poolTop"), true, false))
+                        writer.writeStatement(writer.makeReturn(writer.makeString("serializer")))
+                    })
                 })
 
                 writer.writeMethodImplementation(new Method('release', new MethodSignature(idl.IDLVoidType, []), [MethodModifier.PUBLIC]), writer => {

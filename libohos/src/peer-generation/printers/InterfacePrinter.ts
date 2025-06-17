@@ -1451,8 +1451,229 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
         protected readonly peerLibrary: PeerLibrary
     ) { }
 
-    printInterfaces(): PrinterResult[] {
-        return []
+    private shouldNotPrint(entry: idl.IDLEntry): boolean {
+        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+            || idl.isMethod(entry)
+    }
+
+    printInterfaces(): PrinterResult[] {const moduleToEntries = new Map<string, idl.IDLEntry[]>()
+
+        const registerEntry = (entry: idl.IDLEntry) => {
+            if (this.shouldNotPrint(entry)) {
+                return
+            }
+            const module = convertDeclToFeature(this.peerLibrary, entry).module
+            if (!moduleToEntries.has(module))
+                moduleToEntries.set(module, [])
+            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry, "namespace.name")))
+                return
+            moduleToEntries.get(module)!.push(entry)
+        }
+
+        const syntheticGenerator = new KotlinSyntheticGenerator(this.peerLibrary, (entry) => {
+            registerEntry(entry)
+        })
+        for (const file of this.peerLibrary.files) {
+            for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
+                if (idl.isImport(entry) ||
+                    idl.isNamespace(entry) ||
+                    isInIdlizeInternal(entry) ||
+                    idl.isHandwritten(entry) ||
+                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
+                    continue
+                syntheticGenerator.convert(entry)
+                registerEntry(entry)
+            }
+        }
+
+        const result: PrinterResult[] = []
+        for (const entries of moduleToEntries.values()) {
+            const seenNames = new Set<string>()
+            for (const entry of entries) {
+                const imports = new ImportsCollector()
+                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+
+                collectDeclDependencies(this.peerLibrary, entry, imports)
+
+                const printVisitor = new KotlinDeclarationConvertor(writer, seenNames, this.peerLibrary)
+                convertDeclaration(printVisitor, entry)
+
+                result.push({
+                    collector: new ImportsCollector(),
+                    content: writer,
+                    over: {
+                        node: entry,
+                        role: LayoutNodeRole.INTERFACE
+                    }
+                })
+            }
+        }
+        return result
+    }
+}
+
+class KotlinSyntheticGenerator extends DependenciesCollector {
+    private readonly nameConvertor = this.library.createTypeNameConvertor(Language.KOTLIN)
+
+    constructor(
+        library: PeerLibrary,
+        private readonly onSyntheticDeclaration: (entry: idl.IDLEntry) => void,
+    ) {
+        super(library)
+    }
+
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
+        this.onSyntheticDeclaration(idl.createTypedef(this.nameConvertor.convert(type), type))
+        return super.convertUnion(type)
+    }
+
+    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
+        const decl = this.library.resolveTypeReference(type)
+        if (decl) this.onSyntheticDeclaration(decl)
+        return super.convertTypeReferenceAsImport(type, importClause)
+    }
+}
+
+class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
+    constructor(
+        protected readonly writer: LanguageWriter,
+        protected readonly seenInterfaceNames: Set<string>,
+        readonly peerLibrary: PeerLibrary
+    ) { }
+
+    convertCallback(node: idl.IDLCallback): void {
+        if (!idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic))
+            this.writer.print(this.printCallback(node, node.parameters, node.returnType))
+    }
+    convertMethod(node: idl.IDLMethod): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
+    convertConstant(node: idl.IDLConstant): void {
+        // TODO: namespace-related-to-rework
+        throw new Error("not implemented yet")
+    }
+    convertEnum(node: idl.IDLEnum): void {
+        this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))
+    }
+    convertTypedef(node: idl.IDLTypedef) {
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
+            return
+        const type = this.writer.getNodeName(node.type)
+        if (node.name == type) {
+            if (idl.isUnionType(node.type)) {
+                this.makeUnion(this.writer, node.type)
+                return
+            }
+            if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
+                return
+        }
+        else {
+            this.writer.print(`public typealias ${node.name} = ${type}`)
+        }
+    }
+    convertImport(node: idl.IDLImport): void {
+        console.warn("Imports are not implemented yet")
+    }
+    convertNamespace(node: idl.IDLNamespace): void {
+        throw new Error("Internal error: namespaces are not allowed on the Kotlin layer")
+    }
+    convertInterface(node: idl.IDLInterface): void {
+        if (this.seenInterfaceNames.has(node.name)) {
+            console.log(`interface name: '${node.name}' already exists`)
+            return;
+        }
+        this.seenInterfaceNames.add(node.name)
+        if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
+            this.makeTuple(this.writer, node)
+        } else {
+            this.makeInterface(this.writer, node)
+        }
+    }
+
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
+        parameters: idl.IDLParameter[],
+        returnType: idl.IDLType | undefined): string {
+        return ''
+    }
+    protected convertType(idlType: idl.IDLType): string {
+        return this.writer.getNodeName(idlType)
+    }
+    private makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
+        const members = type.types.map(it => it)
+        writer.writeClass(type.name, () => {
+            const intType = idl.IDLI32Type
+            const selector = 'selector'
+            writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
+            writer.writeMethodImplementation(new Method('getSelector', new MethodSignature(intType, []), [MethodModifier.PUBLIC]), () => {
+                writer.writeStatement(
+                    writer.makeReturn(
+                        writer.makeString(selector)
+                    )
+                )
+            })
+
+            const param = 'param'
+            for (const [index, memberType] of members.entries()) {
+                const memberName = `value${index}`
+                writer.writeFieldDeclaration(memberName, idl.maybeOptional(memberType, true), [FieldModifier.PRIVATE], true, writer.makeNull())
+
+                writer.writeConstructorImplementation(
+                    'constructor',
+                    new NamedMethodSignature(idl.IDLVoidType, [memberType], [param]),
+                    () => {
+                        writer.writeStatement(
+                            writer.makeAssign(memberName, undefined, writer.makeString(param), false)
+                        )
+                        writer.writeStatement(
+                            writer.makeAssign(selector, undefined, writer.makeString(index.toString()), false)
+                        )
+                    }
+                )
+
+                writer.writeMethodImplementation(
+                    new Method(`getValue${index}`, new MethodSignature(memberType, []), [MethodModifier.PUBLIC]),
+                    () => {
+                        writer.print(`return requireNotNull(${memberName})`)
+                    }
+                )
+            }
+        })
+    }
+
+    private makeTuple(writer: LanguageWriter, type: idl.IDLInterface): void {
+        const members = type.properties.map(it => idl.maybeOptional(it.type, it.isOptional))
+        const memberNames: string[] = members.map((_, index) => `value${index}`)
+        const typeParams = type.typeParameters && type.typeParameters?.length != 0 ? `<${type.typeParameters.map(it => it.split('extends')[0].split('=')[0]).join(', ')}>` : ''
+        writer.writeClass(type.name.concat(typeParams), () => {
+            for (let i = 0; i < memberNames.length; i++) {
+                writer.writeFieldDeclaration(memberNames[i], members[i], [FieldModifier.PUBLIC], idl.isOptionalType(members[i]) ?? false)
+            }
+
+            const signature = new MethodSignature(idl.IDLVoidType, members)
+            writer.writeConstructorImplementation(type.name, signature, () => {
+                for (let i = 0; i < memberNames.length; i++) {
+                    writer.writeStatement(
+                        writer.makeAssign(memberNames[i], members[i], writer.makeString(signature.argName(i)), false)
+                    )
+                }
+            })
+        })
+    }
+
+    private makeEnum(writer: LanguageWriter, enumDecl: idl.IDLEnum): void {
+        throw new Error("Try to avoid makeEnum")
+    }
+
+    private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
+        writer.writeInterface(`${type.name}`, (writer) => {
+            for (const p of type.properties) {
+                const modifiers: FieldModifier[] = []
+                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
+                if (p.isStatic) modifiers.push(FieldModifier.STATIC)
+                writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
+            }
+        }, undefined) 
     }
 }
 
@@ -1470,7 +1691,7 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations:boolean, printClass
     if (peerLibrary.language == Language.CJ) {
         return new CJInterfacesVisitor(peerLibrary)
     }
-    if (peerLibrary.language == Language.CJ) {
+    if (peerLibrary.language == Language.KOTLIN) {
         return new KotlinInterfacesVisitor(peerLibrary)
     }
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)

@@ -7,7 +7,7 @@ import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors
 import { ETSInteropArgConvertor, ETSTypeNameConvertor } from "./convertors/ETSConvertors"
 import { InteropArgConvertor } from "./convertors/InteropConvertors"
 import { JavaInteropArgConvertor, JavaTypeNameConvertor } from "./convertors/JavaConvertors"
-import { KotlinTypeNameConvertor } from "./convertors/KotlinConvertor"
+import { KotlinTypeNameConvertor } from "./convertors/KotlinConvertors"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./convertors/TSConvertors"
 import { LanguageWriter } from "./LanguageWriter"
 import { TypeConvertor } from "./nameConvertor"
@@ -47,6 +47,7 @@ export function createInteropArgConvertor(language: Language): TypeConvertor<str
         case Language.CPP: return CppInteropArgConvertor.INSTANCE
         case Language.JAVA: return new JavaInteropArgConvertor()
         case Language.CJ: return new CJInteropArgConvertor()
+        case Language.KOTLIN: return new CJInteropArgConvertor()
     }
     throw new Error(`InteropArgConvertor for language ${language} not implemented`)
 }

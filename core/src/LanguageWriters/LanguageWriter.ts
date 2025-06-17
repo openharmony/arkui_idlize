@@ -280,7 +280,7 @@ export class TsEnumEntityStatement implements LanguageStatement {
         else
             return `${value}`
     }
- }
+}
 
 export class ReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -784,6 +784,9 @@ export abstract class LanguageWriter {
     castToBoolean(value: string): string { return value }
     makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`typeof ${value} === "object"`)
+    }
+    makeStaticBlock(op: (writer: LanguageWriter) => void) {
+        op(this)
     }
     instanceOf(convertor: ArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)

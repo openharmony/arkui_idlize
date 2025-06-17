@@ -273,7 +273,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             // Write internal Materialized class with fromPtr(ptr) method
             printer.writeClass(
                 this.mangle(getInternalClassName(clazz.className)),
-                writer => writeFromPtrMethod(clazz, writer, classTypeParameters),
+                (writer) => {
+                    writer.makeStaticBlock(() => {
+                        writeFromPtrMethod(clazz, writer, classTypeParameters)
+                    })
+                },
                 undefined,
                 undefined,
                 undefined,
@@ -284,32 +288,35 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const implementationClassName = clazz.getImplementationName()
 
-        printer.writeClass(this.mangle(implementationClassName), writer => {
-            if (!superClassName && !clazz.isStaticMaterialized) {
-                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
-                // write getPeer() method
-                const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
-                writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
-                    writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
-                })
-            }
+        if (printer.language !== Language.KOTLIN) {
+            printer.writeClass(this.mangle(implementationClassName), writer => {
+                if (!superClassName && !clazz.isStaticMaterialized) {
+                    writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
+                    // write getPeer() method
+                    const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
+                    writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
+                        writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
+                    })
+                }
 
-            this.printFields(clazz)
+                this.printFields(clazz)
 
-            if (clazz.ctor) {
-                this.printCtor(clazz, superClassName)
-            }
-            if (clazz.finalizer) printPeerFinalizer(clazz, writer)
+                if (clazz.ctor) {
+                    this.printCtor(clazz, superClassName)
+                }
+                if (clazz.finalizer) printPeerFinalizer(clazz, writer)
 
-            this.printOverloads(clazz)
-            this.printTaggedMethods(clazz)
-            this.printMethods(clazz)
+                this.printOverloads(clazz)
+                this.printTaggedMethods(clazz)
+                this.printMethods(clazz)
 
-            if (clazz.isInterface) {
-                writeFromPtrMethod(clazz, writer, classTypeParameters)
-            }
+                if (clazz.isInterface) {
+                    writeFromPtrMethod(clazz, writer, classTypeParameters)
+                }
 
-        }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+            }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+    
+        }
     }
 }
 
@@ -544,6 +551,35 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 }
 
+class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
+    override printImports(): void { }
+
+    convertToPropertyType(field: MaterializedField): IDLType {
+        return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
+    }
+
+    override printOverloads(clazz: MaterializedClass) {
+        for (let method of clazz.methods) {
+            if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
+                method.method.modifiers!.push(MethodModifier.PUBLIC)
+            this.printer.writeMethodImplementation(method.method, (writer) => {
+                this.overloadsPrinter.printPeerCallAndReturn(clazz, method.method, method)
+            })
+        }
+    }
+
+    visit(): PrinterResult {
+        this.printMaterializedClass(this.clazz)
+        return {
+            collector: this.collector,
+            content: this.printer,
+            over: {
+                node: this.clazz.decl,
+                role: LayoutNodeRole.INTERFACE
+            }
+        }
+    }
+}
 
 class MaterializedVisitor implements PrinterClass {
     readonly materialized: Map<TargetFile, string[]> = new Map()
@@ -566,6 +602,9 @@ class MaterializedVisitor implements PrinterClass {
                 this.library, clazz, this.dumpSerialized)
         } else if (this.library.language == Language.CJ) {
             visitor = new CJMaterializedFileVisitor(
+                this.library, clazz, this.dumpSerialized)
+        } else if (this.library.language == Language.KOTLIN) {
+            visitor = new KotlinMaterializedFileVisitor(
                 this.library, clazz, this.dumpSerialized)
         } else {
             throw new Error(`Unsupported language ${this.library.language} in MaterializedPrinter.ts`)
@@ -618,10 +657,17 @@ function writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
     const decl: idl.IDLInterface = clazz.decl
     const superInterface = writer.language == Language.JAVA ? ["Ark_Object"] : undefined
     writer.writeInterface(`${writer.language == Language.CJ ? idl.getNamespaceName(clazz.decl) : ""}${decl.name}`, () => {
-        for (const p of decl.properties) {
+        writer.makeStaticBlock(() => {
+            for (const p of decl.properties.filter(p => p.isStatic)) {
+                const modifiers: FieldModifier[] = []
+                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
+                modifiers.push(FieldModifier.STATIC)
+                writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
+            }
+        })
+        for (const p of decl.properties.filter(p => !p.isStatic)) {
             const modifiers: FieldModifier[] = []
             if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
-            if (p.isStatic) modifiers.push(FieldModifier.STATIC)
             writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
         }
         for (const m of decl.methods) {

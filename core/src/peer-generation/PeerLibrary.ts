@@ -44,7 +44,7 @@ import { isInIdlizeInternal } from '../idlize'
 import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
 import { isExternalType } from './isExternalType'
-import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertor'
+import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]

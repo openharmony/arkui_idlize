@@ -199,7 +199,13 @@ export function generateArkoalaFromIdl(config: {
         arkoala.managedDir,
         peerLibrary,
         peerLibrary.language == Language.KOTLIN ?
-        [] :
+        [
+            // createMaterializedPrinter(config.dumpSerialized),
+            // createPeersPrinter(config.dumpSerialized),
+            createInterfacePrinter(false),
+            // printComponents,
+            // createSerializerPrinter(peerLibrary.language, ""),
+        ] :
         [
             createMaterializedPrinter(config.dumpSerialized),
             createPeersPrinter(config.dumpSerialized),
