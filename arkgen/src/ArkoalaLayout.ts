@@ -107,6 +107,7 @@ class ArkTsLayout extends CommonLayoutBase {
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')
             ?.replaceAll('.idl', '')
+            ?.replaceAll('@', '')
         if (pureFileName) {
             pureFileName = path.basename(pureFileName)
         }

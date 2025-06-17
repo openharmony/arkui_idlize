@@ -143,10 +143,12 @@ class IDLDeserializer {
     }
     interfaceSubkind(node: webidl2.InterfaceType): idl.IDLInterfaceSubkind {
         const nodeIDLEntity = node.extAttrs.find(it => it.name === "Entity")?.rhs?.value
-        if (nodeIDLEntity == idl.IDLEntity.Class) return idl.IDLInterfaceSubkind.Class
-        if (nodeIDLEntity == idl.IDLEntity.Interface) return idl.IDLInterfaceSubkind.Interface
-        if (nodeIDLEntity == idl.IDLEntity.Tuple) return idl.IDLInterfaceSubkind.Tuple
-        return idl.IDLInterfaceSubkind.Interface
+        switch (nodeIDLEntity) {
+            case idl.IDLEntity.Class: return idl.IDLInterfaceSubkind.Class
+            case idl.IDLEntity.Literal: return idl.IDLInterfaceSubkind.AnonymousInterface
+            case idl.IDLEntity.Tuple: return idl.IDLInterfaceSubkind.Tuple
+            default: return idl.IDLInterfaceSubkind.Interface
+        }
     }
     toIDLInterface(file: string, node: webidl2.InterfaceType): idl.IDLInterface {
         const generics = this.extractGenerics(node.extAttrs)
