@@ -13,17 +13,17 @@
  * limitations under the License.
  */
 
-import { DiagnosticResult, MessageSeverityList, DiagnosticMessage, Range } from "./diagnostictypes"
-import { Storage } from "./validator"
+import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range } from "./diagnostictypes"
+import { idlManager } from "./idlprocessing"
 
-export function outputReadableResult(storage: Storage, result: DiagnosticResult): void {
+export function outputReadableResult(result: DiagnosticResults): void {
     for (let message of result.entries) {
-        outputReadableMessage(storage, message)
+        outputReadableMessage(message)
     }
     outputReadableTotals(result)
 }
 
-function outputReadableTotals(result: DiagnosticResult): void {
+function outputReadableTotals(result: DiagnosticResults): void {
     let totals: string[] = []
     for (let k of MessageSeverityList) {
         totals.push(`${k}: ${result.totals[k]}`)
@@ -71,7 +71,7 @@ function formatUnderline(indent: string, lines: string[], lineNo: number, range:
     return `${indent} | ${midChar.repeat(lines[lineNo-1].length)}`
 }
 
-function outputReadableMessage(storage: Storage, message: DiagnosticMessage): void {
+function outputReadableMessage(message: DiagnosticMessage): void {
     console.log(`${message.severity}[E${message.code}]: ${message.codeDescription}`)
     let digits = lineDigitCount(message)
     let indent = " ".repeat(digits)
@@ -79,7 +79,7 @@ function outputReadableMessage(storage: Storage, message: DiagnosticMessage): vo
     for (let part of message.parts) {
         if (part.location.range != null) {
             let range = part.location.range
-            let lines = storage.entriesByPath.get(part.location.documentPath)?.lines!
+            let lines = idlManager.entriesByPath.get(part.location.documentPath)?.lines!
             console.log(`${indent}--> ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
             console.log(`${indent} |`)
             for (let i = range.start.line; i <= range.end.line; ++i) {
@@ -98,6 +98,6 @@ function outputReadableMessage(storage: Storage, message: DiagnosticMessage): vo
     }
 }
 
-export function outputJsonResult(result: DiagnosticResult): void {
+export function outputJsonResult(result: DiagnosticResults): void {
     console.log(JSON.stringify(result))
 }

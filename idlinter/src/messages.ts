@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
-import { MessageSeverity, DiagnosticMessage, Location, DiagnosticResult, DiagnosticException } from "./diagnostictypes"
+import { MessageSeverity, DiagnosticMessage, Location, DiagnosticResults, DiagnosticException } from "./diagnostictypes"
+import { idlManager } from "./idlprocessing"
+import { AutoLocations, locationsFromAuto } from "./parser"
 
 /**
  * Index for DiagnosticMessageKind by code
@@ -62,7 +64,7 @@ export class DiagnosticMessageKind {
         messageByCode.set(code, this)
     }
 
-    generateDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): DiagnosticMessage {
+    generateDiagnosticMessage(locations: AutoLocations, mainMessage?: string, additionalMessage?: string): DiagnosticMessage {
         let msg: DiagnosticMessage = {
             severity: this.severity,
             code: this.code,
@@ -71,18 +73,18 @@ export class DiagnosticMessageKind {
             parts: []
         }
         let first = true
-        for (let l of locations) {
+        for (let l of locationsFromAuto(locations)) {
             msg.parts.push({location: l, message: first ? (mainMessage ?? this.mainMessageTemplate) : (additionalMessage ?? this.additionalMessageTemplate)})
             first = false
         }
         return msg
     }
 
-    pushDiagnosticMessage(diagnosticResult: DiagnosticResult, locations: Location[], mainMessage?: string, additionalMessage?: string): void {
-        diagnosticResult.push(this.generateDiagnosticMessage(locations, mainMessage, additionalMessage))
+    reportDiagnosticMessage(locations: AutoLocations, mainMessage?: string, additionalMessage?: string): void {
+        idlManager.results.push(this.generateDiagnosticMessage(locations, mainMessage, additionalMessage))
     }
 
-    throwDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): void {
+    throwDiagnosticMessage(locations: AutoLocations, mainMessage?: string, additionalMessage?: string): void {
         throw new DiagnosticException(this.generateDiagnosticMessage(locations, mainMessage, additionalMessage))
     }
 }
@@ -95,7 +97,10 @@ export let ProcessingError = new DiagnosticMessageKind("fatal", 102, "Processing
 
 export let UnresolvedReference = new DiagnosticMessageKind("error", 200, "Unresolved reference")
 export let DuplicateIdentifier = new DiagnosticMessageKind("error", 201, "Duplicate identifier", undefined, "Duplicate of")
-export let InconsistentEnum = new DiagnosticMessageKind("error", 202, "Enum includes both string and number values", undefined, "Incompatible with")
+export let InconsistentEnum = new DiagnosticMessageKind("error", 202, "Enum includes both string and number values", undefined, "Conflicting value")
+
+export let WrongAttributeName = new DiagnosticMessageKind("error", 301, "Wrong attribute name")
+export let WrongAttributePlacement = new DiagnosticMessageKind("error", 302, "Wrong attribute placement")
 
 // export let PackageNotFound = new DiagnosticMessageKind("error", 105, "Package not found")
 // export let IdentifierNotFound = new DiagnosticMessageKind("error", 106, "Identifier not found")

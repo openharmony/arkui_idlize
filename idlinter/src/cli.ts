@@ -16,26 +16,28 @@
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
-import { Storage } from "./validator"
+import { idlManager } from "./idlprocessing"
+import "./validator"
 import { outputReadableResult } from "./formatter"
 
 const options = program
-    .version("0.0.2-alpha")
+    .version("0.0.3")
     .option("--check <path>", "Path to single .idl file or directory to recursively scan for .idl for validation")
     .option("--load <path>", "Path to single .idl file or directory to recursively scan for .idl for loading and symbol search\n(only those also mentioned in --check will be checked)")
+    .option("--mode <mode>", "Enable custom validation mode (currently under construction).")
+    .addHelpText("after", "\nExit codes are (1) for invalid paths and (2) in case of errors/fatals found in .idl files.")
     .parse()
     .opts()
 
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
-    let storage = new Storage()
     for (let ent of checkFiles) {
-        storage.addFile(ent)
+        idlManager.addFile(ent)
     }
     for (let ent of loadFiles) {
-        storage.addFile(ent, true)
+        idlManager.addFile(ent, true)
     }
-    storage.processAll()
-    outputReadableResult(storage, storage.diagnosticResult)
+    idlManager.runPasses()
+    outputReadableResult(idlManager.results)
 }
 
 function listIdl(listPath: string, what: string, excluding?: Set<string>): Set<string> {
@@ -66,7 +68,11 @@ function main() {
     if (options.load != null) {
         loadFiles = listIdl(options.load, "--load", checkFiles)
     }
+    idlManager.mode = options.mode ?? ""
     processIdl(checkFiles, loadFiles)
+    if (idlManager.results.hasErrors) {
+        process.exit(2)
+    }
 }
 
 if (require.main === module) {

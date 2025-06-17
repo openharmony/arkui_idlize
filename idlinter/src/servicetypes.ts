@@ -14,19 +14,35 @@
  */
 
 /**
- * Helper construction that works as "any" type restricted by fields and types from (T1|T2). It's not possible on unions directly, so wrapper is required.
+ * Helper type combinator that works as "any" type restricted by fields and types from (T1|T2). It's not possible on unions directly, so wrapper is required.
+ * Fields presented in both T1 and T2 will be of union type and fields presented in only one of them will of union with undefined in resulting type.
  */
-export type UN<T1, T2> = {
-  [K in (keyof T1 | keyof T2)]: K extends keyof T1 ? (K extends keyof T2 ? T1[K] | T2[K] : T1[K] | undefined) : (K extends keyof T2 ? T2[K] | undefined : undefined)
+export type FieldMix<T1, T2> = {
+  [K in (keyof T1 | keyof T2)]: K extends keyof T1 ? (K extends keyof T2 ? T1[K] | T2[K] : T1[K] | undefined) : (K extends keyof T2 ? T2[K] | undefined : undefined);
 }
 
 /**
- * Custom version of well known recipe extended for patterns with field existence checking via comparison with {}.
+ * Custom version of well known RecursivePartial recipe extended for patterns with field existence checking via comparison with {}.
  */
-export type RecursivePartial<T> = {
+export type RecursivePattern<T> = {
   [P in keyof T]?:
     // also, no arrays in patterns currently
     // T[P] extends (infer U)[] ? RecursivePartial<U>[] :
-    T[P] extends object | undefined ? RecursivePartial<T[P]> :
-    T[P] | {};
+    T[P] extends object | undefined ? RecursivePattern<T[P]> :
+    T[P] | {}
 }
+
+/**
+ * Standard ArrayUnion for TypeScript
+ */
+export type ArrayTypeUnion<T extends any[]> = T[number]
+
+/**
+ * Standard ArrayIntersection for TypeScript
+ */
+export type ArrayTypeIntersection<T extends any[]> = T extends [infer Head, ... infer Tail] ? Head & ArrayTypeIntersection<Tail> : unknown
+
+/**
+ * Array version of KeyMix type combinator (does the same that ArrayUnion does for "|" and ArrayIntersection does for "&")
+ */
+export type ArrayTypeFieldMix<T extends any[]> = T extends [infer Q] ? Q : T extends [infer Head, ... infer Tail] ? FieldMix<Head, ArrayTypeFieldMix<Tail>> : {}

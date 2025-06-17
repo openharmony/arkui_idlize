@@ -50,6 +50,8 @@ interface Webidl2Error {
 //     ruleName: string
 // }
 
+export type AutoLocations = (Location | idl.IDLNode)[] | Location | idl.IDLNode
+
 export class Parsed {
     fileName: string
     idlFile: idl.IDLFile
@@ -85,9 +87,7 @@ export class Parsed {
         }
         // Provide full location tracking
         idl.forEachChild(this.idlFile, (n) => {
-            if (n.fileName == null && n?.parent?.fileName != null) {
-                n.fileName = n.parent.fileName
-            }
+            (n as any)._parsed = this
         })
     }
 }
@@ -105,22 +105,43 @@ export function rangeForToken(offsets: number[], token: Webidl2Token): Range {
 
 export function rangeForNode(parsed: Parsed, node: idl.IDLNode, component?: string): Range|undefined {
     let info = parsed.lexicalInfo.get(node)
-
     if (info == null) {
+        // console.log("node:")
+        // console.log(node.kind)
+        // console.log(JSON.stringify(Object.keys(node), null, 2))
+        // console.log("parent:")
+        // console.log(node.parent!.kind)
+        // console.log(JSON.stringify(Object.keys(node.parent!), null, 2))
+        // let info2 = parsed.lexicalInfo.get(node.parent!)
+        // console.log(JSON.stringify(info2, null, 2))
+
+        // Proper solution will require fixes with inheritance tokens in Idlize/core and custom webidl2.js
+        // So now we are extracting from what we have
+        if (node.parent) {
+            return rangeForNode(parsed, node.parent, "inheritance") ?? rangeForNode(parsed, node.parent)
+        }
         return
     }
-    if (component) {
-        let named = info[component]
-        if (named == null) {
-            return
-        }
-        return rangeForToken(parsed.offsets, named)
-    }
+
     let range: Range|undefined
     for (let k of Object.keys(info)) {
+        if (component && k != component) {
+            continue
+        }
         let named = info[k]
-        if (named == null || named.value == null) {
-            // Sometimes "inheritance" appears at token level instead of token, but it has no "value"
+        if (named == null) {
+            continue
+        }
+        if (named.value == null) {
+            if (k == "inheritance" && Array.isArray(named)) {
+                for (let inh of named) {
+                    if (inh.inheritance == null) {
+                        continue
+                    }
+                    let newRange = rangeForToken(parsed.offsets, inh.inheritance)
+                    range = range ? commonRange(range, newRange) : newRange
+                }
+            }
             continue
         }
         let newRange = rangeForToken(parsed.offsets, named)
@@ -130,9 +151,26 @@ export function rangeForNode(parsed: Parsed, node: idl.IDLNode, component?: stri
     return range
 }
 
-export function locationForNode(parsed: Parsed, node: idl.IDLNode, component?: string): Location {
-    // For the future - may add check for node.fileName or introduce node.parsed
+export function locationForNode(node: idl.IDLNode, component?: string): Location {
+    let parsed = (node as any)._parsed as Parsed
+    if (parsed == null) {
+        throw new Error("IDLNode without _parsed field!")
+    }
     return {documentPath: parsed.fileName, range: rangeForNode(parsed, node, component)}
+}
+
+export function locationsFromAuto(autolocations: AutoLocations): Location[] {
+    if (autolocations == null) {
+        return []
+    }
+    if (Array.isArray(autolocations)){
+        let res: Location[] = []
+        for (let l of autolocations as any[]) {
+            res.push(l.kind ? locationForNode(l) : l)
+        }
+        return res
+    }
+    return ((autolocations as any).kind ? [locationForNode(autolocations as any)] : [autolocations as any])
 }
 
 function prepareOffsets(lines: string[]): number[] {

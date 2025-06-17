@@ -16,12 +16,17 @@
 /**
  * Collection of diagnostic messages.
  */
-export class DiagnosticResult {
+export class DiagnosticResults {
     entries: DiagnosticMessage[] = []
     totals: Record<MessageSeverity, number> = {"fatal": 0, "error": 0, "warning": 0, "information": 0, "hint": 0}
+
     push(message: DiagnosticMessage): void {
         this.entries.push(message)
         this.totals[message.severity] += 1
+    }
+
+    get hasErrors(): boolean {
+        return this.totals.fatal != 0 || this.totals.error != 0
     }
 }
 

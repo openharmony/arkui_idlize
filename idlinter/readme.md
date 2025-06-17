@@ -12,6 +12,9 @@ cd idlize
 git submodule update --init
 git submodule update --remote
 npm i
+cd core
+npm run compile
+cd ..
 cd idlinter
 npm run compile
 ```
@@ -23,10 +26,10 @@ Usage: idlinter [options]
 
 Options:
   -V, --version   output the version number
-  --check <path>  Path to single .idl file or directory to recursively scan for
-                  .idl for validation
-  --load <path>   Path to single .idl file or directory to recursively scan for
-                  .idl for loading and symbol search
+  --check <path>  Path to single .idl file or directory to recursively scan for .idl for validation
+  --load <path>   Path to single .idl file or directory to recursively scan for .idl for loading and symbol search
                   (only those also mentioned in --check will be checked)
   -h, --help      display help for command
+
+Exit codes are (1) for invalid paths and (2) in case of errors/fatals found in .idl files.
 ```

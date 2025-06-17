@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { UN } from "./servicetypes"
+import { FieldMix, RecursivePattern } from "./servicetypes"
 import * as idl from "@idlizer/core"
 
-export type IDLNodeUnion = (idl.IDLNode
+export type IdlNodeUnion = (idl.IDLNode
 | idl.IDLFile
 | idl.IDLNamedNode
 | idl.IDLEntry
@@ -48,34 +48,36 @@ export type IDLNodeUnion = (idl.IDLNode
 | idl.IDLCallback
 )
 
-export type IDLNodeAny = idl.IDLNode & (UN<
-idl.IDLFile, UN<
-idl.IDLNamedNode, UN<
-idl.IDLEntry, UN<
-idl.IDLType, UN<
-idl.IDLTypedef, UN<
-idl.IDLPrimitiveType, UN<
-idl.IDLOptionalType, UN<
-idl.IDLContainerType, UN<
-idl.IDLReferenceType, UN<
-idl.IDLUnspecifiedGenericType, UN<
-idl.IDLUnionType, UN<
-idl.IDLTypeParameterType, UN<
-idl.IDLVersion, UN<
-idl.IDLVariable, UN<
-idl.IDLTypedEntry, UN<
-idl.IDLEnum, UN<
-idl.IDLEnumMember, UN<
-idl.IDLConstant, UN<
-idl.IDLProperty, UN<
-idl.IDLParameter, UN<
-idl.IDLSignature, UN<
-idl.IDLFunction, UN<
-idl.IDLMethod, UN<
-idl.IDLCallable, UN<
-idl.IDLConstructor, UN<
-idl.IDLInterface, UN<
-idl.IDLImport, UN<
+export type IdlNodeAny = idl.IDLNode & (FieldMix<
+idl.IDLFile, FieldMix<
+idl.IDLNamedNode, FieldMix<
+idl.IDLEntry, FieldMix<
+idl.IDLType, FieldMix<
+idl.IDLTypedef, FieldMix<
+idl.IDLPrimitiveType, FieldMix<
+idl.IDLOptionalType, FieldMix<
+idl.IDLContainerType, FieldMix<
+idl.IDLReferenceType, FieldMix<
+idl.IDLUnspecifiedGenericType, FieldMix<
+idl.IDLUnionType, FieldMix<
+idl.IDLTypeParameterType, FieldMix<
+idl.IDLVersion, FieldMix<
+idl.IDLVariable, FieldMix<
+idl.IDLTypedEntry, FieldMix<
+idl.IDLEnum, FieldMix<
+idl.IDLEnumMember, FieldMix<
+idl.IDLConstant, FieldMix<
+idl.IDLProperty, FieldMix<
+idl.IDLParameter, FieldMix<
+idl.IDLSignature, FieldMix<
+idl.IDLFunction, FieldMix<
+idl.IDLMethod, FieldMix<
+idl.IDLCallable, FieldMix<
+idl.IDLConstructor, FieldMix<
+idl.IDLInterface, FieldMix<
+idl.IDLImport, FieldMix<
 idl.IDLNamespace, 
 idl.IDLCallback>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 )
+
+export type IdlRecursivePattern = RecursivePattern<IdlNodeUnion>

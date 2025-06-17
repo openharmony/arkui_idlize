@@ -14,91 +14,104 @@
  */
 
 import * as idl from "@idlizer/core"
-import { IDLNodeUnion, IDLNodeAny } from "./idltypes"
-import { ProcessingRegistry } from "./processingtypes"
+import * as fs from "fs"
 import { Parsed, locationForNode } from "./parser"
-import { DiagnosticResult } from "./diagnostictypes"
-import { DuplicateIdentifier, InconsistentEnum, LoadingError, ProcessingError, UnknownError, UnresolvedReference } from "./messages"
+import { DuplicateIdentifier, InconsistentEnum, LoadingError, ProcessingError, UnknownError, UnresolvedReference, WrongAttributeName, WrongAttributePlacement } from "./messages"
+import { dependentPass, idlManager, IdlProcessingPass, startingPass } from "./idlprocessing"
+import { IdlNodeAny } from "./idltypes"
 
-export class Storage {
-    entries: Parsed[] = []
-    entriesByPath: Map<string, Parsed> = new Map()
-    entriesToValidate: Parsed[] = []
-    idlFiles: idl.IDLFile[] = []
-    diagnosticResult: DiagnosticResult = new DiagnosticResult()
-
-    // to refactor
-    namedNodes: Map<string, idl.IDLNode> = new Map()
-    enumModes: Map<idl.IDLNode, [idl.IDLNode, string]> = new Map()
-
-    //@ts-ignore
-    currentEntry: Parsed
-    addFile(fileName: string, parseOnly?: boolean): void {
-        try {
-            let parsed = new Parsed(fileName)
-            this.entries.push(parsed)
-            this.entriesByPath.set(fileName, parsed)
-            if (!parseOnly) {
-                this.entriesToValidate.push(parsed)
-            }
-            parsed.load()
-            this.idlFiles.push(parsed.idlFile)
-        } catch (e: any) {
-            if (e.diagnosticMessage != null) {
-                this.diagnosticResult.push(e.diagnosticMessage)
-            } else {
-                // Something unknown
-                UnknownError.pushDiagnosticMessage(this.diagnosticResult, [{documentPath: fileName}], e.message ?? "")
-            }
-        }
+const enumPass = startingPass("diagPass", () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
+enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])
+enumPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => {
+    let nodes = st.enums.get(node.parent!)!
+    if (nodes.length == 0 || nodes.length == 1 && typeof nodes[0].initializer != typeof node.initializer) {
+        nodes.push(node)
     }
-    processAll(): void {
-        for (let entry of this.entriesToValidate) {
-            this.currentEntry = entry
-            try {
-                idl.forEachChild(entry.idlFile, (n) => Pass1Registry.dispatchData(n, this))
-            } catch (e: any) {
-                ProcessingError.pushDiagnosticMessage(this.diagnosticResult, [{documentPath: entry.idlFile.fileName!}], `Pass 1: ${e.message}`)
-            }
-            try {
-                idl.forEachChild(entry.idlFile, (n) => Pass2Registry.dispatchData(n, this))
-            } catch (e: any) {
-                ProcessingError.pushDiagnosticMessage(this.diagnosticResult, [{documentPath: entry.idlFile.fileName!}], `Pass 2: ${e.message}`)
-            }
+}
+enumPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => {
+    let nodes = st.enums.get(node)!
+    if (nodes.length == 2) {
+        InconsistentEnum.reportDiagnosticMessage([locationForNode(node, "name"), nodes[0], nodes[1]])
+    }
+}
+
+// let namedDecls = [idl.IDLKind.Namespace, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Callable, idl.IDLKind.Typedef, idl.IDLKind.Enum]
+
+const resolvePass = startingPass("resolvePass", () => ({typeParameters: new Set<string>()}))
+function extParam(param: string) {
+    const extendsIdx = param.indexOf('extends')
+    if (extendsIdx !== -1) {
+        return param.substring(0, extendsIdx).trim()
+    }
+    const eqIdx = param.indexOf('=')
+    if (eqIdx !== -1) {
+        return param.substring(0, eqIdx).trim()
+    }
+    return param
+}
+resolvePass.on({}).before = (node, st) => {
+    if (!node.typeParameters) {
+        return
+    }
+    for (let tp of node.typeParameters) {
+        st.typeParameters.add(extParam(tp))
+    }
+}
+resolvePass.on({kind: idl.IDLKind.ReferenceType}).before = (node, st) => {
+    if (!node.name || node.name == "Object" || node.name == "__TOP__" || st.typeParameters.has(node.name)) {
+        return
+    }
+    if (!idlManager.peerlibrary.resolveTypeReference(node as idl.IDLReferenceType)) {
+        UnresolvedReference.reportDiagnosticMessage(node)
+    }
+}
+resolvePass.on({}).after = (node, st) => {
+    if (!node.typeParameters) {
+        return
+    }
+    for (let tp of node.typeParameters) {
+        st.typeParameters.delete(extParam(tp))
+    }
+}
+
+const ohosValidAttributes = new Map([
+            [idl.IDLKind.Import, ["Deprecated", "Documentation"]],
+            [idl.IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
+            [idl.IDLKind.Const, ["DefaultExport", "Deprecated", "Documentation"]],
+            [idl.IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName", "Documentation"]],
+            [idl.IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation", "Documentation", "TypeParameters", "ComponentInterface"]],
+            [idl.IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic", "Documentation", "TypeParameters"]],
+            [idl.IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected", "Documentation", "CallSignature", "TypeParameters"]],
+            [idl.IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated", "Documentation", "CallSignature"]],
+            [idl.IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import", "Documentation", "TypeParameters"]],
+            [idl.IDLKind.Enum, ["DefaultExport", "Deprecated", "Documentation"]],
+            [idl.IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
+            [idl.IDLKind.Constructor, ["Deprecated", "Documentation"]]
+])
+const attrPass = startingPass("attrPass", () => {})
+attrPass.mode = "ohos"
+attrPass.on({}).before = (node, st) => {
+    if(!node.extendedAttributes || node.extendedAttributes.length == 0) {
+        return
+    }
+    let valids = ohosValidAttributes.get(node.kind)
+    if (!valids) {
+        WrongAttributePlacement.reportDiagnosticMessage(node, `Attributes not allowed on ${node.kind}`)
+        return
+    }
+    for (let attr of node.extendedAttributes) {
+        if (!valids.includes(attr.name)) {
+            WrongAttributeName.reportDiagnosticMessage(locationForNode(node, "name"), `Attribute "${attr.name}" not allowed on ${node.kind}`)
         }
     }
 }
 
-let Pass1Registry = new ProcessingRegistry<Storage, IDLNodeUnion, IDLNodeAny>()
-let pass1 = Pass1Registry.maker()
-
-let Pass2Registry = new ProcessingRegistry<Storage, IDLNodeUnion, IDLNodeAny>()
-let pass2 = Pass1Registry.maker()
-
-// Example watcher with pattern. There can be any number of them for each pass.
-pass1({kind: idl.IDLKind.Interface}).watcher = (node, st) => {
-    // if (st.namedNodes.has(node.name!)) {
-    //     let otherNode = st.namedNodes.get(node.name!)!
-    //     st.diagnosticResult.push(DuplicateIdentifier.generateDiagnosticMessage([locationForNode(st.currentEntry, node), locationForNode(st.currentEntry, otherNode)]))
-    // } else {
-    //     st.namedNodes.set(node.name!, node)
-    // }
-}
-
-// Example watcher with pattern. There can be any number of them for each pass.
-pass2({_idlTypeBrand: {}}).watcher = (node, st) => {
-    // if (!st.namedNodes.has(node.name!)) {
-    //     st.diagnosticResult.push(UnresolvedReference.generateDiagnosticMessage([locationForNode(st.currentEntry, node)]))
-    // }
-}
-
-pass1({kind: idl.IDLKind.EnumMember}).watcher = (node, st) => {
-    let foundMember = st.enumModes.get(node.parent!)
-    if (foundMember != null) {
-        if (typeof node.initializer != foundMember[1]) {
-            st.diagnosticResult.push(InconsistentEnum.generateDiagnosticMessage([locationForNode(st.currentEntry, node), locationForNode(st.currentEntry, foundMember[0])]))
-        }
-    } else {
-        st.enumModes.set(node.parent!, [node, typeof node.initializer])
-    }
+const genPass = dependentPass("genPass", [enumPass], ()=>({lines: ([] as string[])}))
+genPass.mode = "gendemo"
+genPass.on({kind: idl.IDLKind.File}).before = (node, st) => { st.lines = [] }
+genPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.lines.push(`enum ${node.name} {`)
+genPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => st.lines.push(`    ${node.name} = ${node.initializer},`)
+genPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => st.lines.push("}")
+genPass.on({kind: idl.IDLKind.File}).after = (node, st) => {
+    fs.writeFileSync(node.fileName!.replace(".idl", ".ts"), st.lines.join("\n"))
 }
