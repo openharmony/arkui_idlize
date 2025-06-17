@@ -1,0 +1,7 @@
+package api.internal.component.ets;
+
+callback SearchValueCallback = void (String value);
+[Entity=Class]
+interface SearchOps {
+    static pointer registerSearchValueCallback(pointer node, String value, SearchValueCallback callback);
+};

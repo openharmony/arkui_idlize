@@ -1,0 +1,7 @@
+package api.internal.component.ets;
+
+callback TextFieldValueCallback = void (ResourceStr value);
+[Entity=Class]
+interface TextFieldOps {
+    static pointer registerTextFieldValueCallback(pointer node, ResourceStr value, TextFieldValueCallback callback);
+};
