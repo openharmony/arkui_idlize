@@ -82,6 +82,7 @@ export enum IDLExtendedAttributes {
     TypeParameters = "TypeParameters",
     VerbatimDts = "VerbatimDts",
     HandWrittenImplementation = "HandWrittenImplementation",
+    ExtraMethod = "ExtraMethod",
 }
 
 export enum IDLAccessorAttribute {

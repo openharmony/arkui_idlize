@@ -30,7 +30,8 @@ export class MaterializedField {
         public field: Field,
         public argConvertor: ArgConvertor,
         public outArgConvertor?: ArgConvertor,
-        public isNullableOriginalTypeField?: boolean
+        public isNullableOriginalTypeField?: boolean,
+        public extraMethodName: string | undefined = undefined
     ) { }
 }
 
@@ -42,7 +43,7 @@ export class MaterializedMethod extends PeerMethod {
         returnType: idl.IDLType,
         isCallSignature: boolean,
         method: Method,
-        public outArgConvertor?: ArgConvertor,
+        public outArgConvertor?: ArgConvertor
     ) {
         super(originalParentName, argConvertors, returnType, isCallSignature, method, outArgConvertor)
     }

@@ -148,6 +148,32 @@ void RegisterOnClick(Ark_NativePointer node, const Callback_ClickEvent_Void* eve
     frameNode->setClickEvent(std::move(onEvent));
 }
 
+void RegisterDrawModifierCallback(Ark_DrawModifier peer, const Callback_DrawContext_Void* event, int type) {
+    std::shared_ptr<DrawModifierCaller> modifier = (DrawModifiersQueue.find(peer) != DrawModifiersQueue.end())
+        ? DrawModifiersQueue[peer]
+        : std::make_shared<DrawModifierCaller>();
+    DrawModifiersQueue[peer] = modifier;
+    auto callback = *event;
+    callback.resource.hold(callback.resource.resourceId);
+    auto onEvent = [callback, type](Ark_DrawContext event) {
+        if (callback.call) {
+            callback.call(callback.resource.resourceId, event);
+        }
+    };
+    modifier->setDrawModifierCallback(std::move(onEvent), type);
+}
+
+void CallDrawModifierCallbacks(Ark_DrawModifier peer) {
+    if (DrawModifiersQueue.find(peer) == DrawModifiersQueue.end()) {
+        fprintf(stderr, ">>> CallDrawModifierCallbacks failed: peer = %p\n", peer);
+    }
+    std::shared_ptr<DrawModifierCaller> modifier = DrawModifiersQueue[peer];
+    Ark_DrawContext context = reinterpret_cast<Ark_DrawContext>(peer);
+    modifier->callDrawModifierCallback(context, DrawBehind);
+    modifier->callDrawModifierCallback(context, DrawContent);
+    modifier->callDrawModifierCallback(context, DrawFront);
+}
+
 void DumpTree(TreeNode *node, Ark_Int32 indent) {
     ARKOALA_LOG("%s[%s: %d]\n", string(indent * 2, ' ').c_str(), node->namePtr(), node->id());
     for (auto child: *node->children()) {
@@ -854,6 +880,50 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         frameNode->callClickEvent(event);
     }
     } // EventEmulatorAccessor
+    namespace DrawModifierAccessor {
+        void InvalidateImpl(Ark_DrawModifier peer)
+        {
+            CallDrawModifierCallbacks(peer);
+            if (!needGroupedLog(1))
+                return;
+            string out("invalidate(");
+            out.append(") \n");
+            appendGroupedLog(1, out);
+        }
+        void SetDrawBehind_callbackImpl(Ark_DrawModifier peer,
+                                        const Callback_DrawContext_Void* drawBehind_callback)
+        {
+            RegisterDrawModifierCallback(peer, drawBehind_callback, DrawBehind);
+            if (!needGroupedLog(1))
+                return;
+            string out("setDrawBehind(");
+            WriteToString(&out, drawBehind_callback);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+        }
+        void SetDrawContent_callbackImpl(Ark_DrawModifier peer,
+                                        const Callback_DrawContext_Void* drawContent_callback)
+        {
+            RegisterDrawModifierCallback(peer, drawContent_callback, DrawContent);
+            if (!needGroupedLog(1))
+                return;
+            string out("setDrawContent(");
+            WriteToString(&out, drawContent_callback);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+        }
+        void SetDrawFront_callbackImpl(Ark_DrawModifier peer,
+                                    const Callback_DrawContext_Void* drawFront_callback)
+        {
+            RegisterDrawModifierCallback(peer, drawFront_callback, DrawFront);
+            if (!needGroupedLog(1))
+                return;
+            string out("setDrawFront(");
+            WriteToString(&out, drawFront_callback);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+        }
+    } // DrawModifierAccessor
 }
 
 // end of handWritten implementations

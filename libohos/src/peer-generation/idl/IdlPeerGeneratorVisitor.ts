@@ -251,7 +251,8 @@ export class IdlPeerProcessor {
             new Field(prop.name, prop.type, modifiers),
             argConvertor,
             createOutArgConvertor(this.library, prop.type, [prop.name]),
-            prop.isOptional)
+            prop.isOptional,
+            idl.getExtAttribute(prop, idl.IDLExtendedAttributes.ExtraMethod))
     }
 
     private makeMaterializedMethod(

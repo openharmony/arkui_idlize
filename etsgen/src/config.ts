@@ -30,7 +30,7 @@ export const ETSConfigScheme = D.object({
     DeletedMembers: D.map(D.string(), T.stringArray()),
     Components: T.stringArray(),
     Throws: T.stringArray(),
-    ForceCallback: T.stringArray(),
+    ForceCallback: D.map(D.string(), D.string()),
     StubbedDeclarations: T.stringArray(),
     ForceDefaultExport: D.default(D.map(D.string(), D.string()), new Map()),
 })

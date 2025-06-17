@@ -741,7 +741,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 }
                 const serializedMethod = this.serializeMethod(member, scopeName)
                 const key = scopeName + '.' + serializedMethod.name
-                if (this.config.ForceCallback.includes(key) && idl.isMethod(serializedMethod)) {
+                if (this.config.ForceCallback.has(key) && idl.isMethod(serializedMethod)) {
                     const syntheticName = generateSyntheticFunctionName(
                         serializedMethod.parameters,
                         serializedMethod.returnType,
@@ -757,12 +757,22 @@ class IDLVisitor extends arkts.AbstractVisitor {
                             }
                         )
                     )
+                    let propertyPostfix = ""
+                    let extendedAttributes = (serializedMethod.extendedAttributes ?? [])
+                    const extraCallback = this.config.ForceCallback.get(key) === idl.IDLExtendedAttributes.ExtraMethod
+                    if (extraCallback) {
+                        propertyPostfix = "_callback"
+                        extendedAttributes = extendedAttributes.concat([{ name: idl.IDLExtendedAttributes.ExtraMethod, value: serializedMethod.name }])
+                    }
                     properties.push(idl.createProperty(
-                        serializedMethod.name,
+                        serializedMethod.name + propertyPostfix,
                         idl.createReferenceType(syntheticName),
                         false,
                         serializedMethod.isStatic,
                         serializedMethod.isOptional,
+                        {
+                            extendedAttributes: extendedAttributes
+                        }
                     ))
                 } else if (idl.isConstructor(serializedMethod)) {
                     constructors.push(serializedMethod)

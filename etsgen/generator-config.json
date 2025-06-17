@@ -99,18 +99,18 @@
         "CanvasRenderingContext2D.onOnAttach",
         "CanvasRenderingContext2D.offOnAttach"
     ],
-    "ForceCallback": [
-        "EditMenuOptions.onCreateMenu",
-        "EditMenuOptions.onMenuItemClick",
-        "XComponentController.onSurfaceCreated",
-        "XComponentController.onSurfaceChanged",
-        "XComponentController.onSurfaceDestroyed",
-        "DrawModifier.drawBehind",
-        "DrawModifier.drawContent",
-        "DrawModifier.drawFront",
-        "CustomSpan.onMeasure",
-        "CustomSpan.onDraw"
-    ],
+    "ForceCallback": {
+        "EditMenuOptions.onCreateMenu": "",
+        "EditMenuOptions.onMenuItemClick": "",
+        "XComponentController.onSurfaceCreated": "",
+        "XComponentController.onSurfaceChanged": "",
+        "XComponentController.onSurfaceDestroyed": "",
+        "DrawModifier.drawBehind": "ExtraMethod",
+        "DrawModifier.drawContent": "ExtraMethod",
+        "DrawModifier.drawFront": "ExtraMethod",
+        "CustomSpan.onMeasure": "",
+        "CustomSpan.onDraw": ""
+    },
     "NameReplacements": {
         "common.d.ts": [
             [

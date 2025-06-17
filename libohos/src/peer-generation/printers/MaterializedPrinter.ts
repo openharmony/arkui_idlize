@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, throwException } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -58,6 +58,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     protected readonly internalPrinter = this.library.createLanguageWriter(this.library.language)
     protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false, this.library.useMemoM3)
 
+    private extraAssignCallbacks: { callback: string, method: string }[] = []
+
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly clazz: MaterializedClass,
@@ -69,6 +71,17 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     convertToPropertyType(field: MaterializedField): IDLType {
         return idl.maybeOptional(field.field.type, field.isNullableOriginalTypeField)
+    }
+
+    private collectExtraCallbacks(clazz: MaterializedClass) {
+        clazz.fields.forEach(field => {
+            if (field.extraMethodName) {
+                this.extraAssignCallbacks.push({
+                    callback: field.field.name,
+                    method: field.extraMethodName
+                })
+            }
+        })
     }
 
     printCtor(clazz: MaterializedClass, superClassName?: string) {
@@ -100,7 +113,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             }
 
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
-            injectPatch(writer, key, config.patchMaterialized)
 
             const allOptional = ctorSig.args.every(it => isOptionalType(it))
             const hasStaticMethods = clazz.methods.some(it => it.method.modifiers?.includes(MethodModifier.STATIC))
@@ -143,6 +155,16 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     )
             }
             writer.writeStatement(ctorStatements)
+            injectPatch(writer, key, config.patchMaterialized)
+
+            this.collectExtraCallbacks(clazz)
+            if (this.extraAssignCallbacks.length > 0) {
+                this.extraAssignCallbacks.map((item) => {
+                    writer.writeStatement(
+                        writer.makeAssign(`this.${item.callback}`, undefined, writer.makeString(`this.${item.method}`), false)
+                    )
+                })
+            }
         })
     }
 
@@ -196,9 +218,26 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printFields(clazz: MaterializedClass) {
         const implementationClassName = clazz.getImplementationName()
         clazz.fields.forEach(field => {
-
+            if (field.extraMethodName) {
+                const name = field.extraMethodName
+                const type = field.field.type
+                if (idl.isReferenceType(type)) {
+                    const decl = this.library.resolveTypeReference(type)
+                    if (decl && idl.isCallback(decl)) {
+                        const types: idl.IDLType[] = []
+                        const names: string[] = []
+                        decl.parameters.forEach((parameter) => {
+                            types.push(parameter.type)
+                            names.push(parameter.name)
+                        })
+                        this.printer.writeMethodImplementation(
+                            new Method(name,new NamedMethodSignature(idl.IDLVoidType, types, names)),
+                            () => {}
+                        )
+                    }
+                }
+            }
             const mField = field.field
-
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'

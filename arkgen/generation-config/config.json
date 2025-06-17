@@ -304,6 +304,12 @@
             ],
             "EventEmulator": [
                 "emitClickEvent"
+            ],
+            "DrawModifier": [
+                "invalidate",
+                "setDrawBehind_callback",
+                "setDrawContent_callback",
+                "setDrawFront_callback"
             ]
         }
     },
