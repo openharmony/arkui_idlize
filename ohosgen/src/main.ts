@@ -17,8 +17,6 @@ import * as path from "path"
 import { program } from "commander"
 import * as fs from "fs"
 import {
-    generate,
-    defaultCompilerOptions,
     Language,
     findVersion,
     setDefaultConfiguration,
@@ -30,15 +28,10 @@ import {
     NativeModuleType,
 } from "@idlizer/core"
 import {
-    IDLFile,
-    isEnum,
-    isInterface,
-    isSyntheticEntry,
     linearizeNamespaceMembers,
-    linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
-import { IDLVisitor, loadPeerConfiguration,
+import { loadPeerConfiguration,
     IdlPeerProcessor,
     loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
     formatInputPaths,
@@ -52,7 +45,6 @@ import { suggestLibraryName } from "./OhosNativeVisitor"
 
 const options = program
     .option('--show-config-schema', 'Prints JSON schema for config')
-    .option('--dts2peer', 'Convert .d.ts to peer drafts')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
     .option('--output-dir <path>', 'Path to output dir')
@@ -126,87 +118,6 @@ if (options.idl2peer) {
     new IdlPeerProcessor(idlLibrary).process()
     generateTarget(idlLibrary, outDir, language)
 
-    didJob = true
-}
-
-if (options.dts2peer) {
-    const generatedPeersDir = options.outputDir ?? "./out/ts-peers/generated"
-    const lang = Language.fromString(options.language ?? "ts")
-
-    const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles, libraryPackages } = formatInputPaths(options)
-    validatePaths(baseDirs, "dir")
-    validatePaths(inputDirs, "dir")
-    validatePaths(auxInputDirs, "dir")
-    validatePaths(inputFiles, "file")
-    validatePaths(auxInputFiles, "file")
-
-    options.docs = "all"
-    const idlLibrary = new PeerLibrary(lang)
-    initLibraryName(idlLibrary)
-    const allInputFiles = scanInputDirs(inputDirs)
-        .concat(inputFiles)
-        .concat(libohosPredefinedFiles())
-    const allAuxInputFiles = auxInputFiles
-    const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
-    const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))
-    const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
-    const idlAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.idl'))
-
-    {
-        const pushOne = (idlFilename: string, resultFilesArray: IDLFile[]) => {
-            idlFilename = path.resolve(idlFilename)
-            const [file] = toIDLFile(idlFilename)
-            resultFilesArray.push(file)
-        }
-        idlInputFiles.forEach(idlFilename => pushOne(idlFilename, idlLibrary.files))
-        idlAuxInputFiles.forEach(auxIdlFilename => pushOne(auxIdlFilename, idlLibrary.auxFiles))
-    }
-
-    generate(
-        baseDirs,
-        [...inputDirs, ...auxInputDirs],
-        dtsInputFiles,
-        dtsAuxInputFiles,
-        generatedPeersDir,
-        path.resolve(__dirname, "..", "stdlib.d.ts"),
-        (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, idlLibrary),
-        {
-            compilerOptions: defaultCompilerOptions,
-            onSingleFile(file, outputDir, sourceFile, isAux) {
-                file.entries = file.entries.filter(newEntry =>
-                    !idlLibrary.files.find(peerFile => peerFile.entries.find(entry => {
-                        if (([newEntry, entry].every(isInterface)
-                            || [newEntry, entry].every(isEnum)
-                            || [newEntry, entry].every(isSyntheticEntry))) {
-                            if (newEntry.name === entry.name) {
-                                return true
-                            }
-                        }
-                        return false
-                    }))
-                )
-                linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
-                file = linkParentBack(file)
-
-                if (isAux)
-                    idlLibrary.auxFiles.push(file)
-                else
-                    idlLibrary.files.push(file)
-            },
-            onEnd(outDir: string) {
-                if (options.verifyIdl) {
-                    idlLibrary.files.forEach(file => {
-                        verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
-                    })
-                }
-                fillSyntheticDeclarations(idlLibrary)
-                const peerProcessor = new IdlPeerProcessor(idlLibrary)
-                peerProcessor.process()
-
-                generateTarget(idlLibrary, outDir, lang)
-            }
-        }
-    )
     didJob = true
 }
 
