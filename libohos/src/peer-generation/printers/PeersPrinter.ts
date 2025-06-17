@@ -30,7 +30,8 @@ import {
     LayoutNodeRole,
     CustomTypeConvertor,
     ArgumentModifier,
-    capitalize
+    capitalize,
+    InteropReturnTypeConvertor
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
@@ -512,9 +513,10 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     // Change any return type to the serializer buffer in NativeModule
                     // result = makeDeserializedReturn(library, printer, returnType)
                 } else if (!isPrimitiveType(returnType)) {
+                    const returnTypeConvertor = new InteropReturnTypeConvertor(library)
                     if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType)) && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
-                    } else if (isStructureType(returnType, writer.resolver)
+                    } else if (returnTypeConvertor.isReturnInteropBuffer(returnType)
                         && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)
                         && writer.language != Language.JAVA) {
                         result = makeDeserializedReturn(library, printer, returnType)
