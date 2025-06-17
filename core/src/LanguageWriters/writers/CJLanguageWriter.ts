@@ -365,7 +365,7 @@ export class CJLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
         let i = 1
         while (signature.isArgOptional(signature.args.length - i)) {
             let smallerSignature = signature.args.slice(0, -i)
@@ -383,7 +383,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}${className}(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(idl.maybeOptional(it, signature.isArgOptional(index)))}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
-            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
+            this.print(`super(${superCall.superArgs.join(", ")})`)
         }
         op(this)
         this.popIndent()

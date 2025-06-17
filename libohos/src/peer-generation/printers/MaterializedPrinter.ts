@@ -104,14 +104,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
-            if (superClassName) {
-                let params: string[] = []
-                // workaround for MutableStyledString which does not have a constructor
-                // the same as in the parent StyledString class
-                if (superClassName === "StyledString") params = [""]
-                writer.writeSuperCall(params);
-            }
-
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
 
             const allOptional = ctorSig.args.every(it => isOptionalType(it))
@@ -165,7 +157,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     )
                 })
             }
-        })
+        }, superClassName ? {superArgs: [], superName: superClassName} : undefined)
     }
 
     printOverloads(clazz: MaterializedClass) {

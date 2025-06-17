@@ -476,7 +476,7 @@ export abstract class LanguageWriter {
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void
     abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, generics?:string[]): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
-    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]): void
+    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
@@ -534,6 +534,7 @@ export abstract class LanguageWriter {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.SETTER].concat(method.modifiers ?? [])), op)
     }
     writeSuperCall(params: string[]): void {
+        // It is better to add superCall as an argument in writeConstructorImplementation than call writeSuperCall
         this.printer.print(`super(${params.join(", ")})${this.maybeSemicolon()}`)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {

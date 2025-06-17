@@ -75,8 +75,6 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         throw new Error("Not implemented")
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        if (type.name === idl.IDLObjectType.name)
-            return "KPointer"
         const decl = this.resolver.resolveTypeReference(type)
         if (decl && idl.isSyntheticEntry(decl)) {
             if (idl.isCallback(decl)) {
@@ -100,7 +98,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             case idl.IDLThisType: return 'this'
             case idl.IDLObjectType: return 'Object'
             case idl.IDLAnyType: return 'Any'
-            case idl.IDLUndefinedType: return 'Nothing'
+            case idl.IDLUndefinedType: return 'Nothing?'
             case idl.IDLPointerType: return 'KPointer'
             case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
             case idl.IDLVoidType: return 'Unit'

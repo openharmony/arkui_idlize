@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName, LayoutNodeRole } from '@idlizer/core'
+import { removeExt, renameClassToBuilderClass, Language, generifiedTypeName, LayoutNodeRole, MethodSignature } from '@idlizer/core'
 import { MethodModifier, Method, Field, NamedMethodSignature } from "../LanguageWriters";
 import { LanguageWriter, PeerLibrary,
     BuilderClass, methodsGroupOverloads
@@ -63,16 +63,13 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
             clazz.constructors
                 .forEach(ctor => {
                     writer.writeConstructorImplementation(ctor.name, ctor.signature, writer => {
-                        if (superType) {
-                            writer.writeSuperCall([])
-                        }
                         ctor.signature.args
                             .forEach((it, i) => {
                                 const argName = ctor.signature.argName(i)
                                 const fieldName = syntheticName(argName)
                                 writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                             })
-                    })
+                    }, superType ? {superArgs: []} : undefined)
                 })
 
             clazz.methods
@@ -331,16 +328,13 @@ class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
             clazz.constructors
                 .forEach(ctor => {
                     writer.writeConstructorImplementation('init', ctor.signature, writer => {
-                        if (superType) {
-                            writer.writeSuperCall([])
-                        }
                         ctor.signature.args
                             .forEach((it, i) => {
                                 const argName = ctor.signature.argName(i)
                                 const fieldName = syntheticName(argName)
                                 writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                             })
-                    })
+                    }, superType ? {superArgs: []} : undefined)
                 })
 
             // clazz.methods

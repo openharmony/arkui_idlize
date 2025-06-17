@@ -266,11 +266,11 @@ export class TSLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
         this.writeDeclaration(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}constructor`, signature, false, true)
         this.pushIndent()
         if (superCall) {
-            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
+            this.print(`super(${superCall.superArgs.join(", ")})`)
         }
         op(this)
         this.popIndent()

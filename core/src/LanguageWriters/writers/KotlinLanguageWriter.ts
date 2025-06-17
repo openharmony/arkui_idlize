@@ -246,12 +246,16 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
-        this.writeDeclaration('constructor', signature, false, true)
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
+        const superInvocation = superCall
+        ? ` : super(${superCall.superArgs.join(", ")})`
+        : ""
+        const argList = signature.args.map((it, index) => {
+            const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""
+            return `${signature.argName(index)}: ${this.getNodeName(it)}${maybeDefault}`
+        }).join(", ");
+        this.print(`${className}(${argList})${superInvocation} {`)
         this.pushIndent()
-        if (superCall) {
-            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`)
-        }
         op(this)
         this.popIndent()
         this.printer.print(`}`)
@@ -340,6 +344,12 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new KotlinCheckDefinedExpression(value)
+    }
+    makeUnionSelector(value: string, valueType: string): LanguageStatement {
+        return this.makeAssign(valueType, undefined, this.makeMethodCall(value, "getSelector", []), false)
+    }
+    makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
+        return this.makeMethodCall(value, `getValue${index}`, [])
     }
     getTagType(): idl.IDLType {
         throw new Error("Not implemented")

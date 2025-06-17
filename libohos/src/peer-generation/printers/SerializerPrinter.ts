@@ -223,7 +223,7 @@ class SerializerPrinter {
             if (ctorSignatures) {
                 for (const ctorSignature of ctorSignatures) {
                     writer.writeConstructorImplementation(className, ctorSignature, writer => {},
-                        new Method(superName, ctorSignature))
+                        {superArgs: ctorSignature.args.map((_, i) => ctorSignature!.argName(i)), superName: superName})
                 }
             }
             for (const decl of serializerDeclarations) {
@@ -520,7 +520,7 @@ class DeserializerPrinter {
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
                 const ctorMethod = new Method(`${className}Base`, ctorSignature)
-                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, ctorMethod)
+                writer.writeConstructorImplementation(className, ctorSignature, writer => {}, {superArgs: ctorSignature.args.map((_, i) => ctorSignature!.argName(i)), superName: superName})
             }
             for (const decl of serializerDeclarations) {
                 if (isComponentDeclaration(this.library, decl))

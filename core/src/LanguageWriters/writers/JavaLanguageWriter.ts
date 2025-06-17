@@ -174,11 +174,11 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     writeNativeMethodDeclaration(method: Method): void {
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.getNodeName(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
         if (superCall) {
-            this.print(`super(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")});`)
+            this.print(`super(${superCall.superArgs.join(", ")});`)
         }
         op(this)
         this.popIndent()

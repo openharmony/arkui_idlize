@@ -225,9 +225,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.print(`${forceAsNamedNode(type).name} ${name};`)
         this.printer.popIndent()
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: Method, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName: string }, modifiers?: MethodModifier[]) {
         const superInvocation = superCall
-            ? ` : ${superCall.name}(${superCall.signature.args.map((_, i) => superCall?.signature.argName(i)).join(", ")})`
+            ? ` : ${superCall.superName}(${superCall.superArgs.join(", ")})`
             : ""
         const argList = signature.args.map((it, index) => {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""

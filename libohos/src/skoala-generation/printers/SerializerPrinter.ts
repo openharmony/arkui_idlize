@@ -87,9 +87,8 @@ class IdlSerializerPrinter {
         this.writer.print("")
         this.writer.writeClass(className, writer => {
             if (ctorSignature) {
-                const ctorMethod = new Method(superName, ctorSignature)
                 writer.writeConstructorImplementation(className, ctorSignature, writer => {
-                }, ctorMethod)
+                }, {superArgs: ctorSignature.args.map((_, i) => ctorSignature!.argName(i)), superName: superName})
             }
             serializerDeclarations.forEach(decl => this.generateSerializer(decl))
         }, superName)

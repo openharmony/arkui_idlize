@@ -153,12 +153,7 @@ class PeerFileVisitor {
             [undefined, undefined, '""', '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => {
-            if (parentRole === InheritanceRole.PeerNode || parentRole === InheritanceRole.Heir || parentRole === InheritanceRole.Root) {
-                writer.writeSuperCall(['peerPtr', 'id', `name`, 'flags'])
-            } else {
-                throwException(`Unexpected parent inheritance role: ${parentRole}`)
-            }
-        }, undefined, [MethodModifier.PROTECTED])
+        }, {superArgs: ['peerPtr', 'id', 'name', 'flags'], superName: peer.parentComponentName}, [MethodModifier.PROTECTED])
     }
 
     protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
