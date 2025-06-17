@@ -536,10 +536,31 @@ inline void WriteToString(std::string* result, const ${name}* value) {
     }
 }
 
+function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterface, props: idl.IDLProperty[]) {
+    if (superDecl.typeParameters == undefined || superDecl.typeParameters.length == 0) return props
+    const superTypeArgs = decl.inheritance[0].typeArguments
+    if (superTypeArgs == undefined || superTypeArgs.length == 0) return props
+    const superTypeArg = superTypeArgs[0]
+    return props.map(prop => {
+        const type = prop.type
+        if (idl.isReferenceType(type)) {
+            // Replace the first type argument with name T to the super type ref
+            if (type.typeArguments == undefined || type.typeArguments.length != 1) return prop
+            const typeParam = type.typeArguments[0]
+            if (idl.isTypeParameterType(typeParam) && typeParam.name == "T") {
+                return idl.createProperty(prop.name, idl.createReferenceType(type.name, [superTypeArg]))
+            }
+        }
+        return prop
+    })
+}
+
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
     const superDecl = getSuper(decl, library)
+    const superProps = (superDecl && idl.isInterface(superDecl))
+        ? superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library)) : []
     return [
-        ...((superDecl && idl.isInterface(superDecl)) ? collectProperties(superDecl, library) : []),
+        ...superProps,
         ...decl.properties,
         ...collectBuilderProperties(decl, library)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
