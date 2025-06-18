@@ -89,6 +89,13 @@ export class MethodCallExpression extends FunctionCallExpression {
     }
 }
 
+export class ThisCallExpression extends FunctionCallExpression {
+    constructor(params: LanguageExpression[])
+    {
+        super("this", params)
+    }
+}
+
 export class FieldAccessExpression  {
     constructor(
         public receiver: string,
@@ -589,6 +596,9 @@ export abstract class LanguageWriter {
     }
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
+    }
+    makeThisCall(params: LanguageExpression[]): LanguageExpression {
+        return new ThisCallExpression(params)
     }
     makeFieldAccess(receiver: string, method: string, nullable?: boolean): LanguageExpression {
         return new FieldAccessExpression(receiver, method, nullable)

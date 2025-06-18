@@ -501,7 +501,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
     protected printMaterializedClass(clazz: MaterializedClass) {
         if (peerGeneratorConfiguration().isResource(clazz.className)) return
         const modifierName = "";
-        for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
+        for (const method of [...clazz.ctors, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
             this.printMethod(method);
         }

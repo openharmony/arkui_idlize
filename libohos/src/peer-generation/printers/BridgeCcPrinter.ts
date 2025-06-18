@@ -351,7 +351,7 @@ export class BridgeCcVisitor {
     }
 
     protected printMaterializedClass(clazz: MaterializedClass) {
-        for (const method of [clazz.ctor, clazz.finalizer].concat(clazz.methods)) {
+        for (const method of [...clazz.ctors, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
             this.printMethod(method)
         }

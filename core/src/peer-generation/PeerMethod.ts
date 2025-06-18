@@ -24,7 +24,7 @@ import { ReferenceResolver } from "./ReferenceResolver"
 import { flattenUnionType } from './unions'
 
 export class PeerMethod {
-    private overloadIndex?: number
+    protected overloadIndex?: number
     constructor(
         public originalParentName: string,
         public argConvertors: ArgConvertor[],

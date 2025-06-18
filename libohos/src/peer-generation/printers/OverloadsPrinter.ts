@@ -84,7 +84,7 @@ function groupSameSignatureMethods(methods: PeerMethod[]): PeerMethod[][] {
     return Array.from(sameSignatureGroups.values())
 }
 
-export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[], language?: Language): Method {
+export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?: number[], language?: Language, postfix: string = ""): Method {
     if (methods.some(it => it.signature.defaults?.length))
         throw new Error("Can not process defaults in collapsed method")
     const maxArgLength = Math.max(...methods.map(it => it.signature.args.length))
@@ -102,12 +102,16 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             }
         })
         argsModifiers.push(optional ? ArgumentModifier.OPTIONAL : undefined)
-        return collapseTypes(types) //, "%PROXY_BEFORE_PEER%")
+        var collapsedType = collapseTypes(types)
+        if (optional && !idl.isOptionalType(collapsedType)) {
+            collapsedType = idl.createOptionalType(collapsedType)
+        }
+        return collapsedType //, "%PROXY_BEFORE_PEER%")
     })
 
     const returnType = collapseReturnTypes(methods.map(it => it.signature.returnType ?? idl.IDLVoidType), language)
     return new Method(
-        methods[0].name,
+        `${methods[0].name}${postfix}`,
         new NamedMethodSignature(
             returnType,
             collapsedArgs,
@@ -234,12 +238,17 @@ export function collapseSameMethodsIDL(methods:idl.IDLMethod[], language?: Langu
 
 export class OverloadsPrinter {
     private static undefinedConvertor: UndefinedConvertor | undefined
+    private posfix: string = ""
 
     constructor(private resolver: ReferenceResolver, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
         // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
             OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
         }
+    }
+
+    setPostfix(postfix?: string) {
+        this.posfix = postfix ?? ""
     }
 
     printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod)[]) {
@@ -268,7 +277,7 @@ export class OverloadsPrinter {
     }
 
     private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
-        const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language)
+        const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
         if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
             collapsedMethod.signature.returnType = idl.IDLVoidType
         }
@@ -388,8 +397,8 @@ export class OverloadsPrinter {
         const receiver = isStatic
             ? peerMethod.getImplementationName()
             : this.isComponent ? `this.getPeer()` : `this`
-        const postfix = this.isComponent ? "Attribute" : "_serialize"
-        const methodName = `${peerMethod.overloadedName}${postfix}`
+        const namePostifx = this.isComponent ? "Attribute" : `${this.posfix}_serialize`
+        const methodName = `${peerMethod.overloadedName}${namePostifx}`
         if (collapsedMethod.signature.returnType === idl.IDLThisType) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {

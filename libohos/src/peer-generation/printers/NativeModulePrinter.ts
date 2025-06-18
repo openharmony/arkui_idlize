@@ -35,6 +35,7 @@ import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
 import { createOutArgConvertor } from "../PromiseConvertors";
 import { collectPeersForFile } from "../PeersCollector";
+import { collapseIdlPeerMethods } from "./OverloadsPrinter";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -134,7 +135,9 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
 
     private printMaterializedMethods() {
         this.library.orderedMaterialized.forEach(clazz => {
-            if (clazz.ctor) this.printPeerMethod(clazz.ctor, idl.IDLPointerType)
+            clazz.ctors.forEach(ctor => {
+                this.printPeerMethod(ctor, idl.IDLPointerType)
+            })
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
                 this.printPeerMethod(method, method.tsReturnType())

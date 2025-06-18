@@ -361,9 +361,10 @@ class AccessorVisitor extends ModifierVisitor {
         // Materialized class methods share the same namespace
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)
-        const namespaceName = (mDestroyPeer ?? clazz.ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!")).implNamespaceName
+        const ctor = clazz.ctors.length > 0 ? clazz.ctors[0] : undefined
+        const namespaceName = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!")).implNamespaceName
         this.pushNamespace(namespaceName, false);
-        [mDestroyPeer, clazz.ctor, clazz.finalizer].concat(clazz.methods).forEach(method => {
+        [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
             this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
             if (peerGeneratorConfiguration().noDummyGeneration(clazz.getComponentName(), method.toStringName)) return

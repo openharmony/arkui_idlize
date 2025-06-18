@@ -104,7 +104,7 @@ export function createGlobalScopeLegacy(library:PeerLibrary): MaterializedClass 
         undefined,
         undefined,
         [],
-        undefined,
+        [],
         undefined,
         library.globals.flatMap(it => idlFreeMethodToLegacy(library, it.methods))
             .sort((a, b) => a.overloadedName.localeCompare(b.overloadedName)),

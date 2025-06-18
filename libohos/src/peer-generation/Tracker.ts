@@ -61,8 +61,7 @@ class TrackerVisitor {
         const classKey = key(clazz.className, "Class")
         this.incAllStatus(classKey, this.allMaterialized)
         this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(classKey)}`)
-        let methods = clazz.ctor ? [clazz.ctor] : []
-        methods.concat(clazz.methods).forEach(method => {
+        clazz.ctors.concat(clazz.methods).forEach(method => {
             let mname = method.overloadedName
             const funcKey = key(clazz.className, mname)
             this.incAllStatus(funcKey, this.allFunctions)

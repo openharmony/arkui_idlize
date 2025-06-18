@@ -111,6 +111,23 @@ export class MaterializedMethod extends PeerMethod {
         }
         return privateMethod
     }
+
+    withReturnType(returnType: idl.IDLType): MaterializedMethod {
+        const s = this.method.signature
+        const argNames = s.args.map((_, i) => s.argName(i))
+        const signature = new NamedMethodSignature(
+            returnType, s.args, argNames, s.defaults, s.argsModifiers, s.printHints)
+        const method = copyMethod(this.method, { signature: signature })
+        return copyMaterializedMethod(this, { method: method })
+    }
+
+    setOverloadIndex(index: number) {
+        this.overloadIndex = index
+    }
+
+    getOverloadPostfix(): string {
+        return this.overloadIndex == undefined ? "" : `${this.overloadIndex}`
+    }
 }
 
 export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
@@ -139,7 +156,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly interfaces: idl.IDLReferenceType[] | undefined,
         public readonly generics: string[] | undefined,
         public readonly fields: MaterializedField[],
-        public readonly ctor: MaterializedMethod | undefined, // undefined when used for global functions
+        public readonly ctors: MaterializedMethod[], // zero size when used for global functions
         public readonly finalizer: MaterializedMethod | undefined, // undefined when used for global functions
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,

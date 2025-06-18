@@ -189,20 +189,26 @@ export class IdlPeerProcessor {
             }
         }
 
-        let constructor: idl.IDLConstructor | undefined = decl.constructors.at(0)
-        if (constructor === undefined && decl.callables.length > 0) {
-            const first = decl.callables[0]
-            constructor = idl.createConstructor(
-                [...first.parameters],
-                first.returnType,
-                {
-                    documentation: first.documentation,
-                    extendedAttributes: first.extendedAttributes,
-                    fileName: first.fileName
-                }
-            )
+        let constructors: idl.IDLConstructor[] = decl.constructors
+        if (constructors.length == 0 && !isStaticMaterialized) {
+            if (decl.callables.length > 0) {
+                const first = decl.callables[0]
+                const constructor = idl.createConstructor(
+                    [...first.parameters],
+                    first.returnType,
+                    {
+                        documentation: first.documentation,
+                        extendedAttributes: first.extendedAttributes,
+                        fileName: first.fileName
+                    }
+                )
+                constructors = [constructor]
+            } else {
+                constructors = [idl.createConstructor([], idl.IDLVoidType)]
+            }
         }
-        const mConstructor = isStaticMaterialized ? undefined : this.makeMaterializedMethod(decl, constructor, fullCName, implemenationParentName)
+        const mConstructors = isStaticMaterialized ? [] : constructors.map(c => this.makeMaterializedMethod(decl, c, fullCName, implemenationParentName))
+        if (mConstructors.length > 1) mConstructors.forEach((c, i) => { c.setOverloadIndex(i) })
         const mFinalizer = isStaticMaterialized ? undefined : new MaterializedMethod(fullCName, implemenationParentName,[], idl.IDLPointerType, false,
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = propertiesFromInterface.concat(decl.properties)
@@ -237,7 +243,7 @@ export class IdlPeerProcessor {
         })
         this.library.materializedClasses.set(fullCName,
             new MaterializedClass(decl, decl.name, isDeclInterface, isStaticMaterialized, superType, interfaces, decl.typeParameters,
-                mFields, mConstructor, mFinalizer, mMethods, true, taggedMethods))
+                mFields, mConstructors, mFinalizer, mMethods, true, taggedMethods))
     }
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
