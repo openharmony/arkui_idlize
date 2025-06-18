@@ -796,10 +796,45 @@ index 6ebfe1cd8..e2f4ba390 100644
  
    /**
     * Set type.
+diff --git a/build-tools/arkui_transformer/src/add_import.ts b/build-tools/arkui_transformer/src/add_import.ts
+index daf313dd4..8cfd2e0a8 100644
+--- a/build-tools/arkui_transformer/src/add_import.ts
++++ b/build-tools/arkui_transformer/src/add_import.ts
+@@ -15,7 +15,7 @@
+ 
+ import * as ts from "typescript";
+ import uiconfig from './arkui_config_util';
+-import path from 'path';
++import path from 'node:path';
+ import { ComponentFile } from "./component_file";
+ 
+ export function addImportTransformer(): ts.TransformerFactory<ts.SourceFile> {
+diff --git a/build-tools/arkui_transformer/src/arkui_config_util.ts b/build-tools/arkui_transformer/src/arkui_config_util.ts
+index a293a73c6..a5bb3b705 100644
+--- a/build-tools/arkui_transformer/src/arkui_config_util.ts
++++ b/build-tools/arkui_transformer/src/arkui_config_util.ts
+@@ -16,7 +16,7 @@
+ import { OptionValues } from "commander"
+ import * as fs from "fs"
+ 
+-import path from "path"
++import path from "node:path"
+ 
+ export interface ArkUIConfig {
+     components: Array<string>
 diff --git a/build-tools/arkui_transformer/src/arkui_transformer.ts b/build-tools/arkui_transformer/src/arkui_transformer.ts
-index 65a17e6bf..f8506e5f2 100644
+index 65a17e6bf..484cc50e3 100644
 --- a/build-tools/arkui_transformer/src/arkui_transformer.ts
 +++ b/build-tools/arkui_transformer/src/arkui_transformer.ts
+@@ -15,7 +15,7 @@
+ 
+ import { program } from "commander"
+ import * as ts from 'typescript';
+-import * as path from 'path';
++import * as path from 'node:path';
+ import * as fs from 'fs';
+ import { componentInterfaceCollector, interfaceTransformer, addMemoTransformer } from "./interface_converter"
+ import { ComponentFile } from './component_file';
 @@ -54,9 +54,10 @@ function printResult(source: string, file: ComponentFile) {
  
  function withM3Config(f: string, func: () => void) {
@@ -812,3 +847,16 @@ index 65a17e6bf..f8506e5f2 100644
      return;
    }
    func()
+diff --git a/build-tools/arkui_transformer/src/component_file.ts b/build-tools/arkui_transformer/src/component_file.ts
+index 56bc9e62c..58919dc5e 100644
+--- a/build-tools/arkui_transformer/src/component_file.ts
++++ b/build-tools/arkui_transformer/src/component_file.ts
+@@ -14,7 +14,7 @@
+  */
+ 
+ import * as ts from 'typescript';
+-import * as path from 'path';
++import * as path from 'node:path';
+ 
+ export class ComponentFile {
+   public componentName: string
