@@ -175,13 +175,6 @@ function checkForceCallback() {
 function checkEnum() {
 
   // .d.ts
-  console.log(OrdinaryEnum.E1)
-  console.log(OrdinaryEnum.E2)
-  console.log(IntEnum.E1)
-  console.log(IntEnum.E3)
-  console.log(StringEnum.E1)
-  console.log(StringEnum.E2)
-
   // use Enum.VALUE.valueOf() as a workaround
   assertEQ(11, IntEnum.E1.valueOf())
   assertEQ(33, IntEnum.E3.valueOf())
@@ -197,13 +190,6 @@ function checkEnum() {
   assertEQ(StringEnum.E3, checkStringEnums(StringEnum.E1, StringEnum.E2))
 
   // .idl
-  console.log(IDLOrdinaryEnum.E1)
-  console.log(IDLOrdinaryEnum.E2)
-  console.log(IDLIntEnum.E1)
-  console.log(IDLIntEnum.E3)
-  console.log(IDLStringEnum.E1)
-  console.log(IDLStringEnum.E2)
-
   // use Enum.VALUE.valueOf() as a workaround
   assertEQ(111, IDLIntEnum.E1.valueOf())
   assertEQ(333, IDLIntEnum.E3.valueOf())
@@ -247,24 +233,25 @@ function checkLength() {
 }
 
 function checkDataInterfaces() {
-  const propBoolean = true
-  const propNumber = 0xc0ffee
-  const propString = "coffee"
-  const propObject: [boolean, number, string] = [false, 55, "fifty five"]
+  const valBoolean = true
+  const valNumber = 0xc0ffee
+  const valString = "coffee"
+  const valObject: [boolean, number, string] = [false, 55, "fifty five"]
 
-  const dataIface: DataInterface = { propBoolean, propNumber, propString, propObject }
+  const dataIface: DataInterface = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
+
   const r1 = testDataInterface(dataIface)
   checkDataTestResult("interface", dataIface, r1.propBoolean, r1.propNumber, r1.propString, r1.propObject)
 
-  const dataClass: DataClass = { propBoolean, propNumber, propString, propObject }
+  const dataClass: DataClass = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
   const r2 = testDataClass(dataClass)
   checkDataTestResult("class", dataIface, r2.propBoolean, r2.propNumber, r2.propString, r2.propObject)
 
-  const idlIface: IDLDataInterface = { propBoolean, propNumber, propString, propObject }
+  const idlIface: IDLDataInterface = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
   const r3 = testIDLDataInterface(idlIface)
   checkDataTestResult("interface", dataIface, r3.propBoolean, r3.propNumber, r3.propString, r3.propObject)
 
-  const idlClass: IDLDataClass = { propBoolean, propNumber, propString, propObject }
+  const idlClass: IDLDataClass = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
   const r4 = testIDLDataClass(idlClass)
   checkDataTestResult("class", dataIface, r4.propBoolean, r4.propNumber, r4.propString, r4.propObject)
 }
