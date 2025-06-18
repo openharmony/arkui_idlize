@@ -23,8 +23,6 @@ declare class ImageData {
 
   readonly width: number;
 
-  constructor(width: number, height: number, data?: Uint8ClampedArray);
-
   constructor(width: number, height: number, data?: Uint8ClampedArray, unit?: LengthMetricsUnit);
 }
 
