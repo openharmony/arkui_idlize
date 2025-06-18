@@ -169,6 +169,9 @@ export class IdlPeerProcessor {
         if (!isInCurrentModule(decl)) {
             return
         }
+        if (peerGeneratorConfiguration().isHandWritten(decl.name)) {
+            return
+        }
         const fullCName = qualifiedName(decl, "_", "namespace.name")
         if (this.library.materializedClasses.has(fullCName)) {
             return

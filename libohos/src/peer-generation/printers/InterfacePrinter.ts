@@ -1061,7 +1061,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                 if (idl.isNamespace(entry) ||
                     idl.isImport(entry) ||
                     isInIdlizeInternal(entry) ||
-                    idl.isHandwritten(entry) ||
+                    idl.isHandwritten(entry) || peerGeneratorConfiguration().isHandWritten(entry.name) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses)

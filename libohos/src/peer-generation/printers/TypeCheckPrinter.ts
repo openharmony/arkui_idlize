@@ -102,9 +102,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
     for (const decl of collectDeclarationTargets(library)) {
         if (!idl.isEntry(decl))
             continue
-        if (idl.isImport(decl) ||
-            isInIdlize(decl)
-        )
+        if (idl.isImport(decl) || isInIdlize(decl))
             continue
         if (peerGeneratorConfiguration().ignoreEntry(decl.name, library.language))
             continue
@@ -133,7 +131,7 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
                 continue
             if (idl.isInterface(decl) && isExternalType(decl, library))
                 continue
-                syntheticCollector.convert(decl)
+            syntheticCollector.convert(decl)
         }
     }
     return res

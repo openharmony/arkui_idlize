@@ -75,61 +75,6 @@ index 047b8a924..a46f27331 100644
  
    /**
     * Defines whether to respond to the hover mode.
-diff --git a/api/@internal/component/ets/canvas.d.ts b/api/@internal/component/ets/canvas.d.ts
-index 113776a48..10229d83f 100644
---- a/api/@internal/component/ets/canvas.d.ts
-+++ b/api/@internal/component/ets/canvas.d.ts
-@@ -24,6 +24,7 @@ import { FrameNode } from '../FrameNode';
- import { ImageAIOptions, ImageAnalyzerConfig } from './imageCommon';
- import { Matrix2D } from './matrix2d';
- import { VoidCallback, LengthMetricsUnit, LengthMetrics } from './units';
-+import { Size } from '../Graphics'
- /*** endif */
- 
- /**
-@@ -6132,42 +6133,6 @@ declare class OffscreenCanvas {
-   constructor(width: number, height: number, unit: LengthMetricsUnit);
- }
- 
--/**
-- * Size info.
-- *
-- * @interface Size
-- * @syscap SystemCapability.ArkUI.ArkUI.Full
-- * @crossplatform
-- * @atomicservice
-- * @since arkts {'1.1':'12','1.2':'20'}
-- * @arkts 1.1&1.2
-- */
--declare interface Size {
--  /**
--   * Defines the width property.
--   *
--   * @type { number }
--   * @syscap SystemCapability.ArkUI.ArkUI.Full
--   * @crossplatform
--   * @atomicservice
--   * @since arkts {'1.1':'12','1.2':'20'}
--   * @arkts 1.1&1.2
--   */
--  width: number;
--
--  /**
--   * Defines the height property.
--   *
--   * @type { number }
--   * @syscap SystemCapability.ArkUI.ArkUI.Full
--   * @crossplatform
--   * @atomicservice
--   * @since arkts {'1.1':'12','1.2':'20'}
--   * @arkts 1.1&1.2
--   */
--  height: number;
--}
--
- /**
-  * Defines DrawingRenderingContext.
-  *
 diff --git a/api/@internal/component/ets/column.d.ts b/api/@internal/component/ets/column.d.ts
 index 02be253b6..08a92d535 100644
 --- a/api/@internal/component/ets/column.d.ts
@@ -188,19 +133,36 @@ index 02be253b6..08a92d535 100644
  
  /**
 diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
-index e54660855..1808f4ac6 100644
+index 3e1493d29..c0bfedf63 100644
 --- a/api/@internal/component/ets/common.d.ts
 +++ b/api/@internal/component/ets/common.d.ts
-@@ -11404,7 +11404,7 @@ declare interface BorderImageOption {
-    * @since arkts {'1.1':'11','1.2':'20'}
-    * @arkts 1.1&1.2
+@@ -11416,7 +11416,7 @@ declare interface BorderImageOption {
+    * @atomicservice
+    * @since 11
     */
 -  source?: string | Resource | LinearGradient,
 +  source?: string | Resource | LinearGradient_common,
  
    /**
-    * Border image width
-@@ -16181,7 +16181,7 @@ declare interface SheetOptions extends BindOptions {
+    * Border image source
+@@ -15797,14 +15797,14 @@ declare interface SheetOptions extends BindOptions {
+   /**
+    * Defines sheet detents
+    *
+-   * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
++   * @type { ?(TripleLengthDetents) }
+    * @syscap SystemCapability.ArkUI.ArkUI.Full
+    * @crossplatform
+    * @atomicservice
+    * @since 20
+    * @arkts 1.2
+    */
+-  detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++  detents?: TripleLengthDetents;
+ 
+   /**
+    * Defines sheet background blur Style
+@@ -16243,7 +16243,7 @@ declare interface SheetOptions extends BindOptions {
   * @since 20
   * @arkts 1.2
   */
@@ -209,7 +171,7 @@ index e54660855..1808f4ac6 100644
  
  /**
   * Component State Styles.
-@@ -28634,7 +28634,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
+@@ -28739,7 +28739,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
   * @since arkts {'1.1':'11','1.2':'20'}
   * @arkts 1.1&1.2
   */
@@ -600,15 +562,15 @@ index ee3b6bf64..7951b1bab 100644
  
  /**
 diff --git a/api/@internal/component/ets/sidebar.d.ts b/api/@internal/component/ets/sidebar.d.ts
-index 4a79fdd13..2de1c4130 100644
+index cbb6b4f08..1ec2a3cee 100644
 --- a/api/@internal/component/ets/sidebar.d.ts
 +++ b/api/@internal/component/ets/sidebar.d.ts
 @@ -21,7 +21,7 @@
  /*** if arkts 1.2 */
  import { Resource } from '../../global/resource'
  import { Length, ResourceColor, Dimension } from './units'
--import { CommonMethod, PixelMap } from './common'
-+import { CommonMethod, PixelMap, DividerStyle } from './common'
+-import { CommonMethod, PixelMap, Bindable } from './common'
++import { CommonMethod, PixelMap, Bindable, DividerStyle } from './common'
  /*** endif */
  
  /**
@@ -723,6 +685,19 @@ index 4a79fdd13..2de1c4130 100644
  /**
   * The attribute function of sidebar
   *
+diff --git a/api/@internal/component/ets/toggle.d.ts b/api/@internal/component/ets/toggle.d.ts
+index e57982116..bbf8ae329 100644
+--- a/api/@internal/component/ets/toggle.d.ts
++++ b/api/@internal/component/ets/toggle.d.ts
+@@ -255,7 +255,7 @@ declare interface ToggleConfiguration extends CommonConfiguration<ToggleConfigur
+    * @since arkts {'1.1':'12','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  enabled: boolean;
++  toggleEnabled: boolean;
+ 
+   /**
+    * Trigger toggle select change
 diff --git a/api/@internal/component/ets/ui_extension_component.d.ts b/api/@internal/component/ets/ui_extension_component.d.ts
 index eac19b4aa..b30176bd1 100644
 --- a/api/@internal/component/ets/ui_extension_component.d.ts
@@ -796,80 +771,3 @@ index 6ebfe1cd8..e2f4ba390 100644
  
    /**
     * Set type.
-diff --git a/build-tools/arkui_transformer/src/add_import.ts b/build-tools/arkui_transformer/src/add_import.ts
-index daf313dd4..8cfd2e0a8 100644
---- a/build-tools/arkui_transformer/src/add_import.ts
-+++ b/build-tools/arkui_transformer/src/add_import.ts
-@@ -15,7 +15,7 @@
- 
- import * as ts from "typescript";
- import uiconfig from './arkui_config_util';
--import path from 'path';
-+import path from 'node:path';
- import { ComponentFile } from "./component_file";
- 
- export function addImportTransformer(): ts.TransformerFactory<ts.SourceFile> {
-diff --git a/build-tools/arkui_transformer/src/arkui_config_util.ts b/build-tools/arkui_transformer/src/arkui_config_util.ts
-index a293a73c6..a5bb3b705 100644
---- a/build-tools/arkui_transformer/src/arkui_config_util.ts
-+++ b/build-tools/arkui_transformer/src/arkui_config_util.ts
-@@ -16,7 +16,7 @@
- import { OptionValues } from "commander"
- import * as fs from "fs"
- 
--import path from "path"
-+import path from "node:path"
- 
- export interface ArkUIConfig {
-     components: Array<string>
-diff --git a/build-tools/arkui_transformer/src/arkui_transformer.ts b/build-tools/arkui_transformer/src/arkui_transformer.ts
-index 65a17e6bf..484cc50e3 100644
---- a/build-tools/arkui_transformer/src/arkui_transformer.ts
-+++ b/build-tools/arkui_transformer/src/arkui_transformer.ts
-@@ -15,7 +15,7 @@
- 
- import { program } from "commander"
- import * as ts from 'typescript';
--import * as path from 'path';
-+import * as path from 'node:path';
- import * as fs from 'fs';
- import { componentInterfaceCollector, interfaceTransformer, addMemoTransformer } from "./interface_converter"
- import { ComponentFile } from './component_file';
-@@ -54,9 +54,10 @@ function printResult(source: string, file: ComponentFile) {
- 
- function withM3Config(f: string, func: () => void) {
-   if (uiconfig.withM3File(f)) {
-+    let prevUseMemoM3 = uiconfig.useMemoM3
-     uiconfig.useMemoM3 = true;
-     func()
--    uiconfig.useMemoM3 = false;
-+    uiconfig.useMemoM3 = prevUseMemoM3;
-     return;
-   }
-   func()
-diff --git a/build-tools/arkui_transformer/src/component_file.ts b/build-tools/arkui_transformer/src/component_file.ts
-index 56bc9e62c..58919dc5e 100644
---- a/build-tools/arkui_transformer/src/component_file.ts
-+++ b/build-tools/arkui_transformer/src/component_file.ts
-@@ -14,7 +14,7 @@
-  */
- 
- import * as ts from 'typescript';
--import * as path from 'path';
-+import * as path from 'node:path';
- 
- export class ComponentFile {
-   public componentName: string
-diff --git a/api/@internal/component/ets/toggle.d.ts b/api/@internal/component/ets/toggle.d.ts
-index 2f63ae351..79b5622cf 100644
---- a/api/@internal/component/ets/toggle.d.ts
-+++ b/api/@internal/component/ets/toggle.d.ts
-@@ -255,7 +255,7 @@ declare interface ToggleConfiguration extends CommonConfiguration<ToggleConfigur
-    * @since arkts {'1.1':'12','1.2':'20'}
-    * @arkts 1.1&1.2
-    */
--  enabled: boolean;
-+  toggleEnabled: boolean;
-
-   /**
-    * Trigger toggle select change
