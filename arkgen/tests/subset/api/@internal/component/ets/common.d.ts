@@ -712,3 +712,57 @@ declare interface TranslateOptions {
     y?: number | string;
     z?: number | string;
 }
+
+/**
+ * Defined the draw modifier of node. Provides draw callbacks for the associated Node.
+ *
+ * @syscap SystemCapability.ArkUI.ArkUI.Full
+ * @crossplatform
+ * @atomicservice
+ * @since 12
+ */
+declare class DrawModifier {
+  /**
+   * drawBehind Method. Executed before drawing associated Node.
+   *
+   * @param { DrawContext } drawContext - The drawContext used to draw.
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  drawBehind?(drawContext: DrawContext): void;
+
+  /**
+   * drawContent Method. Executed when associated Node is drawing, the default drawContent method will be replaced
+   * if this method is set.
+   *
+   * @param { DrawContext } drawContext - The drawContext used to draw.
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  drawContent?(drawContext: DrawContext): void;
+
+  /**
+   * drawFront Method. Executed after drawing associated Node.
+   *
+   * @param { DrawContext } drawContext - The drawContext used to draw.
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  drawFront?(drawContext: DrawContext): void;
+
+  /**
+   * Invalidate the component, which will cause a re-render of the component.
+   *
+   * @syscap SystemCapability.ArkUI.ArkUI.Full
+   * @crossplatform
+   * @atomicservice
+   * @since 12
+   */
+  invalidate(): void;
+}

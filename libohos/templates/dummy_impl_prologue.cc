@@ -155,7 +155,7 @@ void RegisterDrawModifierCallback(Ark_DrawModifier peer, const Callback_DrawCont
     DrawModifiersQueue[peer] = modifier;
     auto callback = *event;
     callback.resource.hold(callback.resource.resourceId);
-    auto onEvent = [callback, type](Ark_DrawContext event) {
+    auto onEvent = [callback](Ark_DrawContext event) {
         if (callback.call) {
             callback.call(callback.resource.resourceId, event);
         }
@@ -164,14 +164,12 @@ void RegisterDrawModifierCallback(Ark_DrawModifier peer, const Callback_DrawCont
 }
 
 void CallDrawModifierCallbacks(Ark_DrawModifier peer) {
-    if (DrawModifiersQueue.find(peer) == DrawModifiersQueue.end()) {
-        fprintf(stderr, ">>> CallDrawModifierCallbacks failed: peer = %p\n", peer);
-    }
     std::shared_ptr<DrawModifierCaller> modifier = DrawModifiersQueue[peer];
-    Ark_DrawContext context = reinterpret_cast<Ark_DrawContext>(peer);
-    modifier->callDrawModifierCallback(context, DrawBehind);
-    modifier->callDrawModifierCallback(context, DrawContent);
-    modifier->callDrawModifierCallback(context, DrawFront);
+    uint64_t pointer = 42;
+    auto context = reinterpret_cast<Ark_DrawContext*>(&pointer);
+    modifier->callDrawModifierCallback(*context, DrawBehind);
+    modifier->callDrawModifierCallback(*context, DrawContent);
+    modifier->callDrawModifierCallback(*context, DrawFront);
 }
 
 void DumpTree(TreeNode *node, Ark_Int32 indent) {
