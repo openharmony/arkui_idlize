@@ -17,10 +17,10 @@ registry=https://repo.huaweicloud.com/repository/npm/
 @ohos:registry=https://repo.harmonyos.com/npm/
 strict-ssl=false
 lockfile=false
-@idlizer:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-@koalaui:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-@panda:registry=https://nexus.bz-openlab.ru:10443/repository/koala-npm/
-//nexus.bz-openlab.ru:10443/repository/koala-npm/:_auth=a29hbGEtcHViOnkzdCFuMHRoZXJQ
+@idlizer:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+@koalaui:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+@panda:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+//nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth=a29hbGEtcHViOnkzdCFuMHRoZXJQ
 ```
 Using:
 ```
