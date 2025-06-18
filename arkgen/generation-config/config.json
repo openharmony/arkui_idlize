@@ -204,7 +204,8 @@
             "PageTransitionEnterInterface",
             "PageTransitionExitInterface",
             "CommonTransition",
-            "wrapBuilder"
+            "wrapBuilder",
+            "ContentModifier"
         ],
         "ignoreEntry": [
             "Optional",
@@ -276,7 +277,73 @@
             "NavPathStack"
         ]
     },
-    "hooks": {},
+    "hooks": {
+        "Button": {
+            "contentModifier": {
+                "hookName": "hookButtonContentModifier"
+            }
+        },
+        "Checkbox": {
+            "contentModifier": {
+                "hookName": "hookCheckBoxContentModifier"
+            }
+        },
+        "DataPanel": {
+            "contentModifier": {
+                "hookName": "hookDataPanelContentModifier"
+            }
+        },
+        "Gauge": {
+            "contentModifier": {
+                "hookName": "hookGaugeContentModifier"
+            }
+        },
+        "LoadingProgress": {
+            "contentModifier": {
+                "hookName": "hookLoadingProgressContentModifier"
+            }
+        },
+        "Progress": {
+            "contentModifier": {
+                "hookName": "hookProgressContentModifier"
+            }
+        },
+        "Radio": {
+            "contentModifier": {
+                "hookName": "hookRadioContentModifier"
+            }
+        },
+        "Rating": {
+            "contentModifier": {
+                "hookName": "hookRatingContentModifier"
+            }
+        },
+        "Select": {
+            "menuItemContentModifier": {
+                "hookName": "hookSelectContentModifier"
+            }
+        },
+        "Slider": {
+            "contentModifier": {
+                "hookName": "hookSliderContentModifier"
+            }
+        },
+        "TextClock": {
+            "contentModifier": {
+                "hookName": "hookTextClockContentModifier"
+            }
+        },
+        "TextTimer": {
+            "contentModifier": {
+                "hookName": "hookTextTimerContentModifier"
+            }
+        },
+        "Toggle": {
+            "contentModifier": {
+                "hookName": "hookToggleContentModifier"
+            }
+        }
+    },
     "externalTypes": {},
     "externalPackages": [],
     "materialized": {
