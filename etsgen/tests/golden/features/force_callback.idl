@@ -3,4 +3,6 @@ package force_callback;
 callback Callback_String_Void = void (String value);
 interface EditMenuOptions {
     attribute Callback_String_Void onCreateMenu;
+    [ExtraMethod=onCreateMenuExtraMethod]
+    attribute Callback_String_Void onCreateMenuExtraMethod_callback;
 };

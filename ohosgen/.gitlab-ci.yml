@@ -23,9 +23,11 @@ check generated XML demo:
     tags:
       - idlize-ci
       - koala-ci
+    needs:
+    - npm install
+    - download sdk
+    - panda sdk install
     before_script:
-      - !reference [.setup, script]
-      - !reference [.setup, panda-sdk]
       - cd $CI_PROJECT_DIR/ohosgen
       - npm run compile --prefix ../external/interop
       - npm run compile --prefix ../external/incremental/common
@@ -43,9 +45,10 @@ check ohos unit tests:
   tags:
     - idlize-ci
     - koala-ci
+  needs:
+  - npm install
+  - panda sdk install
   before_script:
-    - !reference [.setup, script]
-    - !reference [.setup, panda-sdk]
     - cd $CI_PROJECT_DIR/ohosgen
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common
@@ -68,9 +71,11 @@ check ohos demos:
   tags:
     - idlize-ci
     - koala-ci
+  needs:
+  - npm install
+  - download sdk
+  - panda sdk install
   before_script:
-    - !reference [.setup, script]
-    - !reference [.setup, panda-sdk]
     - cd $CI_PROJECT_DIR/ohosgen
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common
@@ -93,9 +98,10 @@ check ohos system tests:
   tags:
     - idlize-ci
     - koala-ci
+  needs:
+  - npm install
+  - panda sdk install
   before_script:
-    - !reference [.setup, script]
-    - !reference [.setup, panda-sdk]
     - cd $CI_PROJECT_DIR/ohosgen
     - npm run compile --prefix ../external/interop
     - npm run compile --prefix ../external/incremental/common

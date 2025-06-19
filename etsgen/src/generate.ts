@@ -748,16 +748,18 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         serializedMethod.returnType,
                         serializedMethod.isAsync
                     )
-                    this.addSyntheticType(
-                        idl.createCallback(
-                            syntheticName,
-                            serializedMethod.parameters,
-                            serializedMethod.returnType,
-                            {
-                                extendedAttributes: (serializedMethod.extendedAttributes ?? []).concat({ name: idl.IDLExtendedAttributes.Synthetic })
-                            }
-                        )
+                    const syntheticCallback = idl.createCallback(
+                        syntheticName,
+                        serializedMethod.parameters,
+                        serializedMethod.returnType,
+                        {
+                            extendedAttributes: (serializedMethod.extendedAttributes ?? []).concat({ name: idl.IDLExtendedAttributes.Synthetic })
+                        }
                     )
+                    if (!this.seenTypes.has(syntheticCallback.name)) {
+                        this.seenTypes.add(syntheticCallback.name)
+                        this.addSyntheticType(syntheticCallback)
+                    }
                     let propertyPostfix = ""
                     let extendedAttributes = (serializedMethod.extendedAttributes ?? [])
                     const extraCallback = this.config.ForceCallback.get(key) === idl.IDLExtendedAttributes.ExtraMethod

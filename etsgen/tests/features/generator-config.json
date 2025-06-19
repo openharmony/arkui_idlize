@@ -30,7 +30,8 @@
         "ThrowableInterface.foo",
         "ThrowableClass.boo"
     ],
-    "ForceCallback": [
-        "EditMenuOptions.onCreateMenu"
-    ]
+    "ForceCallback": {
+        "EditMenuOptions.onCreateMenu": "",
+        "EditMenuOptions.onCreateMenuExtraMethod": "ExtraMethod"
+    }
 }
