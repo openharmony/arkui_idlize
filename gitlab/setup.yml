@@ -1,42 +1,16 @@
-.setup:
-    script:
-        - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-        - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-        - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
-        - npm i --prefix external --no-audit --no-fund
-        - npm i --no-audit --no-fund
-    libarkts:
-        - cd external/ui2abc/libarkts
-        - npm run reinstall:regenerate
-        - npm run compile
-        - npm run compile:plugins
-        - cd -
-    panda-sdk:
-        - PANDA_SDK_VERSION=1.5.0-dev.31052 npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
-
-.npm-cache: &npm-cache
-    paths:
-    - .npm/
-
-.npm-config-scripts: &npm-config-script
-    - npm config set cache $(pwd)/.npm
-    - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-    - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
+include:
+    - gitlab/npm.yml
 
 npm install:
     stage: build
+    tags:
+    - idlize-ci
+    - koala-ci
     script:
-    - *npm-config-script
+    - !reference [.npm-config-script]
     - npm i --prefix external --no-audit --no-fund
     - npm i --no-audit --no-fund
-    cache: *npm-cache
+    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - "**/node_modules"
@@ -44,12 +18,15 @@ npm install:
 
 panda sdk install:
     stage: build
+    tags:
+    - idlize-ci
+    - koala-ci
     needs:
     - npm install
     script:
-    - *npm-config-script
+    - !reference [.npm-config-script]
     - PANDA_SDK_VERSION=1.5.0-dev.32627 npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
-    cache: *npm-cache
+    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - ./external/incremental/tools/panda/node_modules
@@ -57,17 +34,20 @@ panda sdk install:
 
 libarkts regenerate:
     stage: build
+    tags:
+    - idlize-ci
+    - koala-ci
     needs:
     - npm install
     - panda sdk install
     script:
-    - *npm-config-script
+    - !reference [.npm-config-script]
     - cd external/ui2abc/libarkts
     - npm run regenerate
     - npm run compile
     - npm run compile:plugins
     - cd -
-    cache: *npm-cache
+    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - external/ui2abc/libarkts/lib
@@ -76,12 +56,15 @@ libarkts regenerate:
 
 download sdk:
     stage: build
+    tags:
+    - idlize-ci
+    - koala-ci
     needs:
     - npm install
     script:
-    - *npm-config-script
+    - !reference [.npm-config-script]
     - npm run download:sdk
-    cache: *npm-cache
+    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - sdk-patched

@@ -1,3 +1,16 @@
+.npm-cache:
+    paths:
+    - .npm/
+
+.npm-config-script:
+    - npm config set cache $(pwd)/.npm
+    - npm config set @ohos:registry https://repo.harmonyos.com/npm/
+    - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+    - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+    - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+    - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+    - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
+
 .npm-pack:
   stage: pre-deploy
   interruptible: true
@@ -5,7 +18,7 @@
   - idlize-ci
   - koala-ci
   before_script:
-    - !reference [.setup, script]
+    - !reference [.npm-config-script]
     - mkdir .packages
     - cd $PACKAGE_DIR
   script:
@@ -28,7 +41,7 @@
   - if: $CI_COMMIT_BRANCH == "master"
     when: on_success
   before_script:
-    - !reference [.setup, script]
+    - !reference [.npm-config-script]
     - cd $PACKAGE_DIR
   script:
     - sed -i "s/+devel/-dev.$CI_PIPELINE_IID/" package.json
