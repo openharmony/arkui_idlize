@@ -1858,7 +1858,6 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         if (!options.isDeclared) {
             imports.push({ feature: "KStringPtr", module: "@koalaui/interop" })
             imports.push({ feature: "wrapCallback", module: "@koalaui/interop" })
-            imports.push({ feature: "NativeBuffer", module: "@koalaui/interop" })
         }
         if (options.useMemoM3 && language === Language.ARKTS) {
             imports.push(

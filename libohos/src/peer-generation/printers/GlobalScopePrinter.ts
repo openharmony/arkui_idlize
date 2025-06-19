@@ -59,6 +59,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             })
 
             peerImports.merge(imports)
+            fillCommonImports(imports, library.language)
             imports.addFeatures(
                 [realizationHolder.name],
                 library.layout.resolve({
@@ -141,7 +142,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     realizationWriter.writeClass(realizationHolder.name, w => {
         peerMethodWriter.getOutput().forEach(it => w.print(it))
     })
-    fillCommonImports(peerImports, library)
+    fillPeerImports(peerImports, library)
     const realization: PrinterResult = {
         collector: peerImports,
         content: realizationWriter,
@@ -155,7 +156,15 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     return printed.concat(realization)
 }
 
-function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
+function fillCommonImports(collector: ImportsCollector, language: idl.Language) {
+    collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
+    if (language === idl.Language.ARKTS) {
+        collector.addFeature('NativeBuffer', '@koalaui/interop')
+    }
+}
+
+function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
+    fillCommonImports(collector, library.language)
     collector.addFeatures([
         'Finalizable',
         'runtimeType',
@@ -170,9 +179,7 @@ function fillCommonImports(collector: ImportsCollector, library: PeerLibrary) {
     collector.addFeatures(['unsafeCast'], '@koalaui/common')
     collectDeclItself(library, idl.createReferenceType('Serializer'), collector)
     collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
-    collector.addFeatures(['int32', 'float32'], '@koalaui/common')
     if (library.language === idl.Language.ARKTS) {
-        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         collectDeclItself(library, idl.createReferenceType('Deserializer'), collector)
         importTypeChecker(library, collector)
     }

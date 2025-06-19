@@ -1,0 +1,6 @@
+package test_buffer;
+
+namespace test_buffer_idl {
+    buffer create(u32 size);
+    buffer reverse(buffer buf);
+};

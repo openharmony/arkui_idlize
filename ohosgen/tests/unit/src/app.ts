@@ -33,8 +33,8 @@ import {
   OHAny
 } from '#compat'
 
-// TBD: wait for the interface FQN fix for ArkTS
-import { test_buffer } from '#compat'
+import { NativeBuffer } from "@koalaui/interop"
+import { test_buffer, test_buffer_idl } from '#compat'
 
 import {
   OrdinaryEnum,
@@ -332,26 +332,25 @@ function checkMaterialized() {
   checkEQ(utilsArray[1].fieldArrayNumber[0], - modifiedUtilsArray[1].fieldArrayNumber[0])
 }
 
-// TBD: fix native buffer for TS
-// /*
-function checkNativeBuffer() {
-  const testValue: test_buffer.TestValue = test_buffer.getBuffer();
-  checkEQ(123, testValue.errorCode, "Invalid value of errorCode")
-  const buffer = testValue.outData;
-  let text = "1234";
-  checkEQ(text.length, buffer.length, "Invalid NativeBuffer length")
-  for (let i = 0; i < text.length; i++) {
-   checkEQ(text.charAt(i) + "", String.fromCharCode(buffer.readByte(i)), "Invalid NativeBuffer data")
-  }
-  text = "4321"
-  for (let i = 0; i < text.length; i++) {
-   buffer.writeByte(i, text.charCodeAt(i))
-  }
-  for (let i = 0; i < text.length; i++) {
-    checkEQ(text.charAt(i) + "", String.fromCharCode(buffer.readByte(i)), "Invalid NativeBuffer data")
+function _checkReversedBuffer(buffer: NativeBuffer, reversedBuffer: NativeBuffer) {
+  checkEQ(buffer.length, reversedBuffer.length, "NativeBuffer sizes do not match")
+  for (let i = 0; i < buffer.length; i++) {
+    checkEQ(buffer.readByte(i), reversedBuffer.readByte(buffer.length - i - 1))
   }
 }
-// */
+
+function checkNativeBuffer() {
+  { // DTS
+    const buffer = test_buffer.create(10)
+    const reversedBuffer = test_buffer.reverse(buffer)
+    _checkReversedBuffer(buffer, reversedBuffer)
+  }
+  { // IDL
+    const buffer = test_buffer_idl.create(10)
+    const reversedBuffer = test_buffer_idl.reverse(buffer)
+    _checkReversedBuffer(buffer, reversedBuffer)
+  }
+}
 
 // function checkHandwritten() {
 //   const dtsHW: HandwrittenComponent = { id: "hw", total: 0 }

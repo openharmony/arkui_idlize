@@ -21,8 +21,7 @@ export {
 export { and_values } from "../../generated/ts"
 export { sum_numbers } from "../../generated/ts"
 export { test_bigint } from "../../generated/ts"
-// TBD: wait for the interface FQN fix for ArkTS
-export { test_buffer } from "../../generated/ts"
+export { test_buffer, test_buffer_idl } from "../../generated/ts"
 export { test_materialized_classes, UtilityInterface } from "../../generated/ts"
 export { test_any } from "../../generated/ts"
 export { test_return_types, test_ret_A, test_ret_B } from "../../generated/ts"

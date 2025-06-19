@@ -138,21 +138,39 @@ OH_Buffer TestBuffer_BufferGenerator_giveMeBufferImpl(OH_NativePointer thisPtr)
 void stub_hold(OH_Int32 resourceId) {}
 void stub_release(OH_Int32 resourceId) {}
 
-// TBD: wait for the interface FQN fix for ArkTS
-//*
-OH_UNIT_test_buffer_TestValue GlobalScope_test_buffer_getBufferImpl()
-{
-    std::cout << "Return buffer from getBufferImpl"<< std::endl;
-    OH_UNIT_test_buffer_TestValue result{};
-    result.errorCode = {.tag = INTEROP_TAG_INT32, .i32 = 123 };
-    result.outData.resource.hold = stub_hold;
-    result.outData.resource.release = stub_release;
-    result.outData.data = strdup("1234");
-    result.outData.length = strlen("1234");
+/**
+ * Create a buffer with the given size and fill it with values from 0 to size-1.
+ */
+static OH_Buffer createBufferImpl(OH_UInt32 size) {
+    OH_Buffer result;
+    result.resource.hold = stub_hold;
+    result.resource.release = stub_release;
+    result.length = size;
+    result.data = malloc(size);
+    for (uint32_t i = 0; i < size; i++) {
+        ((char*)result.data)[i] = i;
+    }
     return result;
 }
-//*/
-// Force Callback real implementations
+static OH_Buffer reverseBufferImpl(const OH_Buffer* buf) {
+    OH_Buffer result = createBufferImpl(buf->length);
+    char *src = (char*)buf->data + buf->length - 1;
+    for (char *dst = (char*)result.data; src >= buf->data; src--, dst++)
+        *dst = *src;
+    return result;
+}
+OH_Buffer GlobalScope_test_buffer_createImpl(OH_UInt32 size) {
+    return createBufferImpl(size);
+}
+OH_Buffer GlobalScope_test_buffer_reverseImpl(const OH_Buffer* buffer) {
+    return reverseBufferImpl(buffer);
+}
+OH_Buffer GlobalScope_test_buffer_idl_createImpl(OH_UInt32 size) {
+    return createBufferImpl(size);
+}
+OH_Buffer GlobalScope_test_buffer_idl_reverseImpl(const OH_Buffer* buffer) {
+    return reverseBufferImpl(buffer);
+}
 
 class ForceCallbackClassPeer
 {
