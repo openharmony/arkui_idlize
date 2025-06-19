@@ -39,12 +39,6 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     }
 }
 
-export class PaddingConvertor extends AggregateConvertor {
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.makeIsTypeCall(value, this.decl)
-    }
-}
-
 export class ArkoalaImportTypeConvertor extends ImportTypeConvertor {
     private static knownTypes: Map<string, string[]> = new Map([
         ["CircleShape", ["isInstanceOf", "\"CircleShape\""]],

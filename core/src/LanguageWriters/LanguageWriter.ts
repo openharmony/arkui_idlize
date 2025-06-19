@@ -68,8 +68,8 @@ export class NewObjectExpression implements LanguageExpression {
 
 export class FunctionCallExpression implements LanguageExpression {
     constructor(
-        private name: string,
-        private params: LanguageExpression[]) { }
+        protected name: string,
+        protected params: LanguageExpression[]) { }
     asString(): string {
         return `${this.name}(${this.params.map(it => it.asString()).join(", ")})`
     }
@@ -86,6 +86,16 @@ export class MethodCallExpression extends FunctionCallExpression {
     }
     asString(): string {
         return `${this.receiver}${this.nullable ? "?" : ""}.${super.asString()}`
+    }
+}
+export class MethodStaticCallExpression extends MethodCallExpression {
+    constructor(
+        public receiver: string,
+        method: string,
+        params: LanguageExpression[],
+        public nullable = false)
+    {
+        super(receiver, method, params, nullable)
     }
 }
 
@@ -313,6 +323,9 @@ export abstract class LambdaExpression implements LanguageExpression {
                 stmt.write(writer)
             }
         }
+        writer.features.forEach(([feature, module]) => {
+            this.originalWriter.addFeature(feature, module)
+        })
 
         return (this.body ? this.body?.length > 1 ? '\n' : '' : '').concat(writer.getOutput()
             .filter(line => line !== "")
@@ -391,6 +404,7 @@ export class PrintHint {
     static AsConstPointer = new PrintHint('AsConstPointer')
     static AsValue = new PrintHint('AsValue')
     static AsConstReference = new PrintHint('AsConstReference')
+    static AsReference = new PrintHint('AsReference')
 }
 
 type MethodArgPrintHintOrNone = PrintHint | undefined
@@ -476,6 +490,11 @@ export abstract class LanguageWriter {
 
     maybeSemicolon() { return ";" }
 
+    features: [string, string][] = []
+    addFeature(feature: string, module:string) {
+        this.features.push([feature, module])
+    }
+
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
     abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
     abstract writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void
@@ -547,6 +566,9 @@ export abstract class LanguageWriter {
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
         this.printer.print(`${receiver}${nullable ? "?" : ""}.${method}(${params.join(", ")})`)
     }
+    writeStaticMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
+        this.writeMethodCall(receiver, method, params, nullable)
+    }
     writeStatement(stmt: LanguageStatement) {
         stmt.write(this)
     }
@@ -599,6 +621,9 @@ export abstract class LanguageWriter {
     }
     makeThisCall(params: LanguageExpression[]): LanguageExpression {
         return new ThisCallExpression(params)
+    }
+    makeStaticMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new MethodStaticCallExpression(receiver, method, params, nullable)
     }
     makeFieldAccess(receiver: string, method: string, nullable?: boolean): LanguageExpression {
         return new FieldAccessExpression(receiver, method, nullable)

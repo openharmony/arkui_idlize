@@ -48,6 +48,12 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         if (idl.isCallback(decl)) {
             result.push(...decl.parameters.flatMap(it => this.convert(it.type)))
         }
+        if (idl.isTypedef(decl)) {
+            result.push(...this.convert(decl))
+        }
+        if (idl.isInterface(decl) && [idl.IDLInterfaceSubkind.AnonymousInterface, idl.IDLInterfaceSubkind.Tuple].includes(decl.subkind)) {
+            result.push(...this.convert(decl))
+        }
         return result
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {

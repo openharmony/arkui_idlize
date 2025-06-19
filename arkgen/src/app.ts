@@ -33,6 +33,7 @@ import { IDLVisitor, loadPeerConfiguration,
     PeerGeneratorConfigurationType,
     PeerGeneratorConfigurationSchema,
     peerGeneratorConfiguration,
+    NativeModule,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -205,7 +206,7 @@ export function arkgen(argv:string[]) {
         const language = Language.fromString(options.language ?? "ts")
         const { inputFiles, inputDirs } = formatInputPaths(options)
 
-        const idlLibrary = new ArkoalaPeerLibrary(language, options.useMemoM3)
+        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3)
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
@@ -252,7 +253,7 @@ export function arkgen(argv:string[]) {
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         const idlAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.idl'))
 
-        const idlLibrary = new ArkoalaPeerLibrary(lang, options.useMemoM3)
+        const idlLibrary = new ArkoalaPeerLibrary(lang, NativeModule.Interop, options.useMemoM3)
 
         {
             const pushOne = (idlFilename: string, resultFilesArray: IDLFile[]) => {

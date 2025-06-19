@@ -44,8 +44,8 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
 
 export class TsLayout extends CommonLayoutBase {
     private tsInternalPaths = new Map<string, string>([
-        ["Serializer", "peers/Serializer"],
-        ["Deserializer", "peers/Deserializer"],
+        ["SerializerBase", "@koalaui/interop"],
+        ["DeserializerBase", "@koalaui/interop"],
         ["CallbackKind", "peers/CallbackKind"],
         ["deserializeAndCallCallback", "peers/CallbackDeserializeCall"],
         ["checkArkoalaCallbacks", "../CallbacksChecker"],
@@ -86,8 +86,8 @@ export class TsLayout extends CommonLayoutBase {
 class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
         ["TypeChecker", "#components"],
-        ["Serializer", "peers/Serializer"],
-        ["Deserializer", "peers/Deserializer"],
+        ["SerializerBase", "@koalaui/interop"],
+        ["DeserializerBase", "@koalaui/interop"],
         ["CallbackKind", "peers/CallbackKind"],
         ["deserializeAndCallCallback", "peers/CallbackDeserializeCall"],
         ["checkArkoalaCallbacks", "../CallbacksChecker"],
@@ -137,6 +137,7 @@ export class JavaLayout extends CommonLayoutBase {
     }
     resolve({ node, role }: idl.LayoutTargetDescription): string {
         switch (role) {
+            case LayoutNodeRole.SERIALIZER:
             case LayoutNodeRole.INTERFACE: {
                 if (idl.isEntry(node)) {
                     const ns = idl.getNamespaceName(node)
@@ -186,6 +187,7 @@ export class CJLayout extends CommonLayoutBase {
     }
     resolve({ node, role }: idl.LayoutTargetDescription): string {
         switch (role) {
+            case LayoutNodeRole.SERIALIZER:
             case LayoutNodeRole.INTERFACE: {
                 if (idl.isEntry(node)) {
                     const ns = idl.getNamespaceName(node)

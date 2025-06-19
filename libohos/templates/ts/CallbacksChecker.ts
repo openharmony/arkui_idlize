@@ -6,7 +6,7 @@ enum CallbackEventKind {
 
 const bufferSize = 4096
 const buffer = new Uint8Array(bufferSize)
-const deserializer = new Deserializer(buffer.buffer, bufferSize)
+const deserializer = new DeserializerBase(buffer.buffer, bufferSize)
 export function checkArkoalaCallbacks() {
     while (true) {
         let result = InteropNativeModule._CheckCallbackEvent(buffer, bufferSize)

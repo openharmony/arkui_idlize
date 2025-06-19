@@ -1,8 +1,8 @@
 package idlize.internal;
 
 interface Finalizable {};
-interface Serializer {};
-interface Deserializer {};
+interface SerializerBase {};
+interface DeserializerBase {};
 interface deserializeAndCallCallback {};
 interface checkArkoalaCallbacks {};
 interface CallbackTransformer {};

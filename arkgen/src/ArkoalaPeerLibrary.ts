@@ -29,7 +29,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     TSTypeNameConvertor,
     ETSTypeNameConvertor
 } from "@idlizer/core";
-import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor, PaddingConvertor } from './ArkoalaArgConvertors';
+import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
 
@@ -65,8 +65,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
     }
     override declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
         switch (type.name) {
-            case `Padding`:
-                return new PaddingConvertor(this, param, type, declaration as idl.IDLInterface)
             case `AnimationRange`:
                 return new CustomTypeConvertor(param, "AnimationRange", false, "AnimationRange<number>")
         }
@@ -76,7 +74,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
 
             if (idl.isInterface(declaration)) {
                 if (isMaterialized(declaration, this)) {
-                    return new ArkoalaMaterializedClassConvertor(param, declaration)
+                    return new ArkoalaMaterializedClassConvertor(this, param, declaration)
                 }
                 if (!isBuilderClass(declaration) &&
                     declaration.subkind === idl.IDLInterfaceSubkind.Interface)

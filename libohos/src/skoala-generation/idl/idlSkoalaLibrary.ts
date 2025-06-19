@@ -32,7 +32,8 @@ import {
     InterfaceConvertor,
     PrimitiveTypesInstance,
     resolveNamedNode,
-    getSuper
+    getSuper,
+    LayoutManager
 } from '@idlizer/core'
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
@@ -74,6 +75,8 @@ export class IdlSkoalaLibrary implements LibraryInterface {
     readonly interopNameConvertorInstance: IdlNameConvertor = new CppNameConvertor(this)
     readonly typeMap = new Map<idl.IDLType, [idl.IDLNode, boolean]>()
     public name: string = ""
+
+    layout: LayoutManager = new LayoutManager({ resolve: () => '', handwrittenPackage: () => '' })
 
     public language = Language.TS
 

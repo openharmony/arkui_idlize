@@ -136,9 +136,6 @@ class PeerFileVisitor {
         if (this.library.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
         }
-        if (this.library.language !== Language.ARKTS) {
-            collectDeclItself(this.library, idl.createReferenceType("Deserializer"), imports)
-        }
         imports.addFeatures(["MaterializedBase", "toPeerPtr", "wrapCallback"], "@koalaui/interop")
         // collectMaterializedImports(imports, this.library)
     }
@@ -235,8 +232,6 @@ class PeerFileVisitor {
 
         imports.addFeatures(['int32', 'int64', 'float32'], "@koalaui/common")
         imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'runtimeType', 'RuntimeType'], "@koalaui/interop")
-        // TODO Check the usage of relative path imports
-        imports.addFeatures(['Serializer'], "./peers/Serializer")
         // TODO Remove unnecessary imports for ohos libraries
         imports.addFeatures(['ComponentBase'], "./peers/../../ComponentBase")
         imports.addFeatures(['PeerNode'], "./peers/../../PeerNode")
@@ -435,9 +430,16 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         method.argAndOutConvertors.forEach((it, index) => {
             if (it.useArray) {
                 if (!serializerCreated) {
+                    const serializerRef = createReferenceType('SerializerBase')
+                    const serializerEntry = library.resolveTypeReference(serializerRef)
+                    if (!serializerEntry) {
+                        throw new Error("Not found SerializerBase!")
+                    }
+                    writer.addFeature('SerializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
+                    writer.addFeature('DeserializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
                     writer.writeStatement(
-                        writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
-                            writer.makeMethodCall('Serializer', 'hold', []), true)
+                        writer.makeAssign(`thisSerializer`, createReferenceType('SerializerBase'),
+                            writer.makeMethodCall('SerializerBase', 'hold', []), true)
                     )
                     serializerCreated = true
                 }
@@ -550,7 +552,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     writer.writeStatement(
         writer.makeAssign(
             deserializerName,
-            idl.createReferenceType("Deserializer"),
+            idl.createReferenceType("DeserializerBase"),
             writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
             true,
             false,
@@ -573,17 +575,17 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
 
 function makeDeserializerInstance(returnValName: string, language: Language) {
     if (language === Language.TS) {
-        return `new Deserializer(${returnValName}.buffer, ${returnValName}.byteLength)`
+        return `new DeserializerBase(${returnValName}.buffer, ${returnValName}.byteLength)`
     } else if (language === Language.ARKTS) {
-        return `new Deserializer(${returnValName}, ${returnValName}.length)`
+        return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.JAVA) {
-        return `new Deserializer(${returnValName}, ${returnValName}.length)`
+        return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.CJ) {
-        return `Deserializer(${returnValName}, Int32(${returnValName}.size))`
+        return `DeserializerBase(${returnValName}, Int32(${returnValName}.size))`
     } else if (language === Language.KOTLIN) {
-        return `Deserializer(${returnValName}, ${returnValName}.size)`
+        return `DeserializerBase(${returnValName}, ${returnValName}.size)`
     } else {
-        throw "not implemented"
+        throw new Error("not implemented")
     }
 }
 

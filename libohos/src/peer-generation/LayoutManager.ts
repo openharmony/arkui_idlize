@@ -28,6 +28,7 @@ export interface PrinterResult {
     content: LanguageWriter
     private?: boolean
     weight?: number
+    ignoreNamespace?: boolean
 }
 
 export interface PrinterClass {
@@ -86,7 +87,12 @@ export function install(
         const imports = new ImportsCollector()
         let content: string[] = []
 
-        results.forEach(it => imports.merge(it.collector))
+        results.forEach(it => {
+            it.content.features.forEach(([feature, module]) => {
+                imports.addFeature({ feature, module })
+            })
+            imports.merge(it.collector)
+        })
         content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
         if (library.language === Language.KOTLIN) {
             content = ['package idlize', 'import interop.*'].concat(content)
@@ -115,15 +121,16 @@ function printWithNamespaces(library: PeerLibrary, results: PrinterResult[], opt
     const resultsContent = library.createLanguageWriter()
     const resultsContentCache: string[] = []
     for (const record of results) {
-        wrapNamespaces(record.over.node, resultsContentCache, resultsContent, options)
+        wrapNamespaces(record, resultsContentCache, resultsContent, options)
         resultsContent.concat(record.content)
     }
     wrapNamespaces(undefined, resultsContentCache, resultsContent, options)
     return resultsContent.getOutput()
 }
 
-function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
-    const ns = node ? getNamespacesPathFor(node) : []
+function wrapNamespaces(item: PrinterResult | undefined, alreadyWrapped: string[], writer: LanguageWriter, options: { isDeclared: boolean }): void {
+    const node = item?.over.node
+    const ns = node ? getNamespacePathFromResult(item) : []
     let bestMatch = 0
     while (bestMatch < ns.length && bestMatch < alreadyWrapped.length) {
         if (ns[bestMatch].name != alreadyWrapped[bestMatch])
@@ -141,5 +148,13 @@ function wrapNamespaces(node: IDLEntry | undefined, alreadyWrapped: string[], wr
 }
 
 function sortByNamespaces(a: PrinterResult, b: PrinterResult): number {
-    return getNamespaceName(a.over.node).localeCompare(getNamespaceName(b.over.node))
+    return getNamespaceNameFromResult(a).localeCompare(getNamespaceNameFromResult(b))
+}
+
+function getNamespaceNameFromResult(a:PrinterResult): string {
+    return a.ignoreNamespace ? '' : getNamespaceName(a.over.node)
+}
+
+function getNamespacePathFromResult(a:PrinterResult): idl.IDLNamespace[] {
+    return a.ignoreNamespace ? [] : getNamespacesPathFor(a.over.node)
 }

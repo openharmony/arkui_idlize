@@ -44,7 +44,8 @@ import {
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs,
-    StringExpression
+    StringExpression,
+    MethodStaticCallExpression
 } from "../LanguageWriter"
 import {
     CDefinedExpression,
@@ -97,6 +98,12 @@ export class CppPointerPropertyAccessExpression implements LanguageExpression {
 
     asString(): string {
         return `${this.expression}->${this.name}`
+    }
+}
+
+export class CPPMethodStaticCallExpression extends MethodStaticCallExpression {
+    asString(): string {
+        return `${this.receiver}::${this.name}(${this.params.map(it => it.asString()).join(', ')})`
     }
 }
 
@@ -182,6 +189,9 @@ class CPPThrowErrorStatement implements LanguageStatement {
 export class CppLanguageWriter extends CLikeLanguageWriter {
     protected typeConvertor: IdlNameConvertor
 
+    protected classMode: 'normal' | 'detached' = 'normal'
+    protected currentClass: string[] = []
+
     constructor(printer: IndentedPrinter,
                 resolver:ReferenceResolver,
                 typeConvertor: IdlNameConvertor,
@@ -189,20 +199,37 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         super(printer, resolver, Language.CPP)
         this.typeConvertor = typeConvertor
     }
+    changeModeTo(mode: typeof this.classMode) {
+        this.classMode = mode
+    }
     getNodeName(type: IDLNode): string {
         return this.typeConvertor.convert(type)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new CppLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.primitivesTypes)
     }
+    protected writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
+        const realName = this.classMode === 'normal' ? name : `${this.currentClass.at(0)!}::${name}`
+        const newModifiers = this.classMode === 'normal'
+            ? modifiers
+            : (modifiers ?? []).filter(it => it !== MethodModifier.STATIC).concat(MethodModifier.INLINE)
+        super.writeDeclaration(realName, signature, newModifiers, postfix)
+    }
     writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[]): void {
-        const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])
-        const extendsClause = superClasses.length > 0 ? ` : ${superClasses.map(c => `public ${c}`).join(", ")}` : ''
-        this.printer.print(`class ${name}${extendsClause} {`)
-        this.pushIndent()
+        if (this.classMode === 'normal') {
+            const superClasses = (superClass ? [superClass] : []).concat(interfaces ?? [])
+            const extendsClause = superClasses.length > 0 ? ` : ${superClasses.map(c => `public ${c}`).join(", ")}` : ''
+            this.printer.print(`class ${name}${extendsClause} {`)
+            this.pushIndent()
+        }
+        if (this.classMode === 'detached') {
+            this.currentClass.push(name)
+        }
         op(this)
-        this.popIndent()
-        this.printer.print(`};`)
+        if (this.classMode === 'normal') {
+            this.popIndent()
+            this.printer.print(`};`)
+        }
     }
     override writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[]): void {
         throw new Error("Method not implemented.")
@@ -213,6 +240,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         } else {
             super.writeMethodCall(receiver, method, params, nullable)
         }
+    }
+    writeStaticMethodCall(receiver: string, method: string, params: string[], nullable?: boolean): void {
+        this.printer.print(`${receiver}::${method}(${params.join(', ')});`)
     }
 
     writeFieldDeclaration(name: string, type: IDLType, modifiers: FieldModifier[] | undefined, optional: boolean, initExpr?: LanguageExpression): void {
@@ -319,6 +349,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     }
     override makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeString(`${value}.value${index}`)
+    }
+    makeStaticMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
+        return new CPPMethodStaticCallExpression(receiver, method, params, nullable)
     }
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new CLikeLoopStatement(counter, limit, statement)
@@ -464,6 +497,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
             case PrintHint.AsPointer:
                 postfix = '*'
                 break;
+            case PrintHint.AsReference:
+                postfix = '&'
+                break
             case PrintHint.AsConstPointer:
                 constModifier = 'const ';
                 postfix = '*'

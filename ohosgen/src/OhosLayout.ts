@@ -1,11 +1,14 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
-import { currentModule, getModuleFor, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { currentModule, getModuleFor, isExternalType, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "@idlizer/libohos"
 import { getExternalTypePackage } from "@idlizer/core"
 
 function selectInternalsPath(): string {
     return currentModule().name + ".INTERNAL"
+}
+function selectInteropPath(): string {
+    return "@koalaui/interop"
 }
 
 // TBD: code duplication with the ArkoalaLayout
@@ -26,11 +29,19 @@ export class OhosTsLayout implements LayoutManagerStrategy {
         return "#handwritten"
     }
 
+    protected readonly interopObjects = [
+        'SerializerBase', 'DeserializerBase'
+    ]
+
     protected selectInterface(node: idl.IDLEntry): string {
         const pack = getExternalTypePackage(node)
         if (pack) return pack
-        if (isInIdlize(node))
+        if (isInIdlize(node)) {
+            if (this.interopObjects.includes(node.name)) {
+                return selectInteropPath()
+            }
             return selectInternalsPath()
+        }
         if (idl.isHandwritten(node)) {
             return HandwrittenModule(this.library.language)
         }
@@ -53,10 +64,18 @@ export class OhosTsLayout implements LayoutManagerStrategy {
         return this.selectInterface(node)
     }
 
+    protected selectSerializer(node:idl.IDLEntry): string {
+        if (idl.isInterface(node) && isExternalType(node, this.library)) {
+            return selectInternalsPath()
+        }
+        return this.selectInterface(node)
+    }
+
     /////
 
     resolve({ role, node }: LayoutTargetDescription): string {
         switch (role) {
+            case LayoutNodeRole.SERIALIZER: return this.selectSerializer(node)
             case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
             case LayoutNodeRole.PEER: return this.selectPeer(node)
             case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)

@@ -89,11 +89,11 @@ import {
     createSyntheticGlobalScope,
     isGlobalScope,
     createSerializerPrinter,
-    createDeserializerPrinter,
     createDeserializeAndCallPrinter,
     readTemplate,
     peerGeneratorConfiguration,
     libraryCcDeclaration,
+    createCSerializerPrinter,
 } from '@idlizer/libohos'
 import { OhosInstall } from './OhosInstall'
 
@@ -385,12 +385,7 @@ class OHOSNativeVisitor {
         new StructPrinter(this.library).generateStructs(this.hWriter, this.hWriter.printer, toStringsPrinter)
         this.cppWriter.concat(toStringsPrinter)
         const prefix = generatorTypePrefix()
-        createSerializerPrinter(Language.CPP, prefix)(this.library).forEach(result => {
-            this.cppWriter.concat(result.content)
-        })
-        createDeserializerPrinter(Language.CPP, prefix)(this.library).forEach(result => {
-            this.cppWriter.concat(result.content)
-        })
+        this.cppWriter.concat(createCSerializerPrinter(this.library, Language.CPP, prefix))
 
         let writer = new CppLanguageWriter(new IndentedPrinter(), this.library, this.argTypeConvertor, PrimitiveTypesInstance)
         this.writeModifiers(writer)

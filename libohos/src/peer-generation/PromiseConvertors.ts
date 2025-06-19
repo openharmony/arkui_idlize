@@ -17,6 +17,7 @@ import * as idl from '@idlizer/core/idl'
 import { LibraryInterface, LanguageStatement, LanguageWriter, Language,
     ArgConvertor, BaseArgConvertor, CallbackConvertor, RuntimeType, ExpressionAssigner
 } from "@idlizer/core"
+import { NativeModule } from './NativeModule'
 
 class PromiseOutArgConvertor extends BaseArgConvertor {
     callbackConvertor: CallbackConvertor
@@ -33,7 +34,7 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
         if (!callbackEntry)
             throw new Error(`Internal error: no callback for ${type.name} resolved`)
         this.callback = callbackEntry as idl.IDLCallback
-        this.callbackConvertor = new CallbackConvertor(library, param, this.callback)
+        this.callbackConvertor = new CallbackConvertor(library, param, this.callback, NativeModule.Interop)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         return this.callbackConvertor.convertorArg(param, writer)

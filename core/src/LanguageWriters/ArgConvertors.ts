@@ -25,9 +25,12 @@ import {
     PrintHint,
     StringExpression,
     Method,
-    MethodModifier
+    MethodModifier,
+    NamedMethodSignature,
+    ProxyStatement,
+    ExpressionStatement
 } from "./LanguageWriter";
-import { RuntimeType } from "./common";
+import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
 import { getExtractorName, hashCodeFromString, warn } from "../util";
@@ -37,7 +40,11 @@ import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generat
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { qualifiedName } from "../peer-generation/idl/common";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
-import { PeerMethod } from "../peer-generation/PeerMethod";
+import { LayoutNodeRole } from "../peer-generation/LayoutManager";
+
+export function getSerializerName(declaration:idl.IDLEntry) {
+    return `${idl.getQualifiedName(declaration, "namespace.name").split('.').join('_')}_serializer`;
+}
 
 export interface ArgConvertor {
     param: string
@@ -638,10 +645,14 @@ export class InterfaceConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, `write${this.library.getInteropName(this.idlType)}`, [value])
+        const accessor = getSerializerName(this.declaration)
+        printer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
+        printer.writeStaticMethodCall(accessor, 'write', [`${param}Serializer`, value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeMethodCall(`${deserializerName}`, `read${this.library.getInteropName(this.idlType)}`, []))
+        const accessor = getSerializerName(this.declaration)
+        writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
+        return assigneer(writer.makeStaticMethodCall(accessor, 'read', [writer.makeString(deserializerName)]))
     }
     nativeType(): idl.IDLType {
         return this.idlType
@@ -1130,7 +1141,7 @@ export class FunctionConvertor extends BaseArgConvertor { //
 }
 
 export class MaterializedClassConvertor extends BaseArgConvertor {
-    constructor(param: string, public declaration: idl.IDLInterface) {
+    constructor(private library: LibraryInterface, param: string, public declaration: idl.IDLInterface) {
         super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
@@ -1145,15 +1156,15 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(
-            printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_", "namespace.name")}`, [
-                    printer.makeString(value)
-                ])))
+        const accessorRoot = getSerializerName(this.declaration)
+        printer.addFeature(accessorRoot, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
+        printer.writeStaticMethodCall(accessorRoot, 'write', [`${param}Serializer`, value])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        const accessorRoot = getSerializerName(this.declaration)
+        writer.addFeature(accessorRoot, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         const readStatement = writer.makeCast(
-            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_", "namespace.name")}`, []),
+            writer.makeStaticMethodCall(accessorRoot, "read", [writer.makeString(deserializerName)]),
             this.declaration)
         return assigneer(readStatement)
     }
@@ -1181,7 +1192,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
 }
 
 export class ExternalTypeConvertor extends BaseArgConvertor {
-    constructor(param: string, public declaration: idl.IDLInterface) {
+    constructor(private library:PeerLibrary, param: string, public declaration: idl.IDLInterface) {
         super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
         console.log(`ExternalType convertor for type: ${declaration.name}`)
     }
@@ -1196,16 +1207,22 @@ export class ExternalTypeConvertor extends BaseArgConvertor {
         }
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
+        const accessor = getSerializerName(this.declaration)
+        printer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         printer.writeStatement(
             printer.makeStatement(
-                printer.makeMethodCall(`${param}Serializer`, `write${qualifiedName(this.declaration, "_", "namespace.name")}`, [
+                printer.makeStaticMethodCall(accessor, 'write', [
+                    printer.makeString(`${param}Serializer`),
                     printer.makeString(value)
                 ])))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        const accessor = getSerializerName(this.declaration)
+        writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         const readStatement = writer.makeCast(
-            writer.makeMethodCall(`${deserializerName}`, `read${qualifiedName(this.declaration, "_", "namespace.name")}`, []),
-            this.declaration)
+            writer.makeStaticMethodCall(accessor, 'read', [writer.makeString(deserializerName)]),
+            this.declaration
+        )
         return assigneer(readStatement)
     }
     nativeType(): idl.IDLType {
@@ -1264,6 +1281,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         private readonly library: LibraryInterface,
         param: string,
         private readonly decl: idl.IDLCallback,
+        private readonly interopModuleName: NativeModuleType
     ) {
         super(idl.createReferenceType(decl), [RuntimeType.FUNCTION], false, true, param)
     }
@@ -1317,11 +1335,104 @@ export class CallbackConvertor extends BaseArgConvertor {
             )
             return assigneer(writer.makeString(`{${resourceReadExpr.asString()}, ${callReadExpr.asString()}, ${callSyncReadExpr.asString()}}`))
         }
-        let result = writer.makeString(
-            `${deserializerName}.read${this.library.getInteropName(this.transformedDecl)}(${useSyncVersion ? 'true' : ''})`)
-        if (this.isTransformed)
-            result = writer.makeMethodCall(`CallbackTransformer`, `transformTo${this.library.getInteropName(this.decl)}`, [result])
-        return assigneer(result)
+
+        const resourceName = bufferName + "_resource"
+        const callName = bufferName + "_call"
+        const callSyncName = bufferName + '_callSync'
+        const argsSerializer = bufferName + "_args"
+        const continuationValueName = bufferName + "_continuationValue"
+        const continuationCallbackName = bufferName + "_continuationCallback"
+        const statements: LanguageStatement[] = []
+        statements.push(writer.makeAssign(
+            resourceName,
+            idl.createReferenceType("CallbackResource"),
+            writer.makeMethodCall(deserializerName, 'readCallbackResource', []),
+            true,
+        ))
+        statements.push(writer.makeAssign(
+            callName,
+            idl.IDLPointerType,
+            writer.makeMethodCall(deserializerName, `readPointer`, []),
+            true,
+        ))
+        statements.push(writer.makeAssign(
+            callSyncName,
+            idl.IDLPointerType,
+            writer.makeMethodCall(deserializerName, 'readPointer', []),
+            true,
+        ))
+        const callbackSignature = new NamedMethodSignature(
+            this.decl.returnType,
+            this.decl.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
+            this.decl.parameters.map(it => it.name),
+        )
+        const hasContinuation = !idl.isVoidType(this.decl.returnType)
+        let continuation: LanguageStatement[] = []
+        if (hasContinuation) {
+            const continuationReference = this.library.createContinuationCallbackReference(this.decl.returnType)
+            const continuationConvertor = this.library.typeConvertor(continuationCallbackName, continuationReference)
+            const returnType = this.decl.returnType
+            const optionalReturnType = idl.createOptionalType(this.decl.returnType)
+            continuation = [
+                writer.language == Language.CJ ?
+                writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(this.decl.returnType).replace(/[\<\>]/g, '')}Holder(None<${writer.getNodeName(this.decl.returnType)}>)`), true, true) :
+                writer.makeAssign(continuationValueName, optionalReturnType, undefined, true, false),
+                writer.makeAssign(
+                    continuationCallbackName,
+                    continuationReference,
+                    writer.makeLambda(new NamedMethodSignature(idl.IDLVoidType, [returnType], [`value`]), [
+                        writer.language == Language.CJ ?
+                        writer.makeAssign(`${continuationValueName}.value`, undefined, writer.makeString(`value`), false) :
+                        writer.makeAssign(continuationValueName, undefined, writer.makeString(`value`), false)
+                    ]),
+                    true,
+                ),
+                new ProxyStatement(writer => {
+                    continuationConvertor.convertorSerialize(argsSerializer, continuationCallbackName, writer)
+                }),
+            ]
+        }
+        const result = writer.makeLambda(callbackSignature, [
+            writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('SerializerBase'), writer.makeMethodCall('SerializerBase', 'hold', []), true),
+            new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`,
+                [writer.makeString(`${resourceName}.resourceId`)])),
+            new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
+                [writer.makeString(callName)])),
+            new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
+                [writer.makeString(callSyncName)])),
+            ...this.decl.parameters.map(it => {
+                const convertor = this.library.typeConvertor(it.name, it.type!, it.isOptional)
+                return new ProxyStatement((writer: LanguageWriter) => {
+                    convertor.convertorSerialize(argsSerializer, writer.escapeKeyword(it.name), writer)
+                })
+            }),
+            ...continuation,
+            new ExpressionStatement(
+                useSyncVersion
+                    ? writer.makeNativeCall(this.interopModuleName, `_CallCallbackSync`, [
+                        writer.makeString(generateCallbackKindValue(this.decl).toString()),
+                        writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
+                        writer.makeString(`${argsSerializer}Serializer.length()`),
+                    ])
+                    : writer.makeNativeCall(this.interopModuleName, `_CallCallback`, [
+                        writer.makeString(generateCallbackKindValue(this.decl).toString()),
+                        writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
+                        writer.makeString(`${argsSerializer}Serializer.length()`),
+                    ])
+            ),
+            new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
+            writer.makeReturn(hasContinuation
+                ? writer.makeCast(
+                    writer.language == Language.CJ ?
+                    writer.makeString(`${continuationValueName}.value`) :
+                    writer.makeString(continuationValueName),
+                    this.decl.returnType)
+                : undefined),
+        ])
+        return writer.makeBlock([
+            ...statements,
+            assigneer(result)
+        ], false)
     }
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.decl)

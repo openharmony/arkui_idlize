@@ -44,7 +44,6 @@ class NativeModuleRecorderVisitor {
 
     private printImports() {
         const imports = new ImportsCollector()
-        imports.addFeature("Deserializer", "./peers/Deserializer")
         imports.addFeature("unsafeCast", "@koalaui/common")
         imports.addFeatures(["int32", "float32", "asFloat64", "CustomTextEncoder"], "@koalaui/common")
         imports.addFeatures(["encodeToData", "KFloat", "KFloat32ArrayPtr", "KInt", "KInt32ArrayPtr", "KPointer",

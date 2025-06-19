@@ -23,7 +23,7 @@ import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/Call
 import { SourceFile } from "./printers/SourceFile"
 import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
-import { createDeserializerPrinter, createSerializerPrinter } from "./printers/SerializerPrinter";
+import { createCSerializerPrinter, createSerializerPrinter } from "./printers/SerializerPrinter";
 import { collectPeersForFile } from "./PeersCollector";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
@@ -247,12 +247,8 @@ export function accessorStructList(lines: LanguageWriter): LanguageWriter {
 
 export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
 
-    const serializers = library.createLanguageWriter(Language.CPP)
     const writeToString = library.createLanguageWriter(Language.CPP)
-    serializers.print("\n// Serializers\n")
-    createSerializerPrinter(Language.CPP, "")(library).forEach(it => serializers.concat(it.content))
-    serializers.print("\n// Deserializers\n")
-    createDeserializerPrinter(Language.CPP, "")(library).forEach(it => serializers.concat(it.content))
+    const serializers = createCSerializerPrinter(library, Language.CPP, "")
     generateStructs(library, structs, typedefs, writeToString)
 
     return `

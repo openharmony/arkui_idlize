@@ -367,7 +367,8 @@
     "dummy": {
         "ignoreMethods": {
             "CommonMethod": [
-                "onClick"
+                "onClick",
+                "drawModifier"
             ],
             "EventEmulator": [
                 "emitClickEvent"

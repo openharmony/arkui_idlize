@@ -115,7 +115,7 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    private writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
+    protected writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
         let prefix = modifiers
             ?.filter(it => this.supportedModifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")

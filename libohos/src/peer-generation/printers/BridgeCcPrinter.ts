@@ -101,7 +101,7 @@ export class BridgeCcVisitor {
         } else {
             if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
                 this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)
-                this.generatedApi.print(`Serializer _retSerializer {};`)
+                this.generatedApi.print(`SerializerBase _retSerializer {};`)
                 const convertor = this.library.typeConvertor('retValue', method.returnType, false)
                 convertor.convertorSerialize('_ret', 'retValue', this.generatedApi)
                 this.generatedApi.writeStatement(
@@ -147,7 +147,7 @@ export class BridgeCcVisitor {
         method.argAndOutConvertors.forEach(it => {
             if (it.useArray) {
                 if (!deserializerCreated) {
-                    this.generatedApi.print(`Deserializer thisDeserializer(thisArray, thisLength);`)
+                    this.generatedApi.print(`DeserializerBase thisDeserializer(thisArray, thisLength);`)
                     deserializerCreated = true
                 }
                 let result = `${it.param}_value`

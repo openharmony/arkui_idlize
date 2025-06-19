@@ -45,6 +45,7 @@ import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
 import { isExternalType } from './isExternalType'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
+import { NativeModuleType } from '../LanguageWriters/common'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -128,6 +129,7 @@ export class PeerLibrary implements LibraryInterface {
 
     constructor(
         public language: Language,
+        public interopNativeModule: NativeModuleType,
         public readonly useMemoM3: boolean = false,
     ) { }
 
@@ -439,7 +441,7 @@ export class PeerLibrary implements LibraryInterface {
             return new EnumConvertor(param, declaration.parent)
         }
         if (idl.isCallback(declaration)) {
-            return new CallbackConvertor(this, param, declaration)
+            return new CallbackConvertor(this, param, declaration, this.interopNativeModule)
         }
         if (idl.isTypedef(declaration)) {
             if (isCyclicTypeDef(declaration)) {
@@ -450,10 +452,10 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isInterface(declaration)) {
             if (isExternalType(declaration, this)) {
-                return new ExternalTypeConvertor(param, declaration)
+                return new ExternalTypeConvertor(this, param, declaration)
             }
             if (isMaterialized(declaration, this)) {
-                return new MaterializedClassConvertor(param, declaration)
+                return new MaterializedClassConvertor(this, param, declaration)
             }
             if (isBuilderClass(declaration)) {
                 return new ClassConvertor(this, declarationName, param, declaration)

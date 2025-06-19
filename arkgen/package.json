@@ -28,7 +28,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@koalaui/interop": "1.7.1",
+    "@koalaui/interop": "1.7.5",
     "@idlizer/core": "2.1.7+devel",
     "@idlizer/libohos": "2.1.7+devel",
     "@types/node": "^18.0.0",

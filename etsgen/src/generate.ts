@@ -34,6 +34,7 @@ import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { ETSVisitorConfig } from "./config"
+import { NativeModule } from "@idlizer/libohos"
 
 const MaxSyntheticTypeLength = 60
 // must be moved to config!
@@ -192,7 +193,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
             return file
         })
     })
-    return new PeerLibrary(Language.ARKTS)
+    return new PeerLibrary(Language.ARKTS, NativeModule.Interop)
 }
 
 function adjustImports(library: IDLSuperFile[]): IDLSuperFile[] {

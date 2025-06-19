@@ -868,6 +868,20 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
+    void DrawModifierImpl(Ark_NativePointer node,
+                          const Opt_DrawModifier* value)
+    {
+        if (value->value) {
+            auto frameNode = AsNode(node);
+            frameNode->setDrawModifier(value->value);
+        }
+        if (!needGroupedLog(1))
+            return;
+        string out("drawModifier(");
+        WriteToString(&out, value);
+        out.append(") \n");
+        appendGroupedLog(1, out);
+    }
     } // CommonMethodModifier
 
     namespace EventEmulatorAccessor {

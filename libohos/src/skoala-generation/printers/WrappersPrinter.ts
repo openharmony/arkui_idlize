@@ -100,8 +100,8 @@ export class TSWrappersVisitor {
                 if (it.useArray) {
                     if (!serializerCreated) {
                         writer.writeStatement(
-                            writer.makeAssign(`thisSerializer`, createReferenceType('Serializer'),
-                                writer.makeMethodCall('Serializer', 'hold', []), true)
+                            writer.makeAssign(`thisSerializer`, createReferenceType('SerializerBase'),
+                                writer.makeMethodCall('SerializerBase', 'hold', []), true)
                         )
                         serializerCreated = true
                     }

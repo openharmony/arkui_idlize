@@ -2,6 +2,7 @@ import * as idl from "./idl"
 import { Language } from "./Language";
 import { IdlNameConvertor } from "./LanguageWriters";
 import { ArgConvertor } from "./LanguageWriters/ArgConvertors";
+import { LayoutManager } from "./peer-generation/LayoutManager";
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver";
 
 // todo: TypeProcessor? LibraryBase?
@@ -14,6 +15,7 @@ export interface LibraryInterface extends ReferenceResolver {
     createTypeNameConvertor(language: Language): IdlNameConvertor
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType
     getCurrentContext(): string | undefined
+    layout: LayoutManager
     /**
      * todo: is it really needed?
      */

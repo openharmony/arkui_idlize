@@ -141,6 +141,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     const realizationWriter = library.createLanguageWriter()
     realizationWriter.writeClass(realizationHolder.name, w => {
         peerMethodWriter.getOutput().forEach(it => w.print(it))
+        peerMethodWriter.features.forEach(item => realizationWriter.addFeature(item[0], item[1]))
     })
     fillPeerImports(peerImports, library)
     const realization: PrinterResult = {
@@ -170,6 +171,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
         'runtimeType',
         'RuntimeType',
         'SerializerBase',
+        'DeserializerBase',
         'registerCallback',
         'wrapCallback',
         'KPointer',
@@ -177,17 +179,15 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     ], '@koalaui/interop')
     collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
     collector.addFeatures(['unsafeCast'], '@koalaui/common')
-    collectDeclItself(library, idl.createReferenceType('Serializer'), collector)
     collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
     if (library.language === idl.Language.ARKTS) {
-        collectDeclItself(library, idl.createReferenceType('Deserializer'), collector)
+        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         importTypeChecker(library, collector)
     }
     if (library.language === idl.Language.TS) {
         collector.addFeature('isInstanceOf', '@koalaui/interop')
         if (library.name === 'arkoala')
             collector.addFeatures(['isResource', 'isPadding'], '../utils')
-        collectDeclItself(library, idl.createReferenceType('Deserializer'), collector)
     }
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     if (library.name === 'arkoala') {

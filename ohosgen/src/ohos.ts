@@ -41,7 +41,6 @@ import {
     printCJArkUIGeneratedNativeFunctions,
     PeerGeneratorConfiguration,
     createSerializerPrinter,
-    createDeserializerPrinter,
     createCallbackKindPrinter,
     PrinterResult,
     ImportsCollector,
@@ -61,7 +60,7 @@ function printCallbackChecker(peerLibrary: PeerLibrary): PrinterResult[] {
     content.writeLines(readLangTemplate('CallbacksChecker', peerLibrary.language))
     const imports = new ImportsCollector()
     imports.addFeatures(["InteropNativeModule", "ResourceHolder", "KBuffer"], "@koalaui/interop")
-    collectDeclItself(peerLibrary, createReferenceType("Deserializer"), imports)
+    collectDeclItself(peerLibrary, createReferenceType("DeserializerBase"), imports)
     collectDeclItself(peerLibrary, createReferenceType("deserializeAndCallCallback"), imports)
     return [{
         over: {
@@ -101,7 +100,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             printGlobal,
             printDataClasses,
             createSerializerPrinter(peerLibrary.language, ""),
-            createDeserializerPrinter(peerLibrary.language, ""),
             printCallbackChecker,
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             createGeneratedNativeModulePrinter(NativeModule.Generated, w => {

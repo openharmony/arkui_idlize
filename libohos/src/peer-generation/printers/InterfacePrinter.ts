@@ -368,10 +368,22 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     protected printProperty(prop: idl.IDLProperty): stringOrNone[] {
         const staticMod = prop.isStatic ? "static " : ""
         const readonlyMod = prop.isReadonly ? "readonly " : ""
-        return [
+        const extraMethod = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.ExtraMethod)
+        let result = [
             ...this.printExtendedAttributes(prop),
-            indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1)
+            indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1),
         ]
+        if (extraMethod && extraMethod.length > 0) {
+            if (idl.isReferenceType(prop.type)) {
+                const decl = this.peerLibrary.resolveTypeReference(prop.type) ?? throwException("Extra method can only be in")
+                if (idl.isCallback(decl)) {
+                    const args = decl.parameters.map(param => `${param.name}: ${this.convertType(param.type)}`).join(', ')
+                    const method = indentedBy(`${extraMethod}(${args}): ${this.convertType(decl.returnType)}`, 1)
+                    result = result.concat(method)
+                }
+            }
+        }
+        return result
     }
 
     protected printConstructor(method: idl.IDLConstructor): stringOrNone[] {

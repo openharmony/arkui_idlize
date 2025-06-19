@@ -96,7 +96,7 @@ if (options.idl2peer) {
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
 
-    const idlLibrary = new PeerLibrary(language)
+    const idlLibrary = new PeerLibrary(language, NativeModule.Interop)
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())

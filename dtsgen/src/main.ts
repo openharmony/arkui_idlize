@@ -40,7 +40,7 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, peerGeneratorConfiguration, IDLVisitor } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, peerGeneratorConfiguration, IDLVisitor, NativeModule } from "@idlizer/libohos"
 import { runPreprocessor } from "./preprocessor"
 import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
 
@@ -96,7 +96,7 @@ function main() {
     const dtsAuxInputFiles = auxInputFiles
 
     if (options.lint) {
-        const resolver = new PeerLibrary(Language.TS)
+        const resolver = new PeerLibrary(Language.TS, NativeModule.Interop)
         const files = dtsInputFiles.map((filePath) => {
             const result = toIDLFile(filePath)
             resolver.files.push(result[0])
@@ -139,7 +139,7 @@ function main() {
         const { inputDirs, inputFiles } = formatInputPaths(options)
         validatePaths(inputDirs, 'dir')
         validatePaths(inputFiles, 'file')
-        const idlLibrary = new PeerLibrary(Language.TS)
+        const idlLibrary = new PeerLibrary(Language.TS, NativeModule.Interop)
         generate(
             baseDirs,
             [...inputDirs, ...auxInputDirs],
