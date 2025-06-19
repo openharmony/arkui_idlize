@@ -1,23 +1,21 @@
 build idlize-arktscgen:
   stage: build
-  needs:
-  - npm install
   tags:
     - idlize-ci
     - koala-ci
   script:
+    - !reference [.npm, script]
     - npm run compile --prefix arktscgen
 
 test arktscgen:
   allow_failure: true
   stage: test
-  needs:
-  - npm install
-  - panda sdk install
   tags:
     - idlize-ci
     - koala-ci
   script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - npm run all --prefix arktscgen
 
 pack idlize-arktscgen:
@@ -32,13 +30,13 @@ pre-publish test arktscgen:
   allow_failure: true
   stage: pre-publish
   needs:
-  - npm install
   - build idlize-arktscgen
-  - panda sdk install
   tags:
     - idlize-ci
     - koala-ci
   script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - npm run test:pack --prefix arktscgen
 
 publish idlize-arktscgen:

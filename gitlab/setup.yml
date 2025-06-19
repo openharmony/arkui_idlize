@@ -1,53 +1,23 @@
 include:
     - gitlab/npm.yml
 
-npm install:
-    stage: build
-    tags:
-    - idlize-ci
-    - koala-ci
+.panda:
     script:
-    - !reference [.npm-config-script]
-    - npm i --prefix external --no-audit --no-fund
-    - npm i --no-audit --no-fund
-    cache: !reference [.npm-cache]
-    artifacts:
-        paths:
-        - "**/node_modules"
-        expire_in: 1 day
-
-panda sdk install:
-    stage: build
-    tags:
-    - idlize-ci
-    - koala-ci
-    needs:
-    - npm install
-    script:
-    - !reference [.npm-config-script]
     - PANDA_SDK_VERSION=1.5.0-dev.32627 npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
-    cache: !reference [.npm-cache]
-    artifacts:
-        paths:
-        - ./external/incremental/tools/panda/node_modules
-        expire_in: 1 day
 
 libarkts regenerate:
     stage: build
     tags:
     - idlize-ci
     - koala-ci
-    needs:
-    - npm install
-    - panda sdk install
     script:
-    - !reference [.npm-config-script]
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - cd external/ui2abc/libarkts
     - npm run regenerate
     - npm run compile
     - npm run compile:plugins
     - cd -
-    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - external/ui2abc/libarkts/lib
@@ -59,12 +29,10 @@ download sdk:
     tags:
     - idlize-ci
     - koala-ci
-    needs:
-    - npm install
     script:
-    - !reference [.npm-config-script]
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - npm run download:sdk
-    cache: !reference [.npm-cache]
     artifacts:
         paths:
         - sdk-patched

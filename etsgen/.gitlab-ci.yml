@@ -4,10 +4,10 @@ etsgen golden:
     - idlize-ci
     - koala-ci
   needs:
-  - npm install
-  - panda sdk install
   - libarkts regenerate
   before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/etsgen
   script:
     - npm test

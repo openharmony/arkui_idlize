@@ -1,15 +1,13 @@
-.npm-cache:
-    paths:
-    - .npm/
-
-.npm-config-script:
-    - npm config set cache $(pwd)/.npm
-    - npm config set @ohos:registry https://repo.harmonyos.com/npm/
-    - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-    - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
+.npm:
+  script:
+  - npm config set cache $(pwd)/.npm
+  - npm config set @ohos:registry https://repo.harmonyos.com/npm/
+  - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+  - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+  - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+  - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
+  - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
+  - echo ". external/incremental external/interop external/arkoala external/arkoala-arkts external/tools external/ui2abc" | xargs -n 1 -- npm i --prefer-offline --no-audit --no-fund -C
 
 .npm-pack:
   stage: pre-deploy
@@ -18,7 +16,7 @@
   - idlize-ci
   - koala-ci
   before_script:
-    - !reference [.npm-config-script]
+    - !reference [.npm, script]
     - mkdir .packages
     - cd $PACKAGE_DIR
   script:
@@ -41,7 +39,7 @@
   - if: $CI_COMMIT_BRANCH == "master"
     when: on_success
   before_script:
-    - !reference [.npm-config-script]
+    - !reference [.npm, script]
     - cd $PACKAGE_DIR
   script:
     - sed -i "s/+devel/-dev.$CI_PIPELINE_IID/" package.json

@@ -3,9 +3,8 @@ build idlize-dtsgen:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR
   script:
     - npm run compile --prefix dtsgen

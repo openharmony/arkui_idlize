@@ -41,11 +41,11 @@ idlize sanity:
     - idlize-ci
     - koala-ci
   needs:
-  - npm install
-  - panda sdk install
   - download sdk
   - libarkts regenerate
   script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - npm run sanity
   after_script:
     - !reference [.notify-telegram, script]
@@ -56,9 +56,9 @@ pg java:run:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64 npm run run:java
@@ -68,10 +68,9 @@ run arkts subset:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
-  - npm install
-  - panda sdk install
   before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - npm run run:panda:subset
@@ -83,11 +82,11 @@ compile arkts peers:
     - idlize-ci
     - koala-ci
   needs:
-  - npm install
-  - panda sdk install
   - download sdk
   - libarkts regenerate
   before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - npm run make:compile:arkts:peers
@@ -98,9 +97,8 @@ build arkoala-ts:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - npm run compile
@@ -150,9 +148,8 @@ build idlize-arkgen:
   tags:
   - idlize-ci
   - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - npm run compile
@@ -169,9 +166,8 @@ build idlize-core:
   tags:
   - idlize-ci
   - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/core
   script:
     - npm run compile
@@ -186,9 +182,9 @@ build idlize-linter:
   - idlize-ci
   - koala-ci
   needs:
-  - npm install
   - build idlize-core
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/linter
   script:
     - npm run compile
@@ -255,11 +251,12 @@ check index-full:
       - idlize-ci
       - koala-ci
     needs:
-    - npm install
     - download sdk
     - libarkts regenerate
     before_script:
-      - cd $CI_PROJECT_DIR/arkgen
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+    - cd $CI_PROJECT_DIR/arkgen
     script:
         - npm run check:peers:ets
         - npm run check:index-full:ts
@@ -271,9 +268,8 @@ subset CAPI golden:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
-  - npm install
   before_script:
+    - !reference [.npm, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
     - npm run test:subset-api

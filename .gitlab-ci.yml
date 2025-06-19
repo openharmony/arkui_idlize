@@ -17,6 +17,13 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   PANDA_SDK_VERSION: "1.5.0-dev.31052"
 
+default:
+  cache:
+  - key: default
+    policy: pull-push
+    paths:
+    - .npm/
+
 include:
     - gitlab/setup.yml
     - gitlab/npm.yml
