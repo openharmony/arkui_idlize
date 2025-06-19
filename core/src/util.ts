@@ -649,16 +649,10 @@ export function hashCodeFromString(value: string): number {
 }
 
 export function forceWriteFile(filePath: string, content: string): void {
-    path.dirname(filePath).split(path.sep).reduce(
-        (last, dir) => {
-            const dirPath = path.join(last, dir)
-            if (!fs.existsSync(dirPath)) {
-                fs.mkdirSync(dirPath)
-            }
-            return dirPath
-        },
-        "."
-    )
+    const dirPath = path.dirname(filePath);
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+    }
     fs.writeFileSync(filePath, content)
 }
 
