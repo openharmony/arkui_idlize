@@ -252,6 +252,8 @@ export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, 
     generateStructs(library, structs, typedefs, writeToString)
 
     return `
+${cStyleCopyright}
+
 ${writeToString.getOutput().join("\n")}
 
 ${serializers.getOutput().join("\n")}
@@ -358,6 +360,8 @@ export function makeCallbacksKinds(library: PeerLibrary, language: Language): st
     const enumContent = writer.getOutput().join("\n")
     if (language === Language.CPP)
         return `
+${cStyleCopyright}
+
 #ifndef _CALLBACK_KIND_H
 #define _CALLBACK_KIND_H
 
