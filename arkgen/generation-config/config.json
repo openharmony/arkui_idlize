@@ -266,10 +266,6 @@
             "testTupleOptional",
             "testTupleUnion"
         ],
-        "ignoreTypeParameters": [
-            "ContentModifier",
-            "CommonConfiguration"
-        ],
         "invalidAttributes": [
             "ScrollableCommonMethod"
         ],
