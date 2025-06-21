@@ -648,8 +648,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             }
         }
         if (arkts.isETSFunctionType(declaration.typeAnnotation)) {
+            const typeParams = this.extractTypeParameters(declaration.typeParams)
             this.contextual.suggest(name, true, () => {
-                this.entries.push(this.serializeFunctionType(declaration.typeAnnotation as arkts.ETSFunctionType)[0])
+                this.entries.push(this.serializeFunctionType(declaration.typeAnnotation as arkts.ETSFunctionType, typeParams)[0])
             })
         } else if (arkts.isETSTuple(declaration.typeAnnotation)) {
             this.contextual.suggest(name, true, () => {
@@ -1215,7 +1216,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
     }
 
-    serializeFunctionType(type: arkts.ETSFunctionType): [idl.IDLCallback, string[]] {
+    serializeFunctionType(type: arkts.ETSFunctionType, parentTypeParams?: ExtractTypeParameterInfo): [idl.IDLCallback, string[]] {
         const [[parameters, returnType], typeParams] = this.useTypeParametersTrap(() => {
             const parameters = type.params.map(it => {
                 let param = it as arkts.ETSParameterExpression
@@ -1224,7 +1225,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             const returnType = this.serializeType(type.returnType)
             return [parameters, returnType] as const
         })
-        const orderedTypeParameters = Array.from(typeParams)
+        const orderedTypeParameters = (parentTypeParams?.parameters ?? []).concat(Array.from(typeParams))
         const result = idl.createCallback(
             this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC))),
             parameters,
