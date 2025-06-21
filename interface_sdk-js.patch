@@ -750,6 +750,28 @@ index eac19b4aa..b30176bd1 100644
  /**
   * Get Callback from @ohos.base.
   *
+diff --git a/api/arkui/component/customComponent.d.ets b/api/arkui/component/customComponent.d.ets
+index 041ea7179..bc347a1a9 100755
+--- a/api/arkui/component/customComponent.d.ets
++++ b/api/arkui/component/customComponent.d.ets
+@@ -181,7 +181,7 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
+@@ -223,7 +223,7 @@ export declare abstract class CustomComponentV2<T extends CustomComponentV2<T, T
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
 diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
 index 6ebfe1cd8..e2f4ba390 100644
 --- a/api/global/resource.d.ts
