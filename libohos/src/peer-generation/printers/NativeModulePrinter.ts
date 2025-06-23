@@ -309,6 +309,7 @@ function createPredefinedNativeModuleVisitor(library: PeerLibrary, language: Lan
             return new TSNativeModulePredefinedVisitor(library, language, entries)
         case Language.CJ:
             return new CJNativeModulePredefinedVisitor(library, language, entries)
+        case Language.KOTLIN:
         case Language.ARKTS:
         case Language.JAVA:
             return new NativeModulePredefinedVisitor(library, language, entries)
@@ -323,6 +324,7 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
             return new TSNativeModuleArkUIGeneratedVisitor(library, language)
         case Language.CJ:
             return new CJNativeModuleArkUIGeneratedVisitor(library, language)
+        case Language.KOTLIN:
         case Language.ARKTS:
         case Language.JAVA:
             return new NativeModuleArkUIGeneratedVisitor(library, language)
@@ -459,9 +461,11 @@ export function createGeneratedNativeModulePrinter(module: NativeModuleType, mor
             })
         }
         content.writeClass(module.name, writer => {
-            printNativeModuleRegistration(library.language, module, content)
-            more?.(writer)
-            writer.concat(visitor.nativeModule)
+            content.makeStaticBlock(() => {
+                printNativeModuleRegistration(library.language, module, content)
+                more?.(writer)
+                writer.concat(visitor.nativeModule)
+            })
         })
         return [{
             over: {

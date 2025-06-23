@@ -299,12 +299,14 @@ class SerializerPrinter {
             writer.changeModeTo('detached')
         }
         writer.writeClass(className, writer => {
-            this.forwardDeclarations.writeClass(className, fdWriter => {
-                fdWriter.print('public:')
-                if (idl.isInterface(target)) {
-                    this.generateInterfaceSerializer(writer, fdWriter, imports, target)
-                    this.generateInterfaceDeserializer(writer, fdWriter, imports, target)
-                }
+            writer.makeStaticBlock(() => {
+                this.forwardDeclarations.writeClass(className, fdWriter => {
+                    fdWriter.print('public:')
+                    if (idl.isInterface(target)) {
+                        this.generateInterfaceSerializer(writer, fdWriter, imports, target)
+                        this.generateInterfaceDeserializer(writer, fdWriter, imports, target)
+                    }
+                })
             })
         })
 

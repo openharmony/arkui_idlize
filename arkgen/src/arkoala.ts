@@ -199,11 +199,16 @@ export function generateArkoalaFromIdl(config: {
         peerLibrary,
         peerLibrary.language == Language.KOTLIN ?
         [
-            // createMaterializedPrinter(config.dumpSerialized),
-            // createPeersPrinter(config.dumpSerialized),
+            createMaterializedPrinter(config.dumpSerialized),
+            createPeersPrinter(config.dumpSerialized),
             createInterfacePrinter(false),
             // printComponents,
-            // createSerializerPrinter(peerLibrary.language, ""),
+            // printGlobal,
+            // printBuilderClasses,
+            createSerializerPrinter(peerLibrary.language, ""),
+            ...spreadIfNotLang([Language.ARKTS],
+                createGeneratedNativeModulePrinter(NativeModule.Generated),
+            )
         ] :
         [
             createMaterializedPrinter(config.dumpSerialized),
@@ -387,6 +392,17 @@ export function generateArkoalaFromIdl(config: {
                 onlyIntegrated: config.onlyIntegrated,
                 integrated: true
             }
+        )
+    }
+
+    if (peerLibrary.language == Language.KOTLIN) {
+        writeIntegratedFile(
+            path.join(arkoala.managedDir, NativeModule.ArkUI.name + peerLibrary.language.extension),
+            printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).content.getOutput().join('\n')
+        )
+        writeIntegratedFile(
+            path.join(arkoala.managedDir, NativeModule.Test.name + peerLibrary.language.extension),
+            printPredefinedNativeModule(peerLibrary, NativeModule.Test).content.getOutput().join('\n')
         )
     }
 

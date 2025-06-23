@@ -366,6 +366,7 @@ export enum MethodModifier {
     THROWS,
     FREE, // not a member of interface/class
     FORCE_CONTEXT, // If method implementation will need VM context, synthetic
+    OVERRIDE
 }
 
 export enum ClassModifier {

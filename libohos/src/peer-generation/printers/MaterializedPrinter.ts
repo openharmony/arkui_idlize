@@ -172,10 +172,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const config = peerGeneratorConfiguration()
 
         const implementationClassName = clazz.getImplementationName()
-        const pointerType = IDLPointerType
-        this.library.setCurrentContext(`${clazz.className}.constructor`)
-        writePeerMethod(this.library, this.printer, ctor, true, this.dumpSerialized, "", "", pointerType)
-        this.library.setCurrentContext(undefined)
 
         const ctorSig = ctor.method.signature as NamedMethodSignature
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
@@ -253,6 +249,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
                 this.printer.language == Language.JAVA ?
                     "this.peer.ptr" :
+                this.printer.language == Language.KOTLIN ?
+                    "this.peer!!.ptr" :
                     "this.peer!.ptr", returnType)
         this.library.setCurrentContext(undefined)
     }
@@ -373,39 +371,42 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const implementationClassName = clazz.getImplementationName()
 
-        if (printer.language !== Language.KOTLIN) {
-            printer.writeClass(this.mangle(implementationClassName), writer => {
-                if (!superClassName && !clazz.isStaticMaterialized) {
-                    writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
-                    // write getPeer() method
-                    const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
-                    writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC]), writer => {
-                        writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
-                    })
+        printer.writeClass(this.mangle(implementationClassName), writer => {
+            if (!superClassName && !clazz.isStaticMaterialized) {
+                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
+                // write getPeer() method
+                const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
+                writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC, MethodModifier.OVERRIDE]), writer => {
+                    writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
+                })
+            }
+
+            this.printFields(clazz)
+
+            this.printBaseCtor(clazz, collapseConstructors, superClassName)
+            if (!collapseConstructors) {
+                for (const ctor of clazz.ctors) {
+                    this.printCtor(clazz, ctor)
                 }
-
-                this.printFields(clazz)
-
-                this.printBaseCtor(clazz, collapseConstructors, superClassName)
+            }
+            writer.makeStaticBlock(() => {
                 if (!collapseConstructors) {
                     for (const ctor of clazz.ctors) {
-                        this.printCtor(clazz, ctor)
+                        const pointerType = IDLPointerType
+                        this.library.setCurrentContext(`${clazz.className}.constructor`)
+                        writePeerMethod(this.library, this.printer, ctor, true, this.dumpSerialized, "", "", pointerType)
+                        this.library.setCurrentContext(undefined)
                     }
                 }
-
                 if (clazz.finalizer) printPeerFinalizer(clazz, writer)
-
-                this.printOverloads(clazz)
-                this.printTaggedMethods(clazz)
-                this.printMethods(clazz)
-
                 if (clazz.isInterface) {
                     writeFromPtrMethod(clazz, writer, collapseConstructors, classTypeParameters)
                 }
-
+            })
+            this.printOverloads(clazz)
+            this.printTaggedMethods(clazz)
+            this.printMethods(clazz)
             }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
-    
-        }
     }
 }
 

@@ -1568,6 +1568,9 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     convertEnum(node: idl.IDLEnum): void {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))
     }
+    protected printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
+    }
     convertTypedef(node: idl.IDLTypedef) {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
@@ -1581,7 +1584,8 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
                 return
         }
         else {
-            this.writer.print(`public typealias ${node.name} = ${type}`)
+            const typeParams = this.printTypeParameters(node.typeParameters)
+            this.writer.print(`public typealias ${node.name}${typeParams} = ${type}`)
         }
     }
     convertImport(node: idl.IDLImport): void {
@@ -1591,6 +1595,8 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         throw new Error("Internal error: namespaces are not allowed on the Kotlin layer")
     }
     convertInterface(node: idl.IDLInterface): void {
+        if (['RuntimeType', 'CallbackResource', 'Materialized', 'VMContext'].includes(node.name))
+            return
         if (this.seenInterfaceNames.has(node.name)) {
             console.log(`interface name: '${node.name}' already exists`)
             return;
@@ -1613,7 +1619,8 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
     private makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
         const members = type.types.map(it => it)
-        writer.writeClass(type.name, () => {
+        let mangledName = removePoints(idl.getQualifiedName(type, 'namespace.name'))
+        writer.writeClass(mangledName, () => {
             const intType = idl.IDLI32Type
             const selector = 'selector'
             writer.writeFieldDeclaration(selector, intType, [FieldModifier.PRIVATE], false)
@@ -1663,10 +1670,10 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
             }
 
             const signature = new MethodSignature(idl.IDLVoidType, members)
-            writer.writeConstructorImplementation(type.name, signature, () => {
+            writer.writeConstructorImplementation('constructor', signature, () => {
                 for (let i = 0; i < memberNames.length; i++) {
                     writer.writeStatement(
-                        writer.makeAssign(memberNames[i], members[i], writer.makeString(signature.argName(i)), false)
+                        writer.makeAssign(`this.${memberNames[i]}`, members[i], writer.makeString(signature.argName(i)), false)
                     )
                 }
             })
@@ -1678,7 +1685,8 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
-        writer.writeInterface(`${type.name}`, (writer) => {
+        let mangledName = removePoints(idl.getQualifiedName(type, 'namespace.name'))
+        writer.writeInterface(mangledName, (writer) => {
             for (const p of type.properties) {
                 const modifiers: FieldModifier[] = []
                 if (p.isReadonly) modifiers.push(FieldModifier.READONLY)

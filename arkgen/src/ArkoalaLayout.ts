@@ -23,6 +23,7 @@ export function HandwrittenModule(language: Language) {
     switch (language) {
         case Language.TS: return "../handwritten"
         case Language.ARKTS: return "../handwritten"
+        case Language.KOTLIN: return "../handwritten"
         default: throw new Error("Not implemented")
     }
 }

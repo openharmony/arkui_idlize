@@ -45,6 +45,7 @@ import { RuntimeType } from "../common";
 import { isDefined, rightmostIndexOf, throwException } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSReturnStatement } from './TsLanguageWriter';
+import { removePoints } from '../convertors/CJConvertors';
 
 export class KotlinEnumEntityStatement implements LanguageStatement {
     constructor(
@@ -52,7 +53,8 @@ export class KotlinEnumEntityStatement implements LanguageStatement {
         private readonly options: { isExport: boolean, isDeclare: boolean },
     ) {}
     write(writer: LanguageWriter): void {
-        writer.print(`${this.options.isExport ? "public " : ""}enum class ${this.enumEntity.name}(val value: Int) {`)
+        let mangledName = removePoints(idl.getQualifiedName(this.enumEntity, 'namespace.name'))
+        writer.print(`${this.options.isExport ? "public " : ""}enum class ${mangledName}(val value: Int) {`)
         writer.pushIndent()
         this.enumEntity.elements.forEach((member, index) => {
             const initValue = member.initializer != undefined
@@ -74,6 +76,70 @@ export class KotlinEnumEntityStatement implements LanguageStatement {
             return `"${value}"`
         else
             return `${value}`
+    }
+}
+export class KotlinEnumWithGetter implements LanguageStatement {
+    constructor(private readonly enumEntity: idl.IDLEnum, private readonly isExport: boolean) {}
+
+    write(writer: LanguageWriter) {
+        const initializers = this.enumEntity.elements.map(it => {
+            return {name: it.name, id: it.initializer}
+        })
+
+        const isStringEnum = initializers.every(it => typeof it.id == 'string')
+
+        let memberValue = 0
+        const members: {
+            name: string,
+            stringId: string | undefined,
+            numberId: number,
+        }[] = []
+        for (const initializer of initializers) {
+            if (typeof initializer.id == 'string') {
+                members.push({name: initializer.name, stringId: initializer.id, numberId: memberValue})
+            }
+            else if (typeof initializer.id == 'number') {
+                memberValue = initializer.id
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            else {
+                members.push({name: initializer.name, stringId: undefined, numberId: memberValue})
+            }
+            memberValue += 1
+        }
+
+        let mangledName = removePoints(idl.getQualifiedName(this.enumEntity, 'namespace.name'))
+        writer.writeClass(mangledName, () => {
+            const enumType = idl.createReferenceType(this.enumEntity)
+            writer.makeStaticBlock(() => {
+                members.forEach(it => {
+                    writer.writeFieldDeclaration(it.name, idl.IDLAnyType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
+                        writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
+                    )
+                })
+            })
+
+            const value = 'value'
+            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC], true, writer.makeNull())
+
+            const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
+            writer.writeConstructorImplementation('constructor', signature, () => {
+                writer.writeStatement(
+                    writer.makeAssign(`this.${value}`, undefined, writer.makeString(signature.argName(0)), false)
+                )
+            })
+            if (isStringEnum) {
+                const stringValue = 'stringValue'
+                writer.writeFieldDeclaration(stringValue, idl.IDLStringType, [FieldModifier.PUBLIC], true, writer.makeNull())
+    
+                const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLStringType])
+                writer.writeConstructorImplementation('constructor', signature, () => {
+                    writer.writeStatement(
+                        writer.makeAssign(`this.${stringValue}`, undefined, writer.makeString(signature.argName(0)), false)
+                    )
+                })
+            }
+        })
     }
 }
 
@@ -151,6 +217,23 @@ class KotlinUnwrapOptionalExpression implements LanguageExpression {
     constructor(public value: LanguageExpression) {}
     asString(): string {
         return `requireNotNull(${this.value.asString()})`
+    }
+}
+
+class KotlinLambdaExpression extends LambdaExpression {
+    constructor(
+        protected writer: LanguageWriter,
+        signature: MethodSignature,
+        resolver: ReferenceResolver,
+        body?: LanguageStatement[]) {
+        super(writer, signature, resolver, body)
+    }
+    protected get statementHasSemicolon(): boolean {
+        return false
+    }
+    asString(): string {
+        const params = this.signature.args.map((it, i) => `${this.writer.escapeKeyword(this.signature.argName(i))}: ${this.writer.getNodeName(it)}`)
+        return `{${params.join(", ")} -> ${this.bodyAsString()} }`
     }
 }
 
@@ -233,7 +316,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
-        this.printer.print(`${prefix}${name == 'constructor' ? name : `fun ${name}`}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}${signature.isArgOptional(index) ? "?" : ``}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
+        this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
@@ -241,7 +324,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.printer.print(`${prefix ? prefix.concat(" ") : ""}${modifiers?.includes(FieldModifier.READONLY) ? 'val' : 'var'} ${name}: ${this.getNodeName(idl.maybeOptional(type, optional))}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
-        throw new Error("Not implemented")
+        let name = method.name
+        let signature = method.signature
+        this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {})
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
@@ -254,7 +339,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""
             return `${signature.argName(index)}: ${this.getNodeName(it)}${maybeDefault}`
         }).join(", ");
-        this.print(`${className}(${argList})${superInvocation} {`)
+        this.print(`constructor(${argList})${superInvocation} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -268,7 +353,46 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }): void {
-        this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType))
+        let containerName = propName.concat("_container")
+        let truePropName = this.escapeKeyword(propName)
+        if (getter) {
+            if(!getter!.op) {
+                this.print(`private var ${containerName}: ${this.getNodeName(propType)}`)
+            }
+        }
+        let isStatic = modifiers.includes(FieldModifier.STATIC)
+        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        this.print(`public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}`)
+        if (getter) {
+            this.pushIndent()
+            this.writeGetterImplementation(getter.method, getter.op)
+            if (isMutable) {
+                if (setter) {
+                    this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => {this.print(`${containerName} = ${truePropName}`)})
+                } else {
+                    this.print(`set(${truePropName}) {`)
+                    this.pushIndent()
+                    this.print(`${containerName} = ${truePropName}`)
+                    this.popIndent()
+                    this.print(`}`)
+                }
+            }
+            this.popIndent()
+        }
+    }
+    writeGetterImplementation(method: Method, op?: (writer: this) => void): void {
+        this.print(`get() {`)
+        this.pushIndent()
+        op ? op!(this) : this.print(`return ${(method.signature as NamedMethodSignature).argsNames!.map(arg => `${arg}_container`).join(', ')}`)
+        this.popIndent()
+        this.print('}')
+    }
+    writeSetterImplementation(method: Method, op: (writer: this) => void): void {
+        this.print(`set(${(method.signature as NamedMethodSignature).argsNames!.map(arg => this.escapeKeyword(arg)).join(', ')}) {`)
+        this.pushIndent()
+        op(this)
+        this.popIndent()
+        this.print('}')
     }
     writeTypeDeclaration(decl: idl.IDLTypedef): void {
         throw new Error("Not implemented")
@@ -283,7 +407,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return new KotlinAssignStatement(variableName, type, expr, isDeclared, isConst)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        throw new Error("Not implemented")
+        return new KotlinLambdaExpression(this, signature, this.resolver, body)
     }
     makeThrowError(message: string): LanguageStatement {
         return new KotlinThrowErrorStatement(message)
@@ -319,7 +443,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return this.makeNull()
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
-        return this.makeString(`RuntimeType.${RuntimeType[rt]}.ordinal`)
+        return this.makeString(`RuntimeType.${RuntimeType[rt]}.value`)
     }
     makeTupleAlloc(option: string): LanguageStatement {
         throw new Error("Not implemented")
@@ -351,17 +475,33 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeMethodCall(value, `getValue${index}`, [])
     }
+    makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
+        return this.makeString(`${value}!!`)
+    }
+    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string,
+        _convertorIndex?: number,
+        _runtimeTypeIndex?: number): LanguageExpression {
+        return this.makeString(`RuntimeType.${type.toUpperCase()}.value == ${valueType}`)
+    }
+    makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName: string): LanguageExpression {
+        if (varName) {
+            return this.makeDefinedCheck(varName)
+        } else {
+            const op = equals ? "==" : "!="
+            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}.toInt()`)])
+        }
+    }
     getTagType(): idl.IDLType {
-        throw new Error("Not implemented")
+        return idl.createReferenceType("Tag")
     }
     getRuntimeType(): idl.IDLType {
-        throw new Error("Not implemented")
+        return idl.IDLNumberType
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         throw new Error("Not implemented")
     }
     get supportedModifiers(): MethodModifier[] {
-        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE]
+        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.OVERRIDE]
     }
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY]
@@ -373,7 +513,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return this.makeString(`${value.asString()}.value`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
-        return new KotlinEnumEntityStatement(enumEntity, { isExport: options.isExport, isDeclare: !!options.isDeclare})
+        return new KotlinEnumWithGetter(enumEntity, options.isExport)
     }
     castToBoolean(value: string): string {
         return `if (${value}) { 1 } else { 0 }`

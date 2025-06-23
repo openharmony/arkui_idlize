@@ -970,13 +970,13 @@ export class OptionConvertor extends BaseArgConvertor {
         const valueType = `${value}_type`.replaceAll('.', '_')
         const serializedType = (printer.language == Language.JAVA ? undefined : idl.IDLI32Type)
         printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
-        if (printer.language != Language.CJ) {
+        if (printer.language != Language.CJ && printer.language != Language.KOTLIN) {
             printer.runtimeType(this, valueType, value)
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(valueType, 8)])
         }
         printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED, value).asString()}) {`)
         printer.pushIndent()
-        if (printer.language == Language.CJ) {
+        if (printer.language == Language.CJ || printer.language == Language.KOTLIN) {
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", ["RuntimeType.OBJECT.ordinal"]) // everything is object, except None<T>
         }
         const valueValue = `${value}_value`.replaceAll('.', '_')
@@ -984,7 +984,7 @@ export class OptionConvertor extends BaseArgConvertor {
         this.typeConvertor.convertorSerialize(param, this.typeConvertor.getObjectAccessor(printer.language, valueValue), printer)
         printer.popIndent()
         printer.print(`}`)
-        if (printer.language == Language.CJ) {
+        if (printer.language == Language.CJ || printer.language == Language.KOTLIN) {
             printer.print('else {')
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", ["RuntimeType.UNDEFINED.ordinal"]) // undefined
@@ -1001,7 +1001,7 @@ export class OptionConvertor extends BaseArgConvertor {
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
         const bufferType = this.nativeType()
-        statements.push(writer.makeAssign(bufferName, bufferType, writer.language == Language.CJ ? writer.makeNull() : undefined, true, false))
+        statements.push(writer.makeAssign(bufferName, bufferType, (writer.language == Language.CJ || writer.language == Language.KOTLIN) ? writer.makeNull() : undefined, true, false))
 
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {
@@ -1076,7 +1076,7 @@ export class UnionConvertor extends BaseArgConvertor {
             statements.push(writer.makeAssign(`${bufferName}.selector`, undefined, writer.makeString(selectorBuffer), false))
         const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
             const receiver = this.getObjectAccessor(writer.language, bufferName, {index: `${index}`})
-            const expr = writer.makeString(`${selectorBuffer} == ${index}`)
+            const expr = writer.makeString(`${selectorBuffer} == ${writer.castToInt(index.toString(), 8)}`)
             const stmt = new BlockStatement([
                 writer.makeSetUnionSelector(bufferName, `${index}`),
                 it.convertorDeserialize(`${bufferName}_u`, deserializerName, (expr) => {

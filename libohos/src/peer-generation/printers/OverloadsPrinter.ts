@@ -385,6 +385,8 @@ export class OverloadsPrinter {
                 } else {
                     this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(this.printer.escapeKeyword(argName)), true, true).write(this.printer)
                 }
+            } else if (this.printer.language == Language.KOTLIN) {
+                this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
             } else if (this.printer.language == Language.JAVA) {
                 this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
             }
