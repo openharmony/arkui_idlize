@@ -215,7 +215,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new ArkTSMapForEachStatement(map, key, value, op)
     }
     makeMapSize(map: string): LanguageExpression {
-        return this.makeString(`${super.makeMapSize(map).asString()} as int32`) // TODO: cast really needed?
+        return this.makeString(`${super.makeMapSize(map).asString()}`) // TODO: cast really needed?
     }
     get supportedModifiers(): MethodModifier[] {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.NATIVE, MethodModifier.STATIC]
@@ -337,8 +337,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
         // The explicit cast forces ui2abc to call valueOf on an int, which fails the compilation
         // TODO Fix this cast
-        if (bitness === 8) return value
-        return `${value} as int32` // FIXME: is there int8 in ARKTS?
+        if (bitness === 8) 
+            return `(${value}).toChar()`
+        return `(${value}).toInt()` // FIXME: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
 
@@ -390,6 +391,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
     }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
+        if (node === idl.IDLI64Type)
+            return this.makeMethodCall(value.asString(), `toLong`, [])
+        if (node === idl.IDLI32Type)
+            return this.makeMethodCall(value.asString(), `toInt`, [])
+        if (node === idl.IDLI8Type)
+            return this.makeMethodCall(value.asString(), `toByte`, [])
+        if (node === idl.IDLF64Type)
+            return this.makeMethodCall(value.asString(), `toDouble`, [])
+        if (node === idl.IDLF32Type)
+            return this.makeMethodCall(value.asString(), `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
 
