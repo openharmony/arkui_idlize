@@ -1,0 +1,9 @@
+build idlinter:
+  stage: build
+  tags:
+    - idlize-ci
+    - koala-ci
+  script:
+    - !reference [.npm, script]
+    - npm run compile --prefix core
+    - npm run compile --prefix idlinter

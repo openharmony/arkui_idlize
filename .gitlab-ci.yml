@@ -33,3 +33,4 @@ include:
     - arktscgen/.gitlab-ci.yml
     - dtsgen/.gitlab-ci.yml
     - etsgen/.gitlab-ci.yml
+    - idlinter/.gitlab-ci.yml

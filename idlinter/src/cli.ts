@@ -22,8 +22,8 @@ import { outputReadableResult } from "./formatter"
 
 const options = program
     .version("0.0.3")
-    .option("--check <path>", "Path to single .idl file or directory to recursively scan for .idl for validation")
-    .option("--load <path>", "Path to single .idl file or directory to recursively scan for .idl for loading and symbol search\n(only those also mentioned in --check will be checked)")
+    .option("--check <path...>", "Paths to individual .idl files (or directories recursively containing them) for validation")
+    .option("--load <path...>", "Paths to individual .idl files (or directories recursively containing them) for loading and symbol search (only those also mentioned in --check will be checked)")
     .option("--mode <mode>", "Enable custom validation mode (currently under construction).")
     .addHelpText("after", "\nExit codes are (1) for invalid paths and (2) in case of errors/fatals found in .idl files.")
     .parse()
@@ -40,8 +40,18 @@ function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
     outputReadableResult(idlManager.results)
 }
 
-function listIdl(listPath: string, what: string, excluding?: Set<string>): Set<string> {
+function listIdl(listPath: string | string[], what: string, excluding?: Set<string>): Set<string> {
     try {
+        if (Array.isArray(listPath)) {
+            const files = new Set<string>()
+            for (const path of listPath) {
+                const pathFiles = listIdl(path, what, excluding)
+                for (const file of pathFiles) {
+                    files.add(file)
+                }
+            }
+            return files
+        }
         let stat = fs.lstatSync(listPath)
         if (stat.isFile() && listPath.endsWith(".idl")) {
             return new Set([path.normalize(listPath)].filter((n) => !excluding || !excluding.has(n)))
@@ -52,7 +62,7 @@ function listIdl(listPath: string, what: string, excluding?: Set<string>): Set<s
         }
     } catch (e) {
     }
-    console.error(`Invalid path in ${what}`)
+    console.error(`Invalid path ${listPath} in ${what}`)
     process.exit(1)
 }
 

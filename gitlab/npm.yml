@@ -1,6 +1,7 @@
 .npm:
   script:
   - npm config set cache $(pwd)/.npm
+  - npm config set registry https://mirrors.huaweicloud.com/repository/npm/
   - npm config set @ohos:registry https://repo.harmonyos.com/npm/
   - npm config set @koalaui:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
   - npm config set @azanat:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/

@@ -19,6 +19,7 @@ import { IdlNodeAny, IdlRecursivePattern } from "./idltypes";
 import { Parsed } from "./parser";
 import { DiagnosticResults } from "./diagnostictypes";
 import { ProcessingError, UnknownError } from "./messages";
+import { NativeModuleType } from "@idlizer/core";
 
 // Instead of extending generic versions from `baseprocessing.ts` necessary code is inlined here.
 // This way "Type instantiation is excessively deep and possibly infinite" situation is avoided.
@@ -143,7 +144,8 @@ class IdlProcessingManager {
 
     constructor() {
         // Only resolution is used for now, so choosing idl.Language.TS does not have language-specific effects
-        this.peerlibrary = new idl.PeerLibrary(idl.Language.TS)
+        this.peerlibrary = new idl.PeerLibrary(idl.Language.TS, new NativeModuleType("_UNUSED__"))
+        this.peerlibrary.disableFallback()
     }
 
     addFile(fileName: string, parseOnly?: boolean): void {

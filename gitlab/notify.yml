@@ -6,7 +6,7 @@
       when: always
   script: |
     if [ $CI_JOB_STATUS == 'success' ]; then
-      node ./tools/telegram/telegram-ci.mjs 1
+      node ./tools/telegram/telegram-ci.mjs 1 || echo "Notifying in telegram was failed"
     else
-      node ./tools/telegram/telegram-ci.mjs 0
+      node ./tools/telegram/telegram-ci.mjs 0 || echo "Notifying in telegram was failed"
     fi
