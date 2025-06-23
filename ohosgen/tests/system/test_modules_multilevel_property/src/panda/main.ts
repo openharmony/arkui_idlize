@@ -7,7 +7,7 @@ function mainBody() {
     const baz: BazInt = new BazInt(2000, 2300, 2600);
     const v = 2.25;
     {
-        bar.x = new FooInt(10000);
+        bar.x = new FooInt(10000 as number);
         console.log('Set property bar.x done.');
         console.log(`bar.getInt(${v}) after setting bar.x = ${bar.getInt(v)}`); // Expected: 11502.25
         const barX = bar.x;

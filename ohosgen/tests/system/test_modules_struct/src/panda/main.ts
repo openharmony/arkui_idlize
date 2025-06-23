@@ -3,7 +3,7 @@ import { pullEvents, init, baz } from "./compat";
 
 function mainBody() {
     console.log('Starting demo: test_modules_struct');
-    const foo: FooInt = new FooInt(42);
+    const foo: FooInt = new FooInt(42 as number);
     {
         const res = baz.getIntWithFoo(foo);
         console.log(`getNumberWithFoo(foo) = ${res}`); // Expected: 42
@@ -16,8 +16,8 @@ function mainBody() {
     // The following line fails as well:
     // const bar: BarInt = { fooA: new FooInt(142), fooB: new FooInt(242) };
     const bar: BarInt = new BarInt();
-    bar.fooA = new FooInt(142);
-    bar.fooB = new FooInt(242);
+    bar.fooA = new FooInt(142 as number);
+    bar.fooB = new FooInt(242 as number);
     const resBar = baz.getIntWithBar(bar);
     console.log(`getIntWithBar(bar) = ${resBar}`);
 }

@@ -3,7 +3,7 @@ import { pullEvents, init } from "./compat";
 
 function mainBody() {
     console.log('Starting demo: test_modules');
-    const foo: FooInt = new FooInt(42);
+    const foo: FooInt = new FooInt(42 as number);
     {
         const res = bar.getIntWithFoo(foo);
         console.log(`getNumberWithFoo(foo) = ${res}`); // Expected: 42

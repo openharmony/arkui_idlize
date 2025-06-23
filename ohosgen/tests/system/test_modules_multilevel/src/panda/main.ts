@@ -4,7 +4,7 @@ import { pullEvents, init } from "./compat";
 function mainBody() {
     console.log('Starting demo: test_modules');
     console.log('======== Foo ========');
-    const foo: FooInt = new FooInt(42);
+    const foo: FooInt = new FooInt(42 as number);
     {
         const res = qux.getIntWithFoo(foo);
         console.log(`getIntWithFoo(foo) = ${res}`); // Expected: 42
