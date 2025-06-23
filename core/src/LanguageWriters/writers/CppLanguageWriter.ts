@@ -45,6 +45,7 @@ import {
     NamedMethodSignature,
     ObjectArgs,
     StringExpression,
+    DelegationCall,
     MethodStaticCallExpression
 } from "../LanguageWriter"
 import {
@@ -255,9 +256,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         this.printer.print(`${forceAsNamedNode(type).name} ${name};`)
         this.printer.popIndent()
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName: string }, modifiers?: MethodModifier[]) {
-        const superInvocation = superCall
-            ? ` : ${superCall.superName}(${superCall.superArgs.join(", ")})`
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
+        const superInvocation = delegationCall
+            ? ` : ${delegationCall.delegationName}(${delegationCall.delegationArgs.map(it => it.asString()).join(", ")})`
             : ""
         const argList = signature.args.map((it, index) => {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""

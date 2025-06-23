@@ -19,6 +19,7 @@ import {
     AssignStatement,
     CheckOptionalStatement,
     ClassModifier,
+    DelegationCall,
     FieldModifier,
     LambdaExpression,
     LanguageExpression,
@@ -174,11 +175,11 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     writeNativeMethodDeclaration(method: Method): void {
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') : ''} ${className}(${signature.args.map((it, index) => `${this.getNodeName(it)} ${signature.argName(index)}`).join(", ")}) {`)
         this.pushIndent()
-        if (superCall) {
-            this.print(`super(${superCall.superArgs.join(", ")});`)
+        if (delegationCall) {
+            this.print(`super(${delegationCall.delegationArgs.map(it => it.asString()).join(", ")});`)
         }
         op(this)
         this.popIndent()

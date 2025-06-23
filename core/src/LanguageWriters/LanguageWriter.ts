@@ -375,6 +375,16 @@ export enum ClassModifier {
     PROTECTED
 }
 
+export enum DelegationType {
+    THIS,
+    SUPER,
+}
+export interface DelegationCall {
+    delegationType?: DelegationType
+    delegationName?: string
+    delegationArgs: LanguageExpression[]
+}
+
 export class Field {
     constructor(
         public name: string,
@@ -503,7 +513,7 @@ export abstract class LanguageWriter {
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void
     abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, generics?:string[]): void
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
-    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]): void
+    abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
@@ -560,8 +570,9 @@ export abstract class LanguageWriter {
     writeSetterImplementation(method: Method, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.SETTER].concat(method.modifiers ?? [])), op)
     }
+    // Deprecated
+    // Use instead declarationCall parameter in writeConstructorImplementation(...)
     writeSuperCall(params: string[]): void {
-        // It is better to add superCall as an argument in writeConstructorImplementation than call writeSuperCall
         this.printer.print(`super(${params.join(", ")})${this.maybeSemicolon()}`)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable = false): void {
@@ -620,6 +631,8 @@ export abstract class LanguageWriter {
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
     }
+    // Deprecated
+    // Use instead declarationCall parameter in writeConstructorImplementation(...) with DelegationType.THIS
     makeThisCall(params: LanguageExpression[]): LanguageExpression {
         return new ThisCallExpression(params)
     }

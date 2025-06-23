@@ -21,6 +21,8 @@ import {
     AssignStatement,
     BlockStatement,
     CheckOptionalStatement,
+    DelegationCall,
+    DelegationType,
     ExpressionStatement,
     FieldModifier,
     IfStatement,
@@ -331,9 +333,10 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
-        const superInvocation = superCall
-        ? ` : super(${superCall.superArgs.join(", ")})`
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
+        const delegationType = (delegationCall?.delegationType == DelegationType.THIS) ? "this" : "super"
+        const superInvocation = delegationCall
+        ? ` : ${delegationType}(${delegationCall.delegationArgs.map(it => it.asString()).join(", ")})`
         : ""
         const argList = signature.args.map((it, index) => {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""

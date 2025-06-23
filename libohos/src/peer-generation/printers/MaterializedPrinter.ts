@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, throwException } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, throwException, DelegationType } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -104,21 +104,21 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const sig = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLPointerType], [peerPtr])
         const className = clazz.getImplementationName()
         if (collapseCtors) {
-            this.printCollapsedCtors(clazz, hasSuperClass)
+            this.printCollapsedCtors(clazz, superClassName)
             return
         }
         this.printer.writeConstructorImplementation(className, sig, writer => {
             if (!hasSuperClass) {
                 this.assignFinalizable(className, peerPtr, writer)
             }
-        }, superClassName ? {superArgs: [peerPtr], superName: superClassName} : undefined)
+        }, hasSuperClass ? {delegationArgs: [this.printer.makeString(peerPtr)], delegationName: superClassName} : undefined)
     }
 
-    printCollapsedCtors(clazz: MaterializedClass, hasSuperClass: boolean) {
+    printCollapsedCtors(clazz: MaterializedClass, superClassName?: string) {
         const ctorPostfix = `_${clazz.className.toLowerCase()}`
         const ctors = clazz.ctors.map(ctor => ctor.withReturnType(idl.IDLPointerType))
         const collapsedCtor = collapseSameNamedMethods(ctors.map(it => it.method), undefined, undefined)
-        this.printCollapsedCtor(clazz, collapsedCtor, hasSuperClass, ctorPostfix)
+        this.printCollapsedCtor(clazz, collapsedCtor, ctorPostfix, superClassName)
         this.overloadsPrinter.setPostfix(ctorPostfix)
         this.overloadsPrinter.printGroupedComponentOverloads(clazz, ctors)
         this.overloadsPrinter.setPostfix()
@@ -127,7 +127,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
     }
 
-    printCollapsedCtor(clazz: MaterializedClass, ctor: Method, hasSuperClass: boolean, ctorPostfix: string) {
+    printCollapsedCtor(clazz: MaterializedClass, ctor: Method, ctorPostfix: string, superClassName?: string) {
+        const hasSuperClass = (superClassName != undefined)
         const peerPtr = "peerPtr"
         const ctorSig = ctor.signature as NamedMethodSignature
         const sigWithPointer = new NamedMethodSignature(
@@ -137,35 +138,41 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             ctorSig.defaults,
             [...Array(ctorSig.args.length + 1)].map(_ => ArgumentModifier.OPTIONAL))
 
-        const implementationClassName = clazz.getImplementationName()
-        this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
-            const ctorArgs = ctorSig.args
-                .map((_, i) => writer.makeString(ctorSig.argName(i)))
-                .map((expr, i) => idl.isOptionalType(ctorSig.args[i]) ? expr : writer.makeUnwrapOptional(expr))
-            // Used in typescript only
-            // add makeIsDefined(...) method to LanguageWriter
-            const peerPtrExpr = writer.makeTernary(
-                writer.makeString(`${peerPtr} != undefined`),
-                writer.makeString(peerPtr),
-                writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`, ctorArgs)
-            )
+        const writer = this.printer
+        const ctorArgs = ctorSig.args
+            .map((_, i) => writer.makeString(ctorSig.argName(i)))
+            .map((expr, i) => idl.isOptionalType(ctorSig.args[i]) ? expr : writer.makeUnwrapOptional(expr))
 
-            if (hasSuperClass) {
-                const superDecl = this.library.resolveTypeReference(clazz.superClass!)
-                if (superDecl && idl.isInterface(superDecl)) {
-                    const dimensions = [...superDecl.constructors.map(it => it.parameters.length)]
-                    const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
-                    // TBD: writeSuperCall with expressions
-                    const args = [...Array(argsCount).fill("undefined"), peerPtrExpr.asString()]
-                    writer.writeSuperCall(args)
-                    return
-                }
+        const implementationClassName = clazz.getImplementationName()
+        // Used in typescript only
+        // add makeIsDefined(...) method to LanguageWriter
+        const peerPtrExpr = writer.makeTernary(
+            writer.makeString(`${peerPtr} != undefined`),
+            writer.makeString(peerPtr),
+            writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`, ctorArgs)
+        )
+        var delegationCall = undefined
+        if (hasSuperClass) {
+            const superDecl = this.library.resolveTypeReference(clazz.superClass!)
+            if (superDecl && idl.isInterface(superDecl)) {
+                const dimensions = [...superDecl.constructors.map(it => it.parameters.length)]
+                const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
+                // TBD: writeSuperCall with expressions
+                const args = [...Array(argsCount).fill("undefined").map(it => writer.makeString(it)), peerPtrExpr]
+                delegationCall = { delegationArgs: args, delegationName: superClassName }
+            } else {
                 throw new Error(`Super declaration is not found for materialized class: ${clazz.className}`)
             }
+        }
+
+        this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
+
+            if (hasSuperClass) return
+
             writer.writeStatement(
                 writer.makeAssign(peerPtr, idl.IDLPointerType, peerPtrExpr, false))
             this.assignFinalizable(implementationClassName, peerPtr, writer)
-        })
+        }, delegationCall)
     }
     printCtor(clazz: MaterializedClass, ctor: MaterializedMethod) {
 
@@ -176,21 +183,19 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const ctorSig = ctor.method.signature as NamedMethodSignature
         const nsPath = idl.getNamespacesPathFor(clazz.decl)
 
-        this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), ctorSig, writer => {
+        const writer = this.printer
+        const ctorCall = writer.makeMethodCall(implementationClassName, `ctor${ctor.getOverloadPostfix()}`,
+            ctorSig.args.map((it, index) => {
+                const arg = writer.makeString(ctorSig.argsNames[index])
+                if (idl.isOptionalType(it))
+                    return arg
+                return writer.makeUnwrapOptional(arg)
+            })
+        )
 
+        this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), ctorSig, writer => {
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
             injectPatch(writer, key, config.patchMaterialized)
-            const postfix = ctor.getOverloadPostfix()
-            const ctorCall = writer.makeMethodCall(implementationClassName, `ctor${postfix}`,
-                ctorSig.args.map((it, index) => {
-                    const arg = writer.makeString(ctorSig.argsNames[index])
-                    if (idl.isOptionalType(it))
-                        return arg
-                    return writer.makeUnwrapOptional(arg)
-                })
-            )
-            // TBD: rewrite this(...) call for Kotlin
-            writer.writeExpressionStatement(writer.makeThisCall([ctorCall]))
             this.collectExtraCallbacks(clazz)
             if (this.extraAssignCallbacks.length > 0) {
                 this.extraAssignCallbacks.map((item) => {
@@ -199,7 +204,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     )
                 })
             }
-        })
+        }, { delegationType: DelegationType.THIS, delegationName: implementationClassName, delegationArgs: [ctorCall] })
     }
 
     printOverloads(clazz: MaterializedClass) {

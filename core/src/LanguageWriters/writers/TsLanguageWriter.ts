@@ -21,6 +21,8 @@ import {
     AssignStatement,
     BlockStatement,
     CheckOptionalStatement,
+    DelegationCall,
+    DelegationType,
     ExpressionStatement,
     FieldModifier,
     IfStatement,
@@ -266,11 +268,12 @@ export class TSLanguageWriter extends LanguageWriter {
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)
     }
-    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, superCall?: { superArgs: string[], superName?: string }, modifiers?: MethodModifier[]) {
+    writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
         this.writeDeclaration(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}constructor`, signature, false, true)
         this.pushIndent()
-        if (superCall) {
-            this.print(`super(${superCall.superArgs.join(", ")})`)
+        if (delegationCall) {
+            const delegationType = (delegationCall?.delegationType == DelegationType.THIS) ? "this" : "super"
+            this.print(`${delegationType}(${delegationCall.delegationArgs?.map(it => it.asString()).join(", ")})`)
         }
         op(this)
         this.popIndent()

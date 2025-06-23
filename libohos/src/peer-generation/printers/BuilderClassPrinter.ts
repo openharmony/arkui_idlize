@@ -69,7 +69,7 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
                                 const fieldName = syntheticName(argName)
                                 writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                             })
-                    }, superType ? {superArgs: []} : undefined)
+                    }, superType ? {delegationArgs: []} : undefined)
                 })
 
             clazz.methods
@@ -334,7 +334,7 @@ class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
                                 const fieldName = syntheticName(argName)
                                 writer.writeStatement(writer.makeAssign(`this.${fieldName}`, undefined, writer.makeString(`${argName}`), false))
                             })
-                    }, superType ? {superArgs: []} : undefined)
+                    }, superType ? {delegationArgs: []} : undefined)
                 })
 
             // clazz.methods

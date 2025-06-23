@@ -61,7 +61,7 @@ export class TSWrappersVisitor {
                     argsNames.push(`${clazz.className}.getFinalizer()`)
                 }
             }
-        }, {superArgs: (clazz.ctor.method.signature as NamedMethodSignature).argsNames})
+        }, {delegationArgs: (clazz.ctor.method.signature as NamedMethodSignature).argsNames.map(it => writer.makeString(it))})
     }
 
     private printFinalizer(clazz: WrapperClass, writer: LanguageWriter) {
