@@ -66,6 +66,8 @@ export {
 
 export { testLength } from "../../generated/arkts"
 
+export { IDLCheckConstructor } from "../../generated/arkts"
+
 export { DTSHookClass, DTSHookValue } from "../../generated/arkts"
 export { ImportedHookValue } from "./handwritten/external_lib"
 

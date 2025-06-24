@@ -126,7 +126,7 @@ export class MaterializedMethod extends PeerMethod {
     }
 
     getOverloadPostfix(): string {
-        return this.overloadIndex == undefined ? "" : `${this.overloadIndex}`
+        return `${this.overloadIndex ?? ""}`
     }
 }
 

@@ -190,11 +190,12 @@ class OHOSNativeVisitor {
         _h.pushIndent()
         if (!isGlobalScope(clazz) && !isStaticMaterialized(clazz, this.library)) {
             let ctors = [...clazz.constructors]
+            const useCtorIndex = ctors.length > 1
             if (ctors.length == 0) {
                 ctors.push(createConstructor([], undefined)) // Add empty fake constructor
             }
             ctors.forEach((ctor, index) => {
-                let name = `construct${(index > 0) ? index.toString() : ""}`
+                let name = `construct${useCtorIndex ? index.toString() : ""}`
                 let params = ctor.parameters.map(it =>
                     new NameType(_h.escapeKeyword(it.name), this.argTypeConvertor.convert(it.type!)))
                 let argConvertors = ctor.parameters.map(param => generateArgConvertor(this.library, param))
@@ -474,10 +475,16 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
     }
 
     protected getPeerMethodName(method: PeerMethod): string {
-        switch (method.peerMethodName) {
-            case "ctor": return "construct"
+        const methodName = method.peerMethodName
+        switch (methodName) {
+            case "ctor": return `construct`
             case "getFinalizer": return "destruct"
-            default: return method.peerMethodName
+            default: {
+                if (methodName.startsWith("ctor")) {
+                    return `construct${methodName.substring("ctor".length)}`
+                }
+                return method.peerMethodName
+            }
         }
     }
 

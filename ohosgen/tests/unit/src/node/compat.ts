@@ -67,6 +67,8 @@ export {
     testLength
 } from "../../generated/ts"
 
+export { IDLCheckConstructor } from "../../generated/ts"
+
 export { DTSHookClass, DTSHookValue } from "../../generated/ts"
 export { ImportedHookValue } from "./handwritten/external_lib"
 
