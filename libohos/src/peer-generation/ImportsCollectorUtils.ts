@@ -41,7 +41,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     })
     return {
         feature,
-        module: `./${moduleName}`,
+        module: `${moduleName}`,
     }
 }
 

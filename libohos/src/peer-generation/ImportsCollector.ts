@@ -29,15 +29,19 @@ export class ImportsCollector {
     addFeature(feature: string | ImportFeature, module?: string, alias?: string) {
         if (typeof feature != "string")
             return this.addFeature(feature.feature, feature.module, feature.alias)
-        module = path.normalize(module!)
+        let normalizedModule = path.normalize(module!)
+        // TODO processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
+        // Should migrate to multimodules and then remove this hack
+        if (normalizedModule.startsWith('@') && normalizedModule != module)
+            normalizedModule = './' + normalizedModule
         // Checking for name collisions between modules
         // TODO: needs to be done more effectively
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
-            .find(it => it[0] !== module && it[1].get(feature))
+            .find(it => it[0] !== normalizedModule && it[1].get(feature))
         if (featureInAnotherModule) {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
-            const features = getOrPut(this.moduleToFeatures, module, () => new Map())
+            const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map())
             const aliases = getOrPut(features, feature, () => new Set())
             aliases.add(alias)
         }

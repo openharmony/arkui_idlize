@@ -105,15 +105,15 @@ class ArkTsLayout extends CommonLayoutBase {
         if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language)
         }
-        let pureFileName = idl.getFileFor(target.node)?.fileName
-            ?.replaceAll('.d.ts', '')
-            ?.replaceAll('.idl', '')
-            ?.replaceAll('@', '')
-        if (pureFileName) {
-            pureFileName = path.basename(pureFileName)
+        let file: idl.IDLFile | undefined
+        if (file = idl.getFileFor(target.node)) {
+            const packageName = idl.getPackageName(file)
+            if (file.fileName && path.basename(file.fileName).startsWith(`@${packageName}.`)) {
+                return `./@${packageName}`
+            }
+            return packageName
         }
-        const entryName = pureFileName ?? target.node.name
-        return entryName
+        return target.node.name
     }
 }
 
