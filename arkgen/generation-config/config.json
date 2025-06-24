@@ -369,6 +369,9 @@
             "EventEmulator": [
                 "emitClickEvent"
             ],
+            "RenderServiceNode": [
+                "getNodeId"
+            ],
             "DrawModifier": [
                 "invalidate",
                 "setDrawBehind_callback",

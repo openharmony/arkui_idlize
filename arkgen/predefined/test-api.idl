@@ -7,3 +7,8 @@ interface EventEmulator {
   static void emitClickEvent(pointer node, ClickEvent event);
   static void emitTextInputEvent(pointer node, String text);
 };
+
+[Entity=Class]
+interface RenderServiceNode {
+  static i32 getNodeId(String nodeId);
+};

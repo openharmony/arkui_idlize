@@ -892,6 +892,19 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         frameNode->callClickEvent(event);
     }
     } // EventEmulatorAccessor
+    namespace RenderServiceNodeAccessor {
+        Ark_Int32 GetNodeIdImpl(const Ark_String* nodeId)
+        {
+            if (!needGroupedLog(1))
+                return 42;
+            string out("getNodeId(");
+            WriteToString(&out, nodeId);
+            out.append(") \n");
+            out.append("[return 42] \n");
+            appendGroupedLog(1, out);
+            return 42;
+        }
+    } // RenderServiceNodeAccessor
     namespace DrawModifierAccessor {
         void InvalidateImpl(Ark_DrawModifier peer)
         {
