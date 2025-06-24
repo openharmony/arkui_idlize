@@ -28,7 +28,7 @@
     "patch:sdk": "cd interface_sdk-js && git apply ../interface_sdk-js.patch",
     "download:sdk": "node ./tools/download-sdk.mjs && npm run patch:sdk && npm run prepare:sdk",
     "compile": "npm run compile --prefix external/incremental/compat && npm run compile --prefix external/incremental/common && npm run compile --prefix external/interop",
-    "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && node tools/release.mjs",
+    "release": "npm run compile && npm run -C arkgen compile && npm run -C core compile && npm run -C linter compile && npm run -c arktscgen compile && npm run -C idlinter compile && node tools/release.mjs",
     "sanity": "npm run -C arkgen sanity && npm run -C linter run",
     "setup-out": "node tools/setup/setup.mjs"
   }
