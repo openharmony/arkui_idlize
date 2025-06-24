@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/ohosgen",
-  "version": "2.1.7+devel",
+  "version": "2.1.9+devel",
   "description": "",
   "main": "lib/index.js",
   "bin": "lib/index.js",
@@ -12,8 +12,8 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.7+devel",
-    "@idlizer/libohos": "2.1.7+devel",
+    "@idlizer/core": "2.1.9+devel",
+    "@idlizer/libohos": "2.1.9+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
     "typescript": "^4.9.5"
@@ -43,11 +43,9 @@
     "generate:context:idl": "npm run compile && node ../dtsgen --dts2idl --base-dir ./demos/context/dts/api --input-dir ./demos/context/dts/api/application,./demos/context/dts/api/bundleManager --output-dir ./demos/context/generated/idl",
     "run:context:ts": "npm run generate:context:idl && node . --idl2peer --language=ts --input-dir ./demos/context/generated/idl --output-dir ./demos/context --options-file ./demos/context/config.json",
     "run:context:arkts": "npm run generate:context:idl && node . --idl2peer --language=arkts --input-dir ./demos/context/generated/idl --output-dir ./demos/context --options-file ./demos/context/config.json",
-
     "generate:huks:idl": "npm run compile && node ../dtsgen --dts2idl --input-files ../interface_sdk-js/api/@ohos.security.huks.d.ts --output-dir ./out/demos/huks/generated --options-file ./demos/huks/config.json",
     "run:huks:ts": "npm run generate:huks:idl && node . --use-new-ohos --idl2peer --language=ts --input-files ./out/demos/huks/generated/@ohos.security.huks.idl --output-dir ./out/huks --options-file ./demos/huks/config.json",
     "run:huks:arkts": "npm run generate:huks:idl && node . --use-new-ohos --idl2peer --language=arkts --input-files ./out/demos/huks/generated/@ohos.security.huks.idl --output-dir ./out/huks --options-file ./demos/huks/config.json",
-
     "generate:unit:idl": "npm run compile && node ../dtsgen --dts2idl --input-dir ./tests/unit/dts --output-dir ./tests/unit/generated/idl --options-file ./tests/unit/conf/config.json",
     "run:unit:ts": "npm run generate:unit:idl && node . --idl2peer --language=ts --default-idl-package unit --input-dir ./tests/unit/generated/idl,./tests/unit/idl --output-dir ./tests/unit",
     "run:unit:arkts": "npm run generate:unit:idl && node . --idl2peer --language=arkts --default-idl-package unit --input-dir ./tests/unit/generated/idl,./tests/unit/idl --output-dir ./tests/unit",

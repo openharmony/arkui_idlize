@@ -1,6 +1,6 @@
 {
   "name": "@idlizer/etsgen",
-  "version": "2.1.7+devel",
+  "version": "2.1.9+devel",
   "description": "",
   "main": "lib/main.js",
   "bin": "lib/main.js",
@@ -26,8 +26,8 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.7+devel",
-    "@idlizer/libohos": "2.1.7+devel",
+    "@idlizer/core": "2.1.9+devel",
+    "@idlizer/libohos": "2.1.9+devel",
     "@koalaui/libarkts": "file:../external/ui2abc/libarkts",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
@@ -42,11 +42,11 @@
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && rollup -c",
     "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
     "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --use-component-stubs --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets",
-    "test":     "npm run compile && npm run test:golden:features",
+    "test": "npm run compile && npm run test:golden:features",
     "test-gen": "npm run compile && npm run test:golden:features-gen",
-    "test:golden":     "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
+    "test:golden": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE",
     "test:golden-gen": "rimraf ./out/test-$TEST_CASE && node . --ets2idl --base-dir ./tests/$TEST_CASE --input-dir ./tests/$TEST_CASE --output-dir ./out/test-$TEST_CASE --options-file ${TEST_CONFIG:-./generator-config.json} && node ../tools/golden.mjs --input-dir ./out/test-$TEST_CASE --golden-dir ./tests/golden/$TEST_CASE --gen",
-    "test:golden:features":     "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
+    "test:golden:features": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden",
     "test:golden:features-gen": "TEST_CASE=features TEST_CONFIG=tests/features/generator-config.json npm run test:golden-gen"
   }
 }
