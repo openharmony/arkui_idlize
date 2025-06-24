@@ -15657,6 +15657,10 @@ typedef struct GENERATED_ArkUIRenderingContextSettingsAccessor {
                          Ark_Boolean antialias);
 } GENERATED_ArkUIRenderingContextSettingsAccessor;
 
+typedef struct GENERATED_ArkUIRenderServiceNodeAccessor {
+    Ark_Int32 (*getNodeId)(const Ark_String* nodeId);
+} GENERATED_ArkUIRenderServiceNodeAccessor;
+
 typedef struct GENERATED_ArkUIReplaceSymbolEffectAccessor {
     void (*destroyPeer)(Ark_ReplaceSymbolEffect peer);
     Ark_ReplaceSymbolEffect (*ctor)(const Opt_EffectScope* scope);
@@ -16439,6 +16443,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIPixelMapMockAccessor* (*getPixelMapMockAccessor)();
     const GENERATED_ArkUIProgressMaskAccessor* (*getProgressMaskAccessor)();
     const GENERATED_ArkUIRenderingContextSettingsAccessor* (*getRenderingContextSettingsAccessor)();
+    const GENERATED_ArkUIRenderServiceNodeAccessor* (*getRenderServiceNodeAccessor)();
     const GENERATED_ArkUIReplaceSymbolEffectAccessor* (*getReplaceSymbolEffectAccessor)();
     const GENERATED_ArkUIRestrictedWorkerAccessor* (*getRestrictedWorkerAccessor)();
     const GENERATED_ArkUIRichEditorBaseControllerAccessor* (*getRichEditorBaseControllerAccessor)();
