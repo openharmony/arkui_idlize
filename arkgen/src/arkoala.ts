@@ -260,7 +260,7 @@ export function generateArkoalaFromIdl(config: {
         enumImpls.printTo(path.join(arkoala.managedDir, 'EnumsImpl' + peerLibrary.language.extension))
     }
 
-    if (peerLibrary.language == Language.TS || peerLibrary.language == Language.ARKTS) {
+    if (peerLibrary.language == Language.TS) {
         const declarations = printDeclarations(peerLibrary)
         const index = new IndentedPrinter()
         // index-full.d.ts for ArkTS is a temporary solution for ets pre-processing.
