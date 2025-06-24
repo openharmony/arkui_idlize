@@ -156,7 +156,6 @@ export class LibaceInstall extends Install {
     arkoalaMacros = this.interface("arkoala-macros.h")
     generatedArkoalaApi = this.interface("arkoala_api_generated.h")
     gniComponents = this.interface("node_interface.gni")
-    viewModelBridge = this.implementation("view_model_bridge.cpp")
     allModifiers = this.implementation("all_modifiers.cpp")
 
     interface(name: string) {

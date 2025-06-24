@@ -40,7 +40,6 @@ import {
     warning,
     appendModifiersCommonPrologue,
     completeModifiersContent,
-    appendViewModelBridge,
     makeIncludeGuardDefine,
     SELECTOR_ID_PREFIX,
     writeConvertors,
@@ -502,7 +501,6 @@ class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
             .concat(accessorStructList(this.accessorList))
 
         printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
-        printApiImplFile(library, libace.viewModelBridge, options)
     }
 }
 
@@ -564,29 +562,6 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     }
 
     writer.print("")
-    writer.printTo(filePath)
-}
-
-function printApiImplFile(library: PeerLibrary, filePath: string, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), library, new CppConvertor(library), ArkPrimitiveTypesInstance)
-    writer.writeLines(cStyleCopyright)
-    writer.writeMultilineCommentBlock(warning)
-    writer.print("")
-
-    writer.writeInclude('arkoala_api_generated.h')
-    writer.writeInclude('base/utils/utils.h')
-    writer.writeInclude('core/pipeline/base/element_register.h')
-    writer.print("")
-
-    if (options.namespaces) {
-        writer.pushNamespace(options.namespaces.base, { ident: false })
-    }
-    writer.concat(appendViewModelBridge(library))
-
-    if (options.namespaces) {
-        writer.popNamespace({ ident: false })
-    }
-
     writer.printTo(filePath)
 }
 

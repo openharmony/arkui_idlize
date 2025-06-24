@@ -132,32 +132,6 @@ export function getNodeTypes(library: PeerLibrary): string[] {
     return [...peerGeneratorConfiguration().components.customNodeTypes, ...components.sort()]
 }
 
-export function appendViewModelBridge(library: PeerLibrary): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
-    let body = readTemplate('view_model_bridge.cc')
-
-    const createNodeSwitch = new IndentedPrinter()
-    const createNodeMethods = new IndentedPrinter()
-
-    createNodeMethods.pushIndent()
-    createNodeSwitch.pushIndent(3)
-    for (const component of getNodeTypes(library)) {
-        const createNodeMethod = `create${component}Node`
-        createNodeMethods.print(`Ark_NodeHandle ${createNodeMethod}(Ark_Int32 nodeId);`)
-        const name = `${peerGeneratorConfiguration().cppPrefix}ARKUI_${camelCaseToUpperSnakeCase(component)}`
-        createNodeSwitch.print(`case ${name}: return GeneratedViewModel::${createNodeMethod}(id);`)
-    }
-    createNodeSwitch.popIndent(3)
-    createNodeMethods.popIndent()
-
-    body = body.replaceAll("%CREATE_NODE_METHODS%", createNodeMethods.getOutput().join("\n"))
-    body = body.replaceAll("%CREATE_NODE_SWITCH%", createNodeSwitch.getOutput().join("\n"))
-    body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
-
-    result.writeLines(body)
-    return result
-}
-
 export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
     let result = createLanguageWriter(Language.CPP)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
