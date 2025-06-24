@@ -63,6 +63,7 @@ export abstract class SingleFilePrinter extends AbstractVisitor {
 
         return [
             this.importer?.getOutput() ?? [],
+            [''], // empty line
             this.writer.getOutput()
         ]
             .flat()

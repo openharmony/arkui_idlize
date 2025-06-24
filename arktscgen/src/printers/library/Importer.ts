@@ -58,6 +58,15 @@ export class Importer {
         return it
     }
 
+    withReexportImport(it: string): string {
+        if (this.seen.has(it)) {
+            return it
+        }
+        this.seen.add(it)
+        this.import(it, "../../reexport-for-generated")
+        return it
+    }
+
     private import(name: string, from: string): void {
         this.writer.writeExpressionStatement(
             this.writer.makeString(

@@ -15,12 +15,14 @@
 
 import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions"
 import { NonNullableOptions } from "../options/NonNullableOptions"
+import { CodeFragmentOptions } from "../options/CodeFragmentOptions";
 
 export class Config {
     constructor(
         public ignore: IgnoreOptions,
         public nonNullable: NonNullableOptions,
         public irHack: IrHackOptions,
+        public fragments: CodeFragmentOptions,
     ) {}
 
     static get createPrefix(): string {

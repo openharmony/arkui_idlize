@@ -111,6 +111,7 @@ export class PeerPrinter extends SingleFilePrinter {
     private printBody(): void {
         this.printConstructor()
         this.printMethods()
+        this.printFragment()
         this.printBrand()
     }
 
@@ -196,6 +197,16 @@ export class PeerPrinter extends SingleFilePrinter {
                 return this.printRegular(it)
             }
         })
+    }
+
+    private printFragment(): void {
+        const methods = this.config.fragments.getCodeFragment(this.node.name)
+        if (methods !== undefined) {
+            methods.forEach(it => {
+                this.importer.withReexportImport(it.definition)
+                this.writer.writeLines(`${it.name} = ${it.definition}`)
+            })
+        }
     }
 
     private printGetter(node: IDLMethod): void {
