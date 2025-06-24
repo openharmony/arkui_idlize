@@ -2,8 +2,8 @@ package test_constructor;
 
 [Entity=Class]
 interface IDLCheckConstructor {
-    attribute boolean flag;
     attribute number count;
+    attribute boolean flag;
     constructor(number count);
     constructor(boolean flag);
     constructor(number count, boolean flag);
