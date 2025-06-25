@@ -282,25 +282,39 @@ export class PeerPrinter extends SingleFilePrinter {
                 [MethodModifier.STATIC]
             ),
             () => {
-                this.writer.writeStatement(
-                    this.writer.makeReturn(
-                        this.writer.makeNewObject(
-                            this.node.name,
-                            [
-                                this.writer.makeFunctionCall(
-                                    this.writer.makeString(
-                                        PeersConstructions.callBinding(
-                                            this.node.name,
-                                            node.name,
-                                            nodeNamespace(this.node)
-                                        )
-                                    ),
-                                    this.makeBindingArguments(node.parameters)
+                const newExpr = this.writer.makeNewObject(
+                    this.node.name, [
+                        this.writer.makeFunctionCall(
+                            this.writer.makeString(
+                                PeersConstructions.callBinding(
+                                    this.node.name,
+                                    node.name,
+                                    nodeNamespace(this.node)
                                 )
-                            ]
-                        )
-                    )
+                            ),
+                            this.makeBindingArguments(node.parameters)
+                        ),
+                    ]
                 )
+
+                if (isReal(this.node)) {
+                    const varName = 'result'
+                    this.writer.writeStatements(
+                        this.writer.makeAssign(
+                            varName, createReferenceType(this.node.name), newExpr, true
+                        ),
+                        this.writer.makeStatement(
+                            this.writer.makeMethodCall(varName, PeersConstructions.setChildrenParentPtrMethod, [])
+                        ),
+                        this.writer.makeReturn(
+                            this.writer.makeString(varName)
+                        ),
+                    )
+                } else {
+                    this.writer.writeStatement(
+                        this.writer.makeReturn(newExpr)
+                    )
+                }
             }
         )
     }

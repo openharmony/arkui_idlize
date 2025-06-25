@@ -124,6 +124,10 @@ export class PeersConstructions {
         return peerMethod(`update${iface}`)
     }
 
+    static get setChildrenParentPtrMethod(): string {
+        return `setChildrenParentPtr`
+    }
+
     static newOf(iface: string): string {
         return `new ${iface}`
     }
