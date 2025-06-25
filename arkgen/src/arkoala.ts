@@ -63,6 +63,7 @@ import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
 import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { makeJavaArkComponents } from "./printers/JavaPrinter"
+import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
 import {platform} from "node:os";
@@ -214,6 +215,7 @@ export function generateArkoalaFromIdl(config: {
             createPeersPrinter(config.dumpSerialized),
             createInterfacePrinter(false),
             printComponents,
+            printModifiers,
             printGlobal,
             printBuilderClasses,
             createSerializerPrinter(peerLibrary.language, ""),
