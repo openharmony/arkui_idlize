@@ -5,12 +5,12 @@
     "modules": {
         "application": {
             "name": "application",
-            "packages": ["application.ApplicationContext", "application.BaseContext", "application.Context"],
-            "useFoldersLayout": true
-        },
-        "bundleManager": {
-            "name": "bundleManager",
-            "packages": ["bundleManager.ApplicationInfo"],
+            "packages": [
+                "application.ApplicationContext",
+                "application.BaseContext",
+                "application.Context",
+                "bundleManager.ApplicationInfo"
+            ],
             "useFoldersLayout": true
         }
     }
