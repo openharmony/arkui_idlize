@@ -203,9 +203,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     )
                 )
             )
-            const filteredMethods = peer.methods.filter(it =>
-                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
-            for (const grouped of groupOverloads(filteredMethods))
+            for (const grouped of groupOverloads(peer.methods))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (!superDecl) {
@@ -449,10 +447,8 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                     writer.print('} else { throw Exception()}')
                 }
             )
-            const filteredMethods = peer.methods.filter(it =>
-                !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.library.language))
             // for (const grouped of groupOverloads(filteredMethods))
-            for (const grouped of filteredMethods)
+            for (const grouped of peer.methods)
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, [grouped])
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")

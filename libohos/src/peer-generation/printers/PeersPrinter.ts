@@ -205,7 +205,6 @@ class PeerFileVisitor {
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])
-                .filter(method => !peerGeneratorConfiguration().ignoreMethod(method.overloadedName, writer.language))
                 .forEach(method => this.printPeerMethod(method, writer))
         }, this.generatePeerParentName(peer))
     }

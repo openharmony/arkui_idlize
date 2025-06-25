@@ -52,7 +52,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             customNodeTypes: T.stringArray(),
             ignoreEntry: T.stringArray(),
             ignoreEntryJava: T.stringArray(),
-            ignoreMethodArkts: T.stringArray(),
             custom: T.stringArray(),
             handWritten: T.stringArray(),
             replaceThrowErrorReturn: T.stringArray(),
@@ -84,7 +83,6 @@ export type PeerGeneratorConfiguration = PeerGeneratorConfigurationType & PeerGe
 export interface PeerGeneratorConfigurationExtension {
     mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
-    ignoreMethod(name: string, language: Language): boolean
     ignoreTypeParameters(name: string): boolean
     isHandWritten(component: string): boolean
     isKnownParametrized(name: string | undefined): boolean
@@ -107,9 +105,6 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
         ignoreEntry(name: string, language: Language): boolean {
             return this.components.ignoreEntry.includes(name) ||
                 language === Language.JAVA && this.components.ignoreEntryJava.concat(this.components.custom).includes(name)
-        },
-        ignoreMethod(name: string, language: Language): boolean {
-            return language === Language.ARKTS && this.components.ignoreMethodArkts.includes(name)
         },
         ignoreTypeParameters(name: string) {
             return this.components.ignoreTypeParameters.includes(name)

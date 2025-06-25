@@ -63,9 +63,6 @@
             "packages": [""]
         }
     },
-    "forceCallback": {
-
-    },
     "packageTransformation": {
         "internal.component.ets": "arkui.component"
     },

@@ -33,7 +33,6 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         printer.pushIndent()
         const filteredMethods = peer!.methods
-            .filter(it => !peerGeneratorConfiguration().ignoreMethod(it.overloadedName, this.peerLibrary.language))
             .filter(it => !it.isCallSignature)
         groupOverloads(filteredMethods).forEach(group => {
             const method = collapseIdlPeerMethods(this.peerLibrary, group)

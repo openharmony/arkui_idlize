@@ -71,6 +71,36 @@
                         "type": "string"
                     }
                 },
+                "hooks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "additionalProperties": false,
+                            "properties": {
+                                "hookName": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "hookName"
+                            ],
+                            "type": "object"
+                        }
+                    }
+                },
+                "externalTypes": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "externalPackages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "moduleName": {
                     "type": "string"
                 },
@@ -99,6 +129,12 @@
                         "type": "object"
                     }
                 },
+                "globalPackages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "GenerateUnused": {
                     "type": "boolean"
                 },
@@ -120,6 +156,12 @@
                         }
                     }
                 },
+                "currentModuleExportedPackages": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "cppPrefix": {
                     "type": "string"
                 },
@@ -133,6 +175,12 @@
                             }
                         },
                         "ignorePeerMethod": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "ignoreTypeParameters": {
                             "type": "array",
                             "items": {
                                 "type": "string"
@@ -162,12 +210,6 @@
                                 "type": "string"
                             }
                         },
-                        "ignoreMethodArkts": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
                         "custom": {
                             "type": "array",
                             "items": {
@@ -190,11 +232,11 @@
                     "required": [
                         "ignoreComponents",
                         "ignorePeerMethod",
+                        "ignoreTypeParameters",
                         "invalidAttributes",
                         "customNodeTypes",
                         "ignoreEntry",
                         "ignoreEntryJava",
-                        "ignoreMethodArkts",
                         "custom",
                         "handWritten",
                         "replaceThrowErrorReturn"
@@ -307,6 +349,12 @@
                                 }
                             }
                         },
+                        "ForceDefaultExport": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        },
                         "TypeReplacementsFilePath": {
                             "type": "string"
                         }
@@ -319,18 +367,6 @@
                         "TypeReplacementsFilePath"
                     ],
                     "type": "object"
-                },
-                "currentModuleExportedPackages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "globalPackages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
                 },
                 "$schema": {
                     "type": "string",
@@ -350,8 +386,12 @@
                 "forceCallback",
                 "forceResource",
                 "forceContext",
+                "hooks",
+                "externalTypes",
+                "externalPackages",
                 "moduleName",
                 "modules",
+                "globalPackages",
                 "GenerateUnused",
                 "ApiKind",
                 "ApiVersion",
