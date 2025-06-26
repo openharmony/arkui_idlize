@@ -99,9 +99,6 @@ declare interface  TabContentInterface {
 }
 
 declare class TabContentAttribute extends CommonMethod<TabContentAttribute> {
-
-    tabBar(value: string | Resource | CustomBuilder | { icon?: string | Resource; text?: string | Resource }): TabContentAttribute;
-
     tabBar(value: SubTabBarStyle | BottomTabBarStyle): TabContentAttribute;
 }
 

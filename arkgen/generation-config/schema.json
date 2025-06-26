@@ -306,9 +306,6 @@
                         }
                     }
                 },
-                "CollapseOverloadsARKTS": {
-                    "type": "boolean"
-                },
                 "IDLVisitor": {
                     "additionalProperties": false,
                     "properties": {
@@ -402,7 +399,6 @@
                 "dummy",
                 "materialized",
                 "serializer",
-                "CollapseOverloadsARKTS",
                 "IDLVisitor"
             ],
             "type": "object"

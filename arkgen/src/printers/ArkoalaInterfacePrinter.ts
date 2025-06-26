@@ -34,10 +34,10 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         printer.pushIndent()
         const filteredMethods = peer!.methods
             .filter(it => !it.isCallSignature)
-        groupOverloads(filteredMethods).forEach(group => {
-            const method = collapseIdlPeerMethods(this.peerLibrary, group)
-            printer.writeMethodDeclaration(method.method.name, method.method.signature)
-        })
+        const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
+            .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
+        collapsedMethods.forEach(method =>
+            printer.writeMethodDeclaration(method.method.name, method.method.signature))
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         printer.popIndent()
@@ -53,8 +53,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                     true
                 )
             }
-            groupOverloads(filteredMethods).forEach(group => {
-                const method = collapseIdlPeerMethods(this.peerLibrary, group)
+            collapsedMethods.forEach(method => {
                 const existInAttributes: boolean = peer.attributesFields.find(element => {
                     element.name == method.method.name
                 }) !== undefined

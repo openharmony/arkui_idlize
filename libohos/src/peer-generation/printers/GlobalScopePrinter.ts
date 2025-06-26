@@ -39,7 +39,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
     const printed = library.globals.flatMap(scope => {
 
-        const groupedMethods = groupOverloadsIDL(scope.methods.filter(it => !peerGeneratorConfiguration().components.handWritten.includes(it.name)))
+        const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
         const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
 
             // imports

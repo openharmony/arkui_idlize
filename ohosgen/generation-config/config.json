@@ -43,7 +43,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": false,
     "moduleName": "ohos",
     "modules": {
         "ohos": {

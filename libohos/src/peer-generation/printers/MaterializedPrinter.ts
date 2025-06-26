@@ -224,7 +224,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     printOverloads(clazz: MaterializedClass) {
-        for (const grouped of groupOverloads(clazz.methods)) {
+        for (const grouped of groupOverloads(clazz.methods, this.library.language)) {
             this.overloadsPrinter.printGroupedComponentOverloads(clazz, grouped)
         }
     }

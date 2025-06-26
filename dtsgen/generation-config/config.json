@@ -52,7 +52,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": true,
     "linter": {
         "checkReferencesResolved": false
     },

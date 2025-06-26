@@ -165,7 +165,19 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
     )
 }
 
-export function groupOverloads<T extends PeerMethod>(peerMethods: T[]): T[][] {
+export function allowsOverloads(language: Language): boolean {
+    switch (language) {
+        case Language.TS:
+        case Language.CJ:
+            return false
+        default:
+            return true
+    }
+}
+
+export function groupOverloads<T extends PeerMethod>(peerMethods: T[], language: Language): T[][] {
+    if (allowsOverloads(language))
+        return peerMethods.map(it => [it])
     const seenNames = new Set<string>()
     const groups: T[][] = []
     for (const method of peerMethods) {
@@ -177,7 +189,9 @@ export function groupOverloads<T extends PeerMethod>(peerMethods: T[]): T[][] {
     return groups
 }
 
-export function groupOverloadsIDL<T extends idl.IDLSignature>(methods:T[]): T[][] {
+export function groupOverloadsIDL<T extends idl.IDLSignature>(methods: T[], language: Language): T[][] {
+    if (allowsOverloads(language))
+        return methods.map(it => [it])
     const groups = new Map<string, T[]>()
     for (const method of methods) {
         if (!groups.has(method.name)) {
@@ -263,7 +277,7 @@ export class OverloadsPrinter {
                 return cardinalityA - cardinalityB
             })
 
-        if (this.language != Language.ARKTS || peerGeneratorConfiguration().CollapseOverloadsARKTS) {
+        if (!allowsOverloads(this.language)) {
             this.printCollapsedOverloads(peer, orderedMethods)
         } else {
             // Handle special case for same name AND same signature methods.

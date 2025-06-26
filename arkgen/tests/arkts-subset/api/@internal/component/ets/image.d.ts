@@ -459,46 +459,6 @@ declare enum ImageRotateOrientation {
  */
 interface ImageInterface {
   /**
-   * Set src to obtain images.
-   *
-   * @param { PixelMap | ResourceStr | DrawableDescriptor } src
-   * @returns { ImageAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Set src to obtain images
-   *
-   * @param { PixelMap | ResourceStr | DrawableDescriptor } src
-   * @returns { ImageAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * Set src to obtain images
-   *
-   * @param { PixelMap | ResourceStr | DrawableDescriptor } src
-   * @returns { ImageAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * Set src to obtain images
-   *
-   * @param { PixelMap | ResourceStr | DrawableDescriptor } src
-   * @returns { ImageAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   */
-  (src: PixelMap | ResourceStr | DrawableDescriptor): ImageAttribute;
-
-  /**
    * Set src to obtain images
    *
    * @param { PixelMap | ResourceStr | DrawableDescriptor | ImageContent } src

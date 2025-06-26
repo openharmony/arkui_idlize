@@ -1013,17 +1013,6 @@ declare class SearchAttribute extends CommonMethod<SearchAttribute> {
   /**
    * Call the function when clicked the search button.
    *
-   * @param { Callback<string> } callback
-   * @returns { SearchAttribute }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 14
-   */
-  onSubmit(callback: Callback<string>): SearchAttribute;
-  /**
-   * Call the function when clicked the search button.
-   *
    * @param { SearchSubmitCallback } callback - callback of the listened event.
    * @returns { SearchAttribute }
    * @syscap SystemCapability.ArkUI.ArkUI.Full

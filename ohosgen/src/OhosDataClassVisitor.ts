@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { FieldModifier, IDLInterface, IDLMethod, IDLProperty, isBuilderClass, isClassSubkind, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
-import { collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
+import { FieldModifier, IDLInterface, IDLMethod, IDLProperty, isBuilderClass, isClassSubkind, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
+import { allowsOverloads, collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 
 export function printDataClasses(library:PeerLibrary): PrinterResult[] {
     return library.files.flatMap(file => {
@@ -58,8 +58,8 @@ function printInterfaceBody(library: PeerLibrary, entry: IDLInterface, printer: 
         printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional, initExpr)
     })
 
-    const groupedMethods = groupOverloadsIDL(entry.methods)
-    if (library.language != Language.ARKTS || peerGeneratorConfiguration().CollapseOverloadsARKTS) {
+    const groupedMethods = groupOverloadsIDL(entry.methods, library.language)
+    if (!allowsOverloads(library.language)) {
         groupedMethods.forEach(methods => {
             printCollapsedOverloads(library, methods, printer)
         })

@@ -1381,8 +1381,6 @@ typedef struct Ark_Literal_String_value_Callback_Void_action Ark_Literal_String_
 typedef struct Opt_Literal_String_value_Callback_Void_action Opt_Literal_String_value_Callback_Void_action;
 typedef struct Ark_Literal_TransitionEffect_appear_disappear Ark_Literal_TransitionEffect_appear_disappear;
 typedef struct Opt_Literal_TransitionEffect_appear_disappear Opt_Literal_TransitionEffect_appear_disappear;
-typedef struct Ark_Literal_Union_String_Resource_icon_text Ark_Literal_Union_String_Resource_icon_text;
-typedef struct Opt_Literal_Union_String_Resource_icon_text Opt_Literal_Union_String_Resource_icon_text;
 typedef struct Ark_LocalizedBorderRadiuses Ark_LocalizedBorderRadiuses;
 typedef struct Opt_LocalizedBorderRadiuses Opt_LocalizedBorderRadiuses;
 typedef struct Ark_LocalizedEdges Ark_LocalizedEdges;
@@ -1577,8 +1575,6 @@ typedef struct Ark_Type_CommonMethod_sweepGradient_value Ark_Type_CommonMethod_s
 typedef struct Opt_Type_CommonMethod_sweepGradient_value Opt_Type_CommonMethod_sweepGradient_value;
 typedef struct Ark_Type_PanGestureInterface_callable0_value Ark_Type_PanGestureInterface_callable0_value;
 typedef struct Opt_Type_PanGestureInterface_callable0_value Opt_Type_PanGestureInterface_callable0_value;
-typedef struct Ark_Type_TabContentAttribute_tabBar_value Ark_Type_TabContentAttribute_tabBar_value;
-typedef struct Opt_Type_TabContentAttribute_tabBar_value Opt_Type_TabContentAttribute_tabBar_value;
 typedef struct Ark_Type_Test1Attribute_testTupleUnion_value Ark_Type_Test1Attribute_testTupleUnion_value;
 typedef struct Opt_Type_Test1Attribute_testTupleUnion_value Opt_Type_Test1Attribute_testTupleUnion_value;
 typedef struct Ark_Type_TextPickerOptions_range Ark_Type_TextPickerOptions_range;
@@ -8519,15 +8515,6 @@ typedef struct Opt_Literal_TransitionEffect_appear_disappear {
     Ark_Tag tag;
     Ark_Literal_TransitionEffect_appear_disappear value;
 } Opt_Literal_TransitionEffect_appear_disappear;
-typedef struct Ark_Literal_Union_String_Resource_icon_text {
-    /* kind: Interface */
-    Opt_Union_String_Resource icon;
-    Opt_Union_String_Resource text;
-} Ark_Literal_Union_String_Resource_icon_text;
-typedef struct Opt_Literal_Union_String_Resource_icon_text {
-    Ark_Tag tag;
-    Ark_Literal_Union_String_Resource_icon_text value;
-} Opt_Literal_Union_String_Resource_icon_text;
 typedef struct Ark_LocalizedBorderRadiuses {
     /* kind: Interface */
     Opt_LengthMetrics topStart;
@@ -9418,20 +9405,6 @@ typedef struct Opt_Type_PanGestureInterface_callable0_value {
     Ark_Tag tag;
     Ark_Type_PanGestureInterface_callable0_value value;
 } Opt_Type_PanGestureInterface_callable0_value;
-typedef struct Ark_Type_TabContentAttribute_tabBar_value {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_String value0;
-        Ark_CustomObject value1;
-        CustomNodeBuilder value2;
-        Ark_Literal_Union_String_Resource_icon_text value3;
-    };
-} Ark_Type_TabContentAttribute_tabBar_value;
-typedef struct Opt_Type_TabContentAttribute_tabBar_value {
-    Ark_Tag tag;
-    Ark_Type_TabContentAttribute_tabBar_value value;
-} Opt_Type_TabContentAttribute_tabBar_value;
 typedef struct Ark_Type_Test1Attribute_testTupleUnion_value {
     /* kind: Interface */
     Ark_Union_Number_String value0;
@@ -13101,10 +13074,8 @@ typedef struct GENERATED_ArkUIImageModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
     void (*setImageOptions0)(Ark_NativePointer node,
-                             const Ark_Union_PixelMap_ResourceStr_DrawableDescriptor* src);
-    void (*setImageOptions1)(Ark_NativePointer node,
                              const Ark_Union_PixelMap_ResourceStr_DrawableDescriptor_ImageContent* src);
-    void (*setImageOptions2)(Ark_NativePointer node,
+    void (*setImageOptions1)(Ark_NativePointer node,
                              const Ark_Union_PixelMap_ResourceStr_DrawableDescriptor* src,
                              const Ark_ImageAIOptions* imageAIOptions);
     void (*setAlt)(Ark_NativePointer node,
@@ -13619,10 +13590,8 @@ typedef struct GENERATED_ArkUISearchModifier {
                         const Opt_Font* value);
     void (*setEnterKeyType)(Ark_NativePointer node,
                             const Opt_EnterKeyType* value);
-    void (*setOnSubmit0)(Ark_NativePointer node,
-                         const Opt_Callback_String_Void* callback_);
-    void (*setOnSubmit1)(Ark_NativePointer node,
-                         const Opt_SearchSubmitCallback* callback_);
+    void (*setOnSubmit)(Ark_NativePointer node,
+                        const Opt_SearchSubmitCallback* callback_);
     void (*setOnChange)(Ark_NativePointer node,
                         const Opt_EditableTextOnChangeCallback* callback_);
     void (*setOnTextSelectionChange)(Ark_NativePointer node,
@@ -13874,10 +13843,8 @@ typedef struct GENERATED_ArkUITabContentModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
     void (*setTabContentOptions)(Ark_NativePointer node);
-    void (*setTabBar0)(Ark_NativePointer node,
-                       const Opt_Type_TabContentAttribute_tabBar_value* value);
-    void (*setTabBar1)(Ark_NativePointer node,
-                       const Opt_Union_SubTabBarStyle_BottomTabBarStyle* value);
+    void (*setTabBar)(Ark_NativePointer node,
+                      const Opt_Union_SubTabBarStyle_BottomTabBarStyle* value);
 } GENERATED_ArkUITabContentModifier;
 
 typedef struct GENERATED_ArkUITabsModifier {

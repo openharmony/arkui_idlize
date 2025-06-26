@@ -83,7 +83,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "CollapseOverloadsARKTS": false,
     "constants": {
         "att1": "0",
         "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",

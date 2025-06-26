@@ -17,20 +17,18 @@ import * as idl from '@idlizer/core/idl'
 import {
     Language, isCommonMethod,
     LanguageWriter, PeerClass, PeerLibrary,
-    createReferenceType, IDLVoidType, isOptionalType,
+    createReferenceType, IDLVoidType,
     Method,
     MethodSignature,
     MethodModifier,
     NamedMethodSignature,
     LayoutNodeRole,
-    FieldModifier,
-    ArgumentModifier,
     getSuper
 } from '@idlizer/core'
 import {
     ARKOALA_PACKAGE,
     ARKOALA_PACKAGE_PATH,
-    collapseIdlPeerMethods,
+    allowsOverloads,
     collapseSameNamedMethods,
     collectComponents,
     collectDeclDependencies,
@@ -54,7 +52,6 @@ import {
     findComponentByDeclaration,
     componentToStyleClass,
 } from '@idlizer/libohos'
-import { ArkoalaPeerLibrary } from '../ArkoalaPeerLibrary'
 import { getReferenceTo } from '../knownReferences'
 
 export function generateArkComponentName(component: string) {
@@ -112,7 +109,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         collectPeersForFile(this.library, this.file).forEach(peer => {
             if (!this.options.isDeclared)
                 result.push(...this.printComponent(peer))
-            result.push(...this.printComponentFunction(peer))
+            result.push(...this.printComponentFunctions(peer))
         })
         return result
     }
@@ -203,7 +200,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     )
                 )
             )
-            for (const grouped of groupOverloads(peer.methods))
+            for (const grouped of groupOverloads(peer.methods, this.library.language))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
             // todo stub until we can process AttributeModifier
             if (!superDecl) {
@@ -266,38 +263,44 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         }]
     }
 
-    protected printComponentFunction(peer: PeerClass): PrinterResult[] {
+    protected printComponentFunctions(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter()
         const component = findComponentByName(this.library, peer.componentName)!
         const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
         const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
-        const callableMethod = callableMethods.length > 0 ? collapseSameNamedMethods(callableMethods) : undefined
-        const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
-        const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
-        const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
-        const peerClassName = componentToPeerClass(peer.componentName)
-        if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
-            return [{
-                collector: this.printImports(peer, component),
-                content: printer,
-                over: {
-                    node: component.attributeDeclaration,
-                    role: LayoutNodeRole.COMPONENT,
-                    hint: 'component.function'
-                }
-            }]
-        const declaredPostrix = this.options.isDeclared ? "decl_" : ""
-        const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
-        let paramsList = mappedCallableParams?.join(", ")
-        if (paramsList) paramsList += ","
-        printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
-            .replaceAll("%COMPONENT_NAME%", component.name)
-            .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-            .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
-            .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
-            .replaceAll("%PEER_CLASS_NAME%", peerClassName)
-            .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+        const collapsedCallables = allowsOverloads(this.library.language)
+            ? callableMethods
+            : callableMethods.length > 0
+                ? [collapseSameNamedMethods(callableMethods)]
+                : []
+        collapsedCallables.forEach(callableMethod => {
+            const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
+            const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
+            const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
+            const peerClassName = componentToPeerClass(peer.componentName)
+            if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
+                return [{
+                    collector: this.printImports(peer, component),
+                    content: printer,
+                    over: {
+                        node: component.attributeDeclaration,
+                        role: LayoutNodeRole.COMPONENT,
+                        hint: 'component.function'
+                    }
+                }]
+            const declaredPostrix = this.options.isDeclared ? "decl_" : ""
+            const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
+            let paramsList = mappedCallableParams?.join(", ")
+            if (paramsList) paramsList += ","
+            printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
+                .replaceAll("%COMPONENT_NAME%", component.name)
+                .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
+                .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
+                .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
+                .replaceAll("%PEER_CLASS_NAME%", peerClassName)
+                .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
+        })
         return [{
             collector: this.printImports(peer, component),
             content: printer,
