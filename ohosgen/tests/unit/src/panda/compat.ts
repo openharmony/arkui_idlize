@@ -89,14 +89,14 @@ export function toBigInt(value: long): long {
 }
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
-    assertEQ(value1, value2, comment)
+    arktest.assertEQ(value1, value2, comment)
 }
 
 export function checkNotEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
-    assertNE(value1, value2, comment)
+    arktest.assertNE(value1, value2, comment)
 }
 
-export class UnitTestsuite extends ArkTestsuite {
+export class UnitTestsuite extends arktest.ArkTestsuite {
     constructor(name: string) {
         super(name)
     }
