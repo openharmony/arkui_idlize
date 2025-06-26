@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, isExternalType, getExternalTypePackage } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -27,6 +27,14 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
             throw new Error(`Expected to have an entry: ${node.name}`)
         }
         return convertDeclToFeature(library, decl)
+    }
+
+    // TBD: use modules for external types handling
+    if (idl.isInterface(node)){
+        if (isExternalType(node, library)) {
+            const pack = getExternalTypePackage(node)!
+            return { feature: node.name, module: pack}
+        }
     }
 
     let feature = convertDeclaration(featureNameConvertor, node)

@@ -67,7 +67,7 @@ class SerializerPrinter {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodySerializer(writer)
             } else if (isExternalType(target, this.library)) {
-                this.generateExternalTypeBodySerializer(target, writer)
+                this.generateExternalTypeBodySerializer(target, writer, imports)
             } else {
                 this.generateInterfaceBodySerializer(target, writer, imports)
             }
@@ -127,8 +127,9 @@ class SerializerPrinter {
         writer.writeExpressionStatement(
             writer.makeMethodCall(`valueSerializer`, `writePointer`, [peerExpr]))
     }
-    private generateExternalTypeBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {
+    private generateExternalTypeBodySerializer(target: idl.IDLInterface, writer: LanguageWriter, imports:ImportsCollector) {
         this.declareSerializer(writer)
+        collectDeclItself(this.library, target, imports)
         const valueExpr = writer.makeString("value")
         let peerExpr: LanguageExpression
         const extractor = `extractors.${getExtractorName(target, writer.language)}`

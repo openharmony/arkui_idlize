@@ -14,7 +14,7 @@
  */
 
 import { posix as path } from "path"
-import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole } from "@idlizer/core"
+import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generatorConfiguration } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core";
 
 export class ImportsCollector {
@@ -29,7 +29,8 @@ export class ImportsCollector {
     addFeature(feature: string | ImportFeature, module?: string, alias?: string) {
         if (typeof feature != "string")
             return this.addFeature(feature.feature, feature.module, feature.alias)
-        let normalizedModule = path.normalize(module!)
+        const isExternalType = generatorConfiguration().externalTypes.has(feature)
+        let normalizedModule = isExternalType ? module! : path.normalize(module!)
         // TODO processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
         // Should migrate to multimodules and then remove this hack
         if (normalizedModule.startsWith('@') && normalizedModule != module)
@@ -38,7 +39,8 @@ export class ImportsCollector {
         // TODO: needs to be done more effectively
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
             .find(it => it[0] !== normalizedModule && it[1].get(feature))
-        if (featureInAnotherModule) {
+        // TBD: use modules for externa types
+        if (featureInAnotherModule && !isExternalType) {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
             const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map())
