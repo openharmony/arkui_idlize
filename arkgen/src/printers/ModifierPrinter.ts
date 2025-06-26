@@ -122,7 +122,7 @@ class ModifiersFileVisitor {
             return name.startsWith('set') && name.endsWith('Options')
         }
 
-        groupOverloads(peer.methods).forEach(m => {
+        groupOverloads(peer.methods, this.library.language).forEach(m => {
             const method = collapseIdlPeerMethods(this.library, m)
             if (attributeFilter(method.method.name)) {
                 return
