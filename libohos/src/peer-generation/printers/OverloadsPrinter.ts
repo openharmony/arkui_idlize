@@ -22,7 +22,7 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorHookName } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorHookName, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -142,23 +142,19 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
             return [target]
         }))
     })
-    const typeConvertors: ArgConvertor[] = targets.map((target, index) => {
-        if (selectMaxMethodArgs?.includes(index)) {
-            const convertor = maxMethod.argConvertors[index]
-            convertor.param = method.signature.argName(index)
-            return convertor
-        }
-        return library.typeConvertor(
-            method.signature.argName(index),
-            target,
-            idl.isOptionalType(method.signature.args[index])
-        )
-    })
 
     const returnType = collapseReturnTypes(overloads.map(it => it.returnType), library.language)
     return new PeerMethod(
+        new PeerMethodSignature(
+             method.name,
+             "%STUB&",
+             targets.map((it, index) => ({
+                name: method.signature.argName(index),
+                type: it
+             })),
+             method.signature.returnType,
+        ),
         overloads[0].originalParentName,
-        typeConvertors,
         returnType,
         overloads[0].isCallSignature,
         method,
@@ -254,7 +250,7 @@ export class OverloadsPrinter {
     private static undefinedConvertor: UndefinedConvertor | undefined
     private posfix: string = ""
 
-    constructor(private resolver: ReferenceResolver, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
+    constructor(private library: PeerLibrary, private printer: LanguageWriter, private language: Language, private isComponent: boolean, private useMemoM3: boolean) {
         // TODO: UndefinedConvertor is not known during static initialization because of cyclic dependencies
         if (!OverloadsPrinter.undefinedConvertor) {
             OverloadsPrinter.undefinedConvertor = new UndefinedConvertor("OverloadsPrinter")
@@ -265,14 +261,14 @@ export class OverloadsPrinter {
         this.posfix = postfix ?? ""
     }
 
-    printGroupedComponentOverloads(peer: PeerClassBase, peerMethods: (PeerMethod)[]) {
+    printGroupedComponentOverloads(peer: string, peerMethods: (PeerMethod)[]) {
         const orderedMethods = Array.from(peerMethods)
-            .sort((a, b) => b.argConvertors.length - a.argConvertors.length)
+            .sort((a, b) => b.sig.args.length - a.sig.args.length)
             // Methods with a large number of runtime types should have low priority(place below) and we go from specific to general
             .sort((a, b) => {
-                const cardinalityA = a.argConvertors
+                const cardinalityA = a.argConvertors(this.library)
                     .reduce((acc, it) => it.runtimeTypes.length + acc, 0)
-                const cardinalityB = b.argConvertors
+                const cardinalityB = b.argConvertors(this.library)
                     .reduce((acc, it) => it.runtimeTypes.length + acc, 0)
                 return cardinalityA - cardinalityB
             })
@@ -290,19 +286,19 @@ export class OverloadsPrinter {
         }
     }
 
-    private printCollapsedOverloads(peer: PeerClassBase, methods: PeerMethod[]) {
+    private printCollapsedOverloads(peer: string, methods: PeerMethod[]) {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
         if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
             collapsedMethod.signature.returnType = idl.IDLVoidType
         }
-        const key = peer.getComponentName() + '.' + collapsedMethod.name
+        const key = peer + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             if (this.isComponent) {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
             }
-            const hookName = generatorHookName(peer.getComponentName(), collapsedMethod.name)
+            const hookName = generatorHookName(peer, collapsedMethod.name)
             if (hookName) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookName, writer)
             } else {
@@ -321,7 +317,7 @@ export class OverloadsPrinter {
         }
     }
 
-    printHookedMethodBody(peer: PeerClassBase, method: Method, hookName: string, writer: LanguageWriter) {
+    printHookedMethodBody(peer: string, method: Method, hookName: string, writer: LanguageWriter) {
         const args = method.signature.args.map((_, i) => method.signature.argName(i))
         const hookCall = writer.makeFunctionCall(hookName, [
             writer.makeThis(), ...args.map(arg => writer.makeString(arg))
@@ -333,7 +329,7 @@ export class OverloadsPrinter {
         }
     }
 
-    printCollapsedOverloadsMethodBody(peer: PeerClassBase, collapsedMethod: Method, methods: PeerMethod[], writer: LanguageWriter) {
+    printCollapsedOverloadsMethodBody(peer: string, collapsedMethod: Method, methods: PeerMethod[], writer: LanguageWriter) {
         if (methods.length > 1) {
             const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                 const argName = collapsedMethod.signature.argName(argIndex)
@@ -341,7 +337,7 @@ export class OverloadsPrinter {
                     this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                 return new UnionRuntimeTypeChecker(
-                    methods.map(m => m.argConvertors[argIndex] ?? OverloadsPrinter.undefinedConvertor))
+                    methods.map(m => m.argConvertors(this.library)[argIndex] ?? OverloadsPrinter.undefinedConvertor))
             })
             let shallStop = false
             methods.forEach((peerMethod, methodIndex) => {
@@ -361,14 +357,14 @@ export class OverloadsPrinter {
         this.printer.writeMethodDeclaration(collapsedMethod.name, collapsedMethod.signature)
     }
 
-    private printComponentOverloadSelector(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]): boolean {
+    private printComponentOverloadSelector(peer: string, collapsedMethod: Method, peerMethod: PeerMethod, methodIndex: number, runtimeTypeCheckers: UnionRuntimeTypeChecker[]): boolean {
         const argsConditions: LanguageExpression[] = []
         collapsedMethod.signature.args
             .forEach((type, argIndex) => {
                     // Create a type selector for Optional, Union and Enum types
                     let isNeedDiscriminator = idl.isOptionalType(type) || idl.isUnionType(type)
                     if (idl.isReferenceType(type) && !isNeedDiscriminator) {
-                        const resolved = this.resolver.resolveTypeReference(idl.createReferenceType(type.name))
+                        const resolved = this.library.resolveTypeReference(idl.createReferenceType(type.name))
                         isNeedDiscriminator = resolved !== undefined && idl.isEnum(resolved)
                     }
                     if (isNeedDiscriminator) {
@@ -388,8 +384,8 @@ export class OverloadsPrinter {
         return argsConditions.length == 0
     }
 
-    public printPeerCallAndReturn(peer: PeerClassBase, collapsedMethod: Method, peerMethod: PeerMethod) {
-        const argsNames = peerMethod.argConvertors.map((conv, index) => {
+    public printPeerCallAndReturn(peer: string, collapsedMethod: Method, peerMethod: PeerMethod) {
+        const argsNames = peerMethod.argConvertors(this.library).map((conv, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
@@ -411,10 +407,10 @@ export class OverloadsPrinter {
         })
         const isStatic = collapsedMethod.modifiers?.includes(MethodModifier.STATIC)
         const receiver = isStatic
-            ? peerMethod.getImplementationName()
+            ? peer
             : this.isComponent ? `this.getPeer()` : `this`
         const namePostifx = this.isComponent ? "Attribute" : `${this.posfix}_serialize`
-        const methodName = `${peerMethod.overloadedName}${namePostifx}`
+        const methodName = `${peerMethod.sig.name}${namePostifx}`
         if (collapsedMethod.signature.returnType === idl.IDLThisType) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {

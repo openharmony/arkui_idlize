@@ -16,92 +16,98 @@ import * as idl from '../idl'
 import { generatorTypePrefix } from "../config"
 import { asPromise, IDLType } from "../idl"
 import { IdlNameConvertor } from "../LanguageWriters"
-import { ArgConvertor, isVMContextMethod } from "../LanguageWriters/ArgConvertors"
+import { ArgConvertor, createOutArgConvertor, isVMContextMethod } from "../LanguageWriters/ArgConvertors"
 import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
 import { capitalize, isDefined } from "../util"
 import { PrimitiveTypesInstance } from "./PrimitiveType"
 import { ReferenceResolver } from "./ReferenceResolver"
 import { flattenUnionType } from './unions'
+import { PeerLibrary } from './PeerLibrary'
+
+export class PeerMethodArg {
+    constructor(
+        public readonly name: string,
+        public readonly type: idl.IDLType,
+    ) {}
+}
+
+export class PeerMethodSignature {
+    constructor(
+        // contextual name of method
+        public readonly name: string,
+        // unique name of method (used in global scopes like interop)
+        public readonly fqname: string,
+        public readonly args: PeerMethodArg[],
+        public readonly returnType: idl.IDLType,
+        public readonly context: idl.IDLEntry | undefined = undefined,
+        // only modifiers affecting signature. Private, public, static and others - does not belong here
+        public readonly modifiers: (MethodModifier.FORCE_CONTEXT | MethodModifier.THROWS)[] = [],
+    ) { }
+
+    // whilt migration we're creating PeerMethod, but in reality we shoudnt (created method does not goes through interop and does not have representation in native)
+    static stub(): PeerMethodSignature {
+        return new PeerMethodSignature(
+            "%STUB$",
+            "%STUB$",
+            [],
+            idl.IDLVoidType,
+            undefined,
+        )
+    }
+
+    static generateOverloadPostfix(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): string {
+        if (!decl.parent || !idl.isInterface(decl.parent))
+            return ``
+        if (idl.isMethod(decl) || idl.isProperty(decl)) {
+            let sameNamed: idl.IDLEntry[] = [
+                ...decl.parent.properties,
+                ...decl.parent.methods,
+            ].filter(it => it.name === decl.name)
+            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
+            return overloadIndex
+        }
+        if (idl.isConstructor(decl)) {
+            const sameNamed = decl.parent.constructors.filter(it => it.name === decl.name)
+            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
+            return overloadIndex
+        }
+        if (idl.isCallable(decl)) {
+            const sameNamed = decl.parent.callables
+            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
+            return overloadIndex
+        }
+        throw new Error("unexpected type of declaration")
+    }
+
+    static get CTOR(): string { return "construct" }
+    static get GET_FINALIZER(): string { return "getFinalizer" }
+    static get DESTROY(): string { return "destroyPeer" }
+}
 
 export class PeerMethod {
     protected overloadIndex?: number
     constructor(
+        public sig: PeerMethodSignature,
         public originalParentName: string,
-        public argConvertors: ArgConvertor[],
         public returnType: IDLType,
         public isCallSignature: boolean,
         public method: Method,
-        public outArgConvertor?: ArgConvertor,
-    ) { }
-
-    get overloadedName(): string {
-        return mangleMethodName(this.method, this.overloadIndex)
-    }
-    get fullMethodName(): string {
-        return this.isCallSignature ? this.overloadedName : this.peerMethodName
-    }
-    get peerMethodName() {
-        const name = this.overloadedName
-        if (!this.hasReceiver()) return name
-        if (name.startsWith("set") ||
-            name.startsWith("get")
-        ) return name
-        return `set${capitalize(name)}`
-    }
-    get implNamespaceName(): string {
-        return `${capitalize(this.originalParentName)}Modifier`
-    }
-    get implName(): string {
-        return `${capitalize(this.overloadedName)}Impl`
-    }
-    get toStringName(): string {
-        return this.method.name
-    }
-    dummyReturnValue(resolver: ReferenceResolver): string | undefined {
-        return undefined
-    }
-    get receiverType(): string {
-        return "Ark_NodeHandle"
-    }
-    get apiCall(): string {
-        return "GetNodeModifiers()"
-    }
-    get apiKind(): string {
-        return "Modifier"
-    }
-    get argAndOutConvertors(): ArgConvertor[] {
-        return this.argConvertors.concat(this.outArgConvertor ?? [])
+    ) { 
+        // todo remove me
+        if (method.modifiers?.includes(MethodModifier.FORCE_CONTEXT))
+            sig.modifiers.push(MethodModifier.FORCE_CONTEXT)
+        if (method.modifiers?.includes(MethodModifier.THROWS))
+            sig.modifiers.push(MethodModifier.THROWS)
     }
 
-    hasReceiver(): boolean {
-        return !this.method.modifiers?.includes(MethodModifier.STATIC)
+    argConvertors(library: PeerLibrary): ArgConvertor[] {
+        return this.sig.args.map(it => library.typeConvertor(it.name, it.type, false))
     }
 
-    generateAPIParameters(converter:IdlNameConvertor): string[] {
-        const args = this.argAndOutConvertors.map(it => {
-            let isPointer = it.isPointerType()
-            return `${isPointer ? "const ": ""}${converter.convert(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
-        })
-        const receiver = this.generateReceiver()
-        if (receiver)
-            args.unshift(`${receiver.argType} ${receiver.argName}`)
-        if (!!asPromise(this.method.signature.returnType))
-            args.unshift(`${generatorTypePrefix()}AsyncWorkerPtr asyncWorker`)
-        if (isVMContextMethod(this.method))
-            args.unshift(`${generatorTypePrefix()}VMContext vmContext`)
-        return args
-    }
-
-    generateReceiver(): {argName: string, argType: string} | undefined {
-        if (!this.hasReceiver()) return undefined
-        return {
-            argName: "node",
-            argType: PrimitiveTypesInstance.NativePointer.getText()
-        }
-    }
-
-    getImplementationName(): string {
-        return this.originalParentName
+    argAndOutConvertors(library: PeerLibrary): ArgConvertor[] {
+        const convertors = this.argConvertors(library)
+        const outArgConvertor = createOutArgConvertor(library, this.sig.returnType, this.sig.args.map(it => it.name))
+        return outArgConvertor ? convertors.concat(outArgConvertor) : convertors
     }
 
     static markAndGroupOverloads(methods: PeerMethod[]): PeerMethod[] {

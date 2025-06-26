@@ -364,6 +364,8 @@
         "ignoreMethods": {
             "CommonMethod": [
                 "onClick",
+                "onClick0",
+                "onClick1",
                 "drawModifier"
             ],
             "EventEmulator": [

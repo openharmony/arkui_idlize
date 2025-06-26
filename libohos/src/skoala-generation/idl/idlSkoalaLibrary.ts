@@ -33,7 +33,8 @@ import {
     PrimitiveTypesInstance,
     resolveNamedNode,
     getSuper,
-    LayoutManager
+    LayoutManager,
+    createOutArgConvertor
 } from '@idlizer/core'
 import { WrapperClass, WrapperField, WrapperMethod } from "../WrapperClass";
 import { Skoala } from "../utils";
@@ -43,7 +44,6 @@ import { ClassConvertor, StringConvertor, TypeAliasConvertor, UnionConvertor, Cp
     convertDeclaration, convertType, DeclarationConvertor, IdlNameConvertor, TypeConvertor, generateSyntheticFunctionName
 } from "@idlizer/core"
 import { DependenciesCollector } from "../../peer-generation/idl/IdlDependenciesCollector";
-import { createOutArgConvertor } from "../../peer-generation/PromiseConvertors";
 
 export class IldSkoalaOutFile {
     readonly wrapperClasses: Map<string, [WrapperClass, any|undefined]> = new Map()
@@ -581,9 +581,7 @@ export class IdlWrapperProcessor {
         // TODO: add convertor to convers method.type, method.name, method.parameters[..].type, method.parameters[..].name
         // TODO: add arg and ret convertors
 
-        const outArgConvertor = idl.isConstructor(idlMethod)
-            ? undefined
-            : createOutArgConvertor(this.library, idlMethod.returnType, idlMethod.parameters.map(it => it.name))
+        const outArgConvertor = undefined
         let args: idl.IDLType[] = []
         let argsNames: string[] = []
         let argAndOutConvertors = idlMethod.parameters.map(param => {

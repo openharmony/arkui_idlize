@@ -22,7 +22,7 @@ import { capitalize } from '../util'
 import { isBuilderClass } from './BuilderClass'
 import { qualifiedName } from './idl/common'
 import { PeerClassBase } from './PeerClass'
-import { PeerMethod } from './PeerMethod'
+import { PeerMethod, PeerMethodSignature } from './PeerMethod'
 import { ReferenceResolver } from './ReferenceResolver'
 
 export class MaterializedField {
@@ -37,61 +37,14 @@ export class MaterializedField {
 
 export class MaterializedMethod extends PeerMethod {
     constructor(
+        sig: PeerMethodSignature,
         originalParentName: string,
         public implementationParentName: string,
-        argConvertors: ArgConvertor[],
         returnType: idl.IDLType,
         isCallSignature: boolean,
         method: Method,
-        public outArgConvertor?: ArgConvertor
     ) {
-        super(originalParentName, argConvertors, returnType, isCallSignature, method, outArgConvertor)
-    }
-
-    override get peerMethodName() {
-        return this.overloadedName
-    }
-
-    override get implNamespaceName(): string {
-        return `${capitalize(this.originalParentName)}Accessor`
-    }
-
-    override get toStringName(): string {
-        switch (this.method.name) {
-            case "ctor": return `new ${this.originalParentName}`
-            case "destructor": return `delete ${this.originalParentName}`
-            default: return super.toStringName
-        }
-    }
-
-    override dummyReturnValue(resolver: ReferenceResolver): string | undefined {
-        if (this.method.name === "ctor") return `(Ark_${this.originalParentName}) 100`
-        if (this.method.name === "getFinalizer") return `fnPtr<KNativePointer>(dummyClassFinalizer)`
-        return undefined;
-    }
-
-    override get receiverType(): string {
-        return `Ark_${this.originalParentName}`
-    }
-
-    override get apiCall(): string {
-        return "GetAccessors()"
-    }
-
-    override get apiKind(): string {
-        return "Accessor"
-    }
-
-    override generateReceiver(): { argName: string; argType: string } | undefined {
-        if (!this.hasReceiver()) return undefined
-        return {
-            argName: 'peer',
-            argType: `Ark_${this.originalParentName}`
-        }
-    }
-
-    override getImplementationName(): string {
-        return this.implementationParentName
+        super(sig, originalParentName, returnType, isCallSignature, method)
     }
 
     tsReturnType(): idl.IDLType | undefined {
@@ -124,10 +77,6 @@ export class MaterializedMethod extends PeerMethod {
     setOverloadIndex(index: number) {
         this.overloadIndex = index
     }
-
-    getOverloadPostfix(): string {
-        return `${this.overloadIndex ?? ""}`
-    }
 }
 
 export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
@@ -135,13 +84,12 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
     // add more if you need
 }) {
     const copied = new MaterializedMethod(
+        method.sig,
         method.originalParentName,
         method.implementationParentName,
-        method.argConvertors,
         method.returnType,
         method.isCallSignature,
-        overrides.method ?? method.method,
-        method.outArgConvertor)
+        overrides.method ?? method.method)
     copied.setSameOverloadIndex(method)
     return copied
 }
@@ -165,16 +113,12 @@ export class MaterializedClass implements PeerClassBase {
         PeerMethod.markAndGroupOverloads(methods)
     }
 
-    getComponentName(): string {
-        return this.className
-    }
-
     getImplementationName(): string {
         return this.isInterface ? getInternalClassName(this.className) : this.className
     }
 
     generatedName(isCallSignature: boolean): string{
-        return this.className
+        return this.getImplementationName()
     }
 
     private _isGlobal = false
@@ -191,9 +135,15 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         return undefined
     }
     return new MaterializedMethod(
+            new PeerMethodSignature(
+                PeerMethodSignature.DESTROY,
+                '%NEVER_USED$',
+                [],
+                idl.IDLVoidType,
+                clazz.decl,
+            ),
             idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
             clazz.getImplementationName(),
-            [],
             idl.IDLVoidType,
             false,
             new Method(

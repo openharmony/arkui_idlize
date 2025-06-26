@@ -13,16 +13,13 @@
  * limitations under the License.
  */
 
-import { IDLFile, IDLI32Type, IDLPointerType, IDLProperty } from "../idl"
+import { getFQName, IDLFile, IDLI32Type, IDLPointerType, IDLProperty } from "../idl"
 import { NumericConvertor, PointerConvertor } from "../LanguageWriters/ArgConvertors"
-import { PeerMethod } from "./PeerMethod"
+import { PeerMethod, PeerMethodArg, PeerMethodSignature } from "./PeerMethod"
 import { Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters/LanguageWriter"
 
 export interface PeerClassBase {
     generatedName(isCallSignature: boolean): string
-
-    // TBD: update
-    getComponentName(): string
 }
 
 export class PeerClass implements PeerClassBase {
@@ -34,10 +31,6 @@ export class PeerClass implements PeerClassBase {
 
     generatedName(isCallSignature: boolean): string{
         return isCallSignature ? this.originalInterfaceName! : this.originalClassName!
-    }
-
-    getComponentName(): string {
-        return this.componentName
     }
 
     methods: PeerMethod[] = []
@@ -52,15 +45,22 @@ export class PeerClass implements PeerClassBase {
 }
 
 export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
+    // TODO here is class FQName needed, but can not calculate if from current PeerClass data
+    const classFQN = [clazz.componentName]
     return new PeerMethod(
-            clazz.componentName,
-            [new NumericConvertor('id', IDLI32Type), new NumericConvertor('flags', IDLI32Type)],
+        new PeerMethodSignature(
+            PeerMethodSignature.CTOR,
+            classFQN.concat(PeerMethodSignature.CTOR).join('_'),
+            [new PeerMethodArg('id', IDLI32Type), new PeerMethodArg('flags', IDLI32Type)],
             IDLPointerType,
-            false,
-            new Method(
-                'construct',
-                new NamedMethodSignature(IDLPointerType, [IDLI32Type, IDLI32Type], ['id', 'flags']),
-                [MethodModifier.STATIC]
-            )
+        ),
+        clazz.componentName,
+        IDLPointerType,
+        false,
+        new Method(
+            'construct',
+            new NamedMethodSignature(IDLPointerType, [IDLI32Type, IDLI32Type], ['id', 'flags']),
+            [MethodModifier.STATIC]
         )
+    )
 }

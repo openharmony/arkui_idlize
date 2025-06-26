@@ -50,7 +50,7 @@ class TrackerVisitor {
         this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(compKey)}`)
         let methods = [createConstructPeerMethod(clazz), ...clazz.methods]
         methods.forEach(method => {
-            let mname = method.overloadedName
+            let mname = method.sig.name
             const funcKey = key(clazz.componentName, mname)
             this.incAllStatus(funcKey, this.allFunctions)
             this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)
@@ -62,7 +62,7 @@ class TrackerVisitor {
         this.incAllStatus(classKey, this.allMaterialized)
         this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(classKey)}`)
         clazz.ctors.concat(clazz.methods).forEach(method => {
-            let mname = method.overloadedName
+            let mname = method.sig.name
             const funcKey = key(clazz.className, mname)
             this.incAllStatus(funcKey, this.allFunctions)
             this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)

@@ -20,7 +20,6 @@ import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
 import { writePeerMethod } from "./PeersPrinter"
-import { createOutArgConvertor } from "../PromiseConvertors"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
 import { importTypeChecker } from "./TypeCheckPrinter"
@@ -89,7 +88,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
             /* global scope peer serialize function */
             new OverloadsPrinter(library, peerMethodWriter, library.language, false, library.useMemoM3)
-                .printGroupedComponentOverloads(new idl.PeerClass(idl.createFile([]), '', ''), peerMethods)
+                .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
 
             peerMethods.forEach(peerMethod => {
                 writePeerMethod(

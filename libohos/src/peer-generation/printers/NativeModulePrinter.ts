@@ -26,6 +26,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isVMContextMethod,
     LayoutNodeRole,
     lib,
+    createOutArgConvertor,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -33,7 +34,6 @@ import { ArkTSSourceFile, CJSourceFile, SourceFile, TsSourceFile } from "./Sourc
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
-import { createOutArgConvertor } from "../PromiseConvertors";
 import { collectPeersForFile } from "../PeersCollector";
 import { collapseIdlPeerMethods } from "./OverloadsPrinter";
 
@@ -158,7 +158,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
         if (generatorHookName(method.originalParentName, method.method.name)) return
         returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
-        const name = `_${component}_${method.overloadedName}`
+        const name = `_${component}_${method.sig.name}`
         const interopMethod = makeInteropMethod(this.library, name, method)
         this.printMethod(interopMethod)
     }
@@ -557,7 +557,7 @@ export function makeInteropMethod(
             method.method.signature.args.map((it, index) => idl.createParameter(method.method.signature.argName(index), it, method.method.signature.isArgOptional(index))),
             method.returnType,
             {
-                hasReceiver: method.hasReceiver(),
+                hasReceiver: !!method.sig.context,
                 throws: !!method.method.modifiers?.includes(MethodModifier.THROWS),
                 forceContext: !!method.method.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
             }

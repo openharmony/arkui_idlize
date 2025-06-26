@@ -1,9 +1,8 @@
 import * as path from "path"
-import { ArgumentModifier, getSuper, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, warn } from "@idlizer/core";
+import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
 import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
 import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
-import { createOutArgConvertor } from "./PromiseConvertors";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 const collectPeers_cache = new Map<LibraryInterface, PeerClass[]>()
@@ -28,11 +27,10 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     // Such as the ones coming from the friend interfaces
     // E.g. ButtonInterface instead of ButtonAttribute
     const isCallSignature = idl.isCallable(method)
-    const methodName = isCallSignature ? `set${peer.componentName}Options` : method.name
+    const methodName = isCallSignature ? `set${capitalize(peer.componentName)}Options` : method.name
     const retType = method.returnType!
     const isThisRet = isCallSignature || idl.isNamedNode(retType) && (retType.name === peer.originalClassName || retType.name === "T" || retType === idl.IDLThisType)
     const originalParentName = parentName ?? peer.originalClassName!
-    const argConvertors = method.parameters.map(param => library.typeConvertor(param.name, param.type, param.isOptional))
     const signature = new NamedMethodSignature(
         (isThisRet ? idl.IDLThisType : retType) ?? method.returnType!,
         method.parameters.map(it => it.type),
@@ -41,13 +39,23 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
         method.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
     const realRetType = isThisRet ? idl.IDLVoidType : retType
+    const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(method)
+    const newMethodName = isCallSignature
+        ? methodName + overloadPostfix
+        : `set${capitalize(methodName)}${overloadPostfix}`
     return new PeerMethod(
+        new PeerMethodSignature(
+            newMethodName,
+            idl.getFQName(method.parent as idl.IDLInterface).split('.').concat(newMethodName).join('_'),
+            signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), idl.maybeOptional(it, signature.isArgOptional(index)))),
+            signature.returnType,
+            method.parent as idl.IDLInterface,
+        ),
         originalParentName,
-        argConvertors,
         realRetType,
         isCallSignature,
-        new Method(methodName!, signature, getMethodModifiers(method)),
-        createOutArgConvertor(library, isThisRet ? idl.IDLVoidType : retType, argConvertors.map(it => it.param)))
+        new Method(methodName!, signature, getMethodModifiers(method))
+    )
 }
 
 function fillInterface(library: PeerLibrary, peer: PeerClass, iface: idl.IDLInterface) {
@@ -63,11 +71,18 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     if (peerGeneratorConfiguration().components.ignorePeerMethod.includes(prop.name))
         return
     const originalParentName = parentName ?? peer.originalClassName!
-    const argConvertor = library.typeConvertor("value", prop.type, prop.isOptional)
     const signature = new NamedMethodSignature(idl.IDLThisType, [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
+    const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(prop)
+    const methodName = `set${capitalize(prop.name)}${overloadPostfix}`
     return new PeerMethod(
+        new PeerMethodSignature(
+            methodName,
+            idl.getFQName(prop.parent as idl.IDLInterface).split('.').concat(methodName).join('_'),
+            [new PeerMethodArg('value', idl.maybeOptional(prop.type, prop.isOptional))],
+            idl.IDLVoidType,
+            prop.parent as idl.IDLInterface,
+        ),
         originalParentName,
-        [argConvertor],
         idl.IDLVoidType,
         false,
         new Method(prop.name, signature, []))

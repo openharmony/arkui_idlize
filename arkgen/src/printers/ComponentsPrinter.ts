@@ -201,7 +201,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 )
             )
             for (const grouped of groupOverloads(peer.methods, this.library.language))
-                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, grouped)
+                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
             // todo stub until we can process AttributeModifier
             if (!superDecl) {
                 writer.writeFieldDeclaration(`_modifier`, generateAttributeModifierSignature(this.library, component).args[0], undefined, true)
@@ -361,7 +361,7 @@ class JavaComponentFileVisitor implements ComponentFileVisitor {
                     writer.writeStatement(writer.makeCondition(
                         writer.makeString(`checkPriority("${method.name}")`),
                         writer.makeBlock([
-                            writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.overloadedName}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
+                            writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.sig.name}Attribute`, signature.argsNames.map(it => writer.makeString(it)))),
                             writer.makeReturn(thiz),
                         ])))
                     writer.writeStatement(writer.makeReturn(thiz))
@@ -452,7 +452,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
             )
             // for (const grouped of groupOverloads(filteredMethods))
             for (const grouped of peer.methods)
-                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer, [grouped])
+                this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [grouped])
             // todo stub until we can process AttributeModifier
             if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                 writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)

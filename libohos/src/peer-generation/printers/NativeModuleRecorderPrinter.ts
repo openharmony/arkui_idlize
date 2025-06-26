@@ -69,37 +69,38 @@ class NativeModuleRecorderVisitor {
     private printInterface(clazz: PeerClass) {
         this.nativeModuleRecorder.writeInterface(`${clazz.componentName}Interface`, w => {
             for (const method of clazz.methods) {
-                for (const arg of method.argAndOutConvertors) {
-                    w.print(`${method.overloadedName}_${arg.param}?: ${w.getNodeName(arg.idlType)}`)
+                for (const arg of method.argAndOutConvertors(this.library)) {
+                    w.print(`${method.sig.name}_${arg.param}?: ${w.getNodeName(arg.idlType)}`)
                 }
             }
         }, clazz.parentComponentName ? [`${clazz.parentComponentName}Interface`, `UIElement`] : undefined)
     }
 
-    private printPeerMethod(clazz: PeerClassBase, method: PeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
+    private printPeerMethod(clazz: PeerClass, method: PeerMethod, nativeModuleRecorder: LanguageWriter, returnType?: IDLType) {
         const component = clazz.generatedName(method.isCallSignature)
-        const interfaceName = clazz.getComponentName()
-        let name = `_${component}_${method.overloadedName}`
+        const interfaceName = clazz.componentName
+        let name = `_${component}_${method.sig.name}`
         const interopMethod = makeInteropMethod(this.library, name, method)
 
         nativeModuleRecorder.writeMethodImplementation(interopMethod, (printer) => {
             this.nativeModuleRecorder.writeLines(`let node = this.ptr2object<${interfaceName}Interface>(${interopMethod.signature.argName(0)})`)
             var deserializerCreated = false
-            for (let i = 0; i < method.argAndOutConvertors.length; i++) {
-                if (method.argAndOutConvertors[i].useArray) {
+            const argConvertors = method.argAndOutConvertors(this.library)
+            for (let i = 0; i < argConvertors.length; i++) {
+                if (argConvertors[i].useArray) {
                     if (!deserializerCreated) {
                         this.nativeModuleRecorder.writeLines(`const thisDeserializer = new Deserializer(thisArray.buffer, thisLength)`)
                         deserializerCreated = true
                     }
 
-                    const fieldName = `${method.overloadedName}_${method.argAndOutConvertors[i].param}`
+                    const fieldName = `${method.sig.name}_${argConvertors[i].param}`
                     printer.writeStatement(
-                        method.argAndOutConvertors[i].convertorDeserialize(`${fieldName}_buf`, `thisDeserializer`, (expr) => {
+                        argConvertors[i].convertorDeserialize(`${fieldName}_buf`, `thisDeserializer`, (expr) => {
                             return printer.makeAssign(`node.${fieldName}`, undefined, expr, false)
                         }, printer)
                     )
                 } else {
-                    this.nativeModuleRecorder.writeLines(`node.${method.overloadedName}_${method.argAndOutConvertors[i].param} = ${interopMethod.signature.argName(i + 1)}`)
+                    this.nativeModuleRecorder.writeLines(`node.${method.sig.name}_${argConvertors[i].param} = ${interopMethod.signature.argName(i + 1)}`)
                 }
             }
         })
@@ -107,7 +108,7 @@ class NativeModuleRecorderVisitor {
 
     private printConstructMethod(clazz: PeerClass, nativeModuleRecorder: LanguageWriter) {
         const method = createConstructPeerMethod(clazz)
-        const name = `_${method.originalParentName}_${method.overloadedName}`
+        const name = `_${method.originalParentName}_${method.sig.name}`
         const signature = method.method.signature
         const args = signature.args.map((arg, idx) => { return { name: signature.argName(idx), type: arg } })
         const parameters = NamedMethodSignature.make(IDLPointerType, args)

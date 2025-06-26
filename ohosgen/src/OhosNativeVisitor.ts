@@ -15,6 +15,7 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as idl from '@idlizer/core/idl'
 import {
     asPromise,
     createConstructor,
@@ -71,9 +72,10 @@ import {
     currentModule,
     sorted,
     getSuper,
+    PeerMethodSignature,
+    createOutArgConvertor,
 } from '@idlizer/core'
 import {
-    createOutArgConvertor,
     getInteropRootPath,
     readLangTemplate,
     getUniquePropertiesFromSuperTypes,
@@ -94,6 +96,7 @@ import {
     peerGeneratorConfiguration,
     libraryCcDeclaration,
     createCSerializerPrinter,
+    getDeclarationUniqueName
 } from '@idlizer/libohos'
 import { OhosInstall } from './OhosInstall'
 
@@ -454,13 +457,13 @@ class ReturnTypeConvertor extends CppReturnTypeConvertor {
 
 // TODO commonize this piece of code
 class OhosBridgeCcVisitor extends BridgeCcVisitor {
-    protected generateApiCall(method: PeerMethod, modifierName?: string): string {
+    protected generateApiCall(context: idl.IDLInterface): string {
         // TODO: may be need some translation tables?
-        let clazz = modifierName ?? method.originalParentName
+        let clazz = getDeclarationUniqueName(context)
         return capitalize(clazz) + "()"
     }
 
-    protected getApiCall(method: PeerMethod): string {
+    protected getApiCall(context: idl.IDLInterface): string {
         const libName = this.library.name;
         return `Get${generatorConfiguration().TypePrefix}${this.library.name}_API(${libName}_API_VERSION)`
     }
@@ -470,33 +473,26 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         return "thisPtr"
     }
 
-    protected printReceiverCastCall(method: PeerMethod) {
+    protected printReceiverCastCall(context: idl.IDLInterface, method: PeerMethod) {
         // OHOS API does not need to cast native pointer at this moment
     }
 
     protected getPeerMethodName(method: PeerMethod): string {
-        const methodName = method.peerMethodName
-        switch (methodName) {
-            case "ctor": return `construct`
-            case "getFinalizer": return "destruct"
-            default: {
-                if (methodName.startsWith("ctor")) {
-                    return `construct${methodName.substring("ctor".length)}`
-                }
-                return method.peerMethodName
-            }
+        switch (method.sig.name) {
+            case PeerMethodSignature.GET_FINALIZER: return "destruct"
+            default: return method.sig.name
         }
     }
 
-    protected printAPICall(method: PeerMethod, modifierName?: string) {
-        if (method.peerMethodName == "getFinalizer") {
-            const modifier = this.generateApiCall(method, modifierName)
+    protected printAPICall(context: idl.IDLInterface, method: PeerMethod) {
+        if (method.sig.name == PeerMethodSignature.GET_FINALIZER) {
+            const modifier = this.generateApiCall(context)
             const peerMethod = this.getPeerMethodName(method)
-            const apiCall = this.getApiCall(method)
+            const apiCall = this.getApiCall(context)
             const call = `return (${PrimitiveTypesInstance.NativePointer}) ${apiCall}->${modifier}->${peerMethod};`
             this.generatedApi.print(call)
         } else {
-            super.printAPICall(method, modifierName)
+            super.printAPICall(context, method)
         }
     }
 
@@ -505,7 +501,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
         const modifierName = "";
         for (const method of [...clazz.ctors, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
-            this.printMethod(method);
+            this.printMethod(clazz.decl, method);
         }
     }
 }

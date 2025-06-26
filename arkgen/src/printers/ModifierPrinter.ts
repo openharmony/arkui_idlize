@@ -86,7 +86,7 @@ class ModifiersFileVisitor {
     }
 
     printModifierWithKeyBody(writer: LanguageWriter, peer: PeerClass, method: PeerMethod) {
-        const argsNames = method.argConvertors.map((conv, index) => {
+        const argsNames = method.argConvertors(this.library).map((conv, index) => {
             const argName = conv.param
             const castedType = idl.maybeOptional(method.method.signature.args[index], method.method.signature.isArgOptional(index))
             return `${writer.escapeKeyword(argName)} as ${writer.getNodeName(castedType)}`
@@ -128,7 +128,7 @@ class ModifiersFileVisitor {
                 return
             }
             const args: string[] = []
-            const types = method.argConvertors.map((conv, index) => {
+            const types = method.argConvertors(this.library).map((conv, index) => {
                 args.push(conv.param)
                 return idl.maybeOptional(method.method.signature.args[index], method.method.signature.isArgOptional(index))
             })
@@ -154,7 +154,7 @@ class ModifiersFileVisitor {
             })
 
             writer.writeMethodImplementation(new Method('applyModifierPatch',
-                new MethodSignature(idl.IDLVoidType, [idl.createReferenceType(componentToPeerClass(peer.componentName))], [], [], [], ['peerNode'])),
+                new MethodSignature(idl.IDLVoidType, [idl.createReferenceType(componentAttribute)], [], [], [], ['component'])),
                 writer => {
                     const statements: IfStatement[] = []
                     attributeTypes.forEach((attribute, name) => {
@@ -163,12 +163,11 @@ class ModifiersFileVisitor {
                             return;
                         }
                         const expr = `this.${this.generateFiledFlag(attribute[0].method.name)}`
-                        const subfix = `Attribute`
                         const params: LanguageExpression[] = attribute[1].map((_, index) => {
                             return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute[0].method.name, index.toString())}`), attribute[0].method.signature.args[index])
                         })
 
-                        const statement = writer.makeMethodCall('peerNode', `${attribute[0].overloadedName}${subfix}`, params)
+                        const statement = writer.makeMethodCall('component', `${attribute[0].method.name}`, params)
                         statements.push(new IfStatement(
                             writer.makeString(expr),
                             writer.makeStatement(statement),

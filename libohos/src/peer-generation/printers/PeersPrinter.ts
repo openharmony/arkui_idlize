@@ -31,7 +31,8 @@ import {
     CustomTypeConvertor,
     ArgumentModifier,
     capitalize,
-    InteropReturnTypeConvertor
+    InteropReturnTypeConvertor,
+    PeerMethodSignature
 } from '@idlizer/core'
 import { ImportsCollector } from "../ImportsCollector"
 import {
@@ -173,7 +174,7 @@ class PeerFileVisitor {
                 writer.writeStatement(
                     writer.makeAssign(_peerPtr, undefined, writer.makeNativeCall(
                         NativeModule.Generated,
-                        `_${peer.componentName}_${createConstructPeerMethod(peer).overloadedName}`,
+                        `_${peer.componentName}_${createConstructPeerMethod(peer).sig.name}`,
                         [writer.makeString(peerId), writer.makeString(signature.argName(1))]
                     ), true)
                 )
@@ -195,7 +196,7 @@ class PeerFileVisitor {
     }
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
-        this.library.setCurrentContext(`${method.originalParentName}.${method.overloadedName}`)
+        this.library.setCurrentContext(`${method.originalParentName}.${method.sig.name}`)
         writePeerMethod(this.library, printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
@@ -416,18 +417,19 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
     if (generatorHookName(method.originalParentName, method.method.name)) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
-        `${method.overloadedName}${methodPostfix}`,
+        `${method.sig.name}${methodPostfix}`,
         new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
         method.method.modifiers, method.method.generics
     )
+    const argConvertors = method.argAndOutConvertors(library)
     printer.writeMethodImplementation(peerMethod, (writer) => {
-        let scopes = method.argAndOutConvertors.filter(it => it.isScoped)
+        let scopes = argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
             writer.pushIndent()
         })
         let serializerCreated = false
         let returnValueFilledThroughOutArg = false
-        method.argAndOutConvertors.forEach((it, index) => {
+        argConvertors.forEach((it, index) => {
             if (it.useArray) {
                 if (!serializerCreated) {
                     const serializerRef = createReferenceType('SerializerBase')
@@ -453,18 +455,18 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         // Enable to see serialized data.
         if (dumpSerialized) {
             let arrayNum = 0
-            method.argAndOutConvertors.forEach((it, index) => {
+            argConvertors.forEach((it, index) => {
                 if (it.useArray) {
                     writer.writePrintLog(`"${it.param}:", thisSerializer.asBuffer(), thisSerializer.length())`)
                 }
             })
         }
         let params: LanguageExpression[] = []
-        if (method.hasReceiver()) {
+        if (method.sig.context) {
             params.push(writer.makeString(ptr))
         }
         let serializerPushed = false
-        method.argAndOutConvertors.forEach(it => {
+        argConvertors.forEach(it => {
             if (it.useArray) {
                 if (!serializerPushed) {
                     params.push(writer.makeSerializedBufferGetter(`thisSerializer`))
@@ -477,7 +479,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         })
         let call = writer.makeNativeCall(
             NativeModule.Generated,
-            `_${method.originalParentName}_${method.overloadedName}`,
+            `_${method.originalParentName}_${method.sig.name}`,
             params)
 
         if (!returnValueFilledThroughOutArg && returnType != IDLVoidType && returnType !== IDLThisType) {
@@ -498,7 +500,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 // keep result
             } else if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
-            } else if (method instanceof MaterializedMethod && method.peerMethodName !== "ctor") {
+            } else if (method instanceof MaterializedMethod && method.sig.name !== PeerMethodSignature.CTOR) {
                 if (isNamedNode(returnType)
                     && (returnType.name === method.originalParentName || isMaterializedType(returnType, writer.resolver))) {
                     result = [
@@ -590,7 +592,7 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
 }
 
 function returnsThis(method: PeerMethod, returnType: IDLType) {
-    return method.hasReceiver() && returnType === IDLThisType
+    return !!method.sig.context && returnType === IDLThisType
 }
 
 function constructMaterializedObject(writer: LanguageWriter, signature: MethodSignature,

@@ -41,6 +41,7 @@ import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { qualifiedName } from "../peer-generation/idl/common";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
+import { PeerMethodSignature } from "../peer-generation/PeerMethod";
 
 export function getSerializerName(declaration:idl.IDLEntry) {
     return `${idl.getQualifiedName(declaration, "namespace.name").split('.').join('_')}_serializer`;
@@ -107,8 +108,9 @@ export function isDirectConvertedType(originalType: idl.IDLType|undefined, libra
     return result
 }
 
-export function isVMContextMethod(method: Method): boolean {
-    return !!idl.asPromise(method.signature.returnType) ||
+export function isVMContextMethod(method: Method | PeerMethodSignature): boolean {
+    const isPromise = !!idl.asPromise(method instanceof PeerMethodSignature ? method.returnType : method.signature.returnType)
+    return isPromise ||
         !!method.modifiers?.includes(MethodModifier.THROWS) ||
         !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT) ||
         generatorConfiguration().forceContext.includes(method.name)
@@ -1495,5 +1497,59 @@ export function generateCallbackAPIArguments(library: LibraryInterface, callback
 export function maybeTransformManagedCallback(callback: idl.IDLCallback, library: ReferenceResolver): idl.IDLCallback | undefined {
     if (callback.name === "CustomBuilder")
         return library.resolveTypeReference(idl.createReferenceType("CustomNodeBuilder")) as idl.IDLCallback
+    return undefined
+}
+
+class PromiseOutArgConvertor extends BaseArgConvertor {
+    callbackConvertor: CallbackConvertor
+    callback: idl.IDLCallback
+    isOut: true = true
+    constructor(
+        private readonly library: PeerLibrary,
+        param: string,
+        readonly promise: idl.IDLContainerType)
+    {
+        super(library.createContinuationCallbackReference(promise), [RuntimeType.FUNCTION], false, true, param)
+        const type = this.idlType as idl.IDLReferenceType
+        const callbackEntry = library.resolveTypeReference(type)
+        if (!callbackEntry)
+            throw new Error(`Internal error: no callback for ${type.name} resolved`)
+        this.callback = callbackEntry as idl.IDLCallback
+        this.callbackConvertor = new CallbackConvertor(library, param, this.callback, this.library.interopNativeModule)
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        return this.callbackConvertor.convertorArg(param, writer)
+    }
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): void {
+        if (writer.language == Language.CPP) {
+            this.callbackConvertor.convertorSerialize(param, value, writer)
+            return
+        }
+
+        const serializeCallback = idl.isVoidType(this.promise.elementType[0])
+            ? writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallbackForPromiseVoid`, [])
+            : writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallbackForPromise<${writer.getNodeName(this.promise.elementType[0])}>`, [])
+        writer.writeStatement(writer.makeAssign(value, undefined, writer.language == Language.CJ ? writer.makeString(serializeCallback.asString().concat('.promise')) : writer.makeTupleAccess(serializeCallback.asString(), 0), true))
+    }
+
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        return this.callbackConvertor.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
+    }
+    nativeType(): idl.IDLType {
+        return this.idlType
+    }
+    isPointerType(): boolean {
+        return true
+    }
+}
+
+export function createOutArgConvertor(library: PeerLibrary, type: idl.IDLType|undefined, otherParams: string[]): ArgConvertor | undefined {
+    if (type && idl.isContainerType(type) && idl.IDLContainerUtils.isPromise(type)) {
+        const param = (entropy: number) => `outputArgumentForReturningPromise${entropy || ''}`
+        let paramEntropy = 0
+        while (otherParams?.includes(param(paramEntropy)))
+            ++paramEntropy;
+        return new PromiseOutArgConvertor(library, param(paramEntropy), type)
+    }
     return undefined
 }

@@ -39,6 +39,26 @@ import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@i
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { makeInteropMethod } from "./NativeModulePrinter";
 import { collectPeersForFile } from "../PeersCollector";
+import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
+import { getDeclarationUniqueName } from "./NativeUtils";
+
+export function peerApiCall(library: PeerLibrary, context: idl.IDLEntry): [string, string] {
+    if (idl.isInterface(context) && isComponentDeclaration(library, context)) {
+        const component = findComponentByDeclaration(library, context)!
+        return ['GetNodeModifiers()', `get${capitalize(component.name)}Modifier()`]
+    }
+    if (idl.isInterface(context) && idl.isMaterialized(context, library))
+        return ['GetAccessors()', `get${getDeclarationUniqueName(context)}Accessor()`]
+    throw new Error(`Can not calculate api call for node ${context.name}`)
+}
+
+export function peerReceiverType(library: PeerLibrary, context: idl.IDLEntry): string {
+    if (isComponentDeclaration(library, context!))
+        return 'Ark_NodeHandle';
+    if (idl.isInterface(context) && idl.isMaterialized(context, library))
+        return library.createTypeNameConvertor(Language.CPP).convert(context)
+    throw new Error(`Can not calculate receiver type for node ${context.name}`)
+}
 
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
@@ -50,9 +70,8 @@ export class BridgeCcVisitor {
         protected readonly callLog: boolean,
     ) {}
 
-    protected generateApiCall(method: PeerMethod, modifierName?: string): string {
-        let clazz = modifierName ?? method.originalParentName
-        return `get${capitalize(clazz)}${method.apiKind}()`
+    protected generateApiCall(context: idl.IDLInterface): string {
+        return peerApiCall(this.library, context)[1]
     }
 
     protected escapeKeyword(kw: string): string {
@@ -69,25 +88,25 @@ export class BridgeCcVisitor {
             return `${argConvertor.convertorArg(this.escapeKeyword(argConvertor.param), this.generatedApi)}`
     }
 
-    protected getApiCall(method: PeerMethod): string {
-        return method.apiCall
+    protected getApiCall(context: idl.IDLInterface): string {
+        return peerApiCall(this.library, context)[0]
     }
 
-    protected printAPICall(method: PeerMethod, modifierName?: string) {
-        const argAndOutConvertors = method.argAndOutConvertors
+    protected printAPICall(context: idl.IDLInterface, method: PeerMethod) {
+        const argAndOutConvertors = method.argAndOutConvertors(this.library)
         const isVoid = this.returnTypeConvertor.isVoid(method)
-        const modifier = this.generateApiCall(method, modifierName)
+        const modifier = this.generateApiCall(context)
         const peerMethod = this.getPeerMethodName(method)
         // TODO: how do we know the real amount of arguments of the API functions?
         // Do they always match in TS and in C one to one?
         const args = argAndOutConvertors.map(it => this.generateApiArgument(it))
-        if (method.hasReceiver())
+        if (method.sig.context)
             args.unshift(this.getReceiverArgName())
         if (!!idl.asPromise(method.returnType))
             args.unshift(`GetAsyncWorker()`)
         if (idl.isVMContextMethod(method.method))
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
-        const apiCall = this.getApiCall(method)
+        const apiCall = this.getApiCall(context)
         const field = this.getApiCallResultField(method)
         // TODO: It is necessary to implement value passing to vm
         const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args.join(", ")})${field}`
@@ -129,22 +148,22 @@ export class BridgeCcVisitor {
     }
 
     protected getPeerMethodName(method: PeerMethod): string {
-        return method.peerMethodName
+        return method.sig.name
     }
 
-    protected printReceiverCastCall(method: PeerMethod) {
-        const receiverType = method.receiverType;
+    protected printReceiverCastCall(context: idl.IDLInterface, method: PeerMethod) {
+        let receiverType = peerReceiverType(this.library, context)
         const self = this.getReceiverArgName();
         this.generatedApi.print(`${receiverType} ${self} = reinterpret_cast<${receiverType}>(thisPtr);`)
     }
 
-    private printNativeBody(method: PeerMethod, modifierName?: string) {
+    private printNativeBody(context: idl.IDLInterface, method: PeerMethod) {
         this.generatedApi.pushIndent()
-        if (method.hasReceiver()) {
-            this.printReceiverCastCall(method)
+        if (method.sig.context) {
+            this.printReceiverCastCall(context, method)
         }
         let deserializerCreated = false
-        method.argAndOutConvertors.forEach(it => {
+        method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
                 if (!deserializerCreated) {
                     this.generatedApi.print(`DeserializerBase thisDeserializer(thisArray, thisLength);`)
@@ -158,7 +177,7 @@ export class BridgeCcVisitor {
                 }, this.generatedApi))
             }
         })
-        this.printAPICall(method, modifierName)
+        this.printAPICall(context, method)
         this.generatedApi.popIndent()
     }
 
@@ -171,8 +190,9 @@ export class BridgeCcVisitor {
         this.generatedApi.print('std::string _tmp;')
         this.generatedApi.print('static int _num = 0;')
         let varNames : string[] = new Array<string>()
-        for (let i = 0; i < method.argAndOutConvertors.length; ++i) {
-            let it = method.argAndOutConvertors[i]
+        const argConvertors = method.argAndOutConvertors(this.library)
+        for (let i = 0; i < argConvertors.length; ++i) {
+            let it = argConvertors[i]
             let name = this.generateApiArgument(it) // it.param + '_value'
             this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
             varNames.push(`var${BridgeCcVisitor.varCnt}`)
@@ -182,20 +202,20 @@ export class BridgeCcVisitor {
         }
 
         this.generatedApi.print(`_logData.append("  ${api}->${modifier}->${this.getPeerMethodName(method)}(");`)
-        if (method.hasReceiver()) {
+        if (method.sig.context) {
             this.generatedApi.print(`_logData.append("(${PrimitiveTypesInstance.NativePointer})");`)
             this.generatedApi.print(`_logData.append("peer" + std::to_string((uintptr_t)thisPtr));`);
-            if (method.argAndOutConvertors.length > 0)
+            if (argConvertors.length > 0)
                 this.generatedApi.print(`_logData.append(", ");`)
         }
-        method.argAndOutConvertors.forEach((it, index) => {
+        argConvertors.forEach((it, index) => {
             const type = it.nativeType()
             if (type === IDLNumberType && (it.idlType === IDLNumberType || it.idlType === IDLBooleanType)) {
                 this.generatedApi.print(`_logData.append("${varNames[index]}_" + std::to_string(_num));`)
             } else {
                 this.generatedApi.print(`_logData.append("&${varNames[index]}_" + std::to_string(_num));`)
             }
-            if (index < method.argAndOutConvertors.length - 1)
+            if (index < argConvertors.length - 1)
                 this.generatedApi.print(`_logData.append(", ");`)
         })
         this.generatedApi.print("_num += 1;")
@@ -206,9 +226,9 @@ export class BridgeCcVisitor {
     }
 
     private generateCMacroSuffix(method: PeerMethod): string {
-        let argumentsCount = method.hasReceiver() ? 1 : 0
+        let argumentsCount = method.sig.context ? 1 : 0
         let arrayAdded = false
-        method.argAndOutConvertors.forEach(it => {
+        method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
                 if (!arrayAdded) {
                     argumentsCount += 2
@@ -218,7 +238,7 @@ export class BridgeCcVisitor {
                 argumentsCount += 1
             }
         })
-        const cName = `${method.originalParentName}_${method.overloadedName}`
+        const cName = `${method.originalParentName}_${method.sig.name}`
         const interopMethod = makeInteropMethod(this.library, cName, method)
         const needsContext = idl.isVMContextMethod(interopMethod)
         const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(interopMethod, this.library) ? 'DIRECT_' : ''
@@ -226,20 +246,11 @@ export class BridgeCcVisitor {
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
 
-    private isDirect(method: PeerMethod): boolean {
-        let isDirect = isDirectConvertedType(method.returnType, this.library)
-        method.argAndOutConvertors.forEach(it => {
-            if (!it.useArray)
-                isDirect &&= isDirectConvertedType(it.interopType(), this.library)
-        })
-        return isDirect
-    }
-
     private generateCParameters(method: PeerMethod): [string, string][] {
-        const maybeReceiver: [string, string][] = method.hasReceiver()
+        const maybeReceiver: [string, string][] = method.sig.context
             ? [[PrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []
         let ptrCreated = false;
-        method.argAndOutConvertors.forEach(it => {
+        method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
                 if (!ptrCreated) {
                     maybeReceiver.push(["KSerializerBuffer", "thisArray"], ["int32_t", "thisLength"])
@@ -262,19 +273,18 @@ export class BridgeCcVisitor {
         return undefined
     }
 
-    protected printMethod(method: PeerMethod, modifierName?: string) {
+    protected printMethod(context: idl.IDLInterface, method: PeerMethod) {
         if (idl.generatorHookName(method.originalParentName, method.method.name)) return
-        const cName = `${method.originalParentName}_${method.overloadedName}`
+        const cName = `${method.originalParentName}_${method.sig.name}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
         const argTypesAndNames = this.generateCParameters(method)
-
         const argDecls = argTypesAndNames.map(([type, name]) =>
             type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
         if (idl.isVMContextMethod(makeInteropMethod(this.library, cName, method)))
             argDecls.unshift("KVMContext vmContext")
         this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
         this.generatedApi.pushIndent()
-        this.printNativeBody(method, modifierName)
+        this.printNativeBody(context, method)
         this.generatedApi.popIndent()
         this.generatedApi.print(`}`)
         const macroRetType = this.mapToKTypes(method.returnType) ?? retType
@@ -326,7 +336,8 @@ export class BridgeCcVisitor {
             const peersToGenerate = sorted(collectPeersForFile(this.library, file), it => it.componentName)
             for (const peer of peersToGenerate) {
                 for (const method of [createConstructPeerMethod(peer)].concat(peer.methods)) {
-                    this.printMethod(method, peer.componentName)
+                    const component = findComponentByName(this.library, peer.componentName)
+                    this.printMethod(component!.attributeDeclaration, method)
                 }
             }
         }
@@ -353,7 +364,7 @@ export class BridgeCcVisitor {
     protected printMaterializedClass(clazz: MaterializedClass) {
         for (const method of [...clazz.ctors, clazz.finalizer].concat(clazz.methods)) {
             if (!method) continue
-            this.printMethod(method)
+            this.printMethod(clazz.decl, method)
         }
     }
 }

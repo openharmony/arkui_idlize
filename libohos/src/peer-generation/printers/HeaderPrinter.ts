@@ -17,6 +17,13 @@ import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, Cp
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
     MaterializedClass,
     generatorHookName,
+    IdlNameConvertor,
+    isMaterialized,
+    PrimitiveTypesInstance,
+    isInterface,
+    asPromise,
+    generatorTypePrefix,
+    isVMContextMethod,
 } from '@idlizer/core'
 import { getNodeTypes } from "../FileGenerators";
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
@@ -24,9 +31,30 @@ import { printMethodDeclaration } from "../LanguageWriters";
 import { createGlobalScopeLegacy } from '../GlobalScopeUtils';
 import { collectOrderedPeers } from '../PeersCollector';
 import { getAccessorName, getDeclarationUniqueName } from './NativeUtils';
+import { isComponentDeclaration } from '../ComponentsCollector';
 
 export function generateEventReceiverName(componentName: string) {
     return `${peerGeneratorConfiguration().cppPrefix}ArkUI${componentName}EventsReceiver`
+}
+
+export function generateCapiParameters(library: PeerLibrary, method: PeerMethod, converter: IdlNameConvertor): string[] {
+    const args = method.argAndOutConvertors(library).map(it => {
+        let isPointer = it.isPointerType()
+        return `${isPointer ? "const ": ""}${converter.convert(it.nativeType())}${isPointer ? "*": ""} ${it.param}`
+    })
+    if (method.sig.context && isInterface(method.sig.context)) {
+        if (isComponentDeclaration(library, method.sig.context)) {
+            args.unshift(`${PrimitiveTypesInstance.NativePointer.getText()} node`)
+        } else if (isMaterialized(method.sig.context, library)) {
+            const cppConvertor = library.createTypeNameConvertor(Language.CPP)
+            args.unshift(`${cppConvertor.convert(method.sig.context)} peer`)
+        }
+    }
+    if (!!asPromise(method.sig.returnType))
+        args.unshift(`${generatorTypePrefix()}AsyncWorkerPtr asyncWorker`)
+    if (isVMContextMethod(method.sig))
+        args.unshift(`${generatorTypePrefix()}VMContext vmContext`)
+    return args
 }
 
 export class HeaderVisitor {
@@ -53,8 +81,8 @@ export class HeaderVisitor {
 
     private printMethod(method: PeerMethod) {
         if (generatorHookName(method.originalParentName, method.method.name)) return
-        const apiParameters = method.generateAPIParameters(this.library.createTypeNameConvertor(Language.CPP))
-        printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.returnType), `(*${method.fullMethodName})`, apiParameters, `;`)
+        const apiParameters = generateCapiParameters(this.library, method, this.library.createTypeNameConvertor(Language.CPP))
+        printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.sig.returnType), `(*${method.sig.name})`, apiParameters, `;`)
     }
 
     private printClassEpilog(clazz: PeerClass) {

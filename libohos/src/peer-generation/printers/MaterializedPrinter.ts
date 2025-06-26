@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, throwException, DelegationType, LanguageExpression, DelegationCall } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, PeerMethodSignature, MaterializedMethod, throwException, DelegationType, LanguageExpression, DelegationCall } from '@idlizer/core'
 import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -126,7 +126,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const collapsedCtor = collapseSameNamedMethods(ctors.map(it => it.method), undefined, undefined)
         this.printCollapsedCtor(clazz, collapsedCtor, ctorPostfix, superClassName)
         this.overloadsPrinter.setPostfix(ctorPostfix)
-        this.overloadsPrinter.printGroupedComponentOverloads(clazz, ctors)
+        this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), ctors)
         this.overloadsPrinter.setPostfix()
         for (const ctor of clazz.ctors) {
             this.printMethod(ctor, `${ctorPostfix}_serialize`, idl.IDLPointerType)
@@ -179,7 +179,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const peerPtrExpr = writer.makeTernary(
             writer.makeString(`${peerPtr} != undefined`),
             writer.makeString(peerPtr),
-            writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`, ctorArgs)
+            writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
         )
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, true, superClassName)
 
@@ -204,7 +204,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const writer = this.printer
 
-        const ctorCall = writer.makeMethodCall(implementationClassName, `ctor${ctor.getOverloadPostfix()}`,
+        const ctorCall = writer.makeMethodCall(implementationClassName, ctor.sig.name,
             ctorSig.args.map((_, index) => writer.makeString(ctorSig.argsNames[index]))
         )
 
@@ -225,7 +225,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     printOverloads(clazz: MaterializedClass) {
         for (const grouped of groupOverloads(clazz.methods, this.library.language)) {
-            this.overloadsPrinter.printGroupedComponentOverloads(clazz, grouped)
+            this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped)
         }
     }
 
@@ -264,7 +264,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const privateMethod = method.getPrivateMethod()
         returnType = returnType ?? privateMethod.tsReturnType()
-        this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.overloadedName}`)
+        this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
@@ -576,7 +576,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
             const args = ctorSig.argsNames.map(it => writer.makeString(it))
             writer.writeStatement(
                 writer.makeAssign('ctorPtr', IDLPointerType,
-                    writer.makeMethodCall(implementationClassName, `ctor${ctorPostfix}`, args),
+                    writer.makeMethodCall(implementationClassName, `${PeerMethodSignature.CTOR}${ctorPostfix}`, args),
                     true))
 
             writer.writeStatement(writer.makeAssign(
@@ -624,7 +624,7 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
             this.printer.writeMethodImplementation(method.method, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(clazz, method.method, method)
+                this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), method.method, method)
             })
         }
     }
@@ -661,7 +661,7 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
             this.printer.writeMethodImplementation(method.method, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(clazz, method.method, method)
+                this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), method.method, method)
             })
         }
     }

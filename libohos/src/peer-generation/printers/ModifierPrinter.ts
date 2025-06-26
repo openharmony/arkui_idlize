@@ -29,6 +29,9 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     PrimitiveTypesInstance,
     throwException,
     generatorHookName,
+    PeerMethodSignature,
+    capitalize,
+    qualifiedName,
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName, IDLObjectType } from '@idlizer/core/idl'
@@ -36,11 +39,53 @@ import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { collectOrderedPeers, collectPeers, collectPeersForFile } from "../PeersCollector";
 import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
+import * as idl from "@idlizer/core/idl"
+import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
+import { generateCapiParameters } from "./HeaderPrinter";
+
+function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
+    if (isComponentDeclaration(library, context))
+        return method.sig.name
+    if (isMaterialized(context, library)) {
+        if (method.sig.name === PeerMethodSignature.CTOR)
+            return `new ${context.name}`
+        // if (method.sig.name === PeerMethodSignature.DESTROY)
+        //     return `delete ${context.name}`
+        return method.sig.name
+    }
+    throw new Error("Can not generate string representation of peer " + method.sig.name)
+}
+
+function peerImplName(method: PeerMethod): string {
+    return `${capitalize(method.sig.name)}Impl`
+}
+
+function peerParentNamespaceName(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
+    if (isComponentDeclaration(library, context)) {
+        const component = findComponentByDeclaration(library, context)!
+        if (method.sig.name === PeerMethodSignature.CTOR)
+            return `${capitalize(component.name)}Modifier`
+        return `${capitalize(context.name)}Modifier`
+    }
+    if (isMaterialized(context, library))
+        return `${qualifiedName(context, "_", "namespace.name")}Accessor`
+    throw new Error("Can not calculate name for " + context.name)
+}
+
+function peerReturnValue(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string | undefined {
+    if (idl.isInterface(context) && isMaterialized(context, library)) {
+        if (method.sig.name === PeerMethodSignature.CTOR)
+            return `(Ark_${context.name}) 100`
+        if (method.sig.name === PeerMethodSignature.GET_FINALIZER)
+            return `fnPtr<KNativePointer>(dummyClassFinalizer)`
+    }
+    return undefined
+}
 
 class ReturnValueConvertor implements TypeConvertor<string | undefined> {
     constructor(
         private retTypeConverter: CppReturnTypeConvertor,
-        private resolver: ReferenceResolver
+        private resolver: PeerLibrary
     ) {}
     private mkObject(): string {
         return '{}'
@@ -111,24 +156,24 @@ export class ModifierVisitor {
         private isDummy: boolean = false
     ) { }
 
-    printDummyImplFunctionBody(method: PeerMethod) {
+    printDummyImplFunctionBody(context: idl.IDLInterface, method: PeerMethod) {
         let _ = this.dummy
         const returnType = method.returnType
         const isVoid = this.returnTypeConvertor.isVoid(returnType)
         const returnValueConvertor = new ReturnValueConvertor(this.returnTypeConvertor, this.library)
         const returnValue = isVoid
             ? undefined
-            : method.dummyReturnValue(this.library) ?? returnValueConvertor.convert(returnType)
+            : peerReturnValue(this.library, context, method) ?? returnValueConvertor.convert(returnType)
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
-                method.toStringName == "construct"
-                    ? this.makeConstructReturnStatement(_, method)
+                method.sig.name == PeerMethodSignature.CTOR
+                    ? this.makeConstructReturnStatement(_, context, method)
                     : _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)
             )
         )
-        _.print(`string out("${method.toStringName}(");`)
-        method.argAndOutConvertors.forEach((argConvertor, index) => {
+        _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
+        method.argAndOutConvertors(this.library).forEach((argConvertor, index) => {
             if (index > 0) this.dummy.print(`out.append(", ");`)
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
@@ -137,8 +182,8 @@ export class ModifierVisitor {
             _.print(`out.append("[return ${returnValue}] \\n");`)
         }
         _.print(`appendGroupedLog(1, out);`)
-        if (method.toStringName == "construct") {
-            _.writeStatement(this.makeConstructReturnStatement(_, method))
+        if (method.sig.name == PeerMethodSignature.CTOR) {
+            _.writeStatement(this.makeConstructReturnStatement(_, context, method))
         } else {
             this.printReturnStatement(this.dummy, method, true, returnValue)
         }
@@ -151,8 +196,13 @@ export class ModifierVisitor {
         this.printReturnStatement(this.real, method)
     }
 
-    private makeConstructReturnStatement(printer: LanguageWriter, method: PeerMethod): LanguageStatement {
-        return printer.makeReturn(printer.makeString(`new TreeNode("${method.originalParentName}", id, flags);`))
+    private makeConstructReturnStatement(printer: LanguageWriter, context: idl.IDLInterface, method: PeerMethod): LanguageStatement {
+        const convertor = this.library.createTypeNameConvertor(Language.CPP)
+        if (isComponentDeclaration(this.library, context))
+            return printer.makeReturn(printer.makeString(`new TreeNode("${method.originalParentName}", id, flags);`))
+        if (isMaterialized(context, this.library))
+            return printer.makeReturn(printer.makeString(`(${convertor.convert(context)}) 100`))
+        throw new Error("Unknown receiver type for constructor creation")
     }
 
     private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy?: boolean, returnValue: string | undefined = undefined) {
@@ -189,66 +239,65 @@ export class ModifierVisitor {
 
     private printBodyImplementation(printer: LanguageWriter, method: PeerMethod,
         clazz: PeerClass | undefined = undefined) {
-        const apiParameters = method.generateAPIParameters(
-            this.library.createTypeNameConvertor(Language.CPP)
-        )
+        const apiParameters = generateCapiParameters(this.library, method,
+            this.library.createTypeNameConvertor(Language.CPP))
+        const argConvertors = method.argAndOutConvertors(this.library)
         if (apiParameters.at(0)?.includes(PrimitiveTypesInstance.NativePointer.getText())) {
             this.real.print(`auto frameNode = reinterpret_cast<FrameNode *>(node);`)
             this.real.print(`CHECK_NULL_VOID(frameNode);`)
-            if (method.argAndOutConvertors.length === 1
-                && method.argAndOutConvertors.at(0)?.nativeType() === IDLStringType
+            if (argConvertors.length === 1
+                && argConvertors.at(0)?.nativeType() === IDLStringType
             ) {
                 this.real.print(`CHECK_NULL_VOID(${
-                    method.argAndOutConvertors.at(0)?.param
+                    argConvertors.at(0)?.param
                 });`)
                 this.real.print(`auto convValue = Converter::Convert<std::string>(*${
-                    method.argAndOutConvertors.at(0)?.param
+                    argConvertors.at(0)?.param
                 });`)
             } else if (this.commentedCode
-                && method.argAndOutConvertors.length === 1
-                && isOptionalType(method.argAndOutConvertors[0].nativeType())
-                && method.argAndOutConvertors.at(0)?.isPointerType()) {
-                this.real.print(`//auto convValue = ${method.argAndOutConvertors.at(0)?.param} ? ` +
-                    `Converter::OptConvert<type>(*${method.argAndOutConvertors.at(0)?.param}) : std::nullopt;`)
-            } else if (method.argAndOutConvertors.length === 1 && method.argAndOutConvertors.at(0)?.isPointerType()) {
+                && argConvertors.length === 1
+                && isOptionalType(argConvertors[0].nativeType())
+                && argConvertors.at(0)?.isPointerType()) {
+                this.real.print(`//auto convValue = ${argConvertors.at(0)?.param} ? ` +
+                    `Converter::OptConvert<type>(*${argConvertors.at(0)?.param}) : std::nullopt;`)
+            } else if (argConvertors.length === 1 && argConvertors.at(0)?.isPointerType()) {
                 this.real.print(`CHECK_NULL_VOID(${
-                    method.argAndOutConvertors.at(0)?.param
+                    argConvertors.at(0)?.param
                 });`)
                 if (this.commentedCode) {
                     this.real.print(`//auto convValue = Converter::OptConvert<type_name>(*${
-                        method.argAndOutConvertors.at(0)?.param
+                        argConvertors.at(0)?.param
                     });`)
                 }
-            } else if (method.argAndOutConvertors.length === 1 &&
-                method.argAndOutConvertors.at(0)?.nativeType() === IDLBooleanType) {
+            } else if (argConvertors.length === 1 &&
+                argConvertors.at(0)?.nativeType() === IDLBooleanType) {
                 this.real.print(`auto convValue = Converter::Convert<bool>(${
-                    method.argAndOutConvertors.at(0)?.param
+                    argConvertors.at(0)?.param
                 });`)
             } else if (this.commentedCode
-                && method.argAndOutConvertors.length === 1
-                && method.argAndOutConvertors.at(0)?.nativeType() === IDLFunctionType) {
+                && argConvertors.length === 1
+                && argConvertors.at(0)?.nativeType() === IDLFunctionType) {
                 this.real.print(`//auto convValue = [frameNode](input values) { code }`)
             } else {
                 if (this.commentedCode) {
                     this.real.print(`//auto convValue = Converter::Convert<type>(${
-                        method.argAndOutConvertors.at(0)?.param
+                        argConvertors.at(0)?.param
                     });`)
                     this.real.print(`//auto convValue = Converter::OptConvert<type>(${
-                        method.argAndOutConvertors.at(0)?.param
+                        argConvertors.at(0)?.param
                     }); // for enums`)
                 }
             }
             if (this.commentedCode) {
-                this.real.print(`//${clazz?.componentName}ModelNG::Set${method.implName.replace("Impl", "")}(frameNode, convValue);`)
+                this.real.print(`//${clazz?.componentName}ModelNG::Set${capitalize(method.sig.name)}(frameNode, convValue);`)
             }
         }
     }
 
     printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
-        const apiParameters = method.generateAPIParameters(
-            this.library.createTypeNameConvertor(Language.CPP)
-        )
-        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), method.implName, apiParameters)
+        const apiParameters = generateCapiParameters(this.library, method,
+            this.library.createTypeNameConvertor(Language.CPP))
+        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), peerImplName(method), apiParameters)
         printer.print("{")
         printer.pushIndent()
     }
@@ -259,14 +308,16 @@ export class ModifierVisitor {
     }
 
     printRealAndDummyModifier(method: PeerMethod, clazz: PeerClass) {
+        const component = findComponentByName(this.library, clazz.componentName)!
+        const context = method.sig.context as idl.IDLInterface ?? component.attributeDeclaration
         if (generatorHookName(method.originalParentName, method.method.name)) return
-        this.modifiers.print(`${method.implNamespaceName}::${method.implName},`)
-        if (peerGeneratorConfiguration().noDummyGeneration(clazz.getComponentName(), method.toStringName)) {
+        this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
+        if (peerGeneratorConfiguration().noDummyGeneration(clazz.componentName, method.sig.name)) {
             return
         }
         this.printMethodProlog(this.dummy, method)
         this.printMethodProlog(this.real, method)
-        this.printDummyImplFunctionBody(method)
+        this.printDummyImplFunctionBody(context, method)
         this.printModifierImplFunctionBody(method, clazz)
         this.printMethodEpilog(this.dummy)
         this.printMethodEpilog(this.real)
@@ -318,9 +369,13 @@ export class ModifierVisitor {
 
     printPeerClassModifiers(clazz: PeerClass) {
         this.printClassProlog(clazz)
+        const component = findComponentByName(this.library, clazz.componentName)!
         // TODO: move to Object.groupBy when move to nodejs 21
         const namespaces: Map<string, PeerMethod[]> =
-            groupBy([createConstructPeerMethod(clazz)].concat(clazz.methods), it => it.implNamespaceName)
+            groupBy([createConstructPeerMethod(clazz)].concat(clazz.methods), it => {
+                const context = it.sig.context as idl.IDLInterface ?? component.attributeDeclaration
+                return peerParentNamespaceName(this.library, context, it)
+            })
         Array.from(namespaces.keys()).forEach (namespaceName => {
             this.pushNamespace(namespaceName, false)
             namespaces.get(namespaceName)?.forEach(
@@ -362,14 +417,15 @@ class AccessorVisitor extends ModifierVisitor {
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)
         const ctor = clazz.ctors.length > 0 ? clazz.ctors[0] : undefined
-        const namespaceName = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!")).implNamespaceName
+        const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!"))
+        const namespaceName = peerParentNamespaceName(this.library, clazz.decl, randomMethod)
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
-            this.accessors.print(`${method.implNamespaceName}::${method.implName},`)
-            if (peerGeneratorConfiguration().noDummyGeneration(clazz.getComponentName(), method.toStringName)) return
+            this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
+            if (peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) return
 
-            this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(m))
+            this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
         })
         this.popNamespace(namespaceName, false)

@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-import { MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { createInterface, createMethod, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
+import { createOutArgConvertor, MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
+import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
 import { groupOverloadsIDL } from "./printers/OverloadsPrinter";
-import { createOutArgConvertor } from "./PromiseConvertors";
 
 export const GlobalScopePeerName = 'GlobalScope'
 
@@ -32,11 +31,15 @@ export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMe
 }
 
 export function idlMethodToMaterializedMethod(library: PeerLibrary, method:IDLMethod): MaterializedMethod {
-    const argConvertors = method.parameters.map(it => library.typeConvertor(it.name, it.type, it.isOptional))
     return new MaterializedMethod(
+        new PeerMethodSignature(
+            mangledGlobalScopeName(method),
+            getFQName(method).split('.').join('_'),
+            method.parameters.map(it => new PeerMethodArg(it.name, maybeOptional(it.type, it.isOptional))),
+            method.returnType,
+        ),
         GlobalScopePeerName,
         GlobalScopePeerName,
-        argConvertors,
         method.returnType,
         true,
         new Method(
@@ -45,7 +48,6 @@ export function idlMethodToMaterializedMethod(library: PeerLibrary, method:IDLMe
             [MethodModifier.STATIC],
             method.typeParameters
         ),
-        createOutArgConvertor(library, method.returnType, argConvertors.map(it => it.param)),
     )
 }
 
@@ -107,7 +109,7 @@ export function createGlobalScopeLegacy(library:PeerLibrary): MaterializedClass 
         [],
         undefined,
         library.globals.flatMap(it => idlFreeMethodToLegacy(library, it.methods))
-            .sort((a, b) => a.overloadedName.localeCompare(b.overloadedName)),
+            .sort((a, b) => a.sig.name.localeCompare(b.sig.name)),
     )
     clazz.setGlobalScope()
     return clazz
