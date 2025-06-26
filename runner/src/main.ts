@@ -13,31 +13,59 @@
  * limitations under the License.
  */
 
-import { arkgen, defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen/app"
-import { etsgen } from "@idlizer/etsgen/app"
-import { copyFileSync, cpSync, existsSync, mkdirSync, rmSync } from "node:fs"
-import { dirname, join, relative, resolve } from "node:path"
-import { flat, installTemplate, over, run, scan } from "./utils"
+import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
+import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, GENERATED_PEER_LIBACE, GENERATED_PEER_SIG, WORKING_DIR } from "./shared"
+import { commands } from "./commands"
 
 /////////////////////////////////////////////////
-// CONSTANTS
 
-const WORKING_DIR = resolve(__dirname, '..', 'out')
-const SDK_PATCH_FILE = resolve(__dirname, '..', 'interface_sdk-js.patch')
-const GENERATED_IDL_DIR = join(WORKING_DIR, 'idl')
-const CLONED_SDK_DIR = join(WORKING_DIR, 'original-sdk')
-const CLONED_SDK_BUILD_TOOLS = join(CLONED_SDK_DIR, 'build-tools')
-const PREPARED_SDK_DIR = join(WORKING_DIR, 'patched-sdk')
-const PREPARED_SDK_INTERNAL = join(PREPARED_SDK_DIR, 'api', '@internal', 'component', 'ets')
-const PREPARED_SDK_ARKUI_COMPONENT = join(PREPARED_SDK_DIR, 'api', 'arkui', 'component')
-const GENERATED_PEER_DIR = join(WORKING_DIR, 'peers')
-const GENERATED_PEER_SIG = join(GENERATED_PEER_DIR, 'sig')
-const GENERATED_PEER_LIBACE = join(GENERATED_PEER_DIR, 'libace')
-const ADDITIONAL_FILES = [
-    ['global', 'resource.d.ets']
-]
-const REFERENCE_CONFIG_PATH = resolve(arkgenConfigPath(), 'references', 'ets-sdk.refs.json')
+function setup() {
+    if (existsSync(WORKING_DIR)) {
+        rmSync(WORKING_DIR, { recursive: true })
+    }
+    mkdirSync(WORKING_DIR, { recursive: true })
+    mkdirSync(GENERATED_IDL_DIR, { recursive: true })
+    mkdirSync(GENERATED_PEER_DIR, { recursive: true })
+}
+
+///
+
+function m3(sdkPathInput:string, installPath:string, options:any) {
+    setup()
+
+    let sdkPath = sdkPathInput
+    let configPath: string | undefined = undefined
+    if (options.originalSdk) {
+        const prepareResult = commands.prepareSdk({ sdkPath, installArktsConfig: true })
+        sdkPath = prepareResult.sdkPath12
+        configPath = prepareResult.configPath
+    }
+
+    commands.ets2idl({ sdkPath, configPath })
+    commands.idl2peer({ target: options.target })
+
+    let installSourceDir = GENERATED_PEER_DIR
+    switch (options.target) {
+        case 'sig': { installSourceDir = GENERATED_PEER_SIG; break }
+        case 'libace': { installSourceDir = GENERATED_PEER_LIBACE; break }
+        case 'all': { installSourceDir = GENERATED_PEER_DIR; break }
+    }
+    commands.install({ sourceDir: installSourceDir, installPath })
+}
+
+///
+
+function sdk(sdkPathInput:string, installPath12:string, installPath11:string) {
+    setup()
+
+    const { sdkPath11, sdkPath12 } = commands.prepareSdk({
+        sdkPath: sdkPathInput,
+        installArktsConfig: false
+    })
+    commands.install({ sourceDir: sdkPath12, installPath: installPath12 })
+    commands.install({ sourceDir: sdkPath11, installPath: installPath11 })
+}
 
 /////////////////////////////////////////////////
 
@@ -45,114 +73,18 @@ function main(argv:string[]) {
 
     const program = new Command()
         .name("@idlizer/runner")
-        .arguments("<sdk-path> <install-path>")
+
+    program.command('m3 <sdk-path> <install-path>')
+        .description('generate using m3 pipeline')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--original-sdk')
-        .parse(argv, { from: 'user' })
+        .action(m3)
 
-    const [sdkPathInput, installPath] = program.args
-    const options = program.opts()
+    program.command('sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>')
+        .description('prepares sdk')
+        .action(sdk)
 
-    // 0. prepare
-    if (existsSync(WORKING_DIR)) {
-        rmSync(WORKING_DIR, { recursive: true })
-    }
-    mkdirSync(WORKING_DIR, { recursive: true })
-    mkdirSync(GENERATED_IDL_DIR, { recursive: true })
-    mkdirSync(GENERATED_PEER_DIR, { recursive: true })
-
-    let sdkPath = sdkPathInput
-    let configPath: string | undefined = undefined
-    if (options.originalSdk) {
-        mkdirSync(PREPARED_SDK_DIR, { recursive: true })
-        mkdirSync(CLONED_SDK_DIR, { recursive: true })
-        cpSync(sdkPath, CLONED_SDK_DIR, { recursive: true })
-
-        run(r => {
-            r.cd(CLONED_SDK_DIR)
-            r.exec(['git', 'apply', SDK_PATCH_FILE])
-
-            const prepareSdkScriptFile = join(CLONED_SDK_DIR, 'build-tools', 'handleApiFiles.js')
-            r.cd(CLONED_SDK_BUILD_TOOLS)
-            r.exec(['npm', 'i'])
-            r.exec([
-                'node', prepareSdkScriptFile,
-                    ['--path', CLONED_SDK_DIR],
-                    ['--type', 'ets2'],
-                    ['--output', PREPARED_SDK_DIR]
-            ])
-
-
-            const arkuiTransformerDir = join(CLONED_SDK_DIR, 'build-tools', 'arkui_transformer')
-            r.cd(arkuiTransformerDir)
-            r.exec(['npm', 'i'])
-            r.exec(['npm', 'run', 'compile:arkui'])
-            r.exec([
-                'node', '.',
-                    ['--input-dir', PREPARED_SDK_INTERNAL],
-                    ['--target-dir', PREPARED_SDK_ARKUI_COMPONENT]
-            ])
-        })
-
-        configPath = join(WORKING_DIR, 'arkts.config.json')
-        installTemplate(
-            'panda.config.json',
-            configPath,
-            new Map([
-                ['PATCHED_SDK_PATH', PREPARED_SDK_DIR]
-            ])
-        )
-
-
-        sdkPath = PREPARED_SDK_DIR
-    }
-
-    // 1. d.ets -> idl
-    const sdkApiPath = join(sdkPath, 'api')
-    const additionalFiles = ADDITIONAL_FILES.map(it => join(sdkApiPath, join(...it)))
-    etsgen(
-        flat([
-            '--ets2idl',
-            '--use-component-stubs',
-            ['--output-dir', GENERATED_IDL_DIR],
-            ['--base-dir', sdkApiPath],
-            ['--input-dir', join(sdkApiPath, 'arkui', 'component')],
-            ['--input-files', additionalFiles],
-            over(configPath, path => ['--ets-config', path])
-        ])
-    )
-    // 2. idl -> peer
-    const idlFiles = scan(GENERATED_IDL_DIR)
-    arkgen(
-        flat([
-            '--idl2peer',
-            ['--reference-names', REFERENCE_CONFIG_PATH],
-            ['--input-files', idlFiles],
-            ['--output-dir', GENERATED_PEER_DIR],
-            ['--generator-target', 'arkoala'],
-            ['--language', 'arkts'],
-            '--only-integrated',
-            '--use-memo-m3',
-            ['--arkts-extension', '.ets']
-        ])
-    )
-    // 3. Install
-    let installSourceDir = GENERATED_PEER_DIR
-    switch (options.target) {
-        case 'sig': { installSourceDir = GENERATED_PEER_SIG; break }
-        case 'libace': { installSourceDir = GENERATED_PEER_LIBACE; break }
-        case 'all': { installSourceDir = GENERATED_PEER_DIR; break }
-    }
-    const peerFiles = scan(installSourceDir)
-    peerFiles.forEach(file => {
-        const relativeFile = relative(installSourceDir, file)
-        const destinationFile = join(installPath, relativeFile)
-        const destinationDir = dirname(destinationFile)
-        if (!existsSync(destinationDir)) {
-            mkdirSync(destinationDir, { recursive: true })
-        }
-        copyFileSync(file, join(installPath, relativeFile))
-    })
+    program.parse(argv, { from: 'user' })
 }
 
 main(process.argv.slice(2))

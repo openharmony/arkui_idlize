@@ -1,11 +1,11 @@
 diff --git a/api/@internal/component/ets/action_sheet.d.ts b/api/@internal/component/ets/action_sheet.d.ts
-index 3f489ff9f..d12a5da03 100644
+index 166a48deb..3c8e00efa 100644
 --- a/api/@internal/component/ets/action_sheet.d.ts
 +++ b/api/@internal/component/ets/action_sheet.d.ts
 @@ -20,6 +20,7 @@
  
  /*** if arkts 1.2 */
- import { Resource } from "../../global/resource";
+ import { Resource } from '../../global/resource';
 +import { DismissDialogAction } from "./alert_dialog"
  import {
    VoidCallback, ResourceStr, ResourceColor, Dimension, BorderRadiuses, LocalizedEdgeColors, EdgeColors,
@@ -54,7 +54,7 @@ index 3f489ff9f..d12a5da03 100644
   * Base button params used for ActionSheet.
   *
 diff --git a/api/@internal/component/ets/alert_dialog.d.ts b/api/@internal/component/ets/alert_dialog.d.ts
-index 72589404d..094fb613b 100644
+index 047b8a924..a46f27331 100644
 --- a/api/@internal/component/ets/alert_dialog.d.ts
 +++ b/api/@internal/component/ets/alert_dialog.d.ts
 @@ -591,7 +591,7 @@ declare interface AlertDialogButtonOptions extends AlertDialogButtonBaseOptions
@@ -75,85 +75,103 @@ index 72589404d..094fb613b 100644
  
    /**
     * Defines whether to respond to the hover mode.
-diff --git a/api/@internal/component/ets/canvas.d.ts b/api/@internal/component/ets/canvas.d.ts
-index 3e6779af0..f3fbd726a 100644
---- a/api/@internal/component/ets/canvas.d.ts
-+++ b/api/@internal/component/ets/canvas.d.ts
-@@ -25,6 +25,7 @@ import { FrameNode } from '../FrameNode';
- import { ImageAIOptions, ImageAnalyzerConfig } from './imageCommon';
- import { Matrix2D } from './matrix2d';
- import { VoidCallback, LengthMetricsUnit, LengthMetrics } from './units';
-+import { Size } from '../Graphics'
- /*** endif */
- 
- /**
-@@ -6145,42 +6146,6 @@ declare class OffscreenCanvas {
-   constructor(width: number, height: number, unit: LengthMetricsUnit);
- }
- 
--/**
-- * Size info.
-- *
-- * @interface Size
-- * @syscap SystemCapability.ArkUI.ArkUI.Full
-- * @crossplatform
-- * @atomicservice
-- * @since arkts {'1.1':'12','1.2':'20'}
-- * @arkts 1.1&1.2
-- */
--declare interface Size {
--  /**
--   * Defines the width property.
--   *
--   * @type { number }
--   * @syscap SystemCapability.ArkUI.ArkUI.Full
--   * @crossplatform
--   * @atomicservice
--   * @since arkts {'1.1':'12','1.2':'20'}
--   * @arkts 1.1&1.2
--   */
--  width: number;
--
--  /**
--   * Defines the height property.
--   *
--   * @type { number }
--   * @syscap SystemCapability.ArkUI.ArkUI.Full
--   * @crossplatform
--   * @atomicservice
--   * @since arkts {'1.1':'12','1.2':'20'}
--   * @arkts 1.1&1.2
--   */
--  height: number;
--}
--
- /**
-  * Defines DrawingRenderingContext.
-  *
-diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
-index 524566b4d..37a1944c9 100644
---- a/api/@internal/component/ets/common.d.ts
-+++ b/api/@internal/component/ets/common.d.ts
-@@ -11524,7 +11524,7 @@ declare interface BorderImageOption {
+diff --git a/api/@internal/component/ets/column.d.ts b/api/@internal/component/ets/column.d.ts
+index 02be253b6..08a92d535 100644
+--- a/api/@internal/component/ets/column.d.ts
++++ b/api/@internal/component/ets/column.d.ts
+@@ -84,32 +84,6 @@ interface ColumnOptions {
     * @since arkts {'1.1':'11','1.2':'20'}
     * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Column constructor options.
+- *
+- * @interface ColumnOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface ColumnOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -208,19 +182,6 @@ interface ColumnInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: ColumnOptions): ColumnAttribute;
+-  /**
+-   * Set the options.
+-   *
+-   * @param { ColumnOptions | ColumnOptionsV2 } [options] - column options
+-   * @returns { ColumnAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: ColumnOptions | ColumnOptionsV2): ColumnAttribute;
+ }
+ 
+ /**
+diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
+index 3e1493d29..c0bfedf63 100644
+--- a/api/@internal/component/ets/common.d.ts
++++ b/api/@internal/component/ets/common.d.ts
+@@ -11416,7 +11416,7 @@ declare interface BorderImageOption {
+    * @atomicservice
+    * @since 11
     */
 -  source?: string | Resource | LinearGradient,
 +  source?: string | Resource | LinearGradient_common,
  
    /**
-    * Border image width
-@@ -16564,7 +16564,8 @@ declare interface StateStyles {
+    * Border image source
+@@ -15797,14 +15797,14 @@ declare interface SheetOptions extends BindOptions {
+   /**
+    * Defines sheet detents
+    *
+-   * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
++   * @type { ?(TripleLengthDetents) }
+    * @syscap SystemCapability.ArkUI.ArkUI.Full
+    * @crossplatform
+    * @atomicservice
+    * @since 20
+    * @arkts 1.2
+    */
+-  detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++  detents?: TripleLengthDetents;
+ 
+   /**
+    * Defines sheet background blur Style
+@@ -16243,7 +16243,7 @@ declare interface SheetOptions extends BindOptions {
   * @since 20
   * @arkts 1.2
   */
 -declare type CustomStyles = (instance: CommonMethod) => void;
-+// We can not handle components as arguments in a general way, each case is special
 +declare type CustomStyles = (instance: string) => void;
  
  /**
   * Component State Styles.
-@@ -28812,7 +28813,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
+@@ -28739,7 +28739,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
   * @since arkts {'1.1':'11','1.2':'20'}
   * @arkts 1.1&1.2
   */
@@ -163,18 +181,18 @@ index 524566b4d..37a1944c9 100644
     * Linear Gradient Angle
     *
 diff --git a/api/@internal/component/ets/custom_dialog_controller.d.ts b/api/@internal/component/ets/custom_dialog_controller.d.ts
-index 94f24266a..a66c6d2d7 100644
+index 9d3c60c4a..8d2f1be7a 100644
 --- a/api/@internal/component/ets/custom_dialog_controller.d.ts
 +++ b/api/@internal/component/ets/custom_dialog_controller.d.ts
-@@ -28,6 +28,7 @@ import { Offset, ResourceColor, Dimension, BorderRadiuses, EdgeWidths, EdgeColor
- import { BorderStyle } from './enums'
+@@ -30,6 +30,7 @@ import { BorderStyle } from './enums';
  import { LengthMetrics } from '../Graphics';
- import { LevelMode,LevelOrder,ImmersiveMode } from '../../@ohos.promptAction'
+ import { LevelMode, LevelOrder, ImmersiveMode } from '../../@ohos.promptAction';
+ import { CustomBuilder } from './builder';
 +import { DismissDialogAction } from './alert_dialog'
  /*** endif */
  
  /**
-@@ -711,31 +712,6 @@ declare interface CustomDialogControllerOptions {
+@@ -714,31 +715,6 @@ declare interface CustomDialogControllerOptions {
   * @since arkts {'1.1':'12','1.2':'20'}
   * @arkts 1.1&1.2
   */
@@ -486,19 +504,76 @@ index 6af657932..81c455d53 100644
 - * @since 18
 - */
 -declare const Repeat: RepeatInterface;
+diff --git a/api/@internal/component/ets/row.d.ts b/api/@internal/component/ets/row.d.ts
+index ee3b6bf64..7951b1bab 100644
+--- a/api/@internal/component/ets/row.d.ts
++++ b/api/@internal/component/ets/row.d.ts
+@@ -72,32 +72,6 @@ declare interface RowOptions {
+    * @since arkts {'1.1':'11','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Define options used to construct a row.
+- *
+- * @interface RowOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface RowOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -188,19 +162,6 @@ interface RowInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: RowOptions): RowAttribute;
+-  /**
+-   * Called when the layout is set in the horizontal direction.
+-   *
+-   * @param { ?(RowOptions | RowOptionsV2) } options - row options
+-   * @returns { RowAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: RowOptions | RowOptionsV2): RowAttribute;
+ }
+ 
+ /**
 diff --git a/api/@internal/component/ets/sidebar.d.ts b/api/@internal/component/ets/sidebar.d.ts
-index 365faad5d..932538068 100644
+index cbb6b4f08..1ec2a3cee 100644
 --- a/api/@internal/component/ets/sidebar.d.ts
 +++ b/api/@internal/component/ets/sidebar.d.ts
 @@ -21,7 +21,7 @@
  /*** if arkts 1.2 */
  import { Resource } from '../../global/resource'
  import { Length, ResourceColor, Dimension } from './units'
--import { CommonMethod } from './common'
-+import { CommonMethod, DividerStyle } from './common'
- import image from '../../@ohos.multimedia.image';
+-import { CommonMethod, PixelMap, Bindable } from './common'
++import { CommonMethod, PixelMap, Bindable, DividerStyle } from './common'
  /*** endif */
  
+ /**
 @@ -553,110 +553,6 @@ interface SideBarContainerInterface {
    (type?: SideBarContainerType): SideBarContainerAttribute;
  }
@@ -610,6 +685,19 @@ index 365faad5d..932538068 100644
  /**
   * The attribute function of sidebar
   *
+diff --git a/api/@internal/component/ets/toggle.d.ts b/api/@internal/component/ets/toggle.d.ts
+index e57982116..bbf8ae329 100644
+--- a/api/@internal/component/ets/toggle.d.ts
++++ b/api/@internal/component/ets/toggle.d.ts
+@@ -255,7 +255,7 @@ declare interface ToggleConfiguration extends CommonConfiguration<ToggleConfigur
+    * @since arkts {'1.1':'12','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  enabled: boolean;
++  toggleEnabled: boolean;
+ 
+   /**
+    * Trigger toggle select change
 diff --git a/api/@internal/component/ets/ui_extension_component.d.ts b/api/@internal/component/ets/ui_extension_component.d.ts
 index eac19b4aa..b30176bd1 100644
 --- a/api/@internal/component/ets/ui_extension_component.d.ts
@@ -662,8 +750,30 @@ index eac19b4aa..b30176bd1 100644
  /**
   * Get Callback from @ohos.base.
   *
+diff --git a/api/arkui/component/customComponent.d.ets b/api/arkui/component/customComponent.d.ets
+index 041ea7179..bc347a1a9 100755
+--- a/api/arkui/component/customComponent.d.ets
++++ b/api/arkui/component/customComponent.d.ets
+@@ -181,7 +181,7 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
+@@ -223,7 +223,7 @@ export declare abstract class CustomComponentV2<T extends CustomComponentV2<T, T
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
 diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
-index 6ebfe1cd8..7d6443619 100644
+index 6ebfe1cd8..e2f4ba390 100644
 --- a/api/global/resource.d.ts
 +++ b/api/global/resource.d.ts
 @@ -114,14 +114,14 @@ export interface Resource {
@@ -671,7 +781,7 @@ index 6ebfe1cd8..7d6443619 100644
     * Set params.
     *
 -   * @type { ?Array<Object | undefined> }
-+   * @type { ?Array<string> }
++   * @type { ?Array<String> }
     * @syscap SystemCapability.Global.ResourceManager
     * @crossplatform
     * @atomicservice
@@ -679,20 +789,7 @@ index 6ebfe1cd8..7d6443619 100644
     * @arkts 1.2
     */
 -  params?: Array<Object | undefined>;
-+  params?: Array<string>;
++  params?: Array<String>;
  
    /**
     * Set type.
-diff --git a/build-tools/arkui_transformer/src/interface_converter.ts b/build-tools/arkui_transformer/src/interface_converter.ts
-index 62bf4b49c..eb12c1862 100644
---- a/build-tools/arkui_transformer/src/interface_converter.ts
-+++ b/build-tools/arkui_transformer/src/interface_converter.ts
-@@ -109,7 +109,7 @@ function getAllInterfaceCallSignature(node: ts.InterfaceDeclaration, originalCod
- }
- 
- function handleComponentInterface(node: ts.InterfaceDeclaration, file: ComponentFile) {
--    const result = getAllInterfaceCallSignature(node, file.sourceFile, true)
-+    const result = getAllInterfaceCallSignature(node, file.sourceFile, false)
-     const declPattern = readLangTemplate()
-     const declComponentFunction: string[] = []
-     result.forEach(p => {

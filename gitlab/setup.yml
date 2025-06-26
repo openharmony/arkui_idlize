@@ -33,6 +33,8 @@ download sdk:
     - !reference [.npm, script]
     - !reference [.panda, script]
     - npm run download:sdk
+    needs:
+    - libarkts regenerate
     artifacts:
         paths:
         - sdk-patched

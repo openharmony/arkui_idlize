@@ -147,6 +147,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     if (!process.env.PANDA_SDK_PATH) {
         process.env.PANDA_SDK_PATH = path.resolve(__dirname, "../../external/incremental/tools/panda/node_modules/@panda/sdk")
     }
+    arkts.checkSDK()
     if (!fs.existsSync(process.env.PANDA_SDK_PATH)) {
         throw new Error("PANDA_SDK_PATH points to unexisting directory")
     }
