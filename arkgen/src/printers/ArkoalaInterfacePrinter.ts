@@ -14,10 +14,11 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { collapseIdlPeerMethods, collectPeers, componentToAttributesInterface, componentToStyleClass, findComponentByDeclaration, generateStyleParentClass, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, peerGeneratorConfiguration, PrinterFunction } from "@idlizer/libohos"
+import { collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, isCommonMethod, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
+import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
 
 class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     protected printComponent(idlInterface: idl.IDLInterface): stringOrNone[] {

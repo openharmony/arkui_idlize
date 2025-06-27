@@ -55,9 +55,9 @@ import {
     printTSTypeChecker,
     printArkTSTypeChecker,
     ScopeLibrarayLayout,
-    createPeersPrinter,
     copyFile
 } from "@idlizer/libohos"
+import { createPeersPrinter } from "./printers/PeersPrinter"
 import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"

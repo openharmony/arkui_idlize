@@ -36,14 +36,12 @@ import {
     collectPeersForFile,
     COMPONENT_BASE,
     componentToPeerClass,
-    componentToAttributesInterface,
     findComponentByName,
     findComponentByType,
     groupOverloads,
     IdlComponentDeclaration,
     ImportsCollector,
     OverloadsPrinter,
-    peerGeneratorConfiguration,
     PrinterResult,
     printJavaImports,
     readLangTemplate,
@@ -53,6 +51,7 @@ import {
     componentToStyleClass,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
+import { componentToAttributesInterface } from './PeersPrinter'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`

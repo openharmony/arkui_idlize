@@ -171,16 +171,16 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
         'RuntimeType',
         'SerializerBase',
         'DeserializerBase',
+        'MaterializedBase',
         'registerCallback',
         'wrapCallback',
         'KPointer',
         'toPeerPtr',
     ], '@koalaui/interop')
-    collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
-    collector.addFeatures(['unsafeCast'], '@koalaui/common')
+    collector.addFeature('unsafeCast', '@koalaui/common')
     collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
     if (library.language === idl.Language.ARKTS) {
-        collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+        collector.addFeature('NativeBuffer', '@koalaui/interop')
         importTypeChecker(library, collector)
     }
     if (library.language === idl.Language.TS) {
@@ -190,8 +190,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     }
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     if (library.name === 'arkoala') {
-        collector.addFeatures(['CallbackTransformer'], '../CallbackTransformer')
-    } else {
-        collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
+        collector.addFeature('CallbackTransformer', '../CallbackTransformer')
     }
 }

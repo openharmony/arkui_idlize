@@ -14,11 +14,10 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, PeerMethodSignature, MaterializedMethod, throwException, DelegationType, LanguageExpression, DelegationCall } from '@idlizer/core'
-import { printPeerFinalizer, writePeerMethod } from "./PeersPrinter"
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature } from '@idlizer/core'
+import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
-    LanguageStatement,
     Method,
     MethodModifier,
     MethodSignature,
@@ -34,11 +33,10 @@ import { TargetFile } from "./TargetFile"
 import {
     ARK_MATERIALIZEDBASE,
     ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
-    ARKOALA_PACKAGE,
     ARK_OBJECTBASE,
 } from "./lang/Java";
 import { printJavaImports } from "./lang/JavaPrinters";
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, isOptionalType, maybeOptional } from '@idlizer/core/idl'
+import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
@@ -429,6 +427,19 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             this.printMethods(clazz)
             }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
     }
+}
+
+function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): void {
+    const finalizer = new Method(
+        "getFinalizer",
+        new MethodSignature(IDLPointerType, []),
+        // TODO: private static getFinalizer() method conflicts with its implementation in the parent class
+        [MethodModifier.STATIC])
+    writer.writeMethodImplementation(finalizer, writer => {
+        writer.writeStatement(
+            writer.makeReturn(
+                writer.makeNativeCall(NativeModule.Generated, `_${qualifiedName(clazz.decl, "_", "namespace.name")}_getFinalizer`, [])))
+    })
 }
 
 class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
