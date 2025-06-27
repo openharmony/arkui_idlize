@@ -35,6 +35,7 @@ function main() {
     }
     new DynamicEmitter(
         options.outputDir,
+        options.pandaSdkPath,
         toIDLFile(
             path.join(
                 options.pandaSdkPath,

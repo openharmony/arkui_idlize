@@ -15,6 +15,8 @@
 
 import * as path from "node:path"
 import * as fs from "node:fs"
+import * as ps from "node:child_process"
+import JSON5 from "json5"
 import { forceWriteFile, getFQName, IDLFile, linkParentBack, toIDLString } from "@idlizer/core"
 import { MultiFileOutput } from "../printers/MultiFilePrinter"
 import { Config } from "../general/Config"
@@ -58,10 +60,38 @@ class MultiFileEmitter {
 export class DynamicEmitter {
     constructor(
         private outDir: string,
+        private sdkDir: string,
         private file: IDLFile,
         private config: Config,
         private shouldLog: boolean
-    ) {}
+    )
+    {
+        const myJson = path.resolve(__dirname, '..', 'package.json')
+        if (fs.existsSync(myJson)) {
+            this.generatorVersion = JSON5.parse(
+                fs.readFileSync(myJson).toString())?.version ?? `Unknown`
+        }
+
+        const pandaJson = path.join(sdkDir, 'package.json')
+        if (fs.existsSync(pandaJson)) {
+            this.pandaSdkVersion = JSON5.parse(
+                fs.readFileSync(pandaJson).toString())?.version ?? `Unknown`
+        }
+
+        const host = 'linux'
+        const pandaBinary = path.join(sdkDir, `${host}_host_tools/bin/es2panda`)
+        if (fs.existsSync(pandaBinary)) {
+            const result = ps.spawnSync(pandaBinary, ['--version'], { encoding: 'utf-8' })
+            // Get 2 last non-empty lines from combined stderr and stdout output
+            const [date, hash] = result.output.slice(1).join('\n').split('\n')
+                .filter(str => str.length).slice(-2)
+                .map(str => str.split(': ')?.at(1) ?? '')
+            this.pandaSdkVersion = `${hash}(${date?.split('_')[0]}) sdk v${this.pandaSdkVersion}`
+        }
+    }
+
+    private readonly pandaSdkVersion: string = `Unknown`
+    private readonly generatorVersion: string = `Unknown`
 
     private logDir = `./out/log-idl`
 
@@ -152,6 +182,14 @@ export class DynamicEmitter {
             path.join(this.outDir, filePrinter.path),
             this.readTemplate(filePrinter.template)
                 .replaceAll(
+                    `%GEN_VERSION%`,
+                    this.generatorVersion
+                )
+                .replaceAll(
+                    `%SDK_VERSION%`,
+                    this.pandaSdkVersion
+                )
+                .replaceAll(
                     `%GENERATED_PART%`,
                     filePrinter.print(idl)
                 )
@@ -169,6 +207,14 @@ export class DynamicEmitter {
                 forceWriteFile(
                     path.join(this.outDir, multiFilePrinter.dir, fileName),
                     this.readTemplate(multiFilePrinter.template)
+                        .replaceAll(
+                            `%GEN_VERSION%`,
+                            this.generatorVersion
+                        )
+                        .replaceAll(
+                            `%SDK_VERSION%`,
+                            this.pandaSdkVersion
+                        )
                         .replaceAll(
                             `%GENERATED_PART%`,
                             output
