@@ -312,15 +312,14 @@ export class ModifierVisitor {
         const context = method.sig.context as idl.IDLInterface ?? component.attributeDeclaration
         if (generatorHookName(method.originalParentName, method.method.name)) return
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
-        if (peerGeneratorConfiguration().noDummyGeneration(clazz.componentName, method.sig.name)) {
-            return
-        }
-        this.printMethodProlog(this.dummy, method)
         this.printMethodProlog(this.real, method)
-        this.printDummyImplFunctionBody(context, method)
         this.printModifierImplFunctionBody(method, clazz)
-        this.printMethodEpilog(this.dummy)
         this.printMethodEpilog(this.real)
+        if (!peerGeneratorConfiguration().noDummyGeneration(clazz.componentName, method.sig.name)) {
+            this.printMethodProlog(this.dummy, method)
+            this.printDummyImplFunctionBody(context, method)
+            this.printMethodEpilog(this.dummy)
+        }
     }
 
     printClassProlog(clazz: PeerClass) {
@@ -423,10 +422,10 @@ class AccessorVisitor extends ModifierVisitor {
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
-            if (peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) return
-
-            this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m))
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
+            if (!peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) {
+                this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m))
+            }
         })
         this.popNamespace(namespaceName, false)
         this.printMaterializedClassEpilog(clazz)
