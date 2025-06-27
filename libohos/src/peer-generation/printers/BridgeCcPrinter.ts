@@ -27,13 +27,14 @@ import {
     LanguageWriter,
     InteropReturnTypeConvertor,
     CppInteropArgConvertor,
-    CppReturnTypeConvertor,
+    KotlinCInteropReturnTypeConvertor,
+    KotlinCInteropArgConvertor,
     PrimitiveTypesInstance,
     isDirectConvertedType,
     sorted,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
-import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration } from "../FileGenerators";
+import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
@@ -63,12 +64,16 @@ export function peerReceiverType(library: PeerLibrary, context: idl.IDLEntry): s
 export class BridgeCcVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
-    private readonly returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
+    protected printImplementation = true
+    protected returnTypeConvertor: InteropReturnTypeConvertor
+    protected argConvertor = CppInteropArgConvertor.INSTANCE
 
     constructor(
         protected readonly library: PeerLibrary,
         protected readonly callLog: boolean,
-    ) {}
+    ) {
+        this.returnTypeConvertor = new BridgeReturnTypeConvertor(this.library)
+    }
 
     protected generateApiCall(context: idl.IDLInterface): string {
         return peerApiCall(this.library, context)[1]
@@ -246,9 +251,9 @@ export class BridgeCcVisitor {
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
 
-    private generateCParameters(method: PeerMethod): [string, string][] {
+    protected generateCParameters(method: PeerMethod): [string, string][] {
         const maybeReceiver: [string, string][] = method.sig.context
-            ? [[PrimitiveTypesInstance.NativePointer.getText(), "thisPtr"]] : []
+            ? [[this.argConvertor.convert(idl.IDLPointerType), "thisPtr"]] : []
         let ptrCreated = false;
         method.argAndOutConvertors(this.library).forEach(it => {
             if (it.useArray) {
@@ -257,7 +262,7 @@ export class BridgeCcVisitor {
                     ptrCreated = true
                 }
             } else {
-                let typeName = CppInteropArgConvertor.INSTANCE.convert(it.interopType())
+                let typeName = this.argConvertor.convert(it.interopType())
                 maybeReceiver.push([typeName, this.escapeKeyword(it.param)])
             }
         })
@@ -278,15 +283,17 @@ export class BridgeCcVisitor {
         const cName = `${method.originalParentName}_${method.sig.name}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
         const argTypesAndNames = this.generateCParameters(method)
-        const argDecls = argTypesAndNames.map(([type, name]) =>
-            type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
-        if (idl.isVMContextMethod(makeInteropMethod(this.library, cName, method)))
-            argDecls.unshift("KVMContext vmContext")
-        this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
-        this.generatedApi.pushIndent()
-        this.printNativeBody(context, method)
-        this.generatedApi.popIndent()
-        this.generatedApi.print(`}`)
+        if (this.printImplementation) {
+            const argDecls = argTypesAndNames.map(([type, name]) =>
+                type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
+            if (idl.isVMContextMethod(makeInteropMethod(this.library, cName, method)))
+                argDecls.unshift("KVMContext vmContext")
+            this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
+            this.generatedApi.pushIndent()
+            this.printNativeBody(context, method)
+            this.generatedApi.popIndent()
+            this.generatedApi.print(`}`)
+        }
         const macroRetType = this.mapToKTypes(method.returnType) ?? retType
         let macroArgs = [cName, retType === IDLVoidType.name ? undefined : macroRetType]
             .concat(argTypesAndNames.map(([type, _]) => type))
@@ -369,12 +376,27 @@ export class BridgeCcVisitor {
     }
 }
 
-export type BridgeCcApi = {
+export class BridgeHeaderVisitor extends BridgeCcVisitor {
+    constructor(library: PeerLibrary) {
+        super(library, false)
+        this.printImplementation = false
+        this.argConvertor = new KotlinCInteropArgConvertor()
+        this.returnTypeConvertor = new KotlinCInteropReturnTypeConvertor(library)
+    }
+}
+
+export type BridgeApi = {
     generated: LanguageWriter;
     custom: LanguageWriter;
 };
 
-export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): BridgeCcApi {
+export function printBridgeHeader(peerLibrary: PeerLibrary): BridgeApi {
+    const visitor = new BridgeHeaderVisitor(peerLibrary)
+    visitor.print()
+    return { generated: visitor.generatedApi, custom: visitor.customApi }
+}
+
+export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): BridgeApi {
     const visitor = new BridgeCcVisitor(peerLibrary, callLog)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
@@ -390,6 +412,16 @@ export function printBridgeCcCustom(peerLibrary: PeerLibrary, callLog: boolean):
     return bridgeCcCustomDeclaration(custom.getOutput())
 }
 
+export function printBridgeHeaderGenerated(peerLibrary: PeerLibrary): string {
+    const { generated } = printBridgeHeader(peerLibrary)
+    return bridgeHeaderGeneratedDeclaration(generated.getOutput())
+}
+
+export function printBridgeHeaderCustom(peerLibrary: PeerLibrary): string {
+    const { custom } = printBridgeHeader(peerLibrary)
+    return bridgeHeaderCustomDeclaration(custom.getOutput())
+}
+
 class BridgeReturnTypeConvertor extends InteropReturnTypeConvertor {
     convertTypeReference(type: idl.IDLReferenceType): string {
         if (this.resolver != undefined && idl.isCallback(this.resolver.toDeclaration(type))) {
@@ -397,4 +429,8 @@ class BridgeReturnTypeConvertor extends InteropReturnTypeConvertor {
         }
         return super.convertTypeReference(type)
     }
+}
+
+export function printKotlinCInteropDefFile(headers: string[]): string {
+    return `headers = ${[...headers].sort().join(" ")}`
 }

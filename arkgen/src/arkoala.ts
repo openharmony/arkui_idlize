@@ -25,6 +25,7 @@ import {
     printGniSources, printMesonBuild,
     printBuilderClasses, ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
     TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
+    printBridgeHeaderCustom, printBridgeHeaderGenerated, printKotlinCInteropDefFile,
     printDeclarations, printEnumsImpl, printManagedCaller,
     NativeModule, printArkUILibrariesLoader,
     printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions,
@@ -417,10 +418,36 @@ export function generateArkoalaFromIdl(config: {
         })
     writeFile(
         path.join(arkoala.nativeDir, 'bridge_custom.cc'),
-        printBridgeCcCustom(peerLibrary, config.callLog ?? false), {
-        onlyIntegrated: config.onlyIntegrated,
-        integrated: true
-    })
+        printBridgeCcCustom(peerLibrary, config.callLog ?? false),
+        {
+            onlyIntegrated: config.onlyIntegrated,
+            integrated: true,
+        })
+    if (peerLibrary.language == Language.KOTLIN) {
+        const bridgeHeaderGenerated = 'bridge_generated.h'
+        const bridgeHeaderCustom = 'bridge_custom.h'
+        writeFile(
+            path.join(arkoala.nativeDir, bridgeHeaderGenerated),
+            printBridgeHeaderGenerated(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            })
+        writeFile(
+            path.join(arkoala.nativeDir, bridgeHeaderCustom),
+            printBridgeHeaderCustom(peerLibrary),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            })
+        writeFile(
+            path.join(arkoala.nativeDir, 'interop.def'),
+            printKotlinCInteropDefFile([bridgeHeaderGenerated, bridgeHeaderCustom]),
+            {
+                onlyIntegrated: config.onlyIntegrated,
+                integrated: true,
+            })
+    }
 
     const { api, serializers } = printSerializers(config.apiVersion, peerLibrary)
     writeFile(path.join(arkoala.nativeDir, 'Serializers.h'), serializers, {

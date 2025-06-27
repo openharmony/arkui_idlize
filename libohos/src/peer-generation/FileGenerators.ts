@@ -96,20 +96,28 @@ export function libraryCcDeclaration(options?: { removeCopyright?: boolean}): st
     return content
 }
 
-export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
-    let prologue = readTemplate('bridge_generated_prologue.cc')
+function applyBridgeTemplate(api: string[], template: string): string {
+    let prologue = readTemplate(template)
         .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
 
     return prologue.concat("\n")
-        .concat(generatedApi.join("\n"))
+        .concat(api.join("\n"))
+}
+
+export function bridgeCcGeneratedDeclaration(generatedApi: string[]): string {
+    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.cc")
 }
 
 export function bridgeCcCustomDeclaration(customApi: string[]): string {
-    let prologue = readTemplate('bridge_custom_prologue.cc')
-        .replaceAll(`%CPP_PREFIX%`, peerGeneratorConfiguration().cppPrefix)
+    return applyBridgeTemplate(customApi, "bridge_custom_prologue.cc")
+}
 
-    return prologue.concat("\n")
-        .concat(customApi.join("\n"))
+export function bridgeHeaderGeneratedDeclaration(generatedApi: string[]): string {
+    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.h")
+}
+
+export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
+    return applyBridgeTemplate(customApi, "bridge_custom_prologue.h")
 }
 
 export function appendModifiersCommonPrologue(): LanguageWriter {

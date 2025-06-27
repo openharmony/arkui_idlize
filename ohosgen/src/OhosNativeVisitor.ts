@@ -86,7 +86,7 @@ import {
     CppSourceFile,
     StructPrinter,
     TargetFile,
-    BridgeCcApi,
+    BridgeApi,
     BridgeCcVisitor,
     createSyntheticGlobalScope,
     isGlobalScope,
@@ -506,7 +506,7 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
     }
 }
 
-export function printBridgeCc(peerLibrary: PeerLibrary): BridgeCcApi {
+export function printBridgeCc(peerLibrary: PeerLibrary): BridgeApi {
     const visitor = new OhosBridgeCcVisitor(peerLibrary, false)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
