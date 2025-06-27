@@ -10,6 +10,18 @@ function selectInternalsPath(): string {
 function selectInteropPath(): string {
     return "@koalaui/interop"
 }
+function canCropCurrentModulePrefix(): boolean {
+    const module = currentModule()
+    return module.packages.every(it => it.startsWith(module.name))
+}
+function cropCurrentModulePrefix(fqname: string): string {
+    if (!canCropCurrentModulePrefix())
+        throw new Error("Can not crop prefix for current module")
+    const prefix = currentModule().name
+    if (fqname == prefix)
+        return fqname.split('.').at(-1)!
+    return fqname.slice(prefix.length + 1)
+}
 
 // TBD: code duplication with the ArkoalaLayout
 export function HandwrittenModule(language: Language): string {
@@ -45,13 +57,18 @@ export class OhosTsLayout implements LayoutManagerStrategy {
         if (idl.isHandwritten(node)) {
             return HandwrittenModule(this.library.language)
         }
-        if (isInCurrentModule(node))
+        if (isInCurrentModule(node)) {
+            if (canCropCurrentModulePrefix()) {
+                const cropped = cropCurrentModulePrefix(idl.getPackageName(node))
+                return currentModule().useFoldersLayout
+                    ? cropped.split('.').join("/") || 'synthetic'
+                    : cropped
+            }
             return currentModule().useFoldersLayout
                 ? idl.getPackageClause(node).join("/") || 'synthetic'
                 : "@" + idl.getPackageName(node)
-        return getModuleFor(node).useFoldersLayout
-            ? "@" + idl.getPackageClause(node).join("/") || 'synthetic'
-            : "@" + idl.getPackageName(node)
+        }
+        return "@" + idl.getPackageName(node)
     }
 
     protected selectPeer(node:idl.IDLEntry): string {

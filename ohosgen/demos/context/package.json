@@ -8,12 +8,12 @@
         "rollup": "^4.24.4"
     },
     "scripts": {
-        "clean:ts": "rm -rf generated/ts",
-        "clean:arkts": "rm -rf generated/arkts",
-        "clean:cj": "rm -rf generated/cj",
-        "clean:native": "rm -rf generated/native",
+        "clean:ts": "rm -rf application/generated/ts bundleManager/generated/ts",
+        "clean:arkts": "rm -rf application/generated/arkts bundleManager/generated/arkts",
+        "clean:cj": "rm -rf application/generated/cj bundleManager/generated/cj",
+        "clean:native": "rm -rf application/generated/native bundleManager/generated/native",
 
-        "generate": "npm run run:context:${TARGET} -C ../.. -- --output-dir demos/context",
+        "generate": "npm run run:context:${TARGET} -C ../..",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate",

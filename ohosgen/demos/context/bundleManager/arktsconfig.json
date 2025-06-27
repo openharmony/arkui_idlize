@@ -1,0 +1,14 @@
+{
+    "compilerOptions": {
+        "package": "@bundleManager",
+        "baseUrl": "./generated/arkts",
+        "outDir": "build/panda/out",
+        "paths": {
+            "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
+            "@koalaui/common": ["../../../../../../external/incremental/common/src"],
+            "@koalaui/compat": ["../../../../../../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
+        }
+    },
+    "include": ["generated/arkts/**/*.ts"]
+}

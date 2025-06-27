@@ -14,16 +14,16 @@ cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
 
 include_dirs = [
-   'generated/native',
-   'src/cpp',
+   'application/generated/native',
+   'launcher/src/cpp',
    external_interop_dir,
    external_interop_dir / 'types',
 ]
 
 sources = [
-    'generated/native/application.cc',
-    'generated/native/applicationApiImpl_temp.cc',
-    'src/cpp/contextImpl.cc',
+    'application/generated/native/application.cc',
+    'application/generated/native/applicationApiImpl_temp.cc',
+    'launcher/src/cpp/contextImpl.cc',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
@@ -86,7 +86,7 @@ elif is_panda
     platform_build_dir = meson.current_source_dir() / 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@context/generated/arkts/application/INTERNAL/']
+    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@application/application/INTERNAL/']
     ldflags += external_interop_build_dir / 'libInteropNativeModule.so'
     include_dirs += [
         external_interop_dir / 'ani',

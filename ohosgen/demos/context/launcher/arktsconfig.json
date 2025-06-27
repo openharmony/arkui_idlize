@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+        "package": "@context",
+        "baseUrl": ".",
+        "outDir": "build/panda/out",
+        "paths": {
+            "#compat": ["./src/panda/compat"],
+            "#components": ["./src/panda/components"],
+            "@application.ApplicationContext": ["../application/generated/arkts/ApplicationContext"],
+            "@application.BaseContext": ["../application/generated/arkts/BaseContext"],
+            "@application.Context": ["../application/generated/arkts/Context"],
+            "@application.application.INTERNAL": ["../application/generated/arkts/application.INTERNAL"],
+
+            "@bundleManager.ApplicationInfo": ["../bundleManager/generated/arkts/ApplicationInfo"],
+            "@bundleManager.bundleManager.INTERNAL": ["../bundleManager/generated/arkts/bundleManager.INTERNAL"],
+
+            "@ohos.base": ["src/modules/internal/components"],
+            "@koalaui/interop": ["../../../../external/interop/src/arkts"],
+            "@koalaui/common": ["../../../../external/incremental/common/src"],
+            "@koalaui/compat": ["../../../../external/incremental/compat/src/arkts"],
+            "@koalaui/runtime": ["../../../../external/incremental/runtime/src"]
+        }
+    },
+    "include": ["src/*.ts", "src/panda/**/*.ts"]
+}
