@@ -4,4 +4,14 @@ callback TextFieldValueCallback = void (ResourceStr value);
 [Entity=Class]
 interface TextFieldOps {
     static pointer registerTextFieldValueCallback(pointer node, ResourceStr value, TextFieldValueCallback callback);
+    static pointer textFieldOpsSetWidth(pointer node, optional (Length or LayoutPolicy) value);
+    static pointer textFieldOpsSetHeight(pointer node, optional (Length or LayoutPolicy) value);
+    static pointer textFieldOpsSetPadding(pointer node, optional (Padding or Length or LocalizedPadding) value);
+    static pointer textFieldOpsSetMargin(pointer node, optional (Padding or Length or LocalizedPadding) value);
+    static pointer textFieldOpsSetBorder(pointer node, optional BorderOptions value);
+    static pointer textFieldOpsSetBorderWidth(pointer node, optional (Length or EdgeWidths or LocalizedEdgeWidths) value);
+    static pointer textFieldOpsSetBorderColor(pointer node, optional (ResourceColor or EdgeColors or LocalizedEdgeColors) value);
+    static pointer textFieldOpsSetBorderStyle(pointer node, optional (BorderStyle or EdgeStyles) value);
+    static pointer textFieldOpsSetBorderRadius(pointer node, optional (Length or BorderRadiuses or LocalizedBorderRadiuses) value);
+    static pointer textFieldOpsSetBackgroundColor(pointer node, optional ResourceColor value);
 };
