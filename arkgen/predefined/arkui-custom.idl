@@ -169,3 +169,21 @@ interface StateStylesOps {
 interface UIContextAtomicServiceBar {
     static Frame getBarRect();
 };
+
+[Entity=Class]
+interface BuilderNodeOptions {
+    [Optional] attribute  Size selfIdealSize;
+    [Optional] attribute  number type;
+    [Optional] attribute  String surfaceId;
+};
+
+[Entity=Class]
+interface BuilderNodeOps {
+    constructor();
+    void create(Callback_Void buildFunc);
+    void disposeNode();
+    void setUpdateConfigurationCallback(Callback_Void configurationUpdateFunc);
+    void setOptions(BuilderNodeOptions options);
+    boolean postTouchEvent(TouchEvent event);
+    pointer setRootFrameNodeInBuilderNode(pointer node);
+};

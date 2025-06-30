@@ -290,6 +290,9 @@ typedef struct Opt_Boolean Opt_Boolean;
 typedef struct Ark_BooleanInterfaceDTS Ark_BooleanInterfaceDTS;
 typedef struct Opt_BooleanInterfaceDTS Opt_BooleanInterfaceDTS;
 typedef struct Opt_Buffer Opt_Buffer;
+typedef struct BuilderNodeOpsPeer BuilderNodeOpsPeer;
+typedef struct BuilderNodeOpsPeer* Ark_BuilderNodeOps;
+typedef struct Opt_BuilderNodeOps Opt_BuilderNodeOps;
 typedef struct Ark_ButtonAttribute Ark_ButtonAttribute;
 typedef struct Opt_ButtonAttribute Opt_ButtonAttribute;
 typedef struct Ark_CalendarPickerAttribute Ark_CalendarPickerAttribute;
@@ -1178,6 +1181,8 @@ typedef struct Opt_BlurOptions Opt_BlurOptions;
 typedef struct BounceSymbolEffectPeer BounceSymbolEffectPeer;
 typedef struct BounceSymbolEffectPeer* Ark_BounceSymbolEffect;
 typedef struct Opt_BounceSymbolEffect Opt_BounceSymbolEffect;
+typedef struct Ark_BuilderNodeOptions Ark_BuilderNodeOptions;
+typedef struct Opt_BuilderNodeOptions Opt_BuilderNodeOptions;
 typedef struct Ark_ButtonConfiguration Ark_ButtonConfiguration;
 typedef struct Opt_ButtonConfiguration Opt_ButtonConfiguration;
 typedef struct Ark_ButtonOptions Ark_ButtonOptions;
@@ -4067,6 +4072,10 @@ typedef struct Opt_Buffer {
     Ark_Tag tag;
     Ark_Buffer value;
 } Opt_Buffer;
+typedef struct Opt_BuilderNodeOps {
+    Ark_Tag tag;
+    Ark_BuilderNodeOps value;
+} Opt_BuilderNodeOps;
 typedef struct Ark_ButtonAttribute {
     /* kind: Interface */
     void *handle;
@@ -7688,6 +7697,16 @@ typedef struct Opt_BounceSymbolEffect {
     Ark_Tag tag;
     Ark_BounceSymbolEffect value;
 } Opt_BounceSymbolEffect;
+typedef struct Ark_BuilderNodeOptions {
+    /* kind: Interface */
+    Opt_Size selfIdealSize;
+    Opt_Number type;
+    Opt_String surfaceId;
+} Ark_BuilderNodeOptions;
+typedef struct Opt_BuilderNodeOptions {
+    Ark_Tag tag;
+    Ark_BuilderNodeOptions value;
+} Opt_BuilderNodeOptions;
 typedef struct Ark_ButtonConfiguration {
     /* kind: Interface */
     Ark_Boolean enabled;
@@ -14370,6 +14389,23 @@ typedef struct GENERATED_ArkUIBounceSymbolEffectAccessor {
                          const Opt_EffectDirection* direction);
 } GENERATED_ArkUIBounceSymbolEffectAccessor;
 
+typedef struct GENERATED_ArkUIBuilderNodeOpsAccessor {
+    void (*destroyPeer)(Ark_BuilderNodeOps peer);
+    Ark_BuilderNodeOps (*construct)();
+    Ark_NativePointer (*getFinalizer)();
+    void (*create)(Ark_BuilderNodeOps peer,
+                   const Callback_Void* buildFunc);
+    void (*disposeNode)(Ark_BuilderNodeOps peer);
+    void (*setUpdateConfigurationCallback)(Ark_BuilderNodeOps peer,
+                                           const Callback_Void* configurationUpdateFunc);
+    void (*setOptions)(Ark_BuilderNodeOps peer,
+                       const Ark_BuilderNodeOptions* options);
+    Ark_Boolean (*postTouchEvent)(Ark_BuilderNodeOps peer,
+                                  Ark_TouchEvent event);
+    Ark_NativePointer (*setRootFrameNodeInBuilderNode)(Ark_BuilderNodeOps peer,
+                                                       Ark_NativePointer node);
+} GENERATED_ArkUIBuilderNodeOpsAccessor;
+
 typedef struct GENERATED_ArkUICanvasGradientAccessor {
     void (*destroyPeer)(Ark_CanvasGradient peer);
     Ark_CanvasGradient (*construct)();
@@ -16351,6 +16387,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIBaselineOffsetStyleAccessor* (*getBaselineOffsetStyleAccessor)();
     const GENERATED_ArkUIBaseShapeAccessor* (*getBaseShapeAccessor)();
     const GENERATED_ArkUIBounceSymbolEffectAccessor* (*getBounceSymbolEffectAccessor)();
+    const GENERATED_ArkUIBuilderNodeOpsAccessor* (*getBuilderNodeOpsAccessor)();
     const GENERATED_ArkUICanvasGradientAccessor* (*getCanvasGradientAccessor)();
     const GENERATED_ArkUICanvasPathAccessor* (*getCanvasPathAccessor)();
     const GENERATED_ArkUICanvasPatternAccessor* (*getCanvasPatternAccessor)();
