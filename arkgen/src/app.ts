@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
@@ -39,6 +54,7 @@ import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
+import { readLibrary } from "@idlizer/interfaces"
 
 export function arkgen(argv:string[]) {
     const options = program
@@ -89,6 +105,7 @@ export function arkgen(argv:string[]) {
         .option('--use-component-optional', 'Make all component\'s properties nullable')
         .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
         .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
+        .option('--no-implicit-predefined', "Removes predefined from the generator input")
 
         .parse(argv, { from: 'user' })
         .opts()
@@ -197,10 +214,6 @@ export function arkgen(argv:string[]) {
         didJob = true
     }
 
-    function arkgenPredefinedFiles(): string[] {
-        return scanInputDirs([path.join(__dirname, "../predefined")])
-    }
-
     if (options.idl2peer) {
         const outDir = options.outputDir ?? "./out"
         const language = Language.fromString(options.language ?? "ts")
@@ -210,7 +223,7 @@ export function arkgen(argv:string[]) {
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
-            .concat(arkgenPredefinedFiles())
+            .concat(options.implicitPredefined ? readLibrary("arkuiExtra") : [])
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)
@@ -246,7 +259,7 @@ export function arkgen(argv:string[]) {
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
-            .concat(arkgenPredefinedFiles())
+            .concat(options.implicitPredefined ? readLibrary("arkuiExtra") : [])
         const allAuxInputFiles = auxInputFiles
         const dtsInputFiles = allInputFiles.filter(it => it.endsWith('.d.ts'))
         const dtsAuxInputFiles = allAuxInputFiles.filter(it => it.endsWith('.d.ts'))

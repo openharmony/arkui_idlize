@@ -1,0 +1,21 @@
+{
+  "name": "@idlizer/interfaces",
+  "version": "2.1.9+devel",
+  "main": "dist/index.js",
+  "files": [
+    "dist/**/*",
+    "interfaces/**/*"
+  ],
+  "scripts": {
+    "compile": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^24.0.7",
+    "typescript": "^5.8.3"
+  }
+}

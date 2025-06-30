@@ -34,3 +34,4 @@ include:
     - dtsgen/.gitlab-ci.yml
     - etsgen/.gitlab-ci.yml
     - idlinter/.gitlab-ci.yml
+    - interfaces/.gitlab-ci.yml

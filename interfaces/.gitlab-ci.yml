@@ -1,0 +1,15 @@
+check arkui interfaces:
+  allow_failure: true
+  stage: build
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - libarkts regenerate
+    - download sdk
+  script:
+    - !reference [.npm, script]
+    - npm run compile --prefix core
+    - npm run compile --prefix idlinter
+    - npm run run:sdk --prefix etsgen
+    - node idlinter --check interfaces/interfaces etsgen/out

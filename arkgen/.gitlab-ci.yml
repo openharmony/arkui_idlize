@@ -260,7 +260,6 @@ check index-full:
     script:
         - npm run check:peers:ets
         - npm run check:index-full:ts
-        - npm run make:arkts:peers:ets
 
 subset CAPI golden:
   stage: test

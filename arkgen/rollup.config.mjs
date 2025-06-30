@@ -55,7 +55,7 @@ function createTarget(sourcePath, targetPath) {
                 // process.exit(-1);
             }
         },
-        external: ["commander", "typescript"],
+        external: ["commander", "typescript", "@idlizer/interfaces"],
         plugins: [
             typescript({
                 outputToFilesystem: false,

@@ -1,0 +1,24 @@
+package arkui.component.idlize;
+
+import arkui.component.common.SizeResult as SizeResult;
+import arkui.component.common.GeometryInfo as GeometryInfo;
+import arkui.component.common.Measurable as Measurable;
+import arkui.component.common.Layoutable as Layoutable;
+import arkui.component.units.ConstraintSizeOptions as ConstraintSizeOptions;
+
+[Component="Root"]
+interface Root {};
+
+[Component="ComponentRoot"]
+interface ComponentRoot {};
+
+callback Callback_onMeasureSize_SizeResult = SizeResult (GeometryInfo selfLayoutInfo, sequence<Measurable> children, ConstraintSizeOptions constraint);
+callback Callback_onPlaceChildren_Void = void (GeometryInfo selfLayoutInfo, sequence<Layoutable> children, ConstraintSizeOptions constraint);
+
+[Component="CustomLayoutRoot"]
+interface CustomLayoutRoot {
+    [CommonMethod]
+    attribute Callback_onMeasureSize_SizeResult subscribeOnMeasureSize;
+    [CommonMethod]
+    attribute Callback_onPlaceChildren_Void subscribeOnPlaceChildren;
+};
