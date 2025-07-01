@@ -3,7 +3,7 @@ etsgen golden:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
+  dependencies:
   - libarkts regenerate
   before_script:
     - !reference [.npm, script]

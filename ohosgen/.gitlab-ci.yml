@@ -1,5 +1,3 @@
-image: "nexus.bz-openlab.ru:10443/huawei/koala-ci:0.2.2"
-
 stages:
   - build
   - test
@@ -23,7 +21,7 @@ check generated XML demo:
     tags:
       - idlize-ci
       - koala-ci
-    needs:
+    dependencies:
     - download sdk
     before_script:
       - !reference [.npm, script]
@@ -70,7 +68,7 @@ check ohos demos:
   tags:
     - idlize-ci
     - koala-ci
-  needs:
+  dependencies:
   - download sdk
   before_script:
     - !reference [.npm, script]

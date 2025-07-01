@@ -3,7 +3,21 @@ include:
 
 .panda:
     script:
-    - PANDA_SDK_VERSION=1.5.0-dev.32627 npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
+    - npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
+
+prepare caches:
+    stage: pre-build
+    tags:
+    - idlize-ci
+    - koala-ci
+    script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+    cache:
+    -   key: $CI_PIPELINE_ID
+        policy: pull-push
+        paths:
+        - .npm/
 
 libarkts regenerate:
     stage: build
@@ -34,6 +48,7 @@ download sdk:
     - !reference [.panda, script]
     - npm run download:sdk
     needs:
+    - prepare caches
     - libarkts regenerate
     artifacts:
         paths:

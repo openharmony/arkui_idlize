@@ -23,13 +23,13 @@ pack idlize-arktscgen:
     - .npm-pack
   variables:
     PACKAGE_DIR: arktscgen
-  needs:
+  dependencies:
     - build idlize-arktscgen
 
 pre-publish test arktscgen:
   allow_failure: true
   stage: pre-publish
-  needs:
+  dependencies:
   - build idlize-arktscgen
   tags:
     - idlize-ci

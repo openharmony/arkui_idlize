@@ -2,6 +2,7 @@ image: "${KOALA_CI_IMAGE}"
 
 stages:
   - notify
+  - pre-build
   - build
   - test
   - pre-deploy
@@ -15,12 +16,12 @@ workflow:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  PANDA_SDK_VERSION: "1.5.0-dev.31052"
+  PANDA_SDK_VERSION: "1.5.0-dev.34384"
 
 default:
   cache:
-  - key: default
-    policy: pull-push
+  - key: $CI_PIPELINE_ID
+    policy: pull
     paths:
     - .npm/
 
