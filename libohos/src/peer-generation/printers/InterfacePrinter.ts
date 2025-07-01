@@ -170,7 +170,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())
             .concat(idlInterface.properties
-                .map(it => this.printProperty(it)).flat())
+                .map(it => this.printProperty(it, true)).flat())
             .concat(this.collapseAmbiguousMethods(idlInterface.methods)
                 .filter(it => !idl.isInterfaceSubkind(idlInterface) || !it.isStatic)
                 .map(it => this.printMethod(it)).flat())
@@ -365,14 +365,21 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         ]
     }
 
-    protected printProperty(prop: idl.IDLProperty): stringOrNone[] {
+    protected printProperty(prop: idl.IDLProperty, allowAccessor = false): stringOrNone[] {
         const staticMod = prop.isStatic ? "static " : ""
         const readonlyMod = prop.isReadonly ? "readonly " : ""
         const extraMethod = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.ExtraMethod)
         let result = [
             ...this.printExtendedAttributes(prop),
-            indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1),
         ]
+        const accessor = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.Accessor)
+        if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Getter) {
+            result.push(indentedBy(`get ${prop.name}():${this.convertType(prop.type)};`, 1))
+        } else if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Setter) {
+            result.push(indentedBy(`set ${prop.name}(val:${this.convertType(prop.type)}):void;`, 1))
+        } else {
+            result.push(indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1))
+        }
         if (extraMethod && extraMethod.length > 0) {
             if (idl.isReferenceType(prop.type)) {
                 const decl = this.peerLibrary.resolveTypeReference(prop.type) ?? throwException("Extra method can only be in")
