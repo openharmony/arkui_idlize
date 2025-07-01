@@ -241,7 +241,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                             true,
                             false
                         ),
-                        writer.makeCondition(writer.makeString(`modifier!.isUpdater`),
+                        writer.makeCondition(writer.makeString(`modifier!.isUpdater()`),
                             writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeUpdater<${rootSuper.name}>)`, `initializeModifier`, [writer.makeString(style)])),
                             writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeModifier<${rootSuper.name}>)`, `applyNormalAttribute`, [writer.makeString(style)])),
                         ),
