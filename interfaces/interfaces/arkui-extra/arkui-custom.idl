@@ -3,6 +3,7 @@ package arkui.component.idlize;
 import arkui.component.units;
 import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
+import global.resource.Resource as Resource; 
 
 callback Callback_RangeUpdate = void (i32 start, i32 end);
 callback Callback_CreateItem = pointer (i32 index);
@@ -22,6 +23,7 @@ interface SystemOps {
     static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
     static void resourceManagerReset();
     static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
+    static sequence<number> colorMetricsResourceColor(Resource color);
 };
 
 [Entity=Class]
