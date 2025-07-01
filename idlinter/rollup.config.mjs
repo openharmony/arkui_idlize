@@ -25,7 +25,7 @@ const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 export default {
     input: "./src/cli.ts",
     output: {
-        file: "./lib/index.js",
+        file: "./dist/index.js",
         format: "commonjs",
         sourcemap: ENABLE_SOURCE_MAPS,
         sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {

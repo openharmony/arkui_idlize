@@ -17,10 +17,10 @@ import * as idl from "@idlizer/core"
 import * as fs from "fs"
 import { Parsed, locationForNode } from "./parser"
 import { DuplicateIdentifier, InconsistentEnum, LoadingError, ProcessingError, UnknownError, UnresolvedReference, WrongAttributeName, WrongAttributePlacement } from "./messages"
-import { dependentPass, idlManager, IdlProcessingPass, startingPass } from "./idlprocessing"
+import { idlManager } from "./idlprocessing"
 import { IdlNodeAny } from "./idltypes"
 
-const enumPass = startingPass("diagPass", () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
+const enumPass = idlManager.newPass("enumPass", [], () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
 enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])
 enumPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => {
     let nodes = st.enums.get(node.parent!)!
@@ -37,7 +37,7 @@ enumPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => {
 
 // let namedDecls = [idl.IDLKind.Namespace, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Callable, idl.IDLKind.Typedef, idl.IDLKind.Enum]
 
-const resolvePass = startingPass("resolvePass", () => ({typeParameters: new Set<string>()}))
+const resolvePass = idlManager.newPass("resolvePass", [], () => ({typeParameters: new Set<string>()}))
 function extParam(param: string) {
     const extendsIdx = param.indexOf('extends')
     if (extendsIdx !== -1) {
@@ -74,6 +74,7 @@ resolvePass.on({}).after = (node, st) => {
     }
 }
 
+idlManager.newFeature("ohos", "OHOS-specific checks")
 const ohosValidAttributes = new Map([
             [idl.IDLKind.Import, ["Deprecated", "Documentation"]],
             [idl.IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
@@ -88,8 +89,7 @@ const ohosValidAttributes = new Map([
             [idl.IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
             [idl.IDLKind.Constructor, ["Deprecated", "Documentation"]]
 ])
-const attrPass = startingPass("attrPass", () => {})
-attrPass.mode = "ohos"
+const attrPass = idlManager.newPass("ohos.attrPass", [], () => {})
 attrPass.on({}).before = (node, st) => {
     if(!node.extendedAttributes || node.extendedAttributes.length == 0) {
         return
@@ -106,12 +106,26 @@ attrPass.on({}).before = (node, st) => {
     }
 }
 
-const genPass = dependentPass("genPass", [enumPass], ()=>({lines: ([] as string[])}))
-genPass.mode = "gendemo"
+const genPass = idlManager.newPass(".genPass", [enumPass], ()=>({lines: ([] as string[])}))
 genPass.on({kind: idl.IDLKind.File}).before = (node, st) => { st.lines = [] }
 genPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.lines.push(`enum ${node.name} {`)
-genPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => st.lines.push(`    ${node.name} = ${node.initializer},`)
+genPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => st.lines.push(`    ${node.name} = ${typeof node.initializer == "string" ? '"'+node.initializer+'"' : node.initializer},`)
 genPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => st.lines.push("}")
 genPass.on({kind: idl.IDLKind.File}).after = (node, st) => {
     fs.writeFileSync(node.fileName!.replace(".idl", ".ts"), st.lines.join("\n"))
+}
+
+const locationCheckPass = idlManager.newPass(".locationCheckPass", [], () => [0, 0] )
+locationCheckPass.on({}).after = (node, st) => {
+    let t = node as any
+    let l = locationForNode(node)
+    t.wholeLocation = l
+    t.nameLocation = locationForNode(node, "name")
+    st[0] += 1
+    if (l.range) {
+        st[1] += 1
+    }
+}
+locationCheckPass.afterAll = (st) => {
+    console.log(`Stats: ${st[1]}/${st[0]} nodes have locations`);
 }

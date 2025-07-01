@@ -14,7 +14,5 @@
  */
 
 // Incomplete for using as a package, will be rewritten with API stabilization
-export * from "./servicetypes"
 export * from "./idltypes"
-export * from "./baseprocessing"
 export * from "./diagnostictypes"

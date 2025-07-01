@@ -13,71 +13,90 @@
  * limitations under the License.
  */
 
-import { FieldMix, RecursivePattern } from "./servicetypes"
 import * as idl from "@idlizer/core"
 
-export type IdlNodeUnion = (idl.IDLNode
-| idl.IDLFile
-| idl.IDLNamedNode
-| idl.IDLEntry
-| idl.IDLType
-| idl.IDLTypedef
-| idl.IDLPrimitiveType
-| idl.IDLOptionalType
-| idl.IDLContainerType
-| idl.IDLReferenceType
-| idl.IDLUnspecifiedGenericType
-| idl.IDLUnionType
-| idl.IDLTypeParameterType
-| idl.IDLVersion
-| idl.IDLVariable
-| idl.IDLTypedEntry
-| idl.IDLEnum
-| idl.IDLEnumMember
-| idl.IDLConstant
-| idl.IDLProperty
-| idl.IDLParameter
-| idl.IDLSignature
-| idl.IDLFunction
-| idl.IDLMethod
-| idl.IDLCallable
-| idl.IDLConstructor
-| idl.IDLInterface
-| idl.IDLImport
-| idl.IDLNamespace
-| idl.IDLCallback
-)
+export type IdlNodeAny = {
+    _idlNodeBrand: any
+    kind: idl.IDLKind;
+    parent?: idl.IDLNode | (idl.IDLNode & idl.IDLEnum)
+    fileName?: string
+    extendedAttributes?: idl.IDLExtendedAttribute[]
+    documentation?: string
+    members?: idl.IDLEntry[]
+    _idlEntryBrand?: any
+    comment?: string
+    _idlNamedNodeBrand?: any
+    name?: string
+    returnType?: idl.IDLType
+    typeParameters?: string[]
+    parameters?: idl.IDLParameter[]
+    clause?: string[]
+    subkind?: idl.IDLInterfaceSubkind
+    inheritance?: idl.IDLReferenceType[]
+    constructors?: idl.IDLConstructor[]
+    constants?: idl.IDLConstant[]
+    properties?: idl.IDLProperty[]
+    methods?: idl.IDLMethod[]
+    callables?: idl.IDLCallable[]
+    isStatic?: boolean
+    isAsync?: boolean
+    isOptional?: boolean
+    isFree?: boolean
+    isVariadic?: boolean
+    type?: idl.IDLType | idl.IDLPrimitiveType
+    isReadonly?: boolean
+    value?: string | string[]
+    initializer?: string | number
+    elements?: idl.IDLEnumMember[]
+    _idlTypeBrand?: any;
+    types?: idl.IDLType[]
+    typeArguments?: idl.IDLType[]
+    elementType?: idl.IDLType[]
+    containerKind?: idl.IDLContainerKind
+    packageClause?: string[]
+    entries?: idl.IDLEntry[]
+    text?: string
+}
 
-export type IdlNodeAny = idl.IDLNode & (FieldMix<
-idl.IDLFile, FieldMix<
-idl.IDLNamedNode, FieldMix<
-idl.IDLEntry, FieldMix<
-idl.IDLType, FieldMix<
-idl.IDLTypedef, FieldMix<
-idl.IDLPrimitiveType, FieldMix<
-idl.IDLOptionalType, FieldMix<
-idl.IDLContainerType, FieldMix<
-idl.IDLReferenceType, FieldMix<
-idl.IDLUnspecifiedGenericType, FieldMix<
-idl.IDLUnionType, FieldMix<
-idl.IDLTypeParameterType, FieldMix<
-idl.IDLVersion, FieldMix<
-idl.IDLVariable, FieldMix<
-idl.IDLTypedEntry, FieldMix<
-idl.IDLEnum, FieldMix<
-idl.IDLEnumMember, FieldMix<
-idl.IDLConstant, FieldMix<
-idl.IDLProperty, FieldMix<
-idl.IDLParameter, FieldMix<
-idl.IDLSignature, FieldMix<
-idl.IDLFunction, FieldMix<
-idl.IDLMethod, FieldMix<
-idl.IDLCallable, FieldMix<
-idl.IDLConstructor, FieldMix<
-idl.IDLInterface, FieldMix<
-idl.IDLImport, FieldMix<
-idl.IDLNamespace, 
-idl.IDLCallback>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-)
-
-export type IdlRecursivePattern = RecursivePattern<IdlNodeUnion>
+export type IdlNodePattern = {
+    _idlNodeBrand?: any
+    kind?: idl.IDLKind;
+    parent?: idl.IDLNode | (idl.IDLNode & idl.IDLEnum)
+    fileName?: string
+    extendedAttributes?: idl.IDLExtendedAttribute[]
+    documentation?: string
+    members?: idl.IDLEntry[]
+    _idlEntryBrand?: any
+    comment?: string
+    _idlNamedNodeBrand?: any
+    name?: string
+    returnType?: idl.IDLType
+    typeParameters?: string[]
+    parameters?: idl.IDLParameter[]
+    clause?: string[]
+    subkind?: idl.IDLInterfaceSubkind
+    inheritance?: idl.IDLReferenceType[]
+    constructors?: idl.IDLConstructor[]
+    constants?: idl.IDLConstant[]
+    properties?: idl.IDLProperty[]
+    methods?: idl.IDLMethod[]
+    callables?: idl.IDLCallable[]
+    isStatic?: boolean
+    isAsync?: boolean
+    isOptional?: boolean
+    isFree?: boolean
+    isVariadic?: boolean
+    type?: idl.IDLType | idl.IDLPrimitiveType
+    isReadonly?: boolean
+    value?: string | string[]
+    initializer?: string | number
+    elements?: idl.IDLEnumMember[]
+    _idlTypeBrand?: any;
+    types?: idl.IDLType[]
+    typeArguments?: idl.IDLType[]
+    elementType?: idl.IDLType[]
+    containerKind?: idl.IDLContainerKind
+    packageClause?: string[]
+    entries?: idl.IDLEntry[]
+    text?: string
+}

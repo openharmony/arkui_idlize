@@ -2,11 +2,14 @@
   "name": "@idlizer/idlinter",
   "version": "2.1.9+devel",
   "description": "Tool for .idl validation",
-  "main": "lib/index.js",
-  "bin": "lib/index.js",
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
   "files": [
-    "build/lib/**/*.js",
-    "build/lib/**/*.d.ts"
+    "tsconfig.json",
+    "rollup.config.mjs",
+    "readme.md",
+    "architecture-and-extensions.md",
+    "src/**/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],

@@ -1,9 +1,9 @@
 {
     "compilerOptions": {
         "target": "es2017",
-	"experimentalDecorators": true,
         "lib": ["ESNext", "ESNext.WeakRef"],
         "moduleResolution": "node",
+        "noErrorTruncation": true,
         "composite": true,
         "incremental": true,
         "declarationMap": true,
