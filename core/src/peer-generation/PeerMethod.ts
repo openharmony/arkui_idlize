@@ -13,15 +13,10 @@
  * limitations under the License.
  */
 import * as idl from '../idl'
-import { generatorTypePrefix } from "../config"
-import { asPromise, IDLType } from "../idl"
-import { IdlNameConvertor } from "../LanguageWriters"
-import { ArgConvertor, createOutArgConvertor, isVMContextMethod } from "../LanguageWriters/ArgConvertors"
-import { mangleMethodName, Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
-import { capitalize, isDefined } from "../util"
-import { PrimitiveTypesInstance } from "./PrimitiveType"
-import { ReferenceResolver } from "./ReferenceResolver"
-import { flattenUnionType } from './unions'
+import { IDLType } from "../idl"
+import { ArgConvertor, createOutArgConvertor } from "../LanguageWriters/ArgConvertors"
+import { Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
+import { isDefined } from "../util"
 import { PeerLibrary } from './PeerLibrary'
 
 export class PeerMethodArg {
@@ -44,39 +39,27 @@ export class PeerMethodSignature {
         public readonly modifiers: (MethodModifier.FORCE_CONTEXT | MethodModifier.THROWS)[] = [],
     ) { }
 
-    // whilt migration we're creating PeerMethod, but in reality we shoudnt (created method does not goes through interop and does not have representation in native)
-    static stub(): PeerMethodSignature {
-        return new PeerMethodSignature(
-            "%STUB$",
-            "%STUB$",
-            [],
-            idl.IDLVoidType,
-            undefined,
-        )
-    }
-
     static generateOverloadPostfix(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): string {
-        if (!decl.parent || !idl.isInterface(decl.parent))
+        if (!decl.parent)
             return ``
+        let sameNamed: idl.IDLEntry[] = []
         if (idl.isMethod(decl) || idl.isProperty(decl)) {
-            let sameNamed: idl.IDLEntry[] = [
-                ...decl.parent.properties,
-                ...decl.parent.methods,
-            ].filter(it => it.name === decl.name)
-            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
-            return overloadIndex
+            let members: idl.IDLEntry[] = []
+            if (idl.isInterface(decl.parent))
+                members = [...decl.parent.properties, ...decl.parent.methods]
+            else if (idl.isNamespace(decl.parent))
+                members = decl.parent.members
+            else if (idl.isFile(decl.parent))
+                members = decl.parent.entries.filter(idl.isMethod)
+            sameNamed = members.filter(it => it.name === decl.name)
+        } else if (idl.isConstructor(decl) && idl.isInterface(decl.parent)) {
+            sameNamed = decl.parent.constructors
+        } else if (idl.isCallable(decl) && idl.isInterface(decl.parent)) {
+            sameNamed = decl.parent.callables
+        } else {
+            throw new Error("unexpected type of declaration")
         }
-        if (idl.isConstructor(decl)) {
-            const sameNamed = decl.parent.constructors.filter(it => it.name === decl.name)
-            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
-            return overloadIndex
-        }
-        if (idl.isCallable(decl)) {
-            const sameNamed = decl.parent.callables
-            const overloadIndex = sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
-            return overloadIndex
-        }
-        throw new Error("unexpected type of declaration")
+        return sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
     }
 
     static get CTOR(): string { return "construct" }
@@ -85,7 +68,6 @@ export class PeerMethodSignature {
 }
 
 export class PeerMethod {
-    protected overloadIndex?: number
     constructor(
         public sig: PeerMethodSignature,
         public originalParentName: string,
@@ -108,21 +90,5 @@ export class PeerMethod {
         const convertors = this.argConvertors(library)
         const outArgConvertor = createOutArgConvertor(library, this.sig.returnType, this.sig.args.map(it => it.name))
         return outArgConvertor ? convertors.concat(outArgConvertor) : convertors
-    }
-
-    static markAndGroupOverloads(methods: PeerMethod[]): PeerMethod[] {
-        let groupedMethods: PeerMethod[] = []
-        for (const peerMethod of methods) {
-            if (isDefined(peerMethod.overloadIndex)) continue
-            const sameNamedMethods = methods.filter(it => it.method.name === peerMethod.method.name)
-            if (sameNamedMethods.length > 1)
-                sameNamedMethods.forEach((it, index) => it.overloadIndex = index)
-            groupedMethods = groupedMethods.concat(sameNamedMethods)
-        }
-        return groupedMethods
-    }
-
-    setSameOverloadIndex(copyFrom: PeerMethod) {
-        this.overloadIndex = copyFrom.overloadIndex
     }
 }

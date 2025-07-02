@@ -89,6 +89,9 @@ check ohos demos:
     - cd $CI_PROJECT_DIR/ohosgen/demos/context
 #   - npm run check:ts
     - npm run check:arkts
+    - cd $CI_PROJECT_DIR/ohosgen/demos/huks
+    - npm run check:ts
+    - npm run check:arkts
 
 check ohos system tests:
   stage: test

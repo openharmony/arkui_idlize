@@ -73,25 +73,19 @@ export class MaterializedMethod extends PeerMethod {
         const method = copyMethod(this.method, { signature: signature })
         return copyMaterializedMethod(this, { method: method })
     }
-
-    setOverloadIndex(index: number) {
-        this.overloadIndex = index
-    }
 }
 
 export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
     method?: Method,
     // add more if you need
 }) {
-    const copied = new MaterializedMethod(
+    return new MaterializedMethod(
         method.sig,
         method.originalParentName,
         method.implementationParentName,
         method.returnType,
         method.isCallSignature,
         overrides.method ?? method.method)
-    copied.setSameOverloadIndex(method)
-    return copied
 }
 
 export class MaterializedClass implements PeerClassBase {
@@ -109,9 +103,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
         public readonly taggedMethods: idl.IDLMethod[] = [],
-    ) {
-        PeerMethod.markAndGroupOverloads(methods)
-    }
+    ) {}
 
     getImplementationName(): string {
         return this.isInterface ? getInternalClassName(this.className) : this.className

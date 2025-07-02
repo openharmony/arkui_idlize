@@ -63,8 +63,7 @@ function fillInterface(library: PeerLibrary, peer: PeerClass, iface: idl.IDLInte
     const peerMethods = iface.callables
         .map(it => processMethodOrCallable(library, it, peer, iface?.name))
         .filter(isDefined)
-    const overloadedMethods = PeerMethod.markAndGroupOverloads(peerMethods)
-    peer.methods.push(...overloadedMethods)
+    peer.methods.push(...peerMethods)
 }
 
 function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: PeerClass, parentName?: string): PeerMethod | undefined {
@@ -123,8 +122,7 @@ function fillClass(library: PeerLibrary, peer: PeerClass, clazz: idl.IDLInterfac
         ...clazz.properties.map(it => processProperty(library, it, peer)),
         ...clazz.methods.map(it => processMethodOrCallable(library, it, peer)),
         ].filter(isDefined)
-    const overloadedMethods = PeerMethod.markAndGroupOverloads(peerMethods)
-    peer.methods.push(...overloadedMethods)
+    peer.methods.push(...peerMethods)
 
     createComponentAttributesDeclaration(clazz, peer)
 }

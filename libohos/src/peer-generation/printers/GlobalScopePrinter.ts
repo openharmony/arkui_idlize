@@ -15,7 +15,7 @@
 
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { NamedMethodSignature, getMaterializedFileName, PeerLibrary, LanguageWriter } from "@idlizer/core"
+import { NamedMethodSignature, PeerLibrary, LanguageWriter } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
@@ -23,7 +23,6 @@ import { writePeerMethod } from "./PeersPrinter"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
 import { importTypeChecker } from "./TypeCheckPrinter"
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
@@ -68,7 +67,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             )
 
             // entities
-            const peerMethods = idlFreeMethodToLegacy(library, methods)
+            const peerMethods = idlFreeMethodToLegacy(methods)
             const method = collapseSameMethodsIDL(methods)
             const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
 

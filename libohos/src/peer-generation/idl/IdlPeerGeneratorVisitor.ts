@@ -200,7 +200,6 @@ export class IdlPeerProcessor {
             }
         }
         const mConstructors = isStaticMaterialized ? [] : constructors.map(c => this.makeMaterializedMethod(decl, c, fullCName, implemenationParentName))
-        if (mConstructors.length > 1) mConstructors.forEach((c, i) => { c.setOverloadIndex(i) })
         const mFinalizer = isStaticMaterialized ? undefined : new MaterializedMethod(
             new PeerMethodSignature(
                 PeerMethodSignature.GET_FINALIZER,

@@ -9,7 +9,7 @@ is_cj = get_option('target_vm') == 'cangjie'
 
 external_interop_dir = '../../../external/interop/src/cpp'
 
-cflags = ['-DKOALA_INTEROP_MODULE=NativeModule', '-DETS_MODULE_CLASSPATH_PREFIX=@huks/generated/arkts/ohos/huks/INTERNAL/']
+cflags = ['-DKOALA_INTEROP_MODULE=NativeModule', '-DETS_MODULE_CLASSPATH_PREFIX=@huks/generated/arkts/ohos/security/huks/INTERNAL/']
 ldflags = []
 
 include_dirs = [

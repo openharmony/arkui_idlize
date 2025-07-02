@@ -43,7 +43,7 @@
     "generate:context:idl": "npm run compile && node ../dtsgen --dts2idl --base-dir ./demos/context/dts/api --input-dir ./demos/context/dts/api/application,./demos/context/dts/api/bundleManager --output-dir ./demos/context/generated/idl",
     "run:context:arkts:MODULE": "node . --idl2peer --language=arkts --input-dir ./demos/context/generated/idl --output-dir ./demos/context/$MODULE --options-file ./demos/context/config.json,./demos/context/$MODULE/config.json",
     "run:context:arkts": "npm run generate:context:idl && MODULE=application npm run run:context:arkts:MODULE && MODULE=bundleManager npm run run:context:arkts:MODULE",
-    "generate:huks:idl": "npm run compile && node ../dtsgen --dts2idl --input-files ../interface_sdk-js/api/@ohos.security.huks.d.ts --output-dir ./out/demos/huks/generated --options-file ./demos/huks/config.json",
+    "generate:huks:idl": "npm run compile && node ../dtsgen --dts2idl --input-files ../sdk-patched/api/@ohos.security.huks.d.ts --output-dir ./out/demos/huks/generated --options-file ./demos/huks/config.json",
     "run:huks:ts": "npm run generate:huks:idl && node . --use-new-ohos --idl2peer --language=ts --input-files ./out/demos/huks/generated/@ohos.security.huks.idl --output-dir ./out/huks --options-file ./demos/huks/config.json",
     "run:huks:arkts": "npm run generate:huks:idl && node . --use-new-ohos --idl2peer --language=arkts --input-files ./out/demos/huks/generated/@ohos.security.huks.idl --output-dir ./out/huks --options-file ./demos/huks/config.json",
     "generate:unit:idl": "npm run compile && node ../dtsgen --dts2idl --input-dir ./tests/unit/dts --output-dir ./tests/unit/generated/idl --options-file ./tests/unit/conf/config.json",
