@@ -338,6 +338,11 @@
             "contentModifier": {
                 "hookName": "hookToggleContentModifier"
             }
+        },
+        "waterFlow": {
+            "setWaterFlowOptionsAttribute": {
+                "hookName": "hookWaterFlowOptionsImpl"
+            }
         }
     },
     "externalTypes": {},
