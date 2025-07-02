@@ -513,7 +513,7 @@ export function printBridgeCc(peerLibrary: PeerLibrary): BridgeApi {
 }
 
 export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, string> {
-    if (peerLibrary.orderedMaterialized.length == 0)
+    if (peerLibrary.orderedMaterialized.length == 0 && createSyntheticGlobalScope(peerLibrary).methods.length == 0)
         return new Map
     const libraryName = suggestLibraryName(peerLibrary)
     const visitor = new OHOSNativeVisitor(peerLibrary, libraryName)

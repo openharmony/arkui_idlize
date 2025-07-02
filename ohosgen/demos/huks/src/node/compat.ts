@@ -14,18 +14,11 @@ export function init() {
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }
 
-function makeBuffer(len: int32, source: KPointer): OHBuffer {
-    const result = new Uint8Array(64);
-    OHOS_SECURITY_HUKSNativeModule._AllocateNativeBuffer(len, source, result);
-    const deserializer = new DeserializerBase(result, 64);
-    return deserializer.readBuffer()
-}
-
 export function encodeText(text:string): OHBuffer {
-    const encoder = new TextEncoder()
-    const data = encoder.encode(text)
-    const ptr = InteropNativeModule._GetNativeBufferPointer(data.buffer as ArrayBuffer)
-    return makeBuffer(data.byteLength, ptr)
+    const encodedString = Buffer.from(text)
+    const buffer = new NativeBuffer(encodedString.length + 1)
+    InteropNativeModule._CopyArray(buffer.data, encodedString.length + 1, encodedString)
+    return buffer;
 }
 
 export function runEventLoop() {

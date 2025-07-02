@@ -46,6 +46,9 @@ OH_HUKS_HuksResult GlobalScope_fooResultNumberImpl(const OH_Number* arg) {
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     OH_HUKS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
+    result.outData = { .tag = INTEROP_TAG_UNDEFINED };
+    result.certChains = { .tag = INTEROP_TAG_UNDEFINED };
+    result.properties = { .tag = INTEROP_TAG_UNDEFINED };
     return result;
 }
 
@@ -61,5 +64,8 @@ OH_HUKS_HuksResult GlobalScope_generateKeyItemSyncImpl(const OH_String* keyAlias
               << "\n  keyAlias = " << DumpOHString(*keyAlias) << std::endl;
     OH_HUKS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
+    result.outData = { .tag = INTEROP_TAG_UNDEFINED };
+    result.certChains = { .tag = INTEROP_TAG_UNDEFINED };
+    result.properties = { .tag = INTEROP_TAG_UNDEFINED };
     return result;
 }

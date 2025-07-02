@@ -1,6 +1,6 @@
 check arkui interfaces:
   allow_failure: true
-  stage: build
+  stage: test
   tags:
     - idlize-ci
     - koala-ci
