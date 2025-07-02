@@ -36,7 +36,7 @@
         "check:arkts": "TARGET=arkts npm run check"
     },
     "dependencies": {
-        "@koalaui/interop": "latest",
+        "@koalaui/interop": "1.7.6",
         "@koalaui/runtime": "latest"
     }
 }

@@ -102,19 +102,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             createSerializerPrinter(peerLibrary.language, ""),
             printCallbackChecker,
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
-            createGeneratedNativeModulePrinter(NativeModule.Generated, w => {
-                w.writeNativeMethodDeclaration(new Method(
-                    '_AllocateNativeBuffer',
-                    NamedMethodSignature.make(
-                        IDLBufferType,
-                        [
-                            { name: 'len', type: IDLI32Type },
-                            { name: 'source', type: IDLPointerType },
-                            { name: 'returnBuffer', type: IDLUint8ArrayType },
-                        ]
-                    )
-                ))
-            }),
+            createGeneratedNativeModulePrinter(NativeModule.Generated),
             ...spreadIfLang([Language.ARKTS], printArkTSTypeChecker),
         ]
     )

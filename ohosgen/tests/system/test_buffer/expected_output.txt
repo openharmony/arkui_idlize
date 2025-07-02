@@ -6,10 +6,12 @@ Foo_constructImpl()
 FooObject() with index = 1
 Foo_getResultImpl(thisPtr)
 AllocationManager::Allocate(sizeBytes=64)
+InteropCallbackResource.hold called with resourceId = 0
 foo.getResult() done. Let res be the result:
   res.index = 100
   res.inData.length = 64
 Foo_getInDataImpl(thisPtr)
 AllocationManager::Allocate(sizeBytes=32)
+InteropCallbackResource.hold called with resourceId = 0
 foo.getInData() done. Let buf be the result:
   buf.length = 32

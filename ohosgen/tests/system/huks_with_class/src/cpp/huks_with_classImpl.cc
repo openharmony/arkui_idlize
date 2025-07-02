@@ -59,6 +59,9 @@ OH_HUKS_WITH_CLASS_HuksResult HuksClass_fooResultNumberImpl(OH_NativePointer thi
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     OH_HUKS_WITH_CLASS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
+    result.outData = { .tag = INTEROP_TAG_UNDEFINED };
+    result.certChains = { .tag = INTEROP_TAG_UNDEFINED };
+    result.properties = { .tag = INTEROP_TAG_UNDEFINED };
     return result;
 }
 
@@ -74,5 +77,8 @@ OH_HUKS_WITH_CLASS_HuksResult HuksClass_generateKeyItemSyncImpl(const OH_String*
               << "\n  keyAlias = " << DumpOHString(*keyAlias) << std::endl;
     OH_HUKS_WITH_CLASS_HuksResult result{};
     result.errorCode = OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
+    result.outData = { .tag = INTEROP_TAG_UNDEFINED };
+    result.certChains = { .tag = INTEROP_TAG_UNDEFINED };
+    result.properties = { .tag = INTEROP_TAG_UNDEFINED };
     return result;
 }
