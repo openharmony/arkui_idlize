@@ -46,9 +46,14 @@ import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
 import { isDefined, rightmostIndexOf, throwException } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
-import { TSReturnStatement } from './TsLanguageWriter';
 import { removePoints } from '../convertors/CJConvertors';
 
+export class KotlinLambdaReturnStatement implements LanguageStatement {
+    constructor(public expression?: LanguageExpression) { }
+    write(writer: LanguageWriter): void {
+        if (this.expression) writer.print(`${this.expression.asString()}`)
+    }
+}
 export class KotlinEnumEntityStatement implements LanguageStatement {
     constructor(
         private readonly enumEntity: idl.IDLEnum,
@@ -160,6 +165,13 @@ export class KotlinThrowErrorStatement implements LanguageStatement {
     constructor(public message: string) { }
     write(writer: LanguageWriter): void {
         writer.print(`throw Error("${this.message}")`)
+    }
+}
+
+class KotlinArrayResizeStatement implements LanguageStatement {
+    constructor(private array: string, private arrayType: string, private length: string, private deserializer: string) {}
+    write(writer: LanguageWriter) {
+        writer.print(`${this.array} = ${this.arrayType}(${this.length})`)
     }
 }
 
@@ -280,7 +292,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.printer.print(`}`)
     }
     writeInterface(name: string, op: (writer: this) => void, superInterfaces?: string[], generics?: string[], isDeclared?: boolean): void {
-        this.printer.print(`public interface ${name} {`)
+        const inheritance = superInterfaces ? (superInterfaces.length > 0 ? `: ${superInterfaces.join(', ')}` : '') : ''
+        this.printer.print(`public interface ${name}${inheritance} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -363,9 +376,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
                 this.print(`private var ${containerName}: ${this.getNodeName(propType)}`)
             }
         }
-        let isStatic = modifiers.includes(FieldModifier.STATIC)
         let isMutable = !modifiers.includes(FieldModifier.READONLY)
-        this.print(`public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}`)
+        let isOverride = modifiers.includes(FieldModifier.OVERRIDE)
+        this.print(`${isOverride ? 'override ' : ''}public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}`)
         if (getter) {
             this.pushIndent()
             this.writeGetterImplementation(getter.method, getter.op)
@@ -416,7 +429,10 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return new KotlinThrowErrorStatement(message)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
-        return new TSReturnStatement(expr)
+        return new ReturnStatement(expr)
+    }
+    makeLambdaReturn (expr: LanguageExpression): LanguageStatement {
+        return new KotlinLambdaReturnStatement(expr)
     }
     makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
         throw new Error("Not implemented")
@@ -431,7 +447,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return new KotlinMapForEachStatement(map, key, value, op)
     }
     writePrintLog(message: string): void {
-        throw new Error("Not implemented")
+        this.print(`println(\"${message}\")`)
     }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         return this.makeString(`${value.asString()} as ${this.getNodeName(node)}`)
@@ -451,11 +467,17 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeTupleAlloc(option: string): LanguageStatement {
         throw new Error("Not implemented")
     }
+    makeTupleAccess(value: string, index: number): LanguageExpression {
+        return this.makeString(`${value}.component${index + 1}()`)
+    }
     makeArrayInit(type: idl.IDLContainerType, size?:number): LanguageExpression {
-        return this.makeString(`Array<${this.getNodeName(type.elementType[0])}>(${size ?? ''})`)
+        return this.makeString(`ArrayList<${this.getNodeName(type.elementType[0])}>(${size ?? ''})`)
     }
     makeArrayLength(array: string, length?: string): LanguageExpression {
         return this.makeString(`${array}.size`)
+    }
+    makeArrayResize(array: string, arrayType: string, length: string, deserializer: string): LanguageStatement {
+        return new KotlinArrayResizeStatement(array, arrayType, length, deserializer)
     }
     makeClassInit(type: idl.IDLType, paramenters: LanguageExpression[]): LanguageExpression {
         throw new Error("Not implemented")
@@ -464,7 +486,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return this.makeString(`${this.getNodeName(type)}()`)
     }
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
-        return this.makeStatement(this.makeMethodCall(keyAccessor, "set", [this.makeString(key), this.makeString(value)]))
+        return this.makeStatement(this.makeMethodCall(keyAccessor, "put", [this.makeString(key), this.makeString(value)]))
     }
     makeUnwrapOptional(expression: LanguageExpression): LanguageExpression {
         return new KotlinUnwrapOptionalExpression(expression)
@@ -507,13 +529,13 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.OVERRIDE]
     }
     get supportedFieldModifiers(): FieldModifier[] {
-        return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY]
+        return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.OVERRIDE]
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         return this.makeString(`${this.getNodeName(enumEntry)}(${value.asString()})`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return this.makeString(`${value.asString()}.value`)
+        return this.makeString(`${value.asString()}.value!!`)
     }
     makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
         return new KotlinEnumWithGetter(enumEntity, options.isExport)

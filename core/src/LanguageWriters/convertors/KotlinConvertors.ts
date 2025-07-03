@@ -14,6 +14,7 @@
  */
 
 import * as idl from '../../idl'
+import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
@@ -54,15 +55,15 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         return `${this.convert(type.type)}?`
     }
     convertUnion(type: idl.IDLUnionType): string {
-        return type.name
+        return "Union_" + type.types.map(it => generateSyntheticIdlNodeName(it)).join("_")
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-                return `Array<${convertType(this, type.elementType[0])}>`
+                return `ArrayList<${convertType(this, type.elementType[0])}>`
             }
             if (idl.IDLContainerUtils.isRecord(type)) {
                 const stringes = type.elementType.slice(0, 2).map(it => convertType(this, it))
-                return `Map<${stringes[0]}, ${stringes[1]}>`
+                return `MutableMap<${stringes[0]}, ${stringes[1]}>`
             }
             if (idl.IDLContainerUtils.isPromise(type)) {
                 return `Any`

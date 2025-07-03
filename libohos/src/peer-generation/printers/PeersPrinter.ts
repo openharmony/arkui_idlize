@@ -227,7 +227,7 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
     } else if (language === Language.CJ) {
         return `DeserializerBase(${returnValName}, Int32(${returnValName}.size))`
     } else if (language === Language.KOTLIN) {
-        return `DeserializerBase(${returnValName}, ${returnValName}.size)`
+        return `DeserializerBase(${returnValName}.data, ${returnValName}.length)`
     } else {
         throw new Error("not implemented")
     }

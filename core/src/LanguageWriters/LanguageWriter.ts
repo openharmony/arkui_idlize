@@ -352,6 +352,7 @@ export enum FieldModifier {
     FINAL,
     VOLATILE,
     INTERNAL,
+    OVERRIDE
 }
 
 export enum MethodModifier {
@@ -611,6 +612,9 @@ export abstract class LanguageWriter {
     }
     makeVoid(): LanguageExpression {
         return this.makeUndefined()
+    }
+    makeLambdaReturn(expr?: LanguageExpression): LanguageStatement {
+        return this.makeReturn(expr)
     }
     makeRuntimeTypeCondition(typeVarName: string, equals: boolean, type: RuntimeType, varName?: string): LanguageExpression {
         const op = equals ? "==" : "!="

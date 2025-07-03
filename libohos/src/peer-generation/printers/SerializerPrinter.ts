@@ -228,14 +228,17 @@ class SerializerPrinter {
                     let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.library, target) ? [] : target.properties.filter(it => !parentProperties.map(prop => prop.name).includes(it.name))
 
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`${writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('_result')).join(', ')})`), true, false))
-                } else {
+                } else if (writer.language == Language.KOTLIN) {
+                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${writer.getNodeName(valueType)} { ${properties.map(it => `override var ${it.name} = ${it.name}_result`).join('; ') }}`), true, false))
+                }
+                else {
                     if (writer.language === Language.ARKTS) {
                         if (collectFunctions(target, this.library).length > 0) {
                             writer.writeStatement(writer.makeThrowError("Interface with functions is not supported"))
                             return;
                         }
                     }
-
+                    
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeCast(writer.makeString(`{${propsAssignees.join(', ')}}`), type), true, false))
                 }
             }

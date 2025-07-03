@@ -199,6 +199,10 @@ class DeserializeCallbacksVisitor {
                 )
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
+            } else if (writer.language === Language.KOTLIN) {
+                writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
+                    writer.makeMethodCall(`ResourceHolder`, `get`, [writer.makeString(resourceIdName)]),
+                    callback), true))
             } else {
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder.instance()`, `get`, [writer.makeString(resourceIdName)]),
@@ -335,6 +339,23 @@ class DeserializeCallbacksVisitor {
                     writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ => return deserializeAndCall${callback.name}(${args.join(', ')});`)
                 }
                 writer.print(`case _ => throw Exception()`)
+                writer.popIndent()
+                writer.print(`}`)
+                writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
+            } if (writer.language == Language.KOTLIN) {
+                writer.print(`when (kind) {`)
+                writer.pushIndent()
+                for (const [idx, callback] of callbacks.entries()) {
+                    if (this.isGenericCallback(callback)) {
+                        continue
+                    }
+                    const args = writer.language === Language.CPP
+                        ? [`thisArray`, `thisLength`]
+                        : [`thisDeserializer`]
+                    const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
+                    writer.print(`${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ -> deserializeAndCall${callback.name}(${args.join(', ')});`)
+                }
+                writer.print(`else -> throw Exception()`)
                 writer.popIndent()
                 writer.print(`}`)
                 writer.writeStatement(writer.makeThrowError("Unknown callback kind"))

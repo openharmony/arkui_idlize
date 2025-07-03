@@ -254,11 +254,16 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     printMethods(clazz: MaterializedClass) {
-        clazz.methods.forEach(method => {
+        clazz.methods.filter(m => !m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
             this.printMethod(method, "_serialize")
         })
     }
 
+    printStaticMethods(clazz: MaterializedClass) {
+        clazz.methods.filter(m => m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
+            this.printMethod(method, "_serialize")
+        })
+    }
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const privateMethod = method.getPrivateMethod()
         returnType = returnType ?? privateMethod.tsReturnType()
@@ -300,7 +305,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
             const receiver = isStatic ? implementationClassName : 'this'
-            this.printer.writeProperty(mField.name, this.convertToPropertyType(field), mField.modifiers,
+            this.printer.writeProperty(mField.name, this.convertToPropertyType(field), (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
                 {
                     method: new Method('get', new MethodSignature(this.convertToPropertyType(field), [])), op: () => {
                         this.printer.writeStatement(
@@ -421,6 +426,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 if (clazz.isInterface) {
                     writeFromPtrMethod(clazz, writer, collapseConstructors, this.maxCtorParams, classTypeParameters)
                 }
+                this.printStaticMethods(clazz)
             })
             this.printOverloads(clazz)
             this.printTaggedMethods(clazz)
@@ -669,8 +675,10 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
     override printOverloads(clazz: MaterializedClass) {
         for (let method of clazz.methods) {
-            if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
+            if (!method.method.modifiers?.includes(MethodModifier.PRIVATE)) {
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
+                if (clazz.isInterface) method.method.modifiers!.push(MethodModifier.OVERRIDE)
+            }
             this.printer.writeMethodImplementation(method.method, (writer) => {
                 this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), method.method, method)
             })

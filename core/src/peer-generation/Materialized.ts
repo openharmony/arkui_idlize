@@ -58,6 +58,7 @@ export class MaterializedMethod extends PeerMethod {
                 method: copyMethod(this.method, {
                     modifiers: (this.method.modifiers ?? [])
                         .filter(it => it !== MethodModifier.PUBLIC)
+                        .filter(it => it !== MethodModifier.OVERRIDE)
                         .concat([MethodModifier.PRIVATE])
                 })
             })

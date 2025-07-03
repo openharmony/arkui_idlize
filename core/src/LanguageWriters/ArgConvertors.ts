@@ -568,6 +568,11 @@ export class AggregateConvertor extends BaseArgConvertor { //
         } else if (writer.language == Language.CJ) {
             const resultExpression = writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}_${prop.name}`).join(", ")})`)
             statements.push(assigneer(resultExpression))
+        } else if (writer.language == Language.KOTLIN) {
+            const resultExpression = this.decl.subkind === idl.IDLInterfaceSubkind.Tuple ?
+            writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}_${prop.name}`).join(', ')})`) :
+            writer.makeString(`object: ${writer.getNodeName(this.idlType)} { ${this.decl.properties.map(prop => `override var ${prop.name} = ${bufferName}_${prop.name}`).join("; ")} }`)
+            statements.push(assigneer(resultExpression))
         } else {
             const resultExpression = this.makeAssigneeExpression(this.decl.properties.map(prop => {
                 return [prop.name, writer.makeString(`${bufferName}_${prop.name}`)]
@@ -1082,7 +1087,7 @@ export class UnionConvertor extends BaseArgConvertor {
             const stmt = new BlockStatement([
                 writer.makeSetUnionSelector(bufferName, `${index}`),
                 it.convertorDeserialize(`${bufferName}_u`, deserializerName, (expr) => {
-                    if (writer.language == Language.CJ) {
+                    if (writer.language == Language.CJ || writer.language == Language.KOTLIN) {
                         return writer.makeAssign(receiver, undefined, writer.makeFunctionCall(writer.getNodeName(this.type), [expr]), false)
                     } else {
                         return writer.makeAssign(receiver, undefined, expr, false)
@@ -1151,6 +1156,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
             case Language.CPP:
                 return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
             case Language.JAVA:
+            case Language.KOTLIN:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${writer.escapeKeyword(param)})`
             default:
@@ -1423,7 +1429,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                     ])
             ),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
-            writer.makeReturn(hasContinuation
+            writer.makeLambdaReturn(hasContinuation
                 ? writer.makeCast(
                     writer.language == Language.CJ ?
                     writer.makeString(`${continuationValueName}.value`) :

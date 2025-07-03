@@ -16,7 +16,7 @@
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter } from "../LanguageWriters"
-import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, PeerLibrary } from "@idlizer/core"
+import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary } from "@idlizer/core"
 
 export abstract class SourceFile {
     public readonly content: LanguageWriter
@@ -32,7 +32,9 @@ export abstract class SourceFile {
             return new CJSourceFile(name, resolver)
         } else if (language === Language.JAVA) {
             return new JavaSourceFile(name, resolver)
-        } else {
+        } else if (language === Language.KOTLIN) {
+            return new KotlinSourceFile(name, resolver)
+        }else {
             return new GenericSourceFile(name, language, resolver)
         }
     }
@@ -204,6 +206,31 @@ export class CJSourceFile extends SourceFile {
 
     }
 }
+
+export class KotlinSourceFile extends SourceFile {
+    declare public readonly content: CJLanguageWriter
+
+    constructor(name: string, library: PeerLibrary) {
+        super(name, Language.KOTLIN, library)
+    }
+
+    public printToString(): string {
+        let fileWriter = this.library.createLanguageWriter(this.language) as KotlinLanguageWriter
+        fileWriter.print(cStyleCopyright)
+        this.printImports(fileWriter)
+        fileWriter.concat(this.content)
+        fileWriter.print('\n')
+        return fileWriter.getOutput().join("\n")
+    }
+    public printImports(writer: LanguageWriter): void {
+        writer.print(`package idlize\n`)
+        writer.print(`import interop.*\n`)
+    }
+    protected onMerge(file: this): void {
+
+    }
+}
+
 
 export class JavaSourceFile extends SourceFile {
     declare public readonly content: CJLanguageWriter

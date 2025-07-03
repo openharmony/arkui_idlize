@@ -377,6 +377,52 @@ class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 }
 
+class KotlinBuilderClassFileVisitor implements BuilderClassFileVisitor {
+    constructor(
+        private readonly peerLibrary: PeerLibrary,
+        private readonly builderClass: BuilderClass
+    ) { }
+
+    private printBuilderClass(builderClass: BuilderClass, imports: ImportsCollector, content: LanguageWriter) {
+        const writer = content
+        const clazz = processKotlinBuilderClass(builderClass)
+        // processTSBuilderClass(builderClass)
+
+        collectDeclDependencies(this.peerLibrary, clazz.declaration, imports)
+        if (clazz.declaration.inheritance.length) {
+            const maybeParents = [
+                ...this.peerLibrary.buildersToGenerate.values()
+            ]
+            const parentDecl = maybeParents.find(it => it.name === clazz.declaration.inheritance[0].name)
+            collectDeclDependencies(this.peerLibrary, parentDecl!.declaration, imports)
+        }
+        const currentModule = removeExt(renameClassToBuilderClass(clazz.name, this.peerLibrary.language))
+
+        const superType = generifiedTypeName(clazz.superClass)
+
+        writer.writeClass(clazz.name, writer => {
+
+            clazz.fields.forEach(field => {
+                writer.writeFieldDeclaration(field.name, field.type, field.modifiers, isOptionalType(field.type), writer.makeNull())
+            })
+        }, superType, clazz.generics?.map(it => it))
+    }
+
+    printFile(): PrinterResult[] {
+        const content = this.peerLibrary.createLanguageWriter(Language.KOTLIN)
+        const imports = new ImportsCollector()
+        this.printBuilderClass(this.builderClass, imports, content)
+        return [{
+            over: {
+                node: this.builderClass.declaration,
+                role: LayoutNodeRole.INTERFACE
+            },
+            collector: imports,
+            content: content,
+        }]
+    }
+}
+
 class BuilderClassVisitor {
     constructor(
         private readonly library: PeerLibrary,
@@ -399,6 +445,9 @@ class BuilderClassVisitor {
             }
             else if ([Language.CJ].includes(language)) {
                 visitor = new CJBuilderClassFileVisitor(this.library, clazz)
+            }
+            else if (language === Language.KOTLIN) {
+                visitor = new KotlinBuilderClassFileVisitor(this.library, clazz)
             }
             else {
                 throw new Error(`Unsupported language ${language.toString()} in BuilderClassPrinter`)
@@ -483,6 +532,46 @@ function processCJBuilderClass(clazz: BuilderClass): BuilderClass {
             const args = staticSig.args
             const ctorSig = new NamedMethodSignature(IDLVoidType, args, args.map((_, i) => staticSig.argName(i)))
             constructors = [new Method("init", ctorSig)]
+        }
+    }
+
+    const ctorFields = constructors.flatMap(cons => {
+        const ctorSig = cons.signature
+        return ctorSig.args.map((type, index) => new Field(syntheticName(ctorSig.argName(index)), createOptionalType(type)))
+    })
+
+    const syntheticFields = methods
+        .filter(it => !it.modifiers?.includes(MethodModifier.STATIC))
+        .map(it => toSyntheticField(it))
+
+    const fields = [...clazz.fields, ...ctorFields, ...syntheticFields]
+
+    return new BuilderClass(
+        clazz.declaration,
+        clazz.name,
+        clazz.generics,
+        clazz.isInterface,
+        clazz.superClass,
+        fields,
+        constructors,
+        methods,
+    )
+}
+
+function processKotlinBuilderClass(clazz: BuilderClass): BuilderClass {
+    const methods = clazz.methods
+    let constructors = clazz.constructors
+
+    if (!constructors || constructors.length == 0) {
+        // make a constructor from a static method parameters
+        const staticMethods = methods.
+            filter(method => method.modifiers?.includes(MethodModifier.STATIC))
+
+        if (staticMethods.length > 0) {
+            const staticSig = staticMethods[0].signature
+            const args = staticSig.args
+            const ctorSig = new NamedMethodSignature(IDLVoidType, args, args.map((_, i) => staticSig.argName(i)))
+            constructors = [new Method("constructor", ctorSig)]
         }
     }
 
