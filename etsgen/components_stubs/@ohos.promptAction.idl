@@ -1,12 +1,19 @@
 package ohos.promptAction;
 
 dictionary LevelMode {
-    number A = 0;
+    number OVERLAY = 0;
+    number EMBEDDED = 1;
 };
 dictionary ImmersiveMode {
-    number A = 0;
+    number DEFAULT = 0;
+    number EXTEND = 1;
 };
-interface LevelOrder {};
+
+[Entity=Class]
+interface LevelOrder {
+    static LevelOrder clamp(number order);
+    number getOrder();
+};
 [DefaultExport]
 namespace promptAction {
     interface DialogController {};

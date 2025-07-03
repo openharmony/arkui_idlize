@@ -9,9 +9,34 @@ import arkui.component.textPicker.TextPickerDialogOptions as TextPickerDialogOpt
 import ohos.graphics.drawing.drawing.Font as Font;
 import arkui.componen.enums.HeightBreakpoint as HeightBreakpoint;
 import arkui.componen.enums.WidthBreakpoint as WidthBreakpoint;
+import arkui.component.common.PopupCommonOptions as PopupCommonOptions;
+import arkui.component.common.MenuOptions as MenuOptions;
 
 [Synthetic]
 callback Callback_Void = void ();
+
+[Entity=Interface]
+interface TargetInfo {
+  attribute (String or number) id;
+  [Optional]
+  attribute number componentId;
+};
+
+[Entity=Class]
+interface PromptAction {
+  [Throws, TypeParameters="T extends Object"]
+  async void openPopup(ComponentContent content, TargetInfo target, optional PopupCommonOptions options);
+  [Throws, TypeParameters="T extends Object"]
+  async void upatePopup(ComponentContent content, PopupCommonOptions options, optional boolean partialUpdate);
+  [Throws, TypeParameters="T extends Object"]
+  async void closePopup(ComponentContent content);
+  [Throws, TypeParameters="T extends Object"]
+  async void openMenu(ComponentContent content, TargetInfo target, optional MenuOptions options);
+  [Throws, TypeParameters="T extends Object"]
+  async void updateMenu(ComponentContent content, MenuOptions options, optional boolean partialUpdate);
+  [Throws, TypeParameters="T extends Object"]
+  async void closeMenu(ComponentContent content);
+};
 
 [Entity=Class]
 interface UIContext {
