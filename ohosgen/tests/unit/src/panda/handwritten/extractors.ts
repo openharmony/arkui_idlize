@@ -1,5 +1,5 @@
 
-import { ExternalType, ImportedHookValue } from "#external_lib"
+import { ExternalType, ImportedHookValue, hookns } from "#external_lib"
 import { SDKExternalType } from "@external.lib.sdk"
 
 export namespace extractors {
@@ -10,6 +10,24 @@ export namespace extractors {
 
     export function fromExternalTypePtr(ptr: long): ExternalType {
         const result: ExternalType = { nativePointer: ptr }
+        return result
+    }
+
+    export function toHooknsNSExternalTypePtr(value: hookns.NSExternalType): long {
+        return value.nsNativePointer
+    }
+
+    export function fromHooknsNSExternalTypePtr(ptr: long): hookns.NSExternalType {
+        const result: hookns.NSExternalType = { nsNativePointer: ptr }
+        return result
+    }
+
+    export function toHooknsSubhooknsSubNSExternalTypePtr(value: hookns.subhookns.SubNSExternalType): long {
+        return value.subnsNativePointer
+    }
+
+    export function fromHooknsSubhooknsSubNSExternalTypePtr(ptr: long): hookns.subhookns.SubNSExternalType {
+        const result: hookns.subhookns.SubNSExternalType = { subnsNativePointer: ptr }
         return result
     }
 

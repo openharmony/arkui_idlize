@@ -68,6 +68,8 @@
     },
     "externalTypes": {
         "ExternalType" : "#external_lib",
+        "hookns.NSExternalType": "#external_lib",
+        "hookns.subhookns.SubNSExternalType": "#external_lib",
         "ImportedHookValue" : "#external_lib"
     },
     "externalPackages": [

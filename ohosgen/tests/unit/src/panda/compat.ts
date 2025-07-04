@@ -70,6 +70,7 @@ export { IDLCheckConstructor } from "../../generated/arkts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/arkts"
 export { ImportedHookValue } from "./handwritten/external_lib"
+export { ExternalType, hookns } from "./handwritten/external_lib"
 
 export { DTSCheckExternalLib, InternalType } from "../../generated/arkts"
 

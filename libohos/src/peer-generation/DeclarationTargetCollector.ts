@@ -183,7 +183,9 @@ export namespace DeclarationTargets {
             .filter(it => it !== idl.IDLVoidType)
             .filter(it => {
                 if (idl.isOptionalType(it)) it = it.type
-                return !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name))
+                if (idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)) return false
+                if (idl.isNamedNode(it) && peerGeneratorConfiguration().externalTypes.get(it.name)) return false
+                return true
             })
             .map(it => idl.isType(it)
                 ? nativeNameConvertorInstance.convert(idl.createOptionalType(it))

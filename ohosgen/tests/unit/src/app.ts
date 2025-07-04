@@ -77,7 +77,7 @@ import { IDLCheckConstructor } from '#compat'
 import { ImportedHookValue } from "#compat"
 import { DTSHookClass, DTSHookValue } from "#compat"
 
-import { ExternalType } from "#external_lib"
+import { ExternalType, hookns } from "#external_lib"
 import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
@@ -384,13 +384,17 @@ function checkHooks() {
 }
 
 function checkExternalTypes() {
-  const externalType: ExternalType = { nativePointer: toBigInt(5) }
+  const externalType: ExternalType = { nativePointer: toBigInt(3) }
+  const nsExternalType: hookns.NSExternalType = { nsNativePointer: toBigInt(5) }
+  const subnsExternalType: hookns.subhookns.SubNSExternalType = { subnsNativePointer: toBigInt(7) }
   const internalType: InternalType = {
     index: 123,
-    external: { nativePointer: toBigInt(7) }
+    external: { nativePointer: toBigInt(9) }
   }
   const check = new DTSCheckExternalLib()
   check.checkExternalType(externalType)
+  check.checkNSExternalType(nsExternalType)
+  check.checkSubNSExternalType(subnsExternalType)
   check.checkInternalTypeWithExternalType(internalType)
 
   const sdkExternalType: SDKExternalType = { sdkNativePointer: toBigInt(9) }

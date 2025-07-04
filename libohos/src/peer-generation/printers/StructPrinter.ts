@@ -91,6 +91,7 @@ export class StructPrinter {
     generateStructs(structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
         const DECL_RESOURCE = `${generatorConfiguration().TypePrefix}${idl.IDLObjectType.name}`
         const DECL_OPT_RESOURCE = `${generatorConfiguration().OptionalPrefix}${idl.IDLObjectType.name}`
+        const DECL_OPT_POINTER = `${generatorConfiguration().OptionalPrefix}NativePointer`
         const typedefDeclarations = this.library.createLanguageWriter(Language.CPP)
         const enumsDeclarations = this.library.createLanguageWriter(Language.CPP)
         const forwardDeclarations = this.library.createLanguageWriter(Language.CPP)
@@ -130,7 +131,10 @@ export class StructPrinter {
                 continue
             }
             if (idl.isInterface(target) && isExternalType(target, this.library)) {
+                nameAssigned = nameAssigned.replaceAll('.', '_')
                 typedefDeclarations.print(`typedef ${generatorConfiguration().TypePrefix}NativePointer ${nameAssigned};`)
+                const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${nameAssigned}`
+                typedefDeclarations.print(`typedef ${DECL_OPT_POINTER} ${optNameAssigned};`)
                 continue
             }
 

@@ -32,8 +32,11 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     // TBD: use modules for external types handling
     if (idl.isInterface(node)){
         if (isExternalType(node, library)) {
-            const pack = getExternalTypePackage(node)!
-            return { feature: node.name, module: pack}
+            const lib = getExternalTypePackage(node)!
+            const name = node.name
+            const dot = name.indexOf(".")
+            const feature = dot > 0 ? name.substring(0, dot) : name
+            return { feature: feature, module: lib}
         }
     }
 

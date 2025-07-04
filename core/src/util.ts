@@ -736,7 +736,8 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
 
 export function getExtractorName(target: idl.IDLInterface, language: Language, toPtr: boolean = true): string {
     // TODO: Update for CJ
-    return toPtr ? `to${target.name}Ptr` : `from${target.name}Ptr`
+    const name = target.name.split(`.`).map(it => capitalize(it)).join("")
+    return toPtr ? `to${name}Ptr` : `from${name}Ptr`
 }
 
 export function getExternalTypePackage(node: idl.IDLEntry): string | undefined {

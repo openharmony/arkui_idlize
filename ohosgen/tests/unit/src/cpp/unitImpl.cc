@@ -978,6 +978,14 @@ void DTSCheckExternalLib_checkExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT
     printf("[native] checkExternalType: %p\n", externalType);
 }
 
+void DTSCheckExternalLib_checkNSExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_hookns_NSExternalType externalType) {
+    printf("[native] checkNSExternalType: %p\n", externalType);
+}
+
+void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_hookns_subhookns_SubNSExternalType externalType) {
+    printf("[native] checkSubNSExternalTypeImpl: %p\n", externalType);
+}
+
 void DTSCheckExternalLib_checkInternalTypeWithExternalTypeImpl(OH_NativePointer thisPtr, const OH_UNIT_InternalType* internalType) {
     printf("[native] checkInternalTypeWithExternalType: %p\n", internalType->external);
 }
@@ -985,3 +993,4 @@ void DTSCheckExternalLib_checkInternalTypeWithExternalTypeImpl(OH_NativePointer 
 void DTSCheckExternalLib_checkSDKExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_SDKExternalType externalType) {
     printf("[native] checkSDKExternalTypeImpl: %p\n", externalType);
 }
+

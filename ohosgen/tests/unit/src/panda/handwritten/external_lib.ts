@@ -7,8 +7,14 @@ export interface ImportedHookValue {
 	count: number
 }
 
-export namespace hook_ns {
-	export interface ImportedNSHookValue {
-		count: number
+export namespace hookns {
+	export interface NSExternalType {
+		nsNativePointer: long
+	}
+
+	export namespace subhookns {
+		export interface SubNSExternalType {
+			subnsNativePointer: long
+		}
 	}
 }
