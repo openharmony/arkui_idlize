@@ -49,7 +49,7 @@ class NativeModuleRecorderVisitor {
         imports.addFeatures(["encodeToData", "KFloat", "KFloat32ArrayPtr", "KInt", "KInt32ArrayPtr", "KPointer",
             "KStringPtr", "KUint8ArrayPtr", "nullptr", "pointer", "KBoolean", "RuntimeType"], "@koalaui/interop")
         imports.addFeatures(["NodePointer", "NativeModuleEmpty"], "@koalaui/arkoala")
-        imports.addFeature("CallbackTransformer", "../CallbackTransformer")
+        imports.addFeature("CallbackTransformer", "./CallbackTransformer")
         imports.print(this.nativeModuleRecorder, '')
     }
 

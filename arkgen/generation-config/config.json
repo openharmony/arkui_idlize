@@ -406,6 +406,9 @@
             "packages": [""]
         }
     },
+    "currentModulePackagesPaths": {
+        "arkui.component": "./component"
+    },
     "currentModuleExportedPackages": [
         "arkui.component",
         "internal.component.ets",

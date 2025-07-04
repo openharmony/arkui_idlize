@@ -106,21 +106,21 @@ class PeerFileVisitor {
         if (component.interfaceDeclaration)
             collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         if (this.library.language === Language.TS) {
-            imports.addFeature('GestureName', './shared/generated-utils')
-            imports.addFeature('GestureComponent', './shared/generated-utils')
-            imports.addFeatures(['isResource', 'isPadding'], '../utils')
+            imports.addFeature('GestureName', './generated/shared/generated-utils')
+            imports.addFeature('GestureComponent', './generated/shared/generated-utils')
+            imports.addFeatures(['isResource', 'isPadding'], './utils')
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
             collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), imports)
-            imports.addFeature('CallbackTransformer', '../CallbackTransformer')
+            imports.addFeature('CallbackTransformer', './CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
 
             const hookMethods = generatorConfiguration().hooks.get(peer.componentName)
             if (hookMethods) {
                 for (const [methodName, hook] of hookMethods.entries()) {
                     const hookName = hook ? hook.hookName : `hook${peer.componentName}${capitalize(methodName)}`
-                    imports.addFeature(hookName, "./../handwritten")
+                    imports.addFeature(hookName, "./handwritten")
                 }
             }
         }
@@ -227,8 +227,8 @@ class PeerFileVisitor {
         imports.addFeatures(['int32', 'int64', 'float32'], "@koalaui/common")
         imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'runtimeType', 'RuntimeType'], "@koalaui/interop")
         // TODO Remove unnecessary imports for ohos libraries
-        imports.addFeatures(['ComponentBase'], "./peers/../../ComponentBase")
-        imports.addFeatures(['PeerNode'], "./peers/../../PeerNode")
+        imports.addFeatures(['ComponentBase'], "./ComponentBase")
+        imports.addFeatures(['PeerNode'], "./PeerNode")
         switch (lang) {
             case Language.TS: {
                 imports.addFeature('isInstanceOf', "@koalaui/interop")

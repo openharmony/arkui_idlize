@@ -65,7 +65,7 @@ abstract class BaseArkoalaInstall implements ArkoalaInstall {
 
 class TSArkoalaInstall extends BaseArkoalaInstall {
     get managedDir(): string {
-        return path.join(this.root, "arkoala/arkui/src/generated")
+        return path.join(this.root, "arkoala/arkui/src")
     }
     get managedSdkDir(): string {
         throw new Error("Not implemented")
@@ -80,10 +80,10 @@ class TSArkoalaInstall extends BaseArkoalaInstall {
 
 class ArkTSArkoalaInstall extends BaseArkoalaInstall {
     get managedDir(): string {
-        return path.join(this.root, "arkoala-arkts/arkui/src/generated")
+        return path.join(this.root, "arkoala-arkts/arkui/src")
     }
     get managedSdkDir(): string {
-        return path.join(this.root, "arkoala-arkts/arkui/sdk/generated")
+        return path.join(this.root, "arkoala-arkts/arkui/sdk")
     }
     get tsTypesDir(): string {
         return path.join(this.root, "arkoala-arkts/arkui/types/")
@@ -95,7 +95,7 @@ class ArkTSArkoalaInstall extends BaseArkoalaInstall {
 
 class ArkTSM3ArkoalaInstall extends ArkTSArkoalaInstall {
     get managedDir(): string {
-        return path.join(this.root, "arkoala-arkts/arkui/src/ets/generated")
+        return path.join(this.root, "arkoala-arkts/arkui/src/ets")
     }
 }
 

@@ -185,10 +185,10 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     if (library.language === idl.Language.TS) {
         collector.addFeature('isInstanceOf', '@koalaui/interop')
         if (library.name === 'arkoala')
-            collector.addFeatures(['isResource', 'isPadding'], '../utils')
+            collector.addFeatures(['isResource', 'isPadding'], './utils')
     }
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     if (library.name === 'arkoala') {
-        collector.addFeature('CallbackTransformer', '../CallbackTransformer')
+        collector.addFeature('CallbackTransformer', './CallbackTransformer')
     }
 }

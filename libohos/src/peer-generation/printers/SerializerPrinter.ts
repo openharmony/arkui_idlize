@@ -402,7 +402,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
                 "MaterializedBase", "InteropNativeModule", "ResourceHolder",
                 "nullptr", "KPointer", "isInstanceOf",
             ], "@koalaui/interop")
-            collector.addFeatures(["isResource", "isPadding"], "../utils")
+            collector.addFeatures(["isResource", "isPadding"], "./utils")
         }
         if (generatorConfiguration().externalTypes.size > 0
             || generatorConfiguration().externalPackages.length > 0) {
@@ -418,7 +418,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
         }
         if (library.name === 'arkoala') {
-            collector.addFeature("CallbackTransformer", "../CallbackTransformer")
+            collector.addFeature("CallbackTransformer", "./CallbackTransformer")
         }
     }
 }

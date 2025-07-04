@@ -152,7 +152,7 @@ class DeserializeCallbacksVisitor {
                 this.imports.addFeatures(["unsafeCast"], "@koalaui/interop")
             }
             if (this.libraryName === 'arkoala') {
-                this.imports.addFeature("CallbackTransformer", "../CallbackTransformer")
+                this.imports.addFeature("CallbackTransformer", "./CallbackTransformer")
             }
 
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {

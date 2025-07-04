@@ -156,6 +156,12 @@
                         }
                     }
                 },
+                "currentModulePackagesPaths": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
                 "currentModuleExportedPackages": {
                     "type": "array",
                     "items": {
