@@ -405,7 +405,7 @@ export class CJLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }): void {
+    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let containerName = propName.concat("_container")
         let truePropName = this.escapeKeyword(propName)
         if (getter) {
@@ -415,7 +415,8 @@ export class CJLanguageWriter extends LanguageWriter {
         }
         let isStatic = modifiers.includes(FieldModifier.STATIC)
         let isMutable = !modifiers.includes(FieldModifier.READONLY)
-        this.print(`public ${isMutable ? "mut " : ""}${isStatic ? "static " : "open "}prop ${truePropName}: ${this.getNodeName(propType)}`)
+        let initializer = initExpr ? ` = ${initExpr.asString()}` : ""
+        this.print(`public ${isMutable ? "mut " : ""}${isStatic ? "static " : "open "}prop ${truePropName}: ${this.getNodeName(propType)}${initializer}`)
         if (getter) {
             this.print('{')
             this.pushIndent()

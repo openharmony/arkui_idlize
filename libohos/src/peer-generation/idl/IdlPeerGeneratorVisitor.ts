@@ -262,10 +262,10 @@ export class IdlPeerProcessor {
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {
         const argConvertor = this.library.typeConvertor(prop.name, prop.type!, prop.isOptional)
         const modifiers: FieldModifier[] = []
-        if (prop.isReadonly)
-            modifiers.push(FieldModifier.READONLY)
         if (prop.isStatic)
             modifiers.push(FieldModifier.STATIC)
+        if (prop.isReadonly)
+            modifiers.push(FieldModifier.READONLY)
         return new MaterializedField(
             new Field(prop.name, prop.type, modifiers),
             argConvertor,

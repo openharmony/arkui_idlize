@@ -160,7 +160,9 @@ export class AssignStatement implements LanguageStatement {
             const constSpec = this.isConst ? "const" : "let"
             writer.print(`${constSpec} ${this.variableName}${typeSpec} ${initValue}`)
         } else {
-            writer.print(`${this.variableName} = ${this.expression?.asString()}`)
+            const receiver = this.options?.receiver
+            const withReceiver = receiver ? `${receiver}.` : ""
+            writer.print(`${withReceiver}${this.variableName} = ${this.expression?.asString()}`)
         }
     }
 }
@@ -516,7 +518,7 @@ export abstract class LanguageWriter {
     abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]): void
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
-    abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }): void
+    abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
     abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void;
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement

@@ -368,7 +368,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }): void {
+    writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let containerName = propName.concat("_container")
         let truePropName = this.escapeKeyword(propName)
         if (getter) {
@@ -378,7 +378,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         }
         let isMutable = !modifiers.includes(FieldModifier.READONLY)
         let isOverride = modifiers.includes(FieldModifier.OVERRIDE)
-        this.print(`${isOverride ? 'override ' : ''}public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}`)
+        let initializer = initExpr ? ` = ${initExpr.asString()}` : ""
+        this.print(`${isOverride ? 'override ' : ''}public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}${initializer}`)
         if (getter) {
             this.pushIndent()
             this.writeGetterImplementation(getter.method, getter.op)

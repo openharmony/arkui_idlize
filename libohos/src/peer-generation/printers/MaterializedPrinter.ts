@@ -98,6 +98,23 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         )
     }
 
+    // print non-static readonly fields initialization
+    printReadonlyFieldsInitialization(clazz: MaterializedClass) {
+        const writer = this.printer
+        const receiver = writer.makeThis()
+        for (const mField of clazz.fields) {
+            const f = mField.field
+            const isReadonly = f.modifiers.includes(FieldModifier.READONLY)
+            const isStatic = f.modifiers.includes(FieldModifier.STATIC)
+            if (isReadonly && !isStatic) {
+                const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
+                writer.writeStatement(
+                    writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
+                )
+            }
+        }
+    }
+
     printBaseCtor(clazz: MaterializedClass, collapseCtors: boolean, superClassName?: string) {
         const hasSuperClass = (superClassName != undefined)
         if (clazz.isStaticMaterialized) return
@@ -115,6 +132,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (!hasSuperClass) {
                 this.assignFinalizable(className, peerPtr, writer)
             }
+            this.printReadonlyFieldsInitialization(clazz)
         }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, collapseCtors, superClassName))
     }
 
@@ -304,31 +322,38 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const mField = field.field
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
+            const isReaonly = mField.modifiers.includes(FieldModifier.READONLY)
             const receiver = isStatic ? implementationClassName : 'this'
-            this.printer.writeProperty(mField.name, this.convertToPropertyType(field), (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
-                {
-                    method: new Method('get', new MethodSignature(this.convertToPropertyType(field), [])), op: () => {
-                        this.printer.writeStatement(
-                            this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
-                        )
-                    }
-                },
-                {
-                    method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
-                        let castedNonNullArg
-                        if (field.isNullableOriginalTypeField) {
-                            castedNonNullArg = `${mField.name}_NonNull`
-                            this.printer.writeStatement(this.printer.makeAssign(castedNonNullArg,
-                                undefined,
-                                this.printer.makeCast(this.printer.makeString(mField.name), mField.type),
-                                true))
-                        } else {
-                            castedNonNullArg = mField.name
+            const type = this.convertToPropertyType(field)
+            if (isReaonly && this.printer.language != Language.TS) {
+                const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
+                this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
+            } else {
+                this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
+                    {
+                        method: new Method('get', new MethodSignature(type, [])), op: () => {
+                            this.printer.writeStatement(
+                                this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
+                            )
                         }
-                        this.printer.writeMethodCall(receiver, `set${capitalize(mField.name)}`, [castedNonNullArg])
+                    },
+                    {
+                        method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
+                            let castedNonNullArg
+                            if (field.isNullableOriginalTypeField) {
+                                castedNonNullArg = `${mField.name}_NonNull`
+                                this.printer.writeStatement(this.printer.makeAssign(castedNonNullArg,
+                                    undefined,
+                                    this.printer.makeCast(this.printer.makeString(mField.name), mField.type),
+                                    true))
+                            } else {
+                                castedNonNullArg = mField.name
+                            }
+                            this.printer.writeMethodCall(receiver, `set${capitalize(mField.name)}`, [castedNonNullArg])
+                        }
                     }
-                }
-            )
+                )
+            }
         })
     }
 

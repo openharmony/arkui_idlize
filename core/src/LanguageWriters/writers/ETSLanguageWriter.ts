@@ -19,6 +19,7 @@ import {
     LanguageExpression,
     LanguageStatement,
     LanguageWriter,
+    MakeAssignOptions,
     MakeCastOptions,
     Method,
     MethodModifier,
@@ -56,7 +57,9 @@ export class EtsAssignStatement implements LanguageStatement {
                 public type: IDLType | undefined,
                 public expression: LanguageExpression,
                 public isDeclared: boolean = true,
-                protected isConst: boolean = true) { }
+                protected isConst: boolean = true,
+                protected options?: MakeAssignOptions
+            ) { }
     write(writer: LanguageWriter): void {
         if (this.isDeclared) {
             const typeClause = this.type !== undefined ? `: ${writer.getNodeName(this.type)}` : ''
@@ -64,7 +67,9 @@ export class EtsAssignStatement implements LanguageStatement {
             const initValue = this.expression !== undefined ? this.expression : writer.makeString("")
             writer.print(`${this.isConst ? "const" : "let"} ${this.variableName} ${typeClause}${maybeAssign}${initValue.asString()}`)
         } else {
-            writer.print(`${this.variableName} = ${this.expression.asString()}`)
+            const receiver = this.options?.receiver
+            const withReceiver = receiver ? `${receiver}.` : ""
+            writer.print(`${withReceiver}${this.variableName} = ${this.expression.asString()}`)
         }
     }
 }
@@ -205,8 +210,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
     }
-    makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
-        return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst)
+    makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true, options?: MakeAssignOptions): LanguageStatement {
+        return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst, options)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new ETSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)

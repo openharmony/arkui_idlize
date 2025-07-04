@@ -25,10 +25,10 @@ void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const 
 void mediaquery_MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_OHOS_MEDIAQUERY_mediaquery_Callback_MediaQueryResult_Void* callback_) {
 }
 OH_Boolean mediaquery_MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr) {
-    return {};
+    return true;
 }
 OH_String mediaquery_MediaQueryListener_getMediaImpl(OH_NativePointer thisPtr) {
-    return {};
+    return OH_String{"MediaValue", 10};
 }
 OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListener GlobalScope_matchMediaSyncImpl(const OH_String* condition) {
     return {};
