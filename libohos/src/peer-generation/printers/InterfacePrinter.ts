@@ -376,7 +376,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Getter) {
             result.push(indentedBy(`get ${prop.name}():${this.convertType(prop.type)};`, 1))
         } else if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Setter) {
-            result.push(indentedBy(`set ${prop.name}(val:${this.convertType(prop.type)}):void;`, 1))
+            result.push(indentedBy(`set ${prop.name}(val:${this.convertType(prop.type)});`, 1))
         } else {
             result.push(indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1))
         }
