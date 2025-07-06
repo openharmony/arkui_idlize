@@ -1,7 +1,6 @@
 [loadLibraries] Registered HUKSNativeModule as InteropNativeModule
 Starting demo: huks
 [loadLibraries] Loading HUKSNativeModule [HUKSNativeModule]
-[loadLibraries] Loading InteropNativeModule [HUKSNativeModule]
 GlobalScope_fooVoidVoidImpl()
 GlobalScope_fooVoidNumberImpl(arg)
   arg = 100 (int32)
@@ -13,6 +12,7 @@ fooNumberNumber(200) = 201
 ---- Begin: fooResultNumber(300) ----
 GlobalScope_fooResultNumberImpl(arg)
   arg = 300 (int32)
+[loadLibraries] Loading InteropNativeModule [HUKSNativeModule]
 ---- Begin: fooNumberOptions({}) ----
 GlobalScope_fooNumberOptionsImpl(options)
 ---- Begin: generateKeyItemSync("ASDF", {}) ----

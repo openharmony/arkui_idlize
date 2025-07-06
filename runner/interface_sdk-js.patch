@@ -133,10 +133,10 @@ index 02be253b6..08a92d535 100644
  
  /**
 diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
-index 3e1493d29..94e3fb2f7 100644
+index b0e104b1d..6e2d2ed8d 100644
 --- a/api/@internal/component/ets/common.d.ts
 +++ b/api/@internal/component/ets/common.d.ts
-@@ -11416,7 +11416,7 @@ declare interface BorderImageOption {
+@@ -11417,7 +11417,7 @@ declare interface BorderImageOption {
     * @atomicservice
     * @since 11
     */
@@ -145,7 +145,7 @@ index 3e1493d29..94e3fb2f7 100644
  
    /**
     * Border image source
-@@ -15797,14 +15797,14 @@ declare interface SheetOptions extends BindOptions {
+@@ -15811,14 +15811,14 @@ declare interface SheetOptions extends BindOptions {
    /**
     * Defines sheet detents
     *
@@ -162,7 +162,7 @@ index 3e1493d29..94e3fb2f7 100644
  
    /**
     * Defines sheet background blur Style
-@@ -16243,7 +16243,7 @@ declare interface SheetOptions extends BindOptions {
+@@ -16257,7 +16257,7 @@ declare interface SheetOptions extends BindOptions {
   * @since 20
   * @arkts 1.2
   */
@@ -171,7 +171,7 @@ index 3e1493d29..94e3fb2f7 100644
  
  /**
   * Component State Styles.
-@@ -22868,7 +22868,7 @@ declare class CommonMethod<T> {
+@@ -22882,7 +22882,7 @@ declare class CommonMethod<T> {
     * @since arkts {'1.1':'15','1.2':'20'}
     * @arkts 1.1&1.2
     */
@@ -180,15 +180,21 @@ index 3e1493d29..94e3fb2f7 100644
  
    /**
     * Digital crown input.
-@@ -28739,7 +28739,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
-  * @since arkts {'1.1':'11','1.2':'20'}
-  * @arkts 1.1&1.2
+@@ -28752,7 +28752,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
+  * @atomicservice
+  * @since 11
   */
 -declare interface LinearGradient {
 +declare interface LinearGradient_common {
    /**
     * Linear Gradient Angle
     *
+@@ -32791,4 +32791,4 @@ export declare function $$<T>(value: T): Bindable<T>;
+  * @since 20
+  * @arkts 1.2
+  */
+-export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
++export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
 diff --git a/api/@internal/component/ets/custom_dialog_controller.d.ts b/api/@internal/component/ets/custom_dialog_controller.d.ts
 index 9d3c60c4a..8d2f1be7a 100644
 --- a/api/@internal/component/ets/custom_dialog_controller.d.ts
@@ -721,19 +727,11 @@ index e57982116..bbf8ae329 100644
    /**
     * Trigger toggle select change
 diff --git a/api/@internal/component/ets/ui_extension_component.d.ts b/api/@internal/component/ets/ui_extension_component.d.ts
-index eac19b4aa..b30176bd1 100644
+index 297e762f2..f9adaee19 100644
 --- a/api/@internal/component/ets/ui_extension_component.d.ts
 +++ b/api/@internal/component/ets/ui_extension_component.d.ts
-@@ -23,6 +23,7 @@ import Want from '../../@ohos.app.ability.Want'
- import { Callback, ErrorCallback,BusinessError } from '../../@ohos.base'
- import { CommonMethod } from './common'
- import { ComponentContent } from '../ComponentContent'
-+import { TerminationInfo } from './embedded_component'
- /*** endif */
- 
- /**
-@@ -182,39 +183,6 @@ declare interface TerminationInfo {
-    want?: import('../api/@ohos.app.ability.Want').default;
+@@ -156,36 +156,6 @@ declare interface UIExtensionOptions {
+     windowModeFollowStrategy?: WindowModeFollowStrategy;
  }
  
 -/**
@@ -742,8 +740,7 @@ index eac19b4aa..b30176bd1 100644
 - * @interface TerminationInfo
 - * @syscap SystemCapability.ArkUI.ArkUI.Full
 - * @systemapi
-- * @since 20
-- * @arkts 1.2
+- * @since 12
 - */
 -declare interface TerminationInfo {
 -  /**
@@ -752,31 +749,29 @@ index eac19b4aa..b30176bd1 100644
 -   * @type { number }
 -   * @syscap SystemCapability.ArkUI.ArkUI.Full
 -   * @systemapi
--   * @since 20
--   * @arkts 1.2
+-   * @since 12
 -   */
 -   code: number;
--   
--   /**
+-
+-  /**
 -   * Defines the additional termination information.
 -   *
--   * @type { ?Want }
+-   * @type { ?import('../api/@ohos.app.ability.Want').default }
 -   * @syscap SystemCapability.ArkUI.ArkUI.Full
 -   * @systemapi
--   * @since 20
--   * @arkts 1.2
+-   * @since 12
 -   */
--   want?: Want;
+-   want?: import('../api/@ohos.app.ability.Want').default;
 -}
 -
  /**
   * Get Callback from @ohos.base.
-  *
+  * AnonyMous Object Rectification
 diff --git a/api/arkui/component/customComponent.d.ets b/api/arkui/component/customComponent.d.ets
-index 041ea7179..bc347a1a9 100755
+index 3156c0c53..18267b30d 100755
 --- a/api/arkui/component/customComponent.d.ets
 +++ b/api/arkui/component/customComponent.d.ets
-@@ -181,7 +181,7 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
+@@ -191,7 +191,7 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
       * @since 20
       */
      @ComponentBuilder
@@ -785,7 +780,7 @@ index 041ea7179..bc347a1a9 100755
          factory: () => T,
          initializers?: T_Options,
          reuseId?: string,
-@@ -223,7 +223,7 @@ export declare abstract class CustomComponentV2<T extends CustomComponentV2<T, T
+@@ -233,7 +233,7 @@ export declare abstract class CustomComponentV2<T extends CustomComponentV2<T, T
       * @since 20
       */
      @ComponentBuilder
@@ -795,7 +790,7 @@ index 041ea7179..bc347a1a9 100755
          initializers?: T_Options,
          reuseId?: string,
 diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
-index 6ebfe1cd8..e2f4ba390 100644
+index 15b2ce8e9..979ac1f19 100644
 --- a/api/global/resource.d.ts
 +++ b/api/global/resource.d.ts
 @@ -114,14 +114,14 @@ export interface Resource {

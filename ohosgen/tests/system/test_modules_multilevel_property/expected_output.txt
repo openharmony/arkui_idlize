@@ -1,7 +1,6 @@
 [loadLibraries] Registered TEST_MODULES_MULTILEVEL_PROPERTYNativeModule as InteropNativeModule
 Starting demo: test_modules_multilevel_property
 [loadLibraries] Loading TEST_MODULES_MULTILEVEL_PROPERTYNativeModule [TEST_MODULES_MULTILEVEL_PROPERTYNativeModule]
-[loadLibraries] Loading InteropNativeModule [TEST_MODULES_MULTILEVEL_PROPERTYNativeModule]
 BarInt_constructImpl(vx, vy)
   vx = 1000 (int32)
   vy = 1500 (int32)
@@ -10,6 +9,7 @@ BazInt_constructImpl(f, bx, by)
   bx = 2300 (int32)
   by = 2600 (int32)
 FooInt_constructImpl(initialValue)
+[loadLibraries] Loading InteropNativeModule [TEST_MODULES_MULTILEVEL_PROPERTYNativeModule]
 BarInt_setXImpl(thisPtr, value)
 Set property bar.x done.
 BarInt_getIntImpl(thisPtr, offset)

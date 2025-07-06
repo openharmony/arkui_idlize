@@ -67,10 +67,10 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
                 return 'int64'
 
             case idl.IDLF32Type:
-                return 'float32'
+                return 'float'
 
             case idl.IDLF64Type:
-                return 'float64'
+                return 'double'
             case idl.IDLNumberType:
                 return 'number'
 

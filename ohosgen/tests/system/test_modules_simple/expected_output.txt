@@ -1,8 +1,8 @@
 [loadLibraries] Registered TEST_MODULES_SIMPLENativeModule as InteropNativeModule
 Starting demo: test_modules
 [loadLibraries] Loading TEST_MODULES_SIMPLENativeModule [TEST_MODULES_SIMPLENativeModule]
-[loadLibraries] Loading InteropNativeModule [TEST_MODULES_SIMPLENativeModule]
 FooInt_constructImpl(initialValue)
+[loadLibraries] Loading InteropNativeModule [TEST_MODULES_SIMPLENativeModule]
 GlobalScope_bar_getIntWithFooImpl(foo)
 foo->value = 42 (int32)
 getNumberWithFoo(foo) = 42

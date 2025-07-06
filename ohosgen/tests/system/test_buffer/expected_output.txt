@@ -1,11 +1,11 @@
 [loadLibraries] Registered TEST_BUFFERNativeModule as InteropNativeModule
 Starting demo: test_buffer
 [loadLibraries] Loading TEST_BUFFERNativeModule [TEST_BUFFERNativeModule]
-[loadLibraries] Loading InteropNativeModule [TEST_BUFFERNativeModule]
 Foo_constructImpl()
 FooObject() with index = 1
 Foo_getResultImpl(thisPtr)
 AllocationManager::Allocate(sizeBytes=64)
+[loadLibraries] Loading InteropNativeModule [TEST_BUFFERNativeModule]
 InteropCallbackResource.hold called with resourceId = 0
 foo.getResult() done. Let res be the result:
   res.index = 100

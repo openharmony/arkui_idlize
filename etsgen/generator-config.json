@@ -1,6 +1,7 @@
 {
     "DeletedPackages": [
-        "arkui.component.web"
+        "arkui.component.web",
+        "arkui.component.interop"
     ],
     "DeletedDeclarations": [
         "Callback",
@@ -63,7 +64,10 @@
         "PinchGesture",
         "TapGesture",
         "_r",
-        "_rawfile"
+        "_rawfile",
+        "LazyGridLayoutAttribute",
+        "LazyVGridLayoutAttribute",
+        "LazyVGridLayoutInterface"
     ],
     "DeletedMembers": {
         "CommonMethod": [

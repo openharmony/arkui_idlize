@@ -1,0 +1,6 @@
+package arkui.stateManagement.storage.localStorage;
+
+[Entity=Class]
+interface LocalStorage {
+    number size();
+};

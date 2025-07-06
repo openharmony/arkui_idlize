@@ -1,7 +1,6 @@
 [loadLibraries] Registered TEST_PACKAGENativeModule as InteropNativeModule
 Starting demo: test_package
 [loadLibraries] Loading TEST_PACKAGENativeModule [TEST_PACKAGENativeModule]
-[loadLibraries] Loading InteropNativeModule [TEST_PACKAGENativeModule]
 FooObject_constructImpl()
 FooObject_echoImpl(thisPtr, str)
   str = Hello C++ from foo
@@ -14,6 +13,7 @@ BarObject_echoImpl(thisPtr, str)
 BarObject_toInt32Impl(thisPtr)
 bar.toInt32() = 2
 FooObject_constructImpl()
+[loadLibraries] Loading InteropNativeModule [TEST_PACKAGENativeModule]
 BarObject_setFooObjImpl(thisPtr, value)
 testBar(prompt="After assigning bar.fooObj to new value")
 BarObject_echoImpl(thisPtr, str)

@@ -2,8 +2,8 @@
 Starting demo: test_modules
 ======== Foo ========
 [loadLibraries] Loading TEST_MODULES_MULTILEVELNativeModule [TEST_MODULES_MULTILEVELNativeModule]
-[loadLibraries] Loading InteropNativeModule [TEST_MODULES_MULTILEVELNativeModule]
 FooInt_constructImpl(initialValue)
+[loadLibraries] Loading InteropNativeModule [TEST_MODULES_MULTILEVELNativeModule]
 GlobalScope_qux_getIntWithFooImpl(foo)
 foo->value = 42 (int32)
 getIntWithFoo(foo) = 42
