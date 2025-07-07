@@ -1938,7 +1938,7 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
             imports.push(
                 { feature: "memo", module: "@koalaui/runtime/annotations" },
                 { feature: "memo_stable", module: "@koalaui/runtime/annotations" },
-                { feature: "BuilderLambda", module: "@koalaui/builderLambda" },
+                { feature: "ComponentBuilder", module: "@koalaui/builderLambda" },
             )
         }
     }

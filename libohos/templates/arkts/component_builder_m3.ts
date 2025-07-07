@@ -1,12 +1,12 @@
-@memo
-@BuilderLambda("%COMPONENT_NAME%")
-export function %COMPONENT_NAME%(
-    %FUNCTION_PARAMETERS%
-    @memo
-    content_?: () => void,
-): %COMPONENT_NAME%Attribute {
-    throw new Error("Not implemented")
-}
+// @memo
+// @BuilderLambda("%COMPONENT_NAME%")
+// export function %COMPONENT_NAME%(
+//     %FUNCTION_PARAMETERS%
+//     @memo
+//     content_?: () => void,
+// ): %COMPONENT_NAME%Attribute {
+//     throw new Error("Not implemented")
+// }
 
 @memo
 export function %COMPONENT_NAME%(
