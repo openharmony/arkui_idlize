@@ -266,9 +266,9 @@ class SerializerPrinter {
             writer.writeStatement(
                 writer.makeReturn(
                     writer.makeMethodCall(
-                        writer.language == Language.CJ ?
-                        getInternalClassName(writer.getNodeName(target)) :
-                        getInternalClassQualifiedName(target, "namespace.name"), "fromPtr", [writer.makeString(`ptr`)])))
+                        (writer.language == Language.CJ || writer.language == Language.KOTLIN) ?
+                        getInternalClassName(target.name) :
+                        getInternalClassQualifiedName(target, "namespace.name", writer.language), "fromPtr", [writer.makeString(`ptr`)])))
     }
     private generateExternalTypeBodyDeserializer(writer: LanguageWriter, target: idl.IDLInterface) {
         this.declareDeserializer(writer)

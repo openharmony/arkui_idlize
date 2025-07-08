@@ -40,7 +40,7 @@ export function qualifiedName(decl: idl.IDLNode, languageOrDelimiter: Language|s
         throw new Error("internal error, name required for no-named node")
     const delimiter = typeof languageOrDelimiter === "string"
         ? languageOrDelimiter
-        : (languageOrDelimiter === Language.CPP ? '_' : '.')
+        : ([Language.CPP, Language.CJ, Language.KOTLIN].includes(languageOrDelimiter) ? '_' : '.')
     if (!idl.isEntry(decl))
         throw new Error(`Expected to have an IDLEntry, got ${idl.IDLKind[decl.kind]}`)
     return idl.getQualifiedName(decl, pattern).split(".").join(delimiter)

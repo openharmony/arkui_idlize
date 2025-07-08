@@ -1384,7 +1384,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             continuation = [
                 writer.language == Language.CJ ?
                 writer.makeAssign(continuationValueName, undefined, writer.makeString(`${writer.getNodeName(this.decl.returnType).replace(/[\<\>]/g, '')}Holder(None<${writer.getNodeName(this.decl.returnType)}>)`), true, true) :
-                writer.makeAssign(continuationValueName, optionalReturnType, undefined, true, false),
+                writer.makeAssign(continuationValueName, optionalReturnType, writer.language == Language.KOTLIN ? writer.makeNull() : undefined, true, false),
                 writer.makeAssign(
                     continuationCallbackName,
                     continuationReference,

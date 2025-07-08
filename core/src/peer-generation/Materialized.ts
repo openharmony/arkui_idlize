@@ -15,6 +15,7 @@
 
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
+import { Language } from '../Language'
 import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
 import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
@@ -154,8 +155,8 @@ export function getInternalClassName(name: string): string {
     return `${name}Internal`
 }
 
-export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name"): string {
-    return getInternalClassName(qualifiedName(target, ".", pattern))
+export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name", language?: Language): string {
+    return getInternalClassName(qualifiedName(target, language ?? ".", pattern))
 }
 
 export function getMaterializedFileName(name:string): string {

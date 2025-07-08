@@ -11,39 +11,47 @@
         "clean:ts": "rm -rf generated/ts",
         "clean:arkts": "rm -rf generated/arkts",
         "clean:cj": "rm -rf generated/cangjie",
+        "clean:kt": "rm -rf generated/kotlin",
         "clean:native": "rm -rf generated/native",
 
         "generate": "npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
+        "generate:kt": "TARGET=kt npm run generate && cp ./src/kotlin/* ./generated/kotlin",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
+        "compile:kt": "bash scripts/build-kotlin.sh",
 
         "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
         "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
         "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",
+        "compile:interop:native:kt": "npm run compile:kotlin:interop --prefix ../../../external/interop",
 
         "compile:native": "meson setup build/native/${TARGET_VM} -Dtarget_vm=${TARGET_VM} && meson compile -C build/native/${TARGET_VM} && meson install -C build/native/${TARGET_VM}",
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
+        "compile:native:kt": "",
 
         "start:ts": "bash scripts/run-ts.sh",
         "start:arkts": "bash scripts/run-panda.sh",
         "start:cj": "bash scripts/run-cj.sh",
+        "start:kt": "bash scripts/run-kt.sh",
 
         "build": "npm run compile:${TARGET} && npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
+        "build:kt": "TARGET=kt npm run build",
 
         "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
         "check:ts": "TARGET=ts npm run check",
         "check:arkts": "TARGET=arkts npm run check",
-        "check:cj": "TARGET=cj npm run check"
+        "check:cj": "TARGET=cj npm run check",
+        "check:kt": "TARGET=kt npm run check"
     },
     "dependencies": {
         "@koalaui/interop": "1.7.6",

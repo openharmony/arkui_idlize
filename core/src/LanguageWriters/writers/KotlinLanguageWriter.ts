@@ -341,7 +341,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeNativeMethodDeclaration(method: Method): void {
         let name = method.name
         let signature = method.signature
-        this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {})
+        this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+            writer.makeThrowError("Not implemented").write(writer)
+        })
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)

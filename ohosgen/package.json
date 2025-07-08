@@ -36,6 +36,7 @@
     "run:xml:ts": "npm run generate:xml:idl && node . --use-new-ohos --idl2peer --input-dir ./demos/xml/generated/idl --output-dir ./demos/xml --options-file ./demos/xml/config.json",
     "run:xml:arkts": "npm run generate:xml:idl && node . --use-new-ohos --idl2peer --input-dir ./demos/xml/generated/idl --output-dir ./demos/xml --language=arkts --options-file ./demos/xml/config.json",
     "run:xml:cj": "npm run generate:xml:idl && node . --use-new-ohos --idl2peer --input-dir ./demos/xml/generated/idl --output-dir ./demos/xml --language=cangjie --options-file ./demos/xml/config.json",
+    "run:xml:kt": "npm run generate:xml:idl && node . --use-new-ohos --idl2peer --input-dir ./demos/xml/generated/idl --output-dir ./demos/xml --language=kotlin --options-file ./demos/xml/config.json",
     "generate:mediaquery:idl": "npm run compile && node ../dtsgen --dts2idl --base-dir ./demos/mediaquery/dts/api --input-files ./demos/mediaquery/dts/api/@ohos.mediaquery.d.ts --output-dir ./demos/mediaquery/generated/idl",
     "run:mediaquery:ts": "npm run generate:mediaquery:idl && node . --use-new-ohos --idl2peer --language=ts --input-dir ./demos/mediaquery/generated/idl --output-dir ./demos/mediaquery --options-file ./demos/mediaquery/config.json",
     "run:mediaquery:arkts": "npm run generate:mediaquery:idl && node . --use-new-ohos --idl2peer --language=arkts --input-dir ./demos/mediaquery/generated/idl --output-dir ./demos/mediaquery --options-file ./demos/mediaquery/config.json",

@@ -153,6 +153,7 @@ export function ohosLayout(library: PeerLibrary): LayoutManagerStrategy {
         case Language.TS:
         case Language.ARKTS:
         case Language.CJ:
+        case Language.KOTLIN:
             return new OhosTsLayout(library)
         //     return new CJLayout(library)
         default: throw new Error(`Ohos layout for language ${library.language.name} is not implemented`)

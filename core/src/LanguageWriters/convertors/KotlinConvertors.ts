@@ -18,6 +18,7 @@ import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
+import { removePoints } from './CJConvertors'
 import { InteropReturnTypeConvertor } from './InteropConvertors'
 
 export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
@@ -32,10 +33,10 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return node.name
+        return removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertEnum(node: idl.IDLEnum): string {
-        return node.name
+        return removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertTypedef(node: idl.IDLTypedef): string {
         return node.name
@@ -84,7 +85,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             }
         }
         if (decl) {
-            return decl.name
+            return removePoints(idl.getQualifiedName(decl, 'namespace.name'))
         }
         return this.convert(idl.IDLCustomObjectType)
     }
@@ -129,7 +130,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                 return 'Date'
 
             case idl.IDLBufferType:
-                return 'NativeBuffer'
+                return 'ByteArray'
 
             case idl.IDLInteropReturnBufferType:
                 return `KInteropReturnBuffer`

@@ -198,28 +198,14 @@ export function generateArkoalaFromIdl(config: {
     const installedFiles = ETSLanguageWriter.useTypeChecker(config.useTypeChecker, () => install(
         arkoala.managedDir,
         peerLibrary,
-        peerLibrary.language == Language.KOTLIN ?
         [
             createMaterializedPrinter(config.dumpSerialized),
             createPeersPrinter(config.dumpSerialized),
             createInterfacePrinter(false),
             printComponents,
-            printGlobal,
-            printBuilderClasses,
-            createSerializerPrinter(peerLibrary.language, ""),
-            ...spreadIfNotLang([Language.JAVA],
-                createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
+            ...spreadIfNotLang([Language.KOTLIN],
+                printModifiers,
             ),
-            ...spreadIfNotLang([Language.ARKTS],
-                createGeneratedNativeModulePrinter(NativeModule.Generated),
-            )
-        ] :
-        [
-            createMaterializedPrinter(config.dumpSerialized),
-            createPeersPrinter(config.dumpSerialized),
-            createInterfacePrinter(false),
-            printComponents,
-            printModifiers,
             printGlobal,
             printBuilderClasses,
             createSerializerPrinter(peerLibrary.language, ""),

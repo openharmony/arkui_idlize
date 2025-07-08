@@ -34,6 +34,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     const peerImports = new ImportsCollector()
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), peerImports)
     const peerMethodWriter = library.createLanguageWriter()
+    const staticWriter = library.createLanguageWriter() 
 
     const printed = library.globals.flatMap(scope => {
 
@@ -138,8 +139,10 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
     const realizationWriter = library.createLanguageWriter()
     realizationWriter.writeClass(realizationHolder.name, w => {
-        peerMethodWriter.getOutput().forEach(it => w.print(it))
-        peerMethodWriter.features.forEach(item => realizationWriter.addFeature(item[0], item[1]))
+        w.makeStaticBlock(() => {
+            peerMethodWriter.getOutput().forEach(it => w.print(it))
+            peerMethodWriter.features.forEach(item => realizationWriter.addFeature(item[0], item[1]))
+        })
     })
     fillPeerImports(peerImports, library)
     const realization: PrinterResult = {
