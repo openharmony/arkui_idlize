@@ -171,7 +171,7 @@ class OHOSNativeVisitor {
         const resolvedType = getSuper(decl, this.library)
         const propertiesFromInterface: IDLProperty[] = []
         if (!resolvedType || !isMaterialized(resolvedType, this.library)) {
-            propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
+            propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library)[0])
         }
         return propertiesFromInterface
     }

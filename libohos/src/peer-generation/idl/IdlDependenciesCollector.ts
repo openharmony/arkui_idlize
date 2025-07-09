@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { NodeConvertor, convertNode, convertType } from "@idlizer/core"
+import { NodeConvertor, convertNode, convertType, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language, getInternalClassName, isMaterialized } from '@idlizer/core'
 
@@ -123,6 +123,7 @@ class TSDependenciesCollector extends DependenciesCollector {
         return TSDependenciesCollector.cache.get(node)!
     }
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
+        type = maybeRestoreGenerics(type, this.library) ?? type
         const resolved = this.library.resolveTypeReference(type)
         if (resolved && (idl.isInterface(resolved) || idl.isCallback(resolved)) && idl.isSyntheticEntry(resolved)) {
             // type literal

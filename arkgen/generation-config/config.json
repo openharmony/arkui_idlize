@@ -25,6 +25,11 @@
         "TouchResult",
         "SectionOptions"
     ],
+    "ignoreGenerics": [
+        "arkui.component.common.AttributeModifier",
+        "arkui.component.common.ContentModifier",
+        "arkui.component.ContentModifier"
+    ],
     "forceMaterialized": [
         "TapGestureInterface",
         "LongPressGestureInterface",

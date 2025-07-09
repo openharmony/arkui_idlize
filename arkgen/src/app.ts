@@ -27,6 +27,8 @@ import {
     setDefaultConfiguration,
     patchDefaultConfiguration,
     D,
+    inplaceGenerics,
+    PeerLibrary,
 } from "@idlizer/core"
 import {
     IDLEntry,
@@ -36,7 +38,10 @@ import {
     isSyntheticEntry,
     linkParentBack,
     transformMethodsAsync2ReturnPromise,
-    linearizeNamespaceMembers
+    linearizeNamespaceMembers,
+    IDLNode,
+    hasExtAttribute,
+    IDLExtendedAttributes,
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
@@ -236,6 +241,7 @@ export function arkgen(argv:string[]) {
                 verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
             })
         }
+        inplaceArkoalaGenerics(idlLibrary)
         fillSyntheticDeclarations(idlLibrary)
         idlLibrary.enableCache()
         new IdlPeerProcessor(idlLibrary).process()
@@ -374,4 +380,14 @@ export function arkgen(argv:string[]) {
 
 export function defaultConfigPath(): string {
     return path.resolve(__dirname, '..', 'generation-config')
+}
+
+function inplaceArkoalaGenerics(library: PeerLibrary): void {
+    library.files.forEach(file => inplaceGenerics(file, library, { ignore: [
+        ignoreComponentRule,
+    ]}))
+}
+
+function ignoreComponentRule(node: IDLNode): boolean {
+    return hasExtAttribute(node, IDLExtendedAttributes.Component) || hasExtAttribute(node, IDLExtendedAttributes.ComponentInterface)
 }

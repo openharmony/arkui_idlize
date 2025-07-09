@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, isExternalType, getExternalTypePackage } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, isExternalType, getExternalTypePackage, maybeRestoreGenerics } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -64,7 +64,7 @@ export function collectDeclItself(
         includeMaterializedInternals?: boolean,
         includeTransformedCallbacks?: boolean,
     },
-) {
+): void {
     if (idl.isSyntheticEntry(node)) {
         // TS needs no synthetic types
         if (library.language === Language.TS)
@@ -74,6 +74,7 @@ export function collectDeclItself(
             return
     }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
+        node = maybeRestoreGenerics(node, library) ?? node
         if (idl.isReferenceType(node)) {
             const decl = library.resolveTypeReference(node)
             if (decl && (idl.isCallback(decl) || idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple)) {

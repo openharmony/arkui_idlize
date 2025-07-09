@@ -6,7 +6,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isExternalType, isInCurrentModule, isInIdlize, isStringEnumType } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isExternalType, isInCurrentModule, isInIdlize, isInplacedGeneric, isStringEnumType, maybeRestoreGenerics } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToNumericName, generateEnumFromNumericName } from '@idlizer/core';
@@ -99,7 +99,10 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             res.push(entry)
         }
     })
-    for (const decl of collectDeclarationTargets(library)) {
+    for (let decl of collectDeclarationTargets(library)) {
+        if (idl.isEntry(decl) && isInplacedGeneric(decl)) {
+            decl = library.resolveTypeReference(maybeRestoreGenerics(decl, library)!) as idl.IDLEntry
+        }
         if (!idl.isEntry(decl))
             continue
         if (idl.isImport(decl) || isInIdlize(decl))

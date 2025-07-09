@@ -1164,7 +1164,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     }
                     return idl.createReferenceType(tuple.name, typeParametersOrdered?.map(it => idl.createTypeParameterReference(it)))
                 }
-                case 'Bindable': return typeArgs![0]
             }
             return idl.createReferenceType(name, typeArgs)
         }

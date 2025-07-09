@@ -1831,11 +1831,14 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         function removeExtendsFromTypeParameter(value: string) {
             return value.split(/(extends|implements)/g)[0]
         }
+        function removeDefaultValueFromTypeParameters(value: string) {
+            return value.split(/=/g)[0]
+        }
         return this.context.typeParameterMap ? undefined : typeParameters?.flatMap(it => {
             if (ts.isTupleTypeNode(it)) {
                 return it.elements.map(it => it.getText())
             }
-            return removeExtendsFromTypeParameter(it.getText())
+            return removeDefaultValueFromTypeParameters(removeExtendsFromTypeParameter(it.getText())).trim()
         })
     }
 }

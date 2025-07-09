@@ -73,6 +73,7 @@ export enum IDLExtendedAttributes {
     NativeModule = "NativeModule",
     Optional = "Optional",
     OriginalEnumMemberName = "OriginalEnumMemberName",
+    OriginalGenericName = "OriginalGenericName",
     Predefined = "Predefined",
     Protected = "Protected",
     Synthetic = "Synthetic",
@@ -376,10 +377,10 @@ export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (
 }
 
 /** Updates tree in place! */
-function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cbLeave?: (entry: IDLNode) => void): IDLNode {
+export function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cbLeave?: (entry: IDLNode) => void): IDLNode {
     const old = node
     node = op(old)
-    if (node.kind !== old.kind) {
+    if (node.kind !== old.kind && !(isType(old) && isType(node))) {
         throw new Error("Kinds must be the same!")
     }
     switch (node.kind) {

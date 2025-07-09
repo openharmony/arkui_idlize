@@ -38,7 +38,9 @@ import {
     zipStrip,
     zipMany,
     collapseTypes,
-    getSuper
+    getSuper,
+    isInplacedGeneric,
+    maybeRestoreGenerics
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -333,11 +335,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         let superTypes = idlInterface.inheritance
         const extendsItems: string[] = []
         const implementsItems: string[] = []
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
         superTypes?.forEach(it => {
+            it = maybeRestoreGenerics(it, this.peerLibrary) ?? it
             const superDecl = this.peerLibrary.resolveTypeReference(it)
             const parentTypeArgs = this.printTypeArguments(
                 (it as idl.IDLReferenceType)?.typeArguments?.map(it => this.toFQN(it)))
-            const clause = `${it.name}${parentTypeArgs}`
+            const clause = nameConvertor.convert(it)
 
             const shouldPrintAsImplements = superDecl
                 && isMaterialized(idlInterface, this.peerLibrary)
@@ -575,6 +579,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry) || isExternalType(entry, this.peerLibrary))
             || idl.isMethod(entry)
+            || isInplacedGeneric(entry)
     }
 
     protected getDeclConvertor(writer:LanguageWriter, seenNames:Set<string>, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
@@ -1051,6 +1056,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && !this.isDeclared && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
             || idl.isMethod(entry)
+            || isInplacedGeneric(entry)
     }
 
     protected getDeclConvertor(writer:LanguageWriter, seenNames:Set<string>, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {

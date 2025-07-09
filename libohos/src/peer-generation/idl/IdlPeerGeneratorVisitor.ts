@@ -170,12 +170,15 @@ export class IdlPeerProcessor {
         const implemenationParentName = isDeclInterface ? getInternalClassName(decl.name) : decl.name
         const resolvedDecl = getSuper(decl, this.library)
         const interfaces: idl.IDLReferenceType[] = []
+        const methodsFromInterface: idl.IDLMethod[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []
         let superType: idl.IDLReferenceType | undefined = undefined
         if (resolvedDecl) {
             superType = getSuperType(decl, this.library)
             if (!resolvedDecl || !idl.isInterface(resolvedDecl) || !isMaterialized(resolvedDecl, this.library)) {
-                propertiesFromInterface.push(...getUniquePropertiesFromSuperTypes(decl, this.library))
+                const [superProperties, superMethods] = getUniquePropertiesFromSuperTypes(decl, this.library)
+                propertiesFromInterface.push(...superProperties)
+                methodsFromInterface.push(...superMethods)
                 interfaces.push(superType!)
                 superType = undefined
             }
@@ -214,6 +217,7 @@ export class IdlPeerProcessor {
             .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
             .map(it => this.makeMaterializedField(it))
         const mMethods = decl.methods
+            // .concat(...methodsFromInterface) // TODO insert here methods from interfaces
             // TODO: Properly handle methods with return Promise<T> type
             .map(method => this.makeMaterializedMethod(decl, method, fullCName, implemenationParentName))
             .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !peerGeneratorConfiguration().materialized.ignoreReturnTypes.includes(it.method.signature.returnType.name))
@@ -418,31 +422,23 @@ export function forEachSuperType(declaration: idl.IDLInterface, resolver: Refere
     forEachSuperType(superDecl, resolver, callback)
 }
 
-export function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLProperty[] {
-    const result: idl.IDLProperty[] = []
-    const seenProperties = new Set<string>()
+export function getUniquePropertiesFromSuperTypes(declaration: idl.IDLInterface, resolver: ReferenceResolver): [idl.IDLProperty[], idl.IDLMethod[]] {
+    const methods: idl.IDLMethod[] = []
+    const properties: idl.IDLProperty[] = []
+    const seen = new Set<string>()
     forEachSuperType(declaration, resolver, (superInterface) => {
-        const props = superInterface.properties
-        if (props) {
-            props.forEach((property) => {
-                if (seenProperties.has(property.name)) return
-                result.push(property)
-                seenProperties.add(property.name)
-
-            })
-        }
+        superInterface.properties.forEach((property) => {
+            if (seen.has(property.name)) return
+            properties.push(property)
+            seen.add(property.name)
+        })
+        superInterface.methods.forEach(method => {
+            if (seen.has(method.name)) return
+            methods.push(method)
+            seen.add(method.name)
+        })
     })
-    return result
-}
-
-export function convertTypeToFeature(library: PeerLibrary, type: idl.IDLType): ImportFeature | undefined {
-    const typeReference = idl.isReferenceType(type)
-        ? library.resolveTypeReference(type)
-        : undefined
-    if (typeReference !== undefined) {
-        return convertDeclToFeature(library, typeReference)
-    }
-    return undefined
+    return [properties, methods]
 }
 
 // function initCustomBuilderClasses(library: PeerLibrary) {

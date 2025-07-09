@@ -614,6 +614,12 @@ interface ToIDLFileProps {
     content?: string
 }
 
+export function toIdlType(fileName: string, content: string): idl.IDLType {
+    const lexicalInfo: IDLTokenInfoMap = new Map()
+    const deserializer = new IDLDeserializer(lexicalInfo, 'multiple')
+    return deserializer.toIDLType(fileName, webidl2.parseType(content, fileName))
+}
+
 export function toIDLFile(fileName: string, { content, inheritanceMode = 'multiple' }:ToIDLFileProps = {}): [idl.IDLFile, IDLTokenInfoMap] {
     const lexicalInfo: IDLTokenInfoMap = new Map()
     const deserializer = new IDLDeserializer(lexicalInfo, inheritanceMode)

@@ -15,7 +15,7 @@
 
 import * as idl from '../../idl'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { zip } from '../../util'
+import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
@@ -112,6 +112,11 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 decl = decl.parent
             }
 
+            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.resolver)
+            if (maybeRestoredGeneric) {
+                type = maybeRestoredGeneric
+                decl = this.resolver.resolveTypeReference(maybeRestoredGeneric)
+            }
             let typeSpec = type.name
             let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
             if (typeSpec === `Optional`)

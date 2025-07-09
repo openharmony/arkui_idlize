@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -424,6 +424,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         if (clazz.interfaces) {
             interfaces.push(
                 ...clazz.interfaces.map(it => {
+                    it = maybeRestoreGenerics(it, this.library) ?? it
                     const decl = this.library.resolveTypeReference(it)
                     if (!decl) {
                         throw new Error(`Not found declaration "${it.name}"`)

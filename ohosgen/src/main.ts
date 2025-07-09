@@ -26,6 +26,7 @@ import {
     scanInputDirs,
     D,
     NativeModuleType,
+    inplaceGenerics,
 } from "@idlizer/core"
 import {
     linearizeNamespaceMembers,
@@ -114,6 +115,7 @@ if (options.idl2peer) {
     }
 
     initLibraryName(idlLibrary)
+    idlLibrary.files.forEach(file => inplaceGenerics(file, idlLibrary))
     fillSyntheticDeclarations(idlLibrary)
     new IdlPeerProcessor(idlLibrary).process()
     generateTarget(idlLibrary, outDir, language)

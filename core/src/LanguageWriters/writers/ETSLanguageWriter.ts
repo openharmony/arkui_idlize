@@ -171,6 +171,7 @@ export class ETSLambdaExpression extends LambdaExpression {
 export function generateTypeCheckerName(typeName: string): string {
     typeName = typeName
         .replaceAll('[]', 'BracketsArray')
+        .replaceAll(/<.*$/g, '') // delete type arguments
         .split('.').join('_')
     return `is${typeName.replaceAll('[]', 'Brackets')}`
 }
