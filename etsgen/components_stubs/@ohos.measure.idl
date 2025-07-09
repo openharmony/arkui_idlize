@@ -1,0 +1,45 @@
+package ohos.measure;
+
+import ohos.graphics.text.text as text;
+import arkui.component.enums.FontStyle as FontStyle;
+import arkui.component.enums.TextOverflow as TextOverflow;
+import arkui.component.enums.TextCase as TextCase;
+import arkui.component.enums.FontWeight as FontWeight;
+import global.resource.Resource as Resource;
+
+/**
+ * The MeasureUtils API declaration
+ */
+[Entity=Interface]
+interface MeasureOptions {
+    attribute (String or Resource) textContent;
+    [Optional]
+    attribute (number or String or Resource) constraintWidth;
+    [Optional]
+    attribute (number or String or Resource) fontSize;
+    [Optional]
+    attribute (number or FontStyle) fontStyle;
+    [Optional]
+    attribute (number or String or FontWeight) fontWeight;
+    [Optional]
+    attribute (String or Resource) fontFamily;
+    [Optional]
+    attribute (number or String) letterSpacing;
+    [Optional]
+    attribute text.TextAlign textAlign;
+    // attribute (number or TextAlign) textAlign; // bug in panda compiler #25958
+    [Optional]
+    attribute (number or TextOverflow) overflow;
+    [Optional]
+    attribute number maxLines;
+    [Optional]
+    attribute (number or String or Resource) lineHeight;
+    [Optional]
+    attribute (number or String) baselineOffset;
+    [Optional]
+    attribute (number or TextCase) textCase;
+    [Optional]
+    attribute (number or String) textIndent;
+    [Optional]
+    attribute text.WordBreak wordBreak;
+};

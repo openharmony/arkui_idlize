@@ -71,57 +71,11 @@ interface BaseShape {
     BaseShape size(SizeOptions size);
 };
 
-/**
- * The font API declaration, part for M2 app
- */
-[Entity=Interface]
-interface FontOptions {
-    attribute (String or Resource) familyName;
-    attribute (String or Resource) familySrc;
-};
-
 [Entity=Class]
 interface GlobalScope_ohos_font {
     static void registerFont(FontOptions options);
     static sequence<String> getSystemFontList();
     static FontInfo getFontByName(String fontName);
-};
-
-/**
- * The MeasureUtils API declaration
- */
-[Entity=Interface]
-interface MeasureOptions {
-    attribute (String or Resource) textContent;
-    [Optional]
-    attribute (number or String or Resource) constraintWidth;
-    [Optional]
-    attribute (number or String or Resource) fontSize;
-    [Optional]
-    attribute (number or FontStyle) fontStyle;
-    [Optional]
-    attribute (number or String or FontWeight) fontWeight;
-    [Optional]
-    attribute (String or Resource) fontFamily;
-    [Optional]
-    attribute (number or String) letterSpacing;
-    [Optional]
-    attribute TextAlign textAlign;
-    // attribute (number or TextAlign) textAlign; // bug in panda compiler #25958
-    [Optional]
-    attribute (number or TextOverflow) overflow;
-    [Optional]
-    attribute number maxLines;
-    [Optional]
-    attribute (number or String or Resource) lineHeight;
-    [Optional]
-    attribute (number or String) baselineOffset;
-    [Optional]
-    attribute (number or TextCase) textCase;
-    [Optional]
-    attribute (number or String) textIndent;
-    [Optional]
-    attribute WordBreak wordBreak;
 };
 
 [Entity=Class]
@@ -133,20 +87,6 @@ interface GlobalScope_ohos_measure_utils {
 /**
  * The SymbolEffect,ReplaceSymbolEffect,ScaleSymbolEffect API declaration, part for M2 app
  */
-
-[Entity=Interface]
-interface FontInfo {
-    attribute String path;
-    attribute String postScriptName;
-    attribute String fullName;
-    attribute String family;
-    attribute String subfamily;
-    attribute number weight;
-    attribute number width;
-    attribute boolean italic;
-    attribute boolean monoSpace;
-    attribute boolean symbolic;
-};
 
 [Entity=Interface]
 interface IndicatorStyle {
