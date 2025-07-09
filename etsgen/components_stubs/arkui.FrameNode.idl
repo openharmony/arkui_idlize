@@ -2,6 +2,7 @@ package arkui.FrameNode;
 
 import arkui.component.units.Position as Position;
 import ohos.arkui.UIContext.UIContext as UIContext;
+import arkui.Graphics.Size as Size;
 
 interface CrossLanguageOptions {
    [Optional]
