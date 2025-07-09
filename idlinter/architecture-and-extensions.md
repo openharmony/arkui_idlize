@@ -10,29 +10,27 @@ When all files are loaded - validation starts. Only global passes (registered wi
 
 After validation stops - pretty formatted reports are generated, containing diagnostics and highlighted locations. Summary, containing total numbers of different kinds of diagnostics, is always printed at the end.
 
+Example (with most entries skipped):
 ```
 error[E200]: Unresolved reference
-    --> es2panda_lib.idl:3595:52
+    --> es2panda_lib.idl:9730:37
      |
-3595 | [Entity=Class, nameaspace=ir] interface Annotated: T {
-     |                                                    ^ Unresolved reference
+9730 | [Entity=Class] interface ETSParser: TypedParser {
+     |                                     ^---------^ Unresolved reference
      = Unresolved reference
 
-error[E200]: Unresolved reference
-    --> es2panda_lib.idl:3601:48
+error[E201]: Duplicate identifier
+    --> es2panda_lib.idl:7001:34
      |
-3601 | [Entity=Class, nameaspace=ir] interface Typed: T {
-     |                                                ^ Unresolved reference
-     = Unresolved reference
-
-error[E200]: Unresolved reference
-    --> es2panda_lib.idl:4277:60
+7001 |     static ir.ForUpdateStatement Update(es2panda_Context context, ir.ForUpdateStatement original, ir.AstNode init, ir.Expression test, ir.Expression update, ir.Statement body);
+     |                                  ^----^ Duplicate identifier
+    ::: es2panda_lib.idl:7016:25
      |
-4277 | [Entity=Class, nameaspace=ir] interface AnnotationAllowed: T {
-     |                                                            ^ Unresolved reference
-     = Unresolved reference
+7016 |     [get] ir.Expression Update(es2panda_Context context);
+     |                         ^~~~~^ Duplicate of
+     = Duplicate identifier
 
-fatal: 0, error: 3, warning: 0, information: 0, hint: 0
+fatal: 0, error: 43, warning: 0, information: 0, hint: 0
 ```
 
 `idlinter` has exit codes: (1) for invalid arguments/paths and (2) in case of errors or fatals found in .idl files. That allows easier integration into automatic pipelines.

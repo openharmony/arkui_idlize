@@ -159,6 +159,14 @@ export function locationForNode(node: idl.IDLNode, component?: string): Location
     return {documentPath: parsed.fileName, range: rangeForNode(parsed, node, component)}
 }
 
+export function locationForNodeName(node: idl.IDLNode): Location {
+    let location = locationForNode(node, "name")
+    if (!location.range) {
+        location = locationForNode(node)
+    }
+    return location
+}
+
 export function locationsFromAuto(autolocations: AutoLocations): Location[] {
     if (autolocations == null) {
         return []
@@ -166,7 +174,7 @@ export function locationsFromAuto(autolocations: AutoLocations): Location[] {
     if (Array.isArray(autolocations)){
         let res: Location[] = []
         for (let l of autolocations as any[]) {
-            res.push(l.kind ? locationForNode(l) : l)
+            res.push(l.kind ? locationForNodeName(l) : l)
         }
         return res
     }

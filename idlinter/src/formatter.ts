@@ -72,30 +72,35 @@ function formatUnderline(indent: string, lines: string[], lineNo: number, range:
 }
 
 function outputReadableMessage(message: DiagnosticMessage): void {
+    if (message.parts.length == 0) {
+        return
+    }
     console.log(`${message.severity}[E${message.code}]: ${message.codeDescription}`)
     let digits = lineDigitCount(message)
     let indent = " ".repeat(digits)
     let first: boolean = true
+    let lastPath: string = ""
     for (let part of message.parts) {
         if (part.location.range != null) {
             let range = part.location.range
             let lines = idlManager.entriesByPath.get(part.location.documentPath)?.lines!
-            console.log(`${indent}--> ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
+            console.log(`${indent}${lastPath != part.location.documentPath ? "-->" : ":::"} ${part.location.documentPath}:${range.start.line}:${range.start.character}`)
             console.log(`${indent} |`)
             for (let i = range.start.line; i <= range.end.line; ++i) {
                 console.log(formatLine(digits, lines, i))
                 console.log(formatUnderline(indent, lines, i, range, "^", first ? "-" : "~", part.message))
             }
-            console.log(`${indent} = ${part.message}`)
-            console.log()
         } else {
             console.log(`${indent}--> ${part.location.documentPath}`)
-            console.log(`${indent} |`)
-            console.log(`${indent} = ${part.message}`)
-            console.log()
+            if (message.parts.length > 1) {
+                console.log(`${indent} # ${part.message}`)
+            }
         }
         first = false
+        lastPath = part.location.documentPath
     }
+    console.log(`${indent} = ${message.parts[0].message}`)
+    console.log()
 }
 
 export function outputJsonResult(result: DiagnosticResults): void {

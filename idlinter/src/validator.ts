@@ -31,11 +31,9 @@ enumPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => {
 enumPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => {
     let nodes = st.enums.get(node)!
     if (nodes.length == 2) {
-        InconsistentEnum.reportDiagnosticMessage([locationForNode(node, "name"), nodes[0], nodes[1]])
+        InconsistentEnum.reportDiagnosticMessage([node, nodes[0], nodes[1]])
     }
 }
-
-// let namedDecls = [idl.IDLKind.Namespace, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Callable, idl.IDLKind.Typedef, idl.IDLKind.Enum]
 
 const resolvePass = idlManager.newPass("resolvePass", [], () => ({typeParameters: new Set<string>()}))
 function extParam(param: string) {
@@ -71,6 +69,37 @@ resolvePass.on({}).after = (node, st) => {
     }
     for (let tp of node.typeParameters) {
         st.typeParameters.delete(extParam(tp))
+    }
+}
+
+function appendTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
+    if (map.has(key)) {
+        map.get(key)!.push(value)
+    } else {
+        map.set(key, [value])
+    }
+}
+
+const uniquelyNamed = new Set([idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Callable, idl.IDLKind.Typedef, idl.IDLKind.Enum])
+
+const checkDuplicates = idlManager.newPass("checkDuplicates", [], () => ({byName: new Map<string, idl.IDLNode[]>()}))
+checkDuplicates.on({}).before = (node, st) => {
+    if (!uniquelyNamed.has(node.kind)) {
+        return
+    }
+    let name = idl.getFQName(node)
+    if (node.parent?.kind == idl.IDLKind.Interface) {
+        // To remove false positives for now, before permanent fix in getFQName
+        name = `${idl.getFQName(node.parent)}/${name}`
+    }
+
+    appendTo(st.byName, name, node)
+}
+checkDuplicates.afterAll = (st) => {
+    for (const [name, nodes] of st.byName) {
+        if (nodes.length > 1) {
+            DuplicateIdentifier.reportDiagnosticMessage(nodes)
+        }
     }
 }
 
