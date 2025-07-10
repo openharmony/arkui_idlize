@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { program } from "commander"
+import { createCommand } from "commander"
 import * as fs from "fs"
 import * as path from "path"
 import {
@@ -62,7 +62,7 @@ import { loadKnownReferences } from "./knownReferences"
 import { readLibrary } from "@idlizer/interfaces"
 
 export function arkgen(argv:string[]) {
-    const options = program
+    const command = createCommand()
         .option('--show-config-schema', 'Prints JSON schema for config')
         .option('--dts2test', 'Generate tests from .d.ts to .h')
         .option('--dts2peer', 'Convert .d.ts to peer drafts')
@@ -111,7 +111,7 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
         .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
-
+    const options = command
         .parse(argv, { from: 'user' })
         .opts()
 
@@ -224,7 +224,7 @@ export function arkgen(argv:string[]) {
         const language = Language.fromString(options.language ?? "ts")
         const { inputFiles, inputDirs } = formatInputPaths(options)
 
-        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3)
+        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS)
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
@@ -337,7 +337,7 @@ export function arkgen(argv:string[]) {
     }
 
     if (!didJob) {
-        program.help()
+        command.help()
     }
 
     function generateTarget(idlLibrary: ArkoalaPeerLibrary, outDir: string, lang: Language) {

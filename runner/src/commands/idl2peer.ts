@@ -18,11 +18,13 @@ import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "..
 import { flat, scan } from "../utils"
 
 export interface Idl2PeerConfig {
-    target: string
+    target: string,
+    language: string,
 }
 
 export function idl2peer({
-    target
+    target,
+    language,
 }: Idl2PeerConfig) {
     const idlFiles = scan(GENERATED_IDL_DIR)
 
@@ -38,10 +40,10 @@ export function idl2peer({
         flat([
             '--idl2peer',
             ['--reference-names', REFERENCE_CONFIG_PATH],
-            ['--input-files', idlFiles],
+            ['--input-files', flat(idlFiles).join(",")],
             ['--output-dir', GENERATED_PEER_DIR],
             ['--generator-target', arkgenTarget],
-            ['--language', 'arkts'],
+            ['--language', language],
             '--only-integrated',
             '--use-memo-m3',
             ['--arkts-extension', '.ets']

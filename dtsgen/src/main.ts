@@ -14,7 +14,7 @@
  */
 
 
-import { program } from "commander"
+import { createCommand } from "commander"
 import * as fs from "fs"
 import * as path from "path"
 import {
@@ -44,7 +44,7 @@ import { formatInputPaths, validatePaths, peerGeneratorConfiguration, IDLVisitor
 import { runPreprocessor } from "./preprocessor"
 import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
 
-const options = program
+const command = createCommand()
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')
     .option('--idl2dts', 'Convert IDL to .d.ts definitions')
     .option('--lint', 'Verifies input and exits')
@@ -66,6 +66,7 @@ const options = program
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
+const options = command
     .parse()
     .opts()
 
@@ -244,6 +245,6 @@ function main() {
         return
     }
 
-    program.help()
+    command.help()
 }
 main()

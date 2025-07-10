@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { program } from "commander"
+import { createCommand } from "commander"
 import * as fs from "fs"
 import * as path from "path"
 import * as ts from "typescript"
@@ -21,7 +21,7 @@ import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
 import { patchDefaultConfiguration, findVersion, generate, scanInputDirs } from "@idlizer/core"
 
-const options = program
+const options = createCommand()
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--aux-input-dir <path>', 'Path to aux input dir(s), comma separated')
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')

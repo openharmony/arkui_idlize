@@ -17,14 +17,16 @@ import * as fs from "fs"
 import * as path from "path"
 import { toIDLFile, PeerLibrary, scanInputDirs, IDLFile, linearizeNamespaceMembers, isInterface } from "@idlizer/core"
 
-function processInputOption(option: string | undefined): string[] {
-    if (!option) return []
-    if (typeof option === 'string') {
+function processInputOption(option: string | string[] | undefined): string[] {
+    if (typeof option === 'undefined') {
+        return []
+    } else if (typeof option === 'string') {
         return option.split(',')
             .map(item => item.trim())
             .filter(Boolean)
+    } else {
+        return option.flatMap(processInputOption)
     }
-    return []
 }
 
 // iterate through files in the same order even if input order changes
@@ -41,23 +43,23 @@ export type InputPaths = {
     libraryPackages: string[]
 }
 export function formatInputPaths(options: any): InputPaths {
-    if (options.inputFiles && typeof options.inputFiles === 'string') {
+    if (options.inputFiles) {
         options.inputFiles = processInputOption(options.inputFiles)
     }
 
-    if (options.auxInputFiles && typeof options.auxInputFiles === 'string') {
+    if (options.auxInputFiles) {
         options.auxInputFiles = processInputOption(options.auxInputFiles)
     }
 
-    if (options.inputDir && typeof options.inputDir === 'string') {
+    if (options.inputDir) {
         options.inputDir = processInputOption(options.inputDir)
     }
 
-    if (options.auxInputDir && typeof options.auxInputDir === 'string') {
+    if (options.auxInputDir) {
         options.auxInputDir = processInputOption(options.auxInputDir)
     }
 
-    if (options.libraryPackages && typeof options.libraryPackages === 'string') {
+    if (options.libraryPackages) {
         options.libraryPackages = processInputOption(options.libraryPackages)
     }
 

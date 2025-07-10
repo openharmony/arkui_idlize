@@ -14,7 +14,7 @@
  */
 
 import * as path from "path"
-import { program } from "commander"
+import { createCommand } from "commander"
 import * as fs from "fs"
 import {
     Language,
@@ -44,7 +44,7 @@ import { loadPeerConfiguration,
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
 
-const options = program
+const command = createCommand()
     .option('--show-config-schema', 'Prints JSON schema for config')
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')
     .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
@@ -70,6 +70,7 @@ const options = program
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
+const options = command
     .parse()
     .opts()
 
@@ -124,7 +125,7 @@ if (options.idl2peer) {
 }
 
 if (!didJob) {
-    program.help()
+    command.help()
 }
 
 function processInputFiles(files: string[] | string | undefined): string[] {

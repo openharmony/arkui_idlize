@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { program } from "commander"
+import { createCommand } from "commander"
 import {
     findVersion,
     scanInputDirs
@@ -24,7 +24,7 @@ import { resolve } from "node:path"
 import { cpSync } from "node:fs"
 
 export function etsgen(argv:string[]) {
-    const options = program
+    const program = createCommand()
         .option('--ets2idl', 'Convert .d.ts to IDL definitions')
         .option('--idl2ets', 'Convert IDL to .d.sts definitions')
         .option('--use-component-stubs', 'Add components stubs to produced idl files')
@@ -39,6 +39,7 @@ export function etsgen(argv:string[]) {
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--ets-config <path>', 'Path to ets config file', resolve(__dirname, "..", "config.json"))
         .option('--trace-status <filename>', 'Add trace information to generated IDL and save status in specified file')
+    const options = program
         .parse(argv, { from: 'user' })
         .opts()
 

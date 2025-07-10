@@ -43,7 +43,7 @@ function m3(sdkPathInput:string, installPath:string, options:any) {
     }
 
     commands.ets2idl({ sdkPath, configPath })
-    commands.idl2peer({ target: options.target })
+    commands.idl2peer({ target: options.target, language: options.language })
 
     let installSourceDir = GENERATED_PEER_DIR
     switch (options.target) {
@@ -77,6 +77,7 @@ function main(argv:string[]) {
     program.command('m3 <sdk-path> <install-path>')
         .description('generate using m3 pipeline')
         .option('--target <target>', 'sig | libace | all', 'sig')
+        .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
         .action(m3)
 
