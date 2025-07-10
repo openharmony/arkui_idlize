@@ -277,11 +277,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, collapseCtors: boolean, maxCtorParams: number, classTypeParameters?: string[]) {
         // write "fromPtr(ptr: number): MaterializedClass" method
-        const classNamespace = (writer.language == Language.CJ || writer.language == Language.KOTLIN) ? idl.getNamespaceName(clazz.decl) : ""
         const clazzRefType = clazz.isInterface
             ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
-        console.log(clazzRefType)
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
             const defaultArg = collapseCtors ? "undefined" : "false"
