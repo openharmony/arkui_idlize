@@ -1051,12 +1051,9 @@ export class UnionConvertor extends BaseArgConvertor {
         throw new Error("Do not use for union")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeStatement(printer.makeAssign(`${value}_type`, idl.IDLI32Type, printer.makeUnionTypeDefaultInitializer(), true, false))
-        printer.writeStatement(printer.makeUnionSelector(value, `${value}_type`))
         this.memberConvertors.forEach((it, index) => {
             const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            const conditions = this.unionChecker.makeDiscriminator(value, index, printer)
-            printer.print(`${maybeElse}if (${conditions.asString()}) {`)
+            printer.print(`${maybeElse}if (${printer.discriminate(value, index, it.idlType, it.runtimeTypes)}) {`)
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(index.toString(), 8)])
             if (!(it instanceof UndefinedConvertor)) {

@@ -827,6 +827,10 @@ export abstract class LanguageWriter {
     makeDiscriminatorConvertor(_convertor: ArgConvertor, _value: string, _index: number): LanguageExpression | undefined {
         return undefined
     }
+    discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        // return most common form, suitable for languages that don't have sum types
+        return `${value}.getSelector() == ${index}`
+    }
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!(${expr.asString()})`)
     }

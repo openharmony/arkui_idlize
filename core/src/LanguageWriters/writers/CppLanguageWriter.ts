@@ -544,4 +544,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
 
         return [ownedDataCtor, fromBufferCtor]
     }
+    override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        return `${value}.selector == ${index}`
+    }
 }

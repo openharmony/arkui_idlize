@@ -339,6 +339,17 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         //     makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
         // ])
     }
+    override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        // work around ArkTS compiler bugs
+        if (idl.IDLContainerUtils.isSequence(type)) {
+            const arrayTypeName = this.arrayConvertor.convert(type)
+            return `TypeChecker.${generateTypeCheckerName(arrayTypeName)}(${value})`
+        }
+        if (this.getNodeName(type) === "DragPreviewMode") {
+            return `TypeChecker.isDragPreviewMode(${value})`
+        }
+        return `${value} instanceof ${this.getNodeName(type)}`
+    }
     override castToInt(value: string, bitness: 8 | 32): string {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
         // The explicit cast forces ui2abc to call valueOf on an int, which fails the compilation

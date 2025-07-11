@@ -487,6 +487,22 @@ export class TSLanguageWriter extends LanguageWriter {
         ])
     }
 
+    private typeOf(runtimeType: RuntimeType): string {
+        switch (runtimeType) {
+            case RuntimeType.UNEXPECTED:
+                throw new Error("Encountered RuntimeType.UNEXPECTED")
+            case RuntimeType.MATERIALIZED:
+                return "object"
+            default:
+                return RuntimeType[runtimeType].toLowerCase()
+        }
+    }
+    override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        return runtimeTypes
+            .map(ty => `typeof ${value} === "${this.typeOf(ty)}"`)
+            .join(" || ")
+    }
+
     override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
         return [new NamedMethodSignature(idl.IDLVoidType, [], [])]
     }
