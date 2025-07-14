@@ -208,14 +208,6 @@ export class DynamicEmitter {
                     path.join(this.outDir, multiFilePrinter.dir, fileName),
                     this.readTemplate(multiFilePrinter.template)
                         .replaceAll(
-                            `%GEN_VERSION%`,
-                            this.generatorVersion
-                        )
-                        .replaceAll(
-                            `%SDK_VERSION%`,
-                            this.pandaSdkVersion
-                        )
-                        .replaceAll(
                             `%GENERATED_PART%`,
                             output
                         )
