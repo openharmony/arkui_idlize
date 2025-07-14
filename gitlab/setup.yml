@@ -19,7 +19,7 @@ prepare caches:
         paths:
         - .npm/
 
-libarkts regenerate:
+build external:
     stage: build
     tags:
     - idlize-ci
@@ -32,10 +32,21 @@ libarkts regenerate:
     - npm run compile
     - npm run compile:plugins
     - cd -
+    - npm run compile --prefix external/ui2abc/annotate
+    - npm run compile --prefix external/ui2abc/fast-arktsc
+    - npm run compile --prefix external/ui2abc/memo-plugin
+    - npm run compile --prefix external/ui2abc/ui-plugins
     artifacts:
         paths:
         - external/ui2abc/libarkts/lib
         - external/ui2abc/libarkts/build
+        - external/ui2abc/annotate/lib
+        - external/ui2abc/fast-arktsc/lib
+        - external/ui2abc/memo-plugin/lib
+        - external/ui2abc/ui-plugins/lib
+        # need these symlinks for require in es2panda.js to work
+        - external/ui2abc/node_modules/@koalaui/memo-plugin
+        - external/ui2abc/node_modules/@koalaui/ui-plugins
         expire_in: 1 day
 
 download sdk:
@@ -49,7 +60,7 @@ download sdk:
     - npm run download:sdk
     needs:
     - prepare caches
-    - libarkts regenerate
+    - build external
     artifacts:
         paths:
         - sdk-patched

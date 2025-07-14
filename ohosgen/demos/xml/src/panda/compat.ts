@@ -17,7 +17,7 @@ export function init() {
 
 export function encodeText(text: string): OHBuffer {
     const buffer = new NativeBuffer((text.length * 4 + 1).toLong())
-    InteropNativeModule._ManagedStringWrite(text, buffer.data, 0);
+    InteropNativeModule._ManagedStringWrite(text, buffer.data, buffer.length.toInt(), 0);
     return buffer;
 }
 

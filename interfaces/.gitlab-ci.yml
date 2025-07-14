@@ -5,8 +5,8 @@ check arkui interfaces:
     - idlize-ci
     - koala-ci
   needs:
-    - libarkts regenerate
     - download sdk
+    - build external
   script:
     - !reference [.npm, script]
     - npm run compile --prefix core

@@ -40,7 +40,7 @@ idlize sanity:
     - koala-ci
   dependencies:
   - download sdk
-  - libarkts regenerate
+  - build external
   script:
     - !reference [.npm, script]
     - !reference [.panda, script]
@@ -66,6 +66,8 @@ run arkts subset:
   tags:
     - idlize-ci
     - koala-ci
+  dependencies:
+    - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
@@ -81,7 +83,7 @@ compile arkts peers:
     - koala-ci
   dependencies:
   - download sdk
-  - libarkts regenerate
+  - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
@@ -250,7 +252,7 @@ check index-full:
       - koala-ci
     dependencies:
     - download sdk
-    - libarkts regenerate
+    - build external
     before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]

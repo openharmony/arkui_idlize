@@ -54,7 +54,7 @@ function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): 
 export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
     const uniqueCallbacks: idl.IDLCallback[] = []
     const uniqueCallbacksNames = new Set<string>()
-    collectDeclarationTargets(library).filter(idl.isCallback).forEach(it => {
+    collectDeclarationTargets(library).filter(idl.isCallback).filter(it => !idl.hasTypeParameters(it)).forEach(it => {
         if (!uniqueCallbacksNames.has(it.name)) {
             uniqueCallbacksNames.add(it.name)
             uniqueCallbacks.push(it)
@@ -294,6 +294,7 @@ class DeserializeCallbacksVisitor {
     private writeInteropImplementation(callbacks: idl.IDLCallback[]): void {
         let signature: NamedMethodSignature
         let signatureSync: NamedMethodSignature
+        collectDeclItself(this.library, idl.createReferenceType("idlize.internal.CallbackKind"), this.imports)
         if (this.writer.language === Language.CPP) {
             signature = new NamedMethodSignature(idl.IDLVoidType,
                 [idl.IDLI32Type, idl.IDLSerializerBuffer, idl.IDLI32Type],
@@ -335,7 +336,7 @@ class DeserializeCallbacksVisitor {
                         ? [`thisArray`, `thisLength`]
                         : [`thisDeserializer`]
                     const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                    writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ => return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                    writer.print(`case ${callbackKindValue} => return deserializeAndCall${callback.name}(${args.join(', ')});`)
                 }
                 writer.print(`case _ => throw Exception()`)
                 writer.popIndent()
@@ -359,8 +360,9 @@ class DeserializeCallbacksVisitor {
                 writer.print(`}`)
                 writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
             } else {
+                const castedKind = this.writer.makeCast(writer.makeString('kind'), idl.createReferenceType("idlize.internal.CallbackKind")).asString()
                 if (callbacks.length > 0) {
-                    writer.print(`switch (kind) {`)
+                    writer.print(`switch (${castedKind}) {`)
                     writer.pushIndent()
                     for (const callback of callbacks) {
                         if (this.isGenericCallback(callback)) {
@@ -370,7 +372,7 @@ class DeserializeCallbacksVisitor {
                             ? [`thisArray`, `thisLength`]
                             : [`thisDeserializer`]
                         const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                        writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/: return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                        writer.print(`case ${callbackKindValue}: return deserializeAndCall${callback.name}(${args.join(', ')});`)
                     }
                     writer.popIndent()
                     writer.print(`}`)

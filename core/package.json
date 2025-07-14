@@ -34,7 +34,7 @@
   },
   "keywords": [],
   "dependencies": {
-    "@koalaui/interop": "1.7.6",
+    "@koalaui/interop": "1.7.7",
     "typescript": "4.9.5",
     "@types/node": "^18.0.0"
   },

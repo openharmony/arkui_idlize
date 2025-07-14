@@ -4,7 +4,7 @@ etsgen golden:
     - idlize-ci
     - koala-ci
   dependencies:
-  - libarkts regenerate
+  - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]

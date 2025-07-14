@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "logging.h"
 #include "dynamic-loader.h"
+#include "interop-utils.h"
 #include "%API_GENERATED%.h"
 
 #undef max
@@ -60,7 +61,7 @@ void appendGroupedLog(int kind, const std::string& str) {
 
 void dummyClassFinalizer(KNativePointer* ptr) {
     char hex[20];
-    std::snprintf(hex, sizeof(hex), "0x%llx", (long long)ptr);
+    interop_snprintf(hex, sizeof(hex), "0x%llx", (long long)ptr);
     string out("dummyClassFinalizer(");
     out.append(hex);
     out.append(")");

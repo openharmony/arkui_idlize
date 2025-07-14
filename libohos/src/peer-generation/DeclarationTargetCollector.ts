@@ -72,7 +72,9 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
             } else if (idl.isConstant(entry)) {
                 orderer.addDep(library.toDeclaration(entry.type))
             } else if (idl.isCallback(entry)) {
-                orderer.addDep(entry)
+                if (!idl.hasTypeParameters(entry)) {
+                    orderer.addDep(entry)
+                }
             }
         }
     }

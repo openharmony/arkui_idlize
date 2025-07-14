@@ -4,6 +4,7 @@
 #include "interop-types.h"
 #include "dynamic-loader.h"
 #include "interop-logging.h"
+#include "interop-utils.h"
 
 %ANY_API%
 %GENERIC_SERVICE_API%
@@ -101,7 +102,7 @@ const OH_AnyAPI* GetAnyImpl(int kind, int version, std::string* result) {
         if (impl->version != version) {
             if (result) {
                 char buffer[256];
-                snprintf(buffer, sizeof(buffer), "FATAL: API version mismatch, expected %d got %d",
+                interop_snprintf(buffer, sizeof(buffer), "FATAL: API version mismatch, expected %d got %d",
                     version, impl->version);
                 *result = buffer;
             } else {

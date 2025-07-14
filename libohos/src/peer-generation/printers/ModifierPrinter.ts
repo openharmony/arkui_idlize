@@ -75,7 +75,7 @@ function peerParentNamespaceName(library: PeerLibrary, context: idl.IDLInterface
 function peerReturnValue(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string | undefined {
     if (idl.isInterface(context) && isMaterialized(context, library)) {
         if (method.sig.name === PeerMethodSignature.CTOR)
-            return `(Ark_${context.name}) 100`
+            return `reinterpret_cast<Ark_${context.name}>(100)`
         if (method.sig.name === PeerMethodSignature.GET_FINALIZER)
             return `fnPtr<KNativePointer>(dummyClassFinalizer)`
     }
@@ -201,7 +201,7 @@ export class ModifierVisitor {
         if (isComponentDeclaration(this.library, context))
             return printer.makeReturn(printer.makeString(`new TreeNode("${method.originalParentName}", id, flags);`))
         if (isMaterialized(context, this.library))
-            return printer.makeReturn(printer.makeString(`(${convertor.convert(context)}) 100`))
+            return printer.makeReturn(printer.makeString(`reinterpret_cast<${convertor.convert(context)}>(100)`))
         throw new Error("Unknown receiver type for constructor creation")
     }
 
@@ -528,6 +528,7 @@ export class MultiFileModifiersVisitor extends AccessorVisitor {
 
 export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: boolean = false): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new ModifierVisitor(peerLibrary, isDummy)
+    visitor.commentedCode = false
     visitor.printRealAndDummyModifiers()
     const dummy =
         visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
@@ -538,6 +539,7 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: bo
 
 export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: LanguageWriter, real: LanguageWriter} {
     const visitor = new AccessorVisitor(peerLibrary)
+    visitor.commentedCode = false
     peerLibrary.orderedMaterialized.forEach(c => visitor.printRealAndDummyAccessor(c))
     const globals = createGlobalScopeLegacy(peerLibrary)
     if (globals.methods.length) {
