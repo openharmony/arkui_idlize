@@ -1,0 +1,7 @@
+{
+    "TypePrefix": "OH_",
+    "moduleName": "global",
+    "currentModuleExportedPackages": [
+        "global.resource"
+    ]
+}

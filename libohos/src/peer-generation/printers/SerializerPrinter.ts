@@ -396,13 +396,11 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr", 'nullptr', 'KPointer'
         ], "@koalaui/interop")
         collector.addFeatures(["int32", "int64", "float32", "unsafeCast"], "@koalaui/common")
-        collectDeclItself(library, idl.createReferenceType("CallbackKind"), collector)
         if (language == Language.TS && library.name === "arkoala") {
             collector.addFeatures([
                 "MaterializedBase", "InteropNativeModule", "ResourceHolder",
                 "nullptr", "KPointer", "isInstanceOf",
             ], "@koalaui/interop")
-            collector.addFeatures(["isResource", "isPadding"], "./utils")
         }
         if (generatorConfiguration().externalTypes.size > 0
             || generatorConfiguration().externalPackages.length > 0) {

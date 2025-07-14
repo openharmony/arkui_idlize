@@ -140,7 +140,6 @@ class DeserializeCallbacksVisitor {
         }
 
         if (this.writer.language === Language.TS || this.writer.language === Language.ARKTS) {
-            collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), this.imports)
             this.imports.addFeatures(["int32", "float32", "int64"], "@koalaui/common")
             this.imports.addFeatures([
                 "ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback",

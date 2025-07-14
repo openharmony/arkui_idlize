@@ -126,7 +126,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             imports.addFeature('ComponentBase', './ComponentBase')
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")
-                imports.addFeatures(["isResource", "isPadding"], "./utils")
             }
             imports.addFeature(componentToPeerClass(peer.componentName), this.library.layout.resolve({node: component.attributeDeclaration, role: LayoutNodeRole.PEER}))
         }

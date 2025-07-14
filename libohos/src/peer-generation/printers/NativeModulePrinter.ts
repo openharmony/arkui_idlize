@@ -27,6 +27,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     LayoutNodeRole,
     lib,
     createOutArgConvertor,
+    isInCurrentModule,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -165,6 +166,8 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
 
     visit(): void {
         for (const file of this.library.files) {
+            if (!isInCurrentModule(file))
+                continue
             for (const peer of collectPeersForFile(this.library, file)) {
                 this.printPeerMethods(peer)
             }

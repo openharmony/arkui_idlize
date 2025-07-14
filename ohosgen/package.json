@@ -53,6 +53,9 @@
     "generate:dummy:idl": "npm run compile && node ../dtsgen --dts2idl --input-dir ./tests/dummy/dts --output-dir ./tests/dummy/generated/idl --options-file ./tests/dummy/conf/config.json",
     "run:dummy:ts": "npm run generate:dummy:idl && node . --idl2peer --language=ts --default-idl-package dummy --input-dir ./tests/dummy/generated/idl,./tests/dummy/idl --output-dir ./tests/dummy",
     "run:dummy:arkts": "npm run generate:dummy:idl && node . --idl2peer --language=arkts --default-idl-package dummy --input-dir ./tests/dummy/generated/idl,./tests/dummy/idl --output-dir ./tests/dummy",
+    "check:global:arkts:generate": "npm run compile && node . --idl2peer --language=arkts --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir ./out/module-global-arkts --options-file ../arkgen/generation-config/config.json,../arkgen/generation-config/config-arkui.json,./generation-config/config-global.json",
+    "check:global:ts:generate": "npm run compile && node . --idl2peer --language=ts --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir ./out/module-global-ts --options-file ../arkgen/generation-config/config.json,../arkgen/generation-config/config-arkui.json,./generation-config/config-global.json",
+    "check:global:ts:run": "npm run check:global:ts:generate",
     "configure:native-node-host-ts-ohos-context": "cd ./native && meson setup -Dsource_set=ohos-context build-node-host-ts-ohos-context",
     "compile:native-node-host-ts-ohos-context": "npm run configure:native-node-host-ts-ohos-context && cd native && meson compile --verbose -C build-node-host-ts-ohos-context && meson install -C build-node-host-ts-ohos-context",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json"

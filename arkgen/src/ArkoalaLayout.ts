@@ -83,6 +83,11 @@ export class TsLayout extends CommonLayoutBase {
         // if (idl.isSyntheticEntry(target.node)) {
         //     return SyntheticModule
         // }
+
+        if (!idl.isInCurrentModule(target.node) && target.role != LayoutNodeRole.GLOBAL) {
+            return `@${idl.getPackageName(target.node)}`
+        }
+
         if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
             // TODO currently rollup can wrongly order some declarations if all of them will be placed in common
             // files (button.ts, text_input.ts). So, materialized/builders were moved to ArkSmthMaterialized to resolve
@@ -125,6 +130,11 @@ class ArkTsLayout extends CommonLayoutBase {
             return HandwrittenModule(this.library.language)
         }
         const packageName = idl.getPackageName(target.node)
+
+        if (!idl.isInCurrentModule(target.node) && target.role != LayoutNodeRole.GLOBAL) {
+            return `@${idl.getPackageName(target.node)}`
+        }
+
         let customPath: string | undefined
         if (packageName && (customPath = customPathSuggestion(packageName))) {
             return customPath

@@ -17,10 +17,12 @@
         "module": "CommonJS",
         "paths": {
             "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"]
+            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
+            "@global.resource": ["./generated/modules/global/generated/ts"]
         },
     },
     "include": [
+        "generated/modules/global/generated/ts/**/*",
         "generated/sig/arkoala/**/*",
         "generated/sig/arkoala-arkts/framework/**/*"
     ]

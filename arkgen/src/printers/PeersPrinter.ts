@@ -108,7 +108,6 @@ class PeerFileVisitor {
         if (this.library.language === Language.TS) {
             imports.addFeature('GestureName', './generated/shared/generated-utils')
             imports.addFeature('GestureComponent', './generated/shared/generated-utils')
-            imports.addFeatures(['isResource', 'isPadding'], './utils')
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {

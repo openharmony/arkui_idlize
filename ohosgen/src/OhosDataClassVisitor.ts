@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
-import { FieldModifier, IDLInterface, IDLMethod, IDLProperty, isBuilderClass, isClassSubkind, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
+import { FieldModifier, IDLInterface, IDLMethod, IDLProperty, isBuilderClass, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
 import { allowsOverloads, collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 
 export function printDataClasses(library:PeerLibrary): PrinterResult[] {
-    return library.files.flatMap(file => {
+    return library.files
+        .filter(file => isInCurrentModule(file))
+        .flatMap(file => {
         return linearizeNamespaceMembers(file.entries).flatMap(entry => {
             if (!isInterface(entry)) {
                 return []

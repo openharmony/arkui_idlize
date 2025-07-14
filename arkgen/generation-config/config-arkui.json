@@ -1,0 +1,33 @@
+{
+    "moduleName": "arkui",
+    "modules": {
+        "global": {
+            "name": "global",
+            "packages": ["global.resource"]
+        },
+        "arkui": {
+            "name": "arkui",
+            "packages": [
+                "api.internal.component.ets",
+                "application",
+                "arkui",
+                "arkui.component",
+                "arkui.stateManagement.decorators",
+                "idlize.internal",
+                "ohos.app.ability",
+                "ohos.arkui",
+                "ohos.base",
+                "ohos.data",
+                "ohos.font",
+                "ohos.graphics",
+                "ohos.intl",
+                "ohos.matrix4",
+                "ohos.measure",
+                "ohos.multimedia.image",
+                "ohos.multimodalInput",
+                "ohos.promptAction",
+                "ohos.window"
+            ]
+        }
+    }
+}

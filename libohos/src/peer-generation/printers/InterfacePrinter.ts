@@ -603,6 +603,8 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
             registerEntry(entry)
         })
         for (const file of this.peerLibrary.files) {
+            if (!isInCurrentModule(file))
+                continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
