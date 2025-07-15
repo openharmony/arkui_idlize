@@ -834,8 +834,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                       const Opt_Callback_ClickEvent_Void* event)
     {
         RegisterOnClick(node, &event->value);
-        if (!needGroupedLog(1))
+        if (!needGroupedLog(1)) {
             return;
+        }
         string out("onClick(");
         WriteToString(&out, event);
         out.append(") \n");
@@ -846,8 +847,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                       const Opt_Number* distanceThreshold)
     {
         RegisterOnClick(node, &event->value);
-        if (!needGroupedLog(1))
+        if (!needGroupedLog(1)) {
             return;
+        }
         string out("onClick(");
         WriteToString(&out, event);
         out.append(", ");
@@ -860,8 +862,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         const Ark_Number* distanceThreshold)
     {
         RegisterOnClick(node, event);
-        if (!needGroupedLog(1))
-        return;
+        if (!needGroupedLog(1)) {
+            return;
+        }
         string out("onClick(");
         WriteToString(&out, event);
         out.append(", ");
@@ -876,8 +879,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             auto frameNode = AsNode(node);
             frameNode->setDrawModifier(value->value);
         }
-        if (!needGroupedLog(1))
+        if (!needGroupedLog(1)) {
             return;
+        }
         string out("drawModifier(");
         WriteToString(&out, value);
         out.append(") \n");
@@ -896,8 +900,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     namespace ScreenshotServiceAccessor {
         Ark_Boolean RequestScreenshotImpl(const Ark_String* name)
         {
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return strcmp(name->chars, "XXX") == 0;
+            }
     
             std::string out("requestScreenshot() \n");
             out.append("[return true] \n");
@@ -910,8 +915,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     namespace RenderServiceNodeAccessor {
         Ark_Int32 GetNodeIdImpl(const Ark_String* nodeId)
         {
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return 42;
+            }
             string out("getNodeId(");
             WriteToString(&out, nodeId);
             out.append(") \n");
@@ -924,8 +930,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         void InvalidateImpl(Ark_DrawModifier peer)
         {
             CallDrawModifierCallbacks(peer);
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return;
+            }
             string out("invalidate(");
             out.append(") \n");
             appendGroupedLog(1, out);
@@ -934,8 +941,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                                         const Callback_DrawContext_Void* drawBehind_callback)
         {
             RegisterDrawModifierCallback(peer, drawBehind_callback, DrawBehind);
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return;
+            }
             string out("setDrawBehind(");
             WriteToString(&out, drawBehind_callback);
             out.append(") \n");
@@ -945,8 +953,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                                         const Callback_DrawContext_Void* drawContent_callback)
         {
             RegisterDrawModifierCallback(peer, drawContent_callback, DrawContent);
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return;
+            }
             string out("setDrawContent(");
             WriteToString(&out, drawContent_callback);
             out.append(") \n");
@@ -956,8 +965,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
                                     const Callback_DrawContext_Void* drawFront_callback)
         {
             RegisterDrawModifierCallback(peer, drawFront_callback, DrawFront);
-            if (!needGroupedLog(1))
+            if (!needGroupedLog(1)) {
                 return;
+            }
             string out("setDrawFront(");
             WriteToString(&out, drawFront_callback);
             out.append(") \n");

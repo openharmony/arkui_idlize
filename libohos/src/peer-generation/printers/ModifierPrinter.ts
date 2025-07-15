@@ -167,9 +167,9 @@ export class ModifierVisitor {
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
-                method.sig.name == PeerMethodSignature.CTOR
+                _.makeBlock([method.sig.name == PeerMethodSignature.CTOR
                     ? this.makeConstructReturnStatement(_, context, method)
-                    : _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)
+                    : _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)])
             )
         )
         _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
