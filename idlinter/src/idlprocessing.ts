@@ -15,9 +15,6 @@
 
 import * as idl from "@idlizer/core"
 import { IdlNodeAny, IdlNodePattern } from "./idltypes";
-import { Parsed } from "./parser";
-import { DiagnosticResults } from "./diagnostictypes";
-import { ProcessingError, UnknownError } from "./messages";
 
 /**
  * Checks that object is provided.
@@ -92,10 +89,6 @@ export class IdlProcessingPass<State> {
         return new IdlProcessignProxy<State>(this, pattern)
     }
 
-    set final (func: (s: State) => void) {
-        this.afterAll = func
-    }
-
     add(func: IdlProcessingFunc<State>, pattern: IdlNodePattern, before?: boolean): void {
         if (pattern.kind) {
             appendTo(before ? this.rulesBeforeByKind : this.rulesAfterByKind, pattern.kind, {pattern, func})
@@ -144,10 +137,9 @@ function appendTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
 }
 
 export class IdlProcessingManager {
-    entries: Parsed[] = []
-    entriesByPath: Map<string, Parsed> = new Map()
-    entriesToValidate: Parsed[] = []
-    results: DiagnosticResults = new DiagnosticResults()
+    entries: idl.IDLFile[] = []
+    entriesByPath: Map<string, idl.IDLFile> = new Map()
+    entriesToValidate: idl.IDLFile[] = []
 
     featuresByName: Map<string, string> = new Map()
     _activeFeatures: string[] = []
@@ -167,21 +159,20 @@ export class IdlProcessingManager {
 
     addFile(fileName: string, parseOnly?: boolean): void {
         try {
-            let parsed = new Parsed(fileName)
-            this.entries.push(parsed)
-            this.entriesByPath.set(fileName, parsed)
-            parsed.load()
+            const loaded = idl.toIDLFile(fileName)[0]
+            this.entries.push(loaded)
+            this.entriesByPath.set(fileName, loaded)
             if (parseOnly) {
-                this.peerlibrary.auxFiles.push(parsed.idlFile)
+                this.peerlibrary.auxFiles.push(loaded)
             } else {
-                this.entriesToValidate.push(parsed)
-                this.peerlibrary.files.push(parsed.idlFile)
+                this.entriesToValidate.push(loaded)
+                this.peerlibrary.files.push(loaded)
             }
         } catch (e: any) {
             if (e.diagnosticMessage != null) {
-                this.results.push(e.diagnosticMessage)
+                idl.DiagnosticMessageEntry.reportCatched(e.diagnosticMessage)
             } else {
-                UnknownError.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+                idl.UnknownErrorMessage.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
             }
         }
     }
@@ -220,14 +211,14 @@ export class IdlProcessingManager {
             }
 
             for (let entry of this.entries) {
-                idl.forEachChild(entry.idlFile,
+                idl.forEachChild(entry,
                     n => passes.forEach(p => {
                         try { p.dispatch(n, true) }
-                        catch (e: any) { ProcessingError.reportDiagnosticMessage([{documentPath: entry.fileName}], `Pass "${p.name}": ${e.message}`) }
+                        catch (e: any) { idl.ProcessingErrorMessage.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
                     }),
                     n => passes.forEach(p => {
                         try { p.dispatch(n) }
-                        catch (e: any) { ProcessingError.reportDiagnosticMessage([{documentPath: entry.fileName}], `Pass "${p.name}": ${e.message}`) }
+                        catch (e: any) { idl.ProcessingErrorMessage.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
                     })
                 )
             }

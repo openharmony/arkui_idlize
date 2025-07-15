@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
-// Incomplete for using as a package, will be rewritten with API stabilization
 export * from "./idltypes"
-export * from "./diagnostictypes"
+export * from "./idlprocessing"
+export * from "./validator"
+export * from "./cli"

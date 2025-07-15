@@ -15,10 +15,23 @@
 
 import * as idl from "@idlizer/core"
 import * as fs from "fs"
-import { Parsed, locationForNode } from "./parser"
-import { DuplicateIdentifier, InconsistentEnum, LoadingError, ProcessingError, UnknownError, UnresolvedReference, WrongAttributeName, WrongAttributePlacement } from "./messages"
 import { idlManager } from "./idlprocessing"
 import { IdlNodeAny } from "./idltypes"
+
+function nodeLoc(...nodes: idl.IDLNode[]): idl.Location[] {
+    return nodes.map(x => x.nodeLocation ?? {documentPath: "<unknown>"})
+}
+
+function nameLoc(...nodes: idl.IDLNode[]): idl.Location[] {
+    return nodes.map(x => x.nameLocation ?? x.nodeLocation ?? {documentPath: "<unknown>"})
+}
+
+const UnresolvedReference = new idl.DiagnosticMessageEntry("error", 200, "Unresolved reference")
+const DuplicateIdentifier = new idl.DiagnosticMessageEntry("error", 201, "Duplicate identifier", undefined, "Duplicate of")
+const InconsistentEnum = new idl.DiagnosticMessageEntry("error", 202, "Enum includes both string and number values", undefined, "Conflicting value")
+
+const WrongAttributeName = new idl.DiagnosticMessageEntry("error", 301, "Wrong attribute name")
+const WrongAttributePlacement = new idl.DiagnosticMessageEntry("error", 302, "Wrong attribute placement")
 
 const enumPass = idlManager.newPass("enumPass", [], () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
 enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])
@@ -31,7 +44,7 @@ enumPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => {
 enumPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => {
     let nodes = st.enums.get(node)!
     if (nodes.length == 2) {
-        InconsistentEnum.reportDiagnosticMessage([node, nodes[0], nodes[1]])
+        InconsistentEnum.reportDiagnosticMessage(nameLoc(node, nodes[0], nodes[1]))
     }
 }
 
@@ -60,7 +73,7 @@ resolvePass.on({kind: idl.IDLKind.ReferenceType}).before = (node, st) => {
         return
     }
     if (!idlManager.peerlibrary.resolveTypeReference(node as idl.IDLReferenceType)) {
-        UnresolvedReference.reportDiagnosticMessage(node)
+        UnresolvedReference.reportDiagnosticMessage(nodeLoc(node), `Unresolved reference "${node.name}"`)
     }
 }
 resolvePass.on({}).after = (node, st) => {
@@ -82,7 +95,7 @@ function appendTo<K, V>(map: Map<K, V[]>, key: K, value: V): void {
 
 const uniquelyNamed = new Set([idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Interface, idl.IDLKind.Method, idl.IDLKind.Callable, idl.IDLKind.Typedef, idl.IDLKind.Enum])
 
-const checkDuplicates = idlManager.newPass("checkDuplicates", [], () => ({byName: new Map<string, idl.IDLNode[]>()}))
+const checkDuplicates = idlManager.newPass("checkDuplicates", [], () => ({byName: new Map<string, IdlNodeAny[]>()}))
 checkDuplicates.on({}).before = (node, st) => {
     if (!uniquelyNamed.has(node.kind)) {
         return
@@ -98,7 +111,7 @@ checkDuplicates.on({}).before = (node, st) => {
 checkDuplicates.afterAll = (st) => {
     for (const [name, nodes] of st.byName) {
         if (nodes.length > 1) {
-            DuplicateIdentifier.reportDiagnosticMessage(nodes)
+            DuplicateIdentifier.reportDiagnosticMessage(nameLoc(...nodes), `Duplicate identifier "${nodes[0].name}"`)
         }
     }
 }
@@ -125,12 +138,12 @@ attrPass.on({}).before = (node, st) => {
     }
     let valids = ohosValidAttributes.get(node.kind)
     if (!valids) {
-        WrongAttributePlacement.reportDiagnosticMessage(node, `Attributes not allowed on ${node.kind}`)
+        WrongAttributePlacement.reportDiagnosticMessage(nameLoc(node), `Attributes not allowed on ${node.kind}`)
         return
     }
     for (let attr of node.extendedAttributes) {
         if (!valids.includes(attr.name)) {
-            WrongAttributeName.reportDiagnosticMessage(locationForNode(node, "name"), `Attribute "${attr.name}" not allowed on ${node.kind}`)
+            WrongAttributeName.reportDiagnosticMessage(nameLoc(node), `Attribute "${attr.name}" not allowed on ${node.kind}`)
         }
     }
 }
@@ -146,12 +159,9 @@ genPass.on({kind: idl.IDLKind.File}).after = (node, st) => {
 
 const locationCheckPass = idlManager.newPass(".locationCheckPass", [], () => [0, 0] )
 locationCheckPass.on({}).after = (node, st) => {
-    let t = node as any
-    let l = locationForNode(node)
-    t.wholeLocation = l
-    t.nameLocation = locationForNode(node, "name")
+    let l = nodeLoc(node)
     st[0] += 1
-    if (l.range) {
+    if (l[0].range) {
         st[1] += 1
     }
 }

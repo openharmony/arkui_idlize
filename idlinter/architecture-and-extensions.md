@@ -65,7 +65,7 @@ Each feature or pass has fully qualified identifier with dots separating identif
 
 `someFeature`, `someFeature.subFeature`, `someFeature.subFeature.subSubFeature` - features, activation of a feature activates all passes and features in it.
 
-`someFeature.pass1`, `someFeature.subFeature.pass2` - local passes that are active only if parent ancestor feature is active (OR other active pass has such pass as a dependency).
+`someFeature.pass1`, `someFeature.subFeature.pass2` - local passes that are active only if ancestor feature is active (OR other active pass has such pass as a dependency).
 
 `.hiddenPass1`, `.hiddenPass2` - hidden passes with names starting with dot, they are active ONLY if other active pass has such pass as a dependency.
 

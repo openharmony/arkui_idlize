@@ -16,10 +16,9 @@
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
+import { DiagnosticMessageEntry, outputDiagnosticResultsFormatted } from "@idlizer/core"
 import { idlManager } from "./idlprocessing"
 import "./validator"
-import { outputReadableResult } from "./formatter"
-
 
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
 
@@ -38,7 +37,7 @@ function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
     const measure = performance.getEntriesByName("proc")[0];
     //console.log(`Processing duration: ${measure.duration} milliseconds`);
 
-    outputReadableResult(idlManager.results)
+    outputDiagnosticResultsFormatted(DiagnosticMessageEntry.collectedResults)
 }
 
 function listIdl(listPath: string | string[], what: string, excluding?: Set<string>): Set<string> {
@@ -67,7 +66,7 @@ function listIdl(listPath: string | string[], what: string, excluding?: Set<stri
     process.exit(1)
 }
 
-function idlinterMain() {
+export function idlinterMain() {
     const cmd = program
         .version("0.0.7")
         .option("--check <paths...>", "Paths to individual .idl files (or directories recursively containing them) for validation")
@@ -98,7 +97,7 @@ function idlinterMain() {
 
     processIdl(checkFiles, loadFiles)
 
-    if (idlManager.results.hasErrors) {
+    if (DiagnosticMessageEntry.collectedResults.hasErrors) {
         process.exit(2)
     }
 }

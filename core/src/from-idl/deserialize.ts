@@ -27,6 +27,8 @@ import { toString } from "./toString"
 import * as idl from "../idl"
 import { isDefined, stringOrNone, warn } from "../util"
 import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/idl/common"
+import { commonRange, Location, Range } from "../diagnostictypes"
+import { LoadingErrorMessage, ParsingErrorMessage, UnknownErrorMessage } from "../diagnosticmessages"
 
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
@@ -620,13 +622,41 @@ export function toIdlType(fileName: string, content: string): idl.IDLType {
     return deserializer.toIDLType(fileName, webidl2.parseType(content, fileName))
 }
 
+interface ParsedFileInfo {
+    fileName: string
+    lines: string[]
+    offsets: number[]
+    lexicalInfo: IDLTokenInfoMap
+}
+
 export function toIDLFile(fileName: string, { content, inheritanceMode = 'multiple' }:ToIDLFileProps = {}): [idl.IDLFile, IDLTokenInfoMap] {
     const lexicalInfo: IDLTokenInfoMap = new Map()
     const deserializer = new IDLDeserializer(lexicalInfo, inheritanceMode)
-    if (undefined === content)
-        content = fs.readFileSync(fileName).toString()
+    if (undefined === content) {
+        try {
+            content = fs.readFileSync(fileName).toString()
+        } catch (e: any) {
+            content = ""
+            LoadingErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+        }
+    }
+    let lines = content.match(/[^\r\n]*(\n|\r\n)?/g) as string[] ?? []
+    const offsets = prepareOffsets(lines)
+    lines = lines.map((s) => s.replace(/(\n|\r\n)$/, ""))
+    const parsed: ParsedFileInfo = {fileName, lines, offsets, lexicalInfo}
     let packageClause: string[] = []
-    const entries = webidl2.parse(content)
+    let rawParsingResults: webidl2.IDLRootType[]
+    try {
+        rawParsingResults = webidl2.parse(content)
+    } catch (e: any) {
+        if (e.name == "WebIDLParseError") {
+            let tokens = (e as webidl2.WebIDLParseError).tokens
+            let range = tokens.length > 0 ? rangeForToken(offsets, tokens[0]) : undefined
+            ParsingErrorMessage.throwDiagnosticMessage([{documentPath: fileName, range: range}], e.bareMessage)
+        }
+        UnknownErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+    }
+    const entries = rawParsingResults!
         .filter(it => {
             if (!it.type)
                 return false
@@ -638,7 +668,82 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
             return true
         })
         .map(it => deserializer.toIDLNode(fileName, it))
-    const file = idl.createFile(entries, fileName, packageClause)
+    let file = idl.createFile(entries, fileName, packageClause)
     file.text = content
-    return [idl.linkParentBack(file), lexicalInfo]
+    file = idl.linkParentBack(file)
+    idl.forEachChild(file, (node) => {
+        node.nodeLocation = locationForNode(parsed, node)
+        const nameLocation = locationForNode(parsed, node, "name")
+        if (nameLocation.range) {
+            node.nameLocation = nameLocation
+        }
+    })
+    return [file, lexicalInfo]
+}
+
+function prepareOffsets(lines: string[]): number[] {
+    let offsets: number[] = []
+    let offset = 0
+    for (let line of lines) {
+        let plus = line.length
+        offsets.push(offset)
+        offset += plus
+    }
+    return offsets
+}
+
+function locationForNode(parsed: ParsedFileInfo, node: idl.IDLNode, component?: string): Location {
+    if (node.kind == idl.IDLKind.File) {
+        return {documentPath: parsed.fileName, lines: parsed.lines}
+    }
+    return {documentPath: parsed.fileName, range: rangeForNode(parsed, node, component), lines: parsed.lines}
+}
+
+function rangeForNode(parsed: ParsedFileInfo, node: idl.IDLNode, component?: string): Range|undefined {
+    let info = parsed.lexicalInfo.get(node)
+    if (info == null) {
+        // Proper solution will require fixes with inheritance tokens in Idlize/core and custom webidl2.js
+        // So now we are extracting from what we have
+        if (node.parent) {
+            return rangeForNode(parsed, node.parent, "inheritance") ?? rangeForNode(parsed, node.parent)
+        }
+        return
+    }
+
+    let range: Range|undefined
+    for (let k of Object.keys(info)) {
+        if (component && k != component) {
+            continue
+        }
+        let named = info[k]
+        if (named == null) {
+            continue
+        }
+        if (named.value == null) {
+            if (k == "inheritance" && Array.isArray(named)) {
+                for (let inh of named) {
+                    if (inh.inheritance == null) {
+                        continue
+                    }
+                    let newRange = rangeForToken(parsed.offsets, inh.inheritance)
+                    range = range ? commonRange(range, newRange) : newRange
+                }
+            }
+            continue
+        }
+        let newRange = rangeForToken(parsed.offsets, named)
+        range = range ? commonRange(range, newRange) : newRange
+    }
+    return range
+}
+
+function rangeForToken(offsets: number[], token: webidl2.Token): Range {
+    let dif = token.value.length - 1
+    if (dif < 0) {
+        dif = 0
+    }
+    let endline = token.line + (token.value.match(/\n/g)||[]).length
+    let character = token.position - offsets[token.line - 1] + 1
+    let endcharacter = token.position + dif - offsets[endline - 1] + 1
+    return {start: {line: token.line, character: character}, end: {line: endline, character: endcharacter}}
 }

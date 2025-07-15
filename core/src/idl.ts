@@ -17,6 +17,7 @@ import * as webidl2 from "webidl2"
 import { indentedBy, isDefined, stringOrNone, throwException } from "./util";
 import { generateSyntheticIdlNodeName } from "./peer-generation/idl/common";
 import { IDLKeywords } from "./languageSpecificKeywords";
+import { Location } from "./diagnostictypes";
 
 export enum IDLKind {
     Interface = "Interface",
@@ -104,6 +105,10 @@ export interface IDLNode {
     fileName?: string
     extendedAttributes?: IDLExtendedAttribute[]
     documentation?: string
+    nodeLocation?: Location
+    nameLocation?: Location
+    // Helpful for constants and enums, but currently not extracted
+    valueLocation?: Location
 }
 
 export interface IDLFile extends IDLNode {
@@ -1123,8 +1128,19 @@ export function createConstant(name: string, type: IDLType, value: string, nodeI
 }
 
 export function clone<T extends IDLNode>(node:T): T {
-    const make = (node:IDLNode): T => node as T
-    const get = <K>(node:T): K => node as IDLNode as K
+    const make = (newnode: IDLNode): T => {
+        if (node.nodeLocation) {
+            newnode.nodeLocation = node.nodeLocation
+        }
+        if (node.nameLocation) {
+            newnode.nameLocation = node.nameLocation
+        }
+        if (node.valueLocation) {
+            newnode.valueLocation = node.valueLocation
+        }
+        return newnode as T
+    }
+    const get = <K>(node: T): K => node as IDLNode as K
 
     switch (node.kind) {
         case IDLKind.Interface: {

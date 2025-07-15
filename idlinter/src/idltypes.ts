@@ -17,7 +17,10 @@ import * as idl from "@idlizer/core"
 
 export type IdlNodeAny = {
     _idlNodeBrand: any
-    kind: idl.IDLKind;
+    kind: idl.IDLKind
+    nodeLocation?: idl.Location
+    nameLocation?: idl.Location
+    valueLocation?: idl.Location
     parent?: idl.IDLNode | (idl.IDLNode & idl.IDLEnum)
     fileName?: string
     extendedAttributes?: idl.IDLExtendedAttribute[]
@@ -60,7 +63,10 @@ export type IdlNodeAny = {
 
 export type IdlNodePattern = {
     _idlNodeBrand?: any
-    kind?: idl.IDLKind;
+    kind?: idl.IDLKind
+    nodeLocation?: idl.Location
+    nameLocation?: idl.Location
+    valueLocation?: idl.Location
     parent?: idl.IDLNode | (idl.IDLNode & idl.IDLEnum)
     fileName?: string
     extendedAttributes?: idl.IDLExtendedAttribute[]
