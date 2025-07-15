@@ -384,6 +384,9 @@
             "RenderServiceNode": [
                 "getNodeId"
             ],
+            "ScreenshotService": [
+                "requestScreenshot"
+            ],
             "DrawModifier": [
                 "invalidate",
                 "setDrawBehind_callback",
