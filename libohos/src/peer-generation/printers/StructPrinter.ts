@@ -370,10 +370,13 @@ export class StructPrinter {
     }
 
     private generateArrayWriteToString(name: string, target: idl.IDLContainerType, printer: LanguageWriter) {
+        function constCast(type: string, isPointer: boolean, value: string): string {
+            return isPointer ? `const_cast<const ${type}*>(${isPointer ? "&" : ""}${value})` : value
+        }
+
         let convertor = this.library.typeConvertor("param", target.elementType[0])
         let isPointerField = convertor.isPointerType()
         let elementNativeType = printer.getNodeName(convertor.nativeType())
-        let constCast = isPointerField ? `(const ${elementNativeType}*)` : ``
 
         printer.print(
             `
@@ -386,7 +389,7 @@ inline void WriteToString(std::string* result, const ${name}* value) {
     result->append("{.array=allocArray<${elementNativeType}, " + std::to_string(count) + ">({{");
     for (int i = 0; i < count; i++) {
         if (i > 0) result->append(", ");
-        WriteToString(result, ${constCast}${isPointerField ? "&" : ""}value->array[i]);
+        WriteToString(result, ${constCast(elementNativeType, isPointerField, "value->array[i]")});
     }
     result->append("}})");
     result->append(", .length=");
