@@ -30,6 +30,7 @@ import { InteropPrinter } from "./InteropPrinter"
 import { BindingsConstructions } from "../../constuctions/BindingsConstructions"
 import { BindingsTypeConvertor } from "../../type-convertors/interop/bindings/BindingsTypeConvertor"
 import { ReturnTypeConvertor } from "../../type-convertors/interop/bindings/ReturnTypeConvertor"
+import { BridgesPrinter } from "./BridgesPrinter"
 
 export class BindingsPrinter extends InteropPrinter {
     constructor(idl: IDLFile) {
@@ -48,17 +49,11 @@ export class BindingsPrinter extends InteropPrinter {
     private returnConvertor = new ReturnTypeConvertor(this.typechecker)
 
     override printMethod(iface: IDLInterface, node: IDLMethod): void {
+        const [methodName, signature] = BridgesPrinter.makeFunctionDeclaration(iface, node, this.returnConvertor)
         this.writer.writeMethodImplementation(
             new Method(
-                BindingsConstructions.method(node.name),
-                new MethodSignature(
-                    this.returnConvertor.convertType(node.returnType),
-                    node.parameters.map(it => it.type),
-                    undefined,
-                    node.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined),
-                    undefined,
-                    node.parameters.map(it => it.name)
-                )
+                BindingsConstructions.method(methodName),
+                signature
             ),
             (writer) => {
                 writer.writeExpressionStatement(

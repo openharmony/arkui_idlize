@@ -148,12 +148,12 @@ export class DynamicEmitter {
         idl = this.withLog(new TwinMergeTransformer(idl))
         idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
         idl = this.withLog(new AstNodeFilterTransformer(idl))
-        idl = this.withLog(new ParameterTransformer(idl))
         this.printPeers(idl)
         this.printInterop(idl)
     }
 
     private printPeers(idl: IDLFile): void {
+        idl = this.withLog(new ParameterTransformer(idl))
         idl = this.withLog(new ConstMergeTransformer(idl))
         idl = this.withLog(new UniversalCreateTransformer(idl))
         idl = this.withLog(new NullabilityTransformer(idl, this.config))
@@ -168,7 +168,8 @@ export class DynamicEmitter {
     }
 
     private printInterop(idl: IDLFile): void {
-        idl = this.withLog(new InteropTransformer(this.config, idl))
+        // InteropTransformer is removed, ParameterTransformer is used for peers only.
+        // See BridgesPrinter.makeFunctionDeclaration
         this.printFile(this.bindingsPrinter, idl)
         this.printFile(this.bridgesPrinter, idl)
     }
