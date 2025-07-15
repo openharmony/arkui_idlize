@@ -289,7 +289,7 @@ export class StructPrinter {
     ): ((writer: LanguageWriter) => void) | undefined {
         let result: LanguageExpression
         if (isOptional) {
-            result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
+            result = writer.makeTernary(writer.makeDefinedCheck("value.tag", true),
                 writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
         } else if (idl.isEnum(target)) {
             result = writer.makeRuntimeType(RuntimeType.NUMBER)
@@ -336,7 +336,7 @@ export class StructPrinter {
                     result = writer.makeRuntimeType(RuntimeType.UNDEFINED)
                     break
                 case "Optional":
-                    result = writer.makeTernary(writer.makeDefinedCheck("value.tag"),
+                    result = writer.makeTernary(writer.makeDefinedCheck("value.tag", true),
                         writer.makeRuntimeType(RuntimeType.OBJECT), writer.makeRuntimeType(RuntimeType.UNDEFINED))
                     break
                 default:

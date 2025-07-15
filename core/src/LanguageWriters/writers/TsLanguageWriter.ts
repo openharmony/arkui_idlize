@@ -20,7 +20,6 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
     BlockStatement,
-    CheckOptionalStatement,
     DelegationCall,
     DelegationType,
     ExpressionStatement,
@@ -358,9 +357,6 @@ export class TSLanguageWriter extends LanguageWriter {
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new TSReturnStatement(expr)
     }
-    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        return new CheckOptionalStatement("undefined", optional, doStatement)
-    }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
@@ -404,6 +400,9 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
+    }
+    makeDefinedCheck(value: string): LanguageExpression {
+        return this.makeString(`${value} !== undefined`)
     }
     makeTupleAlloc(option: string): LanguageStatement {
         return new TsTupleAllocStatement(option)
@@ -463,47 +462,8 @@ export class TSLanguageWriter extends LanguageWriter {
     override escapeKeyword(keyword: string): string {
         return TSKeywords.has(keyword) ? keyword + "_" : keyword
     }
-
-    makeDiscriminatorConvertor(convertor: ArgConvertor, value: string, index: number): LanguageExpression | undefined {
-        const convertorNativeType = convertor.nativeType()
-        const decl = this.resolver.resolveTypeReference(
-            idl.isReferenceType(convertorNativeType)
-                ? convertorNativeType
-                : idl.createReferenceType(this.getNodeName(convertorNativeType))
-        )
-        if (decl === undefined || !idl.isEnum(decl)) {
-            throwException(`The type reference ${decl?.name} must be Enum`)
-        }
-        const ordinal = idl.isStringEnum(decl)
-            ? this.i32FromEnum(
-                this.makeCast(this.makeString(this.getObjectAccessor(convertor, value)), convertor.idlType),
-                decl,
-            )
-            : this.makeUnionVariantCast(this.getObjectAccessor(convertor, value), this.getNodeName(idl.IDLI32Type), convertor, index)
-        const {low, high} = idl.extremumOfOrdinals(decl)
-        return this.discriminatorFromExpressions(value, convertor.runtimeTypes[0], [
-            this.makeNaryOp(">=", [ordinal, this.makeString(low.toString())]),
-            this.makeNaryOp("<=",  [ordinal, this.makeString(high.toString())])
-        ])
-    }
-
-    private typeOf(runtimeType: RuntimeType): string {
-        switch (runtimeType) {
-            case RuntimeType.UNEXPECTED:
-                throw new Error("Encountered RuntimeType.UNEXPECTED")
-            case RuntimeType.MATERIALIZED:
-                return "object"
-            default:
-                return RuntimeType[runtimeType].toLowerCase()
-        }
-    }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
-        return runtimeTypes
-            .map(ty => `typeof ${value} === "${this.typeOf(ty)}"`)
-            .join(" || ")
-    }
-
-    override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
-        return [new NamedMethodSignature(idl.IDLVoidType, [], [])]
+        const runtimeTypeList = runtimeTypes.map(ty => "RuntimeType." + RuntimeType[ty]).join(", ")
+        return `[${runtimeTypeList}].includes(runtimeType(${value}))`
     }
 }

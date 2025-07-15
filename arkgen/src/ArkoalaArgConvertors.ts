@@ -15,24 +15,19 @@
 
 import * as idl from "@idlizer/core/idl"
 import {
-    Language, LanguageExpression, LanguageStatement, LanguageWriter, ExpressionAssigner,
-    RuntimeType, BaseArgConvertor, InterfaceConvertor, ImportTypeConvertor,
-    AggregateConvertor, PeerLibrary,
-    MaterializedClassConvertor,
+    Language, LanguageExpression, LanguageWriter, InterfaceConvertor, ImportTypeConvertor, MaterializedClassConvertor,
 } from "@idlizer/core";
-import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType";
 
 export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS)
-            return writer.instanceOf(this, value, duplicates)
+            return writer.instanceOf(value, this.idlType)
         if (this.declaration.name === "CancelButtonSymbolOptions") {
             if (writer.language === Language.ARKTS) {
                 //TODO: Need to check this in TypeChecker
-                return this.discriminatorFromFields(value, writer, this.declaration.properties, it => it.name, it => it.isOptional, duplicates)
+                return this.discriminatorFromFields(value, writer, this.declaration.properties, it => it.name, it => it.isOptional)
             } else {
-                return writer.makeHasOwnProperty(value,
-                    "CancelButtonSymbolOptions", "icon", "SymbolGlyphModifier")
+                return writer.makeHasOwnProperty(value, "icon", "SymbolGlyphModifier")
             }
         }
         return super.unionDiscriminator(value, index, writer, duplicates)
@@ -55,8 +50,7 @@ export class ArkoalaImportTypeConvertor extends ImportTypeConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         const handler = ArkoalaImportTypeConvertor.knownTypes.get(this.importedName)
         return handler
-            ? writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-                [writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)])
+            ? writer.makeString(`${handler[0]}(${handler.slice(1).concat(value).join(", ")})`)
             : undefined
     }
 }
@@ -64,7 +58,7 @@ export class ArkoalaImportTypeConvertor extends ImportTypeConvertor {
 export class ArkoalaMaterializedClassConvertor extends MaterializedClassConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (writer.language === Language.ARKTS)
-            return writer.instanceOf(this, value, duplicates)
+            return writer.instanceOf(value, this.idlType)
         if (this.declaration.name === "GestureGroupInterface" ||
             this.declaration.name.endsWith("GestureInterface"))
         {

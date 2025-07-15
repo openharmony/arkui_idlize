@@ -20,7 +20,6 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
     BlockStatement,
-    CheckOptionalStatement,
     DelegationCall,
     DelegationType,
     ExpressionStatement,
@@ -217,13 +216,6 @@ export class KotlinNewObjectExpression implements LanguageExpression {
         private params: LanguageExpression[]) { }
     asString(): string {
         return `${this.objectName}(${this.params.map(it => it.asString()).join(", ")})`
-    }
-}
-
-export class KotlinCheckDefinedExpression implements LanguageExpression {
-    constructor(private value: string) { }
-    asString(): string {
-        return `${this.value} != null`
     }
 }
 
@@ -437,9 +429,6 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeLambdaReturn (expr: LanguageExpression): LanguageStatement {
         return new KotlinLambdaReturnStatement(expr)
     }
-    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        throw new Error("Not implemented")
-    }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)
     }
@@ -495,7 +484,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return new KotlinUnwrapOptionalExpression(expression)
     }
     makeDefinedCheck(value: string): LanguageExpression {
-        return new KotlinCheckDefinedExpression(value)
+        return this.makeString(`${value} != null`)
     }
     makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeMethodCall(value, "getSelector", []), false)
@@ -557,9 +546,6 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
     escapeKeyword(keyword: string): string {
         return keyword
-    }
-    makeDiscriminatorConvertor(convertor: ArgConvertor, value: string, index: number): LanguageExpression | undefined {
-        throw new Error("Not implemented")
     }
     makeStaticBlock(op: (writer: LanguageWriter) => void) {
         this.printer.print('companion object {')

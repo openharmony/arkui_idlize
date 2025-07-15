@@ -49,7 +49,6 @@ import {
     MethodStaticCallExpression
 } from "../LanguageWriter"
 import {
-    CDefinedExpression,
     CLikeExpressionStatement,
     CLikeLanguageWriter,
     CLikeLoopStatement,
@@ -330,9 +329,6 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
     }
-    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        throw new Error(`TBD`)
-    }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new CLikeExpressionStatement(expr)
     }
@@ -345,9 +341,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeString(`${value}.selector`), false)
     }
-    override makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string, convertorIndex: number) {
-        return this.makeString(`${valueType} == ${convertorIndex}`)
-    }
+
     override makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index: number) {
         return this.makeString(`${value}.value${index}`)
     }
@@ -384,8 +378,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     writePrintLog(message: string): void {
         this.print(`printf("${message}\\n");`)
     }
-    makeDefinedCheck(value: string): LanguageExpression {
-        return new CDefinedExpression(value);
+    makeDefinedCheck(value: string, isTag?: boolean): LanguageExpression {
+        return this.makeString(
+            isTag ? `${value} != ${PrimitiveTypeList.UndefinedTag}`
+                  : `runtimeType(${value}) != ${PrimitiveTypeList.UndefinedRuntime}`)
     }
     makeSetUnionSelector(value: string, index: string): LanguageStatement {
         return this.makeAssign(`${value}.selector`, undefined, this.makeString(index), false)
@@ -521,29 +517,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return this.getNodeName(type)
     }
-    override makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
-        const fromBufferCtor =  new NamedMethodSignature(IDLVoidType, [
-                idl.IDLSerializerBuffer,
-                IDLU32Type,
-                createReferenceType("CallbackResourceHolder")
-            ],
-            ["data", "dataLength", "resourceHolder"],
-            [undefined, `0`, `nullptr`],
-            undefined,
-            [undefined, undefined, undefined, PrintHint.AsPointer]
-        )
 
-        const ownedDataCtor = new NamedMethodSignature(IDLVoidType, [
-                createReferenceType("CallbackResourceHolder")
-            ],
-            ["resourceHolder"],
-            [`nullptr`],
-            undefined,
-            [undefined, PrintHint.AsPointer]
-        )
-
-        return [ownedDataCtor, fromBufferCtor]
-    }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         return `${value}.selector == ${index}`
     }

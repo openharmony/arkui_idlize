@@ -169,11 +169,10 @@ export class ETSLambdaExpression extends LambdaExpression {
 ////////////////////////////////////////////////////////////////
 
 export function generateTypeCheckerName(typeName: string): string {
-    typeName = typeName
+    return "is" + typeName
         .replaceAll('[]', 'BracketsArray')
         .replaceAll(/<.*$/g, '') // delete type arguments
-        .split('.').join('_')
-    return `is${typeName.replaceAll('[]', 'Brackets')}`
+        .replaceAll('.', '_')
 }
 
 export function generateEnumToNumericName(entry: idl.IDLEntry): string {
@@ -257,7 +256,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             || convertor instanceof InterfaceConvertor
             || convertor instanceof MaterializedClassConvertor
             || convertor instanceof CustomTypeConvertor) {
-            return this.instanceOf(convertor, value, duplicates)
+            return this.instanceOf(value, convertor.idlType)
         }
         return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
     }
@@ -267,18 +266,12 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         return super.makeValueFromOption(value, destinationConvertor)
     }
-    override makeIsTypeCall(value: string, decl: idl.IDLInterface): LanguageExpression {
-        return makeInterfaceTypeCheckerCall(value, decl.name,
-            decl.properties.map(it => it.name), new Set(), this)
-    }
+
     makeEnumEntity(enumEntity: IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
         return new ArkTSEnumEntityStatement(enumEntity, {
             isExport: options?.isExport,
             isDeclare: !!options?.isDeclare,
         })
-    }
-    getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string {
-        return super.getObjectAccessor(convertor, value, args)
     }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
         // ArkTS does not support - 'this.?'
@@ -293,51 +286,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         }
         this.writeMethodDeclaration(method.name, method.signature, [MethodModifier.STATIC, MethodModifier.NATIVE])
     }
-
-    makeUnionVariantCondition(convertor: ArgConvertor, valueName: string, valueType: string, type: string,
-                              convertorIndex: number,
-                              runtimeTypeIndex: number): LanguageExpression {
-        if (idl.isEnum(this.resolver.toDeclaration(convertor.nativeType()))) {
-            return this.instanceOf(convertor, valueName)
-        }
-        // TODO: in ArkTS SerializerBase.runtimeType returns RuntimeType.OBJECT for enum type and not RuntimeType.NUMBER as in TS
-        if (convertor instanceof UnionConvertor || convertor instanceof OptionConvertor) {
-            // Unwrapping of type
-            const idlType = convertor instanceof UnionConvertor
-                ? (convertor.nativeType() as idl.IDLUnionType).types[runtimeTypeIndex]
-                : idl.maybeUnwrapOptionalType(convertor.nativeType())
-            if (idlType !== undefined && idl.isReferenceType(idlType)) {
-                const resolved = this.resolver.resolveTypeReference(idlType)
-                type = resolved != undefined && idl.isEnum(resolved) ? RuntimeType[RuntimeType.OBJECT] : type
-            }
-        }
-        return super.makeUnionVariantCondition(convertor, valueName, valueType, type, convertorIndex)
-    }
     makeCastCustomObject(customName: string, isGenericType: boolean): LanguageExpression {
         if (isGenericType) {
             return this.makeCast(this.makeString(customName), idl.IDLObjectType)
         }
         return super.makeCastCustomObject(customName, isGenericType)
     }
-    makeHasOwnProperty(value: string,
-                       valueTypeName: string,
-                       property: string,
-                       propertyTypeName: string): LanguageExpression {
-        return this.makeNaryOp("&&", [
-            this.makeString(`${value} instanceof ${valueTypeName}`),
-            this.makeString(`isInstanceOf("${propertyTypeName}", ${value}.${property})`)])
-    }
     makeEquals(args: LanguageExpression[]): LanguageExpression {
         // TODO: Error elimination: 'TypeError: Both operands have to be reference types'
         // the '==' operator must be used when one of the operands is a reference
         return super.makeNaryOp('==', args)
-    }
-    override makeDiscriminatorConvertor(convertor: ArgConvertor, value: string, index: number): LanguageExpression { //
-        return this.instanceOf(convertor, value);
-        // Or this ????????
-        // return this.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-        //     makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
-        // ])
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         // work around ArkTS compiler bugs
@@ -360,41 +318,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
 
-    override instanceOf(convertor: ArgConvertor, value: string, duplicateMembers?: Set<string>): LanguageExpression {
-        if (convertor instanceof CustomTypeConvertor) {
-            return makeInterfaceTypeCheckerCall(value,
-                this.getNodeName(convertor.idlType),
-                [],
-                duplicateMembers!,
-                this)
-        }
-        if (convertor instanceof InterfaceConvertor || convertor instanceof MaterializedClassConvertor) {
-            return makeInterfaceTypeCheckerCall(value,
-                this.getNodeName(convertor.idlType),
-                convertor.declaration.properties.filter(it => !it.isStatic).map(it => it.name),
-                duplicateMembers!,
-                this)
-        }
-        if (convertor instanceof BufferConvertor) {
-            return makeInterfaceTypeCheckerCall(value,
-                this.getNodeName(convertor.idlType),
-                [],
-                new Set(),
-                this)
-        }
-        if (convertor instanceof AggregateConvertor) {
-            return makeInterfaceTypeCheckerCall(value,
-                convertor.aliasName !== undefined ? convertor.aliasName : this.getNodeName(convertor.idlType),
-                convertor.members.map(it => it[0]), duplicateMembers!, this)
-        }
-        if (convertor instanceof ArrayConvertor) {
-            return makeArrayTypeCheckCall(value, this.arrayConvertor.convert(convertor.idlType), this)
-        }
-        if (idl.isEnum(this.resolver.toDeclaration(convertor.nativeType()))) {
-            return makeEnumTypeCheckerCall(value, this.getNodeName(convertor.idlType), this)
-        }
-        return super.instanceOf(convertor, value, duplicateMembers)
-    }
     override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
         if (!members || members.length === 0) {
             throw new Error("At least one member needs to provided to pass it to TypeChecker!")

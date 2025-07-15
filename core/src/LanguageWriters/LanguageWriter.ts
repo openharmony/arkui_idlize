@@ -117,14 +117,6 @@ export class FieldAccessExpression  {
     }
 }
 
-
-export class CheckDefinedExpression implements LanguageExpression {
-    constructor(private value: string) { }
-    asString(): string {
-        return `${this.value} != undefined`
-    }
-}
-
 ////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
 ////////////////////////////////////////////////////////////////
@@ -250,20 +242,6 @@ export class MultiBranchIfStatement implements LanguageStatement {
             writer.popIndent()
             writer.print("}")
         }
-    }
-}
-
-export class CheckOptionalStatement implements LanguageStatement {
-    constructor(
-        public undefinedValue: string,
-        public optionalExpression: LanguageExpression,
-        public doStatement: LanguageStatement
-    ) { }
-    write(writer: LanguageWriter): void {
-        writer.print(`if (${this.optionalExpression.asString()} != ${this.undefinedValue})`)
-        writer.pushIndent()
-        this.doStatement.write(writer)
-        writer.popIndent()
     }
 }
 
@@ -525,9 +503,8 @@ export abstract class LanguageWriter {
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
     abstract makeThrowError(message: string): LanguageStatement
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement
-    abstract makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
-    abstract getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
+    abstract /*  */getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string
     abstract makeCast(value: LanguageExpression, node: idl.IDLNode, options?:MakeCastOptions): LanguageExpression
     // version of makeCast which uses TypeCheck.typeCast<T>(value) call for ETS language writer
     // Use it only if TypeChecker class is added as import to the generated file
@@ -657,9 +634,7 @@ export abstract class LanguageWriter {
     nativeReceiver(nativeModule: NativeModuleType): string {
         return nativeModule.name
     }
-    makeDefinedCheck(value: string): LanguageExpression {
-        return new CheckDefinedExpression(value)
-    }
+    abstract makeDefinedCheck(value: string, isTag?: boolean): LanguageExpression
     makeRuntimeTypeDefinedCheck(runtimeType: string): LanguageExpression {
         return this.makeRuntimeTypeCondition(runtimeType, false, RuntimeType.UNDEFINED)
     }
@@ -684,11 +659,7 @@ export abstract class LanguageWriter {
     makeUnionSelector(value: string, valueType: string): LanguageStatement {
         return this.makeAssign(valueType, undefined, this.makeString(`runtimeType(${value})`), false)
     }
-    makeUnionVariantCondition(_convertor: ArgConvertor, _valueName: string, valueType: string, type: string,
-                              _convertorIndex?: number,
-                              _runtimeTypeIndex?: number): LanguageExpression {
-        return this.makeString(`RuntimeType.${type.toUpperCase()} == ${valueType}`)
-    }
+
     makeUnionVariantCast(value: string, type: string, convertor: ArgConvertor, index?: number): LanguageExpression {
         return this.makeString(`unsafeCast<${type}>(${value})`)
     }
@@ -727,9 +698,7 @@ export abstract class LanguageWriter {
     writeNativeMethodDeclaration(method: Method): void {
         this.writeMethodDeclaration(method.name, method.signature)
     }
-    writeUnsafeNativeMethodDeclaration(name: string, signature: MethodSignature): void {
-        return
-    }
+
     pushIndent() {
         this.printer.pushIndent()
     }
@@ -746,21 +715,9 @@ export abstract class LanguageWriter {
         return new MethodSignature(returnType,
             parameters.map(it => it.type!))
     }
-    makeNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {
-        return NamedMethodSignature.make(
-            returnType,
-            parameters.map(it => ({
-                name: it.name,
-                type:  it.isOptional ? idl.createOptionalType(it.type!) : it.type!
-            }))
-        )
-    }
-    makeNativeMethodNamedSignature(returnType: idl.IDLType, parameters: idl.IDLParameter[]): NamedMethodSignature {
-        return this.makeNamedSignature(returnType, parameters)
-    }
-    makeSerializerConstructorSignatures(): NamedMethodSignature[] | undefined {
-        return undefined
-    }
+
+
+
     mapFieldModifier(modifier: FieldModifier): string {
         return `${FieldModifier[modifier].toLowerCase()}`
     }
@@ -780,13 +737,7 @@ export abstract class LanguageWriter {
         this.writeStatement(this.makeAssign(valueType, idl.IDLI32Type,
             this.makeFunctionCall("runtimeType", [this.makeString(value)]), false))
     }
-    makeDiscriminatorFromFields(convertor: {targetType: (writer: LanguageWriter) => string}, value: string, accessors: string[], duplicates: Set<string>): LanguageExpression {
-        return this.makeString(`(${this.makeNaryOp("||",
-            accessors.map(it => this.makeString(`${value}!.hasOwnProperty("${it}")`))).asString()})`)
-    }
-    makeIsTypeCall(value: string, decl: idl.IDLInterface): LanguageExpression {
-        return this.makeString(`is${decl.name}(${value})`)
-    }
+
     makeEnumEntity(enumEntity: idl.IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
         return new TsEnumEntityStatement(enumEntity, { isExport: options.isExport, isDeclare: !!options.isDeclare })
     }
@@ -807,7 +758,6 @@ export abstract class LanguageWriter {
         return this.makeString(customName)
     }
     makeHasOwnProperty(value: string,
-                       _valueTypeName: string,
                        property: string,
                        propertyTypeName?: string): LanguageExpression {
         const expressions = [this.makeString(`${value}.hasOwnProperty("${property}")`)]
@@ -815,17 +765,6 @@ export abstract class LanguageWriter {
             expressions.push(this.makeString(`isInstanceOf("${propertyTypeName}", ${value}.${property})`))
         }
         return this.makeNaryOp("&&", expressions)
-    }
-    discriminatorFromExpressions(value: string,
-                                 runtimeType: RuntimeType,
-                                 exprs: LanguageExpression[]): LanguageExpression {
-        return this.makeNaryOp("&&", [
-            this.makeNaryOp("==", [this.makeRuntimeType(runtimeType), this.makeString(`${value}_type`)]),
-            ...exprs
-        ])
-    }
-    makeDiscriminatorConvertor(_convertor: ArgConvertor, _value: string, _index: number): LanguageExpression | undefined {
-        return undefined
     }
     discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         // return most common form, suitable for languages that don't have sum types
@@ -848,18 +787,15 @@ export abstract class LanguageWriter {
     makeStaticBlock(op: (writer: LanguageWriter) => void) {
         op(this)
     }
-    instanceOf(convertor: ArgConvertor, value: string, _duplicateMembers?: Set<string>): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.getNodeName(convertor.idlType)}`)
+    instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
     }
     // The version of instanceOf() which does not use ArgConvertors
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
         return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
     }
 
-    stringifyTypeOrEmpty(type: idl.IDLType | undefined): string {
-        if (type === undefined) return ""
-        return this.getNodeName(type)
-    }
+
     /**
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin

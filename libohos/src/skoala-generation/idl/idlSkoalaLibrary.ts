@@ -351,8 +351,7 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof ${writer.getNodeName(this.idlType)}`)])
+        return writer.makeString(`${value} instanceof ${writer.getNodeName(this.idlType)}`)
     }
 }
 

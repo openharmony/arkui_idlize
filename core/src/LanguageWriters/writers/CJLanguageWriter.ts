@@ -245,22 +245,6 @@ class CJThrowErrorStatement implements LanguageStatement {
     }
 }
 
-class CJCheckOptionalStatement implements LanguageStatement {
-    constructor(
-        public undefinedValue: string,
-        public optionalExpression: LanguageExpression,
-        public doStatement: LanguageStatement
-    ) { }
-    write(writer: LanguageWriter): void {
-        writer.print(`if (let Some(${this.optionalExpression.asString()}) <- ${this.optionalExpression.asString()}) {`)
-        writer.pushIndent()
-        this.doStatement.write(writer)
-        writer.popIndent()
-        writer.print('}')
-    }
-}
-
-
 class CJArrayResizeStatement implements LanguageStatement {
     constructor(private array: string, private arrayType: string, private length: string, private deserializer: string) {}
     write(writer: LanguageWriter) {
@@ -518,9 +502,6 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new ReturnStatement(expr)
-    }
-    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        return new CJCheckOptionalStatement("undefined", optional, doStatement)
     }
     makeStatement(expr: LanguageExpression): LanguageStatement {
         return new ExpressionStatement(expr)

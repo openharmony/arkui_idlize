@@ -41,13 +41,6 @@ export class CLikeReturnStatement extends ReturnStatement {
     }
 }
 
-export class CDefinedExpression implements LanguageExpression {
-    constructor(private value: string) { }
-    asString(): string {
-        return `${this.value} != ${PrimitiveTypeList.UndefinedTag}`
-    }
-}
-
 export class CLikeLoopStatement implements LanguageStatement {
     constructor(private counter: string, private limit: string, private statement: LanguageStatement | undefined) {}
     write(writer: LanguageWriter): void {

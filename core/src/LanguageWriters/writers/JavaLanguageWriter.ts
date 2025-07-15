@@ -17,7 +17,6 @@ import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
-    CheckOptionalStatement,
     ClassModifier,
     DelegationCall,
     FieldModifier,
@@ -31,6 +30,7 @@ import {
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs,
+    StringExpression,
 } from "../LanguageWriter"
 import {
     CLikeExpressionStatement,
@@ -62,13 +62,6 @@ class JavaLambdaExpression extends LambdaExpression {
     asString(): string {
         const params = this.signature.args.map((it, i) => `${idl.forceAsNamedNode(it).name} ${this.signature.argName(i)}`)
         return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
-    }
-}
-
-export class JavaCheckDefinedExpression implements LanguageExpression {
-    constructor(private value: string) { }
-    asString(): string {
-        return `${this.value} != null`
     }
 }
 
@@ -231,11 +224,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
     }
-    makeCheckOptional(optional: LanguageExpression, doStatement: LanguageStatement): LanguageStatement {
-        return new CheckOptionalStatement("null", optional, doStatement)
-    }
     makeDefinedCheck(value: string): LanguageExpression {
-        return new JavaCheckDefinedExpression(value)
+        return this.makeString(`${value} != null`)
     }
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new CLikeLoopStatement(counter, limit, statement)

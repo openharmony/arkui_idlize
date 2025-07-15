@@ -29,6 +29,6 @@
   },
   "scripts": {
     "compile": "npm run compile -C ../core && rollup -c",
-    "run": "npm run compile && node . --base-dir ../interface_sdk-js --input-dir ../interface_sdk-js/api/@internal/component/ets/,../interface_sdk-js/api/global,../interface_sdk-js/api --output-dir out/linter --whitelist ./whitelist.json || true"
+    "run": "npm run compile && node . --base-dir ../sdk-patched --input-dir ../sdk-patched/api/@internal/component/ets/,../interface_sdk-js/api/global,../interface_sdk-js/api --output-dir out/linter --whitelist ./whitelist.json || true"
   }
 }

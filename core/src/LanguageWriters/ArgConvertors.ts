@@ -33,7 +33,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { getExtractorName, hashCodeFromString, warn } from "../util";
+import { getExtractorName, hashCodeFromString, throwException, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
@@ -163,16 +163,12 @@ export abstract class BaseArgConvertor implements ArgConvertor {
                                          writer: LanguageWriter,
                                          uniqueFields: T[] | undefined,
                                          nameAccessor: (field: T) => string,
-                                         optionalAccessor: (field: T) => boolean,
-                                         duplicates: Set<string>){
+                                         optionalAccessor: (field: T) => boolean)
+    {
         if (!uniqueFields || uniqueFields.length === 0) return undefined
         const firstNonOptional = uniqueFields.find(it => !optionalAccessor(it))
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT, [
-            writer.makeDiscriminatorFromFields(this,
-                value,
-                firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it)),
-                duplicates)
-        ])
+        const accessors = firstNonOptional ? [nameAccessor(firstNonOptional)] : uniqueFields.map(it => nameAccessor(it))
+        return writer.makeNaryOp("||", accessors.map(it => writer.makeHasOwnProperty(value + "!", it)))
     }
 }
 
@@ -307,7 +303,26 @@ export class EnumConvertor extends BaseArgConvertor {
         return writer.getNodeName(this.idlType) // this.enumTypeName(writer.language)
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.makeDiscriminatorConvertor(this, value, index)
+        const convertorNativeType = this.nativeType()
+        const decl = writer.resolver.resolveTypeReference(
+            idl.isReferenceType(convertorNativeType)
+                ? convertorNativeType
+                : idl.createReferenceType(this.targetType(writer))
+        )
+        if (decl === undefined || !idl.isEnum(decl)) {
+            throwException(`The type reference ${decl?.name} must be Enum`)
+        }
+        const ordinal = idl.isStringEnum(decl)
+            ? writer.i32FromEnum(
+                writer.makeCast(writer.makeString(writer.getObjectAccessor(this, value)), this.idlType),
+                decl,
+            )
+            : writer.makeUnionVariantCast(writer.getObjectAccessor(this, value), writer.getNodeName(idl.IDLI32Type), this, index)
+        const {low, high} = idl.extremumOfOrdinals(decl)
+        return writer.makeNaryOp("&&", [
+            writer.makeNaryOp(">=", [ordinal, writer.makeString(low.toString())]),
+            writer.makeNaryOp("<=",  [ordinal, writer.makeString(high.toString())])
+        ])
     }
 }
 
@@ -505,7 +520,7 @@ export class BufferConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.instanceOf(this, value);
+        return writer.instanceOf(value, this.idlType);
     }
 }
 
@@ -603,8 +618,7 @@ export class AggregateConvertor extends BaseArgConvertor { //
             writer,
             uniqueFields,
             it => it[0],
-            it => it[1],
-            duplicates)
+            it => it[1])
     }
 }
 
@@ -678,7 +692,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         // Try to figure out interface by examining field sets
         const uniqueFields = this.declaration?.properties.filter(it => !duplicates.has(it.name))
-        return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+        return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional)
     }
 }
 
@@ -690,8 +704,7 @@ export class ClassConvertor extends InterfaceConvertor {
                                 index: number,
                                 writer: LanguageWriter,
                                 duplicateMembers: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.instanceOf(this, value, duplicateMembers)])
+        return writer.instanceOf(value, this.idlType)
     }
 }
 
@@ -744,8 +757,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.instanceOf(this, value, duplicates)])
+        return writer.instanceOf(value, this.idlType)
     }
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         const array = language === Language.CPP ? ".array" : ""
@@ -820,8 +832,7 @@ export class MapConvertor extends BaseArgConvertor {
         return true
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-            [writer.makeString(`${value} instanceof Map`)])
+        return writer.makeString(`${value} instanceof Map`)
     }
     override getObjectAccessor(language: Language, value: string, args?: Record<string, string>): string {
         return language === Language.CPP && args?.index && args?.field
@@ -974,30 +985,18 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        const valueType = `${value}_type`.replaceAll('.', '_')
-        const serializedType = (printer.language == Language.JAVA ? undefined : idl.IDLI32Type)
-        printer.writeStatement(printer.makeAssign(valueType, serializedType, printer.makeRuntimeType(RuntimeType.UNDEFINED), true, false))
-        if (printer.language != Language.CJ && printer.language != Language.KOTLIN) {
-            printer.runtimeType(this, valueType, value)
-            printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(valueType, 8)])
-        }
-        printer.print(`if (${printer.makeRuntimeTypeCondition(valueType, false, RuntimeType.UNDEFINED, value).asString()}) {`)
+        printer.print(`if (${printer.makeDefinedCheck(value).asString()}) {`)
         printer.pushIndent()
-        if (printer.language == Language.CJ || printer.language == Language.KOTLIN) {
-            printer.writeMethodCall(`${param}Serializer`, "writeInt8", ["RuntimeType.OBJECT.ordinal"]) // everything is object, except None<T>
-        }
+        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.makeRuntimeType(RuntimeType.OBJECT).asString()])
         const valueValue = `${value}_value`.replaceAll('.', '_')
         printer.writeStatement(printer.makeAssign(valueValue, undefined, printer.makeValueFromOption(value, this.typeConvertor), true))
         this.typeConvertor.convertorSerialize(param, this.typeConvertor.getObjectAccessor(printer.language, valueValue), printer)
         printer.popIndent()
-        printer.print(`}`)
-        if (printer.language == Language.CJ || printer.language == Language.KOTLIN) {
-            printer.print('else {')
-            printer.pushIndent()
-            printer.writeMethodCall(`${param}Serializer`, "writeInt8", ["RuntimeType.UNDEFINED.ordinal"]) // undefined
-            printer.popIndent()
-            printer.print('}')
-        }
+        printer.print('} else {')
+        printer.pushIndent()
+        printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.makeRuntimeType(RuntimeType.UNDEFINED).asString()])
+        printer.popIndent()
+        printer.print('}')
     }
     convertorCArg(param: string): string {
         throw new Error("Must never be used")
@@ -1053,7 +1052,8 @@ export class UnionConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         this.memberConvertors.forEach((it, index) => {
             const maybeElse = (index > 0 && this.memberConvertors[index - 1].runtimeTypes.length > 0) ? "else " : ""
-            printer.print(`${maybeElse}if (${printer.discriminate(value, index, it.idlType, it.runtimeTypes)}) {`)
+            const discriminator = this.unionChecker.makeDiscriminator(value, index, printer).asString()
+            printer.print(`${maybeElse}if (${discriminator}) {`)
             printer.pushIndent()
             printer.writeMethodCall(`${param}Serializer`, "writeInt8", [printer.castToInt(index.toString(), 8)])
             if (!(it instanceof UndefinedConvertor)) {
@@ -1065,7 +1065,6 @@ export class UnionConvertor extends BaseArgConvertor {
             printer.popIndent()
             printer.print(`}`)
         })
-        this.unionChecker.reportConflicts(this.library.getCurrentContext() ?? "<unknown context>", printer)
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const statements: LanguageStatement[] = []
@@ -1110,9 +1109,8 @@ export class UnionConvertor extends BaseArgConvertor {
         return language === Language.CPP && args?.index ? `${value}.value${args.index}` : value
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        const checker = new UnionRuntimeTypeChecker(this.memberConvertors)
         return writer.makeNaryOp("||",
-            this.memberConvertors.map((_, n) => checker.makeDiscriminator(value, n, writer)))
+            this.memberConvertors.map((_, n) => this.unionChecker.makeDiscriminator(value, n, writer)))
     }
 }
 
@@ -1185,12 +1183,11 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (idl.isInterface(this.declaration)) {
             if (this.declaration.subkind === idl.IDLInterfaceSubkind.Class) {
-                return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-                    [writer.instanceOf(this, value, duplicates)])
+                return writer.instanceOf(value, this.idlType)
             }
             if (this.declaration.subkind === idl.IDLInterfaceSubkind.Interface) {
                 const uniqueFields = this.declaration.properties.filter(it => !duplicates.has(it.name))
-                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional)
             }
         }
     }
@@ -1242,12 +1239,11 @@ export class ExternalTypeConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         if (idl.isInterface(this.declaration)) {
             if (this.declaration.subkind === idl.IDLInterfaceSubkind.Class) {
-                return writer.discriminatorFromExpressions(value, RuntimeType.OBJECT,
-                    [writer.instanceOf(this, value, duplicates)])
+                return writer.instanceOf(value, this.idlType)
             }
             if (this.declaration.subkind === idl.IDLInterfaceSubkind.Interface) {
                 const uniqueFields = this.declaration.properties.filter(it => !duplicates.has(it.name))
-                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional, duplicates)
+                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional)
             }
         }
     }
@@ -1444,10 +1440,6 @@ export class CallbackConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
-    }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        // We serialize callbacks as table offsets, so don't need to discriminate them. Runtime type check is enough
-        return writer.makeUnionVariantCondition(this, value, `${value}_type`, RuntimeType[RuntimeType.FUNCTION])
     }
 }
 
