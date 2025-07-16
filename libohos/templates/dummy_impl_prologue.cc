@@ -483,7 +483,7 @@ Ark_Float32 GetDesignWidthScale(Ark_Int32 deviceId) {
 }
 
 Ark_NodeHandle GetNodeByViewStack() {
-    Ark_NodeHandle result = (Ark_NodeHandle) 234;
+    Ark_NodeHandle result = reinterpret_cast<Ark_NodeHandle>(234);
     if (needGroupedLog(2)) {
         std::string _logData;
         _logData.append("  Ark_NodeHandle peer" + std::to_string((uintptr_t)result) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
@@ -810,7 +810,7 @@ Ark_Int32 IndexerChecker(Ark_VMContext vmContext, Ark_NodeHandle nodePtr) {
 void SetRangeUpdater(Ark_NodeHandle nodePtr, Ark_Int32 updaterId) {}
 void SetLazyItemIndexer(Ark_VMContext vmContext, Ark_NodeHandle nodePtr, Ark_Int32 indexerId) {}
 Ark_PipelineContext GetPipelineContext(Ark_NodeHandle node) {
-    return (Ark_PipelineContext)42;
+    return reinterpret_cast<Ark_PipelineContext>(42);
 }
 void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback callback) {
     using namespace std::chrono_literals;

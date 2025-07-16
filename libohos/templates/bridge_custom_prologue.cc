@@ -169,7 +169,6 @@ enum DumpOptions {
 
 KNativePointer impl_DumpPerf(KInt options) {
     std::stringstream result;
-    result << std::fixed << std::setprecision(3);
     auto perf = Performance::GetInstance();
     perf->CalcSelfCost();
     switch (options) {
