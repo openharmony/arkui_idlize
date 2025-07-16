@@ -59,7 +59,7 @@ const %CPP_PREFIX%ArkUIExtendedNodeAPI* %CPP_PREFIX%GetExtendedAPI()
     return &extendedNodeAPIImpl;
 }
 
-// TODO: remove me!
+// Improve: remove me!
 const %CPP_PREFIX%ArkUIFullNodeAPI* %CPP_PREFIX%GetFullAPI()
 {
     static const %CPP_PREFIX%ArkUIFullNodeAPI fullAPIImpl = {

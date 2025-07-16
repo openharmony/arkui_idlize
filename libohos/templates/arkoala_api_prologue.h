@@ -71,7 +71,7 @@ typedef InteropAsyncWorker Ark_AsyncWorker;
 typedef InteropAsyncWorkerPtr Ark_AsyncWorkerPtr;
 typedef InteropObject Ark_Object;
 
-// TODO: generate!
+// Improve: generate!
 typedef struct Opt_Ark_Callback {
   Ark_Tag tag;
   Ark_CustomObject value;

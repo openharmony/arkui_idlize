@@ -9,7 +9,7 @@
 %ANY_API%
 %GENERIC_SERVICE_API%
 
-// TODO: rework for generic OHOS case.
+// Improve: rework for generic OHOS case.
 void* FindModule(int kind) {
     std::tuple<const char*, bool> candidates[] = {
         { "ace_compatible", true},

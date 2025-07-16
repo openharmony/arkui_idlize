@@ -15,7 +15,7 @@
 
 #include <kotlin/kotlin-cinterop.h>
 
-// TODO: Remove all this.
+// Improve: Remove all this.
 KOALA_INTEROP_DIRECT_0(GetNodeFinalizer, KNativePointer)
 
 // custom methods

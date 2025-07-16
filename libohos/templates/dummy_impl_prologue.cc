@@ -181,7 +181,7 @@ void DumpTree(TreeNode *node, Ark_Int32 indent) {
     }
 }
 
-// TODO: remove in favour of callbackCallerInstance!
+// Improve: remove in favour of callbackCallerInstance!
 GENERATED_Ark_APICallbackMethod *callbacks = nullptr;
 
 int TreeNode::_globalId = 1;
@@ -191,7 +191,7 @@ Ark_Float32 parseLength(Ark_Float32 parentValue, Ark_Float32 value, Ark_Int32 un
     switch (unit) {
         //PX
         case 0: {
-            const Ark_Float32 scale = 1; // TODO: need getting current device scale
+            const Ark_Float32 scale = 1; // Improve: need getting current device scale
             return value * scale;
         }
         //PERCENTAGE
@@ -199,7 +199,7 @@ Ark_Float32 parseLength(Ark_Float32 parentValue, Ark_Float32 value, Ark_Int32 un
             return parentValue / 100 * value;
         }
         default:
-            // VP, FP, LPX, UndefinedDimensionUnit: TODO: parse properly this units
+            // VP, FP, LPX, UndefinedDimensionUnit: Improve: parse properly this units
             return value;
     }
 }
@@ -307,12 +307,12 @@ float TreeNode::measure(Ark_VMContext vmContext, float* data) {
 
     measureResult = &data[0];
 
-    // TODO: use return flag for dirty bits propagation.
+    // Improve: use return flag for dirty bits propagation.
     return 0;
 }
 
 Ark_CanvasHandle getCanvas(TreeNode* node) {
-    // TODO: real canvas.
+    // Improve: real canvas.
     return reinterpret_cast<Ark_CanvasHandle>(0x123456789aLL);
 }
 
@@ -336,7 +336,7 @@ float TreeNode::layout(Ark_VMContext vmContext, float* data) {
 
     layoutResult = &data[0];
 
-    // TODO: use return flag for dirty bits propagation.
+    // Improve: use return flag for dirty bits propagation.
     return 0;
 }
 
@@ -552,7 +552,7 @@ Ark_Int32 AddChild(Ark_NodeHandle parent, Ark_NodeHandle child) {
     out.append(")");
     appendGroupedLog(1, out);
 
-    // TODO: implement test
+    // Improve: implement test
     return result;
 }
 

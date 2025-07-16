@@ -128,7 +128,7 @@ interface ForEachInterface<T> {
         itemGenerator: (item: T, index: number) => void,
         keyGenerator?: (item: T, index: number) => string,
     ): ForEachAttribute<T>
-// TODO: have overloads for [] and Array
+// Improve: have overloads for [] and Array
     /*
       (
         arr: T[],

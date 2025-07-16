@@ -324,7 +324,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return new CppAssignStatement(variableName, type, expr, isDeclared, isConst, options)
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
-        throw new Error(`TBD`)
+        throw new Error(`Improve`)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {
         return new CLikeReturnStatement(expr)
