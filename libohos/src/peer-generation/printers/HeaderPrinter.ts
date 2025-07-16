@@ -16,7 +16,7 @@
 import { IndentedPrinter, camelCaseToUpperSnakeCase, maybeOptional, Language, CppConvertor,
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
     MaterializedClass,
-    generatorHookName,
+    getHookMethod,
     IdlNameConvertor,
     isMaterialized,
     PrimitiveTypesInstance,
@@ -80,7 +80,8 @@ export class HeaderVisitor {
     }
 
     private printMethod(method: PeerMethod) {
-        if (generatorHookName(method.originalParentName, method.method.name)) return
+        const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+        if (hookMethod && hookMethod.replaceImplementation) return
         const apiParameters = generateCapiParameters(this.library, method, this.library.createTypeNameConvertor(Language.CPP))
         printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.sig.returnType), `(*${method.sig.name})`, apiParameters, `;`)
     }

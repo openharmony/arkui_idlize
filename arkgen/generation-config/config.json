@@ -281,72 +281,92 @@
     "hooks": {
         "Button": {
             "contentModifier": {
-                "hookName": "hookButtonContentModifier"
+                "hookName": "hookButtonContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "CommonMethod": {
+            "id": {
+                "hookName": "hookId",
+                "replaceImplementation": false
             }
         },
         "Checkbox": {
             "contentModifier": {
-                "hookName": "hookCheckBoxContentModifier"
+                "hookName": "hookCheckBoxContentModifier",
+                "replaceImplementation": true
             }
         },
         "DataPanel": {
             "contentModifier": {
-                "hookName": "hookDataPanelContentModifier"
+                "hookName": "hookDataPanelContentModifier",
+                "replaceImplementation": true
             }
         },
         "Gauge": {
             "contentModifier": {
-                "hookName": "hookGaugeContentModifier"
+                "hookName": "hookGaugeContentModifier",
+                "replaceImplementation": true
             }
         },
         "LoadingProgress": {
             "contentModifier": {
-                "hookName": "hookLoadingProgressContentModifier"
+                "hookName": "hookLoadingProgressContentModifier",
+                "replaceImplementation": true
             }
         },
         "Progress": {
             "contentModifier": {
-                "hookName": "hookProgressContentModifier"
+                "hookName": "hookProgressContentModifier",
+                "replaceImplementation": true
             }
         },
         "Radio": {
             "contentModifier": {
-                "hookName": "hookRadioContentModifier"
+                "hookName": "hookRadioContentModifier",
+                "replaceImplementation": true
             }
         },
         "Rating": {
             "contentModifier": {
-                "hookName": "hookRatingContentModifier"
+                "hookName": "hookRatingContentModifier",
+                "replaceImplementation": true
             }
         },
         "Select": {
             "menuItemContentModifier": {
-                "hookName": "hookSelectContentModifier"
+                "hookName": "hookSelectContentModifier",
+                "replaceImplementation": true
             }
         },
         "Slider": {
             "contentModifier": {
-                "hookName": "hookSliderContentModifier"
+                "hookName": "hookSliderContentModifier",
+                "replaceImplementation": true
             }
         },
         "TextClock": {
             "contentModifier": {
-                "hookName": "hookTextClockContentModifier"
+                "hookName": "hookTextClockContentModifier",
+                "replaceImplementation": true
             }
         },
         "TextTimer": {
             "contentModifier": {
-                "hookName": "hookTextTimerContentModifier"
+                "hookName": "hookTextTimerContentModifier",
+                "replaceImplementation": true
             }
         },
         "Toggle": {
             "contentModifier": {
-                "hookName": "hookToggleContentModifier"
+                "hookName": "hookToggleContentModifier",
+                "replaceImplementation": true
             }
         },
         "waterFlow": {
             "setWaterFlowOptionsAttribute": {
-                "hookName": "hookWaterFlowOptionsImpl"
+                "hookName": "hookWaterFlowOptionsImpl",
+                "replaceImplementation": true
             }
         }
     },

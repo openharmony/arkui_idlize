@@ -281,7 +281,8 @@ export class BridgeCcVisitor {
     }
 
     protected printMethod(context: idl.IDLInterface, method: PeerMethod) {
-        if (idl.generatorHookName(method.originalParentName, method.method.name)) return
+        const hookMethod = idl.getHookMethod(method.originalParentName, method.method.name)
+        if (hookMethod && hookMethod.replaceImplementation) return
         const cName = `${method.originalParentName}_${method.sig.name}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
         const argTypesAndNames = this.generateCParameters(method)

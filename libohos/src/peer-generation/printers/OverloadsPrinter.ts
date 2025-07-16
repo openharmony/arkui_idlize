@@ -22,7 +22,7 @@ import {
     NamedMethodSignature,
     StringExpression
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, generatorHookName, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, getHookMethod, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
 import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -298,9 +298,12 @@ export class OverloadsPrinter {
                 writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
                 this.printer.pushIndent()
             }
-            const hookName = generatorHookName(peer, collapsedMethod.name)
-            if (hookName) {
-                this.printHookedMethodBody(peer, collapsedMethod, hookName, writer)
+            const hookMethod = getHookMethod(peer, collapsedMethod.name)
+            if (hookMethod) {
+                this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
+                if (!hookMethod.replaceImplementation) {
+                    this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
+                }
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
             }

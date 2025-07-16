@@ -20,7 +20,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isInIdlizeInterop,
     TypeConvertor,
     convertType,
-    generatorHookName,
+    getHookMethod,
     generatorConfiguration,
     isDirectMethod,
     isVMContextMethod,
@@ -156,7 +156,8 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
     }
 
     private printPeerMethod(method: PeerMethod, returnType?: idl.IDLType) {
-        if (generatorHookName(method.originalParentName, method.method.name)) return
+        const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+        if (hookMethod && hookMethod.replaceImplementation) return
         returnType = toNativeReturnType(returnType, this.library)
         const component = method.originalParentName
         const name = `_${component}_${method.sig.name}`

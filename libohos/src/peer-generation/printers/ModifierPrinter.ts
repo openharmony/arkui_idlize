@@ -28,7 +28,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     isMaterialized,
     PrimitiveTypesInstance,
     throwException,
-    generatorHookName,
+    getHookMethod,
     PeerMethodSignature,
     capitalize,
     qualifiedName,
@@ -310,7 +310,8 @@ export class ModifierVisitor {
     printRealAndDummyModifier(method: PeerMethod, clazz: PeerClass) {
         const component = findComponentByName(this.library, clazz.componentName)!
         const context = method.sig.context as idl.IDLInterface ?? component.attributeDeclaration
-        if (generatorHookName(method.originalParentName, method.method.name)) return
+        const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+        if (hookMethod && hookMethod.replaceImplementation) return
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
         this.printMethodProlog(this.real, method)
         this.printModifierImplFunctionBody(method, clazz)

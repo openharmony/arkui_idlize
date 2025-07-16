@@ -80,10 +80,14 @@
                             "properties": {
                                 "hookName": {
                                     "type": "string"
+                                },
+                                "replaceImplementation": {
+                                    "type": "boolean"
                                 }
                             },
                             "required": [
-                                "hookName"
+                                "hookName",
+                                "replaceImplementation"
                             ],
                             "type": "object"
                         }

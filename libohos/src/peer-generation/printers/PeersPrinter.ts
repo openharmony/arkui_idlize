@@ -23,7 +23,7 @@ import {
     MaterializedMethod,
     PeerLibrary,
     getInternalClassName,
-    generatorHookName,
+    getHookMethod,
     isNamedNode,
     isMaterializedType,
     isPrimitiveType,
@@ -56,7 +56,8 @@ const returnValName = "retval"  // make sure this doesn't collide with parameter
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
     methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
 ) {
-    if (generatorHookName(method.originalParentName, method.method.name)) return
+    const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+    if (hookMethod && hookMethod.replaceImplementation) return
     const signature = method.method.signature as NamedMethodSignature
     let peerMethod = new Method(
         `${method.sig.name}${methodPostfix}`,

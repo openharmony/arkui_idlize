@@ -53,16 +53,20 @@
     "hooks": {
         "DTSHookClass": {
             "methodArg": {
-                "hookName": "customHookDTSHookClassMethodArg"
+                "hookName": "customHookDTSHookClassMethodArg",
+                "replaceImplementation": true
             },
             "methodReturn": {
-                "hookName": "hookDTSHookClassMethodReturn"
+                "hookName": "hookDTSHookClassMethodReturn",
+                "replaceImplementation": true
             },
             "methodImportedArg": {
-                "hookName": "hookDTSHookClassImportedArg"
+                "hookName": "hookDTSHookClassImportedArg",
+                "replaceImplementation": true
             },
             "methodImportedReturn": {
-                "hookName": "customHookDTSHookClassMethodImportedReturn"
+                "hookName": "customHookDTSHookClassMethodImportedReturn",
+                "replaceImplementation": true
             }
         }
     },

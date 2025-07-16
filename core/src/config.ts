@@ -28,6 +28,7 @@ export const ModuleConfigurationSchema = D.object({
 
 export const HookMethodSchema = D.object({
     hookName: D.string(),
+    replaceImplementation: D.boolean()
 })
 
 export type ModuleConfiguration = ConfigTypeInfer<typeof ModuleConfigurationSchema>
@@ -102,13 +103,18 @@ export function generatorTypePrefix() {
 }
 
 interface HookMethod {
-    hookName: string
+    hookName: string,
+    replaceImplementation: boolean
 }
 
-export function generatorHookName(className: string, methodName: string): string | undefined {
+export function getHookMethod(className: string, methodName: string): HookMethod | undefined {
     const hookMethods = generatorConfiguration().hooks.get(className)
     if (!hookMethods) return undefined
     const hook = hookMethods.get(methodName)
     if (!hook) return undefined
-    return hook.hookName ?? `hook${className}${capitalize(methodName)}`
+    const method: HookMethod = {
+        hookName: hook.hookName ?? `hook${className}${capitalize(methodName)}`,
+        replaceImplementation: hook.replaceImplementation ?? true
+    }
+    return method
 }
