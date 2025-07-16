@@ -671,6 +671,10 @@ function makeConverterHeader(path: string, namespace: string, library: PeerLibra
 
 function makeCSerializer(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter): string {
     return `
+${cStyleCopyright}
+#ifndef _ARKOALA_SERIALIZERS_H
+#define _ARKOALA_SERIALIZERS_H
+
 #include "SerializerBase.h"
 #include "DeserializerBase.h"
 #include "callbacks.h"
@@ -678,6 +682,7 @@ function makeCSerializer(library: PeerLibrary, structs: LanguageWriter, typedefs
 #include <string>
 
 ${makeCSerializers(library, structs, typedefs)}
+#endif
 `
 }
 

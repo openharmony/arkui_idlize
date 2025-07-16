@@ -234,8 +234,6 @@ export function makeCSerializers(library: PeerLibrary, structs: LanguageWriter, 
     generateStructs(library, structs, typedefs, writeToString)
 
     return `
-${cStyleCopyright}
-
 ${writeToString.getOutput().join("\n")}
 
 ${serializers.getOutput().join("\n")}
