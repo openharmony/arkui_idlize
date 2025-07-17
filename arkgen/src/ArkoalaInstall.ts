@@ -36,9 +36,7 @@ export function createArkoalaInstall(options: {
         case Language.TS:
             return new TSArkoalaInstall(options.outDir, options.test)
         case Language.ARKTS:
-            return options.useMemoM3
-                ? new ArkTSM3ArkoalaInstall(options.outDir, options.test)
-                : new ArkTSArkoalaInstall(options.outDir, options.test)
+            return new ArkTSArkoalaInstall(options.outDir, options.test)
         case Language.JAVA:
             return new JavaArkoalaInstall(options.outDir, options.test)
         case Language.CJ:
@@ -90,12 +88,6 @@ class ArkTSArkoalaInstall extends BaseArkoalaInstall {
     }
     get tsArkoalaDir(): string {
         throw new Error("Not implemented")
-    }
-}
-
-class ArkTSM3ArkoalaInstall extends ArkTSArkoalaInstall {
-    get managedDir(): string {
-        return path.join(this.root, "arkoala-arkts/arkui/src/ets")
     }
 }
 
