@@ -259,6 +259,13 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
 
     getNodeName(type: idl.IDLNode): string {
+        // another stub. Bad one.
+        // I hope that I will rewrite LWs soon
+        if (idl.isType(type) && idl.isReferenceType(type)) {
+            if (type.name.startsWith('%TEXT%:')) {
+                return type.name.substring(7)
+            }
+        }
        return this.typeConvertor.convert(type)
     }
 
@@ -334,8 +341,58 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let name = method.name
         let signature = method.signature
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
-            writer.makeThrowError("Not implemented").write(writer)
+            const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
+            const interopCallExpression = this.makeFunctionCall(`kotlin${name}`, args)
+            if (signature.returnType === idl.IDLVoidType) {
+                this.writeExpressionStatement(interopCallExpression)
+                return
+            }
+            const retval = "retval"
+            this.writeStatement(this.makeAssign(retval, undefined, interopCallExpression))
+            this.writeStatement(this.makeReturn(this.convertInteropReturnValue(retval, signature.returnType)))
         })
+    }
+    private convertInteropArgument(varName: string, type: idl.IDLType): LanguageExpression {
+        const realInteropType = this.getNodeName(type)
+        let expr: string
+        switch (realInteropType) {
+            case "KPointer":
+            case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
+            case "KInt":
+            case "KLong":
+            case "KFloat":
+            case "KDouble":
+            case "KStringPtr":
+            case "KBoolean":
+            case "Float64":
+            case "Float":
+            case "Double":
+            case "UInt":
+            case "Int": expr = varName; break
+            default: throw new Error(`Unexpected type ${realInteropType} in interop with Kotlin`)
+        }
+        return this.makeString(expr)
+    }
+    private convertInteropReturnValue(varName: string, type: idl.IDLType): LanguageExpression {
+        const realInteropType = this.getNodeName(type)
+        let expr: string
+        switch (realInteropType) {
+            case "KPointer": expr = `${varName}.toLong()`; break
+            case "KInt":
+            case "KLong":
+            case "Float64":
+            case "Float":
+            case "Double":
+            case "Long":
+            case "Int": expr = varName; break
+            case "String":
+            case "KStringPtr": expr = `${varName}?.toKString() ?: ""`; break
+            case "Boolean":
+            case "KBoolean": expr = `${varName} != 0.toByte()`; break
+            case "KInteropReturnBuffer": expr = `${varName}.useContents { KInteropReturnBuffer(length, data.toLong()) }`; break
+            default: throw new Error(`Unexpected type ${realInteropType} in interop with Kotlin`)
+        }
+        return this.makeString(expr)
     }
     writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
         this.writeDeclaration(name, signature, true, false, modifiers)

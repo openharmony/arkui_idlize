@@ -96,7 +96,7 @@ export function install(
         content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
         if (library.language === Language.KOTLIN) {
             imports.clear()
-            content = ['package idlize', 'import interop.*'].concat(content)
+            content = ['@file:OptIn(ExperimentalForeignApi::class)', 'package idlize', 'import kotlinx.cinterop.*', 'import interop.*'].concat(content)
         }
         if (library.language === Language.CJ) {
             imports.clear()

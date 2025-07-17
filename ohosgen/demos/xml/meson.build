@@ -3,15 +3,17 @@ project('NativeBridge', 'c', 'cpp',
     default_options: ['cpp_std=c++17', 'buildtype=release']
 )
 
-is_node = get_option('target_vm') == 'node'
-is_panda = get_option('target_vm') == 'panda'
-is_cj = get_option('target_vm') == 'cangjie'
+is_node = get_option('target') == 'node'
+is_panda = get_option('target') == 'panda'
+is_cj = get_option('target') == 'cangjie'
+is_kotlin = get_option('target') == 'kotlin'
 
 external_interop_build_dir = meson.current_source_dir() / '../../../external/interop/build'
 external_interop_dir = '../../../external/interop/src/cpp'
 
 cflags = ['-DKOALA_LIBACE_LINKED']
 ldflags = []
+deps = [dependency('expat')]
 
 include_dirs = [
    'generated/native',
@@ -114,20 +116,43 @@ elif is_cj
         external_interop_dir / 'cangjie/convertors-cj.cc',
         external_interop_dir / 'types/signatures.cc',
     ]
+elif is_kotlin
+    library_name = 'OHOS_XMLNativeModule'
+    platform_build_dir = 'build/kotlin'
+
+    cflags += ['-DKOALA_KOTLIN', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    include_dirs += [
+        external_interop_dir / 'kotlin',
+    ]
+    sources += [
+        external_interop_dir / 'kotlin/convertors-kotlin.cc',
+    ]
 endif
 
-shared_library(library_name, sources,
-    override_options: [
-        'b_lundef=false',
-    ],
-    install: true,
-    name_prefix: name_prefix,
-    name_suffix: name_suffix,
-    include_directories: include_dirs,
-    install_dir: platform_build_dir,
-    cpp_args: cflags,
-    link_args: ldflags,
-    dependencies: [
-        dependency('expat')
-    ]
-)
+if is_kotlin
+    static_library(library_name, sources,
+        override_options: [
+            'b_lundef=false',
+        ],
+        install: true,
+        include_directories: include_dirs,
+        install_dir: meson.current_source_dir() / platform_build_dir,
+        cpp_args: cflags,
+        link_args: ldflags,
+        dependencies: deps,
+    )
+else
+    shared_library(library_name, sources,
+        override_options: [
+            'b_lundef=false',
+        ],
+        install: true,
+        name_prefix: name_prefix,
+        name_suffix: name_suffix,
+        include_directories: include_dirs,
+        install_dir: platform_build_dir,
+        cpp_args: cflags,
+        link_args: ldflags,
+        dependencies: deps,
+    )
+endif

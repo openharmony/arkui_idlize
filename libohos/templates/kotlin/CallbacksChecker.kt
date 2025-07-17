@@ -5,8 +5,8 @@ enum class CallbackEventKind(var value: Int) {
 }
 
 val bufferSize: Int = 1024
-val buffer = Array<UByte>(bufferSize) { 0u }
-val deserializer = DeserializerBase(buffer, bufferSize)
+val buffer = UByteArray(bufferSize) { 0u }
+val deserializer = DeserializerBase(buffer)
 
 public fun checkArkoalaCallbacks() {
     while (true) {

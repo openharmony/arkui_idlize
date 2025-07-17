@@ -1,2 +1,2 @@
-option('target_vm', type: 'combo', choices: ['node', 'panda', 'cangjie'], value: 'node',
-    description: 'Select the VM to compile for')
+option('target', type: 'combo', choices: ['node', 'panda', 'cangjie', 'kotlin'], value: 'node',
+    description: 'Select the target platform to compile for')

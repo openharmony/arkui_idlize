@@ -128,8 +128,8 @@ void xml_XmlPullParser_parseImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePoint
     if (option->tagValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setTagValueCallback([&](const char* name, const char* value) {
             auto callback = &(option->tagValueCallbackFunction.value);
-            callback->call(callback->resource.resourceId, 
-                OH_String { name, (OH_Int32)strlen(name) }, 
+            callback->call(callback->resource.resourceId,
+                OH_String { name, (OH_Int32)strlen(name) },
                 OH_String { value, (OH_Int32)strlen(value) }, {
                 {
                     1,
@@ -144,8 +144,8 @@ void xml_XmlPullParser_parseImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePoint
     if (option->attributeValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setAttributeValueCallback([&](const char* name, const char* value) {
             auto callback = &(option->attributeValueCallbackFunction.value);
-            callback->call(callback->resource.resourceId, 
-                OH_String { name, (OH_Int32)strlen(name) }, 
+            callback->call(callback->resource.resourceId,
+                OH_String { name, (OH_Int32)strlen(name) },
                 OH_String { value, (OH_Int32)strlen(value) }, {
                 {
                     1,

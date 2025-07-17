@@ -676,7 +676,7 @@ function getReturnValue(type: idl.IDLType): string {
 function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
 
     if (!returnType) return idl.IDLVoidType
-    if (returnType === idl.IDLThisType) {
+    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType)) {
         return idl.IDLVoidType
     }
 
