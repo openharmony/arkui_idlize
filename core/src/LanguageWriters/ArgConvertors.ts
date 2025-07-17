@@ -720,7 +720,7 @@ export class ArrayConvertor extends BaseArgConvertor { //
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         // Array length.
         const valueLength = printer.makeArrayLength(value).asString()
-        const loopCounter = "i"
+        const loopCounter = `${value}_counter_i`
         printer.writeMethodCall(`${param}Serializer`, "writeInt32", [printer.castToInt(valueLength, 32)])
         printer.writeStatement(printer.makeLoop(loopCounter, valueLength))
         printer.pushIndent()
