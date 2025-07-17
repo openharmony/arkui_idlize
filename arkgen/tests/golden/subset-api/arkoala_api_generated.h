@@ -2046,6 +2046,16 @@ typedef struct Opt_ArrowPointPosition {
     Ark_Tag tag;
     Ark_ArrowPointPosition value;
 } Opt_ArrowPointPosition;
+typedef enum Ark_AttributeUpdaterFlag {
+    ARK_ATTRIBUTE_UPDATER_FLAG_INITIAL = 0,
+    ARK_ATTRIBUTE_UPDATER_FLAG_UPDATE = 1,
+    ARK_ATTRIBUTE_UPDATER_FLAG_SKIP = 2,
+    ARK_ATTRIBUTE_UPDATER_FLAG_RESET = 3,
+} Ark_AttributeUpdaterFlag;
+typedef struct Opt_AttributeUpdaterFlag {
+    Ark_Tag tag;
+    Ark_AttributeUpdaterFlag value;
+} Opt_AttributeUpdaterFlag;
 typedef enum Ark_Axis {
     ARK_AXIS_VERTICAL = 0,
     ARK_AXIS_HORIZONTAL = 1,
