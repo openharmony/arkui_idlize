@@ -17,6 +17,7 @@
                 "ohos.app.ability",
                 "ohos.arkui",
                 "ohos.base",
+                "ohos.curves",
                 "ohos.data",
                 "ohos.font",
                 "ohos.graphics",
