@@ -176,12 +176,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const componentClassName = generateArkComponentName(peer.componentName)
         const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : `ComponentBase`
         const peerClassName = componentToPeerClass(peer.componentName)
-        const supers = expandComponentWithSupers(this.library, component.attributeDeclaration)
-        const rootSuper = supers[supers.length - 1]
-        const superDecl = getSuper(component.attributeDeclaration, this.library)
-        const asType = superDecl
-            ? ` as AttributeModifier<${rootSuper.name}>`
-            : ``
 
         printer.writeClass(componentClassName, (writer) => {
             writer.writeMethodImplementation(
@@ -201,11 +195,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             for (const grouped of groupOverloads(peer.methods, this.library.language))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
             // todo stub until we can process AttributeModifier
-            if (!superDecl) {
-                writer.writeFieldDeclaration(`_modifier`, generateAttributeModifierSignature(this.library, component).args[0], undefined, true)
-            }
             writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
-                writer.writeLines(`this._modifier = value${asType}`)
                 writer.writeStatement(writer.makeReturn(writer.makeThis()))
             })
 
@@ -216,39 +206,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
         }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
-
-        const withStyleMethodSignature = new NamedMethodSignature(
-            IDLVoidType,
-            [
-                idl.createReferenceType(componentToAttributesInterface(component.attributeDeclaration.name)),
-                idl.createUnionType([...expandComponentWithSupers(this.library, component.attributeDeclaration).map(it =>
-                    idl.createReferenceType(getReferenceTo('AttributeModifier'),
-                    [idl.createReferenceType(componentToAttributesInterface(it.name))])), idl.IDLUndefinedType])
-            ],
-            ['receiver', 'modifier']
-        )
-        printer.writeFunctionImplementation(`with${component.name}Style`, withStyleMethodSignature, writer => {
-            const style = 'style'
-            writer.writeStatement(
-                writer.makeCondition(
-                    writer.makeString(`modifier !== undefined`),
-                    writer.makeBlock([
-                        writer.makeAssign(
-                            style,
-                            undefined,
-                            writer.makeNewObject(componentToStyleClass(component.attributeDeclaration.name)),
-                            true,
-                            false
-                        ),
-                        writer.makeCondition(writer.makeString(`modifier!.isUpdater()`),
-                            writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeUpdater<${rootSuper.name}>)`, `initializeModifier`, [writer.makeString(style)])),
-                            writer.makeStatement(writer.makeMethodCall(`(modifier! as AttributeModifier<${rootSuper.name}>)`, `applyNormalAttribute`, [writer.makeString(style)])),
-                        ),
-                        writer.makeStatement(writer.makeMethodCall(style, 'apply', [writer.makeString('receiver')]))
-                    ])
-                )
-            )
-        })
 
         return [{
             collector: imports,

@@ -12,7 +12,6 @@ export function Ark%COMPONENT_NAME%(
     NodeAttach<%PEER_CLASS_NAME%>((): %PEER_CLASS_NAME% => %PEER_CLASS_NAME%.create(receiver), (_: %PEER_CLASS_NAME%): void => {
         %PEER_CALLABLE_INVOKE%
         style?.(receiver)
-        with%COMPONENT_NAME%Style(receiver, receiver._modifier)
         content_?.()
         receiver.applyAttributesFinish()
     })

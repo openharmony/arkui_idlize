@@ -55,44 +55,15 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                 )
             }
             collapsedMethods.forEach(method => {
-                const existInAttributes: boolean = peer.attributesFields.find(element => {
-                    element.name == method.method.name
-                }) !== undefined
-
                 // TODO: temporary hack
                 stylePrinter.writeMethodImplementation(method.method, (writer) => {
                     if (method.method.signature.returnType == idl.IDLThisType) {
-                        if (existInAttributes) {
-                            writer.writeStatement(
-                                writer.makeAssign(
-                                    `this.${method.method.name}_value`, undefined, writer.makeString('value'), false))
-                        }
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
-                    } else
-                        writer.writeStatement(writer.makeThrowError("Unimplemented"))
+                    }
                 })
             })
             stylePrinter.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                 writer.writeStatement(writer.makeThrowError("Not implemented"))
-            })
-            const target = 'target'
-            const applySignature = new NamedMethodSignature(
-                idl.IDLVoidType,
-                [idl.createReferenceType(componentToAttributesInterface(component.attributeDeclaration.name))],
-                [target]
-            )
-            stylePrinter.writeMethodImplementation(new Method('apply', applySignature, [MethodModifier.PUBLIC]), writer => {
-                const superDecl = getSuper(component.attributeDeclaration, this.peerLibrary)
-                if (superDecl) {
-                    writer.writeMethodCall('super','apply', [target])
-                }
-                for (const field of peer.attributesFields) {
-                    if (field.name == 'attributeModifier') continue
-                    writer.writeStatement(writer.makeCondition(
-                        writer.makeString(`this.${field.name}_value !== undefined`),
-                        writer.makeStatement(writer.makeMethodCall(target, field.name, [writer.makeString(`this.${field.name}_value!`)]))
-                    ))
-                }
             })
         }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
         return printer.getOutput().concat(stylePrinter.getOutput())
