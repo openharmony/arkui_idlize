@@ -40,6 +40,7 @@ export function scan(dir:string): string[] {
 
 interface RunContext {
     exec: (command:RecursiveStrings) => void
+    query: (command:RecursiveStrings) => string
     cd: (dir:string) => void
 }
 export function run(runner:(ctx:RunContext) => void) {
@@ -47,6 +48,9 @@ export function run(runner:(ctx:RunContext) => void) {
     runner({
         exec: (command) => {
             execSync(flat(command).join(' '), { cwd, stdio: 'inherit' })
+        },
+        query: (command) => {
+            return execSync(flat(command).join(' '), { cwd }).toString('utf-8')
         },
         cd: (dir) => {
             cwd = dir

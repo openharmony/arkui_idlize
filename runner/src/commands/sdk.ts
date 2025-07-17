@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-import { cpSync, mkdirSync } from "node:fs"
+import { cpSync, existsSync, mkdirSync } from "node:fs"
 import { installTemplate, run } from "../utils"
-import { CLONED_SDK_BUILD_TOOLS, CLONED_SDK_DIR, PREPARED_SDK_ARKTS_ARKUI_COMPONENT, PREPARED_SDK_ARKTS_INTERNAL, PREPARED_SDK_DIR_ARKTS, PREPARED_SDK_DIR_TS, SDK_PATCH_FILE, WORKING_DIR } from "../shared"
+import { CLONED_SDK_BUILD_TOOLS, CLONED_SDK_DIR, PREPARED_SDK_ARKTS_ARKUI_COMPONENT, PREPARED_SDK_ARKTS_INTERNAL, PREPARED_SDK_DIR_ARKTS, PREPARED_SDK_DIR_TS, SDK_PATCH_DIR, SDK_PATCH_FILE, WORKING_DIR } from "../shared"
 import { join } from "node:path"
+import { EOL } from "node:os"
 
 export interface PrepareSdkConfig {
     sdkPath: string
@@ -39,7 +40,14 @@ export function prepareSdk({
 
     run(r => {
         r.cd(CLONED_SDK_DIR)
-        r.exec(['git', 'apply', SDK_PATCH_FILE])
+        const commit = r.query(['git', 'rev-parse', 'HEAD'])
+        const hash = commit.replaceAll(EOL, '').trim()
+        let sdkPatchFile = SDK_PATCH_FILE
+        let maybeSpecificPatchFile = join(SDK_PATCH_DIR, hash + '.patch')
+        if (existsSync(maybeSpecificPatchFile)) {
+            sdkPatchFile = maybeSpecificPatchFile
+        }
+        r.exec(['git', 'apply', sdkPatchFile])
 
         const prepareSdkScriptFile = join(CLONED_SDK_DIR, 'build-tools', 'handleApiFiles.js')
         r.cd(CLONED_SDK_BUILD_TOOLS)

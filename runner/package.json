@@ -7,7 +7,7 @@
   "files": [
     "lib/*.js",
     "template/**/*",
-    "interface_sdk-js.patch"
+    "patches/**/*"
   ],
   "license": "Apache-2.0",
   "keywords": [],

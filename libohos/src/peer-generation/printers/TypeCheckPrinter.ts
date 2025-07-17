@@ -111,6 +111,8 @@ function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface |
             continue
         if (idl.isInterface(decl) && isExternalType(decl, library))
             continue
+        if (peerGeneratorConfiguration().components.custom.includes(decl.name))
+            continue
         syntheticCollector.convert(decl)
         const declName = idl.getFQName(decl)
         if ((idl.isInterface(decl) && decl.subkind != idl.IDLInterfaceSubkind.Tuple ||

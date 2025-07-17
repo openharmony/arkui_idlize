@@ -1,0 +1,815 @@
+diff --git a/api/@internal/component/ets/alert_dialog.d.ts b/api/@internal/component/ets/alert_dialog.d.ts
+index d608e158c..134233582 100644
+--- a/api/@internal/component/ets/alert_dialog.d.ts
++++ b/api/@internal/component/ets/alert_dialog.d.ts
+@@ -592,7 +592,7 @@ declare interface AlertDialogButtonOptions extends AlertDialogButtonBaseOptions
+  * @since arkts {'1.1':'12','1.2':'20'}
+  * @arkts 1.1&1.2
+  */
+-declare interface TextStyle {
++declare interface TextStyle_alert_dialog {
+   /**
+    * Set the word break type.
+    *
+@@ -1107,7 +1107,7 @@ declare interface AlertDialogParam {
+    * @since arkts {'1.1':'12','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  textStyle?: TextStyle;
++  textStyle?: TextStyle_alert_dialog;
+ 
+   /**
+    * Defines whether to respond to the hover mode.
+@@ -1301,39 +1301,6 @@ declare interface AlertDialogParamWithConfirm extends AlertDialogParam {
+   confirm?: AlertDialogButtonBaseOptions;
+ }
+ 
+-/**
+- * Component dialog dismiss action.
+- *
+- * @interface DismissDialogAction
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-declare interface DismissDialogAction {
+-  /**
+-   * Defines dialog dismiss function.
+-   *
+-   * @type { Callback<void> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  dismiss: Callback<void>;
+-  
+-  /**
+-   * Dismiss reason type.
+-   *
+-   * @type { DismissReason }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  reason: DismissReason;
+-}
+-
+ /**
+  * Defines the dialog param with buttons.
+  *
+diff --git a/api/@internal/component/ets/column.d.ts b/api/@internal/component/ets/column.d.ts
+index 02be253b6..08a92d535 100644
+--- a/api/@internal/component/ets/column.d.ts
++++ b/api/@internal/component/ets/column.d.ts
+@@ -84,32 +84,6 @@ interface ColumnOptions {
+    * @since arkts {'1.1':'11','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Column constructor options.
+- *
+- * @interface ColumnOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface ColumnOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -208,19 +182,6 @@ interface ColumnInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: ColumnOptions): ColumnAttribute;
+-  /**
+-   * Set the options.
+-   *
+-   * @param { ColumnOptions | ColumnOptionsV2 } [options] - column options
+-   * @returns { ColumnAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: ColumnOptions | ColumnOptionsV2): ColumnAttribute;
+ }
+ 
+ /**
+diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
+index 24adc14fa..b42cad8ed 100644
+--- a/api/@internal/component/ets/common.d.ts
++++ b/api/@internal/component/ets/common.d.ts
+@@ -30,7 +30,7 @@ import Want from '../../@ohos.app.ability.Want';
+ import { IntentionCode } from '../../@ohos.multimodalInput.intentionCode';
+ import { SymbolGlyphModifier } from '../../arkui/SymbolGlyphModifier';
+ import { CircleShape, EllipseShape, PathShape, RectShape } from '../../@ohos.arkui.shape';
+-import uiObserver from '@ohos.arkui.observer';
++import uiObserver from '../../@ohos.arkui.observer';
+ import { UIContext as _UIContext } from '../../@ohos.arkui.UIContext';
+ import { DrawContext as _DrawContext, LengthMetrics } from '../../arkui/Graphics';
+ import uiEffect from '../../@ohos.graphics.uiEffect';
+@@ -11425,7 +11425,7 @@ declare interface BorderImageOption {
+    * @atomicservice
+    * @since 11
+    */
+-  source?: string | Resource | LinearGradient,
++  source?: string | Resource | LinearGradient_common,
+ 
+   /**
+    * Border image source
+@@ -15819,14 +15819,14 @@ declare interface SheetOptions extends BindOptions {
+   /**
+    * Defines sheet detents
+    *
+-   * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
++   * @type { ?(TripleLengthDetents) }
+    * @syscap SystemCapability.ArkUI.ArkUI.Full
+    * @crossplatform
+    * @atomicservice
+    * @since 20
+    * @arkts 1.2
+    */
+-  detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++  detents?: TripleLengthDetents;
+ 
+   /**
+    * Defines sheet background blur Style
+@@ -16265,7 +16265,7 @@ declare interface SheetOptions extends BindOptions {
+  * @since 20
+  * @arkts 1.2
+  */
+-declare type CustomStyles = (instance: CommonMethod) => void;
++declare type CustomStyles = (instance: string) => void;
+ 
+ /**
+  * Component State Styles.
+@@ -22898,7 +22898,7 @@ declare class CommonMethod<T> {
+    * @since arkts {'1.1':'15','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  onKeyEvent(event: Callback<KeyEvent, boolean>): T;
++  // onKeyEvent(event: Callback<KeyEvent, boolean>): T;
+ 
+   /**
+    * Digital crown input.
+@@ -28768,7 +28768,7 @@ declare class CommonShapeMethod<T> extends CommonMethod<T> {
+  * @atomicservice
+  * @since 11
+  */
+-declare interface LinearGradient {
++declare interface LinearGradient_common {
+   /**
+    * Linear Gradient Angle
+    *
+@@ -32807,4 +32807,4 @@ export declare function $$<T>(value: T): Bindable<T>;
+  * @since 20
+  * @arkts 1.2
+  */
+-export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
++export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
+diff --git a/api/@internal/component/ets/custom_dialog_controller.d.ts b/api/@internal/component/ets/custom_dialog_controller.d.ts
+index 959dcc2ea..46b7c8c83 100644
+--- a/api/@internal/component/ets/custom_dialog_controller.d.ts
++++ b/api/@internal/component/ets/custom_dialog_controller.d.ts
+@@ -706,39 +706,6 @@ declare interface CustomDialogControllerOptions {
+   focusable?: boolean;
+ }
+ 
+-/**
+- * Component dialog dismiss action.
+- *
+- * @interface DismissDialogAction
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-declare interface DismissDialogAction {
+-  /**
+-   * Defines dialog dismiss function
+-   *
+-   * @type { Callback<void> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  dismiss: Callback<void>;
+-
+-  /**
+-   * Dismiss reason type.
+-   *
+-   * @type { DismissReason }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  reason: DismissReason;
+-}
+-
+ /**
+  * Use the CustomDialogController class to display the custom pop-up window.
+  *
+diff --git a/api/@internal/component/ets/relative_container.d.ts b/api/@internal/component/ets/relative_container.d.ts
+index 1caa3043b..82659bec9 100644
+--- a/api/@internal/component/ets/relative_container.d.ts
++++ b/api/@internal/component/ets/relative_container.d.ts
+@@ -436,7 +436,7 @@ declare class RelativeContainerAttribute extends CommonMethod<RelativeContainerA
+    * @since arkts {'1.1':'12','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  barrier(barrierStyle: Array<LocalizedBarrierStyle>): RelativeContainerAttribute;
++  // barrier(barrierStyle: Array<LocalizedBarrierStyle>): RelativeContainerAttribute;
+ }
+ 
+ /**
+diff --git a/api/@internal/component/ets/repeat.d.ts b/api/@internal/component/ets/repeat.d.ts
+index 6af657932..81c455d53 100644
+--- a/api/@internal/component/ets/repeat.d.ts
++++ b/api/@internal/component/ets/repeat.d.ts
+@@ -12,275 +12,3 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
+-/**
+- * @file Defines Repeat component.
+- * @kit ArkUI
+- */
+-
+-/**
+- * Construct a new type for each item.
+- *
+- * @interface RepeatItem
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 12
+- */
+-interface RepeatItem<T> {
+-  /**
+-   * The origin data.
+-   *
+-   * @type { T }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since 12
+-   */
+-  item: T,
+-  /**
+-   * index of each item.
+-   *
+-   * @type { number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since 12
+-   */
+-  index: number
+-}
+-
+-/**
+- * Define the options of repeat virtualScroll to implement reuse and lazy loading.
+- *
+- * @interface VirtualScrollOptions
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-interface VirtualScrollOptions {
+-  /**
+-   * Total data count.
+-   *
+-   * @type { ?number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  totalCount?: number;
+-
+-  /**
+-   * Reuse or not.
+-   *
+-   * @type { ?boolean }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 18
+-   */
+-  reusable?: boolean;
+-
+-  /**
+-   * Data lazy loading
+-   *
+-   * @param { number } index
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 18
+-   */
+-  onLazyLoading?(index: number): void;
+-
+-  /**
+-   * The function of total data count.
+-   *
+-   * @returns { number } Returns the total data count.
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 18
+-   */
+-  onTotalCount?(): number;
+-}
+-
+-/**
+- * Define a builder template option parameter.
+- *
+- * @interface TemplateOptions
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-interface TemplateOptions {
+-  /**
+-   * The cached number of each template.
+-   *
+-   * @type { ?number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  cachedCount?: number
+-}
+-
+-/**
+- * Function that return typed string to render one template.
+- *
+- * @typedef {function} TemplateTypedFunc<T>
+- * @param { T } item - data item.
+- * @param {number} index - data index number in array.
+- * @returns { string } template type.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-declare type TemplateTypedFunc<T> = (item : T, index : number) => string;
+-
+-/**
+- * Define builder function to render one template type.
+- *
+- * @typedef {function} RepeatItemBuilder<T>
+- * @param { RepeatItem<T> } repeatItem - the repeat item builder function.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since 12
+- */
+-declare type RepeatItemBuilder<T> = (repeatItem: RepeatItem<T>) => void;
+-
+-/**
+- * Defines the Repeat component attribute functions.
+- *
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 12
+- */
+-/**
+- * Defines the Repeat component attribute functions.
+- *
+- * @extends DynamicNode<RepeatAttribute<T>>
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 18
+- */
+-declare class RepeatAttribute<T> extends DynamicNode<RepeatAttribute<T>> {
+-  /**
+-   * Executes itemGenerator of each item.
+-   *
+-   * @param { function } itemGenerator
+-   * @returns { RepeatAttribute<T> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since 12
+-   */
+-  each(itemGenerator: (repeatItem: RepeatItem<T>) => void): RepeatAttribute<T>;
+-  /**
+-   * Obtains key of each item.
+-   *
+-   * @param { function } keyGenerator
+-   * @returns { RepeatAttribute<T> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since 12
+-   */
+-  key(keyGenerator: (item: T, index: number) => string): RepeatAttribute<T>;
+-  /**
+-   * Enable UI lazy loading when scroll up or down.
+-   *
+-   * @param { VirtualScrollOptions } virtualScrollOptions that defines the options of repeat virtual scroll to implement reuse and lazy loading.
+-   * @returns { RepeatAttribute<T> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  virtualScroll(virtualScrollOptions?: VirtualScrollOptions): RepeatAttribute<T>;
+-  /**
+-   * Type builder function to render specific type of data item.
+-   *
+-   * @param { string } type that defines the template id.
+-   * @param { RepeatItemBuilder<T> } itemBuilder that defines UI builder function.
+-   * @param { TemplateOptions } templateOptions that defines a builder template option parameter.
+-   * @returns { RepeatAttribute<T> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  template(type : string, itemBuilder: RepeatItemBuilder<T>, templateOptions?: TemplateOptions): RepeatAttribute<T>;
+-  /**
+-   * Typed function to render specific type of data item.
+-   *
+-   * @param { TemplateTypedFunc<T> } typedFunc that define template typed function.
+-   * @returns { RepeatAttribute<T> }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since 12
+-   */
+-  templateId(typedFunc: TemplateTypedFunc<T>): RepeatAttribute<T>;
+-}
+-
+-/**
+- * Indicates the type of Repeat's Data Source.
+- *
+- * @typedef { Array<T> | ReadonlyArray<T> | Readonly<Array<T>> }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 18
+- */
+-declare type RepeatArray<T> = Array<T> | ReadonlyArray<T> | Readonly<Array<T>>;
+-
+-/**
+- * Indicates the type of Repeat.
+- *
+- * @typedef { function } RepeatInterface
+- * @param { RepeatArray<T> } arr - The Data Source
+- * @returns { RepeatAttribute<T> }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 18
+- */
+-declare type RepeatInterface = <T>(arr: RepeatArray<T>) => RepeatAttribute<T>;
+-
+-/**
+- * Defines Repeat Component.
+- *
+- * @type { <T>(arr: Array<T>) => RepeatAttribute<T> }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 12
+- */
+-/**
+- * Defines Repeat Component, and Add More Array Type.
+- *
+- * @type { RepeatInterface }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since 18
+- */
+-declare const Repeat: RepeatInterface;
+diff --git a/api/@internal/component/ets/row.d.ts b/api/@internal/component/ets/row.d.ts
+index ee3b6bf64..7951b1bab 100644
+--- a/api/@internal/component/ets/row.d.ts
++++ b/api/@internal/component/ets/row.d.ts
+@@ -72,32 +72,6 @@ declare interface RowOptions {
+    * @since arkts {'1.1':'11','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  space?: string | number;
+-}
+-
+-/**
+- * Define options used to construct a row.
+- *
+- * @interface RowOptionsV2
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @form
+- * @atomicservice
+- * @since arkts {'1.1':'18','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface RowOptionsV2 {
+-  /**
+-   * Vertical layout element spacing.
+-   *
+-   * @type { ?SpaceType }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+   space?: SpaceType;
+ }
+ 
+@@ -188,19 +162,6 @@ interface RowInterface {
+    * @arkts 1.1&1.2
+    */
+   (options?: RowOptions): RowAttribute;
+-  /**
+-   * Called when the layout is set in the horizontal direction.
+-   *
+-   * @param { ?(RowOptions | RowOptionsV2) } options - row options
+-   * @returns { RowAttribute }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @form
+-   * @atomicservice
+-   * @since arkts {'1.1':'18','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  (options?: RowOptions | RowOptionsV2): RowAttribute;
+ }
+ 
+ /**
+diff --git a/api/@internal/component/ets/sidebar.d.ts b/api/@internal/component/ets/sidebar.d.ts
+index cbb6b4f08..1ec2a3cee 100644
+--- a/api/@internal/component/ets/sidebar.d.ts
++++ b/api/@internal/component/ets/sidebar.d.ts
+@@ -21,7 +21,7 @@
+ /*** if arkts 1.2 */
+ import { Resource } from '../../global/resource'
+ import { Length, ResourceColor, Dimension } from './units'
+-import { CommonMethod, PixelMap, Bindable } from './common'
++import { CommonMethod, PixelMap, Bindable, DividerStyle } from './common'
+ /*** endif */
+ 
+ /**
+@@ -553,110 +553,6 @@ interface SideBarContainerInterface {
+   (type?: SideBarContainerType): SideBarContainerAttribute;
+ }
+ 
+-/**
+- * Provides an interface for the style of a divider including stroke width, color, start margin
+- * and end margin
+- *
+- * @interface DividerStyle
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @since 10
+- */
+-/**
+- * Provides an interface for the style of a divider including stroke width, color, start margin
+- * and end margin
+- *
+- * @interface DividerStyle
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @crossplatform
+- * @atomicservice
+- * @since arkts {'1.1':'11','1.2':'20'}
+- * @arkts 1.1&1.2
+- */
+-interface DividerStyle {
+-  /**
+-   * Define the stroke width of the divider
+-   *
+-   * @type { Length }
+-   * @default 1vp
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @since 10
+-   */
+-  /**
+-   * Define the stroke width of the divider
+-   *
+-   * @type { Length }
+-   * @default 1vp
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since arkts {'1.1':'11','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  strokeWidth: Length;
+-
+-  /**
+-   * Define the color of the divider
+-   *
+-   * @type { ?ResourceColor }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @since 10
+-   */
+-  /**
+-   * Define the color of the divider
+-   *
+-   * @type { ?ResourceColor }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since arkts {'1.1':'11','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  color?: ResourceColor;
+-
+-  /**
+-   * Define the start margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @since 10
+-   */
+-  /**
+-   * Define the start margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since arkts {'1.1':'11','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  startMargin?: Length;
+-
+-  /**
+-   * Define the end margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @since 10
+-   */
+-  /**
+-   * Define the end margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @crossplatform
+-   * @atomicservice
+-   * @since arkts {'1.1':'11','1.2':'20'}
+-   * @arkts 1.1&1.2
+-   */
+-  endMargin?: Length;
+-}
+-
+ /**
+  * The attribute function of sidebar
+  *
+diff --git a/api/@internal/component/ets/toggle.d.ts b/api/@internal/component/ets/toggle.d.ts
+index e57982116..bbf8ae329 100644
+--- a/api/@internal/component/ets/toggle.d.ts
++++ b/api/@internal/component/ets/toggle.d.ts
+@@ -255,7 +255,7 @@ declare interface ToggleConfiguration extends CommonConfiguration<ToggleConfigur
+    * @since arkts {'1.1':'12','1.2':'20'}
+    * @arkts 1.1&1.2
+    */
+-  enabled: boolean;
++  toggleEnabled: boolean;
+ 
+   /**
+    * Trigger toggle select change
+diff --git a/api/@internal/component/ets/ui_extension_component.d.ts b/api/@internal/component/ets/ui_extension_component.d.ts
+index 297e762f2..f9adaee19 100644
+--- a/api/@internal/component/ets/ui_extension_component.d.ts
++++ b/api/@internal/component/ets/ui_extension_component.d.ts
+@@ -156,36 +156,6 @@ declare interface UIExtensionOptions {
+     windowModeFollowStrategy?: WindowModeFollowStrategy;
+ }
+ 
+-/**
+- * Indicates the information when the provider of the embedded UI is terminated.
+- *
+- * @interface TerminationInfo
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @systemapi
+- * @since 12
+- */
+-declare interface TerminationInfo {
+-  /**
+-   * Defines the termination code.
+-   *
+-   * @type { number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @systemapi
+-   * @since 12
+-   */
+-   code: number;
+-
+-  /**
+-   * Defines the additional termination information.
+-   *
+-   * @type { ?import('../api/@ohos.app.ability.Want').default }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @systemapi
+-   * @since 12
+-   */
+-   want?: import('../api/@ohos.app.ability.Want').default;
+-}
+-
+ /**
+  * Get Callback from @ohos.base.
+  * AnonyMous Object Rectification
+diff --git a/api/arkui/component/customComponent.d.ets b/api/arkui/component/customComponent.d.ets
+index cfd065cf4..64f7e4cc2 100755
+--- a/api/arkui/component/customComponent.d.ets
++++ b/api/arkui/component/customComponent.d.ets
+@@ -168,7 +168,7 @@ export declare abstract class BaseCustomDialog<T extends BaseCustomDialog<T, T_O
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         @Builder content?: () => void
+@@ -229,7 +229,7 @@ export declare abstract class CustomComponent<T extends CustomComponent<T, T_Opt
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
+@@ -271,7 +271,7 @@ export declare abstract class CustomComponentV2<T extends CustomComponentV2<T, T
+      * @since 20
+      */
+     @ComponentBuilder
+-    static $_instantiate(
++    static $_instantiate<T, T_Options>(
+         factory: () => T,
+         initializers?: T_Options,
+         reuseId?: string,
+diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
+index 15b2ce8e9..979ac1f19 100644
+--- a/api/global/resource.d.ts
++++ b/api/global/resource.d.ts
+@@ -114,14 +114,14 @@ export interface Resource {
+   /**
+    * Set params.
+    *
+-   * @type { ?Array<Object | undefined> }
++   * @type { ?Array<String> }
+    * @syscap SystemCapability.Global.ResourceManager
+    * @crossplatform
+    * @atomicservice
+    * @since 20
+    * @arkts 1.2
+    */
+-  params?: Array<Object | undefined>;
++  params?: Array<String>;
+ 
+   /**
+    * Set type.

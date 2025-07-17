@@ -720,7 +720,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         return idl.createProperty(propName, this.serializeType(propType))
                     })
                     prop.extendedAttributes ??= []
-                    if (arkts.hasModifierFlag(propType, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
+                    if (arkts.hasModifierFlag(member, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                         prop.isStatic = true
                     }
                     prop.extendedAttributes?.push({name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter})
@@ -734,7 +734,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     const propName = (member.key as arkts.Identifier).name
                     const prop = this.contextual.extend(propName, () => idl.createProperty(propName, this.serializeType(propType)))
                     prop.extendedAttributes ??= []
-                    if (arkts.hasModifierFlag(propType, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
+                    if (arkts.hasModifierFlag(member, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                         prop.isStatic = true
                     }
                     prop.extendedAttributes.push({name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter})
