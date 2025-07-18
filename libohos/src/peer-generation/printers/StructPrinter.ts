@@ -344,7 +344,7 @@ export class StructPrinter {
         printer.print(`inline void WriteToString(std::string* result, const ${nameOptional}* value) {`)
         printer.pushIndent()
         printer.print(`result->append("{.tag=");`)
-        printer.print(`result->append(tagNameExact((${PrimitiveTypesInstance.Tag.getText()})(value->tag)));`)
+        printer.print(`result->append(tagNameExact(reinterpret_cast<${PrimitiveTypesInstance.Tag.getText()}>(value->tag)));`)
         printer.print(`result->append(", .value=");`)
         printer.print(`if (value->tag != ${PrimitiveTypeList.UndefinedTag}) {`)
         printer.pushIndent()

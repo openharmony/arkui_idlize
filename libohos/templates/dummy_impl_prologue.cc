@@ -409,7 +409,7 @@ Ark_NodeHandle CreateNode(GENERATED_Ark_NodeType type, Ark_Int32 id, Ark_Int32 f
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string((uintptr_t)result) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
+        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->createNode(GENERATED_Ark_NodeType("
             + std::to_string(type) + "), " + std::to_string(id) + ", " + std::to_string(flags) + ");\n");
         appendGroupedLog(2, _logData);
     }
@@ -486,7 +486,7 @@ Ark_NodeHandle GetNodeByViewStack() {
     Ark_NodeHandle result = reinterpret_cast<Ark_NodeHandle>(234);
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  Ark_NodeHandle peer" + std::to_string((uintptr_t)result) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
+        _logData.append("  Ark_NodeHandle peer" + std::to_string(reinterpret_cast<uintptr_t>(result)) + " = GetBasicNodeApi()->getNodeByViewStack();\n");
         appendGroupedLog(2, _logData);
     }
     if (!needGroupedLog(1)) {
@@ -500,7 +500,7 @@ Ark_NodeHandle GetNodeByViewStack() {
 void DisposeNode(Ark_NodeHandle node) {
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string((uintptr_t)node) + ");\n");
+        _logData.append("  GetBasicNodeApi()->disposeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
         appendGroupedLog(2, _logData);
     }
     if (needGroupedLog(1)) {
@@ -517,7 +517,7 @@ void DumpTreeNode(Ark_NodeHandle node) {
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string((uintptr_t)node) + ");\n");
+        _logData.append("  GetBasicNodeApi()->dumpTreeNode(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -662,7 +662,7 @@ void ApplyModifierFinish(Ark_NodeHandle node) {
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->applyModifierFinish(peer" + std::to_string((uintptr_t)node) + ");\n");
+        _logData.append("  GetBasicNodeApi()->applyModifierFinish(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -679,7 +679,7 @@ void MarkDirty(Ark_NodeHandle node, Ark_UInt32 flag) {
 
     if (needGroupedLog(2)) {
         std::string _logData;
-        _logData.append("  GetBasicNodeApi()->markDirty(peer" + std::to_string((uintptr_t)node) + ", " + std::to_string(flag) + ");\n");
+        _logData.append("  GetBasicNodeApi()->markDirty(peer" + std::to_string(reinterpret_cast<uintptr_t>(node)) + ", " + std::to_string(flag) + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -700,7 +700,7 @@ Ark_Boolean IsBuilderNode(Ark_NodeHandle node) {
     if (needGroupedLog(2)) {
         std::string _logData;
         _logData.append("  Ark_Boolean res" + std::to_string(res_num++) + " = GetBasicNodeApi()->isBuilderNode(peer"
-            + std::to_string((uintptr_t)node) + ");\n");
+            + std::to_string(reinterpret_cast<uintptr_t>(node)) + ");\n");
         appendGroupedLog(2, _logData);
     }
 
@@ -752,7 +752,7 @@ Ark_Int32 MeasureNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32*
 }
 
 Ark_Int32 LayoutNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32 (*data)[2]) {
-    return AsNode(node)->layout(vmContext, (Ark_Float32*)data);
+    return AsNode(node)->layout(vmContext, reinterpret_cast<Ark_Float32*>(data));
 }
 
 Ark_Int32 DrawNode(Ark_VMContext vmContext, Ark_NodeHandle node, Ark_Float32* data) {
