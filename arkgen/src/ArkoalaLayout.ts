@@ -62,6 +62,15 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
     }
 }
 
+function getModuleImport(node: idl.IDLNode, role: LayoutNodeRole): string | undefined {
+    if (role == LayoutNodeRole.GLOBAL) return undefined
+    if (idl.isInCurrentModule(node)) return undefined
+    if (idl.isInExternalModule(node)) {
+        if (role == LayoutNodeRole.SERIALIZER) return undefined
+    }
+    return `@${idl.getPackageName(node)}`
+}
+
 export class TsLayout extends CommonLayoutBase {
     private tsInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
@@ -84,9 +93,8 @@ export class TsLayout extends CommonLayoutBase {
         //     return SyntheticModule
         // }
 
-        if (!idl.isInCurrentModule(target.node) && target.role != LayoutNodeRole.GLOBAL) {
-            return `@${idl.getPackageName(target.node)}`
-        }
+        const moduleImport = getModuleImport(target.node, target.role)
+        if (moduleImport) return moduleImport
 
         if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
             // TODO currently rollup can wrongly order some declarations if all of them will be placed in common
@@ -131,9 +139,8 @@ class ArkTsLayout extends CommonLayoutBase {
         }
         const packageName = idl.getPackageName(target.node)
 
-        if (!idl.isInCurrentModule(target.node) && target.role != LayoutNodeRole.GLOBAL) {
-            return `@${idl.getPackageName(target.node)}`
-        }
+        const moduleImport = getModuleImport(target.node, target.role)
+        if (moduleImport) return moduleImport
 
         let customPath: string | undefined
         if (packageName && (customPath = customPathSuggestion(packageName))) {

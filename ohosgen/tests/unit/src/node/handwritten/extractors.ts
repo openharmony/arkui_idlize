@@ -1,6 +1,19 @@
 
-import { ExternalType, ImportedHookValue, hookns } from "#external_lib"
+import { ExternalType, hookns, ImportedHookValue, ExternalClass } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
+
+
+class ExternalClassImpl implements ExternalClass {
+
+    ptr: long
+
+    constructor(ptr: long) {
+        this.ptr = ptr
+    }
+    externalMethod(value: number): boolean {
+        return true
+    }
+}
 
 export namespace extractors {
 
@@ -29,6 +42,14 @@ export namespace extractors {
     export function fromHooknsSubhooknsSubNSExternalTypePtr(ptr: bigint): hookns.subhookns.SubNSExternalType {
         const result: hookns.subhookns.SubNSExternalType = { subnsNativePointer: ptr }
         return result
+    }
+
+    export function toExternalClassPtr(value: ExternalClass): bigint {
+        return value.ptr
+    }
+
+    export function fromExternalClassPtr(ptr: bigint): ExternalClass {
+        return new ExternalClassImpl(ptr)
     }
 
     export function toImportedHookValuePtr(value: ImportedHookValue): bigint {

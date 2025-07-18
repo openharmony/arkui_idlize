@@ -1,8 +1,7 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
-import { currentModule, getModuleFor, isExternalType, isInCurrentModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { currentModule, getModuleFor, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "@idlizer/libohos"
-import { getExternalTypePackage } from "@idlizer/core"
 
 function selectInternalsPath(): string {
     return currentModule().name + ".INTERNAL"
@@ -46,8 +45,6 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {
-        const pack = getExternalTypePackage(node)
-        if (pack) return pack
         if (isInIdlize(node)) {
             if (this.interopObjects.includes(node.name)) {
                 return selectInteropPath()
@@ -82,7 +79,7 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     }
 
     protected selectSerializer(node:idl.IDLEntry): string {
-        if (idl.isInterface(node) && isExternalType(node, this.library)) {
+        if (isInExternalModule(node)) {
             return selectInternalsPath()
         }
         return this.selectInterface(node)

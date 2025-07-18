@@ -9,6 +9,10 @@ export function isInModule(nodeOrPackage: idl.IDLNode | string, module: ModuleCo
     return module.packages.some(modulePackage => nodeOrPackage.startsWith(modulePackage))
 }
 
+export function isInExternalModule(node: idl.IDLNode): boolean {
+    return getModuleFor(node).external ?? false
+}
+
 export function getModuleFor(node: idl.IDLNode): ModuleConfiguration
 export function getModuleFor(packageName: string): ModuleConfiguration
 export function getModuleFor(nodeOrPackage: idl.IDLNode | string): ModuleConfiguration {

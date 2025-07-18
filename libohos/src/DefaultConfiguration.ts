@@ -161,7 +161,7 @@ function isWhole(methods: string[]): boolean {
 }
 
 function parseConfigFile(configurationFile: string): any {
-    if (!fs.existsSync(configurationFile)) return undefined
+    if (!fs.existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
 
     const data = fs.readFileSync(path.resolve(configurationFile)).toString()
     return JSON.parse(data)

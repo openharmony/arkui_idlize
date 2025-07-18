@@ -33,7 +33,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { getExtractorName, hashCodeFromString, throwException, warn } from "../util";
+import { getExtractor, hashCodeFromString, throwException, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
@@ -42,6 +42,7 @@ import { qualifiedName } from "../peer-generation/idl/common";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { PeerMethodSignature } from "../peer-generation/PeerMethod";
+import { isInExternalModule } from "../peer-generation/modules";
 
 export function getSerializerName(declaration:idl.IDLEntry) {
     return `${idl.getQualifiedName(declaration, "namespace.name").split('.').join('_')}_serializer`;
@@ -1155,9 +1156,14 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${writer.escapeKeyword(param)})`
             default:
+                if (isInExternalModule(this.declaration)) {
+                    const extractor = getExtractor(this.declaration, writer.language, true)
+                    return `${extractor.receiver}.${extractor.method}(${param})`
+                }
                 return `toPeerPtr(${param})`
         }
     }
+
     convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
         const accessorRoot = getSerializerName(this.declaration)
         printer.addFeature(accessorRoot, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
@@ -1169,62 +1175,6 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         const readStatement = writer.makeCast(
             writer.makeStaticMethodCall(accessorRoot, "read", [writer.makeString(deserializerName)]),
             this.declaration)
-        return assigneer(readStatement)
-    }
-    nativeType(): idl.IDLType {
-        return idl.createReferenceType(this.declaration)
-    }
-    interopType(): idl.IDLType {
-        return idl.IDLPointerType
-    }
-    isPointerType(): boolean {
-        return false
-    }
-    override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
-        if (idl.isInterface(this.declaration)) {
-            if (this.declaration.subkind === idl.IDLInterfaceSubkind.Class) {
-                return writer.instanceOf(value, this.idlType)
-            }
-            if (this.declaration.subkind === idl.IDLInterfaceSubkind.Interface) {
-                const uniqueFields = this.declaration.properties.filter(it => !duplicates.has(it.name))
-                return this.discriminatorFromFields(value, writer, uniqueFields, it => it.name, it => it.isOptional)
-            }
-        }
-    }
-}
-
-export class ExternalTypeConvertor extends BaseArgConvertor {
-    constructor(private library:PeerLibrary, param: string, public declaration: idl.IDLInterface) {
-        super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
-        console.log(`ExternalType convertor for type: ${declaration.name}`)
-    }
-
-    convertorArg(param: string, writer: LanguageWriter): string {
-        const lang = writer.language
-        switch (lang) {
-            case Language.CPP:
-                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
-            default:
-                return `extractors.${getExtractorName(this.declaration, lang, true)}(${param})`
-        }
-    }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        const accessor = getSerializerName(this.declaration)
-        printer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
-        printer.writeStatement(
-            printer.makeStatement(
-                printer.makeStaticMethodCall(accessor, 'write', [
-                    printer.makeString(`${param}Serializer`),
-                    printer.makeString(value)
-                ])))
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const accessor = getSerializerName(this.declaration)
-        writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
-        const readStatement = writer.makeCast(
-            writer.makeStaticMethodCall(accessor, 'read', [writer.makeString(deserializerName)]),
-            this.declaration
-        )
         return assigneer(readStatement)
     }
     nativeType(): idl.IDLType {

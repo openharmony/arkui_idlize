@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -570,10 +570,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 const hookName = hook ? hook.hookName : `hook${this.clazz.className}${capitalize(methodName)}`
                 this.collector.addFeature(hookName, handwrittenPackage)
             }
-        }
-        if (generatorConfiguration().externalTypes.size > 0
-            || generatorConfiguration().externalPackages.length > 0) {
-            this.collector.addFeature("extractors", handwrittenPackage)
         }
         // specific runtime dependencies
         collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)

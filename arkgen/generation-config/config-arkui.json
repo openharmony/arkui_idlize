@@ -5,6 +5,11 @@
             "name": "global",
             "packages": ["global.resource"]
         },
+        "image": {
+            "name": "image",
+            "external": true,
+            "packages": ["ohos.multimedia.image"]
+        },
         "arkui": {
             "name": "arkui",
             "packages": [
@@ -24,7 +29,6 @@
                 "ohos.intl",
                 "ohos.matrix4",
                 "ohos.measure",
-                "ohos.multimedia.image",
                 "ohos.multimodalInput",
                 "ohos.promptAction",
                 "ohos.window"

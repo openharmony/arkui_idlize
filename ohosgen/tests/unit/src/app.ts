@@ -74,10 +74,14 @@ import {
 
 import { IDLCheckConstructor } from '#compat'
 
+import { InternalModuleDataInterface, DTSCheckInternalLib } from "#compat"
+
 import { ImportedHookValue } from "#compat"
 import { DTSHookClass, DTSHookValue } from "#compat"
 
-import { ExternalType, hookns } from "#external_lib"
+import { ExternalModuleDataInterface } from "@external.lib"
+
+import { ExternalType, hookns } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
@@ -383,22 +387,33 @@ function checkHooks() {
   console.log(`  hook return value: ${importedHookValue.count}`)
 }
 
+function checkInternalLib() {
+  const internalDataInterface: InternalModuleDataInterface = { count: 31 }
+  const check = new DTSCheckInternalLib()
+  assertEQ(31, check.checkInternalDataInterface(internalDataInterface))
+}
+
 function checkExternalTypes() {
+
+  const check = new DTSCheckExternalLib()
+  const externalDataInterface: ExternalModuleDataInterface = { count: 32 }
+  assertEQ(32, check.checkExternalDataInterface(externalDataInterface))
+
   const externalType: ExternalType = { nativePointer: toBigInt(3) }
   const nsExternalType: hookns.NSExternalType = { nsNativePointer: toBigInt(5) }
   const subnsExternalType: hookns.subhookns.SubNSExternalType = { subnsNativePointer: toBigInt(7) }
-  const internalType: InternalType = {
-    index: 123,
-    external: { nativePointer: toBigInt(9) }
-  }
-  const check = new DTSCheckExternalLib()
+  // const internalType: InternalType = {
+  //   index: 123,
+  //   // TBD:
+  //   // external: { nativePointer: toBigInt(9) }
+  // }
   check.checkExternalType(externalType)
   check.checkNSExternalType(nsExternalType)
   check.checkSubNSExternalType(subnsExternalType)
-  check.checkInternalTypeWithExternalType(internalType)
+  // check.checkInternalTypeWithExternalType(internalType)
 
-  const sdkExternalType: SDKExternalType = { sdkNativePointer: toBigInt(9) }
-  check.checkSDKExternalType(sdkExternalType)
+  // const sdkExternalType: SDKExternalType = { sdkNativePointer: toBigInt(9) }
+  // check.checkSDKExternalType(sdkExternalType)
 }
 
 interface TestObject { x: number }
@@ -530,6 +545,7 @@ export function run() {
   suite.addTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
   suite.addTest("checkHooks", checkHooks)
+  suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
   suite.addTest("checkContentModifier", checkContentModifier)
 

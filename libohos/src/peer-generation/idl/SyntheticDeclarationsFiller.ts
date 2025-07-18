@@ -109,23 +109,6 @@ function createMaterializedInternal(library: PeerLibrary, targets: idl.IDLNode[]
     })
 }
 
-function createExternalModuleType(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    for (const name of generatorConfiguration().externalTypes.keys()) {
-        synthesizedEntries.set(name, idl.createInterface(
-            name,
-            idl.IDLInterfaceSubkind.Interface,
-            undefined,
-            undefined,
-            undefined,
-            [idl.createProperty("__externalType", idl.IDLBooleanType)],
-            undefined,
-            undefined,
-            undefined,
-            { fileName: 'generator_synthetic.d.ts', },
-        ))
-    }
-}
-
 function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
     const declaration = idl.createInterface(NativeModule.Generated.name, idl.IDLInterfaceSubkind.Interface)
     const file = idl.linkParentBack(
@@ -155,7 +138,6 @@ export function fillSyntheticDeclarations(library: PeerLibrary) {
     createImportsStubs(library, synthesizedEntries)
     createMaterializedInternal(library, targets, synthesizedEntries)
     createComponentPeers(library, synthesizedEntries)
-    createExternalModuleType(library, synthesizedEntries)
     fillGeneratedNativeModuleDeclaration(library)
     library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
 }

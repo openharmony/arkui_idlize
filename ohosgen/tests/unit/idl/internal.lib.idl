@@ -1,0 +1,19 @@
+package internal.lib;
+
+
+interface InternalModuleDataInterface {
+    attribute number count;
+};
+
+/*
+interface InternalModuleClass {
+    boolean internalMethod(number value);
+};
+
+namespace internalns {
+
+    interface InternalModuleNSClass {
+        boolean internalMethod(number value);
+    };
+};
+*/

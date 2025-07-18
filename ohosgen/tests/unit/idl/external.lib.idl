@@ -1,0 +1,34 @@
+package external.lib;
+
+interface ExternalModuleDataInterface {
+    attribute number count;
+};
+
+interface ImportedHookValue {
+    attribute number count;
+};
+
+interface ExternalType {
+    attribute boolean flag;
+    number externalMethod(number value);
+};
+
+interface ExternalClass {
+    number externalMethod(number value);
+};
+
+namespace hookns {
+
+    interface NSExternalType {
+        attribute boolean nsFlag;
+        number externalMethod(number value);
+    };
+
+    namespace subhookns {
+        interface SubNSExternalType {
+            attribute boolean subNsFlag;
+            number externalMethod(number value);
+        };
+    };
+};
+

@@ -1,9 +1,56 @@
 {
     "moduleName": "unit",
     "modules": {
+        "external.lib": {
+            "name": "external.lib",
+            "external": true,
+            "packages": [
+                "external.lib"
+            ]
+        },
+        "internal_lib": {
+            "name": "internal_lib",
+            "packages": [
+                "internal.lib"
+            ]
+        },
         "unit": {
             "name": "unit",
-            "packages": [""],
+            "packages": [
+                "ohos.base",
+                "test_exception",
+                "idlize.internal",
+                "test_wrapped_builder",
+                "test_external_types",
+                "test_hooks",
+                "test_non_static",
+                "test_force_callback",
+                "test_generics",
+                "test_declare_type",
+                "test_override_methods",
+                "test_materialized_classes",
+                "test_any",
+                "test_boolean",
+                "test_buffer",
+                "test_bigint",
+                "test_const",
+                "test_idl_constants",
+                "test_constants",
+                "test_data_interface",
+                "test_enum",
+                "test_enums",
+                "test_generic_interface",
+                "test_hilog",
+                "test_internal_lib",
+                "test_length",
+                "test_number",
+                "test_return_types",
+                "test_class_props_initial_values",
+                "test_constructor",
+                "test_materialized_interfaces",
+                "test_return_buffer"
+
+            ],
             "useFoldersLayout": true
         }
     },
@@ -71,13 +118,8 @@
         }
     },
     "externalTypes": {
-        "ExternalType" : "#external_lib",
-        "hookns.NSExternalType": "#external_lib",
-        "hookns.subhookns.SubNSExternalType": "#external_lib",
-        "ImportedHookValue" : "#external_lib"
     },
     "externalPackages": [
-        "external.lib.sdk"
     ],
     "materialized": {
         "ignoreReturnTypes": []

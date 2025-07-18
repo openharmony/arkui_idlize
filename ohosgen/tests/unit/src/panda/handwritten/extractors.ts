@@ -1,6 +1,18 @@
 
-import { ExternalType, ImportedHookValue, hookns } from "#external_lib"
+import { ExternalType, hookns, ImportedHookValue, ExternalClass } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
+
+class ExternalClassImpl implements ExternalClass {
+
+    ptr: long
+
+    constructor(ptr: long) {
+        this.ptr = ptr
+    }
+    externalMethod(value: number): boolean {
+        return true
+    }
+}
 
 export namespace extractors {
 
@@ -38,6 +50,14 @@ export namespace extractors {
     export function fromImportedHookValuePtr(value: long): ImportedHookValue {
         const result: ImportedHookValue = { count: 22 }
         return result
+    }
+
+    export function toExternalClassPtr(value: ExternalClass): long {
+        return value.ptr
+    }
+
+    export function fromExternalClassPtr(ptr: long): ExternalClass {
+        return new ExternalClassImpl(ptr)
     }
 
     export function toSDKExternalTypePtr(value: SDKExternalType): long {

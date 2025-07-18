@@ -9,7 +9,8 @@
         "paths": {
             "#compat": ["./src/node/compat.ts"],
             "#handwritten": ["./src/node/handwritten/"],
-            "#external_lib": ["./src/node/handwritten/external_lib.ts"],
+            "@internal.lib": ["./src/node/modules/internal_lib"],
+            "@external.lib": ["./src/node/handwritten/external_lib.ts"],
             "@external.lib.sdk": ["./src/node/handwritten/external_lib_sdk.ts"]
         }
     },

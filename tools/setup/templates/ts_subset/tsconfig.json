@@ -17,7 +17,8 @@
         "module": "CommonJS",
         "paths": {
             "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"]
+            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
+            "@ohos.multimedia.image": ["./generated/sig/arkoala/external/src"]
         },
     },
     "include": [

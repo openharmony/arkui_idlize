@@ -28,8 +28,7 @@ import {
     PeerLibrary,
     PrimitiveTypesInstance,
     PrimitiveTypeList,
-    isExternalType,
-    getSuper,
+    getSuper
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -128,13 +127,6 @@ export class StructPrinter {
                 // idl.createOptionalType(...)
                 const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${target.name}`
                 typedefDeclarations.print(`typedef ${DECL_OPT_RESOURCE} ${optNameAssigned};`)
-                continue
-            }
-            if (idl.isInterface(target) && isExternalType(target, this.library)) {
-                nameAssigned = nameAssigned.replaceAll('.', '_')
-                typedefDeclarations.print(`typedef ${generatorConfiguration().TypePrefix}NativePointer ${nameAssigned};`)
-                const optNameAssigned = `${generatorConfiguration().OptionalPrefix}${nameAssigned}`
-                typedefDeclarations.print(`typedef ${DECL_OPT_POINTER} ${optNameAssigned};`)
                 continue
             }
 

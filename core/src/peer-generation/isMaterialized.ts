@@ -16,7 +16,6 @@
 import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
 import { isBuilderClass } from './BuilderClass'
-import { isExternalType } from './isExternalType'
 import { getSuper } from './getSuperType'
 import { ReferenceResolver } from './ReferenceResolver'
 
@@ -48,10 +47,6 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
     }
 
     if (generatorConfiguration().ignoreMaterialized.includes(declaration.name)) {
-        return false
-    }
-
-    if (isExternalType(declaration, resolver)) {
         return false
     }
 

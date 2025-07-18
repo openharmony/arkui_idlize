@@ -963,6 +963,24 @@ OH_UNIT_ImportedHookValue DTSHookClass_methodImportedReturnImpl(OH_NativePointer
     return {};
 }
 
+// Internal library
+class DTSCheckInternalLibPeer
+{
+};
+
+OH_Number DTSCheckInternalLib_checkInternalDataInterfaceImpl(OH_NativePointer thisPtr, const OH_UNIT_InternalModuleDataInterface *internalType)
+{
+    printf("checkInternalDataInterface count: %d\n", internalType->count.i32);
+    return internalType->count;
+}
+OH_UNIT_DTSCheckInternalLibHandle DTSCheckInternalLib_constructImpl()
+{
+    return (OH_UNIT_DTSCheckInternalLibHandle) new DTSCheckInternalLibPeer();
+}
+void DTSCheckInternalLib_destructImpl(OH_UNIT_DTSCheckInternalLibHandle thisPtr)
+{
+}
+
 // ExternalType
 class DTSCheckExternalLibPeer
 {
@@ -974,8 +992,15 @@ OH_UNIT_DTSCheckExternalLibHandle DTSCheckExternalLib_constructImpl() {
 void DTSCheckExternalLib_destructImpl(OH_UNIT_DTSCheckExternalLibHandle thisPtr) {
 }
 
+OH_Number DTSCheckExternalLib_checkExternalDataInterfaceImpl(OH_NativePointer thisPtr, const OH_UNIT_ExternalModuleDataInterface* externalType) {
+    return externalType->count;
+}
+
 void DTSCheckExternalLib_checkExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_ExternalType externalType) {
     printf("[native] checkExternalType: %p\n", externalType);
+}
+
+void DTSCheckExternalLib_checkExternalClassImpl(OH_NativePointer thisPtr, OH_UNIT_ExternalClass externalClass) {
 }
 
 void DTSCheckExternalLib_checkNSExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_hookns_NSExternalType externalType) {
@@ -986,11 +1011,13 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH
     printf("[native] checkSubNSExternalTypeImpl: %p\n", externalType);
 }
 
-void DTSCheckExternalLib_checkInternalTypeWithExternalTypeImpl(OH_NativePointer thisPtr, const OH_UNIT_InternalType* internalType) {
-    printf("[native] checkInternalTypeWithExternalType: %p\n", internalType->external);
-}
+// void DTSCheckExternalLib_checkInternalTypeWithExternalTypeImpl(OH_NativePointer thisPtr, const OH_UNIT_InternalType* internalType) {
+//     //printf("[native] checkInternalTypeWithExternalType: %p\n", internalType->external);
+//     // TBD:
+//     printf("[native] checkInternalTypeWithExternalType\n");
+// }
 
-void DTSCheckExternalLib_checkSDKExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_SDKExternalType externalType) {
-    printf("[native] checkSDKExternalTypeImpl: %p\n", externalType);
-}
+// void DTSCheckExternalLib_checkSDKExternalTypeImpl(OH_NativePointer thisPtr, OH_UNIT_SDKExternalType externalType) {
+//     printf("[native] checkSDKExternalTypeImpl: %p\n", externalType);
+// }
 

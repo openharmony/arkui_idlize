@@ -16,13 +16,16 @@
         "rootDir": "generated",
         "module": "CommonJS",
         "paths": {
+            "#handwritten": ["./generated/sig/arkoala/arkui/src/handwritten"],
+            "@global.resource": ["./generated/modules/global/generated/ts"],
+            "@ohos.multimedia.image": ["./generated/sig/arkoala/external/src"],
             "@arkoala/arkui": ["./generated/sig/arkoala/arkui/src", "./"],
-            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"],
-            "@global.resource": ["./generated/modules/global/generated/ts"]
+            "@arkoala/arkui/*": ["./generated/sig/arkoala/arkui/src/*", "./*"]
         },
     },
     "include": [
         "generated/modules/global/generated/ts/**/*",
+        "generated/modules/image/generated/ts/**/*",
         "generated/sig/arkoala/**/*",
         "generated/sig/arkoala-arkts/framework/**/*"
     ]

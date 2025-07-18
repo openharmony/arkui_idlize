@@ -1,3 +1,6 @@
+export interface ExternalModuleDataInterface {
+	count: number
+}
 
 export interface ExternalType {
 	nativePointer: long
@@ -5,6 +8,11 @@ export interface ExternalType {
 
 export interface ImportedHookValue {
 	count: number
+}
+
+export interface ExternalClass {
+	ptr: long
+	externalMethod(value: number): boolean
 }
 
 export namespace hookns {

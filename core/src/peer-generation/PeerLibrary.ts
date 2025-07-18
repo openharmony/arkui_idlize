@@ -25,7 +25,6 @@ import {
     NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
     ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
     ObjectConvertor,
-    ExternalTypeConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -43,7 +42,6 @@ import { isMaterialized } from './isMaterialized'
 import { isInIdlizeInternal } from '../idlize'
 import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
-import { isExternalType } from './isExternalType'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 import { NativeModuleType } from '../LanguageWriters/common'
 
@@ -451,9 +449,6 @@ export class PeerLibrary implements LibraryInterface {
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
-            if (isExternalType(declaration, this)) {
-                return new ExternalTypeConvertor(this, param, declaration)
-            }
             if (isMaterialized(declaration, this)) {
                 return new MaterializedClassConvertor(this, param, declaration)
             }

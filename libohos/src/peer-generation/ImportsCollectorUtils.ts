@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, isExternalType, getExternalTypePackage, maybeRestoreGenerics } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -27,17 +27,6 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
             throw new Error(`Expected to have an entry: ${node.name}`)
         }
         return convertDeclToFeature(library, decl)
-    }
-
-    // TBD: use modules for external types handling
-    if (idl.isInterface(node)){
-        if (isExternalType(node, library)) {
-            const lib = getExternalTypePackage(node)!
-            const name = node.name
-            const dot = name.indexOf(".")
-            const feature = dot > 0 ? name.substring(0, dot) : name
-            return { feature: feature, module: lib}
-        }
     }
 
     let feature = convertDeclaration(featureNameConvertor, node)
@@ -90,7 +79,7 @@ export function collectDeclItself(
         const feature = convertDeclToFeature(library, node)
         emitter.addFeature(feature.feature, feature.module)
         if (options?.includeMaterializedInternals) {
-            if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library)) {
+            if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)
                 if (ns !== '') {
                     emitter.addFeature(ns.split('.')[0], feature.module)

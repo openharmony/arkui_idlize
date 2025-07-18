@@ -1,5 +1,5 @@
 import { DTSHookClass, DTSHookValue } from "#compat"
-import { ImportedHookValue } from "#external_lib"
+import { ImportedHookValue } from "@external.lib"
 
 export function customHookDTSHookClassMethodArg(receiver: DTSHookClass, value: DTSHookValue) {
     console.log(`[managed] [1] call hook_DTSHookClass_methodArg(receiver = ${receiver}, value count = ${value.count})`)

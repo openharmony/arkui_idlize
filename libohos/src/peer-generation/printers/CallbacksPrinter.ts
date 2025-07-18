@@ -148,7 +148,7 @@ class DeserializeCallbacksVisitor {
                 "KSerializerBuffer", "NativeBuffer", "runtimeType",
             ], "@koalaui/interop")
             if (this.writer.language === Language.TS) {
-                this.imports.addFeatures(["unsafeCast"], "@koalaui/interop")
+                this.imports.addFeatures(["unsafeCast"], "@koalaui/common")
             }
             if (this.libraryName === 'arkoala') {
                 this.imports.addFeature("CallbackTransformer", "./CallbackTransformer")

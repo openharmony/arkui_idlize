@@ -22,6 +22,7 @@ const T = {
 
 export const ModuleConfigurationSchema = D.object({
     name: D.string(),
+    external: D.maybe(D.boolean()),
     packages: T.stringArray(),
     useFoldersLayout: D.maybe(D.boolean()),
 })

@@ -28,7 +28,8 @@ import {
     isMaterializedType,
     isPrimitiveType,
     LayoutNodeRole,
-    PeerMethodSignature
+    PeerMethodSignature,
+    getExtractor
 } from '@idlizer/core'
 import {
     ExpressionStatement,
@@ -248,14 +249,17 @@ function constructMaterializedObject(writer: LanguageWriter, signature: MethodSi
     // once java is generated in the same way as typescript for materialized classes
     const decl = writer.resolver.resolveTypeReference(retType)
     if (!decl) {
-        throw new Error("Can not resolve materialized class")
+        throw new Error(`Can not resolve materialized class: ${retType.name}`)
     }
-    const internalClassName = getInternalClassName(writer.language == Language.CJ ? writer.getNodeName(decl) : idl.getQualifiedName(decl, "namespace.name")) // here
+    if (!idl.isInterface(decl)) {
+        throw new Error(`Materialized class ${decl.name}, kind: ${decl.kind} must be an IDL interface`)
+    }
+    const extractor = getExtractor(decl, writer.language, false)
     return [
         writer.makeAssign(
             `${resultName}`,
             retType,
-            writer.makeMethodCall(internalClassName, "fromPtr", [writer.makeString(peerPtrName)]),
+            writer.makeMethodCall(extractor.receiver!, extractor.method, [writer.makeString(peerPtrName)]),
             true),
     ]
     /*
