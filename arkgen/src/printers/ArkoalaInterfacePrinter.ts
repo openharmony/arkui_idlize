@@ -14,11 +14,29 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
+import { collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
+
+function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
+    const result = new Set<string>()
+    function go(int: idl.IDLInterface) {
+        int.inheritance.forEach(parent => {
+            const found = resolver.resolveTypeReference(parent)
+            if (found && idl.isInterface(found)) {
+                found.properties.forEach(prop => {
+                    result.add(prop.name)
+                })
+                go(found)
+            }
+        })
+    }
+
+    go(int)
+    return result
+}
 
 class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     protected printComponent(idlInterface: idl.IDLInterface): stringOrNone[] {
@@ -37,10 +55,29 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             .filter(it => !it.isCallSignature)
         const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
-        collapsedMethods.forEach(method =>
-            printer.writeMethodDeclaration(method.method.name, method.method.signature))
+        const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
+        collapsedMethods.forEach(method => {
+            if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has(method.method.name)) {
+                const nonPublic = new Method(
+                    method.method.name,
+                    method.method.signature,
+                    method.method.modifiers?.filter(it => it !== MethodModifier.PUBLIC)
+                )
+                printer.writeMethodImplementation(nonPublic, w => {
+                    w.writeStatement(w.makeThrowError(`Unimplemented method ${method.method.name}`))
+                })
+            } else {
+                printer.writeMethodDeclaration(method.method.name, method.method.signature)
+            }
+        })
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
-        printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
+        if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
+            printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
+                w.writeStatement(w.makeThrowError(`Unimplemented method attributeModifier`))
+            })
+        } else {
+            printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
+        }
         printer.popIndent()
         printer.print('}')
         const stylePrinter = this.peerLibrary.createLanguageWriter()
