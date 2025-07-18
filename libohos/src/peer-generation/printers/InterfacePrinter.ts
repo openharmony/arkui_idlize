@@ -216,6 +216,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                     names.add(param.name)
                     isOptional = isOptional || param.isOptional
                     types.push(param.type)
+                } else {
+                    isOptional = true
                 }
             }
             if (types.length === 0) {
@@ -229,10 +231,18 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 )
             )
         }
+        let returnType : idl.IDLType
+        if (methods.every(m => idl.isVoidType(m.returnType))) {
+            returnType = idl.IDLVoidType
+        } else {
+            returnType = collapseTypes(methods.map(m => 
+                idl.isVoidType(m.returnType) ? idl.IDLUndefinedType : m.returnType
+            ))
+        }
         return idl.createMethod(
             methodsName,
             parameters,
-            collapseTypes(methods.map(m => m.returnType)),
+            returnType,
             {
                 isStatic,
                 isAsync,
