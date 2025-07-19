@@ -37,6 +37,7 @@ import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
 import { collectPeersForFile } from "../PeersCollector";
 import { collapseIdlPeerMethods } from "./OverloadsPrinter";
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -148,6 +149,7 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
 
     private printGlobalScopeMethods() {
         this.library.globals.forEach(entry => {
+            entry.methods = entry.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
             const peerMethods = idlFreeMethodsGroupToLegacy(this.library, entry.methods)
             peerMethods.forEach(method => {
                 this.printPeerMethod(method, method.returnType)

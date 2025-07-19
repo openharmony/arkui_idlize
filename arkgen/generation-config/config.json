@@ -212,7 +212,9 @@
             "PageTransitionExitInterface",
             "CommonTransition",
             "wrapBuilder",
-            "ContentModifier"
+            "ContentModifier",
+            "CustomStyles",
+            "applyStyles"
         ],
         "ignoreEntry": [
             "Optional",
@@ -291,6 +293,10 @@
             "id": {
                 "hookName": "hookId",
                 "replaceImplementation": false
+            },
+            "stateStyles": {
+                "hookName": "hookStateStyleImpl",
+                "replaceImplementation": true
             }
         },
         "Checkbox": {
@@ -389,7 +395,9 @@
             "String",
             "Function",
             "Optional",
-            "RelativeIndexable"
+            "RelativeIndexable",
+            "StateStyles",
+            "Callback"
         ]
     },
     "dummy": {

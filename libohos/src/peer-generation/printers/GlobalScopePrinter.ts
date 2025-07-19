@@ -23,6 +23,7 @@ import { writePeerMethod } from "./PeersPrinter"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
 import { importTypeChecker } from "./TypeCheckPrinter"
+import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
@@ -37,6 +38,8 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     const staticWriter = library.createLanguageWriter() 
 
     const printed = library.globals.flatMap(scope => {
+
+        scope.methods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
 
         const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
         const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {

@@ -205,6 +205,9 @@ export class StructPrinter {
                 this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.printOptionalIfNeeded(forwardDeclarations, concreteDeclarations, writeToString, target, seenNames)
             } else {
+                if (this.ignoreTarget(target) && idl.isInterface(target)) {
+                    continue
+                }
                 if (!noBasicDecl && !idl.isPrimitiveType(target))
                     this.generateWriteToString(nameAssigned, target, writeToString, isPointer)
                 this.writeRuntimeType(target, targetType, idl.isOptionalType(target), writeToString)

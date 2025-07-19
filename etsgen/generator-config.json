@@ -4,7 +4,6 @@
         "arkui.component.interop"
     ],
     "DeletedDeclarations": [
-        "Callback",
         "double",
         "int",
         "WrappedBuilder",

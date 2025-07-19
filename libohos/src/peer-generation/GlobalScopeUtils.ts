@@ -16,6 +16,7 @@
 import { MaterializedClass, MaterializedMethod, Method, MethodModifier, NamedMethodSignature, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature } from "@idlizer/core";
 import { createInterface, createMethod, getFQName, getNamespacesPathFor, IDLInterface, IDLInterfaceSubkind, IDLMethod, maybeOptional } from "@idlizer/core/idl";
 import { groupOverloadsIDL } from "./printers/OverloadsPrinter";
+import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 export const GlobalScopePeerName = 'GlobalScope'
 
@@ -107,7 +108,7 @@ export function createGlobalScopeLegacy(library:PeerLibrary): MaterializedClass 
         [],
         [],
         undefined,
-        library.globals.flatMap(it => idlFreeMethodToLegacy(it.methods))
+        library.globals.flatMap(it => idlFreeMethodToLegacy(it.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))))
             .sort((a, b) => a.sig.name.localeCompare(b.sig.name)),
     )
     clazz.setGlobalScope()

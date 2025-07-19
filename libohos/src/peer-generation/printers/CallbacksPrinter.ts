@@ -54,12 +54,16 @@ function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): 
 export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
     const uniqueCallbacks: idl.IDLCallback[] = []
     const uniqueCallbacksNames = new Set<string>()
-    collectDeclarationTargets(library).filter(idl.isCallback).filter(it => !idl.hasTypeParameters(it)).forEach(it => {
-        if (!uniqueCallbacksNames.has(it.name)) {
-            uniqueCallbacksNames.add(it.name)
-            uniqueCallbacks.push(it)
-        }
-    })
+    collectDeclarationTargets(library)
+        .filter(idl.isCallback)
+        .filter(it => !idl.hasTypeParameters(it))
+        .filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+        .forEach(it => {
+            if (!uniqueCallbacksNames.has(it.name)) {
+                uniqueCallbacksNames.add(it.name)
+                uniqueCallbacks.push(it)
+            }
+        })
     return uniqueCallbacks.sort((a, b) => a.name.localeCompare(b.name))
 }
 

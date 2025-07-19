@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { collapseIdlPeerMethods, collectComponents, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, PrinterResult } from "@idlizer/libohos";
+import { collapseIdlPeerMethods, collectComponents, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile } from "@idlizer/libohos";
 import { generateAttributeModifierSignature } from './ComponentsPrinter';
 
@@ -171,15 +171,16 @@ class ModifiersFileVisitor {
     printModifiers(peer: PeerClass): PrinterResult[] {
         const printer = this.library.createLanguageWriter();
         const component = findComponentByName(this.library, peer.componentName)!
-        const isComponent = collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration
         const componentAttribute = component.attributeDeclaration;
         const parentSet = this.generateAttributeSetParentName(peer)
 
         // type attributeType = [PeerMethod, string[], idl.IDLType[], PeerMethod[]]
-        const attributeTypes: Map<string, AttributeType> = new Map
+        const attributeTypes: Map<string, AttributeType> = new Map()
 
         const attributeFilter = (name: string) => {
+            const hookRecord = peerGeneratorConfiguration().hooks.get(peer.originalClassName ?? '')?.get(name)
             return name.startsWith('set') && name.endsWith('Options')
+                || (hookRecord && hookRecord.replaceImplementation)
         }
 
         const noNeedPrintModifier = (attribute: AttributeType) => {

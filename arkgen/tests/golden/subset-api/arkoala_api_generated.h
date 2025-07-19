@@ -1412,8 +1412,6 @@ typedef struct Ark_SpringBackAction Ark_SpringBackAction;
 typedef struct Opt_SpringBackAction Opt_SpringBackAction;
 typedef struct Ark_StackOptions Ark_StackOptions;
 typedef struct Opt_StackOptions Opt_StackOptions;
-typedef struct Ark_StateStyles Ark_StateStyles;
-typedef struct Opt_StateStyles Opt_StateStyles;
 typedef struct Ark_StyledStringChangedListener Ark_StyledStringChangedListener;
 typedef struct Opt_StyledStringChangedListener Opt_StyledStringChangedListener;
 typedef struct Ark_SwiperAutoFill Ark_SwiperAutoFill;
@@ -8463,19 +8461,6 @@ typedef struct Opt_StackOptions {
     Ark_Tag tag;
     Ark_StackOptions value;
 } Opt_StackOptions;
-typedef struct Ark_StateStyles {
-    /* kind: Interface */
-    Opt_Object normal;
-    Opt_Object pressed;
-    Opt_Object disabled;
-    Opt_Object focused;
-    Opt_Object clicked;
-    Opt_Object selected;
-} Ark_StateStyles;
-typedef struct Opt_StateStyles {
-    Ark_Tag tag;
-    Ark_StateStyles value;
-} Opt_StateStyles;
 typedef struct Ark_StyledStringChangedListener {
     /* kind: Interface */
     Opt_Callback_StyledStringChangeValue_Boolean onWillChange;
@@ -12111,8 +12096,6 @@ typedef struct GENERATED_ArkUICommonMethodModifier {
                          const Opt_Boolean* isShow,
                          const Opt_CustomBuilder* builder,
                          const Opt_SheetOptions* options);
-    void (*setStateStyles)(Ark_NativePointer node,
-                           const Opt_StateStyles* value);
     void (*setRestoreId)(Ark_NativePointer node,
                          const Opt_Number* value);
     void (*setOnVisibleAreaChange)(Ark_NativePointer node,
