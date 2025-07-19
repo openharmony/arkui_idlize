@@ -46,7 +46,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
         if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
         const printer = this.peerLibrary.createLanguageWriter()
-        const declaredPrefix = this.isDeclared ? "declare " : ""
+        const declaredPrefix = this.isDeclared && this.peerLibrary.language !== Language.ARKTS ? "declare " : ""
         const superType = getSuper(idlInterface, this.peerLibrary)
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
