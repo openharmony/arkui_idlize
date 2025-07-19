@@ -224,7 +224,6 @@ export function generateArkoalaFromIdl(config: {
             peerLibrary,
             [
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
-                printTSTypeChecker,
                 printArkTSTypeChecker,
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }

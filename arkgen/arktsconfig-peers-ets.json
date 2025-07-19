@@ -10,17 +10,18 @@
             "@koalaui/common": ["../../../../../../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../../../../../../external/incremental/compat/src/arkts"],
             "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"],
+            "@koalaui/runtime/annotations": ["../../../../../../../../external/incremental/runtime/annotations"],
             "#handwritten": ["../../../../../generated/sig/arkoala-arkts/arkui/src/handwritten"],
             "@global.resource": ["../../../../../generated/modules/global/generated/arkts"],
-            "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"]
+            "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"],
+            "@koalaui/builderLambda": ["./annotations"]
         }
     },
     "include": [
         "out/ets-arkts-peers/generated/modules/global/generated/arkts/**/*.ts",
-        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/src/**/*.ts"
+        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/src/**/*.ets"
     ],
     "exclude": [
-        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/src/generated/ts/*.ts",
-        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
+        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/**/*"
     ]
 }

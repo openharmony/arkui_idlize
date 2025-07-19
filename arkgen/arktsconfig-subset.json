@@ -10,14 +10,15 @@
             "@koalaui/common": ["../../../../../../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../../../../../../external/incremental/compat/src/arkts"],
             "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"],
-            "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"]
+            "@koalaui/runtime/annotations": ["../../../../../../../../external/incremental/runtime/annotations"],
+            "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"],
+            "@koalaui/builderLambda": ["./annotations"]
         }
     },
     "include": [
-        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/**/*.ts"
+        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/**/*.ets"
     ],
     "exclude": [
-        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/generated/ts/*.ts",
         "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
     ]
 }
