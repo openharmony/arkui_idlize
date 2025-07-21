@@ -14,7 +14,7 @@
  */
 
 import { posix as path } from "path"
-import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generatorConfiguration } from "@idlizer/core"
+import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generatorConfiguration, isInCurrentModule } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core";
 
 export class ImportsCollector {
@@ -29,8 +29,7 @@ export class ImportsCollector {
     addFeature(feature: string | ImportFeature, module?: string, alias?: string) {
         if (typeof feature != "string")
             return this.addFeature(feature.feature, feature.module, feature.alias)
-        const isExternalType = generatorConfiguration().externalTypes.has(feature)
-        let normalizedModule = isExternalType ? module! : path.normalize(module!)
+        let normalizedModule = path.normalize(module!)
         // TODO processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
         // Should migrate to multimodules and then remove this hack
         if (normalizedModule.startsWith('@') && normalizedModule != module)
@@ -40,7 +39,7 @@ export class ImportsCollector {
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
             .find(it => it[0] !== normalizedModule && it[1].get(feature))
         // TBD: use modules for externa types
-        if (featureInAnotherModule && !isExternalType) {
+        if (featureInAnotherModule) {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
             const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map())
@@ -79,11 +78,18 @@ export class ImportsCollector {
         this.moduleToFeatures.forEach((features, module) => {
             if (path.relative(currentModule, module) === "")
                 return
-            if (!module.startsWith('@') && !module.startsWith('#')) {
+            // The global.resource package belongs top the outer module
+            // and its name does not start neither with '@' nor '#'
+            // Prefix '^' used for module name as a workaround
+            // as the information about the outer module is lost
+            if (!module.startsWith('@') && !module.startsWith('#') && !module.startsWith(`^`)) {
                 module = basePath ? path.resolve(basePath, module) : module
                 if (path.relative(basedModule, module) === "")
                     return
                 module = `./${path.relative(currentModuleDir, module)}`
+            }
+            if (module.startsWith(`^`)) {
+                module = module.substring(1)
             }
             const importNodes = Array.from(features.keys()).flatMap(feature => {
                 const aliases = Array.from(features.get(feature)!)
@@ -101,11 +107,15 @@ export class ImportsCollector {
         const currentModuleDir = path.dirname(povModule)
         if (path.relative(povModule, targetModule) === "")
             return undefined
-        if (!targetModule.startsWith('@') && !targetModule.startsWith('#')) {
+        // TBD: workaround with '^' prefix for outer modules
+        if (!targetModule.startsWith('@') && !targetModule.startsWith('#') && !targetModule.startsWith('^')) {
             targetModule = `./${path.relative(currentModuleDir, targetModule)}`
+        }
+        if (targetModule.startsWith(`^`)) {
+            targetModule = targetModule.substring(1)
         }
         return targetModule
     }
 }
 
-export type ImportFeature = { feature: string, alias?: string, module: string }
+export type ImportFeature = { feature: string, alias?: string, module: string,  role?: LayoutNodeRole }

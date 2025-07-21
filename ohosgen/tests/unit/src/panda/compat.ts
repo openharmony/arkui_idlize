@@ -69,6 +69,7 @@ export { testLength } from "../../generated/arkts"
 export { IDLCheckConstructor } from "../../generated/arkts"
 
 export { InternalModuleDataInterface } from "./modules/internal_lib"
+export { RenamedModuleDataInterface } from "./modules/newname_lib"
 export { DTSCheckInternalLib } from "../../generated/arkts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/arkts"

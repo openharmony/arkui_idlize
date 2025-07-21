@@ -980,6 +980,10 @@ OH_UNIT_DTSCheckInternalLibHandle DTSCheckInternalLib_constructImpl()
 void DTSCheckInternalLib_destructImpl(OH_UNIT_DTSCheckInternalLibHandle thisPtr)
 {
 }
+// Internal renamed library
+OH_Number DTSCheckInternalLib_checkRenamedModuleDataInterfaceImpl(OH_NativePointer thisPtr, const OH_UNIT_RenamedModuleDataInterface* renamedModuleType) {
+    return renamedModuleType->count;
+}
 
 // ExternalType
 class DTSCheckExternalLibPeer

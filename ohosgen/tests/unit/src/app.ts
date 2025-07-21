@@ -74,7 +74,7 @@ import {
 
 import { IDLCheckConstructor } from '#compat'
 
-import { InternalModuleDataInterface, DTSCheckInternalLib } from "#compat"
+import { InternalModuleDataInterface, RenamedModuleDataInterface, DTSCheckInternalLib } from "#compat"
 
 import { ImportedHookValue } from "#compat"
 import { DTSHookClass, DTSHookValue } from "#compat"
@@ -388,9 +388,13 @@ function checkHooks() {
 }
 
 function checkInternalLib() {
-  const internalDataInterface: InternalModuleDataInterface = { count: 31 }
   const check = new DTSCheckInternalLib()
+
+  const internalDataInterface: InternalModuleDataInterface = { count: 31 }
   assertEQ(31, check.checkInternalDataInterface(internalDataInterface))
+
+  const renamedModuleDataInterface: RenamedModuleDataInterface = { count: 32 }
+  assertEQ(32, check.checkRenamedModuleDataInterface(renamedModuleDataInterface))
 }
 
 function checkExternalTypes() {

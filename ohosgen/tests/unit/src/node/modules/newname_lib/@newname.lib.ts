@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
+
 import { SerializerBase, DeserializerBase } from "@koalaui/interop"
 
-export interface InternalModuleDataInterface {
+export interface RenamedModuleDataInterface {
     count: number;
 }
 
-export class InternalModuleDataInterface_serializer {
-    public static write(buffer: SerializerBase, value: InternalModuleDataInterface): void {
+export class RenamedModuleDataInterface_serializer {
+    public static write(buffer: SerializerBase, value: RenamedModuleDataInterface): void {
         let valueSerializer: SerializerBase = buffer
         const value_count = value.count
         valueSerializer.writeNumber(value_count)
     }
-    public static read(buffer: DeserializerBase): InternalModuleDataInterface {
+    public static read(buffer: DeserializerBase): RenamedModuleDataInterface {
         let valueDeserializer: DeserializerBase = buffer
         const count_result: number = (valueDeserializer.readNumber() as number)
-        let value: InternalModuleDataInterface = ({count: count_result} as InternalModuleDataInterface)
+        let value: RenamedModuleDataInterface = ({count: count_result} as RenamedModuleDataInterface)
         return value
     }
 }

@@ -62,13 +62,23 @@ abstract class CommonLayoutBase implements LayoutManagerStrategy {
     }
 }
 
-function getModuleImport(node: idl.IDLNode, role: LayoutNodeRole): string | undefined {
+function getModuleImport(node: idl.IDLEntry, role: LayoutNodeRole, lang: Language): string | undefined {
     if (role == LayoutNodeRole.GLOBAL) return undefined
     if (idl.isInCurrentModule(node)) return undefined
     if (idl.isInExternalModule(node)) {
         if (role == LayoutNodeRole.SERIALIZER) return undefined
     }
-    return `@${idl.getPackageName(node)}`
+    const conf = peerGeneratorConfiguration()
+    // TBD: use idl.mapLibraryName(...) when the Arkoala imports printing is fixed
+    // in ImportsCollector.printToLines(...)
+    // return idl.mapLibraryName(node, lang, conf?.libraryNameMapping)
+
+    const packageName = idl.getPackageName(node)
+    const renamedPackageName = conf.libraryNameMapping?.get(packageName)?.get(lang.name)
+    // Use '^' prefix as a workaround to distinguish outer module name from the current
+    // in the ImportsCollector.printToLines(...)
+    if (renamedPackageName) return `^${renamedPackageName}`
+    return `@${packageName}`
 }
 
 export class TsLayout extends CommonLayoutBase {
@@ -93,7 +103,7 @@ export class TsLayout extends CommonLayoutBase {
         //     return SyntheticModule
         // }
 
-        const moduleImport = getModuleImport(target.node, target.role)
+        const moduleImport = getModuleImport(target.node, target.role, Language.TS)
         if (moduleImport) return moduleImport
 
         if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
@@ -139,7 +149,7 @@ class ArkTsLayout extends CommonLayoutBase {
         }
         const packageName = idl.getPackageName(target.node)
 
-        const moduleImport = getModuleImport(target.node, target.role)
+        const moduleImport = getModuleImport(target.node, target.role, Language.ARKTS)
         if (moduleImport) return moduleImport
 
         let customPath: string | undefined

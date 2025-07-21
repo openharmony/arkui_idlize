@@ -378,8 +378,6 @@
             }
         }
     },
-    "externalTypes": {},
-    "externalPackages": [],
     "materialized": {
         "ignoreReturnTypes": [
             "Promise"
@@ -444,6 +442,7 @@
             "packages": [""]
         }
     },
+    "libraryNameMapping": { },
     "currentModulePackagesPaths": {
         "arkui.component": "./component"
     },

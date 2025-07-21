@@ -69,7 +69,8 @@ export {
 
 export { IDLCheckConstructor } from "../../generated/ts"
 
-export { InternalModuleDataInterface } from "./modules/internal_lib/@internal.lib"
+export { InternalModuleDataInterface } from "./modules/internal_lib"
+export { RenamedModuleDataInterface } from "./modules/newname_lib"
 export { DTSCheckInternalLib } from "../../generated/ts"
 
 export { DTSHookClass, DTSHookValue } from "../../generated/ts"

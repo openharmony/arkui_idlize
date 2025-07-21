@@ -737,6 +737,11 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
         .sort((a, b) => comparator.compare(a[key] as string, b[key] as string))
 }
 
+export function mapLibraryName(node: idl.IDLEntry, lang: Language, mapping?: Map<string, Map<string, string>>, prefix: string = "@"): string {
+    const packageName = idl.getPackageName(node)
+    return mapping?.get(packageName)?.get(lang.name) ?? `${prefix}${packageName}`
+}
+
 function getExtractorClass(target: idl.IDLInterface, toPtr: boolean = true): string {
     if (isInExternalModule(target)) {
         const qualifiedName = idl.getQualifiedName(target, "namespace.name")

@@ -40,8 +40,6 @@
         "replaceThrowErrorReturn": []
     },
     "hooks": {},
-    "externalTypes": {},
-    "externalPackages": [],
     "materialized": {
         "ignoreReturnTypes": []
     },
@@ -62,6 +60,7 @@
             "packages": [""]
         }
     },
+    "libraryNameMapping": { },
     "packageTransformation": {
         "internal.component.ets": "arkui.component"
     },

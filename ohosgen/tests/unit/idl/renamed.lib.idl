@@ -1,0 +1,6 @@
+package renamed.lib;
+
+interface RenamedModuleDataInterface {
+    attribute number count;
+};
+

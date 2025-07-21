@@ -1,6 +1,6 @@
 {
     "TypePrefix": "OH_",
-    "moduleName": "image",
+    "moduleName": "ohos.multimedia.image",
     "currentModuleExportedPackages": [
         "ohos.multimedia.image"
     ]

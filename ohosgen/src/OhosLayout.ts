@@ -1,6 +1,6 @@
 import * as idl from "@idlizer/core/idl"
 import * as path from "path"
-import { currentModule, getModuleFor, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { currentModule, mapLibraryName, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "@idlizer/libohos"
 
 function selectInternalsPath(): string {
@@ -65,7 +65,9 @@ export class OhosTsLayout implements LayoutManagerStrategy {
                 ? idl.getPackageClause(node).join("/") || 'synthetic'
                 : "@" + idl.getPackageName(node)
         }
-        return "@" + idl.getPackageName(node)
+
+        const conf = peerGeneratorConfiguration()
+        return mapLibraryName(node, this.library.language, conf?.libraryNameMapping)
     }
 
     protected selectPeer(node:idl.IDLEntry): string {

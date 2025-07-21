@@ -31,8 +31,6 @@
         "replaceThrowErrorReturn": []
     },
     "hooks": {},
-    "externalTypes": {},
-    "externalPackages": [],
     "materialized": {
         "ignoreReturnTypes": []
     },

@@ -1,6 +1,6 @@
 {
     "TypePrefix": "OH_",
-    "moduleName": "global",
+    "moduleName": "global.resource",
     "currentModuleExportedPackages": [
         "global.resource"
     ]

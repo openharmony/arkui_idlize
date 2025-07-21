@@ -93,18 +93,6 @@
                         }
                     }
                 },
-                "externalTypes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                },
-                "externalPackages": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
                 "moduleName": {
                     "type": "string"
                 },
@@ -394,8 +382,6 @@
                 "forceResource",
                 "forceContext",
                 "hooks",
-                "externalTypes",
-                "externalPackages",
                 "moduleName",
                 "modules",
                 "globalPackages",

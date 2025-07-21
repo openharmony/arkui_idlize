@@ -10,6 +10,7 @@
             "#compat": ["./src/node/compat.ts"],
             "#handwritten": ["./src/node/handwritten/"],
             "@internal.lib": ["./src/node/modules/internal_lib"],
+            "@newname.lib": ["./src/node/modules/newname_lib"],
             "@external.lib": ["./src/node/handwritten/external_lib.ts"],
             "@external.lib.sdk": ["./src/node/handwritten/external_lib_sdk.ts"]
         }

@@ -12,7 +12,7 @@
             "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"],
             "@koalaui/runtime/annotations": ["../../../../../../../../external/incremental/runtime/annotations"],
             "#handwritten": ["../../../../../generated/sig/arkoala-arkts/arkui/src/handwritten"],
-            "@global.resource": ["../../../../../generated/modules/global/generated/arkts"],
+            "global.resource": ["../../../../../generated/modules/global/generated/arkts"],
             "@ohos.multimedia.image": ["../../../../../generated/sig/arkoala-arkts/external/src"],
             "@koalaui/builderLambda": ["./annotations"]
         }

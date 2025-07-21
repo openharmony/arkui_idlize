@@ -8,6 +8,12 @@
                 "external.lib"
             ]
         },
+        "renamed.lib": {
+            "name": "renamed.lib",
+            "packages": [
+                "renamed.lib"
+            ]
+        },
         "internal_lib": {
             "name": "internal_lib",
             "packages": [
@@ -52,6 +58,12 @@
 
             ],
             "useFoldersLayout": true
+        }
+    },
+    "libraryNameMapping": {
+        "renamed.lib": {
+            "TS": "@newname.lib",
+            "ArkTS": "@newname.lib"
         }
     },
     "TypePrefix": "OH_",
@@ -117,10 +129,6 @@
             }
         }
     },
-    "externalTypes": {
-    },
-    "externalPackages": [
-    ],
     "materialized": {
         "ignoreReturnTypes": []
     },
