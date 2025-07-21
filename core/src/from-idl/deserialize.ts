@@ -652,7 +652,7 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
         if (e.name == "WebIDLParseError") {
             let tokens = (e as webidl2.WebIDLParseError).tokens
             let range = tokens.length > 0 ? rangeForToken(offsets, tokens[0]) : undefined
-            ParsingErrorMessage.throwDiagnosticMessage([{documentPath: fileName, range: range}], e.bareMessage)
+            ParsingErrorMessage.throwDiagnosticMessage([{documentPath: fileName, range, lines}], e.bareMessage)
         }
         UnknownErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
     }

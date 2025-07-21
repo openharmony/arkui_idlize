@@ -123,7 +123,7 @@ export class IdlProcessingPass<State> {
         this.afterAll?.(this.innerState)
     }
 
-    get state(): State {
+    get state(): Readonly<State> {
         return this.innerState
     }
 }
@@ -244,7 +244,7 @@ export class IdlProcessingManager {
     }
 
     newPass<State>(name: string, dependencies: IdlProcessingPass<any>[], stateMaker: () => State): IdlProcessingPass<State> {
-        let pass = new IdlProcessingPass<State>(name, [], stateMaker)
+        let pass = new IdlProcessingPass<State>(name, dependencies, stateMaker)
         if (this.passesByName.has(pass.name)) {
             throw new Error(`Pass "${pass.name}" uses duplicate pass name`)
         }

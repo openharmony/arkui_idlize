@@ -33,6 +33,8 @@ const InconsistentEnum = new idl.DiagnosticMessageEntry("error", 202, "Enum incl
 const WrongAttributeName = new idl.DiagnosticMessageEntry("error", 301, "Wrong attribute name")
 const WrongAttributePlacement = new idl.DiagnosticMessageEntry("error", 302, "Wrong attribute placement")
 
+const CyclicInheritance = new idl.DiagnosticMessageEntry("error", 400, "Cyclic inheritance")
+
 const enumPass = idlManager.newPass("enumPass", [], () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
 enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])
 enumPass.on({kind: idl.IDLKind.EnumMember}).after = (node, st) => {
@@ -48,7 +50,7 @@ enumPass.on({kind: idl.IDLKind.Enum}).after = (node, st) => {
     }
 }
 
-const resolvePass = idlManager.newPass("resolvePass", [], () => ({typeParameters: new Set<string>()}))
+const resolvePass = idlManager.newPass("resolvePass", [], () => ({typeParameters: new Set<string>(), resolvedNodes: new Map<IdlNodeAny, IdlNodeAny>()}))
 function extParam(param: string) {
     const extendsIdx = param.indexOf('extends')
     if (extendsIdx !== -1) {
@@ -72,7 +74,10 @@ resolvePass.on({kind: idl.IDLKind.ReferenceType}).before = (node, st) => {
     if (!node.name || node.name == "Object" || node.name == "__TOP__" || st.typeParameters.has(node.name)) {
         return
     }
-    if (!idlManager.peerlibrary.resolveTypeReference(node as idl.IDLReferenceType)) {
+    const resolved = idlManager.peerlibrary.resolveTypeReference(node as idl.IDLReferenceType)
+    if (resolved) {
+        st.resolvedNodes.set(node, resolved)
+    } else {
         UnresolvedReference.reportDiagnosticMessage(nodeLoc(node), `Unresolved reference "${node.name}"`)
     }
 }
@@ -146,6 +151,36 @@ attrPass.on({}).before = (node, st) => {
             WrongAttributeName.reportDiagnosticMessage(nameLoc(node), `Attribute "${attr.name}" not allowed on ${node.kind}`)
         }
     }
+}
+
+const inheritancePass = idlManager.newPass("inheritancePass", [resolvePass], ()=>({checked: new Set<IdlNodeAny>(), resolvedNodes: resolvePass.state.resolvedNodes}))
+inheritancePass.on({kind: idl.IDLKind.Interface}).before = (node, st) => {
+    const checking = new Set<IdlNodeAny>()
+    const findCycle: (cnode: IdlNodeAny) => boolean = (cnode) => {
+        if (st.checked.has(cnode)) {
+            return false
+        }
+        if (checking.has(cnode)) {
+            return true
+        }
+        checking.add(cnode)
+        let found = false
+        for (const inh of cnode.inheritance!) {
+            const resolved = st.resolvedNodes.get(inh)
+            if (!resolved) {
+                // Already handled as unresolved
+                continue
+            }
+            found = found || findCycle(resolved)
+        }
+        checking.delete(cnode)
+        if (found && !st.checked.has(cnode)) {
+            CyclicInheritance.reportDiagnosticMessage(nameLoc(cnode))
+        }
+        st.checked.add(cnode)
+        return found
+    }
+    findCycle(node)
 }
 
 const genPass = idlManager.newPass(".genPass", [enumPass], ()=>({lines: ([] as string[])}))
