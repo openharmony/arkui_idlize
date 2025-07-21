@@ -65,6 +65,7 @@ interface AttributeType {
     args: string[];
     argTypes: idl.IDLType[];
     isOptional: boolean;
+    overloadIndex: number; // For overloads, we can track which overload this is
 }
 
 class ModifiersFileVisitor {
@@ -104,12 +105,12 @@ class ModifiersFileVisitor {
         return `${name}Optimizer`
     }
 
-    generateFiledName(name: string, subfix: string = ''): string {
-        return `_${name}${subfix}_value`
+    generateFiledName(attribute: AttributeType, subfix: string = ''): string {
+        return `_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}value`
     }
 
-    generateFiledFlag(name: string, subfix: string = ''): string {
-        return `_${name}${subfix}_flag`
+    generateFiledFlag(attribute: AttributeType, subfix: string = ''): string {
+        return `_${attribute.method.method.name}_${attribute.overloadIndex.toString()}_${subfix}flag`
     }
 
     castResetType(writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
@@ -174,8 +175,8 @@ class ModifiersFileVisitor {
         const componentAttribute = component.attributeDeclaration;
         const parentSet = this.generateAttributeSetParentName(peer)
 
-        // type attributeType = [PeerMethod, string[], idl.IDLType[], PeerMethod[]]
-        const attributeTypes: Map<string, AttributeType> = new Map()
+        const attributeTypes: Array<AttributeType> = new Array
+        const overloadCounter: Map<string, number> = new Map()
 
         const attributeFilter = (name: string) => {
             const hookRecord = peerGeneratorConfiguration().hooks.get(peer.originalClassName ?? '')?.get(name)
@@ -200,7 +201,11 @@ class ModifiersFileVisitor {
                 if (!isOptionalType(type)) optional = false;
                 return type
             })
-            attributeTypes.set(method.method.name, { method: method, args: args, argTypes: types, isOptional: optional })
+            const functionName = method.method.name
+            let v = 0
+            if (overloadCounter.has(functionName)) v++
+            overloadCounter.set(functionName, v)
+            attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
         })
 
         printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
@@ -215,9 +220,9 @@ class ModifiersFileVisitor {
             )
 
             attributeTypes.forEach(attribute => {
-                writer.writeFieldDeclaration(this.generateFiledFlag(attribute.method.method.name), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
+                writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
                 attribute.argTypes.forEach((t, index) => {
-                    writer.writeFieldDeclaration(this.generateFiledName(attribute.method.method.name, index.toString()), t, [], true)
+                    writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], true)
                 })
             })
 
@@ -226,14 +231,14 @@ class ModifiersFileVisitor {
                 writer => {
                     if (parentSet) writer.print('super.applyModifierPatch(peer)');
                     const statements: IfStatement[] = []
-                    attributeTypes.forEach((attribute, name) => {
+                    attributeTypes.forEach((attribute) => {
                         // TODO: handle overload condition 
                         if (noNeedPrintModifier(attribute)) {
                             return;
                         }
-                        const expr = `this.${this.generateFiledFlag(attribute.method.method.name)} != AttributeUpdaterFlag.INITIAL`
+                        const expr = `this.${this.generateFiledFlag(attribute)} != AttributeUpdaterFlag.INITIAL`
                         const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                            return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute.method.method.name, index.toString())}`), attribute.method.method.signature.args[index])
+                            return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), attribute.method.method.signature.args[index])
                         })
                         const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
                             return this.castResetType(writer, attribute.method.method.signature, index)
@@ -243,24 +248,24 @@ class ModifiersFileVisitor {
                         const statement = writer.makeMethodCall('peer', methodName, params)
                         const resetStatement = writer.makeMethodCall('peer', methodName, resetParams)
                         const switchPrinter = this.library.createLanguageWriter();
-                        switchPrinter.print(`switch (this.${this.generateFiledFlag(attribute.method.method.name)}) {`)
+                        switchPrinter.print(`switch (this.${this.generateFiledFlag(attribute)}) {`)
                         switchPrinter.pushIndent()
                         switchPrinter.print(`case AttributeUpdaterFlag.UPDATE: {`)
                         switchPrinter.pushIndent()
                         switchPrinter.print(`${statement.asString()};`)
-                        switchPrinter.print(`this.${this.generateFiledFlag(attribute.method.method.name)} = AttributeUpdaterFlag.RESET;`)
+                        switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.RESET;`)
                         switchPrinter.print(`break;`)
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
                         switchPrinter.print(`case AttributeUpdaterFlag.SKIP: {`)
                         switchPrinter.pushIndent()
-                        switchPrinter.print(`this.${this.generateFiledFlag(attribute.method.method.name)} = AttributeUpdaterFlag.RESET;`)
+                        switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.RESET;`)
                         switchPrinter.print(`break;`)
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
                         switchPrinter.print(`default: {`)
                         switchPrinter.pushIndent()
-                        switchPrinter.print(`this.${this.generateFiledFlag(attribute.method.method.name)} = AttributeUpdaterFlag.INITIAL;`)
+                        switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
                         switchPrinter.print(`${resetStatement.asString()};`)
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
@@ -287,9 +292,9 @@ class ModifiersFileVisitor {
                     if (noNeedPrintModifier(attribute)) {
                         return;
                     }
-                    const expr = `modifier.${this.generateFiledFlag(attribute.method.method.name)} != AttributeUpdaterFlag.INITIAL`
+                    const expr = `modifier.${this.generateFiledFlag(attribute)} != AttributeUpdaterFlag.INITIAL`
                     const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                        return writer.makeString(`modifier.${this.generateFiledName(attribute.method.method.name, index.toString())}`)
+                        return writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`)
                     })
                     const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
                         return this.castResetType(writer, attribute.method.method.signature, index)
@@ -297,7 +302,7 @@ class ModifiersFileVisitor {
                     const statement = writer.makeMethodCall('this', attribute.method.method.name, params)
                     const resetStatement = writer.makeMethodCall('this', attribute.method.method.name, resetParams)
                     const switchPrinter = this.library.createLanguageWriter();
-                    switchPrinter.print(`switch (modifier.${this.generateFiledFlag(attribute.method.method.name)}) {`)
+                    switchPrinter.print(`switch (modifier.${this.generateFiledFlag(attribute)}) {`)
                     switchPrinter.pushIndent()
                     switchPrinter.print(`case AttributeUpdaterFlag.UPDATE:`)
                     switchPrinter.print(`case AttributeUpdaterFlag.SKIP: {`)
@@ -333,11 +338,11 @@ class ModifiersFileVisitor {
                         return;
                     }
                     const equalStatements: LanguageExpression[] = []
-                    equalStatements.push(writer.makeEquals([writer.makeString(`this.${this.generateFiledFlag(attribute.method.method.name)}`), writer.makeString(`AttributeUpdaterFlag.INITIAL`)]))
+                    equalStatements.push(writer.makeEquals([writer.makeString(`this.${this.generateFiledFlag(attribute)}`), writer.makeString(`AttributeUpdaterFlag.INITIAL`)]))
                     attribute.argTypes.forEach((t, index) => {
                         if (isPrimitiveType(t)) {
-                            console.log("isPrimitiveType", `this.${this.generateFiledName(attribute.method.method.name, index.toString())}`)
-                            equalStatements.push(writer.makeNaryOp("!==", [writer.makeString(`this.${this.generateFiledName(attribute.method.method.name, index.toString())}`), writer.makeString(attribute.args[index])]))
+                            console.log("isPrimitiveType", `this.${this.generateFiledName(attribute, index.toString())}`)
+                            equalStatements.push(writer.makeNaryOp("!==", [writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), writer.makeString(attribute.args[index])]))
                         } else {
                             equalStatements.push(writer.makeString('true'))
                         }
@@ -346,12 +351,12 @@ class ModifiersFileVisitor {
                     const equalNary = writer.makeNaryOp('||', equalStatements)
 
                     const thenStatements: LanguageStatement[] = []
-                    thenStatements.push(writer.makeAssign(`this.${this.generateFiledFlag(attribute.method.method.name)}`, undefined, writer.makeString(`AttributeUpdaterFlag.UPDATE`), false))
+                    thenStatements.push(writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.UPDATE`), false))
                     attribute.argTypes.forEach((t, index) => {
-                        thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute.method.method.name, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
+                        thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
                     })
                     const thenStatementBlock = writer.makeBlock(thenStatements)
-                    const elseStatementBlock = writer.makeBlock([writer.makeAssign(`this.${this.generateFiledFlag(attribute.method.method.name)}`, undefined, writer.makeString(`AttributeUpdaterFlag.SKIP`), false)])
+                    const elseStatementBlock = writer.makeBlock([writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.SKIP`), false)])
                     const condition = writer.makeCondition(equalNary, thenStatementBlock, elseStatementBlock)
                     writer.writeStatement(condition)
                     writer.writeStatement(writer.makeReturn(writer.makeThis()))
