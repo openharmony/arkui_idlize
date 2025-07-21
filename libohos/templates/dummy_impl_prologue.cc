@@ -896,9 +896,9 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         auto frameNode = AsNode(node);
         frameNode->callClickEvent(event);
     }
-    } 
+    } // EventEmulatorAccessor
     namespace ScreenshotServiceAccessor {
-        Ark_Boolean RequestScreenshotImpl(const Ark_String* name)
+        Ark_Boolean RequestScreenshotImpl(const Ark_String* target, const Ark_String* name)
         {
             if (!needGroupedLog(1)) {
                 return strcmp(name->chars, "XXX") == 0;
@@ -910,8 +910,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
 
             return strcmp(name->chars, "XXX") == 0;
         }
-    }    
-    // EventEmulatorAccessor
+    } // ScreenshotServiceAccessor
     namespace RenderServiceNodeAccessor {
         Ark_Int32 GetNodeIdImpl(const Ark_String* nodeId)
         {

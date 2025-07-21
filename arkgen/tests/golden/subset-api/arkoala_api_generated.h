@@ -14821,6 +14821,11 @@ typedef struct GENERATED_ArkUIScaleSymbolEffectAccessor {
                          const Opt_EffectDirection* direction);
 } GENERATED_ArkUIScaleSymbolEffectAccessor;
 
+typedef struct GENERATED_ArkUIScreenshotServiceAccessor {
+    Ark_Boolean (*requestScreenshot)(const Ark_String* target,
+                                     const Ark_String* name);
+} GENERATED_ArkUIScreenshotServiceAccessor;
+
 typedef struct GENERATED_ArkUIScrollableTargetInfoAccessor {
     void (*destroyPeer)(Ark_ScrollableTargetInfo peer);
     Ark_ScrollableTargetInfo (*construct)();
@@ -15380,6 +15385,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIRotationGestureEventAccessor* (*getRotationGestureEventAccessor)();
     const GENERATED_ArkUIRotationGestureInterfaceAccessor* (*getRotationGestureInterfaceAccessor)();
     const GENERATED_ArkUIScaleSymbolEffectAccessor* (*getScaleSymbolEffectAccessor)();
+    const GENERATED_ArkUIScreenshotServiceAccessor* (*getScreenshotServiceAccessor)();
     const GENERATED_ArkUIScrollableTargetInfoAccessor* (*getScrollableTargetInfoAccessor)();
     const GENERATED_ArkUIScrollerAccessor* (*getScrollerAccessor)();
     const GENERATED_ArkUISearchControllerAccessor* (*getSearchControllerAccessor)();

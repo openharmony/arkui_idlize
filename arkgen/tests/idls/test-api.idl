@@ -12,3 +12,8 @@ interface EventEmulator {
 interface RenderServiceNode {
   static i32 getNodeId(String nodeId);
 };
+
+[Entity=Class]
+interface ScreenshotService {
+  static boolean requestScreenshot(String target, String name);
+};

@@ -15,5 +15,5 @@ interface RenderServiceNode {
 
 [Entity=Class]
 interface ScreenshotService {
-  static boolean requestScreenshot(String name);
+  static boolean requestScreenshot(String target, String name);
 };
