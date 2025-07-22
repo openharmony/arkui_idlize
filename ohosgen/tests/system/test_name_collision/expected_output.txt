@@ -1,0 +1,7 @@
+[loadLibraries] Registered TEST_NAME_COLLISIONNativeModule as InteropNativeModule
+Starting demo: test_name_collision
+[loadLibraries] Loading InteropNativeModule [TEST_NAME_COLLISIONNativeModule]
+[loadLibraries] Loading TEST_NAME_COLLISIONNativeModule [TEST_NAME_COLLISIONNativeModule]
+resize(8x4)
+image_resize(64.8x48.3)
+window_resize({.tag=102, .i32=480}x{.tag=102, .i32=320})

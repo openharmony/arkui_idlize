@@ -1,0 +1,12 @@
+package test_name_collision;
+
+namespace window {
+    interface Size {
+        attribute number height;
+        attribute number width;
+    };
+    interface Sized {
+        attribute Size size;
+    };
+    void resize(Size size);
+};

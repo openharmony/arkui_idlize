@@ -23,19 +23,13 @@ import {
     Method,
     MethodSignature,
     NamedMethodSignature,
-    isInIdlize,
     isInIdlizeInternal,
     isInCurrentModule,
     LayoutNodeRole,
-    PeerClass,
-    InterfaceConvertor,
-    CJLanguageWriter,
-    PeerMethod,
     isInIdlizeStdlib,
     removePoints,
     getOrPut,
     zipStrip,
-    zipMany,
     collapseTypes,
     getSuper,
     isInplacedGeneric,
@@ -52,7 +46,6 @@ import { collectJavaImports } from './lang/JavaIdlUtils'
 import { printJavaImports } from './lang/JavaPrinters'
 import { collectAllProperties } from './StructPrinter'
 import { TargetFile } from './TargetFile'
-import { collapseSameMethodsIDL } from './OverloadsPrinter'
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }
@@ -61,7 +54,6 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
 
     constructor(
         protected readonly writer: LanguageWriter,
-        protected readonly seenInterfaceNames: Set<string>,
         readonly peerLibrary: PeerLibrary,
         readonly isDeclared: boolean,
     ) { }
@@ -104,12 +96,6 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     convertInterface(node: idl.IDLInterface) {
-        // FQ_BUG: use fq names instead
-        if (this.seenInterfaceNames.has(node.name)) {
-            console.log(`interface name: '${node.name}' already exists`)
-            return;
-        }
-        this.seenInterfaceNames.add(node.name)
         let result: string | undefined
         if (this.isCallback(node)) {
             result = this.printCallback(node,
@@ -591,8 +577,8 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
             || isInplacedGeneric(entry)
     }
 
-    protected getDeclConvertor(writer:LanguageWriter, seenNames:Set<string>, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
-        return new TSDeclConvertor(writer, seenNames, library, isDeclared)
+    protected getDeclConvertor(writer:LanguageWriter, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
+        return new TSDeclConvertor(writer, library, isDeclared)
     }
 
     printInterfaces(): PrinterResult[] {
@@ -639,7 +625,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
                     .forEach(it => imports.addFeature(it.feature, it.module))
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const printVisitor = this.getDeclConvertor(writer, seenNames, this.peerLibrary, false)
+                const printVisitor = this.getDeclConvertor(writer, this.peerLibrary, false)
                 convertDeclaration(printVisitor, entry)
 
                 result.push({
@@ -1070,8 +1056,8 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
             || isInplacedGeneric(entry)
     }
 
-    protected getDeclConvertor(writer:LanguageWriter, seenNames:Set<string>, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
-        return new ArkTSDeclConvertor(writer, seenNames, library, isDeclared)
+    protected getDeclConvertor(writer:LanguageWriter, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
+        return new ArkTSDeclConvertor(writer, library, isDeclared)
     }
 
     printInterfaces(): PrinterResult[] {
@@ -1121,7 +1107,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                     .forEach(it => imports.addFeature(it.feature, it.module))
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const typeConvertor = this.getDeclConvertor(writer, seenNames, this.peerLibrary, this.isDeclared)
+                const typeConvertor = this.getDeclConvertor(writer, this.peerLibrary, this.isDeclared)
                 convertDeclaration(typeConvertor, entry)
 
                 result.push({

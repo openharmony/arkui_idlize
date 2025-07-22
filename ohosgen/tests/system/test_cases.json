@@ -9,6 +9,7 @@
     { "name": "test_modules_multilevel_property", "inputType": "dts" },
     { "name": "test_modules_simple", "inputType": "dts" },
     { "name": "test_modules_struct", "inputType": "dts", "ignores": true },
+    { "name": "test_name_collision", "inputType": "idl" },
     { "name": "test_package", "inputType": "idl" },
     { "name": "test_promise", "inputType": "dts", "ignores": true },
     { "name": "test_record", "inputType": "idl", "ignores": true },

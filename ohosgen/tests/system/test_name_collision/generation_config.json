@@ -1,0 +1,10 @@
+{
+    "moduleName": "test_name_collision",
+    "modules": {
+        "test_name_collision": {
+            "name": "test_name_collision",
+            "packages": ["test_name_collision"],
+            "useFoldersLayout": true
+        }
+    }
+}

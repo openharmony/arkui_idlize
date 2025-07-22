@@ -1,0 +1,24 @@
+package test_name_collision;
+
+interface Size {
+    attribute i32 height;
+    attribute i32 width;
+};
+interface Sized {
+    attribute Size size;
+};
+
+void resize(Size size);
+void resizeImage(image.Size size);
+void resizeWindow(window.Size size);
+
+namespace image {
+    interface Size {
+        attribute f32 height;
+        attribute f32 width;
+    };
+    interface Sized {
+        attribute Size size;
+    };
+    void resize(Size size);
+};

@@ -106,12 +106,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         return printer.getOutput().concat(stylePrinter.getOutput())
     }
     convertInterface(node: idl.IDLInterface) {
-        if (this.seenInterfaceNames.has(node.name)) {
-            console.log(`interface name: '${node.name}' already exists`)
-            return
-        }
         if (isComponentDeclaration(this.peerLibrary, node)) {
-            this.seenInterfaceNames.add(node.name)
             this.writer.writeLines(this.printComponent(node).join("\n"))
             return
         }
@@ -120,8 +115,8 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
 }
 
 class ArkoalaTSInterfacesVisitor extends TSInterfacesVisitor {
-    protected override getDeclConvertor(writer: LanguageWriter, seenNames: Set<string>, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
-        return new ArkoalaTSDeclConvertor(writer, seenNames, library, isDeclared)
+    protected override getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
+        return new ArkoalaTSDeclConvertor(writer, library, isDeclared)
     }
 }
 
@@ -136,8 +131,8 @@ class ArkoalaArkTSDeclConvertor extends ArkoalaTSDeclConvertor {
 }
 
 class ArkoalaArkTSInterfacesVisitor extends ArkTSInterfacesVisitor {
-    protected override getDeclConvertor(writer: LanguageWriter, seenNames: Set<string>, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
-        return new ArkoalaArkTSDeclConvertor(writer, seenNames, library, isDeclared)
+    protected override getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
+        return new ArkoalaArkTSDeclConvertor(writer, library, isDeclared)
     }
 }
 
