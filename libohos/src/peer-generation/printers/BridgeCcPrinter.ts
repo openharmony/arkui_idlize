@@ -87,7 +87,7 @@ export class BridgeCcVisitor {
     private generateApiArgument(argConvertor: ArgConvertor): string {
         const nameConverter = this.library.createTypeNameConvertor(Language.CPP)
         if (argConvertor.useArray) {
-            const valueName = `${this.escapeKeyword(argConvertor.param)}_value`
+            const valueName = `${this.escapeKeyword(argConvertor.param)}ValueTemp`
             return argConvertor.isPointerType()
                 ? `static_cast<${nameConverter.convert(argConvertor.nativeType())}*>(&${valueName})`
                 : valueName
@@ -176,8 +176,8 @@ export class BridgeCcVisitor {
                     this.generatedApi.print(`DeserializerBase thisDeserializer(thisArray, thisLength);`)
                     deserializerCreated = true
                 }
-                let result = `${it.param}_value`
-                this.generatedApi.writeStatement(it.convertorDeserialize(`${result}_buf`, `thisDeserializer`, (expr) => {
+                let result = `${it.param}ValueTemp`
+                this.generatedApi.writeStatement(it.convertorDeserialize(`${result}TmpBuf`, `thisDeserializer`, (expr) => {
                     return new ExpressionStatement(this.generatedApi.makeString(
                         `${this.generatedApi.getNodeName(it.nativeType())} ${result} = ${expr.asString()};`
                     ))

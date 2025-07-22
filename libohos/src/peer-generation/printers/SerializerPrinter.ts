@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule } from '@idlizer/core'
+import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize } from '@idlizer/core'
 import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -89,7 +89,7 @@ class SerializerPrinter {
             this.declareSerializer(writer)
         }
         properties.forEach(it => {
-            let field = `value_${it.name}`
+            let field = `valueHolderFor${capitalize(it.name)}`
             const type = flattenUnionType(this.library, it.type)
             let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
             // import collection!!!
@@ -190,15 +190,15 @@ class SerializerPrinter {
                     }
                 }
                 let typeConvertor = this.library.typeConvertor(`value`, type, it.isOptional)
-                writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}_buf`, `valueDeserializer`, (expr) => {
+                writer.writeStatement(typeConvertor.convertorDeserialize(`${it.name}TmpBuf`, `valueDeserializer`, (expr) => {
                     if (writer.language === Language.CPP)
                         return writer.makeAssign(`value.${writer.escapeKeyword(it.name)}`, undefined, expr, false)
-                    return writer.makeAssign(`${it.name}_result`, idl.maybeOptional(it.type, it.isOptional), expr, true, true)
+                    return writer.makeAssign(`${it.name}TmpResult`, idl.maybeOptional(it.type, it.isOptional), expr, true, true)
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
                 const propsAssignees = properties.map(it => {
-                    return `${it.name}: ${it.name}_result`
+                    return `${it.name}: ${it.name}TmpResult`
                 })
                 if (writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
@@ -228,7 +228,7 @@ class SerializerPrinter {
             if (writer.language === Language.CPP) {
                 let typeConvertor = this.library.declarationConvertor("value", idl.createReferenceType(target), target)
                 this.declareDeserializer(writer)
-                writer.writeStatement(typeConvertor.convertorDeserialize(`value_buf`, `valueDeserializer`, (expr) => {
+                writer.writeStatement(typeConvertor.convertorDeserialize(`valueBuffer`, `valueDeserializer`, (expr) => {
                    return writer.makeAssign(`value`, undefined, expr, false)
                 }, writer))
             }

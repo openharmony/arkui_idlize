@@ -214,7 +214,7 @@ class DeserializeCallbacksVisitor {
             const argsNames = []
             for (const param of callback.parameters) {
                 const convertor = this.library.typeConvertor(param.name, param.type!, param.isOptional)
-                writer.writeStatement(convertor.convertorDeserialize(`${param.name}_buf`, `thisDeserializer`, (expr) => {
+                writer.writeStatement(convertor.convertorDeserialize(`${param.name}TmpBuf`, `thisDeserializer`, (expr) => {
                     const maybeOptionalType = idl.maybeOptional(param.type!, param.isOptional)
                     return writer.makeAssign(param.name, maybeOptionalType, expr, true, false)
                 }, writer))
@@ -225,8 +225,8 @@ class DeserializeCallbacksVisitor {
                 const continuationReference = this.library.createContinuationCallbackReference(callback.returnType)
                 const convertor = this.library.typeConvertor(`continuation`, continuationReference)
                 if (convertor instanceof CallbackConvertor) {
-                    writer.writeStatement(convertor.convertorDeserialize(`_continuation_buf`, `thisDeserializer`, (expr) => {
-                        return writer.makeAssign(`_continuation`, continuationReference, expr, true, false)
+                    writer.writeStatement(convertor.convertorDeserialize(`continuationBuffer`, `thisDeserializer`, (expr) => {
+                        return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
                     }, writer, true))
                 }
             }
@@ -236,7 +236,7 @@ class DeserializeCallbacksVisitor {
                     ...argsNames,
                 ]
                 if (hasContinuation)
-                    cppArgsNames.push(`_continuation`)
+                    cppArgsNames.push(`continuationResult`)
                 writer.writeExpressionStatement(writer.makeFunctionCall(callName, cppArgsNames.map(it => writer.makeString(it))))
             } else {
                 let callExpression = writer.makeFunctionCall(callName, argsNames.map(it => writer.makeString(writer.escapeKeyword(it))))
@@ -245,7 +245,7 @@ class DeserializeCallbacksVisitor {
                     // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21332
                     const callResultRef = `${callName}Result`
                     writer.writeStatement(writer.makeAssign(callResultRef, undefined, callExpression, true, true))
-                    callExpression = writer.makeFunctionCall(`_continuation`, [writer.makeString(callResultRef)])
+                    callExpression = writer.makeFunctionCall(`continuationResult`, [writer.makeString(callResultRef)])
                 }
                 writer.writeExpressionStatement(callExpression)
             }
@@ -253,8 +253,8 @@ class DeserializeCallbacksVisitor {
         if (this.writer.language === Language.CPP) {
             let signatureSync = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('VMContext'), idl.IDLSerializerBuffer, idl.IDLI32Type], [vmContext, `thisArray`, `thisLength`])
             this.writer.writeFunctionImplementation(`deserializeAndCallSync${callback.name}`, signatureSync, writer => {
-                const resourceIdName = `_resourceId`
-                const callName = `_callSync`
+                const resourceIdName = `resourceId`
+                const callName = `callSyncMethod`
                 writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`DeserializerBase`),
                         writer.makeClassInit(idl.createReferenceType('DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
                         true, false))
@@ -269,7 +269,7 @@ class DeserializeCallbacksVisitor {
                 const argsNames = []
                 for (const param of callback.parameters) {
                     const convertor = this.library.typeConvertor(param.name, param.type!, param.isOptional)
-                    writer.writeStatement(convertor.convertorDeserialize(`${param.name}_buf`, `thisDeserializer`, (expr) => {
+                    writer.writeStatement(convertor.convertorDeserialize(`${param.name}TmpBuf`, `thisDeserializer`, (expr) => {
                         const maybeOptionalType = idl.maybeOptional(param.type!, param.isOptional)
                         return writer.makeAssign(param.name, maybeOptionalType, expr, true, false)
                     }, writer))
@@ -279,8 +279,8 @@ class DeserializeCallbacksVisitor {
                 if (hasContinuation) {
                     const continuationReference = this.library.createContinuationCallbackReference(callback.returnType)
                     const convertor = this.library.typeConvertor(`continuation`, continuationReference)
-                    writer.writeStatement(convertor.convertorDeserialize(`_continuation_buf`, `thisDeserializer`, (expr) => {
-                        return writer.makeAssign(`_continuation`, continuationReference, expr, true, false)
+                    writer.writeStatement(convertor.convertorDeserialize(`continuationTmpBuf`, `thisDeserializer`, (expr) => {
+                        return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
                     }, writer))
                 }
                 const cppArgsNames = [
@@ -289,7 +289,7 @@ class DeserializeCallbacksVisitor {
                     ...argsNames,
                 ]
                 if (hasContinuation)
-                    cppArgsNames.push(`_continuation`)
+                    cppArgsNames.push(`continuationResult`)
                 writer.writeExpressionStatement(writer.makeFunctionCall(callName, cppArgsNames.map(it => writer.makeString(it))))
             })
         }
@@ -475,21 +475,21 @@ class ManagedCallCallbackVisitor {
             ["resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}`, signature, writer => {
-            writer.writeStatement(writer.makeAssign(`_buffer`, idl.createReferenceType(`CallbackBuffer`),
+            writer.writeStatement(writer.makeAssign(`callbackBuffer`, idl.createReferenceType(`CallbackBuffer`),
                 writer.makeString(`{{}, {}}`), true, false))
-            writer.writeStatement(writer.makeAssign(`_callbackResourceSelf`, idl.createReferenceType(`CallbackResource`),
+            writer.writeStatement(writer.makeAssign(`callbackResourceSelf`, idl.createReferenceType(`CallbackResource`),
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
-            writer.writeExpressionStatement(writer.makeMethodCall(`_buffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&_callbackResourceSelf`)]))
+            writer.writeExpressionStatement(writer.makeMethodCall(`callbackBuffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&callbackResourceSelf`)]))
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
-                writer.makeString(`SerializerBase((KSerializerBuffer)&(_buffer.buffer), sizeof(_buffer.buffer), &(_buffer.resourceHolder))`), true, false))
+                writer.makeString(`SerializerBase((KSerializerBuffer)&(callbackBuffer.buffer), sizeof(callbackBuffer.buffer), &(callbackBuffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
-                convertor.holdResource(`arg${i}Resource`, '_buffer.resourceHolder', writer)
+                convertor.holdResource(`arg${i}Resource`, 'callbackBuffer.resourceHolder', writer)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
-            writer.print(`enqueueCallback(&_buffer);`)
+            writer.print(`enqueueCallback(&callbackBuffer);`)
         })
     }
 
@@ -505,16 +505,16 @@ class ManagedCallCallbackVisitor {
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
-            writer.print('uint8_t _buffer[4096];')
+            writer.print('uint8_t dataBuffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
-                writer.makeString(`SerializerBase((KSerializerBuffer)&_buffer, sizeof(_buffer), nullptr)`), true, false))
+                writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 convertor.convertorSerialize(`args`, argsNames[i], writer)
             }
-            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(_buffer), _buffer);`)
+            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(dataBuffer), dataBuffer);`)
         })
     }
 
