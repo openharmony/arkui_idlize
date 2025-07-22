@@ -14,8 +14,10 @@
  */
 
 import {
+    capitalize,
     createEmptyReferenceResolver,
     createParameter,
+    createProperty,
     createReferenceType,
     FieldModifier,
     IDLFile,
@@ -23,18 +25,21 @@ import {
     IDLMethod,
     IDLParameter,
     IDLPointerType,
+    IDLProperty,
     IDLType,
     IDLUndefinedType,
     IDLVoidType,
     IndentedPrinter,
+    isProperty,
     LanguageExpression,
+    LanguageStatement,
     Method,
     MethodModifier,
     MethodSignature,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { flattenType, makeMethod, nodeNamespace, nodeType, parent } from "../../utils/idl"
+import { flattenType, makeMethod, nodeNamespace, nodeType, parent, flatParents } from "../../utils/idl"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import {
     isAbstract,
@@ -56,6 +61,8 @@ import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/p
 import { BindingReturnValueTypeConvertor } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { Config } from "../../general/Config"
+import { ExtraParameter } from "../../options/ExtraParameters"
+import assert from "node:assert"
 
 export class PeerPrinter extends SingleFilePrinter {
     protected printInterface(node: IDLInterface): void {
@@ -270,18 +277,108 @@ export class PeerPrinter extends SingleFilePrinter {
         return this.bindingReturnValueTypeConvertor.convertType(node.returnType)(this.writer, nativeCall)
     }
 
+    public static resolveProperty(
+        property: ExtraParameter,
+        iface: IDLInterface,
+        idl: IDLFile
+    ): [IDLMethod | IDLProperty, IDLMethod | IDLProperty] {
+        const parents = flatParents(iface, idl)
+        const methods = parents.flatMap(p => p.methods)
+        const props = parents.flatMap(p => p.properties)
+        const getters = methods.filter(isGetter)
+        const regulars = methods.filter(isRegular)
+
+        if (property.name === 'modifierFlags') { // TODO: handwritten AstNode property
+            const method = createProperty(property.name, createReferenceType('Es2pandaModifierFlags'))
+            return [method, method]
+        }
+
+        const removePrefix = (name: string): string => {
+            for (const prefix of ["is", "can", "get"]) {
+                if (name.startsWith(prefix)) {
+                    return name.slice(prefix.length)
+                }
+            }
+            return name
+        }
+
+        const getterName = property.getter ?? property.name
+        const setterName = property.setter ?? `set${capitalize(removePrefix(property.name))}`
+
+        // For now, properties are only synthetically generated in filters and they are uncapitalized.
+        const index0 = props.findIndex((value, index) => peerMethod(value.name) === getterName)
+        const index1 = getters.findIndex((value, index) => peerMethod(value.name) === getterName)
+        const index2 = regulars.findIndex((value, index) => peerMethod(value.name) === setterName)
+
+        assert((index0 >= 0 || index1 >= 0), `Cannot find getter '${getterName}' for parameter ${property.name}!`)
+        assert(index2 >= 0, `Cannot find setter '${setterName}' for parameter ${property.name}!`)
+
+        // TODO: validate types of getter and setter
+        return [
+            index0 >= 0 ? props.at(index0)! : getters.at(index1)!,
+            regulars.at(index2)!
+        ]
+    }
+
+    public static makeExtraParameter(
+        param: ExtraParameter,
+        iface: IDLInterface,
+        idl: IDLFile
+    ): IDLParameter {
+        const type = (m: IDLMethod | IDLProperty) => 'type' in m ? m.type : m.returnType
+        const [getter, setter] = this.resolveProperty(param, iface, idl)
+
+        return createParameter(param.name, flattenType(type(getter)), param.optional)
+    }
+
+    public static makeExtraParameters(iface: IDLInterface, config: Config, idl: IDLFile): IDLParameter[] {
+        return config.parameters.getParameters(iface.name)
+            .map(param => this.makeExtraParameter(param, iface, idl))
+    }
+
+    public static makeExtraStatement(
+        prop: ExtraParameter,
+        methods: [IDLMethod | IDLProperty, IDLMethod | IDLProperty],
+        varNames: [string, string],
+        writer: TSLanguageWriter
+    ) : LanguageStatement {
+        const [getter, setter] = methods
+        //console.log(`${prop.name} => ${getter?.name} ${setter?.name}`);
+
+        const str = (n: string) => writer.makeString(n)
+        const type = 'parameters' in setter ? setter.parameters.at(0)?.type : undefined
+        const isParam = 'optional' in prop
+
+        const [src, dst] = varNames
+        const getExpr = str(isParam ? prop.name : `${src}.${peerMethod(getter.name)}`)
+        const assignStmt = isProperty(setter) ?
+            writer.makeAssign(`${dst}.${peerMethod(setter.name)}`, undefined, getExpr, false) :
+            writer.makeStatement(
+                writer.makeMethodCall(dst, peerMethod(setter.name), type !== undefined ? [getExpr] : [])
+            )
+
+        const needCondition = (isParam && prop.optional) || // is optional parameter
+            //(type !== undefined && !isOptionalType(type)) || // setter has non-nullable type
+            (type === undefined && !isProperty(setter)) // setter with no arguments
+
+        return needCondition ? writer.makeCondition(getExpr, writer.makeBlock([assignStmt])) : assignStmt
+    }
+
     private printCreateOrUpdate(node: IDLMethod): void {
+        const extraParameters = PeerPrinter.makeExtraParameters(this.node, this.config, this.idl)
         this.writer.writeMethodImplementation(
             makeMethod(
                 PeersConstructions.createOrUpdate(
                     this.node.name,
                     node.name
                 ),
-                node.parameters.map(it => createParameter(it.name, flattenType(it.type))),
+                node.parameters
+                    .map(it => createParameter(it.name, flattenType(it.type)))
+                    .concat(extraParameters),
                 flattenType(node.returnType),
                 [MethodModifier.STATIC]
             ),
-            () => {
+            (writer: TSLanguageWriter) => {
                 const newExpr = this.writer.makeNewObject(
                     this.node.name, [
                         this.writer.makeFunctionCall(
@@ -297,12 +394,24 @@ export class PeerPrinter extends SingleFilePrinter {
                     ]
                 )
 
+                const varName = 'result'
+                const makeStmt = (property: ExtraParameter) =>
+                    PeerPrinter.makeExtraStatement(
+                        property,
+                        PeerPrinter.resolveProperty(property, this.node, this.idl),
+                        ['should_not_be_here', varName],
+                        this.writer
+                    )
+
+                const extraStatements = this.config.parameters.getParameters(this.node.name)
+                    .map(makeStmt)
+
                 if (isReal(this.node)) {
-                    const varName = 'result'
                     this.writer.writeStatements(
                         this.writer.makeAssign(
                             varName, createReferenceType(this.node.name), newExpr, true
                         ),
+                        ...extraStatements,
                         this.writer.makeStatement(
                             this.writer.makeMethodCall(varName, PeersConstructions.setChildrenParentPtrMethod, [])
                         ),

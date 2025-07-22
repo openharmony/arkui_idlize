@@ -133,7 +133,7 @@ export class DynamicEmitter {
     )
 
     private factoryPrinter = new SingleFileEmitter(
-        (idl: IDLFile) => new FactoryPrinter(idl).print(),
+        (idl: IDLFile) => new FactoryPrinter(this.config, idl).print(),
         `libarkts/src/generated/factory.ts`,
         `factory.ts`,
         true

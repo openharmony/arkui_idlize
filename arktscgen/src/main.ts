@@ -22,6 +22,7 @@ import { StaticEmitter } from "./emitters/StaticEmitter"
 import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"
 import { CodeFragmentOptions } from "./options/CodeFragmentOptions"
+import { ExtraParameters } from "./options/ExtraParameters"
 
 const pandaSdkIdlFilePath = `ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl`
 
@@ -48,6 +49,7 @@ function main() {
             new NonNullableOptions(options.optionsFile),
             new IrHackOptions(options.optionsFile),
             new CodeFragmentOptions(options.optionsFile),
+            new ExtraParameters(options.optionsFile),
         ),
         options.debug
     ).emit()

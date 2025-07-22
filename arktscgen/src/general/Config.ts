@@ -16,6 +16,7 @@
 import { IgnoreOptions, IrHackOptions } from "../options/IgnoreOptions"
 import { NonNullableOptions } from "../options/NonNullableOptions"
 import { CodeFragmentOptions } from "../options/CodeFragmentOptions";
+import { ExtraParameters } from "../options/ExtraParameters";
 
 export class Config {
     constructor(
@@ -23,6 +24,7 @@ export class Config {
         public nonNullable: NonNullableOptions,
         public irHack: IrHackOptions,
         public fragments: CodeFragmentOptions,
+        public parameters: ExtraParameters,
     ) {}
 
     static get createPrefix(): string {

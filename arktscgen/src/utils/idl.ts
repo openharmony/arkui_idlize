@@ -23,6 +23,7 @@ import {
     IDLContainerType,
     IDLContainerUtils,
     IDLExtendedAttribute,
+    IDLFile,
     IDLInterface,
     IDLMethod,
     IDLNamespace,
@@ -34,16 +35,20 @@ import {
     IDLType,
     IndentedPrinter,
     isContainerType,
+    isInterface,
     isPrimitiveType,
+    isReferenceType,
     Method,
     MethodModifier,
     MethodSignature,
+    resolveNamedNode,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import * as idl from "@idlizer/core"
 import { Config } from "../general/Config"
 import { mangleIfKeyword } from "../general/common"
+import { isUndefined } from "util"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
@@ -226,4 +231,31 @@ export function makeSignature(parameters: { name: string, type: IDLType, isOptio
             .map(it => it.name)
             .map(mangleIfKeyword)
     )
+}
+
+export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile): IDLInterface[] {
+    const resolveReference = (ref: IDLReferenceType) =>
+        resolveNamedNode(ref.name.split('.'), undefined, [idl])
+
+    if (isReferenceType(ref)) {
+        const type = resolveReference(ref)
+        if (!type || !isInterface(type)) {
+            return []
+        }
+        ref = type
+    }
+
+    const result: IDLInterface[] = []
+    const queue: IDLInterface[] = [ref]
+    while (queue.length) {
+        const node = queue.shift()!
+        result.push(node)
+
+        node.inheritance
+            .map(p => resolveReference(p))
+            .filter(p => p !== undefined && isInterface(p))
+            .forEach(p => queue.push(p as IDLInterface))
+    }
+
+    return result // with self
 }

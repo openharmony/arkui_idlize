@@ -17,6 +17,7 @@ import {
     createEmptyReferenceResolver,
     createParameter,
     createReferenceType,
+    IDLFile,
     IDLInterface,
     IDLMethod,
     IDLNode,
@@ -26,12 +27,13 @@ import {
     IndentedPrinter,
     isInterface,
     isOptionalType,
+    Method,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { flattenType, makeMethod } from "../../utils/idl"
-import { isCreate, mangleIfKeyword } from "../../general/common"
+import { flattenType, makeMethod, makeSignature } from "../../utils/idl"
+import { isCreate, mangleIfKeyword, peerMethod } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { Importer } from "./Importer"
@@ -39,6 +41,9 @@ import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTyp
 import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { id } from "../../utils/types"
 import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
+import { PeerPrinter } from "./PeerPrinter"
+import { Config } from "../../general/Config"
+import { ExtraParameter } from "../../options/ExtraParameters"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
@@ -57,6 +62,13 @@ export class FactoryPrinter extends SingleFilePrinter {
             )
         }
     )
+
+    constructor(
+        private config: Config,
+        idl: IDLFile
+    ) {
+        super(idl)
+    }
 
     prologue() {
         this.writer.writeExpressionStatements(
@@ -84,18 +96,22 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private printCreate(node: IDLInterface): void {
+        const extraParameters = PeerPrinter.makeExtraParameters(node, this.config, this.idl)
+        const signature = makeSignature(
+            this.makeParameters(node.properties).concat(extraParameters),
+            flattenType(createReferenceType(node.name))
+        )
+
         this.writer.writeMethodImplementation(
-            makeMethod(
+            new Method(
                 PeersConstructions.universalCreate(node.name),
-                this.makeParameters(node.properties),
-                flattenType(createReferenceType(node.name))
+                signature
             ),
             () => this.writer.writeStatement(
                 this.writer.makeReturn(
                     this.writer.makeFunctionCall(
                         FactoryPrinter.callUniversalCreate(node),
-                        node.properties
-                            .map(it => it.name)
+                        signature.argNames!
                             .map(mangleIfKeyword)
                             .map(it => this.writer.makeString(it))
                     )
@@ -111,62 +127,64 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private printUpdate(node: IDLInterface): void {
-        this.writer.writeMethodImplementation(
-            makeMethod(
-                PeersConstructions.universalUpdate(node.name),
-                [{
-                    name: FactoryConstructions.original,
-                    type: id<IDLType>(flattenType(createReferenceType(node.name))),
-                    isOptional: false
-                }]
-                    .concat(this.makeParameters(node.properties)),
-                flattenType(createReferenceType(node.name)),
-
-            ),
-            () => {
-                this.printUnchangedBranch(node)
-                this.printChangedBranch(node)
-            }
-        )
-    }
-
-    private printUnchangedBranch(node: IDLInterface): void {
-        if (node.properties.length === 0) {
-            return
-        }
-        this.writer.writeStatement(
-            this.writer.makeCondition(
-                this.writer.makeString(
-                    FactoryConstructions.all(
-                        node.properties
-                            .map(it => it.name)
-                            .map(it => FactoryConstructions.isSame(mangleIfKeyword(it), it))
-                    )
+        const parameters = this.makeParameters(node.properties)
+        const extraParameters = this.config.parameters.getParameters(node.name)
+        const signature = makeSignature([{
+                name: FactoryConstructions.original,
+                type: id<IDLType>(flattenType(createReferenceType(node.name))),
+                isOptional: false
+            }]
+                .concat(parameters)
+                .concat(extraParameters
+                    .map(p => PeerPrinter.makeExtraParameter(p, node, this.idl))
                 ),
-                this.writer.makeReturn(
-                    this.writer.makeString(FactoryConstructions.original)
-                )
-            )
+            flattenType(createReferenceType(node.name)),
         )
-    }
 
-    private printChangedBranch(node: IDLInterface): void {
-        this.writer.writeStatement(
-            this.writer.makeReturn(
-                this.writer.makeFunctionCall(
-                    FactoryConstructions.updateNodeByNode,
-                    [
-                        this.writer.makeFunctionCall(
-                            FactoryPrinter.callUniversalCreate(node),
-                            node.properties
-                                .map(it => it.name)
-                                .map(mangleIfKeyword)
-                                .map(it => this.writer.makeString(it))
-                        ),
-                        this.writer.makeString(FactoryConstructions.original)
-                    ]
+        this.writer.writeMethodImplementation(
+            new Method(
+                PeersConstructions.universalUpdate(node.name),
+                signature
+            ),
+            (writer: TSLanguageWriter) => {
+                const expr = (value: string) => writer.makeString(value)
+                const same = (lhs: string, rhs: string) =>
+                    FactoryConstructions.isSame(mangleIfKeyword(lhs), rhs)
+
+                const isSameAll = FactoryConstructions.all(
+                    parameters
+                        .map(param => same(param.name, param.name))
+                        .concat(
+                            extraParameters.map(param => {
+                                const [get, _] = PeerPrinter.resolveProperty(param, node, this.idl)
+                                return same(param.name, peerMethod(get.name))
+                            }
+                        )
+                    )
                 )
-            )
+
+                if (node.properties.length !== 0) {
+                    writer.writeStatement(
+                        writer.makeCondition(
+                            expr(isSameAll),
+                            writer.makeReturn(expr(FactoryConstructions.original))
+                        )
+                    )
+                }
+
+                const createCall = writer.makeFunctionCall(
+                    FactoryPrinter.callUniversalCreate(node),
+                    (parameters as { name: string }[])
+                        .concat(extraParameters)
+                        .map(p => expr(mangleIfKeyword(p.name)))
+                )
+
+                writer.writeStatement(writer.makeReturn(
+                    writer.makeFunctionCall(FactoryConstructions.updateNodeByNode, [
+                        createCall, writer.makeString(FactoryConstructions.original)
+                    ])
+                ))
+            }
         )
     }
 
