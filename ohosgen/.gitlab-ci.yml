@@ -21,21 +21,14 @@ check generated XML demo:
     tags:
       - idlize-ci
       - koala-ci
-    dependencies:
+    needs:
     - download sdk
     - build external
     before_script:
       - !reference [.npm, script]
       - !reference [.panda, script]
-      - cd $CI_PROJECT_DIR/ohosgen
-      - npm run compile --prefix ../external/interop
-      - npm run compile --prefix ../external/incremental/common
-      - npm run compile --prefix ../external/incremental/compat
-      - npm run compile --prefix ../external/incremental/runtime
-      - npm run build:interop:inc --prefix ../external/interop
-      - npm run build:incremental:inc:ui2abc:recheck --prefix ../external/incremental/runtime
     script:
-      - cd demos/xml
+      - cd $CI_PROJECT_DIR/ohosgen/demos/xml
       - npm run check:ts
       - npm run check:arkts
 
@@ -44,18 +37,11 @@ check ohos unit tests:
   tags:
     - idlize-ci
     - koala-ci
-  dependencies:
+  needs:
     - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    - cd $CI_PROJECT_DIR/ohosgen
-    - npm run compile --prefix ../external/interop
-    - npm run compile --prefix ../external/incremental/common
-    - npm run compile --prefix ../external/incremental/compat
-    - npm run compile --prefix ../external/incremental/runtime
-    - npm run build:interop:inc --prefix ../external/interop
-    - npm run build:incremental:inc:ui2abc:recheck --prefix ../external/incremental/runtime
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/unit
     - npm run check:ts
@@ -71,19 +57,12 @@ check ohos demos:
   tags:
     - idlize-ci
     - koala-ci
-  dependencies:
+  needs:
   - download sdk
   - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    - cd $CI_PROJECT_DIR/ohosgen
-    - npm run compile --prefix ../external/interop
-    - npm run compile --prefix ../external/incremental/common
-    - npm run compile --prefix ../external/incremental/compat
-    - npm run compile --prefix ../external/incremental/runtime
-    - npm run build:interop:inc --prefix ../external/interop
-    - npm run build:incremental:inc:ui2abc:recheck --prefix ../external/incremental/runtime
   script:
     - cd $CI_PROJECT_DIR/ohosgen/demos/mediaquery
     - npm show @koalaui/interop && npm show @koalaui/common
@@ -102,18 +81,11 @@ check ohos system tests:
   tags:
     - idlize-ci
     - koala-ci
-  dependencies:
+  needs:
     - build external
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    - cd $CI_PROJECT_DIR/ohosgen
-    - npm run compile --prefix ../external/interop
-    - npm run compile --prefix ../external/incremental/common
-    - npm run compile --prefix ../external/incremental/compat
-    - npm run compile --prefix ../external/incremental/runtime
-    - npm run build:interop:inc --prefix ../external/interop
-    - npm run build:incremental:inc:ui2abc:recheck --prefix ../external/incremental/runtime
   script:
     - cd $CI_PROJECT_DIR/ohosgen/tests/system
     - npm i -d

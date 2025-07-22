@@ -91,6 +91,7 @@ elif is_panda
     ]
     include_dirs += [
         external_interop_dir / 'ani',
+        external_interop_dir / 'ani' / 'panda',
     ]
     sources += [
         external_interop_dir / 'ani/convertors-ani.cc',

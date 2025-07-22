@@ -202,7 +202,8 @@ arkts_sources = [
 
 ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
 ani_include_dirs = [
-    external_interop_dir / 'ani'
+    external_interop_dir / 'ani',
+    external_interop_dir / 'ani' / 'panda',
 ]
 ani_sources = [
     external_interop_dir / 'ani/convertors-ani.cc',

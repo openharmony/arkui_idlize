@@ -3,7 +3,8 @@ include:
 
 .panda:
     script:
-    - npm run panda:sdk:check-install --prefix ./external/incremental/tools/panda
+    - npm run panda:sdk:install --prefix ./external/ui2abc/libarkts
+    - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
 
 prepare caches:
     stage: pre-build
@@ -36,6 +37,16 @@ build external:
     - npm run compile --prefix external/ui2abc/fast-arktsc
     - npm run compile --prefix external/ui2abc/memo-plugin
     - npm run compile --prefix external/ui2abc/ui-plugins
+    - npm i --prefix external/ui2abc/annotate
+    - npm run compile --prefix external/ui2abc/annotate
+    - npm run annotate --prefix external/incremental/runtime
+    - npm run annotate:tests --prefix external/incremental/runtime
+    - npm run compile --prefix external/interop
+    - npm run compile --prefix external/incremental/common
+    - npm run compile --prefix external/incremental/compat
+    - npm run compile --prefix external/incremental/runtime
+    - npm run build --prefix external/interop
+    - npm run build --prefix external/incremental
     artifacts:
         paths:
         - external/ui2abc/libarkts/lib
@@ -44,6 +55,14 @@ build external:
         - external/ui2abc/fast-arktsc/lib
         - external/ui2abc/memo-plugin/lib
         - external/ui2abc/ui-plugins/lib
+        - external/incremental/common/build/lib
+        - external/incremental/compat/build
+        - external/incremental/runtime/build/lib
+        - external/incremental/runtime/build/incremental.abc
+        - external/incremental/runtime/ets
+        - external/incremental/runtime/ets-test
+        - external/interop/build/lib
+        - external/interop/build/interop.abc
         # need these symlinks for require in es2panda.js to work
         - external/ui2abc/node_modules/@koalaui/memo-plugin
         - external/ui2abc/node_modules/@koalaui/ui-plugins
