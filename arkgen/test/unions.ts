@@ -9,7 +9,8 @@ suite("Unions", () => {
             const writer = createLanguageWriter(Language.TS, data.peerLibrary)
             const testCases: IDLInterface = data.lookup("TestCases")
             testCases.properties.forEach(f =>
-                data.peerLibrary.typeConvertor("", f.type).convertorSerialize("", "", writer))
+                writer.writeStatement(data.peerLibrary.typeConvertor("", f.type).convertorSerialize("", "", writer))
+            )
         })
     })
 })

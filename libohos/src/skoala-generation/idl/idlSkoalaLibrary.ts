@@ -330,8 +330,8 @@ export class IdlWrapperClassConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")
     }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): void {
-        printer.writeMethodCall(`${param}Serializer`, "writeWrapper", [value])
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
+        return printer.makeStatement(printer.makeMethodCall(`${param}Serializer`, "writeWrapper", [printer.makeString(value)]))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const prefix = writer.language === Language.CPP ? generatorConfiguration().TypePrefix : ""

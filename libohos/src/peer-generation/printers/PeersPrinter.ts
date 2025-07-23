@@ -91,9 +91,9 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 }
                 if (it.isOut) {
                     returnValueFilledThroughOutArg = true
-                    it.convertorSerialize(`this`, returnValName, writer)
+                    writer.writeStatement(it.convertorSerialize(`this`, returnValName, writer))
                 } else
-                    it.convertorSerialize(`this`, it.param, writer)
+                    writer.writeStatement(it.convertorSerialize(`this`, it.param, writer))
             }
         })
         // Enable to see serialized data.

@@ -129,7 +129,7 @@ export class BridgeCcVisitor {
                 this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)
                 this.generatedApi.print(`SerializerBase _retSerializer {};`)
                 const convertor = this.library.typeConvertor('retValue', method.returnType, false)
-                convertor.convertorSerialize('_ret', 'retValue', this.generatedApi)
+                this.generatedApi.writeStatement(convertor.convertorSerialize('_ret', 'retValue', this.generatedApi))
                 this.generatedApi.writeStatement(
                     this.generatedApi.makeReturn(
                         this.generatedApi.makeMethodCall('_retSerializer', 'toReturnBuffer', [])

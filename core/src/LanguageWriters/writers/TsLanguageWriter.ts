@@ -70,7 +70,7 @@ export class TSLambdaExpression extends LambdaExpression {
             return `${this.signature.argName(i)}${maybeOptional}: ${this.convertor.convert(it)}`
         })
 
-        return `(${params.join(", ")}): ${this.convertor.convert(this.signature.returnType)} => { ${this.bodyAsString()} }`
+        return `(${params.join(", ")}): ${this.convertor.convert(this.signature.returnType)} =>${this.bodyAsString(true)}`
     }
 }
 
@@ -119,11 +119,11 @@ class TSLoopStatement implements LanguageStatement {
 }
 
 class TSMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         writer.print(`for (const [${this.key}, ${this.value}] of ${this.map}) {`)
         writer.pushIndent()
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -161,7 +161,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new TSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.language)
+        return new TSLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.language)
     }
 
     getNodeName(type: idl.IDLNode): string {
@@ -363,8 +363,8 @@ export class TSLanguageWriter extends LanguageWriter {
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new TSLoopStatement(counter, limit, statement)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new TSMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new TSMapForEachStatement(map, key, value, body)
     }
     writePrintLog(message: string): void {
         this.print(`console.log("${message}")`)

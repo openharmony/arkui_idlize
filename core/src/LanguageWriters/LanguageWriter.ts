@@ -170,10 +170,10 @@ export class ExpressionStatement implements LanguageStatement {
 }
 
 export class BlockStatement implements LanguageStatement {
-    constructor(public statements: LanguageStatement[], private inScope: boolean = true) { }
+    constructor(public statements: LanguageStatement[], readonly inScope: boolean = true, private newLine: boolean = true) { }
     write(writer: LanguageWriter): void {
         if (this.inScope) {
-            writer.print("{")
+            this.newLine ? writer.print("{") : writer.printer.appendLastString(" {")
             writer.pushIndent()
         }
         this.statements.forEach(s => s.write(writer))
@@ -197,7 +197,11 @@ export class IfStatement implements LanguageStatement {
             if (this.insideIfOp) { this.insideIfOp!() }
         })
         if (this.elseStatement !== undefined) {
-            writer.print("else")
+            if ((this.thenStatement instanceof BlockStatement) && this.thenStatement.inScope) {
+                writer.printer.appendLastString(" else")
+            } else {
+                writer.print("else")
+            }
             this.writeBody(writer, this.elseStatement, () => {
                 if (this.insideElseOp) { this.insideElseOp!() }
             })
@@ -227,7 +231,7 @@ export class MultiBranchIfStatement implements LanguageStatement {
             if (index == 0) {
                 writer.print(`if (${expr.asString()}) {`)
             } else {
-                writer.print(`else if (${expr.asString()}) {`)
+                writer.printer.appendLastString(` else if (${expr.asString()}) {`)
             }
             writer.pushIndent()
             stmt.write(writer)
@@ -236,7 +240,7 @@ export class MultiBranchIfStatement implements LanguageStatement {
         })
 
         if (this.statements.length > 0 && this.elseStatement !== undefined) {
-            writer.print("else {")
+            writer.printer.appendLastString(" else {")
             writer.pushIndent()
             this.elseStatement.write(writer)
             writer.popIndent()
@@ -296,21 +300,18 @@ export abstract class LambdaExpression implements LanguageExpression {
     protected abstract get statementHasSemicolon(): boolean
     abstract asString(): string
 
-    bodyAsString(): string {
+    bodyAsString(isScoped: boolean = false): string {
         const writer = this.originalWriter.fork()
         if (this.body) {
-            for (const stmt of this.body) {
-                stmt.write(writer)
-            }
+            writer.writeStatement(new BlockStatement(this.body, isScoped, false))
         }
         writer.features.forEach(([feature, module]) => {
             this.originalWriter.addFeature(feature, module)
         })
 
-        return (this.body ? this.body?.length > 1 ? '\n' : '' : '').concat(writer.getOutput()
-            .filter(line => line !== "")
-            .map(line => indentedBy(line.endsWith('{') || line.endsWith('}') || line.endsWith(';') ? line : `${line};`, 1))
-            .join("\n"))
+        return writer.getOutput()
+            .map(line => (line.endsWith('{') || line.endsWith('}') || line.endsWith(';')) ? line : `${line};`)
+            .join("\n")
     }
 }
 
@@ -522,7 +523,7 @@ export abstract class LanguageWriter {
     abstract makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string): LanguageStatement
     abstract makeLoop(counter: string, limit: string, statement: LanguageStatement): LanguageStatement
-    abstract makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement
+    abstract makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement
     // No need for these two.
     abstract getTagType(): idl.IDLType
     abstract getRuntimeType(): idl.IDLType

@@ -15,6 +15,7 @@
 
 import { IndentedPrinter } from "../../IndentedPrinter"
 import {
+    BlockStatement,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -75,13 +76,13 @@ export class EtsAssignStatement implements LanguageStatement {
 }
 
 class ArkTSMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         writer.print(`for (const pair of ${this.map}) {`)
         writer.pushIndent()
         writer.print(`const ${this.key} = pair[0]`)
         writer.print(`const ${this.value} = pair[1]`)
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -160,7 +161,7 @@ export class ETSLambdaExpression extends LambdaExpression {
             isRetTypeCallback = resolved !== undefined && idl.isCallback(resolved)
         }
         return `(${params.join(", ")})${isRetTypeCallback
-            ? "" : `:${this.convertor.convert(this.signature.returnType)}`} => { ${this.bodyAsString()} }`
+            ? "" : `:${this.convertor.convert(this.signature.returnType)}`} =>${this.bodyAsString(true)}`
     }
 }
 
@@ -208,7 +209,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         super(printer, resolver, typeConvertor, Language.ARKTS)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new ETSLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
+        return new ETSLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)
     }
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true, options?: MakeAssignOptions): LanguageStatement {
         return new EtsAssignStatement(variableName, type, expr, isDeclared, isConst, options)
@@ -216,8 +217,8 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new ETSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new ArkTSMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new ArkTSMapForEachStatement(map, key, value, body)
     }
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${super.makeMapSize(map).asString()}`) // TODO: cast really needed?

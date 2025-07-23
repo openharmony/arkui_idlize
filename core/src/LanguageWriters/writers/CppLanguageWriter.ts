@@ -150,13 +150,13 @@ class CppMapResizeStatement implements LanguageStatement {
 }
 
 class CppMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         writer.print(`for (int32_t i = 0; i < ${this.map}.size; i++) {`)
         writer.pushIndent()
         writer.print(`auto ${this.key} = ${this.map}.keys[i];`)
         writer.print(`auto ${this.value} = ${this.map}.values[i];`)
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -206,7 +206,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return this.typeConvertor.convert(type)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new CppLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor, this.primitivesTypes)
+        return new CppLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.primitivesTypes)
     }
     protected writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string): void {
         const realName = this.classMode === 'normal' ? name : `${this.currentClass.at(0)!}::${name}`
@@ -351,8 +351,8 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new CLikeLoopStatement(counter, limit, statement)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new CppMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new CppMapForEachStatement(map, key, value, body)
     }
     makeArrayInit(type: IDLContainerType): LanguageExpression {
         return this.makeString(`{}`)

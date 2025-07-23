@@ -19,8 +19,7 @@ import { indentedBy, stringOrNone } from "./util"
 import path from "path"
 
 export class IndentedPrinter {
-    constructor (private output: string[] = []) {}
-    private indent = 0
+    constructor (private output: string[] = [], private indent: number = 0) {}
 
     print(value: stringOrNone): void {
         if (value != undefined) this.output.push(this.indented(value))
@@ -38,6 +37,14 @@ export class IndentedPrinter {
 
     append(printer: IndentedPrinter): void {
         this.output = [...this.output, ...printer.output]
+    }
+
+    appendLastString(value: stringOrNone) {
+        if (value != undefined) {
+            let last = this.output.pop()
+            last = last ? last.concat(value) : value
+            this.output.push(last)
+        }
     }
 
     private indented(input: string): string {

@@ -486,7 +486,7 @@ class ManagedCallCallbackVisitor {
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 convertor.holdResource(`arg${i}Resource`, 'callbackBuffer.resourceHolder', writer)
-                convertor.convertorSerialize(`args`, argsNames[i], writer)
+                writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
             writer.print(`enqueueCallback(&callbackBuffer);`)
         })
@@ -511,7 +511,7 @@ class ManagedCallCallbackVisitor {
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
-                convertor.convertorSerialize(`args`, argsNames[i], writer)
+                writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
             writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(dataBuffer), dataBuffer);`)
         })

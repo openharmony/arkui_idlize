@@ -150,11 +150,11 @@ export class KotlinEnumWithGetter implements LanguageStatement {
 }
 
 class KotlinMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         writer.print(`for ((${this.key}, ${this.value}) in ${this.map}) {`)
         writer.pushIndent()
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -492,8 +492,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new KotlinLoopStatement(counter, limit, statement)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new KotlinMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new KotlinMapForEachStatement(map, key, value, body)
     }
     writePrintLog(message: string): void {
         this.print(`println(\"${message}\")`)

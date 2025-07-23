@@ -102,7 +102,7 @@ class SerializerPrinter {
 
             let memberAccess = writer.makeString(`value.${writer.escapeKeyword(it.name)}`)
             writer.writeStatement(writer.makeAssign(field, undefined, memberAccess, true))
-            typeConvertor.convertorSerialize(`value`, field, writer)
+            writer.writeStatement(typeConvertor.convertorSerialize(`value`, field, writer))
         })
     }
     private generateMaterializedBodySerializer(target: idl.IDLInterface, writer: LanguageWriter) {

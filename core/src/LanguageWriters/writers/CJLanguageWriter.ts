@@ -20,6 +20,7 @@ import { ArgConvertor, BaseArgConvertor } from "../ArgConvertors"
 import { RuntimeType } from "../common"
 import {
     AssignStatement,
+    BlockStatement,
     DelegationCall,
     ExpressionStatement,
     FieldModifier,
@@ -157,11 +158,11 @@ class CJLoopStatement implements LanguageStatement {
 }
 
 class CJMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         writer.print(`for ((${this.key}, ${this.value}) in ${this.map}) {`)
         writer.pushIndent()
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -509,8 +510,8 @@ export class CJLanguageWriter extends LanguageWriter {
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new CJLoopStatement(counter, limit, statement)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new CJMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new CJMapForEachStatement(map, key, value, body)
     }
     makeDefinedCheck(value: string): LanguageExpression {
         return new CJCheckDefinedExpression(this.escapeKeyword(value))

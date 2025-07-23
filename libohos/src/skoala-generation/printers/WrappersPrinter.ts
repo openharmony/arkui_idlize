@@ -105,7 +105,7 @@ export class TSWrappersVisitor {
                         )
                         serializerCreated = true
                     }
-                    it.convertorSerialize(`this`, it.param, writer)
+                    writer.writeStatement(it.convertorSerialize(`this`, it.param, writer))
                 }
             })
 

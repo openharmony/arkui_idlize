@@ -47,7 +47,7 @@ class IdlSerializerPrinter {
                     let field = `value_${it.name}`
                     writer.writeStatement(writer.makeAssign(field, undefined, writer.makeString(`value.${writer.escapeKeyword(it.name)}`), true))
                     let typeConvertor = this.library.typeConvertor(`value`, it.type!, it.isOptional)
-                    typeConvertor.convertorSerialize(`value`, field, writer)
+                    writer.writeStatement(typeConvertor.convertorSerialize(`value`, field, writer))
                 })
             })
     }

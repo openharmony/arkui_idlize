@@ -17,6 +17,7 @@ import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
+    BlockStatement,
     ClassModifier,
     DelegationCall,
     FieldModifier,
@@ -61,7 +62,7 @@ class JavaLambdaExpression extends LambdaExpression {
     }
     asString(): string {
         const params = this.signature.args.map((it, i) => `${idl.forceAsNamedNode(it).name} ${this.signature.argName(i)}`)
-        return `(${params.join(", ")}) -> { ${this.bodyAsString()} }`
+        return `(${params.join(", ")}) ->${this.bodyAsString(true)}`
     }
 }
 
@@ -95,14 +96,14 @@ export class JavaAssignStatement extends AssignStatement {
 }
 
 class JavaMapForEachStatement implements LanguageStatement {
-    constructor(private map: string, private key: string, private value: string, private op: () => void) {}
+    constructor(private map: string, private key: string, private value: string, private body: LanguageStatement[]) {}
     write(writer: LanguageWriter): void {
         const entryVar = `${this.map}Entry`
         writer.print(`for (var ${entryVar}: ${this.map}.entrySet()) {`)
         writer.pushIndent()
         writer.print(`var ${this.key} = ${entryVar}.getKey();`)
         writer.print(`var ${this.value} = ${entryVar}.getValue();`)
-        this.op()
+        writer.writeStatement(new BlockStatement(this.body, false))
         writer.popIndent()
         writer.print(`}`)
     }
@@ -133,7 +134,7 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
 
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
-        return new JavaLanguageWriter(new IndentedPrinter(), options?.resolver ?? this.resolver, this.typeConvertor)
+        return new JavaLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
     writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport: boolean = true): void {
@@ -230,8 +231,8 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     makeLoop(counter: string, limit: string, statement?: LanguageStatement): LanguageStatement {
         return new CLikeLoopStatement(counter, limit, statement)
     }
-    makeMapForEach(map: string, key: string, value: string, op: () => void): LanguageStatement {
-        return new JavaMapForEachStatement(map, key, value, op)
+    makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
+        return new JavaMapForEachStatement(map, key, value, body)
     }
     makeMapSize(map: string): LanguageExpression {
         return this.makeString(`${map}.size()`)
