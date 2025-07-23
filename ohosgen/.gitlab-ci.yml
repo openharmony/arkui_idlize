@@ -49,8 +49,8 @@ check ohos unit tests:
     - cd $CI_PROJECT_DIR/ohosgen/tests/dummy
     - npm run check:ts
     - npm run check:arkts
-  after_script:
-    - !reference [.notify-telegram, script]
+  # after_script:
+  #   - !reference [.notify-telegram, script]
 
 check ohos demos:
   stage: test

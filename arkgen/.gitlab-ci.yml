@@ -18,20 +18,20 @@ include:
     - gitlab/npm.yml
     - gitlab/notify.yml
 
-notify-release:
-  stage: notify
-  tags:
-    - idlize-ci
-    - koala-ci
-  script:
-    - version=$(cat ./VERSION)
-    - node ./tools/telegram/notify-release.mjs $version
-  rules:
-    - if: $CI_COMMIT_BRANCH != 'master'
-      changes:
-        compare_to: 'refs/heads/master'
-        paths:
-          - VERSION
+# notify-release:
+#   stage: notify
+#   tags:
+#     - idlize-ci
+#     - koala-ci
+#   script:
+#     - version=$(cat ./VERSION)
+#     - node ./tools/telegram/notify-release.mjs $version
+#   rules:
+#     - if: $CI_COMMIT_BRANCH != 'master'
+#       changes:
+#         compare_to: 'refs/heads/master'
+#         paths:
+#           - VERSION
 
 idlize sanity:
   stage: test
@@ -45,8 +45,8 @@ idlize sanity:
     - !reference [.npm, script]
     - !reference [.panda, script]
     - npm run sanity
-  after_script:
-    - !reference [.notify-telegram, script]
+  # after_script:
+  #   - !reference [.notify-telegram, script]
 
 pg java:run:
   allow_failure: true
