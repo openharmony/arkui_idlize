@@ -31,6 +31,6 @@
   "scripts": {
     "compile:self": "rollup -c",
     "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && rollup -c",
-    "prepare:sdk": "npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched"
+    "prepare:sdk": "rimraf ../sdk-patched-arkts ../sdk-patched && npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched"
   }
 }
