@@ -14,7 +14,7 @@ class CallbackEventKind {
 }
 
 
-let bufferSize: Int64 = 1024
+let bufferSize: Int64 = 8 * 1024
 let buffer = Array<UInt8>(bufferSize, repeat: 0)
 let deserializer = Deserializer(buffer, bufferSize)
 

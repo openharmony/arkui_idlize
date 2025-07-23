@@ -1,8 +1,6 @@
 package idlize
 
-import kotlin.collections.mapOf
-
-import interop.*
+import koalaui.interop.*
 
 public fun run() {
     val sampleXml = "<foo valOfFoo=\"xx\">Hello<bar>124</bar>World</foo>"

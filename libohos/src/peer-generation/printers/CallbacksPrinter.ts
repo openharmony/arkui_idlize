@@ -359,10 +359,9 @@ class DeserializeCallbacksVisitor {
                     const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
                     writer.print(`${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ -> deserializeAndCall${callback.name}(${args.join(', ')});`)
                 }
-                writer.print(`else -> throw Exception()`)
+                writer.print(`else -> error("Unknown callback kind")`)
                 writer.popIndent()
                 writer.print(`}`)
-                writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
             } else {
                 const castedKind = this.writer.makeCast(writer.makeString('kind'), idl.createReferenceType("idlize.internal.CallbackKind")).asString()
                 if (callbacks.length > 0) {

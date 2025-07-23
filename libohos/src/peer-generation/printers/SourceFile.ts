@@ -224,7 +224,7 @@ export class KotlinSourceFile extends SourceFile {
     }
     public printImports(writer: LanguageWriter): void {
         writer.print(`package idlize\n`)
-        writer.print(`import interop.*\n`)
+        writer.print(`import koalaui.interop.*\n`)
     }
     protected onMerge(file: this): void {
 

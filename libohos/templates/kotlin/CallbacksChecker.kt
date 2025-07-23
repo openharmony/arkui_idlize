@@ -4,14 +4,17 @@ enum class CallbackEventKind(var value: Int) {
     Event_ReleaseManagedResource(2)
 }
 
-val bufferSize: Int = 1024
-val buffer = UByteArray(bufferSize) { 0u }
-val deserializer = DeserializerBase(buffer)
+private fun createDeserializer(bufferSize: Int): DeserializerBase {
+    val buffer = InteropNativeModule._Malloc(bufferSize.toLong())
+    return DeserializerBase(buffer, bufferSize)
+}
+
+val bufferSize: Int = 8 * 1024
+val deserializer = createDeserializer(bufferSize)
 
 public fun checkArkoalaCallbacks() {
     while (true) {
-        // val result = InteropNativeModule._CheckCallbackEvent(deserializer.asBuffer(), bufferSize)
-        val result = 0
+        val result = InteropNativeModule._CheckCallbackEvent(deserializer.asBuffer(), bufferSize)
         if (result == 0) {
             break
         }

@@ -34,7 +34,17 @@ public:
     }
 
     void parse() {
-        XML_Parse(m_parser, (const char*)m_buffer.data, m_buffer.length, true);
+        const char *stringData = (const char*)m_buffer.data;
+        const int length = static_cast<int>(strlen(stringData));
+        XML_Status result = XML_Parse(m_parser, stringData, length, true);
+        if (result == XML_STATUS_ERROR) {
+            fprintf(stderr,
+                "Parse error at line %lu, symbol %lu:\n  %s\n",
+                XML_GetCurrentLineNumber(m_parser),
+                XML_GetCurrentColumnNumber(m_parser),
+                XML_ErrorString(XML_GetErrorCode(m_parser))
+            );
+        }
     }
 
     void setTagValueCallback(std::function<void(const char*, const char*)>&& callback) {

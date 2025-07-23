@@ -209,9 +209,9 @@ class SerializerPrinter {
                     }
                     let ownProperties: idl.IDLProperty[] = isComponentDeclaration(this.library, target) ? [] : target.properties.filter(it => !parentProperties.map(prop => prop.name).includes(it.name))
 
-                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`${writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('_result')).join(', ')})`), true, false))
+                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`${writer.getNodeName(valueType)}(${ownProperties.concat(parentProperties).map(it => it.name.concat('TmpResult')).join(', ')})`), true, false))
                 } else if (writer.language == Language.KOTLIN) {
-                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${writer.getNodeName(valueType)} { ${properties.map(it => `override var ${it.name} = ${it.name}_result`).join('; ') }}`), true, false))
+                    writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${writer.getNodeName(valueType)} { ${properties.map(it => `override var ${it.name} = ${it.name}TmpResult`).join('; ') }}`), true, false))
                 }
                 else {
                     if (writer.language === Language.ARKTS) {

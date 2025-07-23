@@ -1,6 +1,6 @@
 package idlize
 
-import interop.*
+import koalaui.interop.*
 
 public typealias EventType = xml_EventType
 

@@ -130,30 +130,16 @@ elif is_kotlin
     ]
 endif
 
-if is_kotlin
-    static_library(library_name, sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        include_directories: include_dirs,
-        install_dir: meson.current_source_dir() / platform_build_dir,
-        cpp_args: cflags,
-        link_args: ldflags,
-        dependencies: deps,
-    )
-else
-    shared_library(library_name, sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        name_prefix: name_prefix,
-        name_suffix: name_suffix,
-        include_directories: include_dirs,
-        install_dir: platform_build_dir,
-        cpp_args: cflags,
-        link_args: ldflags,
-        dependencies: deps,
-    )
-endif
+shared_library(library_name, sources,
+    override_options: [
+        'b_lundef=false',
+    ],
+    install: true,
+    name_prefix: name_prefix,
+    name_suffix: name_suffix,
+    include_directories: include_dirs,
+    install_dir: meson.current_source_dir() / platform_build_dir,
+    cpp_args: cflags,
+    link_args: ldflags,
+    dependencies: deps,
+)

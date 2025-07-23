@@ -4,7 +4,7 @@ enum CallbackEventKind {
     Event_ReleaseManagedResource = 2,
 }
 
-const bufferSize = 4096
+const bufferSize = 8 * 1024
 const buffer = new Uint8Array(bufferSize)
 const deserializer = new DeserializerBase(buffer.buffer, bufferSize)
 export function checkArkoalaCallbacks() {
