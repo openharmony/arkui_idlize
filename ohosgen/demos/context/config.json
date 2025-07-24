@@ -2,6 +2,10 @@
     "$schema": "../../../generation-config/schema.json",
     "GenerateUnused": true,
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "application": {
             "name": "application",
             "packages": ["application.ApplicationContext", "application.BaseContext", "application.Context"]

@@ -1,6 +1,10 @@
 {
     "moduleName": "huks",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "huks": {
             "name": "huks",
             "packages": ["huks"],

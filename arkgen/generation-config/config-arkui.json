@@ -18,7 +18,6 @@
                 "arkui",
                 "arkui.component",
                 "arkui.stateManagement.decorators",
-                "idlize.internal",
                 "ohos.app.ability",
                 "ohos.arkui",
                 "ohos.base",
@@ -31,7 +30,10 @@
                 "ohos.measure",
                 "ohos.multimodalInput",
                 "ohos.promptAction",
-                "ohos.window"
+                "ohos.window",
+
+                "idlize.stdlib",
+                "idlize.internal"
             ]
         }
     },

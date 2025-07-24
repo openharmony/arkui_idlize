@@ -1,6 +1,10 @@
 {
     "moduleName": "test_buffer",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_buffer": {
             "name": "test_buffer",
             "packages": ["test_buffer"],

@@ -1,6 +1,10 @@
 {
     "moduleName": "unit",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "external.lib": {
             "name": "external.lib",
             "external": true,
@@ -23,11 +27,10 @@
         "unit": {
             "name": "unit",
             "packages": [
-                "ohos.base",
                 "test_exception",
-                "idlize.internal",
                 "test_wrapped_builder",
                 "test_external_types",
+                "test_handwritten",
                 "test_hooks",
                 "test_non_static",
                 "test_force_callback",
@@ -54,8 +57,10 @@
                 "test_class_props_initial_values",
                 "test_constructor",
                 "test_materialized_interfaces",
-                "test_return_buffer"
+                "test_return_buffer",
 
+                "idlize.stdlib",
+                "idlize.internal"
             ],
             "useFoldersLayout": true
         }

@@ -1,6 +1,10 @@
 {
     "moduleName": "test_modules_multilevel",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_modules_multilevel": {
             "name": "test_modules_multilevel",
             "packages": ["bar", "baz", "foo", "qux"],

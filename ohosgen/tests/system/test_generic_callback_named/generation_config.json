@@ -1,6 +1,10 @@
 {
     "moduleName": "test_generic_callback_named",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_generic_callback_named": {
             "name": "test_generic_callback_named",
             "packages": ["foo"],

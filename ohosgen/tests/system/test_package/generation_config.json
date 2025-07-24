@@ -1,6 +1,10 @@
 {
     "moduleName": "test_package",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_package": {
             "name": "test_package",
             "packages": ["bar", "foo"],

@@ -1,6 +1,10 @@
 {
     "moduleName": "test_record",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_record": {
             "name": "test_record",
             "packages": ["foo"],

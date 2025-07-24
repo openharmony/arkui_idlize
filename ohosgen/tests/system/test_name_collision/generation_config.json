@@ -1,6 +1,10 @@
 {
     "moduleName": "test_name_collision",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_name_collision": {
             "name": "test_name_collision",
             "packages": ["test_name_collision"],

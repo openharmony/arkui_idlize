@@ -1,6 +1,10 @@
 {
     "moduleName": "test_manually_decomposed_promise",
     "modules": {
+        "ohos.base": {
+            "name": "ohos.base",
+            "packages": ["ohos.base"]
+        },
         "test_manually_decomposed_promise": {
             "name": "test_manually_decomposed_promise",
             "packages": ["test_manually_decomposed_promise"],
