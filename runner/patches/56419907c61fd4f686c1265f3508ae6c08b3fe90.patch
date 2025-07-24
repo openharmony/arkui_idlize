@@ -703,7 +703,7 @@ index 7637cdeaa..1b658f684 100644
   * Get Callback from @ohos.base.
   * AnonyMous Object Rectification
 diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
-index 31b466c06..0e6650531 100644
+index 31b466c06..e0668cde1 100644
 --- a/api/arkui/component/common.static.d.ets
 +++ b/api/arkui/component/common.static.d.ets
 @@ -7317,13 +7317,13 @@ export declare interface SheetOptions extends BindOptions {
@@ -731,6 +731,22 @@ index 31b466c06..0e6650531 100644
  /**
   * Component State Styles.
   *
+@@ -10331,13 +10331,13 @@ export declare interface BackgroundOptions {
+ /**
+  * Defines the value of the custom property..
+  *
+- * @typedef { Object | undefined | Record<string, CustomProperty> } CustomProperty
++ * @typedef { Object | undefined } CustomProperty
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @crossplatform
+  * @atomicservice
+  * @since 20
+  */
+-export declare type CustomProperty = Object | undefined | Record<string, CustomProperty>;
++export declare type CustomProperty = Object | undefined;
+ export declare interface CommonMethod {
+     /**
+      * Sets the width of the component or its horizontal layout policy. By default, the
 @@ -11076,7 +11076,7 @@ export declare interface CommonMethod {
       * @atomicservice
       * @since 20
