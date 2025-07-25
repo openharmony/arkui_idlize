@@ -558,11 +558,18 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const { set: paramsSet, parameters } = this.extractTypeParameters(func.typeParams)
         this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(func.id!.name, false, () => {
             let extendedAttributes = this.traceAttrs()
+            if (func.isExtensionMethod) {
+                extendedAttributes.push({ name: idl.IDLExtendedAttributes.ExtensionMethod })
+            }
             const method = idl.createMethod(
                 func.id!.name,
                 func.params.map(it => {
                     const param = it as arkts.ETSParameterExpression
-                    return idl.createParameter(param.name, this.serializeType(param.typeAnnotation), param.isOptional)
+                    let name = param.name
+                    if (func.isExtensionMethod && name == '=t') {
+                        name = 'this'
+                    }
+                    return idl.createParameter(name, this.serializeType(param.typeAnnotation), param.isOptional)
                 }),
                 this.serializeType(func.returnTypeAnnotation),
                 {

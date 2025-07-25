@@ -103,7 +103,7 @@ index 96457a9ee..593121204 100644
  }
  
 diff --git a/api/@internal/component/ets/common.d.ts b/api/@internal/component/ets/common.d.ts
-index a7836ff8b..ea53bfbf6 100644
+index a7836ff8b..aa1d99f43 100644
 --- a/api/@internal/component/ets/common.d.ts
 +++ b/api/@internal/component/ets/common.d.ts
 @@ -30,7 +30,7 @@ import Want from '../../@ohos.app.ability.Want';
@@ -168,12 +168,6 @@ index a7836ff8b..ea53bfbf6 100644
    /**
     * Linear Gradient Angle
     *
-@@ -35876,4 +35876,4 @@ export declare function $$<T>(value: T): Bindable<T>;
-  * @since 20
-  * @arkts 1.2
-  */
--export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
-+export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
 diff --git a/api/@internal/component/ets/custom_dialog_controller.d.ts b/api/@internal/component/ets/custom_dialog_controller.d.ts
 index ad2578e93..af8875261 100644
 --- a/api/@internal/component/ets/custom_dialog_controller.d.ts

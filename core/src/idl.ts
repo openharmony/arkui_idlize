@@ -67,6 +67,7 @@ export enum IDLExtendedAttributes {
     DtsTag = "DtsTag",
     Entity = "Entity",
     Extends = "Extends",
+    ExtensionMethod = "ExtensionMethod",
     Import = "Import",
     DefaultExport = "DefaultExport",
     IndexSignature = "IndexSignature",
