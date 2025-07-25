@@ -15,7 +15,7 @@
 
 
 import { int32, int64, float32, unsafeCast } from "@koalaui/common"
-import { KInt, KPointer, KBoolean, NativeBuffer, KStringPtr, wrapCallback, SerializerBase, DeserializerBase, CallbackResource, InteropNativeModule, MaterializedBase, Tags, RuntimeType, runtimeType, toPeerPtr, nullptr, KSerializerBuffer, Finalizable } from "@koalaui/interop"
+import { KInt, KPointer, KBoolean, NativeBuffer, KStringPtr, SerializerBase, DeserializerBase, CallbackResource, InteropNativeModule, MaterializedBase, Tags, RuntimeType, runtimeType, toPeerPtr, nullptr, KSerializerBuffer, Finalizable } from "@koalaui/interop"
 export interface InternalModuleDataInterface {
     count: number;
 }

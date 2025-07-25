@@ -221,7 +221,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (methods.every(m => idl.isVoidType(m.returnType))) {
             returnType = idl.IDLVoidType
         } else {
-            returnType = collapseTypes(methods.map(m => 
+            returnType = collapseTypes(methods.map(m =>
                 idl.isVoidType(m.returnType) ? idl.IDLUndefinedType : m.returnType
             ))
         }
@@ -1751,7 +1751,7 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
                 if (p.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
-        }, superNames ? superNames.map(it => it.name) : undefined) 
+        }, superNames ? superNames.map(it => it.name) : undefined)
     }
 }
 
@@ -1935,7 +1935,6 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         imports.push({ feature: "NativeBuffer", module: "@koalaui/interop" })
         if (!options.isDeclared) {
             imports.push({ feature: "KStringPtr", module: "@koalaui/interop" })
-            imports.push({ feature: "wrapCallback", module: "@koalaui/interop" })
         }
         if (options.useMemoM3 && language === Language.ARKTS) {
             imports.push(

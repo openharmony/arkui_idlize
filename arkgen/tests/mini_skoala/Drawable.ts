@@ -15,7 +15,7 @@
 
 import { pointer, withFloat32Array, Access, getPtr } from "./utils"
 import { nativeModule } from "@koalaui/arkoala"
-import { registerCallback, isNullPtr } from "@koalaui/interop"
+import { isNullPtr } from "@koalaui/interop"
 import { Canvas } from "./Canvas"
 import { Rect } from "./Rect"
 import { RefCounted } from "./RefCounted"
@@ -85,10 +85,6 @@ export abstract class CustomDrawable extends Drawable {
         const ptr = nativeModule()._skoala_CustomDrawable__1nMake()
         if (!ptr) throw new TypeError("can not create an instance of type Drawable")
         let drawable = new RectCustomDrawable(ptr)
-        nativeModule()._skoala_CustomDrawable__1nInit(getPtr(drawable),
-            registerCallback(drawable.onGetBoundsCallback, drawable),
-            registerCallback(drawable.onDrawCallback, drawable)
-        )
         return drawable
     }
 

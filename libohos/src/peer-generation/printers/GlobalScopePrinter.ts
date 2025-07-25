@@ -35,7 +35,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     const peerImports = new ImportsCollector()
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), peerImports)
     const peerMethodWriter = library.createLanguageWriter()
-    const staticWriter = library.createLanguageWriter() 
+    const staticWriter = library.createLanguageWriter()
 
     const printed = library.globals.flatMap(scope => {
 
@@ -177,8 +177,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
         'SerializerBase',
         'DeserializerBase',
         'MaterializedBase',
-        'registerCallback',
-        'wrapCallback',
         'KPointer',
         'toPeerPtr',
     ], '@koalaui/interop')

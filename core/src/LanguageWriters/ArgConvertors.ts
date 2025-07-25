@@ -207,7 +207,7 @@ export class UndefinedConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         return writer.makeUndefined().asString()
     }
-    convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement { 
+    convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         return printer.makeStatement(printer.makeString(""))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
@@ -1169,16 +1169,13 @@ export class FunctionConvertor extends BaseArgConvertor { //
         super(idl.IDLFunctionType, [RuntimeType.FUNCTION], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
-        return writer.language == Language.CPP ? `makeArkFunctionFromId(${param})` : `registerCallback(${param})`
+       throw new Error('Shall not be used')
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, "writeFunction", [writer.makeString(value)]))
+        throw new Error('Shall not be used')
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        return assigneer(writer.makeCast(
-            writer.makeString(`${deserializerName}.readFunction()`),
-            idl.IDLFunctionType, { optional: true }
-        ))
+        throw new Error('Shall not be used')
     }
     nativeType(): idl.IDLType {
         return idl.IDLFunctionType
@@ -1529,8 +1526,8 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
         } else {
             serializeCallback = writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallbackForPromise<${writer.getNodeName(this.promise.elementType[0])}>`, [])
         }
-        return writer.makeAssign(value, undefined, writer.language == Language.CJ 
-            ? writer.makeString(serializeCallback.asString().concat('.promise')) 
+        return writer.makeAssign(value, undefined, writer.language == Language.CJ
+            ? writer.makeString(serializeCallback.asString().concat('.promise'))
             : writer.makeTupleAccess(serializeCallback.asString(), 0), true)
     }
 

@@ -14,7 +14,7 @@
  */
 
 import { float32, int32 } from "@koalaui/common"
-import { pointer, wrapCallback} from "@koalaui/interop"
+import { pointer } from "@koalaui/interop"
 import { nativeModule } from "@koalaui/arkoala"
 import { FinalizableBase } from "./Finalizable"
 
@@ -68,13 +68,6 @@ export function runtimeType(value: any): int32 {
 // Poor man's instanceof, fails on subclasses
 export function isInstanceOf(className: string, value: Object): boolean {
     return value.constructor.name === className
-}
-
-export function registerCallback(value: object|undefined): int32 {
-    return wrapCallback((args: Uint8Array, length: int32) => {
-        // TBD: deserialize the callback arguments and call the callback
-        return 42
-    })
 }
 
 export function registerMaterialized(value: object|undefined): number {
@@ -209,9 +202,6 @@ export class SerializerBase {
         this.checkCapacity(1)
         this.view.setInt8(this.position, value == undefined ? RuntimeType.UNDEFINED : +value)
         this.position++
-    }
-    writeFunction(value: object | undefined) {
-        this.writeInt32(registerCallback(value))
     }
     writeMaterialized(value: object | undefined) {
         this.writePointer(value ? (value as FinalizableBase).ptr : 0)

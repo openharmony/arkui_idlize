@@ -15,7 +15,6 @@
 
 import { pointer, withFloat32Array, Access, getPtr } from "./utils"
 import { nativeModule } from "@koalaui/arkoala"
-import { registerCallback, isNullPtr } from "@koalaui/interop"
 import { Canvas } from "./Canvas"
 import { Rect } from "./Rect"
 import { RefCounted } from "./RefCounted"
