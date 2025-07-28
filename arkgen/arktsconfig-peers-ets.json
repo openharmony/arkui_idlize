@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "package": "@ohos/arkui",
+        "package": "arkui",
         "baseUrl": "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/src",
         "outDir": "out/ets-arkts-peers/abc",
         "paths": {
