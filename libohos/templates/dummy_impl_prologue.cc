@@ -900,15 +900,30 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     namespace ScreenshotServiceAccessor {
         Ark_Boolean RequestScreenshotImpl(const Ark_String* target, const Ark_String* name)
         {
-            if (!needGroupedLog(1)) {
+            bool xxx = strcmp(name->chars, "XXX") == 0;
+            bool yyy = strcmp(name->chars, "YYY") == 0;
+            if (xxx || yyy) {
+                if (!needGroupedLog(1)) {
+                    return strcmp(name->chars, "XXX") == 0;
+                }
+                std::string out("requestScreenshot() \n");
+                out.append("[return true] \n");
+                appendGroupedLog(1, out);
                 return strcmp(name->chars, "XXX") == 0;
             }
-    
-            std::string out("requestScreenshot() \n");
-            out.append("[return true] \n");
-            appendGroupedLog(1, out);
-
-            return strcmp(name->chars, "XXX") == 0;
+            // golden image comparison
+            TGAInfo infoGolden;
+            ReadImageTGA(baseGoldenPath + std::string("golden-base"), infoGolden);
+            if (strcmp(name->chars, "golden-compare") == 0) {
+                return CompareTwoTGA(std::string("golden-base"), infoGolden, infoGolden);
+            }
+            if (strcmp(name->chars, "golden-diff") == 0) {
+                TGAInfo infoTarget;
+                CopyTGAHeaders(infoGolden, infoTarget);
+                StubTGA(baseBuildPath + std::string("golden-base-snapshot"), infoTarget);
+                return CompareTwoTGA(std::string("golden-base"), infoGolden, infoTarget);
+            }
+            return false;
         }
     } // ScreenshotServiceAccessor
     namespace RenderServiceNodeAccessor {
