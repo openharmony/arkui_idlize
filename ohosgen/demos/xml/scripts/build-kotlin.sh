@@ -17,4 +17,6 @@ konanc ./generated/kotlin/*.kt \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \
     -linker-options "-L$out_dir -lOHOS_XMLNativeModule" \
     -linker-options "-L$external_dir/interop/build -lInteropNativeModule" \
-    -g -p program -entry idlize.main -o ./build/kotlin/xml-demo
+    -p dynamic -o ./build/kotlin/kotlin_koala
+
+npm run build:loader -C ../../../external/arkoala-kotlin/framework

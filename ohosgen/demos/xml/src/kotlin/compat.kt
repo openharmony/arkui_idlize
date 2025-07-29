@@ -18,16 +18,3 @@ public fun eventTypeStr(eventType: EventType): String {
 public fun pullEvents() {
     checkArkoalaCallbacks()
 }
-
-// public func runEventLoop() {
-//     let finished = BooleanHolder()
-//     spawn {
-//         sleep(2000 * Duration.millisecond)
-//         finished.bool = true
-//     }
-//     while (!finished.bool) {
-//         spawn {
-//             checkArkoalaCallbacks()
-//         }
-//     }
-// }

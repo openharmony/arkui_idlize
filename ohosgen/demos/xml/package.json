@@ -20,15 +20,21 @@
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
         "generate:kt": "TARGET=kt npm run generate && cp ./src/kotlin/* ./generated/kotlin",
 
-        "compile:ts": "rollup -c",
-        "compile:arkts": "bash scripts/build-panda.sh",
-        "compile:cj": "",
-        "compile:kt": "bash scripts/build-kotlin.sh",
+        "build": "npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET} && npm run compile:${TARGET}",
+        "build:ts": "TARGET=ts npm run build",
+        "build:arkts": "TARGET=arkts npm run build",
+        "build:cj": "TARGET=cj npm run build",
+        "build:kt": "TARGET=kt npm run build",
 
         "compile:interop:native": "npm run compile:native-${TARGET}-host --prefix ../../../external/interop",
         "compile:interop:native:ts": "TARGET=node npm run compile:interop:native",
         "compile:interop:native:arkts": "TARGET=panda npm run compile:interop:native",
-        "compile:interop:native:kt": "TARGET=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop",
+        "compile:interop:native:kt": "TARGET=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop && npm run compile:native-kotlin-with-node-host -C ../../../external/arkoala-arkts/framework",
+        
+        "compile:ts": "rollup -c",
+        "compile:arkts": "bash scripts/build-panda.sh",
+        "compile:cj": "",
+        "compile:kt": "bash scripts/build-kotlin.sh",
 
         "compile:native": "meson setup build/native/${TARGET} -Dtarget=${TARGET} && meson compile -C build/native/${TARGET} && meson install -C build/native/${TARGET}",
         "compile:native:ts": "TARGET=node npm run compile:native",
@@ -40,12 +46,6 @@
         "start:arkts": "bash scripts/run-panda.sh",
         "start:cj": "bash scripts/run-cj.sh",
         "start:kt": "bash scripts/run-kt.sh",
-
-        "build": "npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET} && npm run compile:${TARGET}",
-        "build:ts": "TARGET=ts npm run build",
-        "build:arkts": "TARGET=arkts npm run build",
-        "build:cj": "TARGET=cj npm run build",
-        "build:kt": "TARGET=kt npm run build",
 
         "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
         "check:ts": "TARGET=ts npm run check",
