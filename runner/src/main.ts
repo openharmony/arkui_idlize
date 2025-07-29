@@ -43,7 +43,7 @@ function m3(sdkPathInput:string, installPath:string, options:any) {
     }
 
     commands.ets2idl({ sdkPath, configPath })
-    commands.idl2peer({ target: options.target, language: options.language })
+    commands.idl2peer({ target: options.target, language: options.language, optionsFile: options.optionsFile})
 
     let installSourceDir = GENERATED_PEER_DIR
     switch (options.target) {
@@ -79,6 +79,7 @@ function main(argv:string[]) {
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
+        .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .action(m3)
 
     program.command('sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>')

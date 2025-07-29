@@ -20,11 +20,13 @@ import { flat, scan } from "../utils"
 export interface Idl2PeerConfig {
     target: string,
     language: string,
+    optionsFile?: string,
 }
 
 export function idl2peer({
     target,
     language,
+    optionsFile,
 }: Idl2PeerConfig) {
     const idlFiles = scan(GENERATED_IDL_DIR)
 
@@ -46,7 +48,8 @@ export function idl2peer({
             ['--language', language],
             '--only-integrated',
             '--use-memo-m3',
-            ['--arkts-extension', '.ets']
+            ['--arkts-extension', '.ets'],
+            optionsFile ? [`--options-file`, optionsFile] : [],
         ])
     )
 }
