@@ -50,6 +50,25 @@ import { throwException } from "../../util";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
+//                        EXPRESSIONS                         //
+////////////////////////////////////////////////////////////////
+
+export class ETSStringExpression implements LanguageExpression {
+    constructor(public value: string) { }
+
+    private changeQuotes(value:string) {
+        return `'${value.substring(1, value.length - 1)}'`
+    }
+
+    asString(): string {
+        if (this.value.startsWith('"') && this.value.endsWith('"')) {
+            return this.changeQuotes(this.value)
+        }
+        return this.value
+    }
+}
+
+////////////////////////////////////////////////////////////////
 //                         STATEMENTS                         //
 ////////////////////////////////////////////////////////////////
 
@@ -216,6 +235,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new ETSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
+    }
+    makeString(value: string): LanguageExpression {
+        return new ETSStringExpression(value)
     }
     makeMapForEach(map: string, key: string, value: string, body: LanguageStatement[]): LanguageStatement {
         return new ArkTSMapForEachStatement(map, key, value, body)
