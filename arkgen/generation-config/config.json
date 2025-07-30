@@ -407,6 +407,14 @@
                 "onClick1",
                 "drawModifier"
             ],
+            "EnvironmentBackend": [
+                "isAccessibilityEnabled",
+                "getColorMode",
+                "getFontScale",
+                "getFontWeightScale",
+                "getLayoutDirection",
+                "getLanguageCode"
+            ],
             "EventEmulator": [
                 "emitClickEvent"
             ],

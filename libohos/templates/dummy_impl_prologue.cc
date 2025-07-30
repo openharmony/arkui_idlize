@@ -889,6 +889,69 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     }
     } // CommonMethodModifier
 
+    namespace EnvironmentBackendAccessor {
+    Ark_Boolean IsAccessibilityEnabledImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("isAccessibilityEnabled() \n");
+            out.append("[return false] \n");
+            appendGroupedLog(1, out);
+        }
+        return false;
+    }
+    Ark_Int32 GetColorModeImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("getColorMode() \n");
+            out.append("[return 1] \n");
+            appendGroupedLog(1, out);
+        }
+        return 1;
+    }
+    Ark_Float32 GetFontScaleImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("getFontScale() \n");
+            out.append("[return 1.0] \n");
+            appendGroupedLog(1, out);
+        }
+        return 1.0;
+    }
+    Ark_Float32 GetFontWeightScaleImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("getFontWeightScale() \n");
+            out.append("[return 1.0] \n");
+            appendGroupedLog(1, out);
+        }
+        return 1.0;
+    }
+    Ark_String GetLayoutDirectionImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("getLayoutDirection() \n");
+            out.append("[return \"LTR\"] \n");
+            appendGroupedLog(1, out);
+        }
+        return { "LTR", 3 };
+    }
+    Ark_String GetLanguageCodeImpl()
+    {
+        if (needGroupedLog(1))
+        {
+            string out("getLanguageCode() \n");
+            out.append("[return \"en\"] \n");
+            appendGroupedLog(1, out);
+        }
+        return { "en", 2 };
+    }
+    } // EnvironmentBackendAccessor
+
     namespace EventEmulatorAccessor {
     void EmitClickEventImpl(Ark_NativePointer node,
                             Ark_ClickEvent event)

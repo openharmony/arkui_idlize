@@ -1,0 +1,20 @@
+package arkui.stateManagement;
+
+[Entity=Class]
+interface PersistentStorageBackend {
+    static (String or undefined) get(String key);
+    static boolean has(String key);
+    static void remove(String key);
+    static void set(String key, String value);
+    static void clear();
+};
+
+[Entity=Class]
+interface EnvironmentBackend {
+    static boolean isAccessibilityEnabled();
+    static i32 getColorMode();
+    static f32 getFontScale();
+    static f32 getFontWeightScale();
+    static String getLayoutDirection();
+    static String getLanguageCode();
+};
