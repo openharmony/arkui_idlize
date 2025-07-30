@@ -547,6 +547,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'runtimeType',
             'RuntimeType',
             'SerializerBase',
+            'DeserializerBase',
             'toPeerPtr',
             'KPointer',
         ], '@koalaui/interop')
