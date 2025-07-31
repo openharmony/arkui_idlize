@@ -284,7 +284,7 @@
         ]
     },
     "hooks": {
-        "Button": {
+        "ButtonAttribute": {
             "contentModifier": {
                 "hookName": "hookButtonContentModifier",
                 "replaceImplementation": true
@@ -300,79 +300,79 @@
                 "replaceImplementation": true
             }
         },
-        "Checkbox": {
+        "CheckboxAttribute": {
             "contentModifier": {
                 "hookName": "hookCheckBoxContentModifier",
                 "replaceImplementation": true
             }
         },
-        "DataPanel": {
+        "DataPanelAttribute": {
             "contentModifier": {
                 "hookName": "hookDataPanelContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Gauge": {
+        "GaugeAttribute": {
             "contentModifier": {
                 "hookName": "hookGaugeContentModifier",
                 "replaceImplementation": true
             }
         },
-        "LoadingProgress": {
+        "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Progress": {
+        "ProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookProgressContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Radio": {
+        "RadioAttribute": {
             "contentModifier": {
                 "hookName": "hookRadioContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Rating": {
+        "RatingAttribute": {
             "contentModifier": {
                 "hookName": "hookRatingContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Select": {
+        "SelectAttribute": {
             "menuItemContentModifier": {
                 "hookName": "hookSelectContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Slider": {
+        "SliderAttribute": {
             "contentModifier": {
                 "hookName": "hookSliderContentModifier",
                 "replaceImplementation": true
             }
         },
-        "TextClock": {
+        "TextClockAttribute": {
             "contentModifier": {
                 "hookName": "hookTextClockContentModifier",
                 "replaceImplementation": true
             }
         },
-        "TextTimer": {
+        "TextTimerAttribute": {
             "contentModifier": {
                 "hookName": "hookTextTimerContentModifier",
                 "replaceImplementation": true
             }
         },
-        "Toggle": {
+        "ToggleAttribute": {
             "contentModifier": {
                 "hookName": "hookToggleContentModifier",
                 "replaceImplementation": true
             }
         },
-        "waterFlow": {
+        "waterFlowAttribute": {
             "setWaterFlowOptionsAttribute": {
                 "hookName": "hookWaterFlowOptionsImpl",
                 "replaceImplementation": true

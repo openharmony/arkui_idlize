@@ -115,7 +115,10 @@ class PeerFileVisitor {
             imports.addFeature('CallbackTransformer', './CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
 
-            const hookMethods = generatorConfiguration().hooks.get(peer.componentName)
+            const hookClassName = peer.componentName == "CommonMethod"
+                ? peer.componentName
+                : `${peer.componentName}Attribute`
+            const hookMethods = generatorConfiguration().hooks.get(hookClassName)
             if (hookMethods) {
                 for (const [methodName, hook] of hookMethods.entries()) {
                     const hookName = hook ? hook.hookName : `hook${peer.componentName}${capitalize(methodName)}`

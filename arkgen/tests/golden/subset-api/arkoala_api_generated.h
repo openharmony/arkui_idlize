@@ -11693,8 +11693,6 @@ typedef struct GENERATED_ArkUIButtonModifier {
                          const Opt_FontStyle* value);
     void (*setFontFamily)(Ark_NativePointer node,
                           const Opt_Union_String_Resource* value);
-    void (*setContentModifier)(Ark_NativePointer node,
-                               const Opt_ContentModifier* modifier);
     void (*setLabelStyle)(Ark_NativePointer node,
                           const Opt_ButtonLabelStyle* value);
 } GENERATED_ArkUIButtonModifier;
@@ -12902,8 +12900,6 @@ typedef struct GENERATED_ArkUISelectModifier {
                                    Ark_Int32 flags);
     void (*setSelectOptions)(Ark_NativePointer node,
                              const Array_SelectOption* options);
-    void (*setMenuItemContentModifier)(Ark_NativePointer node,
-                                       const Opt_ContentModifier* modifier);
     void (*set_onChangeEvent_selected)(Ark_NativePointer node,
                                        const Callback_Number_Void* callback);
     void (*set_onChangeEvent_value)(Ark_NativePointer node,
