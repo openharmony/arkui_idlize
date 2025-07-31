@@ -25,6 +25,7 @@ import {
 } from "@idlizer/core"
 import { PeersConstructions } from "../../../constuctions/PeersConstructions"
 import { Config } from "../../../general/Config"
+import { baseNameString } from "../../../utils/idl"
 
 export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
     (writer: LanguageWriter, call: LanguageExpression) => LanguageExpression
@@ -46,13 +47,13 @@ export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
             reference: (type: IDLReferenceType) =>
                 this.typechecker.isHeir(type.name, Config.astNodeCommonAncestor)
                     ? wrap(PeersConstructions.unpackNonNullable)
-                    : wrap(type.name),
+                    : wrap(baseNameString(type.name)),
             optional: (type: IDLOptionalType) => {
                 if (isReferenceType(type.type)) {
                     if (this.typechecker.isHeir(type.type.name, Config.astNodeCommonAncestor)) {
                         return wrap(PeersConstructions.unpackNullable)
                     }
-                    return wrap(PeersConstructions.newOf(type.type.name))
+                    return wrap(PeersConstructions.newOf(baseNameString(type.type.name)))
                 }
                 throwException(`unexpected optional of non-reference type`)
             },

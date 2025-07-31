@@ -24,11 +24,22 @@ export class IgnoreOptions {
             return
         }
         const ignore = JSON5.parse(fs.readFileSync(filePath).toString()).ignore
-        this.full = ignore?.full ?? []
         this.partial = ignore?.partial ?? []
+
+        const full: string[] = ignore?.full ?? []
+        full.forEach((fqName: string) => {
+            const parts = fqName.split('.')
+            const [ns, name] = parts.length === 1 ? ['', parts.at(0)!] : parts
+            if (!this.ignored.has(ns)) {
+                this.ignored.set(ns, new Map<string, boolean>())
+            }
+
+            const last = name.at(-1)
+            const key = last === '-' || last === '+' ? name.slice(0, -1) : name
+            this.ignored.get(ns)!.set(key, last !== '+')
+        })
     }
 
-    private readonly full: string[] = []
     private readonly partial: Partial[] = []
 
     isIgnoredMethod(iface: string, method: string): boolean {
@@ -39,9 +50,11 @@ export class IgnoreOptions {
         return this.partial?.some(it => it.interface === iface && it.properties?.includes(name))
     }
 
-    isIgnoredInterface(name: string): boolean {
-        return this.full.includes(name)
+    isIgnoredInterface(name: string, ns: string = ''): boolean {
+        return this.ignored.get(ns)?.get(name) ?? false
     }
+
+    private ignored = new Map<string, Map<string, boolean>>()
 }
 
 // TODO: remove when interfaces fixed!

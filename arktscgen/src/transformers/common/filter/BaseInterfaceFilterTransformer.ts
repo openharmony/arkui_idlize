@@ -26,14 +26,14 @@ export abstract class BaseInterfaceFilterTransformer extends Transformer {
     protected typechecker = new Typechecker(this.file.entries)
 
     transformInterface(entry: IDLInterface): IDLEntry|undefined {
-        if (this.shouldFilterOutInterface(entry.name)) {
+        if (this.shouldFilterOutInterface(entry)) {
             return undefined
         }
         return createUpdatedInterface(
             entry,
             entry.methods
                 .filter(it => !this.shouldFilterOutMethod(entry.name, it.name))
-                .filter(it => !this.isReferringForbiddenOrMissing(it, (name: string) => this.shouldFilterOutInterface(name))),
+                .filter(it => !this.isReferringForbiddenOrMissing(it, (iface: IDLInterface) => this.shouldFilterOutInterface(iface))),
             entry.name,
             entry.inheritance,
             entry.extendedAttributes,
@@ -44,19 +44,17 @@ export abstract class BaseInterfaceFilterTransformer extends Transformer {
 
     protected abstract shouldFilterOutMethod(node: string, name: string): boolean
     protected abstract shouldFilterOutProperty(node: string, name: string): boolean
-    protected abstract shouldFilterOutInterface(name: string): boolean
+    protected abstract shouldFilterOutInterface(entry: IDLInterface): boolean
 
-    protected isReferringForbiddenOrMissing(node: IDLMethod, predicate: (_: string) => boolean): boolean {
+    protected isReferringForbiddenOrMissing(node: IDLMethod, predicate: (_: IDLInterface) => boolean): boolean {
         return node.parameters
             .map(it => it.type)
             .concat(node.returnType)
             .map(innerTypeIfContainer)
             .filter(it => {
                 if (isReferenceType(it)) {
-                    if (this.typechecker.isReferenceTo(it, isInterface) && predicate(it.name)) {
-                        return true
-                    }
-                    if (this.typechecker.findRealDeclaration(it.name) === undefined) {
+                    const decl = this.typechecker.findRealDeclaration(it.name)
+                    if (!decl || isInterface(decl) && predicate(decl)) {
                         return true
                     }
                 }

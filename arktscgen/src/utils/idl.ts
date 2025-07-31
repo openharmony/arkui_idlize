@@ -146,6 +146,12 @@ export function nodeType(node: IDLInterface): string | undefined {
         ?.value
 }
 
+export function nativeType(node: IDLInterface): string | undefined {
+    return node.extendedAttributes
+        ?.find(it => it.name === 'c_type')
+        ?.value
+}
+
 export function nodeNamespace(node: IDLInterface): string | undefined {
     return getNamespacesPathFor(node)[0]?.name
 }

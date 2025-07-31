@@ -39,7 +39,7 @@ import {
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
-import { flattenType, makeMethod, nodeNamespace, nodeType, parent, flatParents } from "../../utils/idl"
+import { flattenType, makeMethod, nodeNamespace, nodeType, parent, flatParents, baseNameString, nativeType } from "../../utils/idl"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import {
     isAbstract,
@@ -111,7 +111,7 @@ export class PeerPrinter extends SingleFilePrinter {
         this.writer.writeClass(
             this.node.name,
             () => this.printBody(),
-            this.parent ? this.importer.withPeerImport(this.parent) : undefined
+            this.parent ? this.importer.withPeerImport(baseNameString(this.parent)) : undefined
         )
     }
 
@@ -192,7 +192,9 @@ export class PeerPrinter extends SingleFilePrinter {
     private printMethods(): void {
         this.node.methods.forEach(it => {
             if (isCreateOrUpdate(it.name)) {
-                if (isAbstract(this.node)) {
+                // TODO: This condition is not clear - classes with c_type attribute
+                // is not abstract too, is it?
+                if (isAbstract(this.node) && nativeType(this.node) === undefined) {
                     return
                 }
                 return this.printCreateOrUpdate(it)

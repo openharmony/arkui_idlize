@@ -15,7 +15,8 @@
 
 import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer"
 import { Config } from "../../../general/Config"
-import { IDLFile } from "@idlizer/core"
+import { IDLFile, IDLInterface } from "@idlizer/core"
+import { nodeNamespace } from "../../../utils/idl"
 
 export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(
@@ -25,8 +26,9 @@ export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
         super(file)
     }
 
-    protected shouldFilterOutInterface(name: string): boolean {
-        return this.config.ignore.isIgnoredInterface(name)
+    protected shouldFilterOutInterface(entry: IDLInterface): boolean {
+        const ns = nodeNamespace(entry) ?? ''
+        return this.config.ignore.isIgnoredInterface(entry.name, ns)
     }
 
     protected shouldFilterOutMethod(node: string, name: string): boolean {
@@ -36,5 +38,4 @@ export class OptionsFilterTransformer extends BaseInterfaceFilterTransformer {
     protected shouldFilterOutProperty(node: string, name: string): boolean {
         return this.config.ignore.isIgnoredProperty(node, name)
     }
-
 }

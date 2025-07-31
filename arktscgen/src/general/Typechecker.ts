@@ -61,6 +61,16 @@ export class Typechecker {
         declaration.inheritance.forEach(parent => {
             isHeir ||= this.isHeir(parent.name, ancestor)
         })
+
+        // TODO: Should be fixed or moved to config
+        const objects = [
+            "Program", "ArkTsConfig", "AstDumper", "SrcDumper",
+            "FunctionSignature", "ValidationInfo"
+        ]
+        if (!isHeir) {
+            if (ancestor === Config.defaultAncestor &&
+                objects.includes(declaration.name)) return true;
+        }
         return isHeir
     }
 
@@ -69,9 +79,6 @@ export class Typechecker {
         if (node === Config.context) return false // TODO: is handwritten
         if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
         if (this.isHeir(node, Config.defaultAncestor)) return true
-        // TODO: fix
-        if (node === "Program") return true
-        if (node === "ArkTsConfig") return true
         return false
     }
 
