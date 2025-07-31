@@ -30,16 +30,29 @@ callback ToggleModifierBuilder = pointer (pointer parentNode, ToggleConfiguratio
 [Entity=Class]
 interface ContentModifierHelper {
     static void contentModifierButton(pointer node, [TypeArguments="ButtonConfiguration"] ContentModifier contentModifier, ButtonModifierBuilder builder);
+    static void resetContentModifierButton(pointer node);
     static void contentModifierCheckBox(pointer node, [TypeArguments="CheckBoxConfiguration"] ContentModifier contentModifier, CheckBoxModifierBuilder builder);
+    static void resetContentModifierCheckBox(pointer node);
     static void contentModifierDataPanel(pointer node, [TypeArguments="DataPanelConfiguration"] ContentModifier contentModifier, DataPanelModifierBuilder builder);
+    static void resetContentModifierDataPanel(pointer node);
     static void contentModifierGauge(pointer node, [TypeArguments="GaugeConfiguration"] ContentModifier contentModifier, GaugeModifierBuilder builder);
+    static void resetContentModifierGauge(pointer node);
     static void contentModifierLoadingProgress(pointer node, [TypeArguments="LoadingProgressConfiguration"] ContentModifier contentModifier, LoadingProgressModifierBuilder builder);
+    static void resetContentModifierLoadingProgress(pointer node);
     static void contentModifierProgress(pointer node, [TypeArguments="ProgressConfiguration"] ContentModifier contentModifier, ProgressModifierBuilder builder);
+    static void resetContentModifierProgress(pointer node);
     static void contentModifierRadio(pointer node, [TypeArguments="RadioConfiguration"] ContentModifier contentModifier, RadioModifierBuilder builder);
+    static void resetContentModifierRadio(pointer node);
     static void contentModifierRating(pointer node, [TypeArguments="RatingConfiguration"] ContentModifier contentModifier, RatingModifierBuilder builder);
+    static void resetContentModifierRating(pointer node);
     static void contentModifierMenuItem(pointer node, [TypeArguments="MenuItemConfiguration"] ContentModifier contentModifier, MenuItemModifierBuilder builder);
+    static void resetContentModifierMenuItem(pointer node);
     static void contentModifierSlider(pointer node, [TypeArguments="SliderConfiguration"] ContentModifier contentModifier, SliderModifierBuilder builder);
+    static void resetContentModifierSlider(pointer node);
     static void contentModifierTextClock(pointer node, [TypeArguments="TextClockConfiguration"] ContentModifier contentModifier, TextClockModifierBuilder builder);
+    static void resetContentModifierTextClock(pointer node);
     static void contentModifierTextTimer(pointer node, [TypeArguments="TextTimerConfiguration"] ContentModifier contentModifier, TextTimerModifierBuilder builder);
+    static void resetContentModifierTextTimer(pointer node);
     static void contentModifierToggle(pointer node, [TypeArguments="ToggleConfiguration"] ContentModifier contentModifier, ToggleModifierBuilder builder);
+    static void resetContentModifierToggle(pointer node);
 };
