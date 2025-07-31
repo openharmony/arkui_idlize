@@ -403,8 +403,8 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         let isPointerValueField = valueConvertor.isPointerType()
         let keyNativeType = printer.getNodeName(keyConvertor.nativeType())
         let valueNativeType = printer.getNodeName(valueConvertor.nativeType())
-        let keyConstCast = isPointerKeyField ? `(const ${keyNativeType}*)` : ``
-        let valueConstCast = isPointerValueField ? `(const ${valueNativeType}*)` : ``
+        let keyConstCast = isPointerKeyField ? `const_cast<const ${keyNativeType}*>` : ``
+        let valueConstCast = isPointerValueField ? `const_cast<const ${valueNativeType}*>` : ``
 
         // Provide prototype of keys printer.
         printer.print(`template <>`)
@@ -422,9 +422,9 @@ inline void WriteToString(std::string* result, const ${name}* value) {
         printer.print(`for (int i = 0; i < count; i++) {`)
         printer.pushIndent()
         printer.print(`if (i > 0) result->append(", ");`)
-        printer.print(`WriteToString(result, ${keyConstCast}${isPointerKeyField ? "&" : ""}value->keys[i]);`)
+        printer.print(`WriteToString(result, ${keyConstCast}(${isPointerKeyField ? "&" : ""}value->keys[i]));`)
         printer.print(`result->append(": ");`)
-        printer.print(`WriteToString(result, ${valueConstCast}${isPointerValueField ? "&" : ""}value->values[i]);`)
+        printer.print(`WriteToString(result, ${valueConstCast}(${isPointerValueField ? "&" : ""}value->values[i]));`)
         printer.popIndent()
         printer.print(`}`)
         printer.print(`result->append("}");`)
