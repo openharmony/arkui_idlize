@@ -1148,12 +1148,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Int32Array': return idl.createContainerType('sequence', [idl.IDLI32Type])
                 case 'IterableIterator': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'ReadonlyArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
+                case 'FixedArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'number': return idl.IDLNumberType
                 case 'ErrorCallback': return idl.createReferenceType(name)
                 case 'BusinessError': return idl.createReferenceType(name)
                 case 'Required':
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
+                case 'ESValue': return idl.IDLObjectType
                 case 'ParticleTuple': {
                     const typeParameters = new Set<string>()
                     typeArgs?.forEach(arg => {
