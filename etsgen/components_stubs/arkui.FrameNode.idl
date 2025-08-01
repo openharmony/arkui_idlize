@@ -84,4 +84,6 @@ interface FrameNode {
     void recycle();
     static pointer getFrameNodePtr(FrameNode node);
     static FrameNode createTypedFrameNode(String type);
+    pointer createByRawPtr(FrameNode pointer);
+    FrameNode unWrapRawPtr(pointer pointer);
 };
