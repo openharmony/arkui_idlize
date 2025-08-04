@@ -54,6 +54,7 @@ import {
     collectPeersForFile,
     writePeerMethod
 } from "@idlizer/libohos";
+import { HandwrittenModule } from '../ArkoalaLayout';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -106,8 +107,8 @@ class PeerFileVisitor {
         if (component.interfaceDeclaration)
             collectDeclDependencies(this.library, component.interfaceDeclaration, imports, { expandTypedefs: true })
         if (this.library.language === Language.TS) {
-            imports.addFeature('GestureName', './generated/shared/generated-utils')
-            imports.addFeature('GestureComponent', './generated/shared/generated-utils')
+            imports.addFeature('GestureName', './framework/shared/generated-utils')
+            imports.addFeature('GestureComponent', './framework/shared/generated-utils')
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
@@ -122,7 +123,7 @@ class PeerFileVisitor {
             if (hookMethods) {
                 for (const [methodName, hook] of hookMethods.entries()) {
                     const hookName = hook ? hook.hookName : `hook${peer.componentName}${capitalize(methodName)}`
-                    imports.addFeature(hookName, "./handwritten")
+                    imports.addFeature(hookName, HandwrittenModule(this.library.language))
                 }
             }
         }

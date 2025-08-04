@@ -18,15 +18,15 @@ import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLi
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
-const BASE_PATH = 'generated'
+const BASE_PATH = 'framework'
 const getGeneratedFilePath = (p:string) => path.join(BASE_PATH, p)
 
 export const SyntheticModule = "./SyntheticDeclarations"
-export function HandwrittenModule(language: Language) {
+export function HandwrittenModule(language: Language, isSdk = false) {
     // does this switch needed here?
     switch (language) {
         case Language.TS: return "./handwritten"
-        case Language.ARKTS: return "./handwritten"
+        case Language.ARKTS: return isSdk ? './handwritten' : "#handwritten"
         case Language.KOTLIN: return "./handwritten"
         default: throw new Error("Not implemented")
     }
@@ -126,7 +126,7 @@ export class TsLayout extends CommonLayoutBase {
     }
 }
 
-class ArkTsLayout extends CommonLayoutBase {
+export class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
         ["TypeChecker", "#components"],
         ["SerializerBase", "@koalaui/interop"],
@@ -136,6 +136,19 @@ class ArkTsLayout extends CommonLayoutBase {
         ["checkArkoalaCallbacks", "./CallbacksChecker"],
         ["CallbackTransformer", "./CallbackTransformer"],
     ])
+
+    constructor(
+        library: PeerLibrary,
+        prefix?: string,
+        private isSdk = false
+    ) {
+        super(library, prefix)
+    }
+
+    handwrittenPackage(): string {
+        return HandwrittenModule(Language.ARKTS, this.isSdk)
+    }
+
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g
     resolve(target: idl.LayoutTargetDescription): string {
@@ -145,7 +158,7 @@ class ArkTsLayout extends CommonLayoutBase {
             return this.arkTSInternalPaths.get(target.node.name)!
 
         if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
-            return HandwrittenModule(this.library.language)
+            return HandwrittenModule(this.library.language, this.isSdk)
         }
         const packageName = idl.getPackageName(target.node)
 

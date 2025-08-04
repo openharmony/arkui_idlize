@@ -535,6 +535,12 @@ export class PeerLibrary implements LibraryInterface {
     setFileLayout(strategy: LayoutManagerStrategy) {
         this.layout = new LayoutManager(strategy)
     }
+    withFileLayout(strategy: LayoutManagerStrategy, op:() => void) {
+        const old = this.layout
+        this.layout = new LayoutManager(strategy)
+        op()
+        this.layout = old
+    }
 }
 
 export const ArkInt32 = idl.IDLI32Type

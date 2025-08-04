@@ -1,11 +1,12 @@
 {
     "compilerOptions": {
         "package": "arkui",
-        "baseUrl": "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src",
+        "baseUrl": "out/arkts-subset/generated/sig/arkoala-arkts/arkui/generated",
         "outDir": "out/arkts-subset/abc",
         "paths": {
-            "#components": ["./generated/arkts"],
-            "@arkoala/arkui": ["./generated"],
+            "#components": ["./framework/arkts"],
+            "#handwritten": ["./handwritten"],
+            "@arkoala/arkui": ["./framework"],
             "@koalaui/interop": ["../../../../../../../../external/interop/src/arkts"],
             "@koalaui/common": ["../../../../../../../../external/incremental/common/src"],
             "@koalaui/compat": ["../../../../../../../../external/incremental/compat/src/arkts"],
@@ -16,7 +17,7 @@
         }
     },
     "include": [
-        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/**/*.ets"
+        "out/arkts-subset/generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
     ],
     "exclude": [
         "out/arkts-subset/generated/sig/arkoala-arkts/arkui/src/sdk/**/*"

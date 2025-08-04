@@ -142,7 +142,7 @@ class ModifiersFileVisitor {
                 }
             }
         }
-        importsCollector.addFeature("AttributeUpdaterFlag", "./generated/AttributeUpdater")
+        importsCollector.addFeature("AttributeUpdaterFlag", "./framework/AttributeUpdater")
         return importsCollector
     }
 
