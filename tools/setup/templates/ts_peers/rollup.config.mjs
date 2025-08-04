@@ -70,7 +70,7 @@ const arkoalaArkuiSrcDir = `${generatedDir}/sig/arkoala/arkui/src`
 const tsconfigFile = path.resolve(`tsconfig.json`)
 const outDir = path.resolve('lib')
 
-const enforcedOrder = ["src/ComponentBase.ts", "src/generated/common.ts", "src/generated/gesture.ts", "src/generated/textInput.ts", "src/generated/button.ts"]
+const enforcedOrder = ["src/ComponentBase.ts", "src/framework/common.ts", "src/framework/gesture.ts", "src/framework/textInput.ts", "src/framework/button.ts"]
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
 /** @type {import("rollup").RollupOptions} */
