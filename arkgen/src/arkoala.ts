@@ -512,11 +512,12 @@ class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
     emitRealSync(library: PeerLibrary, libace: LibaceInstall, options: ModifierFileOptions): void {
         const getterDeclarations = library.createLanguageWriter(Language.CPP)
 
-        for (const [slug, state] of this.stateByFile) {
-            if (state.hasModifiers)
-                printModifiersImplFile(libace.modifierCpp(slug), state, options)
-            if (state.hasAccessors)
-                printModifiersImplFile(libace.accessorCpp(slug), state, options)
+        for (const [slug, state] of this.modifierStateByFile) {
+            printModifiersImplFile(libace.modifierCpp(slug), state, options)
+            getterDeclarations.concat(state.getterDeclarations)
+        }
+        for (const [slug, state] of this.accessorStateByFile) {
+            printModifiersImplFile(libace.accessorCpp(slug), state, options)
             getterDeclarations.concat(state.getterDeclarations)
         }
 

@@ -26,12 +26,20 @@ export class GniVisitor {
 
     printGniEntries(clazz: PeerClass): void {
         const className = makeFileNameFromClassName(clazz.componentName)
-        this.gni.print(`"implementation/${className}_modifier.cpp",`)
+        this.printGniDependency(`implementation/${className}_modifier.cpp`)
     }
 
     printMaterializedClassSourcePaths(clazz: MaterializedClass) {
         const className = makeFileNameFromClassName(clazz.className)
-        this.gni.print(`"implementation/${className}_accessor.cpp",`)
+        this.printGniDependency(`implementation/${className}_accessor.cpp`)
+    }
+
+    private printedDependencies = new Set<string>()
+    protected printGniDependency(name: string): void {
+        if (!this.printedDependencies.has(name)) {
+            this.gni.print(`"${name}",`)
+            this.printedDependencies.add(name)
+        }
     }
 
     // TODO: have a proper Peer module visitor

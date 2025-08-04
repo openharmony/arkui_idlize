@@ -480,50 +480,34 @@ export class MultiFileModifiersVisitorState {
     accessors = createLanguageWriter(Language.CPP)
     modifiers = createLanguageWriter(Language.CPP)
     getterDeclarations = createLanguageWriter(Language.CPP)
-    hasModifiers = false
-    hasAccessors = false
 }
 
 export class MultiFileModifiersVisitor extends AccessorVisitor {
-    protected stateByFile = new Map<string, MultiFileModifiersVisitorState>()
-    private hasModifiers = false
-    private hasAccessors = false
+    protected modifierStateByFile = new Map<string, MultiFileModifiersVisitorState>()
+    protected accessorStateByFile = new Map<string, MultiFileModifiersVisitorState>()
 
     printPeerClassModifiers(clazz: PeerClass): void {
-        this.onFileStart(clazz.componentName)
-        this.hasModifiers = true
+        this.onFileStart(clazz.componentName, this.modifierStateByFile)
         super.printPeerClassModifiers(clazz)
-        this.onFileEnd(clazz.componentName)
     }
 
-    onFileStart(className: string) {
+    onFileStart(className: string, storage: Map<string, MultiFileModifiersVisitorState>) {
         const slug = makeFileNameFromClassName(className)
-        let state = this.stateByFile.get(slug)
+        let state = storage.get(slug)
         if (!state) {
             state = new MultiFileModifiersVisitorState()
-            this.stateByFile.set(slug, state)
+            storage.set(slug, state)
         }
         this.dummy = state.dummy
         this.real = state.real
         this.accessors = state.accessors
         this.modifiers = state.modifiers
         this.getterDeclarations = state.getterDeclarations
-        this.hasModifiers = false
-        this.hasAccessors = false
-    }
-
-    onFileEnd(className: string) {
-        const slug = makeFileNameFromClassName(className)
-        const state = this.stateByFile.get(slug)!
-        state.hasModifiers = this.hasModifiers
-        state.hasAccessors = this.hasAccessors
     }
 
     printRealAndDummyAccessor(clazz: MaterializedClass): void {
-        this.onFileStart(clazz.className)
-        this.hasAccessors = true
+        this.onFileStart(clazz.className, this.accessorStateByFile)
         super.printRealAndDummyAccessor(clazz)
-        this.onFileEnd(clazz.className)
     }
 }
 
