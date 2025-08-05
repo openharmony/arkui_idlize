@@ -56,6 +56,7 @@ export enum IDLEntity {
 
 export enum IDLExtendedAttributes {
     Accessor = "Accessor",
+    Annotations = "Annotations",
     Async = "Async",
     CallSignature = "CallSignature",
     CommonMethod = "CommonMethod",
@@ -81,6 +82,7 @@ export enum IDLExtendedAttributes {
     Synthetic = "Synthetic",
     Throws = "Throws",
     TraceKey = "TraceKey",
+    TypeAnnotations = "TypeAnnotations",
     TypeArguments = "TypeArguments",
     TypeParameters = "TypeParameters",
     VerbatimDts = "VerbatimDts",

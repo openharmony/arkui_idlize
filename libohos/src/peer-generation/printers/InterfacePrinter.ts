@@ -66,8 +66,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (!idl.isReferenceType(node.type)) return undefined
         const target = this.peerLibrary.resolveTypeReference(node.type)
         if (target?.name != node.name || idl.getNamespaceName(target)) return undefined
-        const currentModule = this.peerLibrary.layout.resolve({node: node, role: LayoutNodeRole.INTERFACE})
-        const targetModule = this.peerLibrary.layout.resolve({node: target, role: LayoutNodeRole.INTERFACE})
+        const currentModule = this.peerLibrary.layout.resolve({ node: node, role: LayoutNodeRole.INTERFACE })
+        const targetModule = this.peerLibrary.layout.resolve({ node: target, role: LayoutNodeRole.INTERFACE })
         const relative = ImportsCollector.resolveRelative(currentModule, targetModule)!
         return `export { ${node.name} } from "${relative}"`
     }
@@ -83,9 +83,19 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             this.writer.print(reexportTypedef)
             return
         }
+        const annotations: string[] = []
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)) {
+            const declaredAnnotations = idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)?.split(';') ?? []
+            annotations.push(
+                ...declaredAnnotations
+            )
+        }
+        const annotationsString = this.peerLibrary.language === Language.ARKTS
+            ? annotations.map(a => `@${a} `).join('')
+            : ''
         const type = this.writer.getNodeName(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
-        this.writer.print(`export type ${node.name}${typeParams} = ${type};`)
+        this.writer.print(`export type ${node.name}${typeParams} = ${annotationsString}${type};`)
     }
 
     convertCallback(node: idl.IDLCallback) {
@@ -166,7 +176,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(["}"])
     }
 
-    protected hasIntersection(a:idl.IDLType, b:idl.IDLType): boolean {
+    protected hasIntersection(a: idl.IDLType, b: idl.IDLType): boolean {
         if (idl.printType(a) === idl.printType(b)) {
             return true
         }
@@ -182,7 +192,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return false
     }
 
-    protected collapseMethods(methodsName:string, methods:idl.IDLMethod[]): idl.IDLMethod {
+    protected collapseMethods(methodsName: string, methods: idl.IDLMethod[]): idl.IDLMethod {
         const parameters: idl.IDLParameter[] = []
         const maxParams = methods.map(m => m.parameters.length).reduce((a, b) => Math.max(a, b), -1)
 
@@ -217,7 +227,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 )
             )
         }
-        let returnType : idl.IDLType
+        let returnType: idl.IDLType
         if (methods.every(m => idl.isVoidType(m.returnType))) {
             returnType = idl.IDLVoidType
         } else {
@@ -238,13 +248,13 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         )
     }
 
-    protected collapseAmbiguousMethods(methods:idl.IDLMethod[]) {
+    protected collapseAmbiguousMethods(methods: idl.IDLMethod[]) {
         const groups = new Map<string, idl.IDLMethod[]>()
         methods.forEach(method => {
             const record = getOrPut(groups, method.name, () => [])
             record.push(method)
         })
-        const result:idl.IDLMethod[] = []
+        const result: idl.IDLMethod[] = []
         groups.forEach((group, name) => {
             if (group.length === 1) {
                 result.push(group[0])
@@ -488,9 +498,19 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const maybeMemo = this.isMemo(node)
             ? this.peerLibrary.useMemoM3 ? `\n@memo\n` : `\n/** @memo */\n`
             : ``
+        const annotations: string[] = []
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)) {
+            const declaredAnnotations = idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)?.split(';') ?? []
+            annotations.push(
+                ...declaredAnnotations
+            )
+        }
+        const annotationsString = this.peerLibrary.language === Language.ARKTS
+            ? annotations.map(a => `@${a} `).join('')
+            : ''
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${maybeMemo}(${paramsType}) => ${retType};`
+        return `export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${annotationsString}${maybeMemo}(${paramsType}) => ${retType};`
     }
 
     private isCallback(node: idl.IDLInterface) {
@@ -533,7 +553,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     convertMethod(node: idl.IDLMethod): void {
         this.writer.writeMethodDeclaration(node.name, this.writer.makeSignature(node.returnType, node.parameters), node.isFree ? [MethodModifier.FREE] : [])
     }
-    convertConstant(node: idl.IDLConstant): void {}
+    convertConstant(node: idl.IDLConstant): void { }
     convertEnum(node: idl.IDLEnum): void {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))
     }
@@ -577,7 +597,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
             || isInplacedGeneric(entry)
     }
 
-    protected getDeclConvertor(writer:LanguageWriter, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
+    protected getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
         return new TSDeclConvertor(writer, library, isDeclared)
     }
 
@@ -1056,7 +1076,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
             || isInplacedGeneric(entry)
     }
 
-    protected getDeclConvertor(writer:LanguageWriter, library:PeerLibrary, isDeclared:boolean): DeclarationConvertor<void> {
+    protected getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
         return new ArkTSDeclConvertor(writer, library, isDeclared)
     }
 
@@ -1756,7 +1776,7 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
 }
 
 
-function getVisitor(peerLibrary: PeerLibrary, isDeclarations:boolean, printClasses:boolean): InterfacesVisitor {
+function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean, printClasses: boolean): InterfacesVisitor {
     if (peerLibrary.language == Language.TS) {
         return new TSInterfacesVisitor(peerLibrary, printClasses)
     }
@@ -1775,7 +1795,7 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations:boolean, printClass
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }
 
-export function createInterfacePrinter(isDeclarations:boolean, printClasses:boolean): PrinterFunction {
+export function createInterfacePrinter(isDeclarations: boolean, printClasses: boolean): PrinterFunction {
     return (library: PeerLibrary) => getVisitor(library, isDeclarations, printClasses).printInterfaces()
 }
 
@@ -1941,6 +1961,7 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
                 { feature: "memo", module: "@koalaui/runtime/annotations" },
                 { feature: "memo_stable", module: "@koalaui/runtime/annotations" },
                 { feature: "ComponentBuilder", module: "@koalaui/builderLambda" },
+                { feature: "Builder", module: "@koalaui/builderLambda" },
             )
         }
     }

@@ -9,8 +9,8 @@ interface ButtonAttribute: CommonMethod {
 callback Callback_Void = void ();
 [ComponentInterface]
 interface ButtonInterface {
-    [CallSignature]
+    [Annotations=memo, CallSignature]
     ButtonAttribute invoke();
-    [CallSignature]
+    [Annotations=memo, CallSignature]
     ButtonAttribute invoke(String label);
 };

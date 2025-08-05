@@ -612,6 +612,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const { set: paramsSet, parameters } = this.extractTypeParameters(func.typeParams)
         this.withTypeParamContext(paramsSet, () => this.contextual.suggestWithTypePrefix(func.id!.name, false, () => {
             let extendedAttributes = this.traceAttrs()
+            const annotations = this.extractAnnotations(node.annotations)
+            if (annotations !== "") {
+                extendedAttributes.push({name: idl.IDLExtendedAttributes.Annotations, value: annotations})
+            }
+
             if (func.isExtensionMethod) {
                 extendedAttributes.push({ name: idl.IDLExtendedAttributes.ExtensionMethod })
             }
@@ -719,7 +724,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isETSFunctionType(declaration.typeAnnotation)) {
             const typeParams = this.extractTypeParameters(declaration.typeParams)
             this.contextual.suggest(name, true, () => {
-                this.entries.push(this.serializeFunctionType(declaration.typeAnnotation as arkts.ETSFunctionType, typeParams)[0])
+                let result = this.serializeFunctionType(declaration.typeAnnotation as arkts.ETSFunctionType, typeParams)[0]
+                const annotations = this.extractAnnotations(declaration.typeAnnotation.annotations)
+                if (annotations !== "") {
+                    result.extendedAttributes ??= []
+                    result.extendedAttributes?.push({name:idl.IDLExtendedAttributes.TypeAnnotations, value:annotations})
+                }
+                this.entries.push(result)
             })
         } else if (arkts.isETSTuple(declaration.typeAnnotation)) {
             this.contextual.suggest(name, true, () => {
@@ -871,6 +882,18 @@ class IDLVisitor extends arkts.AbstractVisitor {
             methods,
             hasMemoAnnotation,
         }
+    }
+
+    private extractAnnotations(annotations: readonly arkts.AnnotationUsage[]) : string {
+        return annotations.map(it => {
+            if (!arkts.isIdentifier(it.expr)) return ""
+            const name = it.expr.name
+            if (name === "ComponentBuilder") {
+                return ""
+            } else {
+                return name
+            }
+        }).filter(it => it !== "").join(";")
     }
 
     visitClassDeclaration(declaration: arkts.ClassDeclaration): arkts.ClassDeclaration {
