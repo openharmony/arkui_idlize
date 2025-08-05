@@ -793,3 +793,24 @@ index cfd065cf4..64f7e4cc2 100644
          factory: () => T,
          initializers?: T_Options,
          reuseId?: string,
+diff --git a/api/global/resource.d.ts b/api/global/resource.d.ts
+index 21a5ebe31..23a71edb9 100644
+--- a/api/global/resource.d.ts
++++ b/api/global/resource.d.ts
+@@ -96,14 +96,14 @@ export interface Resource {
+   /**
+    * Set params.
+    *
+-   * @type { ?Array<Object | undefined> }
++   * @type { ?Array<String> }
+    * @syscap SystemCapability.Global.ResourceManager
+    * @crossplatform
+    * @atomicservice
+    * @since 20
+    * @arkts 1.2
+    */
+-  params?: Array<Object | undefined>;
++  params?: Array<String>;
+ 
+   /**
+    * Set params.
