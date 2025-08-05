@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "version": "2.1.7",
+  "description": "format code with clang-format tool",
+  "license": "Apache-2.0",
+  "keywords": [],
+  "config": {
+    "sig_path": "../external/arkoala-arkts/framework/native/src ../external/arkoala-arkts/arkui/src/ani/native/",
+    "patch_path": "./patches/sig_patch.patch"
+  },
+  "scripts": {
+    "check-format": "bash ./check-format.sh ${PATCH_FILE} ${DIR_PATH}",
+    "apply-format": "bash ./apply-correct-format.sh ${PATCH_FILE}",
+    "check-format:external": "DIR_PATH=$npm_package_config_sig_path PATCH_FILE=$npm_package_config_patch_path npm run check-format",
+    "apply-format:external": "PATCH_FILE=$npm_package_config_patch_path npm run apply-format"
+  }
+}
