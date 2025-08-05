@@ -58,7 +58,7 @@ export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
 }
 
-function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInterface): idl.IDLInterface[] {
+export function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInterface): idl.IDLInterface[] {
     const result: idl.IDLInterface[] = []
     while (decl) {
         const superResolved = getSuper(decl, library)

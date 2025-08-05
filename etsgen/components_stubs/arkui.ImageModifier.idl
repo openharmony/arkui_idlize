@@ -1,3 +1,4 @@
 package arkui.ImageModifier;
 
+[Entity=Class, ComponentModifier]
 interface ImageModifier {};

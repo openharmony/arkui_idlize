@@ -62,6 +62,7 @@ export enum IDLExtendedAttributes {
     CommonMethod = "CommonMethod",
     Component = "Component",
     ComponentInterface = "ComponentInterface",
+    ComponentModifier = "ComponentModifier",
     Deprecated = "Deprecated",
     Documentation = "Documentation",
     DtsName = "DtsName",

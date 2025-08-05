@@ -32,6 +32,10 @@ export function HandwrittenModule(language: Language, isSdk = false) {
     }
 }
 
+function modifierNameGenerator(name: string): string {
+    return name.replaceAll("Attribute", "" ).concat("Modifier")
+}
+
 function toFileName(name:string) {
     return name.split(/[_-]/gi).map(it => idl.capitalize(it)).join('')
 }
@@ -40,13 +44,12 @@ function customPathSuggestion(pkg: string): string | undefined {
     const suggestions = peerGeneratorConfiguration().currentModulePackagesPaths
     if (!suggestions)
         return undefined
-    if ([...suggestions.keys()].filter(it => pkg.startsWith(it)).length > 1)
-        throw new Error(`Can not select appropriate prefix for package "${pkg}": found more that variants in "currentModulePackagesPaths"`)
-    for (const prefix of suggestions.keys()) {
-        if (pkg === prefix)
-            return suggestions.get(prefix)
-        if (pkg.startsWith(prefix))
-            return path.join(suggestions.get(prefix)!, pkg.substring(prefix.length + 1))
+    const candidates = suggestions.filter(it => pkg.startsWith(it.package))
+    for (const candidate of candidates) {
+        if (pkg === candidate.package)
+            return candidate.path
+        if (pkg.startsWith(candidate.package))
+            return path.join(candidate.path, pkg.substring(candidate.package.length + 1))
     }
     return undefined
 }
@@ -152,6 +155,9 @@ export class ArkTsLayout extends CommonLayoutBase {
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g
     resolve(target: idl.LayoutTargetDescription): string {
+        if (target.hint === 'component.modifier') {
+            return modifierNameGenerator(target.node.name)
+        }
         if (target.node.name === NativeModule.Generated.name)
             return `#components`
         if (this.arkTSInternalPaths.has(target.node.name))

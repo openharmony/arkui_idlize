@@ -15,9 +15,10 @@
 
 import * as idl from '@idlizer/core/idl'
 import { IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { collapseIdlPeerMethods, collectComponents, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
+import { collapseIdlPeerMethods, collectComponents, collectDeclDependencies, collectDeclItself, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile } from "@idlizer/libohos";
-import { generateAttributeModifierSignature } from './ComponentsPrinter';
+import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
+import { HandwrittenModule } from '../ArkoalaLayout';
 
 function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -131,7 +132,8 @@ class ModifiersFileVisitor {
                 const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
                 const parentGeneratedPath = this.library.layout.resolve({
                     node: parentDecl,
-                    role: LayoutNodeRole.COMPONENT
+                    role: LayoutNodeRole.COMPONENT,
+                    hint: 'component.modifier'
                 })
                 importsCollector.addFeature(this.generateAttributeSetName(parentComponent.name), `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
@@ -142,7 +144,18 @@ class ModifiersFileVisitor {
                 }
             }
         }
-        importsCollector.addFeature("AttributeUpdaterFlag", "./framework/AttributeUpdater")
+        importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
+        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdater")
+        const peerLocation = this.library.layout.resolve({
+            node: component.attributeDeclaration,
+            role: LayoutNodeRole.COMPONENT,
+        })
+        importsCollector.addFeature(componentToPeerClass(component.name), `./${peerLocation}`)
+        collectDeclDependencies(this.library, component.attributeDeclaration, importsCollector)
+        expandComponentWithSupers(this.library, component.attributeDeclaration).forEach(decl => {
+            collectDeclItself(this.library, decl, importsCollector)
+        })
+        collectDeclItself(this.library, component.attributeDeclaration, importsCollector)
         return importsCollector
     }
 
@@ -218,6 +231,13 @@ class ModifiersFileVisitor {
                     writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
                 }
             )
+
+            writer.print(`isUpdater: () => boolean = () => false`)
+            writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
 
             attributeTypes.forEach(attribute => {
                 writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
@@ -366,22 +386,7 @@ class ModifiersFileVisitor {
             writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                 writer.writeStatement(writer.makeThrowError("Not implemented"))
             })
-        }, parentSet, [`${componentAttribute.name}`])
-
-        // const optimizerParent = this.generateOptimizerParentName(peer)
-        // printer.writeClass(this.generateOptimizerName(componentAttribute.name), (writer) => {
-        //     writer.print(`_update: boolean = false;`);
-        //     writer.print(`_disable: boolean = false;`);
-        //     writer.print(`_peer?: ${componentToPeerClass(peer.componentName)};`);
-        //     writer.print(`_attribute: ${this.generateAttributeSetName(componentAttribute.name)};`);
-        //     writer.print(`constructor(attribute: ${this.generateAttributeSetName(componentAttribute.name)}) {`);
-        //     writer.pushIndent();
-        //     writer.print(`super(attribute);`);
-        //     writer.print(`this._attribute = attribute;`);
-        //     writer.popIndent();
-        //     writer.print(`}`);
-
-        // }, optimizerParent)
+        }, parentSet, [`${componentAttribute.name}`, `AttributeModifier<${componentAttribute.name}>`])
 
         return [{
             collector: this.printImports(peer),
@@ -389,7 +394,7 @@ class ModifiersFileVisitor {
             over: {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
-                hint: 'component.implementation'
+                hint: 'component.modifier'
             }
         }]
     }

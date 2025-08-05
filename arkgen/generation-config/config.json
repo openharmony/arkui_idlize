@@ -452,9 +452,10 @@
         }
     },
     "libraryNameMapping": { },
-    "currentModulePackagesPaths": {
-        "arkui.component": "./component"
-    },
+    "currentModulePackagesPaths": [
+        { "package": "arkui.component", "path": "./component" },
+        { "package": "arkui", "path": "./" }
+    ],
     "currentModuleExportedPackages": [
         "arkui.component",
         "internal.component.ets",

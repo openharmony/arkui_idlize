@@ -217,7 +217,7 @@ function mk<T>(typeName:string, check: (x: unknown) => boolean, config?: CommonB
             }
             return new ValidationBox({
                 success: false,
-                errorMessage: `Expected "${typeName}"`
+                errorMessage: `Expected "${typeName}" but got "${typeof x}"`
             })
         },
         () => {

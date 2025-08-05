@@ -1,3 +1,4 @@
 package arkui.TextModifier;
 
+[Entity=Class, ComponentModifier]
 interface TextModifier {};

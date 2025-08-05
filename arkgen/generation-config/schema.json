@@ -38,6 +38,12 @@
                         "type": "string"
                     }
                 },
+                "ignoreGenerics": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "builderClasses": {
                     "type": "array",
                     "items": {
@@ -104,6 +110,9 @@
                             "name": {
                                 "type": "string"
                             },
+                            "external": {
+                                "type": "boolean"
+                            },
                             "packages": {
                                 "type": "array",
                                 "items": {
@@ -119,6 +128,15 @@
                             "packages"
                         ],
                         "type": "object"
+                    }
+                },
+                "libraryNameMapping": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
                     }
                 },
                 "globalPackages": {
@@ -149,9 +167,22 @@
                     }
                 },
                 "currentModulePackagesPaths": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
+                    "type": "array",
+                    "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "package": {
+                                "type": "string"
+                            },
+                            "path": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "package",
+                            "path"
+                        ],
+                        "type": "object"
                     }
                 },
                 "currentModuleExportedPackages": {
@@ -376,6 +407,7 @@
                 "standaloneComponents",
                 "parameterized",
                 "ignoreMaterialized",
+                "ignoreGenerics",
                 "builderClasses",
                 "forceMaterialized",
                 "forceCallback",

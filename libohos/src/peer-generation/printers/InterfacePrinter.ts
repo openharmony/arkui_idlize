@@ -627,7 +627,8 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
                     idl.isHandwritten(entry) || peerGeneratorConfiguration().isHandWritten(entry.name) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
-                    idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses)
+                    idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses
+                )
                     continue
                 syntheticGenerator.convert(entry)
                 registerEntry(entry)
@@ -1106,7 +1107,9 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                     idl.isHandwritten(entry) || peerGeneratorConfiguration().isHandWritten(entry.name) ||
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
-                    idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses)
+                    idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses ||
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
+                )
                     continue
                 syntheticGenerator.convert(entry)
                 registerEntry(entry)
