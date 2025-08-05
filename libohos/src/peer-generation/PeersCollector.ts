@@ -39,10 +39,10 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
         method.parameters.map(it => it.isOptional ? ArgumentModifier.OPTIONAL : undefined)
     )
     const realRetType = isThisRet ? idl.IDLVoidType : retType
-    const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(method)
+    const overloadInfo = PeerMethodSignature.mangleOverloadedName(method)
     const newMethodName = isCallSignature
-        ? methodName + overloadPostfix
-        : `set${capitalize(methodName)}${overloadPostfix}`
+        ? methodName + overloadInfo.postfix
+        : `set${capitalize(overloadInfo.alias ?? (methodName + overloadInfo.postfix))}`
     return new PeerMethod(
         new PeerMethodSignature(
             newMethodName,
@@ -71,8 +71,8 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
         return
     const originalParentName = parentName ?? peer.originalClassName!
     const signature = new NamedMethodSignature(idl.IDLThisType, [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
-    const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(prop)
-    const methodName = `set${capitalize(prop.name)}${overloadPostfix}`
+    const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)
+    const methodName = `set${capitalize(overloadInfo.alias  ?? (prop.name + overloadInfo.postfix))}`
     return new PeerMethod(
         new PeerMethodSignature(
             methodName,

@@ -325,12 +325,65 @@ export class NameSuggestion {
     }
 }
 
+
+class OverloadScopeVisitor extends arkts.AbstractVisitor{
+    overloads: arkts.OverloadDeclaration[] = []
+
+    visitor(node: arkts.AstNode): arkts.AstNode {
+        if (arkts.isOverloadDeclaration(node)) {
+            this.overloads.push(node)
+        }
+        if (arkts.isTSInterfaceBody(node) || arkts.isClassDefinition(node)) {
+            this.visitEachChild(node)
+        }
+        return node
+    }
+}
+
+export class OverloadScope {
+    private overloads: { name: string, mangledNames: string[] }[] = []
+
+    withVisit<T>(scope: arkts.AstNode, op: () => T): T {
+        const visitor = new OverloadScopeVisitor
+        visitor.visitEachChild(scope)
+        return this.withArktsDeclarations(visitor.overloads, op)
+    }
+
+    withArktsDeclarations<T>(overloads: arkts.OverloadDeclaration[], op: () => T): T {
+        if (!overloads.length)
+            return op()
+        for (const overload of overloads) {
+            const mangledNames = overload.overloadedList.map(it => {
+                if (!arkts.isIdentifier(it))
+                    throw new Error("Expected element of overload to be an Identifier")
+                return it.name
+            })
+            this.overloads.push({ name: overload.id!.name, mangledNames})
+        }
+        const result = op()
+        for (const _ of overloads) {
+            this.overloads.pop()
+        }
+        return result
+    }
+
+    find(mangledName: string): { name: string, mangledNames: string[] } | undefined {
+        for (let i = this.overloads.length - 1; i >=0; i--) {
+            const overload = this.overloads[i]
+            if (overload.mangledNames.includes(mangledName))
+                return overload
+        }
+        return undefined
+    }
+}
+
 class IDLVisitor extends arkts.AbstractVisitor {
     //writer = new IDLLanguageWriter()
     entries: idl.IDLEntry[] = []
     fileName: string
     packageClause: string[] = []
     contextual: NameSuggestion = new NameSuggestion
+    overloads: OverloadScope = new OverloadScope
     private contextualSelectName(synthetic: string): string {
         if (!this.contextual.hasSuggestion)
             return synthetic
@@ -381,78 +434,79 @@ class IDLVisitor extends arkts.AbstractVisitor {
         this.packageClause = this.detectPackageNameByPath(this.originalFileName)
     }
     visitor(node: arkts.AstNode): arkts.AstNode {
-
-        if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT)) {
-            if (arkts.isInterfaceDecl(node)) {
-                this.defaultExportName = node.id!.name
-            }
-            if (arkts.isTSInterfaceDeclaration(node)) {
-                this.defaultExportName = node.id!.name
-            }
-            if (arkts.isTSModuleDeclaration(node)) {
-                this.defaultExportName = (node.name as arkts.Identifier).name // not sure about this
-            }
-            if (arkts.isETSModule(node)) {
-                this.defaultExportName = node.ident?.name
-            }
-        }
-
-        if (arkts.isExportNamedDeclaration(node)) {
-            if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT) && node.specifiers.length === 1) {
-                const [spec] = node.specifiers
-                this.defaultExportName = spec.local!.name
-            }
-        }
-        if (arkts.isETSReExportDeclaration(node)) {
-            let importString = node.eTSImportDeclarations!.source!.str
-            if (importString.startsWith('.')) {
-                const currentFileBaseDir = path.dirname(this.originalFileName)
-                const importFilePath = path.normalize(path.join(currentFileBaseDir, importString))
-                importString = importFilePath
-            }
-            const importedPackageClause = this.detectPackageNameByPath(importString)
-            node.eTSImportDeclarations!.specifiers.forEach(spec => {
-                if (arkts.isImportSpecifier(spec)) {
-                    this.fileReExports.set(spec.local!.name, [...importedPackageClause, spec.imported!.name].join('.'))
+        return this.overloads.withVisit(node, () => {
+            if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT)) {
+                if (arkts.isInterfaceDecl(node)) {
+                    this.defaultExportName = node.id!.name
                 }
-            })
-        }
-        if (arkts.isExportDefaultDeclaration(node)) {
-            if (arkts.isIdentifier(node.decl)) {
-                this.defaultExportName = node.decl.name
+                if (arkts.isTSInterfaceDeclaration(node)) {
+                    this.defaultExportName = node.id!.name
+                }
+                if (arkts.isTSModuleDeclaration(node)) {
+                    this.defaultExportName = (node.name as arkts.Identifier).name // not sure about this
+                }
+                if (arkts.isETSModule(node)) {
+                    this.defaultExportName = node.ident?.name
+                }
             }
-        }
 
-        //////////////////
+            if (arkts.isExportNamedDeclaration(node)) {
+                if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT) && node.specifiers.length === 1) {
+                    const [spec] = node.specifiers
+                    this.defaultExportName = spec.local!.name
+                }
+            }
+            if (arkts.isETSReExportDeclaration(node)) {
+                let importString = node.eTSImportDeclarations!.source!.str
+                if (importString.startsWith('.')) {
+                    const currentFileBaseDir = path.dirname(this.originalFileName)
+                    const importFilePath = path.normalize(path.join(currentFileBaseDir, importString))
+                    importString = importFilePath
+                }
+                const importedPackageClause = this.detectPackageNameByPath(importString)
+                node.eTSImportDeclarations!.specifiers.forEach(spec => {
+                    if (arkts.isImportSpecifier(spec)) {
+                        this.fileReExports.set(spec.local!.name, [...importedPackageClause, spec.imported!.name].join('.'))
+                    }
+                })
+            }
+            if (arkts.isExportDefaultDeclaration(node)) {
+                if (arkts.isIdentifier(node.decl)) {
+                    this.defaultExportName = node.decl.name
+                }
+            }
 
-        if (arkts.isScriptFunction(node)) {
-            return this.processNode(this.visitScriptFunction, node)
-        }
-        if (arkts.isClassDeclaration(node)) {
-            return this.processNode(this.visitClassDeclaration, node)
-        }
-        if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) {
-            return this.processNode(this.visitInterfaceDeclaration, node)
-        }
-        if (arkts.isImportDeclaration(node)) {
-            return this.processNode(this.visitImportDeclaration, node)
-        }
-        if (arkts.isTSEnumDeclaration(node)) {
-            return this.processNode(this.visitEnumDeclaration, node)
-        }
-        if (arkts.isTSTypeAliasDeclaration(node)) {
-            return this.processNode(this.visitTSTypeAliasDeclaration, node)
-        }
-        if (arkts.isFunctionDeclaration(node)) {
-            return this.processNode(this.visitFunctionDeclaration, node)
-        }
-        if (arkts.isETSModule(node) && node.ident?.name !== 'ETSGLOBAL') {
-            return this.processNode(this.visitETSModule, node)
-        }
+            //////////////////
 
-        //////////////////
+            if (arkts.isScriptFunction(node)) {
+                return this.processNode(this.visitScriptFunction, node)
+            }
+            if (arkts.isClassDeclaration(node)) {
+                return this.processNode(this.visitClassDeclaration, node)
+            }
+            if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) {
+                return this.processNode(this.visitInterfaceDeclaration, node)
+            }
+            if (arkts.isImportDeclaration(node)) {
+                return this.processNode(this.visitImportDeclaration, node)
+            }
+            if (arkts.isTSEnumDeclaration(node)) {
+                return this.processNode(this.visitEnumDeclaration, node)
+            }
+            if (arkts.isTSTypeAliasDeclaration(node)) {
+                return this.processNode(this.visitTSTypeAliasDeclaration, node)
+            }
+            if (arkts.isFunctionDeclaration(node)) {
+                return this.processNode(this.visitFunctionDeclaration, node)
+            }
+            if (arkts.isETSModule(node) && node.ident?.name !== 'ETSGLOBAL') {
+                return this.processNode(this.visitETSModule, node)
+            }
 
-        return this.visitEachChild(node)
+            //////////////////
+
+            return this.visitEachChild(node)
+        })
     }
 
     visitETSModule(node: arkts.ETSModule): arkts.ETSModule {
@@ -561,8 +615,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (func.isExtensionMethod) {
                 extendedAttributes.push({ name: idl.IDLExtendedAttributes.ExtensionMethod })
             }
+            let functionName = func.id!.name
+            if (this.overloads.find(functionName)) {
+                let overload = this.overloads.find(functionName)!
+                extendedAttributes.push({ name: idl.IDLExtendedAttributes.OverloadAlias, value: functionName})
+                extendedAttributes.push({ name: idl.IDLExtendedAttributes.OverloadPriority, value: overload.mangledNames.indexOf(functionName).toString()})
+                functionName = overload.name
+            }
             const method = idl.createMethod(
-                func.id!.name,
+                functionName,
                 func.params.map(it => {
                     const param = it as arkts.ETSParameterExpression
                     let name = param.name
@@ -797,6 +858,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 }
                 return
             }
+            if (arkts.isOverloadDeclaration(member)) {
+                return
+            }
             console.error(member)
             throw new Error("Unhandled member!")
         }, member))
@@ -969,7 +1033,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
     serializeMethod(method: arkts.MethodDefinition, parentName:string): idl.IDLMethod | idl.IDLConstructor {
         const { set: paramsSet, parameters: typeParameters } = this.extractTypeParameters((method.value as arkts.FunctionExpression).function?.typeParams)
         return this.withTypeParamContext(paramsSet, () => {
-            const { methodName, parameters: arktsParameters, extendedAttributes } = this.processMethodLiteralParameters(method)
+            let { methodName, parameters: arktsParameters, extendedAttributes } = this.processMethodLiteralParameters(method)
             let traceAttrs = this.traceAttrs()
             extendedAttributes.push(...traceAttrs)
             return this.contextual.extend(methodName, () => {
@@ -1001,6 +1065,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
                             extendedAttributes: traceAttrs,
                         },
                     )
+                }
+                if (this.overloads.find(methodName)) {
+                    let overload = this.overloads.find(methodName)!
+                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OverloadAlias, value: methodName})
+                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OverloadPriority, value: overload.mangledNames.indexOf(methodName).toString()})
+                    methodName = overload.name
                 }
                 return idl.createMethod(methodName,
                     parameters,

@@ -20,10 +20,11 @@ import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 export const GlobalScopePeerName = 'GlobalScope'
 
-export function mangledGlobalScopeName(method:IDLMethod) {
+export function mangledGlobalScopeName(method:IDLMethod): string {
+    const overload = PeerMethodSignature.mangleOverloadedName(method)
     const nsPath = getNamespacesPathFor(method)
     const nsPrefix = nsPath.length ? nsPath.map(it => it.name).join('_') + '_' : ''
-    return nsPrefix + method.name
+    return nsPrefix + (overload.alias ?? (method.name + overload.postfix))
 }
 
 export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMethod[]): PeerMethod[] {
@@ -32,10 +33,9 @@ export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMe
 }
 
 function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
-    const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(method)
     return new MaterializedMethod(
         new PeerMethodSignature(
-            mangledGlobalScopeName(method) + overloadPostfix,
+            mangledGlobalScopeName(method),
             getFQName(method).split('.').join('_'),
             method.parameters.map(it => new PeerMethodArg(it.name, maybeOptional(it.type, it.isOptional))),
             method.returnType,

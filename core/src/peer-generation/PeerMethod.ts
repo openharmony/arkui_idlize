@@ -39,9 +39,15 @@ export class PeerMethodSignature {
         public readonly modifiers: (MethodModifier.FORCE_CONTEXT | MethodModifier.THROWS)[] = [],
     ) { }
 
-    static generateOverloadPostfix(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): string {
+    static mangleOverloadedName(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): { postfix: string, alias?: string, priority?: number } {
         if (!decl.parent)
-            return ``
+            return { postfix: "", }
+        let alias: string | undefined
+        let forcedPriority: number | undefined
+        if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.OverloadAlias)) {
+            alias = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.OverloadAlias)!
+            forcedPriority = Number.parseInt(idl.getExtAttribute(decl, idl.IDLExtendedAttributes.OverloadPriority)!)
+        }
         let sameNamed: idl.IDLEntry[] = []
         if (idl.isMethod(decl) || idl.isProperty(decl)) {
             let members: idl.IDLEntry[] = []
@@ -59,7 +65,15 @@ export class PeerMethodSignature {
         } else {
             throw new Error("unexpected type of declaration")
         }
-        return sameNamed.length > 1 ? sameNamed.indexOf(decl).toString() : ''
+        return sameNamed.length > 1 ? {
+            postfix: sameNamed.indexOf(decl).toString(),
+            alias,
+            priority: forcedPriority ?? sameNamed.indexOf(decl)
+        } : {
+            postfix: '',
+            alias,
+            priority: forcedPriority,
+        }
     }
 
     static get CTOR(): string { return "construct" }

@@ -302,11 +302,12 @@ export class IdlPeerProcessor {
         }
 
         const signature = generateSignature(method, returnType)
-        const overloadPostfix = PeerMethodSignature.generateOverloadPostfix(method)
+        const overloadInfo = PeerMethodSignature.mangleOverloadedName(method)
+        const overloadedName = overloadInfo.alias ?? (methodName + overloadInfo.postfix)
         return new MaterializedMethod(
             new PeerMethodSignature(
-                methodName + overloadPostfix,
-                idl.getFQName(decl).split('.').concat(methodName + overloadPostfix).join('_'),
+                overloadedName,
+                idl.getFQName(decl).split('.').concat(overloadedName).join('_'),
                 signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), it)),
                 signature.returnType,
                 idl.isMethod(method) && !method.isStatic ? decl : undefined,
