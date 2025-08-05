@@ -100,6 +100,9 @@ export enum IDLAccessorAttribute {
 export interface IDLExtendedAttribute {
     name: string
     value?: string
+    typesValue?: IDLType[]
+    nameLocation?: Location
+    valueLocation?: Location
 }
 
 const innerIdlSymbol = Symbol("innerIdlSymbol")
@@ -112,7 +115,6 @@ export interface IDLNode {
     documentation?: string
     nodeLocation?: Location
     nameLocation?: Location
-    // Helpful for constants and enums, but currently not extracted
     valueLocation?: Location
 }
 
@@ -666,6 +668,9 @@ export type IDLNodeInitializer = {
     extendedAttributes?: IDLExtendedAttribute[]
     fileName?: string
     documentation?: string
+    nodeLocation?: Location
+    nameLocation?: Location
+    valueLocation?: Location
 }
 
 export function createNamespace(name:string, members?: IDLEntry[], nodeInitializer?:IDLNodeInitializer): IDLNamespace {

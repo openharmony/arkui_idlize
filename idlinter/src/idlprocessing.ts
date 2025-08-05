@@ -210,7 +210,7 @@ export class IdlProcessingManager {
                 pass.begin()
             }
 
-            for (let entry of this.entries) {
+            for (let entry of this.entriesToValidate) {
                 idl.forEachChild(entry,
                     n => passes.forEach(p => {
                         try { p.dispatch(n, true) }

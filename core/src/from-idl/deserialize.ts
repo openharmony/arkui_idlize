@@ -28,7 +28,8 @@ import * as idl from "../idl"
 import { isDefined, stringOrNone, warn } from "../util"
 import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/idl/common"
 import { commonRange, Location, Range } from "../diagnostictypes"
-import { LoadingErrorMessage, ParsingErrorMessage, UnknownErrorMessage } from "../diagnosticmessages"
+import { DiagnosticMessageEntry, LoadingErrorMessage, ParsingErrorMessage, UnknownErrorMessage } from "../diagnosticmessages"
+import { Parser } from "./parser"
 
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
@@ -167,7 +168,7 @@ class IDLDeserializer {
                 node.inheritance.forEach(it => {
                     const attributes = it.extAttrs
                     const parentTypeArgs = this.extractTypeArguments(file, attributes ?? [], idl.IDLExtendedAttributes.TypeArguments)
-                    const attrs = this.toExtendedAttributes(attributes ?? [])?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
+                    const attrs = this.toExtendedAttributes(attributes ?? []) // ?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
                     const ref = idl.createReferenceType(it.inheritance, parentTypeArgs, {
                         extendedAttributes: attrs
                     })
@@ -629,7 +630,142 @@ interface ParsedFileInfo {
     lexicalInfo: IDLTokenInfoMap
 }
 
+const DifferenceFound = new DiagnosticMessageEntry("error", 100500, "Difference found")
+
+interface Diff {
+    path: string
+    oldValue: any
+    newValue: any
+}
+
+const noCompare = new Set(["parent", "fileName", "nodeLocation", "nameLocation", "valueLocation", "typesValue"])
+const canContainMoreCompare = new Set(["extendedAttributes", "typeParameters", "typeArguments"])
+
+function safeString(value: any) {
+    if (typeof value == "symbol") {
+        return String(value)
+    }
+    return JSON.stringify(value, (k, v) => { return noCompare.has(k) ? undefined : v})
+}
+
+function joinPath(left: string, right?: string) {
+    if (!right) {
+        return left
+    }
+    return `${left}.${right}`
+}
+
+function compareDeep(oldData: any, newData: any, paths: Set<string>): Diff[] {
+    const location = newData?.kind && (newData?.nameLocation ?? newData?.nodeLocation)
+    const diffs: Diff[] = []
+    if (typeof oldData != typeof newData) {
+        diffs.push({path: "", oldValue: safeString(oldData), newValue: safeString(newData)})
+    } else if (Array.isArray(oldData) && Array.isArray(newData)) {
+        const len = Math.max(oldData.length, newData.length)
+        if (oldData.length != newData.length) {
+            diffs.push({path: "", oldValue: `(length=${oldData.length})`, newValue: `(length=${newData.length})`})
+        }
+        for (let i = 0; i < len; ++i) {
+            const deeperDiffs = compareDeep(oldData[i], newData[i], paths)
+            if (deeperDiffs.length > 0) {
+                diffs.push(...deeperDiffs.map(x => {x.path = joinPath("" + i, x.path); return x}))
+            }
+        }
+    } else if (typeof newData == "object") {
+        const keys = [...new Set([...Object.getOwnPropertyNames(oldData), ...Object.getOwnPropertyNames(newData)])].filter(x => !noCompare.has(x))
+        for (const k of keys) {
+            let oldValue = oldData[k]
+            let newValue = newData[k]
+            if (canContainMoreCompare.has(k)) {
+                if (newValue == null && Array.isArray(oldValue) && oldValue.length == 0) {
+                    continue
+                }
+                if (oldValue == null && Array.isArray(newValue)) {
+                    continue
+                }
+                if (Array.isArray(oldValue) && Array.isArray(newValue)) {
+                    if (newValue.length > oldValue.length) {
+                        // Cases when old parser takes attributes from outer declaration and ignores the right ones
+                        newValue = newValue.slice(newValue.length - oldValue.length)
+                    } else  if (oldValue.length > newValue.length) {
+                        // Cases when types in parentheses have own attributes, but old parser adds attributes from outer declaration
+                        oldValue = oldValue.slice(0, newValue.length)
+                    }
+                } 
+            }
+            const deeperDiffs = compareDeep(oldValue, newValue, paths)
+            if (deeperDiffs.length > 0) {
+                diffs.push(...deeperDiffs.map(x => {x.path = joinPath(k, x.path); return x}))
+            }
+        }
+    } else {
+        if (oldData != newData) {
+            diffs.push({path: "", oldValue: safeString(oldData), newValue: safeString(newData)})
+        }
+    }
+    if (!location) {
+        return diffs
+    }
+    for (const diff of diffs) {
+        paths.add(diff.path)
+        DifferenceFound.reportDiagnosticMessage([location], `path: ${diff.path} oldValue: ${diff.oldValue} newValue: ${diff.newValue}`)
+    }
+    return []
+}
+
+function compareParsingResults(oldFile: idl.IDLFile, newFile: idl.IDLFile): void {
+    const paths = new Set<string>()
+    compareDeep(oldFile, newFile, paths)
+    if (paths.size > 0) {
+        DifferenceFound.reportDiagnosticMessage([newFile.nodeLocation!], "Differences found in those paths:\n" + [...paths].join("\n"))
+    }
+}
+
+function parseIdlNew(fileName: string, content?: string, registerSynthetics?: boolean) {
+    let file = new Parser(fileName, content).parseIDL()
+    const ancestors: idl.IDLNode[] = []
+    const namespaces: string[] = []
+    // Mimic old parser and deserialize.ts behavior:
+    // 1. Add `fileName`.
+    // 2. Add `parent`.
+    // 3. Possibly register node with `addSyntheticType` if "Synthetic" is in attributes
+    idl.forEachChild(file, (node) => {
+        if (idl.isPrimitiveType(node)) {
+            return
+        }
+        node.fileName = fileName
+        if (registerSynthetics && idl.isEntry(node) && node.extendedAttributes?.some(it => it.name === "Synthetic")) {
+            const fqName = file.packageClause.concat(namespaces).concat([node.name]).join('.')
+            addSyntheticType(fqName, node)
+        }
+        if (ancestors.length) {
+            node.parent = ancestors[ancestors.length - 1]
+        }
+        if (idl.isNamespace(node)) {
+            namespaces.push(node.name)
+        }
+        ancestors.push(node)
+    }, (node) => {
+        if (idl.isPrimitiveType(node)) {
+            return
+        }
+        if (idl.isNamespace(node)) {
+            namespaces.pop()
+        }
+        ancestors.pop()
+    })
+    return file
+}
+
 export function toIDLFile(fileName: string, { content, inheritanceMode = 'multiple' }:ToIDLFileProps = {}): [idl.IDLFile, IDLTokenInfoMap] {
+    let newFile!: idl.IDLFile
+    const mode = process.env.IDLPARSE
+    if (mode == "compare" || mode == "new") {
+        newFile = parseIdlNew(fileName, content, mode == "new")
+        if (mode == "new") {
+            return [newFile, new Map()]
+        }
+    }
     const lexicalInfo: IDLTokenInfoMap = new Map()
     const deserializer = new IDLDeserializer(lexicalInfo, inheritanceMode)
     if (undefined === content) {
@@ -678,6 +814,10 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
             node.nameLocation = nameLocation
         }
     })
+    if (mode == "compare") {
+        compareParsingResults(file, newFile)
+        return [newFile, new Map()]
+    }
     return [file, lexicalInfo]
 }
 
