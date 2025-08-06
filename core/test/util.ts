@@ -1,4 +1,4 @@
-import { assert } from "chai"
+import { assert, test } from "@koalaui/harness"
 import { capitalize } from "../src/util"
 
 test("capitalize", () => {

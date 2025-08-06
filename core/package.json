@@ -27,7 +27,6 @@
     "webidl2.js/dist/**/*.js",
     "webidl2.js/package.json"
   ],
-  "type": "module",
   "engines": {
     "npm": ">= 8",
     "node": ">= 18"
@@ -38,7 +37,15 @@
     "typescript": "4.9.5",
     "@types/node": "^18.0.0"
   },
+  "devDependencies": {
+    "@koalaui/harness": "1.7.6+devel",
+    "@koalaui/ets-tsc": "4.9.5-r5",
+    "@types/mocha": "^9.1.0",
+    "mocha": "^9.2.2",
+    "ts-node": "^10.9.2"
+  },
   "scripts": {
+    "test": "mocha",
     "clean": "rimraf -g build",
     "compile": "tsc -b ."
   }

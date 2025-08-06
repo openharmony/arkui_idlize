@@ -1,0 +1,6 @@
+{
+    "ui": "tdd",
+    "spec": "./test/**/*.ts",
+    "extension": ["ts"],
+    "require": ["../external/incremental/test-utils/scripts/register"]
+}
