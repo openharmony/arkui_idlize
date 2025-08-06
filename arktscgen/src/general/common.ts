@@ -94,6 +94,10 @@ export function isCreateOrUpdate(sourceMethodName: string): boolean {
     return rest.length <= 1
 }
 
+export function isImplInterface(name: string): boolean {
+    return dropPrefix(name, Config.dataClassPrefix) === 'Impl'
+}
+
 export function fixEnumPrefix(name: string): string {
     if (name.startsWith(`es2panda_`)) {
         name = dropPrefix(name, `es2panda_`)

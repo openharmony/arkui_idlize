@@ -82,10 +82,6 @@ export class BridgesConstructions {
         return `getStringCopy`
     }
 
-    static resultAssignment(value: string): string {
-        return `auto ${BridgesConstructions.result} = ${value}`
-    }
-
     static dropConstCast(value: string): string {
         return `(void*)${value}`
     }

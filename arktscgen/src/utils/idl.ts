@@ -38,6 +38,9 @@ import {
     isInterface,
     isPrimitiveType,
     isReferenceType,
+    LanguageExpression,
+    LanguageStatement,
+    LanguageWriter,
     Method,
     MethodModifier,
     MethodSignature,
@@ -237,6 +240,14 @@ export function makeSignature(parameters: { name: string, type: IDLType, isOptio
             .map(it => it.name)
             .map(mangleIfKeyword)
     )
+}
+
+export function makeExpression(writer: LanguageWriter, arg: string | LanguageExpression): LanguageExpression {
+    return typeof arg === 'string' ? writer.makeString(arg) : arg
+}
+
+export function makeStatement(writer: LanguageWriter, arg: string | LanguageExpression | LanguageStatement): LanguageStatement {
+    return typeof arg !== 'string' && 'write' in arg ? arg : writer.makeStatement(makeExpression(writer, arg))
 }
 
 export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile): IDLInterface[] {

@@ -27,6 +27,7 @@ import {
 } from "@idlizer/core"
 import { Config } from "./Config"
 import { baseNameString, isIrNamespace, nodeType, parent } from "../utils/idl"
+import { isImplInterface } from "./common"
 
 export class Typechecker {
     constructor(private idl: IDLEntry[]) {
@@ -77,6 +78,7 @@ export class Typechecker {
     isPeer(node: string): boolean {
         if (node === Config.astNodeCommonAncestor) return false // TODO: is handwritten
         if (node === Config.context) return false // TODO: is handwritten
+        if (isImplInterface(node)) return false
         if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
         if (this.isHeir(node, Config.defaultAncestor)) return true
         return false

@@ -18,6 +18,7 @@ import { IDLFile, IDLInterface, IDLNode, isInterface } from "@idlizer/core"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { PeerPrinter } from "./PeerPrinter"
 import { Config } from "../../general/Config"
+import { isImplInterface } from "../../general/common"
 
 export class AllPeersPrinter extends MultiFilePrinter {
     constructor(private config: Config, idl: IDLFile) {
