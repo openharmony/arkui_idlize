@@ -22,6 +22,7 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 struct AllocationManager {
     static inline std::vector<void*> allocated;
@@ -100,17 +101,26 @@ inline OH_Number AddOHNumber(OH_Number x, OH_Number y) {
 
 inline InteropCallbackResource MakeInteropCallbackResource(size_t sizeBytes, InteropNativePointer* data)
 {
+    static std::unordered_map<InteropInt32, int32_t> resources {};
     InteropCallbackResource res{};
     auto [allocated, index] = AllocationManager::Allocate(sizeBytes);
+    InteropInt32 castedIndex = static_cast<InteropInt32>(index);
+    resources[castedIndex] = 1;
     if (data != nullptr) {
         *data = allocated;
     }
+    res.resourceId = index;
     res.hold = [](InteropInt32 resourceId) {
         std::cout << "InteropCallbackResource.hold called with resourceId = " << resourceId << std::endl;
+        resources[resourceId] += 1;
+
     };
     res.release = [](InteropInt32 resourceId) {
         std::cout << "InteropCallbackResource.release called with resourceId = " << resourceId << std::endl;
-        AllocationManager::Deallocate(resourceId);
+        resources[resourceId] -= 1;
+        if (resources[resourceId] <= 0) {
+            AllocationManager::Deallocate(resourceId);
+        }
     };
     return res;
 }

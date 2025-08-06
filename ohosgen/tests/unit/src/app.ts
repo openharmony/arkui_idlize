@@ -33,7 +33,6 @@ import {
   OHAny
 } from '#compat'
 
-import { NativeBuffer } from "@koalaui/interop"
 import { test_buffer, test_buffer_idl } from '#compat'
 
 import {
@@ -348,10 +347,12 @@ function checkMaterialized() {
   checkEQ(utilsArray[1].fieldArrayNumber[0], - modifiedUtilsArray[1].fieldArrayNumber[0])
 }
 
-function _checkReversedBuffer(buffer: NativeBuffer, reversedBuffer: NativeBuffer) {
-  checkEQ(buffer.length, reversedBuffer.length, "NativeBuffer sizes do not match")
-  for (let i = 0; i < buffer.length; i++) {
-    checkEQ(buffer.readByte(i), reversedBuffer.readByte(buffer.length - i - 1))
+function _checkReversedBuffer(buffer: ArrayBuffer, reversedBuffer: ArrayBuffer) {
+  checkEQ(buffer.byteLength, reversedBuffer.byteLength, "ArrayBuffer sizes do not match")
+  const indexableA = new Uint8Array(buffer)
+  const indexableB = new Uint8Array(reversedBuffer)
+  for (let i = 0; i < indexableA.length; i++) {
+    checkEQ(indexableA[i], indexableB[indexableB.length - i - 1])
   }
 }
 

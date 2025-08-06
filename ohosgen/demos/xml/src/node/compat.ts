@@ -5,7 +5,7 @@ import { xml, checkArkoalaCallbacks, OHOS_XMLNativeModule,  } from "../../genera
 export { xml } from "../../generated/ts"
 
 export type EventType = xml.EventType
-export type OHBuffer = NativeBuffer
+export type OHBuffer = ArrayBuffer
 export const EventType = xml.EventType
 
 export function init() {
@@ -13,11 +13,8 @@ export function init() {
     InteropNativeModule._SetCallbackDispatcher(callCallback)
 }
 
-export function encodeText(text:string): OHBuffer {
-    const encodedString = Buffer.from(text)
-    const buffer = new NativeBuffer(encodedString.length + 1)
-    InteropNativeModule._CopyArray(buffer.data, encodedString.length + 1, encodedString)
-    return buffer;
+export function encodeText(text:string): ArrayBuffer {
+    return Buffer.from(text).buffer;
 }
 
 export function runEventLoop() {

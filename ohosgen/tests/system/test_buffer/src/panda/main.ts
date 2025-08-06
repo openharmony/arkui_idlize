@@ -1,5 +1,4 @@
 import { pullEvents, init, Foo, FooResult } from "./compat";
-import { NativeBuffer } from '@koalaui/interop';
 
 function mainBody() {
     console.log('Starting demo: test_buffer');
@@ -8,11 +7,11 @@ function mainBody() {
     const res: FooResult = foo.getResult();
     console.log('foo.getResult() done. Let res be the result:');
     console.log(`  res.index = ${res.index}`);
-    console.log('  res.inData.length =', res.inData.length);
+    console.log('  res.inData.length =', res.inData.byteLength);
 
-    const buf: NativeBuffer = foo.getInData();
+    const buf: ArrayBuffer = foo.getInData();
     console.log('foo.getInData() done. Let buf be the result:');
-    console.log('  buf.length =', buf.length);
+    console.log('  buf.length =', buf.byteLength);
 }
 
 export function main() {

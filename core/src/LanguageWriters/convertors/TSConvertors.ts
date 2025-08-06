@@ -177,7 +177,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 return 'Date'
 
             case idl.IDLBufferType:
-                return 'NativeBuffer'
+                return 'ArrayBuffer'
 
             case idl.IDLInteropReturnBufferType:
                 return `KInteropReturnBuffer`

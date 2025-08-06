@@ -5,7 +5,7 @@ import { xml } from "../../generated/arkts"
 
 export { xml } from "../../generated/arkts"
 export type EventType = xml.EventType
-export type OHBuffer = NativeBuffer
+export type OHBuffer = ArrayBuffer
 
 export function pullEvents() {
     checkArkoalaCallbacks()
@@ -16,8 +16,8 @@ export function init() {
 }
 
 export function encodeText(text: string): OHBuffer {
-    const buffer = new NativeBuffer((text.length * 4 + 1).toLong())
-    InteropNativeModule._ManagedStringWrite(text, buffer.data, buffer.length.toInt(), 0);
+    const buffer = new ArrayBuffer((text.length * 4 + 1).toLong())
+    InteropNativeModule._ManagedStringWrite(text, InteropNativeModule._GetNativeBufferPointer(buffer), buffer.byteLength.toInt(), 0);
     return buffer;
 }
 

@@ -148,7 +148,6 @@ abstract class TypeCheckerPrinter {
     protected writeImports(features: ImportFeature[]): void {
         this.imports.addFeature('KBoolean', '@koalaui/interop')
         this.imports.addFeature('KStringPtr', '@koalaui/interop')
-        this.imports.addFeature('NativeBuffer', '@koalaui/interop')
         this.imports.addFeature('MaterializedBase', '@koalaui/interop')
         this.imports.addFeature('int32', '@koalaui/common')
         for (const feature of features) {
@@ -229,7 +228,7 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
 
 
     protected writeIsNativeBuffer(): void {
-        let className = "NativeBuffer"
+        let className = "ArrayBuffer"
         this.writer.writeMethodImplementation(
             new Method("isNativeBuffer",
                 new NamedMethodSignature(

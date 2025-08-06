@@ -79,7 +79,7 @@ typedef enum InteropRuntimeType
 typedef float InteropFloat32;
 typedef double InteropFloat64;
 typedef int32_t InteropInt32;
-typedef unsigned int InteropUInt32; // TODO: update unsigned int
+typedef unsigned int InteropUInt32; // Improve: update unsigned int
 typedef int64_t InteropInt64;
 typedef uint64_t InteropUInt64;
 typedef int8_t InteropInt8;
@@ -121,15 +121,6 @@ typedef struct InteropNumber {
     InteropInt32 i32;
   };
 } InteropNumber;
-
-// Binary layout of InteropLength must match that of KLength.
-typedef struct InteropLength
-{
-  InteropInt8 type;
-  InteropFloat32 value;
-  InteropInt32 unit;
-  InteropInt32 resource;
-} InteropLength;
 
 typedef struct InteropCustomObject {
   char kind[20];
