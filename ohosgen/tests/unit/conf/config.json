@@ -27,6 +27,7 @@
         "unit": {
             "name": "unit",
             "packages": [
+                "test_promise",
                 "test_exception",
                 "test_wrapped_builder",
                 "test_external_types",

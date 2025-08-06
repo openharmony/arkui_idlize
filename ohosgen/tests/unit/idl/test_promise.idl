@@ -1,0 +1,5 @@
+package test_promise;
+
+interface PromiseTester {
+    static async void wait(number ms);
+};

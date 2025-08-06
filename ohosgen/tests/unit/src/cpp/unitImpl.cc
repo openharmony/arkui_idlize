@@ -1025,3 +1025,14 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH
 //     printf("[native] checkSDKExternalTypeImpl: %p\n", externalType);
 // }
 
+
+const char* ERROR_MSG = "(Test passed) Promise was rejected";
+void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms, const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+    OH_String* errors = new OH_String[1];
+    errors[0].length = strlen(ERROR_MSG);
+    errors[0].chars = ERROR_MSG;
+    outputArgumentForReturningPromise->call(
+        outputArgumentForReturningPromise->resource.resourceId,
+        (Opt_Array_String){ INTEROP_TAG_OBJECT, { errors, 1 } }
+    );
+}

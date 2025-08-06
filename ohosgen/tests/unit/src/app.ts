@@ -1,4 +1,4 @@
-import { UnitTestsuite,  checkEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
+import { PromiseTester, UnitTestsuite,  checkEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
 
 import {
   toBigInt
@@ -527,6 +527,12 @@ function checkContentModifier() {
   // console.log(`res: ${res}`)
 }
 
+function checkPromiseRejected() {
+  PromiseTester.wait(200)
+    .then(() => assertEQ(false, true, "Should not be called"))
+    .catch((e:object) => { console.log(e.toString()) })
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -553,6 +559,7 @@ export function run() {
   suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
   suite.addTest("checkContentModifier", checkContentModifier)
+  suite.addTest("checkPromiseRejected", checkPromiseRejected)
 
   return suite.run()
 }
