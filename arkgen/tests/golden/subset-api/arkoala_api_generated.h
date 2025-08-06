@@ -354,8 +354,7 @@ typedef struct Opt_FormComponentAttribute Opt_FormComponentAttribute;
 typedef struct GestureGroupInterfacePeer GestureGroupInterfacePeer;
 typedef struct GestureGroupInterfacePeer* Ark_GestureGroupInterface;
 typedef struct Opt_GestureGroupInterface Opt_GestureGroupInterface;
-typedef struct GestureModifierPeer GestureModifierPeer;
-typedef struct GestureModifierPeer* Ark_GestureModifier;
+typedef struct Ark_GestureModifier Ark_GestureModifier;
 typedef struct Opt_GestureModifier Opt_GestureModifier;
 typedef struct GestureRecognizerPeer GestureRecognizerPeer;
 typedef struct GestureRecognizerPeer* Ark_GestureRecognizer;
@@ -595,8 +594,6 @@ typedef struct Opt_UICommonEvent Opt_UICommonEvent;
 typedef struct UIExtensionProxyPeer UIExtensionProxyPeer;
 typedef struct UIExtensionProxyPeer* Ark_UIExtensionProxy;
 typedef struct Opt_UIExtensionProxy Opt_UIExtensionProxy;
-typedef struct Ark_UIGestureEvent Ark_UIGestureEvent;
-typedef struct Opt_UIGestureEvent Opt_UIGestureEvent;
 typedef struct Opt_Undefined Opt_Undefined;
 typedef struct Ark_Union_BlendMode_Blender Ark_Union_BlendMode_Blender;
 typedef struct Opt_Union_BlendMode_Blender Opt_Union_BlendMode_Blender;
@@ -4105,6 +4102,10 @@ typedef struct Opt_GestureGroupInterface {
     Ark_Tag tag;
     Ark_GestureGroupInterface value;
 } Opt_GestureGroupInterface;
+typedef struct Ark_GestureModifier {
+    /* kind: Interface */
+    void *handle;
+} Ark_GestureModifier;
 typedef struct Opt_GestureModifier {
     Ark_Tag tag;
     Ark_GestureModifier value;
@@ -4749,14 +4750,6 @@ typedef struct Opt_UIExtensionProxy {
     Ark_Tag tag;
     Ark_UIExtensionProxy value;
 } Opt_UIExtensionProxy;
-typedef struct Ark_UIGestureEvent {
-    /* kind: Interface */
-    void *handle;
-} Ark_UIGestureEvent;
-typedef struct Opt_UIGestureEvent {
-    Ark_Tag tag;
-    Ark_UIGestureEvent value;
-} Opt_UIGestureEvent;
 typedef struct Opt_Undefined {
     Ark_Tag tag;
     Ark_Undefined value;
@@ -12129,8 +12122,6 @@ typedef struct GENERATED_ArkUICommonMethodModifier {
                        const Opt_String* id);
     void (*setRenderFit)(Ark_NativePointer node,
                          const Opt_RenderFit* fitMode);
-    void (*setGestureModifier)(Ark_NativePointer node,
-                               const Opt_GestureModifier* modifier);
     void (*setBackgroundBrightness)(Ark_NativePointer node,
                                     const Opt_BackgroundBrightnessOptions* params);
     void (*setOnGestureJudgeBegin)(Ark_NativePointer node,
@@ -14021,14 +14012,6 @@ typedef struct GENERATED_ArkUIGestureGroupInterfaceAccessor {
                                           const Callback_Void* event);
 } GENERATED_ArkUIGestureGroupInterfaceAccessor;
 
-typedef struct GENERATED_ArkUIGestureModifierAccessor {
-    void (*destroyPeer)(Ark_GestureModifier peer);
-    Ark_GestureModifier (*construct)();
-    Ark_NativePointer (*getFinalizer)();
-    void (*applyGesture)(Ark_GestureModifier peer,
-                         const Ark_UIGestureEvent* event);
-} GENERATED_ArkUIGestureModifierAccessor;
-
 typedef struct GENERATED_ArkUIGestureRecognizerAccessor {
     void (*destroyPeer)(Ark_GestureRecognizer peer);
     Ark_GestureRecognizer (*construct)();
@@ -15325,7 +15308,6 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIEventTargetInfoAccessor* (*getEventTargetInfoAccessor)();
     const GENERATED_ArkUIGestureEventAccessor* (*getGestureEventAccessor)();
     const GENERATED_ArkUIGestureGroupInterfaceAccessor* (*getGestureGroupInterfaceAccessor)();
-    const GENERATED_ArkUIGestureModifierAccessor* (*getGestureModifierAccessor)();
     const GENERATED_ArkUIGestureRecognizerAccessor* (*getGestureRecognizerAccessor)();
     const GENERATED_ArkUIGestureStyleAccessor* (*getGestureStyleAccessor)();
     const GENERATED_ArkUIHierarchicalSymbolEffectAccessor* (*getHierarchicalSymbolEffectAccessor)();

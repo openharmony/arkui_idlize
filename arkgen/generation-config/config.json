@@ -215,7 +215,9 @@
             "wrapBuilder",
             "ContentModifier",
             "CustomStyles",
-            "applyStyles"
+            "applyStyles",
+            "UIGestureEvent",
+            "GestureModifier"
         ],
         "ignoreEntry": [
             "Optional",
@@ -297,6 +299,10 @@
             },
             "stateStyles": {
                 "hookName": "hookStateStyleImpl",
+                "replaceImplementation": true
+            },
+            "gestureModifier": {
+                "hookName": "hookGestureModifier",
                 "replaceImplementation": true
             }
         },
