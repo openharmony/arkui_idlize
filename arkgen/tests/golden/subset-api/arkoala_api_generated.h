@@ -12187,6 +12187,11 @@ typedef struct GENERATED_ArkUICounterModifier {
                          const Opt_Boolean* value);
 } GENERATED_ArkUICounterModifier;
 
+typedef struct GENERATED_ArkUICustomBuilderRootModifier {
+    Ark_NativePointer (*construct)(Ark_Int32 id,
+                                   Ark_Int32 flags);
+} GENERATED_ArkUICustomBuilderRootModifier;
+
 typedef struct GENERATED_ArkUICustomLayoutRootModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
@@ -15224,6 +15229,7 @@ typedef struct GENERATED_ArkUINodeModifiers {
     const GENERATED_ArkUICommonShapeMethodModifier* (*getCommonShapeMethodModifier)();
     const GENERATED_ArkUIComponentRootModifier* (*getComponentRootModifier)();
     const GENERATED_ArkUICounterModifier* (*getCounterModifier)();
+    const GENERATED_ArkUICustomBuilderRootModifier* (*getCustomBuilderRootModifier)();
     const GENERATED_ArkUICustomLayoutRootModifier* (*getCustomLayoutRootModifier)();
     const GENERATED_ArkUIDividerModifier* (*getDividerModifier)();
     const GENERATED_ArkUIEllipseModifier* (*getEllipseModifier)();
@@ -15405,6 +15411,7 @@ typedef enum GENERATED_Ark_NodeType {
     GENERATED_ARKUI_COMMON_SHAPE_METHOD,
     GENERATED_ARKUI_COMPONENT_ROOT,
     GENERATED_ARKUI_COUNTER,
+    GENERATED_ARKUI_CUSTOM_BUILDER_ROOT,
     GENERATED_ARKUI_CUSTOM_LAYOUT_ROOT,
     GENERATED_ARKUI_DIVIDER,
     GENERATED_ARKUI_ELLIPSE,

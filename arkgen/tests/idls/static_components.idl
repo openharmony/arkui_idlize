@@ -12,6 +12,9 @@ interface Root {};
 [Component="ComponentRoot"]
 interface ComponentRoot {};
 
+[Component="CustomBuilderRoot"]
+interface CustomBuilderRoot {};
+
 callback Callback_onMeasureSize_SizeResult = SizeResult (GeometryInfo selfLayoutInfo, sequence<Measurable> children, ConstraintSizeOptions constraint);
 callback Callback_onPlaceChildren_Void = void (GeometryInfo selfLayoutInfo, sequence<Layoutable> children, ConstraintSizeOptions constraint);
 

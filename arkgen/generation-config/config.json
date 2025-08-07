@@ -157,6 +157,7 @@
     "rootComponents": [
         "Root",
         "ComponentRoot",
+        "CustomBuilderRoot",
         "CommonMethod",
         "SecurityComponentMethod",
         "CommonTransition",
