@@ -22,6 +22,11 @@ export interface PeerClassBase {
     generatedName(isCallSignature: boolean): string
 }
 
+export interface ComponentBuilderInfo {
+    uniqueOverloadName: string,
+    peerMethodName: string,
+}
+
 export class PeerClass implements PeerClassBase {
     constructor(
         public readonly file: IDLFile,
@@ -34,6 +39,7 @@ export class PeerClass implements PeerClassBase {
     }
 
     methods: PeerMethod[] = []
+    componentBuilderInfos: ComponentBuilderInfo[] = []
 
     originalClassName: string | undefined = undefined
     originalInterfaceName: string | undefined = undefined
@@ -57,6 +63,7 @@ export function createConstructPeerMethod(clazz: PeerClass): PeerMethod {
         clazz.componentName,
         IDLPointerType,
         false,
+        PeerMethodSignature.CTOR,
         new Method(
             'construct',
             new NamedMethodSignature(IDLPointerType, [IDLI32Type, IDLI32Type], ['id', 'flags']),

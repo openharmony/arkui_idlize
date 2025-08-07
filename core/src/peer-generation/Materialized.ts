@@ -43,9 +43,10 @@ export class MaterializedMethod extends PeerMethod {
         public implementationParentName: string,
         returnType: idl.IDLType,
         isCallSignature: boolean,
+        uniqueOverloadName: string,
         method: Method,
     ) {
-        super(sig, originalParentName, returnType, isCallSignature, method)
+        super(sig, originalParentName, returnType, isCallSignature, uniqueOverloadName, method)
     }
 
     tsReturnType(): idl.IDLType | undefined {
@@ -87,6 +88,7 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
         method.implementationParentName,
         method.returnType,
         method.isCallSignature,
+        method.uniqueOverloadName,
         overrides.method ?? method.method)
 }
 
@@ -140,8 +142,9 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
             clazz.getImplementationName(),
             idl.IDLVoidType,
             false,
+            PeerMethodSignature.DESTROY,
             new Method(
-                'destroyPeer',
+                PeerMethodSignature.DESTROY,
                 new NamedMethodSignature(
                     idl.IDLVoidType,
                     [idl.createReferenceType(clazz.decl)],

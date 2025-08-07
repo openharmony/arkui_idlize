@@ -44,6 +44,7 @@ function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
         GlobalScopePeerName,
         method.returnType,
         true,
+        mangledGlobalScopeName(method),
         new Method(
             mangledGlobalScopeName(method),
             NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: maybeOptional(it.type, it.isOptional) }))),

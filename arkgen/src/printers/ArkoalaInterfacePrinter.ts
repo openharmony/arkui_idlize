@@ -14,9 +14,9 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
+import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerLibrary, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
 
@@ -59,7 +59,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         collapsedMethods.forEach(method => {
             if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has(method.method.name)) {
                 const nonPublic = new Method(
-                    method.method.name,
+                    method.uniqueOverloadName,
                     method.method.signature,
                     method.method.modifiers?.filter(it => it !== MethodModifier.PUBLIC)
                 )
@@ -70,6 +70,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                 printer.writeMethodDeclaration(method.method.name, method.method.signature)
             }
         })
+        if (allowNamedOverloads(this.peerLibrary.language)) {
+            this.printNamedOverloadGroup(peer, printer)
+        }
         const attributeModifierSignature = generateAttributeModifierSignature(this.peerLibrary, component)
         if (this.peerLibrary.language === Language.ARKTS && !parentMethods.has('attributeModifier')) {
             printer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature), w => {
@@ -104,6 +107,20 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
             })
         }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
         return printer.getOutput().concat(stylePrinter.getOutput())
+    }
+    private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
+        const overloads = new Map<string, string[]>()
+        for (const method of peer.methods) {
+            if (method.isCallSignature) continue
+            if (method.uniqueOverloadName != method.method.name) {
+                if (!overloads.has(method.method.name))
+                    overloads.set(method.method.name, [])
+                overloads.get(method.method.name)!.push(method.uniqueOverloadName)
+            }
+        }
+        for (const [name, mangledNames] of overloads.entries()) {
+            printer.print(`overload ${name} { ${mangledNames.join(", ")} }`)
+        }
     }
     convertInterface(node: idl.IDLInterface) {
         if (isComponentDeclaration(this.peerLibrary, node)) {

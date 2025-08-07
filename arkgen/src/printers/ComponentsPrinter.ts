@@ -49,6 +49,7 @@ import {
     collectDeclItself,
     findComponentByDeclaration,
     componentToStyleClass,
+    allowNamedOverloads,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
@@ -223,16 +224,17 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const component = findComponentByName(this.library, peer.componentName)!
         const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
         const componentClassImplName = generateArkComponentName(peer.componentName)
-        const callableMethods = peer.methods.filter(it => it.isCallSignature).map(it => it.method)
+        const callableMethods = peer.methods.filter(it => it.isCallSignature)
         const collapsedCallables = allowsOverloads(this.library.language)
-            ? callableMethods
+            ? callableMethods.map(it => it.method)
             : callableMethods.length > 0
-                ? [collapseSameNamedMethods(callableMethods)]
+                ? [collapseSameNamedMethods(callableMethods.map(it => it.method))]
                 : []
-        collapsedCallables.forEach(callableMethod => {
+        collapsedCallables.forEach((callableMethod, callableIndex) => {
             const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
             const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
-            const callableInvocation = callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""
+            const callableName = allowNamedOverloads(this.library.language) ? callableMethods[callableIndex].uniqueOverloadName : callableMethod.name
+            const callableInvocation = callableMethod?.name ? `receiver.${callableName}(${mappedCallableParamsValues})` : ""
             const peerClassName = componentToPeerClass(peer.componentName)
             if (!collectComponents(this.library).find(it => it.name === component.name)?.interfaceDeclaration)
                 return [{
@@ -248,14 +250,22 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             const stagePostfix = this.library.useMemoM3 ? "m3" : "m1"
             let paramsList = mappedCallableParams?.join(", ")
             if (paramsList) paramsList += ","
+            const builderFunctionName = allowNamedOverloads(this.library.language)
+                ? peer.componentBuilderInfos.find(it => it.peerMethodName === callableMethods[callableIndex].sig.name)!.uniqueOverloadName
+                : component.name
             printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
-                .replaceAll("%COMPONENT_NAME%", component.name)
+                .replaceAll("%COMPONENT_NAME%", builderFunctionName)
                 .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
                 .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
                 .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                 .replaceAll("%PEER_CLASS_NAME%", peerClassName)
                 .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
         })
+        if (allowNamedOverloads(this.library.language) && collapsedCallables.length > 1) {
+            const overloads = peer.componentBuilderInfos.map(it => it.uniqueOverloadName).filter(it => it !== component.name)
+            if (overloads.length > 0)
+                printer.print(`overload ${component.name} { ${overloads.join(", ")} }`)
+        }
         return [{
             collector: this.printImports(peer, component),
             content: printer,

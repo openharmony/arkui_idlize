@@ -127,6 +127,8 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
 }
 
 export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMethod[], selectMaxMethodArgs?: number[]): PeerMethod {
+    if (overloads.length === 1)
+        return overloads[0]
     const method = collapseSameNamedMethods(overloads.map(it => it.method), selectMaxMethodArgs)
     const maxArgsLength = Math.max(...overloads.map(it => it.method.signature.args.length))
     const maxMethod = overloads.find(it => it.method.signature.args.length === maxArgsLength)!
@@ -157,6 +159,7 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
         overloads[0].originalParentName,
         returnType,
         overloads[0].isCallSignature,
+        method.name,
         method,
     )
 }
@@ -168,6 +171,15 @@ export function allowsOverloads(language: Language): boolean {
             return false
         default:
             return true
+    }
+}
+
+export function allowNamedOverloads(language: Language): boolean {
+    switch (language) {
+        case Language.ARKTS:
+            return true
+        default:
+            return false
     }
 }
 
@@ -290,6 +302,9 @@ export class OverloadsPrinter {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
         if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
             collapsedMethod.signature.returnType = idl.IDLVoidType
+        }
+        if (allowNamedOverloads(this.language)) {
+            collapsedMethod.name = methods[0].uniqueOverloadName
         }
         const key = peer + '.' + collapsedMethod.name
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {

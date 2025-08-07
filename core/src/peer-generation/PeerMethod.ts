@@ -26,6 +26,8 @@ export class PeerMethodArg {
     ) {}
 }
 
+export type OverloadInfo = { postfix: string, alias?: string, priority?: number }
+
 export class PeerMethodSignature {
     constructor(
         // contextual name of method
@@ -39,7 +41,7 @@ export class PeerMethodSignature {
         public readonly modifiers: (MethodModifier.FORCE_CONTEXT | MethodModifier.THROWS)[] = [],
     ) { }
 
-    static mangleOverloadedName(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): { postfix: string, alias?: string, priority?: number } {
+    static mangleOverloadedName(decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty): OverloadInfo {
         if (!decl.parent)
             return { postfix: "", }
         let alias: string | undefined
@@ -87,6 +89,9 @@ export class PeerMethod {
         public originalParentName: string,
         public returnType: IDLType,
         public isCallSignature: boolean,
+        // arkts specific feature, where overloads - are different functions grouped by overload keyword.
+        // Must be moved to interface description as so as `method` field
+        public uniqueOverloadName: string,
         public method: Method,
     ) { 
         // todo remove me

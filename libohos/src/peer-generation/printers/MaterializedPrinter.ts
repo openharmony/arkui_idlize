@@ -27,7 +27,7 @@ import {
     LanguageWriter, getInternalClassName,
     MaterializedClass, MaterializedField, PeerLibrary, LayoutNodeRole
 } from "@idlizer/core"
-import { collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
+import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
 import {
@@ -119,11 +119,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
     }
 
-    printBaseCtor(clazz: MaterializedClass, collapseCtors: boolean, superClassName?: string) {
+    printBaseCtor(clazz: MaterializedClass, superClassName?: string) {
         const hasSuperClass = (superClassName != undefined)
         if (clazz.isStaticMaterialized) return
         const className = this.getImplementationName(clazz)
-        if (collapseCtors) {
+        if (!allowsOverloads(this.library.language)) {
             this.printCollapsedCtors(clazz, superClassName)
             return
         }
@@ -137,7 +137,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 this.assignFinalizable(className, peerPtr, writer)
             }
             this.printReadonlyFieldsInitialization(clazz)
-        }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, collapseCtors, superClassName))
+        }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, superClassName))
     }
 
     printCollapsedCtors(clazz: MaterializedClass, superClassName?: string) {
@@ -157,7 +157,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         writer: LanguageWriter,
         clazz: MaterializedClass,
         peerPtrExpr: LanguageExpression,
-        collapseCtors: boolean,
         superClassName?: string): DelegationCall | undefined {
 
         if (superClassName == undefined) return undefined
@@ -170,7 +169,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
         const args = [
             ...Array(argsCount)
-                .fill(collapseCtors ? "undefined" : "false")
+                .fill(allowsOverloads(this.library.language) ? "false" : "undefined")
                 .map(it => writer.makeString(it)),
             peerPtrExpr
         ]
@@ -201,7 +200,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             writer.makeString(peerPtr),
             writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
         )
-        const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, true, superClassName)
+        const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
         this.printer.writeConstructorImplementation(this.namespacePrefix.concat(implementationClassName), sigWithPointer, writer => {
 
@@ -247,6 +246,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         for (const grouped of groupOverloads(clazz.methods, this.library.language)) {
             this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped)
         }
+        if (!clazz.isInterface && allowNamedOverloads(this.library.language)) {
+            this.writeNamedOverloadsGroups(clazz.decl.methods, this.printer)
+        }
     }
 
     printTaggedMethods(clazz: MaterializedClass) {
@@ -275,14 +277,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             })
     }
 
-    writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, collapseCtors: boolean, maxCtorParams: number, classTypeParameters?: string[]) {
+    writeFromPtrMethod(clazz: MaterializedClass, writer: LanguageWriter, maxCtorParams: number, classTypeParameters?: string[]) {
         // write "fromPtr(ptr: number): MaterializedClass" method
         const clazzRefType = clazz.isInterface
             ? idl.createReferenceType(getInternalClassName(clazz.className), clazz.generics?.map(it => idl.createTypeParameterReference(sanitizeGenerics(it))))
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-            const defaultArg = collapseCtors ? "undefined" : "false"
+            const defaultArg = allowsOverloads(this.library.language) ? "false" : "undefined"
             const args = [...Array(maxCtorParams).fill(defaultArg), "ptr"]
             writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args.map(arg => writer.makeString(arg)))))
         })
@@ -393,13 +395,35 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
             }
             for (const m of decl.methods) {
-                writer.writeMethodDeclaration(m.name,
+                const overloadInfo = PeerMethodSignature.mangleOverloadedName(m)
+                const overloadedName = allowNamedOverloads(this.library.language)
+                    ? overloadInfo?.alias ?? m.name
+                    : m.name
+                writer.writeMethodDeclaration(overloadedName,
                     new NamedMethodSignature(
                         m.returnType,
                         m.parameters.map(it => maybeOptional(it.type!, it.isOptional)),
                         m.parameters.map(it => it.name)));
             }
+            if (allowNamedOverloads(this.library.language)) {
+                this.writeNamedOverloadsGroups(decl.methods, writer)
+            }
         }, superInterface, clazz.generics?.map(sanitizeGenerics))
+    }
+
+    protected writeNamedOverloadsGroups(methods: idl.IDLMethod[], writer: LanguageWriter): void {
+        const overloadsMap = new Map<string, string[]>()
+        for (const method of methods) {
+            const info = PeerMethodSignature.mangleOverloadedName(method)
+            if (!info.alias)
+                continue
+            if (!overloadsMap.has(method.name))
+                overloadsMap.set(method.name, [])
+            overloadsMap.get(method.name)!.push(info.alias ?? (method.name + info.postfix))
+        }
+        for (const [overloadName, mangledNames] of overloadsMap.entries()) {
+            writer.print(`overload ${overloadName} { ${mangledNames.join(", ")} }`)
+        }
     }
 
     protected get namespacePrefix(): string {
@@ -443,7 +467,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         // collapse constructors for TS
         // do not collapse constructors for ArkTS, CJ, Java, ...
-        const collapseConstructors = this.library.language == Language.TS
 
         if (clazz.isInterface) {
             this.writeInterface(clazz, printer)
@@ -453,7 +476,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 getInternalClassName(clazz.className),
                 (writer) => {
                     writer.makeStaticBlock(() => {
-                        this.writeFromPtrMethod(clazz, writer, collapseConstructors, this.maxCtorParams, classTypeParameters)
+                        this.writeFromPtrMethod(clazz, writer, this.maxCtorParams, classTypeParameters)
                     })
                 },
                 undefined,
@@ -478,14 +501,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
             this.printFields(clazz)
 
-            this.printBaseCtor(clazz, collapseConstructors, superClassName)
-            if (!collapseConstructors) {
+            this.printBaseCtor(clazz, superClassName)
+            if (allowsOverloads(this.library.language)) {
                 for (const ctor of clazz.ctors) {
                     this.printCtor(clazz, ctor)
                 }
             }
             writer.makeStaticBlock(() => {
-                if (!collapseConstructors) {
+                if (allowsOverloads(this.library.language)) {
                     for (const ctor of clazz.ctors) {
                         const pointerType = IDLPointerType
                         this.library.setCurrentContext(`${clazz.className}.constructor`)
@@ -495,7 +518,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 }
                 if (clazz.finalizer) printPeerFinalizer(clazz, writer)
                 if (clazz.isInterface) {
-                    this.writeFromPtrMethod(clazz, writer, collapseConstructors, this.maxCtorParams, classTypeParameters)
+                    this.writeFromPtrMethod(clazz, writer, this.maxCtorParams, classTypeParameters)
                 }
                 this.printStaticMethods(clazz)
             })

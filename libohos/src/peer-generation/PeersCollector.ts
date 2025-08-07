@@ -43,6 +43,12 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
     const newMethodName = isCallSignature
         ? methodName + overloadInfo.postfix
         : `set${capitalize(overloadInfo.alias ?? (methodName + overloadInfo.postfix))}`
+    if (isCallSignature) {
+        peer.componentBuilderInfos.push({
+            uniqueOverloadName: overloadInfo.alias ?? peer.componentName,
+            peerMethodName: newMethodName,
+        })
+    }
     return new PeerMethod(
         new PeerMethodSignature(
             newMethodName,
@@ -54,6 +60,7 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
         originalParentName,
         realRetType,
         isCallSignature,
+        isCallSignature ? newMethodName : overloadInfo.alias ?? methodName,
         new Method(methodName!, signature, getMethodModifiers(method))
     )
 }
@@ -72,7 +79,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     const originalParentName = parentName ?? peer.originalClassName!
     const signature = new NamedMethodSignature(idl.IDLThisType, [idl.maybeOptional(prop.type, prop.isOptional)], ["value"])
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)
-    const methodName = `set${capitalize(overloadInfo.alias  ?? (prop.name + overloadInfo.postfix))}`
+    const methodName = `set${capitalize(overloadInfo.alias ?? (prop.name + overloadInfo.postfix))}`
     return new PeerMethod(
         new PeerMethodSignature(
             methodName,
@@ -84,6 +91,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
         originalParentName,
         idl.IDLVoidType,
         false,
+        overloadInfo.alias ?? prop.name,
         new Method(prop.name, signature, []))
 }
 

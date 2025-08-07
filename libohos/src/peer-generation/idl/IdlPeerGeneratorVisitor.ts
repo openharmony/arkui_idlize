@@ -211,6 +211,7 @@ export class IdlPeerProcessor {
                 idl.IDLPointerType,
             ),
             fullCName, implemenationParentName, idl.IDLPointerType, false,
+            "getFinalizer",
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = propertiesFromInterface.concat(decl.properties)
             // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
@@ -240,6 +241,7 @@ export class IdlPeerProcessor {
                     isStatic ? undefined : decl,
                 ),
                 fullCName, implemenationParentName, idl.maybeOptional(field.type, f.isNullableOriginalTypeField), false,
+                `get${capitalize(field.name)}`,
                 new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]))
             mMethods.push(getAccessor)
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
@@ -254,6 +256,7 @@ export class IdlPeerProcessor {
                         isStatic ? undefined : decl,
                     ),
                     fullCName, implemenationParentName, idl.IDLVoidType, false,
+                    `set${capitalize(field.name)}`,
                     new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]))
                 mMethods.push(setAccessor)
             }
@@ -298,7 +301,7 @@ export class IdlPeerProcessor {
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.CTOR).join('_'),
                 [],
                 returnType,
-            ), originalParentName, implemenationParentName, returnType, false, ctor)
+            ), originalParentName, implemenationParentName, returnType, false, "", ctor)
         }
 
         const signature = generateSignature(method, returnType)
@@ -313,6 +316,7 @@ export class IdlPeerProcessor {
                 idl.isMethod(method) && !method.isStatic ? decl : undefined,
             ),
             originalParentName, implemenationParentName, returnType, false,
+            overloadInfo.alias ?? methodName,
             new Method(methodName,
                 signature,
                 getMethodModifiers(method),
