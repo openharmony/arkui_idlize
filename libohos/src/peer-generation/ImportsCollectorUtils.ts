@@ -76,6 +76,12 @@ export function collectDeclItself(
             ) {
             return
         }
+
+        // import extractors for external materialized classes
+        if (idl.isInterface(node) && isMaterialized(node, library) && isInExternalModule(node)) {
+            emitter.addFeature("extractors", library.layout.handwrittenPackage())
+        }
+
         const feature = convertDeclToFeature(library, node)
         emitter.addFeature(feature.feature, feature.module)
         if (options?.includeMaterializedInternals) {

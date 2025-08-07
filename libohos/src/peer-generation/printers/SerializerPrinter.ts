@@ -370,11 +370,6 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
                 "nullptr", "KPointer", "isInstanceOf",
             ], "@koalaui/interop")
         }
-
-        if ([...generatorConfiguration().modules.values()].some(it => it.external ?? false)) {
-            collector.addFeature("extractors", library.layout.handwrittenPackage())
-        }
-
         collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
         if (language === Language.TS) {
             collector.addFeature('Finalizable', '@koalaui/interop')
