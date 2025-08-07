@@ -461,6 +461,7 @@
     "libraryNameMapping": { },
     "currentModulePackagesPaths": [
         { "package": "arkui.component", "path": "./component" },
+        { "package": "arkui.stateManagement", "path": "./stateManagement" },
         { "package": "arkui", "path": "./" }
     ],
     "currentModuleExportedPackages": [

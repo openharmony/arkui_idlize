@@ -1067,12 +1067,12 @@ class ArkTSSyntheticGenerator extends DependenciesCollector {
 export class ArkTSInterfacesVisitor implements InterfacesVisitor {
     constructor(
         protected readonly peerLibrary: PeerLibrary,
-        protected readonly isDeclared: boolean,
+        protected readonly isDeclarationFile: boolean,
         protected readonly printClasses: boolean,
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && !this.isDeclared && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && !this.isDeclarationFile && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
     }
@@ -1108,7 +1108,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                     peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
                     isInIdlizeStdlib(entry) ||
                     idl.isInterface(entry) && entry.subkind === idl.IDLInterfaceSubkind.Class && !this.printClasses ||
-                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
+                    idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier) && !this.isDeclarationFile
                 )
                     continue
                 syntheticGenerator.convert(entry)
@@ -1126,11 +1126,11 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter()
 
-                getCommonImports(writer.language, { isDeclared: this.isDeclared, useMemoM3: this.peerLibrary.useMemoM3, libraryName: this.peerLibrary.name })
+                getCommonImports(writer.language, { isDeclared: this.isDeclarationFile, useMemoM3: this.peerLibrary.useMemoM3, libraryName: this.peerLibrary.name })
                     .forEach(it => imports.addFeature(it.feature, it.module))
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const typeConvertor = this.getDeclConvertor(writer, this.peerLibrary, this.isDeclared)
+                const typeConvertor = this.getDeclConvertor(writer, this.peerLibrary, this.isDeclarationFile)
                 convertDeclaration(typeConvertor, entry)
 
                 result.push({
@@ -1138,7 +1138,10 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
                     content: writer,
                     over: {
                         node: entry,
-                        role: LayoutNodeRole.INTERFACE
+                        role: LayoutNodeRole.INTERFACE,
+                        hint: idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
+                            ? 'component.modifier'
+                            : undefined
                     }
                 })
             }
