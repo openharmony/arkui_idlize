@@ -23,7 +23,7 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectAllProperties, collectFunctions, collectProperties } from '../printers/StructPrinter'
+import { collectAllProperties, collectProperties } from '../printers/StructPrinter'
 import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
 import { createDeclarationNameConvertor } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
@@ -214,13 +214,6 @@ class SerializerPrinter {
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeString(`object: ${writer.getNodeName(valueType)} { ${properties.map(it => `override var ${it.name} = ${it.name}TmpResult`).join('; ') }}`), true, false))
                 }
                 else {
-                    if (writer.language === Language.ARKTS) {
-                        if (collectFunctions(target, this.library).length > 0) {
-                            writer.writeStatement(writer.makeThrowError("Interface with functions is not supported"))
-                            return;
-                        }
-                    }
-                    
                     writer.writeStatement(writer.makeAssign("value", valueType, writer.makeCast(writer.makeString(`{${propsAssignees.join(', ')}}`), type), true, false))
                 }
             }

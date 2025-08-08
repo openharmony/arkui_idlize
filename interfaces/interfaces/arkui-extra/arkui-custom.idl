@@ -124,11 +124,7 @@ interface MessageEvents: Event {
     readonly attribute any data;
 };
 
-[Entity=Interface]
-interface WorkerEventListener {
-    [CallSignature]
-    async void invoke(Event event);
-};
+callback WorkerEventListener = void (Event event);
 
 [Entity=Interface]
 interface PostMessageOptions {

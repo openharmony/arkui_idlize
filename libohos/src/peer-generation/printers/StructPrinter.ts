@@ -582,15 +582,6 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 
-export function collectFunctions(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLFunction[] {
-    const superDecl = getSuper(decl, library)
-    return [
-        ...((superDecl && idl.isInterface(superDecl)) ? collectFunctions(superDecl, library) : []),
-        ...decl.methods,
-        ...decl.callables,
-    ]
-}
-
 export function generateStructs(library: PeerLibrary, structs: LanguageWriter, typedefs: IndentedPrinter, writeToString: LanguageWriter) {
     new StructPrinter(library).generateStructs(structs, typedefs, writeToString)
 }
