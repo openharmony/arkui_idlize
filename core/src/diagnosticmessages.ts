@@ -18,21 +18,32 @@ import { MessageSeverity, DiagnosticMessage, Location, DiagnosticException, Diag
 /**
  * Template for registering different kinds of messages
  */
-export class DiagnosticMessageEntry {
+export class DiagnosticMessageGroup {
     /**
      * Index for DiagnosticMessageEntry by code
      */
-    static diagnosticMessageByCode = new Map<number, DiagnosticMessageEntry>()
+    static diagnosticMessageByCode = new Map<string, DiagnosticMessageGroup>()
+
+    /**
+     * Diagnostic results collected up until now
+     */
     static collectedResults: DiagnosticResults = new DiagnosticResults()
+
+    /**
+     * Generated diagnostic messages belonging to _any_ group
+     */
+    static get allGroupsEntries(): DiagnosticMessage[] {
+        return DiagnosticMessageGroup.collectedResults.entries
+    }
 
 	/**
 	 * Severity of the diagnostic.
 	 */
     severity: MessageSeverity
 	/**
-	 * Unsigned integer code of the diagnostic.
+	 * String representing code of the diagnostic.
 	 */
-    code: number
+    code: string
 	/**
 	 * Description of the diagnostic.
 	 */
@@ -50,17 +61,17 @@ export class DiagnosticMessageEntry {
      */
     additionalMessageTemplate: string
 
-    constructor(severity: MessageSeverity, code: number, codeDescription: string, mainMessageTemplate?: string, additionalMessageTemplate?: string) {
+    constructor(severity: MessageSeverity, code: string, codeDescription: string, mainMessageTemplate?: string, additionalMessageTemplate?: string) {
         this.severity = severity
         this.code = code
         this.codeDescription = codeDescription
         // No cases of codeUri for now, can be embedded into codeDescription later if needed
         this.mainMessageTemplate = mainMessageTemplate ?? codeDescription
         this.additionalMessageTemplate = additionalMessageTemplate ?? "See"
-        if (DiagnosticMessageEntry.diagnosticMessageByCode.has(code)) {
+        if (DiagnosticMessageGroup.diagnosticMessageByCode.has(code)) {
             throw new Error(`Duplicate message code ${code}`)
         }
-        DiagnosticMessageEntry.diagnosticMessageByCode.set(code, this)
+        DiagnosticMessageGroup.diagnosticMessageByCode.set(code, this)
     }
 
     generateDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): DiagnosticMessage {
@@ -79,21 +90,18 @@ export class DiagnosticMessageEntry {
         return msg
     }
 
-    reportDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): void {
-        DiagnosticMessageEntry.collectedResults.push(this.generateDiagnosticMessage(locations, mainMessage, additionalMessage))
+    reportDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): DiagnosticMessage {
+        const msg = this.generateDiagnosticMessage(locations, mainMessage, additionalMessage)
+        DiagnosticMessageGroup.collectedResults.push(msg)
+        return msg
     }
 
-    throwDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): void {
-        throw new DiagnosticException(this.generateDiagnosticMessage(locations, mainMessage, additionalMessage))
-    }
-
-    static reportCatched(diagnosticMessage: DiagnosticMessage) {
-        this.collectedResults.push(diagnosticMessage)
+    throwDiagnosticMessage(locations: Location[], mainMessage?: string, additionalMessage?: string): never {
+        throw new DiagnosticException(this.reportDiagnosticMessage(locations, mainMessage, additionalMessage))
     }
 }
 
-export const UnknownErrorMessage = new DiagnosticMessageEntry("fatal", 0, "Unknown error")
-
-export const LoadingErrorMessage = new DiagnosticMessageEntry("fatal", 100, "Loading error")
-export const ParsingErrorMessage = new DiagnosticMessageEntry("fatal", 101, "Parsing error")
-export const ProcessingErrorMessage = new DiagnosticMessageEntry("fatal", 102, "Processing error")
+export const InternalFatal = new DiagnosticMessageGroup("fatal", "InternalFatal", "Unknown error")
+export const LoadingFatal = new DiagnosticMessageGroup("fatal", "LoadingFatal", "Loading error")
+export const ParsingFatal = new DiagnosticMessageGroup("fatal", "ParsingFatal", "Parsing error")
+export const ProcessingFatal = new DiagnosticMessageGroup("fatal", "ProcessingFatal", "Processing error")

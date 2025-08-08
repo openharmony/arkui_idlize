@@ -17,7 +17,7 @@ import { DiagnosticResults, MessageSeverityList, DiagnosticMessage, Range } from
 
 export function outputDiagnosticResultsFormatted(result: DiagnosticResults): void {
     for (let message of result.entries) {
-        outputReadableMessage(message)
+        outputDiagnosticMessageFormatted(message)
     }
     outputReadableTotals(result)
 }
@@ -70,11 +70,11 @@ function formatUnderline(indent: string, lines: string[], lineNo: number, range:
     return `${indent} | ${midChar.repeat(lines[lineNo-1].length)}`
 }
 
-function outputReadableMessage(message: DiagnosticMessage): void {
+export function outputDiagnosticMessageFormatted(message: DiagnosticMessage): void {
     if (message.parts.length == 0) {
         return
     }
-    console.log(`${message.severity}[E${message.code}]: ${message.codeDescription}`)
+    console.log(`${message.severity}[${message.code}]: ${message.codeDescription}`)
     let digits = lineDigitCount(message)
     let indent = " ".repeat(digits)
     let first: boolean = true

@@ -75,5 +75,6 @@ export * from "./from-idl/IDLLinter"
 export { fromIDL, scanIDL }  from "./from-idl/common"
 export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
 export { toIDLFile, addSyntheticType, resolveSyntheticType, IDLTokenInfoMap } from "./from-idl/deserialize"
+export { Parser, FatalParserException } from "./from-idl/parser"
 
 export { D, ConfigTypeInfer, ConfigSchema, inspectSchema } from './configDescriber'

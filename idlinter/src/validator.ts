@@ -26,14 +26,14 @@ function nameLoc(...nodes: idl.IDLNode[]): idl.Location[] {
     return nodes.map(x => x.nameLocation ?? x.nodeLocation ?? {documentPath: "<unknown>"})
 }
 
-const UnresolvedReference = new idl.DiagnosticMessageEntry("error", 200, "Unresolved reference")
-const DuplicateIdentifier = new idl.DiagnosticMessageEntry("error", 201, "Duplicate identifier", undefined, "Duplicate of")
-const InconsistentEnum = new idl.DiagnosticMessageEntry("error", 202, "Enum includes both string and number values", undefined, "Conflicting value")
+const UnresolvedReference = new idl.DiagnosticMessageGroup("error", "UnresolvedReference", "Unresolved reference")
+const DuplicateIdentifier = new idl.DiagnosticMessageGroup("error", "DuplicateIdentifier", "Duplicate identifier", undefined, "Duplicate of")
+const InconsistentEnum = new idl.DiagnosticMessageGroup("error", "InconsistentEnum", "Enum includes both string and number values", undefined, "Conflicting value")
 
-const WrongAttributeName = new idl.DiagnosticMessageEntry("error", 301, "Wrong attribute name")
-const WrongAttributePlacement = new idl.DiagnosticMessageEntry("error", 302, "Wrong attribute placement")
+const WrongAttributeName = new idl.DiagnosticMessageGroup("error", "WrongAttributeName", "Wrong attribute name")
+const WrongAttributePlacement = new idl.DiagnosticMessageGroup("error", "WrongAttributePlacement", "Wrong attribute placement")
 
-const CyclicInheritance = new idl.DiagnosticMessageEntry("error", 400, "Cyclic inheritance")
+const CyclicInheritance = new idl.DiagnosticMessageGroup("error", "CyclicInheritance", "Cyclic inheritance")
 
 const enumPass = idlManager.newPass("enumPass", [], () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
 enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])

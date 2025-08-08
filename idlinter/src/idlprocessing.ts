@@ -169,10 +169,8 @@ export class IdlProcessingManager {
                 this.peerlibrary.files.push(loaded)
             }
         } catch (e: any) {
-            if (e.diagnosticMessage != null) {
-                idl.DiagnosticMessageEntry.reportCatched(e.diagnosticMessage)
-            } else {
-                idl.UnknownErrorMessage.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+            if (!(e instanceof idl.FatalParserException)) {
+                idl.InternalFatal.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
             }
         }
     }
@@ -214,11 +212,11 @@ export class IdlProcessingManager {
                 idl.forEachChild(entry,
                     n => passes.forEach(p => {
                         try { p.dispatch(n, true) }
-                        catch (e: any) { idl.ProcessingErrorMessage.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
+                        catch (e: any) { idl.ProcessingFatal.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
                     }),
                     n => passes.forEach(p => {
                         try { p.dispatch(n) }
-                        catch (e: any) { idl.ProcessingErrorMessage.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
+                        catch (e: any) { idl.ProcessingFatal.reportDiagnosticMessage([{documentPath: entry.fileName!}], `Pass "${p.name}": ${e.message}`) }
                     })
                 )
             }

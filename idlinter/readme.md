@@ -1,8 +1,8 @@
 # Idlize IDL validation utility (idlinter)
 
-Supposed to be used as part of [Idlize](https://gitee.com/nikolay-igotti/idlize) distribution.
+Supposed to be compiled and used as a part of Idlize distribution.
 
-Please see [Idlize readme](https://gitee.com/nikolay-igotti/idlize/blob/master/README.md) for the whole suite installation instructions.
+Please see [Idlize readme](../README.md) for the whole suite installation instructions.
 
 Building `idlinter` itself in clear environment with `Node.js` and `npm` installed:
 
@@ -12,11 +12,8 @@ cd idlize
 git submodule update --init
 git submodule update --remote
 npm i
-cd core
-npm run compile
-cd ..
-cd idlinter
-npm run compile
+npm run compile --prefix core
+npm run compile --prefix idlinter
 ```
 
 Then you can bind `node <idlinter-directory> $*` to `idlinter` shell script (or `node <idlinter-directory> %*` to `idlinter.cmd`) and run it:

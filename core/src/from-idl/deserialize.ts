@@ -28,8 +28,8 @@ import * as idl from "../idl"
 import { isDefined, stringOrNone, warn } from "../util"
 import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/idl/common"
 import { commonRange, Location, Range } from "../diagnostictypes"
-import { DiagnosticMessageEntry, LoadingErrorMessage, ParsingErrorMessage, UnknownErrorMessage } from "../diagnosticmessages"
-import { Parser } from "./parser"
+import { DiagnosticMessageGroup, LoadingFatal, ParsingFatal, InternalFatal } from "../diagnosticmessages"
+import { FatalParserException, Parser } from "./parser"
 
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
@@ -630,7 +630,7 @@ interface ParsedFileInfo {
     lexicalInfo: IDLTokenInfoMap
 }
 
-const DifferenceFound = new DiagnosticMessageEntry("error", 100500, "Difference found")
+const DifferenceFound = new DiagnosticMessageGroup("error", "DifferenceFound", "Difference found")
 
 interface Diff {
     path: string
@@ -773,7 +773,7 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
             content = fs.readFileSync(fileName).toString()
         } catch (e: any) {
             content = ""
-            LoadingErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+            throw new FatalParserException([LoadingFatal.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")])
         }
     }
     let lines = content.match(/[^\r\n]*(\n|\r\n)?/g) as string[] ?? []
@@ -788,9 +788,9 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
         if (e.name == "WebIDLParseError") {
             let tokens = (e as webidl2.WebIDLParseError).tokens
             let range = tokens.length > 0 ? rangeForToken(offsets, tokens[0]) : undefined
-            ParsingErrorMessage.throwDiagnosticMessage([{documentPath: fileName, range, lines}], e.bareMessage)
+            throw new FatalParserException([ParsingFatal.reportDiagnosticMessage([{documentPath: fileName, range, lines}], e.bareMessage)])
         }
-        UnknownErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+        throw new FatalParserException([InternalFatal.reportDiagnosticMessage([{documentPath: fileName, lines}], e.message ?? "")])
     }
     const entries = rawParsingResults!
         .filter(it => {

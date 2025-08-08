@@ -16,7 +16,7 @@
 import { program } from "commander"
 import * as fs from "fs"
 import * as path from "path"
-import { DiagnosticMessageEntry, outputDiagnosticResultsFormatted } from "@idlizer/core"
+import { DiagnosticMessageGroup, outputDiagnosticResultsFormatted } from "@idlizer/core"
 import { idlManager } from "./idlprocessing"
 import "./validator"
 
@@ -37,7 +37,7 @@ function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
     const measure = performance.getEntriesByName("proc")[0];
     //console.log(`Processing duration: ${measure.duration} milliseconds`);
 
-    outputDiagnosticResultsFormatted(DiagnosticMessageEntry.collectedResults)
+    outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
 }
 
 function listIdl(listPath: string | string[], what: string, excluding?: Set<string>): Set<string> {
@@ -97,7 +97,7 @@ export function idlinterMain() {
 
     processIdl(checkFiles, loadFiles)
 
-    if (DiagnosticMessageEntry.collectedResults.hasErrors) {
+    if (DiagnosticMessageGroup.collectedResults.hasErrors) {
         process.exit(2)
     }
 }

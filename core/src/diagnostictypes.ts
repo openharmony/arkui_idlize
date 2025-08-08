@@ -38,9 +38,9 @@ export interface DiagnosticMessage {
 	 */
     severity: MessageSeverity
 	/**
-	 * Unsigned integer code of the diagnostic.
+	 * String representing code of the diagnostic.
 	 */
-    code: number
+    code: string
 	/**
 	 * Description of the diagnostic.
 	 */
@@ -167,16 +167,9 @@ export interface DiagnosticDiffComponent {
 }
 
 /**
- * Receiver of diagnostic messages.
- */
-export interface DiagnosticReceiver {
-    push(message: DiagnosticMessage): void
-}
-
-/**
  * Collection of diagnostic messages with calculated statistics.
  */
-export class DiagnosticResults implements DiagnosticReceiver {
+export class DiagnosticResults {
     entries: DiagnosticMessage[] = []
     totals: Record<MessageSeverity, number> = {"fatal": 0, "error": 0, "warning": 0, "information": 0, "hint": 0}
 

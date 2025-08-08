@@ -15,24 +15,32 @@
 
 import * as fs from "fs"
 import * as idl from "../idl"
-import { DiagnosticMessage, Location, Position } from "../diagnostictypes"
-import { DiagnosticMessageEntry, LoadingErrorMessage, ParsingErrorMessage } from "../diagnosticmessages"
+import { DiagnosticException, DiagnosticMessage, Location, Position } from "../diagnostictypes"
+import { DiagnosticMessageGroup, LoadingFatal, ParsingFatal, InternalFatal } from "../diagnosticmessages"
 
-const DuplicateModifier = new DiagnosticMessageEntry("error", 10, "Duplicate modifier", "Duplicate of")
-const NotApplicableModifier = new DiagnosticMessageEntry("error", 11, "Not applicable modifier")
-const DuplicatePackageDeclaration = new DiagnosticMessageEntry("error", 12, "Duplicate package declaration", "Duplicate of")
-const DuplicateExtendedAttribute = new DiagnosticMessageEntry("error", 13, "Duplicate extended attribute", "Duplicate of")
-const DuplicateArgumentName = new DiagnosticMessageEntry("error", 14, "Duplicate argument name", "Duplicate of")
-const IncorrectLiteral = new DiagnosticMessageEntry("error", 15, "Incorrect literal")
-const IncorrectIdentifier = new DiagnosticMessageEntry("error", 16, "Incorrect identifier")
-const UnexpectedToken = new DiagnosticMessageEntry("error", 17, "Unexpected token")
-const UnexpectedEndOfFile = new DiagnosticMessageEntry("fatal", 18, "Unexpected end of file")
-const UnsupportedSyntax = new DiagnosticMessageEntry("error", 19, "Unsupported syntax")
-const WrongDeclarationPlacement = new DiagnosticMessageEntry("error", 20, "Wrong declaration placement")
-const ExpectedPrimitiveType = new DiagnosticMessageEntry("error", 21, "Expected primitive type")
-const ExpectedReferenceType = new DiagnosticMessageEntry("error", 22, "Expected reference type")
-const ExpectedGenericArguments = new DiagnosticMessageEntry("error", 23, "Expected generic arguments")
-const UnexpectedGenericArguments = new DiagnosticMessageEntry("error", 24, "Unexpected generic arguments")
+const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
+const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
+const DuplicatePackageDeclaration = new DiagnosticMessageGroup("error", "DuplicatePackageDeclaration", "Duplicate package declaration", "Duplicate of")
+const DuplicateExtendedAttribute = new DiagnosticMessageGroup("error", "DuplicateExtendedAttribute", "Duplicate extended attribute", "Duplicate of")
+const DuplicateArgumentName = new DiagnosticMessageGroup("error", "DuplicateArgumentName", "Duplicate argument name", "Duplicate of")
+const IncorrectLiteral = new DiagnosticMessageGroup("error", "IncorrectLiteral", "Incorrect literal")
+const IncorrectIdentifier = new DiagnosticMessageGroup("error", "IncorrectIdentifier", "Incorrect identifier")
+const UnexpectedToken = new DiagnosticMessageGroup("error", "UnexpectedToken", "Unexpected token")
+const UnexpectedEndOfFile = new DiagnosticMessageGroup("fatal", "UnexpectedEndOfFile", "Unexpected end of file")
+const UnsupportedSyntax = new DiagnosticMessageGroup("error", "UnsupportedSyntax", "Unsupported syntax")
+const WrongDeclarationPlacement = new DiagnosticMessageGroup("error", "WrongDeclarationPlacement", "Wrong declaration placement")
+const ExpectedPrimitiveType = new DiagnosticMessageGroup("error", "ExpectedPrimitiveType", "Expected primitive type")
+const ExpectedReferenceType = new DiagnosticMessageGroup("error", "ExpectedReferenceType", "Expected reference type")
+const ExpectedGenericArguments = new DiagnosticMessageGroup("error", "ExpectedGenericArguments", "Expected generic arguments")
+const UnexpectedGenericArguments = new DiagnosticMessageGroup("error", "UnexpectedGenericArguments", "Unexpected generic arguments")
+
+export class FatalParserException extends Error {
+    diagnosticMessages?: DiagnosticMessage[]
+    constructor(diagnosticMessages?: DiagnosticMessage[]) {
+        super()
+        this.diagnosticMessages = diagnosticMessages
+    }
+}
 
 enum TokenKind {
     Words = "Words",
@@ -56,7 +64,7 @@ const unsupportedDeclarations = new Set<string>(["deleter", "getter", "includes"
 
 const interfaceContent = new Set<idl.IDLKind>([idl.IDLKind.Constructor, idl.IDLKind.Const, idl.IDLKind.Property, idl.IDLKind.Method, idl.IDLKind.Callable])
 
-const globalContent = new Set<idl.IDLKind>([idl.IDLKind.Namespace, idl.IDLKind.Interface, idl.IDLKind.Enum, idl.IDLKind.Method, idl.IDLKind.Typedef, idl.IDLKind.Callback, idl.IDLKind.Import, idl.IDLKind.Version])
+const globalContent = new Set<idl.IDLKind>([idl.IDLKind.Namespace, idl.IDLKind.Interface, idl.IDLKind.Enum, idl.IDLKind.Method, idl.IDLKind.Typedef, idl.IDLKind.Callback, idl.IDLKind.Import, idl.IDLKind.Version, idl.IDLKind.Const])
 
 const havingBlocks = new Set<idl.IDLKind>([idl.IDLKind.Namespace, idl.IDLKind.Interface, idl.IDLKind.Enum])
 
@@ -64,8 +72,9 @@ type ModifierToken = "static" | "readonly" | "async"
 type ModifiersContainer = {[Key in ModifierToken]?: Token}
 const modifierTokens = new Set<ModifierToken>(["static", "readonly", "async"])
 
+// Uncomment in case of parser debugging
 function trac(s: string) {
-    //console.log(s)
+    // console.log(s)
 }
 
 export class Parser {
@@ -82,7 +91,7 @@ export class Parser {
                 content = fs.readFileSync(fileName).toString()
             } catch (e: any) {
                 content = ""
-                LoadingErrorMessage.throwDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+                throw new FatalParserException([LoadingFatal.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")])
             }
         }
         this.content = content
@@ -92,12 +101,20 @@ export class Parser {
     }
 
     parseIDL(): idl.IDLFile {
-        trac("loadAndParseIDL")
-        this._lexerNext()
-        this._prevToken = this._curToken
-        let file = this.parseFile()
-        file.text = this.content
-        return file
+        const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
+        try {
+            trac("parseIDL")
+            this._lexerNext()
+            this._prevToken = this._curToken
+            let file = this.parseFile()
+            file.text = this.content
+            return file
+        } catch (e) {
+            if (!(e instanceof DiagnosticException) && !(e instanceof FatalParserException)) {
+                InternalFatal.reportDiagnosticMessage([{documentPath: this.fileName}], (e as any).message ?? "")
+            }
+            throw new FatalParserException(DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount))
+        }
     }
 
     _curOffset: number = 0
@@ -139,12 +156,16 @@ export class Parser {
     _reSymbol = /\.\.\.|[()[\]{},:;<=>?]/y
     _reWhitespace = /[\t\n\r ]+/y
     _reComment = /\/\/.*|\/\*[\s\S]*?\*\//y
-    _reDocComment = /\/\/\/.*|\/\*\*[\s\S]*?\*\//y
+
+    // Note no sticky behavior.
+    _reIsDocComment = /\/\/\/.*|\/\*\*[\s\S]*?\*\//
 
     _matchComment(): Token | undefined {
         const token = this._match(this._reComment, TokenKind.Comment)
+        // At any parsing moment `precedingComment` represents possible comment token just before`curToken`.
+        // It can be narrowed by `_reIsDocComment` if needed.
         if (token) {
-            this.currentComment = token
+            this.precedingComment = token
         }
         return token
     }
@@ -153,6 +174,7 @@ export class Parser {
         trac("_advance")
         this._prevToken = this._curToken
         this._match(this._reWhitespace, TokenKind.Whitespace)
+        this.precedingComment = undefined
         while(this._matchComment()) {
             this._match(this._reWhitespace, TokenKind.Whitespace)
         }
@@ -177,8 +199,9 @@ export class Parser {
         )
         if (!token) {
             const pos: Position = {line: this._curLine + 1, character: this._curOffset - this.offsets[this._curLine] + 1}
-            ParsingErrorMessage.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}], "Unrecognized symbols")
+            ParsingFatal.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}], "Unrecognized symbols")
         }
+        // Uncomment in case of parser debugging
         // if (token) {
         //     const visTok = {...token, location: {...token.location, lines: undefined, documentPath: undefined}}
         //     console.log(`Token: ${JSON.stringify(visTok)}`)
@@ -268,7 +291,7 @@ export class Parser {
         }
     }
 
-    currentComment: Token | undefined
+    precedingComment: Token | undefined
     currentPackage: string | undefined
 
     parseSingleIdentifier(): Token {
@@ -361,14 +384,12 @@ export class Parser {
                 WrongDeclarationPlacement.reportDiagnosticMessage([location!], `Wrong declaration placement: ${decl.kind} not allowed in ${scopeKind}`)
             }
             return decl
-        } catch (e: any) {
-            const diag = e.diagnosticMessage as DiagnosticMessage
-            if (!diag || diag.severity == "fatal") {
-                throw e
+        } catch (e) {
+            if (e instanceof DiagnosticException && e.diagnosticMessage.severity != "fatal") {
+                this.skipToAfter(";")
+                return
             }
-            DiagnosticMessageEntry.reportCatched(diag)
-            this.skipToAfter(";")
-            return
+            throw e
         }
         finally {
             while (this._generics.length > genericsLevel) {
@@ -500,6 +521,7 @@ export class Parser {
 
     parseExtendedAttributes(): idl.IDLExtendedAttribute[] | undefined {
         trac("parseExtendedAttributes")
+        // For future extensions: here is also a good point for doc comments handling
         if (!this.seeAndSkip("[")) {
             return
         }
@@ -719,6 +741,7 @@ export class Parser {
         this.skip("const")
         const type = this.parseType()
         const name = this.parseSingleIdentifier()
+        this.skip("=")
         const value = this.parseLiteral()
         const extracted = extractLiteral(value)
         this.skip(";")
@@ -934,24 +957,24 @@ function unescapeString(value: string): string {
     value = value.replace(/\\((['"\\bfnrtv])|([0-7]{1-3})|x([0-9a-fA-F]{2})|u([0-9a-fA-F]{4}))/g, (_, all, c, oct, h2, u4) => {
         if (c !== undefined) {
             switch (c) {
-                case "'": return "'";
-                case '"': return '"';
-                case "\\": return "\\";
-                case "b": return "\b";
-                case "f": return "\f";
-                case "n": return "\n";
-                case "r": return "\r";
-                case "t": return "\t";
-                case "v": return "\v";
+                case "'": return "'"
+                case '"': return '"'
+                case "\\": return "\\"
+                case "b": return "\b"
+                case "f": return "\f"
+                case "n": return "\n"
+                case "r": return "\r"
+                case "t": return "\t"
+                case "v": return "\v"
             }
         } else if (oct !== undefined) {
-            return String.fromCharCode(parseInt(oct, 8));
+            return String.fromCharCode(parseInt(oct, 8))
         } else if (h2 !== undefined) {
-            return String.fromCharCode(parseInt(h2, 16));
+            return String.fromCharCode(parseInt(h2, 16))
         } else if (u4 !== undefined) {
-            return String.fromCharCode(parseInt(u4, 16));
+            return String.fromCharCode(parseInt(u4, 16))
         }
-        throw new Error(`unknown escape sequence: ${_}`);
+        throw new Error(`unknown escape sequence: ${_}`)
     });
     return value;
 }
