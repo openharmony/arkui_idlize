@@ -1,7 +1,8 @@
 {
     "DeletedPackages": [
         "arkui.component.web",
-        "arkui.component.interop"
+        "arkui.component.interop",
+        "arkui.component.customComponent"
     ],
     "DeletedDeclarations": [
         "double",

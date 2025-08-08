@@ -22468,39 +22468,6 @@ declare type Theme = import('../api/@ohos.arkui.theme').Theme;
 
 declare type PromptActionDialogController = import('../api/@ohos.promptActionDialogController').PromptActionDialogController;
 
-declare class BaseCustomComponent extends CommonAttribute {
-  build(): void;
-  aboutToAppear?(): void;
-  aboutToDisappear?(): void;
-  aboutToRecycle?(): void;
-  onWillApplyTheme?(theme: Theme): void;
-  onPlaceChildren?(selfLayoutInfo: GeometryInfo, children: Layoutable[], constraint: ConstraintSizeOptions): void;
-  onMeasureSize?(selfLayoutInfo: GeometryInfo, children: Measurable[], constraint: ConstraintSizeOptions): SizeResult;
-  onPageShow?(): void;
-  onPageHide?(): void;
-  onFormRecycle?(): string;
-  onFormRecover?(statusData: string): void;
-  onBackPress?(): boolean;
-  pageTransition?(): void;
-  getUIContext(): UIContext;
-  getUniqueId(): number;
-  queryNavDestinationInfo(): NavDestinationInfo | undefined;
-  queryNavDestinationInfo(isInner: boolean | undefined): NavDestinationInfo | undefined;
-  queryNavigationInfo(): NavigationInfo | undefined;
-  queryRouterPageInfo(): RouterPageInfo | undefined;
-  onDidBuild?(): void;
-  getDialogController(): PromptActionDialogController | undefined;
-}
-
-declare class CustomComponent extends BaseCustomComponent {
-  aboutToReuse?(params: {  }): void;
-  onLayout?(children: LayoutChild[], constraint: ConstraintSizeOptions): void;
-  onMeasure?(children: LayoutChild[], constraint: ConstraintSizeOptions): void;
-}
-declare class CustomComponentV2 extends BaseCustomComponent {
-  aboutToReuse?(): void;
-}
-
 /**
  * View
  *
