@@ -1,7 +1,7 @@
 import { Chrono } from "std/time"
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { OHOS_MEDIAQUERYNativeModule, checkArkoalaCallbacks } from "../../generated/arkts";
+import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop";
+import { OHOS_MEDIAQUERYNativeModule, registerOhosMediaqueryApiHandler } from "../../generated/arkts";
 export { mediaquery } from "../../generated/arkts"
 
 export namespace performance {
@@ -13,10 +13,12 @@ export namespace performance {
 export type OHBuffer = NativeBuffer
 
 export function pullEvents() {
-    checkArkoalaCallbacks()
+    checkEvents()
 }
 
 export function init() {
+    wrapSystemApiHandlerCallback()
+    registerOhosMediaqueryApiHandler()
     new OHOS_MEDIAQUERYNativeModule()
 }
 

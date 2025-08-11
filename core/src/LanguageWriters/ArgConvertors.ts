@@ -1343,7 +1343,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             value = `CallbackTransformer.transformFrom${this.library.getInteropName(this.decl)}(${value})`
         return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [writer.makeString(`${value}`)]))
     }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter, useSyncVersion: boolean = false): LanguageStatement {
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter, useSyncVersion: boolean = true): LanguageStatement {
         if (writer.language == Language.CPP) {
             const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
             const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(this.transformedDecl, writer.language)})`)
@@ -1443,11 +1443,13 @@ export class CallbackConvertor extends BaseArgConvertor {
             new ExpressionStatement(
                 useSyncVersion
                     ? writer.makeNativeCall(this.interopModuleName, `_CallCallbackSync`, [
+                        writer.makeString(generatorConfiguration().ApiKind.toString()),
                         writer.makeString(generateCallbackKindValue(this.decl).toString()),
                         writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
                         writer.makeString(`${argsSerializer}Serializer.length()`),
                     ])
                     : writer.makeNativeCall(this.interopModuleName, `_CallCallback`, [
+                        writer.makeString(generatorConfiguration().ApiKind.toString()),
                         writer.makeString(generateCallbackKindValue(this.decl).toString()),
                         writer.makeSerializedBufferGetter(`${argsSerializer}Serializer`),
                         writer.makeString(`${argsSerializer}Serializer.length()`),

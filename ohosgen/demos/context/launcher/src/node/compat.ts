@@ -1,6 +1,5 @@
 import { BusinessError } from "@ohos.base"
-import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts";
+import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule, checkEvents } from "@koalaui/interop"
 
 export { BaseContext, Context, ApplicationContext } from "../../generated/ts"
 
@@ -15,7 +14,7 @@ export function runEventLoop() {
     let finished = false
     let pull = () => {
         //
-        checkArkoalaCallbacks()
+        checkEvents()
         if (!finished)
             setTimeout(pull, 0)
     };

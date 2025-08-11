@@ -1,7 +1,9 @@
 import { int32 } from "@koalaui/common"
 import { callCallback, KPointer, InteropNativeModule, NativeBuffer, DeserializerBase,
-    registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { xml, checkArkoalaCallbacks, OHOS_XMLNativeModule,  } from "../../generated/ts"
+    registerNativeModuleLibraryName, loadInteropNativeModule, 
+    wrapSystemApiHandlerCallback,
+    checkEvents} from "@koalaui/interop"
+import { xml, OHOS_XMLNativeModule, registerOhosXmlApiHandler,  } from "../../generated/ts"
 export { xml } from "../../generated/ts"
 
 export type EventType = xml.EventType
@@ -11,6 +13,7 @@ export const EventType = xml.EventType
 export function init() {
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
+    wrapSystemApiHandlerCallback()
 }
 
 export function encodeText(text:string): ArrayBuffer {
@@ -21,7 +24,7 @@ export function runEventLoop() {
     let finished = false
     let pull = () => {
         //
-        checkArkoalaCallbacks()
+        checkEvents()
         if (!finished)
             setTimeout(pull, 0)
     };

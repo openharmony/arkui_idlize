@@ -49,7 +49,6 @@
         "check:cj": "TARGET=cj npm run check"
     },
     "dependencies": {
-        "@koalaui/interop": "1.7.8",
         "@koalaui/common": "latest"
     }
 }

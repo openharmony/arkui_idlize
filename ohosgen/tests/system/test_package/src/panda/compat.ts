@@ -1,12 +1,14 @@
-import { registerNativeModuleLibraryName } from '@koalaui/interop';
-import { checkArkoalaCallbacks } from '../../generated/arkts';
+import { checkEvents, registerNativeModuleLibraryName, wrapSystemApiHandlerCallback } from '@koalaui/interop';
+import { registerTestPackageApiHandler } from '../../generated/arkts';
 
 export { FooObject, BarObject } from '../../generated/arkts';
 
 export function pullEvents() {
-    checkArkoalaCallbacks();
+    checkEvents();
 }
 
 export function init() {
     registerNativeModuleLibraryName('InteropNativeModule', 'TEST_PACKAGENativeModule');
+    wrapSystemApiHandlerCallback()
+    registerTestPackageApiHandler()
 }

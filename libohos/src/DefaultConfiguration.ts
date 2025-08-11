@@ -37,7 +37,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
     D.object({
         GenerateUnused: D.boolean(),
-        ApiKind: D.number(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),
         boundProperties: D.map(D.string(), T.stringArray()),

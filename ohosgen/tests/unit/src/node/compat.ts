@@ -1,6 +1,6 @@
-import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts/unit.INTERNAL";
+import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop"
 import { stdout } from "node:process";
+import { registerUnitApiHandler } from "../../generated/ts";
 
 export {
     // .d.ts
@@ -86,13 +86,14 @@ export type OHAny = any
 export function init() {
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
+    wrapSystemApiHandlerCallback()
 }
 
 export function runEventLoop() {
     let finished = false
     let pull = () => {
         //
-        checkArkoalaCallbacks()
+        checkEvents()
         if (!finished)
             setTimeout(pull, 0)
     };

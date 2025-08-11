@@ -14,6 +14,7 @@ internal class PeerNodeStubImpl: PeerNodeStub {}
 internal class VMLoaderApplicationImpl(private val appUrl: String, private val appParams: String): VMLoaderApplication {
     init {
         println("Kotlin koala: Application.constructor($appUrl, $appParams)")
+        registerOhosXmlApiHandler()
     }
     override fun start(): PeerNodeStub {
         println("Kotlin koala: Application.start()")

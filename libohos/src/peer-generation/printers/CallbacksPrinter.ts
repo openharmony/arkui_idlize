@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, PeerLibrary, PrimitiveTypesInstance } from "@idlizer/core"
+import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
@@ -195,10 +195,15 @@ class DeserializeCallbacksVisitor {
             writer.writeStatement(writer.makeAssign(resourceIdName, idl.IDLI32Type, writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), true))
             if (writer.language === Language.CPP) {
                 // there is some assymmetrics - we do not read `call` pointer when processing in managed, but always do in native
+                const callerInvocation = writer.makeString(`getManagedCallbackCaller(${generateCallbackKindAccess(callback, writer.language)})`)
                 const callReadExpr = writer.makeCast(
-                    writer.makeMethodCall(`thisDeserializer`, `readPointer`, []),
-                    idl.IDLUndefinedType,
-                    { unsafe: true, overrideTypeName: `void(*)(${generateCallbackAPIArguments(this.library, callback).join(", ")})` }
+                    writer.makeMethodCall(`thisDeserializer`, `readPointerOrDefault`,
+                        [writer.makeCast(callerInvocation, idl.IDLPointerType, { unsafe: true })]),
+                        idl.IDLUndefinedType /* not used */,
+                        {
+                            unsafe: true,
+                            overrideTypeName: `void(*)(${generateCallbackAPIArguments(this.library, callback).join(", ")})`
+                        }
                 )
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
@@ -259,10 +264,15 @@ class DeserializeCallbacksVisitor {
                         writer.makeClassInit(idl.createReferenceType('DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
                         true, false))
                 writer.writeStatement(writer.makeAssign(resourceIdName, idl.IDLI32Type, writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), true))
+                const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(callback, writer.language)})`)
                 const callReadExpr = writer.makeCast(
-                    writer.makeMethodCall(`thisDeserializer`, `readPointer`, []),
-                    idl.IDLUndefinedType,
-                    { unsafe: true, overrideTypeName: `void(*)(${[`${generatorTypePrefix()}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, callback)).join(", ")})` }
+                writer.makeMethodCall(`thisDeserializer`, `readPointerOrDefault`,
+                    [writer.makeCast(callerSyncInvocation, idl.IDLPointerType, { unsafe: true })]),
+                    idl.IDLUndefinedType /* not used */,
+                    {
+                        unsafe: true,
+                        overrideTypeName: `void(*)(${[`${generatorTypePrefix()}VMContext vmContext`].concat(generateCallbackAPIArguments(this.library, callback)).join(", ")})`
+                    }
                 )
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
@@ -380,14 +390,26 @@ class DeserializeCallbacksVisitor {
                     writer.popIndent()
                     writer.print(`}`)
                 }
-                writer.writePrintLog(`Unknown callback kind`)
+                writer.writeStatement(writer.makeThrowError(`Unknown callback kind`))
             }
         })
+        const camelcaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
+        if ([Language.ARKTS, Language.TS, Language.KOTLIN].includes(this.writer.language)) {
+            this.writer.writeFunctionImplementation(`register${camelcaseModuleName}ApiHandler`, new MethodSignature(idl.IDLVoidType, []), writer => {
+                writer.addFeature('registerApiEventHandler', '@koalaui/interop')
+                const deserializeFunctionReference = this.writer.language === Language.KOTLIN
+                    ? "::deserializeAndCallCallback" : "deserializeAndCallCallback"
+                writer.writeExpressionStatement(writer.makeFunctionCall(`registerApiEventHandler`, [
+                    writer.makeString(peerGeneratorConfiguration().ApiKind.toString()),
+                    writer.makeString(deserializeFunctionReference),
+                ]))
+            })
+        }
         if (this.writer.language === Language.CPP) {
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_t>(deserializeAndCallCallback)))`)
         }
         if (this.writer.language === Language.TS) {
-            this.writer.print('wrapSystemCallback(1, (buffer: KSerializerBuffer, len:int32) => { deserializeAndCallCallback(new DeserializerBase(buffer, len)); return 0 })')
+            this.writer.writeExpressionStatement(this.writer.makeFunctionCall(`register${camelcaseModuleName}ApiHandler`, []))
         }
 
         if (this.writer.language === Language.CPP) {
@@ -414,9 +436,9 @@ class DeserializeCallbacksVisitor {
                     writer.popIndent()
                     writer.print(`}`)
                 }
-                writer.writePrintLog(`Unknown callback kind`)
+                writer.writeStatement(writer.makeThrowError(`Unknown callback kind`))
             })
-            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
+            this.writer.print(`KOALA_EXECUTE(deserializeAndCallCallbackSync, setCallbackCallerSync(${peerGeneratorConfiguration().ApiKind}, static_cast<Callback_Caller_Sync_t>(deserializeAndCallCallbackSync)))`)
         }
     }
 
@@ -488,7 +510,7 @@ class ManagedCallCallbackVisitor {
                 convertor.holdResource(`arg${i}Resource`, 'callbackBuffer.resourceHolder', writer)
                 writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
-            writer.print(`enqueueCallback(&callbackBuffer);`)
+            writer.print(`enqueueCallback(${peerGeneratorConfiguration().ApiKind}, &callbackBuffer);`)
         })
     }
 
@@ -507,6 +529,7 @@ class ManagedCallCallbackVisitor {
             writer.print('uint8_t dataBuffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
                 writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
+            writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(peerGeneratorConfiguration().ApiKind.toString())]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
             for (let i = 0; i < args.length; i++) {

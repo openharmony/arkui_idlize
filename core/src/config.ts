@@ -35,6 +35,7 @@ export const HookMethodSchema = D.object({
 export type ModuleConfiguration = ConfigTypeInfer<typeof ModuleConfigurationSchema>
 
 export const CoreConfigurationSchema = D.object({
+    ApiKind: D.number(),
     TypePrefix: D.string(),
     LibraryPrefix: D.string(),
     OptionalPrefix: D.string(),
@@ -60,6 +61,7 @@ export const CoreConfigurationSchema = D.object({
 export type CoreConfiguration = ConfigTypeInfer<typeof CoreConfigurationSchema>
 
 export const defaultCoreConfiguration: CoreConfiguration = {
+    ApiKind: 0,
     TypePrefix: "",
     LibraryPrefix: "",
     OptionalPrefix: "",

@@ -1,4 +1,5 @@
 [loadLibraries] Registered HUKS_WITH_CLASSNativeModule as InteropNativeModule
+[loadLibraries] Loading InteropNativeModule [HUKS_WITH_CLASSNativeModule]
 Starting demo: huks
 [loadLibraries] Loading HUKS_WITH_CLASSNativeModule [HUKS_WITH_CLASSNativeModule]
 HuksClass_constructImpl()
@@ -13,7 +14,6 @@ huks.fooNumberNumber(200) = 201
 ---- Begin: huks.fooResultNumber(300) ----
 HuksClass_fooResultNumberImpl(thisPtr, arg)
   arg = 300 (int32)
-[loadLibraries] Loading InteropNativeModule [HUKS_WITH_CLASSNativeModule]
 ---- Begin: huks.fooNumberOptions({}) ----
 HuksClass_fooNumberOptionsImpl(thisPtr, options)
 ---- Begin: huks.generateKeyItemSync("ASDF", {}) ----

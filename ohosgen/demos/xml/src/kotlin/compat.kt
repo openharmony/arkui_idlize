@@ -16,5 +16,5 @@ public fun eventTypeStr(eventType: EventType): String {
 }
 
 public fun pullEvents() {
-    checkArkoalaCallbacks()
+    checkEvents()
 }

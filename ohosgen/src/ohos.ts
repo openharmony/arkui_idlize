@@ -55,23 +55,6 @@ import { generateNativeOhos, suggestLibraryName } from './OhosNativeVisitor';
 import { ohosLayout } from './OhosLayout';
 import { printDataClasses } from './OhosDataClassVisitor';
 
-function printCallbackChecker(peerLibrary: PeerLibrary): PrinterResult[] {
-    const content = peerLibrary.createLanguageWriter(peerLibrary.language)
-    content.writeLines(readLangTemplate('CallbacksChecker', peerLibrary.language))
-    const imports = new ImportsCollector()
-    imports.addFeatures(["InteropNativeModule", "ResourceHolder", "KBuffer"], "@koalaui/interop")
-    collectDeclItself(peerLibrary, createReferenceType("DeserializerBase"), imports)
-    collectDeclItself(peerLibrary, createReferenceType("deserializeAndCallCallback"), imports)
-    return [{
-        over: {
-            node: peerLibrary.resolveTypeReference(createReferenceType("checkArkoalaCallbacks")) as IDLEntry,
-            role: LayoutNodeRole.PEER
-        },
-        collector: imports,
-        content: content,
-    }]
-}
-
 export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: PeerGeneratorConfiguration) {
     const origGenConfig = generatorConfiguration()
     setDefaultConfiguration(config)
@@ -100,7 +83,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             printGlobal,
             printDataClasses,
             createSerializerPrinter(peerLibrary.language, ""),
-            printCallbackChecker,
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             createGeneratedNativeModulePrinter(NativeModule.Generated),
             ...spreadIfLang([Language.ARKTS], printArkTSTypeChecker),

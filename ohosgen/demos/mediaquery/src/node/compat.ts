@@ -1,5 +1,4 @@
-import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule } from "@koalaui/interop"
-import { checkArkoalaCallbacks } from "../../generated/ts"
+import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loadInteropNativeModule, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop"
 export { mediaquery } from "../../generated/ts"
 
 import { performance as perf } from 'perf_hooks';
@@ -15,13 +14,14 @@ export type OHBuffer = ArrayBuffer
 export function init() {
     loadInteropNativeModule()
     InteropNativeModule._SetCallbackDispatcher(callCallback)
+    wrapSystemApiHandlerCallback()
 }
 
 export function runEventLoop() {
     let finished = false
     let pull = () => {
         //
-        checkArkoalaCallbacks()
+        checkEvents()
         if (!finished)
             setTimeout(pull, 0)
     };

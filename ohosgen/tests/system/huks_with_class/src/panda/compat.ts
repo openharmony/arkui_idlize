@@ -1,10 +1,12 @@
-import { registerNativeModuleLibraryName } from '@koalaui/interop';
-import { checkArkoalaCallbacks } from '../../generated/arkts';
+import { checkEvents, registerNativeModuleLibraryName, wrapSystemApiHandlerCallback } from '@koalaui/interop';
+import { registerHuksWithClassApiHandler } from '../../generated/arkts/huks_with_class.INTERNAL';
 
 export function pullEvents() {
-    checkArkoalaCallbacks();
+    checkEvents();
 }
 
 export function init() {
     registerNativeModuleLibraryName('InteropNativeModule', 'HUKS_WITH_CLASSNativeModule');
+    wrapSystemApiHandlerCallback()
+    registerHuksWithClassApiHandler()
 }

@@ -1,18 +1,19 @@
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule, KPointer, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { checkArkoalaCallbacks, OHOS_SECURITY_HUKSNativeModule } from "../../generated/arkts"
+import { InteropNativeModule, KPointer, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents } from "@koalaui/interop";
+import { OHOS_SECURITY_HUKSNativeModule, registerOhosSecurityHuksApiHandler } from "../../generated/arkts"
 
 export { huks } from "../../generated/arkts"
 export type OHBuffer = NativeBuffer
 
 export function pullEvents() {
-    checkArkoalaCallbacks()
+    checkEvents()
 }
 
 export function init() {
     registerNativeModuleLibraryName("InteropNativeModule", "HUKS_NativeBridgeArk")
     registerNativeModuleLibraryName("OHOS_SECURITY_HUKSNativeModule", "HUKS_NativeBridgeArk")
     new OHOS_SECURITY_HUKSNativeModule()
+    registerOhosSecurityHuksApiHandler()
 }
 
 export function encodeText(text: string): OHBuffer {

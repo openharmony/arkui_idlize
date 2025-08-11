@@ -1,6 +1,6 @@
-import { OHOS_XMLNativeModule, checkArkoalaCallbacks } from "../../generated/arkts"
+import { OHOS_XMLNativeModule, registerOhosXmlApiHandler } from "../../generated/arkts"
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule, KPointer, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
+import { InteropNativeModule, KPointer, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, registerApiEventHandler, wrapSystemApiHandlerCallback } from "@koalaui/interop";
 import { xml } from "../../generated/arkts"
 
 export { xml } from "../../generated/arkts"
@@ -8,10 +8,12 @@ export type EventType = xml.EventType
 export type OHBuffer = ArrayBuffer
 
 export function pullEvents() {
-    checkArkoalaCallbacks()
+    checkEvents()
 }
 
 export function init() {
+    wrapSystemApiHandlerCallback()
+    registerOhosXmlApiHandler()
     new OHOS_XMLNativeModule()
 }
 

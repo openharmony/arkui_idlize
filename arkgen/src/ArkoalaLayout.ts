@@ -90,7 +90,6 @@ export class TsLayout extends CommonLayoutBase {
         ["DeserializerBase", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
-        ["checkArkoalaCallbacks", "./CallbacksChecker"],
         ["CallbackTransformer", "./CallbackTransformer"],
     ])
 

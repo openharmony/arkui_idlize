@@ -1,7 +1,6 @@
 import { int32 } from "@koalaui/common"
-import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName } from "@koalaui/interop";
-import { checkArkoalaCallbacks } from "../../generated/arkts/unit.INTERNAL";
-import { UNITNativeModule } from "../../generated/arkts"
+import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop";
+import { registerUnitApiHandler, UNITNativeModule } from "../../generated/arkts"
 
 export {
     // .d.ts
@@ -84,10 +83,12 @@ export type OHBuffer = NativeBuffer
 export type OHAny = object
 
 export function pullEvents() {
-    checkArkoalaCallbacks()
+    checkEvents()
 }
 
 export function init() {
+    wrapSystemApiHandlerCallback()
+    registerUnitApiHandler()
     new UNITNativeModule()
 }
 

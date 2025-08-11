@@ -4,7 +4,6 @@ interface Finalizable {};
 interface SerializerBase {};
 interface DeserializerBase {};
 interface deserializeAndCallCallback {};
-interface checkArkoalaCallbacks {};
 interface CallbackTransformer {};
 interface CallbackBuffer {};
 interface CallbackResourceHolder {};
