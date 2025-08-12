@@ -1,0 +1,17 @@
+package ohos.web.webview;
+
+import global.resource.Resource as Resource;
+
+[DefaultExport]
+namespace webview {
+    interface WebHeader {
+        attribute String headerKey;
+        attribute String headerValue;
+    };
+
+    [Entity=Class]
+    interface WebviewController {
+        static void initializeWebEngine();
+        void loadUrl((String or Resource) url, optional sequence<WebHeader> headers);
+    };
+};
