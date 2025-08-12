@@ -23,7 +23,7 @@ export abstract class BaseInterfaceFilterTransformer extends Transformer {
         super(file, removeNamespaces)
     }
 
-    protected typechecker = new Typechecker(this.file.entries)
+    protected typechecker = new Typechecker(this.file)
 
     transformInterface(entry: IDLInterface): IDLEntry|undefined {
         if (this.shouldFilterOutInterface(entry)) {
@@ -53,7 +53,7 @@ export abstract class BaseInterfaceFilterTransformer extends Transformer {
             .map(innerTypeIfContainer)
             .filter(it => {
                 if (isReferenceType(it)) {
-                    const decl = this.typechecker.findRealDeclaration(it.name)
+                    const decl = this.typechecker.resolveReference(it)
                     if (!decl || isInterface(decl) && predicate(decl)) {
                         return true
                     }

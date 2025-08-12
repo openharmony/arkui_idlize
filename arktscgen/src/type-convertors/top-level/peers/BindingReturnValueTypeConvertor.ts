@@ -45,12 +45,12 @@ export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
             string: (type: IDLType) =>
                 wrap(PeersConstructions.receiveString),
             reference: (type: IDLReferenceType) =>
-                this.typechecker.isHeir(type.name, Config.astNodeCommonAncestor)
+                this.typechecker.isHeir(type, Config.astNodeCommonAncestor)
                     ? wrap(PeersConstructions.unpackNonNullable)
                     : wrap(baseNameString(type.name)),
             optional: (type: IDLOptionalType) => {
                 if (isReferenceType(type.type)) {
-                    if (this.typechecker.isHeir(type.type.name, Config.astNodeCommonAncestor)) {
+                    if (this.typechecker.isHeir(type.type, Config.astNodeCommonAncestor)) {
                         return wrap(PeersConstructions.unpackNullable)
                     }
                     return wrap(PeersConstructions.newOf(baseNameString(type.type.name)))

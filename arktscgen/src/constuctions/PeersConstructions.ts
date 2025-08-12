@@ -17,10 +17,16 @@ import { BindingsConstructions } from "./BindingsConstructions"
 import { InteropConstructions } from "./InteropConstructions"
 import { peerMethod } from "../general/common"
 import { capitalize, createReferenceType } from "@idlizer/core"
+import { dropPrefix } from "../utils/string"
+import { Config } from "../general/Config"
 
 export class PeersConstructions {
+    static peerName(name: string): string {
+        return dropPrefix(name, Config.dataClassPrefix)
+    }
+
     static fileName(node: string): string {
-        return `${node}.ts`
+        return `${this.peerName(node)}.ts`
     }
 
     static get pointerParameter(): string {
@@ -51,8 +57,8 @@ export class PeersConstructions {
                 name: parameter,
                 type: `object | undefined`
             },
-            returnType: (type: string) => `${parameter} is ${type}`,
-            body: (type: string) => `${parameter} instanceof ${type}`
+            returnType: (type: string) => `${parameter} is ${PeersConstructions.peerName(type)}`,
+            body: (type: string) => `${parameter} instanceof ${PeersConstructions.peerName(type)}`
         }
     }
 
@@ -129,7 +135,7 @@ export class PeersConstructions {
     }
 
     static newOf(iface: string): string {
-        return `new ${iface}`
+        return `new ${this.peerName(iface)}`
     }
 
     static callPeerMethod(iface: string, method: string): string {
@@ -137,6 +143,6 @@ export class PeersConstructions {
     }
 
     static brand(iface: string): string {
-        return `brand${capitalize(iface)}`
+        return `brand${capitalize(this.peerName(iface))}`
     }
 }

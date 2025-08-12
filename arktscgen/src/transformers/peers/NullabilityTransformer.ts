@@ -37,7 +37,7 @@ export class NullabilityTransformer extends Transformer {
         super(file)
     }
 
-    private typechecker = new Typechecker(this.file.entries)
+    private typechecker = new Typechecker(this.file)
 
     transformInterface(node: IDLInterface): IDLEntry {
         return createUpdatedInterface(
@@ -75,7 +75,7 @@ export class NullabilityTransformer extends Transformer {
         // TODO: maybe heirs of defaultAncestors aren't nullable
         // TODO: handwritten
         if (isReferenceType(type)) {
-            if (this.typechecker.isPeer(type.name) || type.name === Config.astNodeCommonAncestor) {
+            if (this.typechecker.isPeer(type) || type.name === Config.astNodeCommonAncestor) {
                 return createOptionalType(type)
             }
         }

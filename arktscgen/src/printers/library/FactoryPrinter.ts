@@ -35,10 +35,9 @@ import { SingleFilePrinter } from "../SingleFilePrinter"
 import { flattenType, makeMethod, makeSignature } from "../../utils/idl"
 import { isCreate, mangleIfKeyword, peerMethod } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { ImporterTypeConvertor } from "../../type-convertors/top-level/ImporterTypeConvertor"
+import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { Importer } from "./Importer"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
-import { composedConvertType } from "../../type-convertors/BaseTypeConvertor"
 import { id } from "../../utils/types"
 import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
 import { PeerPrinter } from "./PeerPrinter"
@@ -51,16 +50,11 @@ export class FactoryPrinter extends SingleFilePrinter {
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
-        { convert: (node: IDLType) =>
-            composedConvertType(
-                new LibraryTypeConvertor(this.typechecker),
-                new ImporterTypeConvertor(
-                    this.importer,
-                    this.typechecker
-                ),
-                node
-            )
-        }
+        { convert: (node: IDLType) => convertAndImport(
+            this.importer,
+            new LibraryTypeConvertor(this.typechecker),
+            node
+        )}
     )
 
     constructor(
@@ -85,7 +79,7 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node.name) || FactoryPrinter.getUniversalCreate(node) == undefined
+        return !this.typechecker.isPeer(node) || FactoryPrinter.getUniversalCreate(node) == undefined
     }
 
     printInterface(node: IDLInterface) {

@@ -82,7 +82,7 @@ class CastToTypeConvertor extends BaseTypeConvertor<string> {
             enum: (type: IDLReferenceType) => type.name,
             reference: (type: IDLReferenceType) => {
                 return BridgesConstructions.referenceType(
-                    typechecker.isHeir(type.name, Config.astNodeCommonAncestor)
+                    typechecker.isHeir(type, Config.astNodeCommonAncestor)
                         ? Config.astNodeCommonAncestor
                         : baseName(type)
                 )

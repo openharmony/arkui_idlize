@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import { Config } from "../general/Config"
+
 export class BridgesConstructions {
     static castedParameter(name: string): string {
         return `_${name}`
@@ -27,7 +29,12 @@ export class BridgesConstructions {
     }
 
     static referenceType(name: string): string {
-        return `es2panda_${name}*`
+        // FIXME: Rewrite CastTypeConvertors using idl.CppInteropArgConverter
+        // and LanguageWriter constructions.
+        // Use c_type attribute from declaration.
+        const addPrefix = (n: string) =>
+            (n.startsWith(Config.dataClassPrefix) ? n : `${Config.dataClassPrefix}${n}`)
+        return `${addPrefix(name)}*`
     }
 
     static get sequenceLengthDeclaration(): string {

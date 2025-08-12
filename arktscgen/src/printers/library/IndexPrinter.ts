@@ -15,18 +15,20 @@
 
 import { IDLInterface, isInterface } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { createDefaultTypescriptWriter } from "../../utils/idl"
+import { createDefaultTypescriptWriter, fqName } from "../../utils/idl"
+import { dropPrefix } from "../../utils/string"
+import { Config } from "../../general/Config"
 
 export class IndexPrinter extends SingleFilePrinter {
     protected writer = createDefaultTypescriptWriter()
 
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node.name)
+        return !this.typechecker.isPeer(node) || Config.DoNotPrintPeers.includes(fqName(node))
     }
 
     printInterface(node: IDLInterface): void {
         this.writer.writeExpressionStatement(
-            this.writer.makeString(`export * from "./peers/${node.name}"`),
+            this.writer.makeString(`export * from "./peers/${dropPrefix(node.name, Config.dataClassPrefix)}"`),
         )
     }
 }

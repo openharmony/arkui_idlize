@@ -26,7 +26,7 @@ export abstract class InteropPrinter extends AbstractVisitor {
 
     protected abstract writer: LanguageWriter
 
-    protected typechecker = new Typechecker(this.file.entries)
+    protected typechecker = new Typechecker(this.file)
 
     print(): string {
         this.file.entries.forEach(it => this.visit(it))

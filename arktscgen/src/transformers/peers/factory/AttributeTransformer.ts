@@ -39,7 +39,7 @@ export class AttributeTransformer extends Transformer {
         super(file)
     }
 
-    private convertor = new LibraryTypeConvertor(new Typechecker(this.file.entries))
+    private convertor = new LibraryTypeConvertor(new Typechecker(this.file))
 
     private convertToKey(type: IDLType) {
         if (isOptionalType(type)) {

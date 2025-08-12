@@ -14,71 +14,100 @@
  */
 
 import {
+    createReferenceType,
     IDLEntry,
+    IDLFile,
     IDLInterface,
     IDLMethod,
+    IDLNamedNode,
+    IDLNamespace,
     IDLNode,
+    IDLReferenceType,
     IDLType,
+    IDLVoidType,
+    isEntry,
     isEnum,
     isInterface,
+    isNamespace,
     isPrimitiveType,
     isReferenceType,
-    linearizeNamespaceMembers
+    linearizeNamespaceMembers,
+    printType,
+    resolveNamedNode
 } from "@idlizer/core"
 import { Config } from "./Config"
-import { baseNameString, isIrNamespace, nodeType, parent } from "../utils/idl"
+import { baseNameString, flatParentsImpl, fqName, isIrNamespace, nodeNamespace, nodeType, parent } from "../utils/idl"
 import { isImplInterface } from "./common"
 
 export class Typechecker {
-    constructor(private idl: IDLEntry[]) {
-        this.idl = linearizeNamespaceMembers(idl)
+    private idl: IDLEntry[]
+    private namespaces: IDLNamespace[]
+
+    constructor(private file: IDLFile) {
+        this.idl = linearizeNamespaceMembers(this.file.entries)
+        this.namespaces = this.file.entries.filter(e => isNamespace(e)) as IDLNamespace[]
     }
 
-    findRealDeclaration(name: string): IDLEntry | undefined {
-        // Poor man's namespace-aware resolve.
-        // TODO: REWORK IT ALL!
-        const declarations = this.idl.filter(it => (name === it.name) || (baseNameString(name) == baseNameString(it.name)))
-        if (declarations.length === 1) {
-            return declarations[0]
+    resolveReference(ref: IDLReferenceType): IDLNamedNode|undefined {
+        const prefix = Config.dataClassPrefix
+        // XXX: This is a temporary hack until duplicates will not be removed from idl
+        if (ref.name.startsWith(prefix)) {
+            const entry = this.resolveReference2(createReferenceType(ref.name.slice(prefix.length)))
+            if (entry) {
+                return entry
+            }
         }
-        const ir = declarations
-            .filter(isInterface)
-            .filter(it => isIrNamespace(it))
-        if (ir.length > 0) {
-            return ir[0]
-        }
-        return undefined
+        return this.resolveReference2(ref)
     }
 
-    isHeir(name: string, ancestor: string): boolean {
-        if (name === ancestor) {
-            return true
+    private resolveReference2(ref: IDLReferenceType, debugPrefix = ''): IDLNamedNode|undefined {
+        const target = ref.name.split('.')
+        let entry = undefined
+        if (target.length > 1) { // full-qualified
+            entry = resolveNamedNode(target, undefined, [this.file])
+
+        } else {
+            if (ref.parent) {
+                entry = resolveNamedNode(target, ref.parent, [this.file])
+            }
+
+            if (!entry) {
+                for (const pov of this.namespaces) {
+                    entry = resolveNamedNode(target, pov, [this.file])
+                    if (entry) break
+                }
+            }
         }
-        const declaration = this.findRealDeclaration(name)
-        if (declaration === undefined || !isInterface(declaration)) {
+
+        if (debugPrefix.length) {
+            console.log(`RESOLVER: ${ref.name} => ${entry ? fqName(entry) : entry}`);
+        }
+
+        return entry
+    }
+
+    // All classes are consideres heirs of ArktsObject now
+    isHeir(ref: IDLReferenceType|IDLInterface, ancestor: string): boolean {
+        const resolveReference =
+            (r: IDLReferenceType, _?: IDLNode) => this.resolveReference(r)
+
+        const iface = isReferenceType(ref) ? resolveReference(ref) : ref
+        if (!iface || !isInterface(iface)) {
             return false
         }
-        let isHeir = declaration.name === ancestor
-        declaration.inheritance.forEach(parent => {
-            isHeir ||= this.isHeir(parent.name, ancestor)
-        })
 
-        // TODO: Should be fixed or moved to config
-        const objects = [
-            "Program", "ArkTsConfig", "AstDumper", "SrcDumper",
-            "FunctionSignature", "ValidationInfo"
-        ]
-        if (!isHeir) {
-            if (ancestor === Config.defaultAncestor &&
-                objects.includes(declaration.name)) return true;
+        const parents = flatParentsImpl(iface, resolveReference)
+        if (parents.map(p => p.name).includes(ancestor)) {
+            return true
         }
-        return isHeir
+
+        return ancestor === Config.defaultAncestor
     }
 
-    isPeer(node: string): boolean {
-        if (node === Config.astNodeCommonAncestor) return false // TODO: is handwritten
-        if (node === Config.context) return false // TODO: is handwritten
-        if (isImplInterface(node)) return false
+    isPeer(node: IDLInterface|IDLReferenceType): boolean {
+        if (node.name === Config.astNodeCommonAncestor) return false // TODO: is handwritten
+        if (node.name === Config.context) return false // TODO: is handwritten
+        if (isImplInterface(node.name)) return false
         if (this.isHeir(node, Config.astNodeCommonAncestor)) return true
         if (this.isHeir(node, Config.defaultAncestor)) return true
         return false
@@ -88,7 +117,7 @@ export class Typechecker {
         if (!isReferenceType(type)) {
             return false
         }
-        const declaration = this.findRealDeclaration(type.name)
+        const declaration = this.resolveReference(type)
         return declaration !== undefined && isTarget(declaration)
     }
 
@@ -107,27 +136,5 @@ export class Typechecker {
         return idlEnum?.elements
             ?.find(it => it.initializer?.toString() === value)
             ?.name
-    }
-
-    parent(node: IDLInterface): IDLInterface | undefined {
-        const parentName = parent(node)
-        if (parentName === undefined) return undefined
-        const decl = this.findRealDeclaration(parentName)
-        if (decl === undefined) return undefined
-        if (!isInterface(decl)) return undefined
-        return decl
-    }
-
-    ancestry(node: IDLInterface): IDLInterface[] {
-        let current = node
-        const res = []
-        while (true) {
-            res.push(current)
-            const parent = this.parent(current)
-            if (parent === undefined) {
-                return res
-            }
-            current = parent
-        }
     }
 }

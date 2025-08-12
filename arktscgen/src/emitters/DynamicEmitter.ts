@@ -144,10 +144,10 @@ export class DynamicEmitter {
         let idl = this.file
         this.printFile(this.enumsPrinter, idl)
         idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
-        idl = this.withLog(new AddContextDeclarationTransformer(idl))
-        idl = this.withLog(new TwinMergeTransformer(idl))
-        idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
-        idl = this.withLog(new AstNodeFilterTransformer(idl))
+        //idl = this.withLog(new AddContextDeclarationTransformer(idl))
+        //idl = this.withLog(new TwinMergeTransformer(idl))
+        //idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
+        //idl = this.withLog(new AstNodeFilterTransformer(idl))
         this.printPeers(idl)
         this.printInterop(idl)
     }

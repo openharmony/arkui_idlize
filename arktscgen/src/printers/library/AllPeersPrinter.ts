@@ -18,14 +18,14 @@ import { IDLFile, IDLInterface, IDLNode, isInterface } from "@idlizer/core"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { PeerPrinter } from "./PeerPrinter"
 import { Config } from "../../general/Config"
-import { isImplInterface } from "../../general/common"
+import { fqName } from "../../utils/idl"
 
 export class AllPeersPrinter extends MultiFilePrinter {
     constructor(private config: Config, idl: IDLFile) {
         super(idl)
     }
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node.name)
+        return !this.typechecker.isPeer(node) || Config.DoNotPrintPeers.includes(fqName(node))
     }
     printInterface(node: IDLInterface): MultiFileOutput {
         return {

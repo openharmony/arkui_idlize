@@ -20,12 +20,14 @@ import {
     createMethod,
     getFQName,
     getNamespacesPathFor,
+    getQualifiedName,
     IDLContainerType,
     IDLContainerUtils,
     IDLExtendedAttribute,
     IDLFile,
     IDLInterface,
     IDLMethod,
+    IDLNamedNode,
     IDLNamespace,
     IDLNode,
     IDLParameter,
@@ -44,6 +46,7 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
+    ReferenceResolver,
     resolveNamedNode,
     throwException,
     TSLanguageWriter
@@ -155,8 +158,12 @@ export function nativeType(node: IDLInterface): string | undefined {
         ?.value
 }
 
-export function nodeNamespace(node: IDLInterface): string | undefined {
+export function nodeNamespace(node: IDLNode): string | undefined {
     return getNamespacesPathFor(node)[0]?.name
+}
+
+export function fqName(node: IDLNamedNode): string {
+    return getQualifiedName(node, "namespace.name")
 }
 
 export function dropNamespace(node: IDLInterface) {
@@ -250,10 +257,10 @@ export function makeStatement(writer: LanguageWriter, arg: string | LanguageExpr
     return typeof arg !== 'string' && 'write' in arg ? arg : writer.makeStatement(makeExpression(writer, arg))
 }
 
-export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile): IDLInterface[] {
-    const resolveReference = (ref: IDLReferenceType) =>
-        resolveNamedNode(ref.name.split('.'), undefined, [idl])
-
+export function flatParentsImpl(
+    ref: IDLReferenceType|IDLInterface,
+    resolveReference: (ref: IDLReferenceType, pov?: IDLNode) => IDLNamedNode|undefined
+): IDLInterface[] {
     if (isReferenceType(ref)) {
         const type = resolveReference(ref)
         if (!type || !isInterface(type)) {
@@ -268,11 +275,22 @@ export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile):
         const node = queue.shift()!
         result.push(node)
 
+        if (result.length > 1 && baseNameString(ref.name) === node.name) {
+            //console.warn(`Cyclic dependency: ${ref.name} -> ${node.name}`);
+            break
+        }
+
         node.inheritance
-            .map(p => resolveReference(p))
+            .map(p => resolveReference(p, ref as IDLInterface))
             .filter(p => p !== undefined && isInterface(p))
             .forEach(p => queue.push(p as IDLInterface))
     }
 
     return result // with self
+}
+
+export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile): IDLInterface[] {
+    const resolveReference = (ref: IDLReferenceType, pov?: IDLNode) =>
+        resolveNamedNode(ref.name.split('.'), pov, [idl])
+    return flatParentsImpl(ref, resolveReference)
 }

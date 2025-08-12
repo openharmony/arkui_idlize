@@ -79,7 +79,7 @@ export function isReal(node: IDLInterface): boolean {
 }
 
 export function isDataClass(node: IDLInterface): boolean {
-    return parent(node) === Config.defaultAncestor
+    return node.name.startsWith(Config.dataClassPrefix) || parent(node) === Config.defaultAncestor
 }
 
 export function isCreate(name: string): boolean {

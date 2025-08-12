@@ -35,8 +35,8 @@ export class IgnoreOptions {
             }
 
             const last = name.at(-1)
-            const key = last === '-' || last === '+' ? name.slice(0, -1) : name
-            this.ignored.get(ns)!.set(key, last !== '+')
+            const key = last === '!' ? name.slice(0, -last.length) : name
+            this.ignored.get(ns)!.set(key, last !== '!')
         })
     }
 
@@ -50,8 +50,12 @@ export class IgnoreOptions {
         return this.partial?.some(it => it.interface === iface && it.properties?.includes(name))
     }
 
-    isIgnoredInterface(name: string, ns: string = ''): boolean {
-        return this.ignored.get(ns)?.get(name) ?? false
+    isIgnoredInterface(name: string, namespace: string = ''): boolean {
+        const ns = this.ignored.get(namespace)
+        if (ns && (ns.get(name) ?? ns.get('*') ?? false)) {
+            return true
+        }
+        return false
     }
 
     private ignored = new Map<string, Map<string, boolean>>()

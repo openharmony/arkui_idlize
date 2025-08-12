@@ -24,7 +24,7 @@ export abstract class MultiFilePrinter extends AbstractVisitor {
         super()
     }
 
-    protected typechecker = new Typechecker(this.idl.entries)
+    protected typechecker = new Typechecker(this.idl)
     protected output: MultiFileOutput[] = []
 
     protected abstract printInterface(node: IDLInterface): MultiFileOutput

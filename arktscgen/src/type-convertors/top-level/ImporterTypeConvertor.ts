@@ -13,40 +13,28 @@
  * limitations under the License.
  */
 
-import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType } from "@idlizer/core"
-import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
+import { IDLContainerUtils, IDLType, isContainerType, isEnum, isInterface, isOptionalType, isReferenceType } from "@idlizer/core"
 import { Importer } from "../../printers/library/Importer"
-import { Typechecker } from "../../general/Typechecker"
-import { baseName } from "../../utils/idl"
+import { BaseTypeConvertor } from "../BaseTypeConvertor"
 
-export class ImporterTypeConvertor extends TopLevelTypeConvertor<IDLType> {
-    constructor(
-        private importer: Importer,
-        typechecker: Typechecker,
-    ) {
-        super(typechecker, {
-            optional: (type: IDLOptionalType) => {
-                this.convertType(type.type)
-                return type
-            },
-            sequence: (type: IDLContainerType) => {
-                this.convertType(type.elementType[0])
-                return type
-            },
-            enum: (type: IDLReferenceType) => {
-                this.importer.withEnumImport(type.name)
-                return type
-            },
-            reference: (type: IDLReferenceType) => {
-                this.importer.withPeerImport(baseName(type))
-                return type
-            },
-            string: (type: IDLPrimitiveType) => type,
-            number: (type: IDLPrimitiveType) => type,
-            boolean: (type: IDLPrimitiveType) => type,
-            void: (type: IDLPrimitiveType) => type,
-            pointer: (type: IDLPrimitiveType) => type,
-            undefined: (type: IDLPrimitiveType) => type
-        })
+export function convertAndImport(importer: Importer, converter: BaseTypeConvertor<string>, type: IDLType): string {
+    const result = converter.convertType(type)
+
+    if (isOptionalType(type)) {
+        const _ = convertAndImport(importer, converter, type.type)
+
+    } else if (isContainerType(type) && IDLContainerUtils.isSequence(type)) {
+        const _ = convertAndImport(importer, converter, type.elementType[0])
+
+    } else if (isReferenceType(type)) {
+        const node = converter.typechecker.resolveReference(type)
+        if (node && isEnum(node)) {
+            importer.withEnumImport(result)
+
+        } else if (node && isInterface(node) && converter.typechecker.isPeer(node)){
+            importer.withPeerImport(result)
+        }
     }
+
+    return result
 }

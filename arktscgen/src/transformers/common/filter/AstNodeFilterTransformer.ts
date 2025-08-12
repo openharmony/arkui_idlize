@@ -19,11 +19,11 @@ import { BaseInterfaceFilterTransformer } from "./BaseInterfaceFilterTransformer
 
 export class AstNodeFilterTransformer extends BaseInterfaceFilterTransformer {
     constructor(idl: IDLFile) {
-        super(idl, true)
+        super(idl, false)
     }
     protected shouldFilterOutInterface(node: IDLInterface): boolean {
-        if (this.typechecker.isHeir(node.name, Config.astNodeCommonAncestor)) return false
-        if (this.typechecker.isHeir(node.name, Config.defaultAncestor)) return false
+        if (this.typechecker.isHeir(node, Config.astNodeCommonAncestor)) return false
+        if (this.typechecker.isHeir(node, Config.defaultAncestor)) return false
         console.log(`FILTERED (AST) ${node.name}`)
         return true
     }

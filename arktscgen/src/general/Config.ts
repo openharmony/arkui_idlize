@@ -70,4 +70,8 @@ export class Config {
     static get irNamespace(): string {
         return `ir`
     }
+
+    static DoNotPrintPeers = [
+        'es2panda_Context', // useless
+    ]
 }

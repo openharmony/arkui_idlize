@@ -46,7 +46,7 @@ import { Typechecker } from "../general/Typechecker"
 
 export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     protected constructor(
-        protected typechecker: Typechecker,
+        public typechecker: Typechecker,
         private conversions: {
             sequence: (type: IDLContainerType) => T
             enum: (type: IDLReferenceType) => T
@@ -126,14 +126,4 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     convertType(type: IDLType): T {
         return convertType(this, type)
     }
-}
-
-export function composedConvertType<T>(
-    result: BaseTypeConvertor<T>,
-    effect: BaseTypeConvertor<IDLType>,
-    type: IDLType
-): T {
-    return result.convertType(
-        effect.convertType(type)
-    )
 }
