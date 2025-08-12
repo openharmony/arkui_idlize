@@ -88,6 +88,7 @@ class SerializerPrinter {
         if (properties.length > 0) {
             this.declareSerializer(writer)
         }
+        collectDeclDependencies(this.library, target, imports)
         properties.forEach(it => {
             let field = `valueHolderFor${capitalize(it.name)}`
             const type = flattenUnionType(this.library, it.type)
