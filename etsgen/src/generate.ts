@@ -93,6 +93,7 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     for (const key in paths) {
         pathMap.set(key, path.normalize(path.join(path.dirname(configPath), paths[key][0])))
     }
+    arkts.initVisitsTable()
     arkts.arktsGlobal.filePath = file
     arkts.arktsGlobal.config = arkts.Config.create([
         '_',
@@ -436,9 +437,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
     visitor(node: arkts.AstNode): arkts.AstNode {
         return this.overloads.withVisit(node, () => {
             if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT)) {
-                if (arkts.isInterfaceDecl(node)) {
-                    this.defaultExportName = node.id!.name
-                }
                 if (arkts.isTSInterfaceDeclaration(node)) {
                     this.defaultExportName = node.id!.name
                 }
@@ -484,7 +482,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.isClassDeclaration(node)) {
                 return this.processNode(this.visitClassDeclaration, node)
             }
-            if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) {
+            if (arkts.isTSInterfaceDeclaration(node)) {
                 return this.processNode(this.visitInterfaceDeclaration, node)
             }
             if (arkts.isImportDeclaration(node)) {
@@ -951,7 +949,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return declaration
     }
 
-    visitInterfaceDeclaration(declaration: arkts.InterfaceDecl | arkts.TSInterfaceDeclaration): arkts.InterfaceDecl | arkts.TSInterfaceDeclaration {
+    visitInterfaceDeclaration(declaration: arkts.TSInterfaceDeclaration): arkts.TSInterfaceDeclaration {
         const name = declaration.id!.name
         if (this.config.DeletedDeclarations.includes(name)) {
             this.traceDeleted('DeletedDeclarations')
@@ -1621,7 +1619,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
     private getNodeType(node: arkts.AstNode): string {
         if (arkts.isClassDeclaration(node)) return 'class'
-        if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) return 'interface'
+        if (arkts.isTSInterfaceDeclaration(node)) return 'interface'
         if (arkts.isTSEnumDeclaration(node)) return 'enum_class'
         if (arkts.isTSEnumMember(node)) return 'enum_instance'
         if (arkts.isFunctionDeclaration(node)) return 'function'
@@ -1634,7 +1632,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
     private getNodeName(node: arkts.AstNode): string {
         if (arkts.isClassDeclaration(node)) return node.definition!.ident!.name
-        if (arkts.isInterfaceDecl(node) || arkts.isTSInterfaceDeclaration(node)) return node.id!.name
+        if (arkts.isTSInterfaceDeclaration(node)) return node.id!.name
         if (arkts.isTSEnumDeclaration(node)) return node.key!.name
         if (arkts.isTSEnumMember(node)) return node.name
         if (arkts.isFunctionDeclaration(node)) return node.function!.id!.name
