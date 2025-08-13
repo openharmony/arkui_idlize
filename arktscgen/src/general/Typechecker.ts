@@ -40,11 +40,9 @@ import { baseNameString, flatParentsImpl, fqName, isIrNamespace, nodeNamespace, 
 import { isImplInterface } from "./common"
 
 export class Typechecker {
-    private idl: IDLEntry[]
     private namespaces: IDLNamespace[]
 
     constructor(private file: IDLFile) {
-        this.idl = linearizeNamespaceMembers(this.file.entries)
         this.namespaces = this.file.entries.filter(e => isNamespace(e)) as IDLNamespace[]
     }
 
@@ -130,11 +128,10 @@ export class Typechecker {
 
     nodeTypeName(node: IDLInterface): string | undefined {
         const value = nodeType(node)
-        const idlEnum = this.idl
-            .filter(isEnum)
-            .find(it => it.name === Config.nodeTypeAttribute)
-        return idlEnum?.elements
-            ?.find(it => it.initializer?.toString() === value)
-            ?.name
+        const entry = this.resolveReference(createReferenceType(Config.nodeTypeAttribute))
+        const name =  entry && isEnum(entry)
+            ? entry.elements.find(e => e.initializer?.toString() === value)?.name
+            : undefined
+        return name ? `${Config.nodeTypeAttribute}.${name}` : undefined // value
     }
 }

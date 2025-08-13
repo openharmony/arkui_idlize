@@ -127,41 +127,31 @@ export class PeerPrinter extends SingleFilePrinter {
     }
 
     private printConstructor(): void {
+        const isRealNode = isReal(this.node)
+        const isAstNodeDescendant = this.typechecker.isHeir(this.node, Config.astNodeCommonAncestor)
+        const args: IDLType[] = [IDLPointerType]
+        const argNames: string[] = [PeersConstructions.pointerParameter]
+
+        if (isAstNodeDescendant) {
+            args.push(createReferenceType(Config.nodeTypeAttribute))
+            argNames.push('astNodeType')
+        }
+
         this.writer.writeConstructorImplementation(
             this.node.name,
             new MethodSignature(
                 IDLVoidType,
-                [
-                    IDLPointerType
-                ],
+                args,
                 undefined,
                 undefined,
                 undefined,
-                [
-                    PeersConstructions.pointerParameter
-                ]
+                argNames
             ),
             () => {
-                if (isReal(this.node)) {
-                    this.writer.writeExpressionStatement(
-                        this.writer.makeFunctionCall(
-                            PeersConstructions.validatePeer,
-                            [
-                                this.writer.makeString(PeersConstructions.pointerParameter),
-                                this.writer.makeString(
-                                    nodeType(this.node)
-                                        ?? throwException(`missing attribute node type: ${this.node.name}`)
-                                ),
-                            ]
-                        )
-                    )
-                }
                 this.writer.writeExpressionStatements(
                     this.writer.makeFunctionCall(
                         PeersConstructions.super,
-                        [
-                            this.writer.makeString(PeersConstructions.pointerParameter)
-                        ]
+                         argNames.map(n => this.writer.makeString(n))
                     )
                 )
             }
@@ -198,7 +188,10 @@ export class PeerPrinter extends SingleFilePrinter {
             if (isCreateOrUpdate(it.name)) {
                 // TODO: This condition is not clear - classes with c_type attribute
                 // is not abstract too, is it?
+                // The check for a native type allows types that is descendants of
+                // AstNode but have not type attribute, for example, varbinder.FunctionDecl
                 if (isAbstract(this.node) && nativeType(this.node) === undefined) {
+                    console.log(`Skipped ${this.node.name}.${it.name}`);
                     return
                 }
                 return this.printCreateOrUpdate(it)
@@ -385,19 +378,15 @@ export class PeerPrinter extends SingleFilePrinter {
                 [MethodModifier.STATIC]
             ),
             (writer: TSLanguageWriter) => {
-                const newExpr = this.writer.makeNewObject(
-                    this.node.name, [
-                        this.writer.makeFunctionCall(
-                            this.writer.makeString(
-                                PeersConstructions.callBinding(
-                                    this.node.name,
-                                    node.name,
-                                    nodeNamespace(this.node)
-                                )
-                            ),
-                            this.makeBindingArguments(node.parameters)
-                        ),
-                    ]
+                const nativeCall = this.writer.makeFunctionCall(
+                    this.writer.makeString(
+                        PeersConstructions.callBinding(
+                            this.node.name,
+                            node.name,
+                            nodeNamespace(this.node)
+                        )
+                    ),
+                    this.makeBindingArguments(node.parameters)
                 )
 
                 const varName = 'result'
@@ -413,6 +402,12 @@ export class PeerPrinter extends SingleFilePrinter {
                     .map(makeStmt)
 
                 if (isReal(this.node)) {
+                    const astNodeType = this.typechecker.nodeTypeName(this.node)
+                        ?? throwException(`missing attribute node type: ${this.node.name}`)
+                    const newExpr = writer.makeNewObject(
+                        this.node.name, [nativeCall, writer.makeString(astNodeType)]
+                    )
+
                     this.writer.writeStatements(
                         this.writer.makeAssign(
                             varName, createReferenceType(this.node.name), newExpr, true
@@ -426,9 +421,9 @@ export class PeerPrinter extends SingleFilePrinter {
                         ),
                     )
                 } else {
-                    this.writer.writeStatement(
-                        this.writer.makeReturn(newExpr)
-                    )
+                    writer.writeStatement(writer.makeReturn(
+                        writer.makeNewObject(this.node.name, [nativeCall])
+                    ))
                 }
             }
         )
@@ -459,10 +454,10 @@ export class PeerPrinter extends SingleFilePrinter {
         if (enumValue === undefined) {
             return
         }
-        const qualified = `${this.importer.withEnumImport(Config.nodeTypeAttribute)}.${enumValue}`
+        this.importer.withEnumImport(Config.nodeTypeAttribute)
         this.writer.writeExpressionStatements(
-            this.writer.makeString(`if (!nodeByType.has(${qualified})) {`),
-            this.writer.makeString(`    nodeByType.set(${qualified}, (peer: KNativePointer) => new ${this.node.name}(peer))`),
+            this.writer.makeString(`if (!nodeByType.has(${enumValue})) {`),
+            this.writer.makeString(`    nodeByType.set(${enumValue}, (peer: KNativePointer) => new ${this.node.name}(peer, ${enumValue}))`),
             this.writer.makeString(`}`)
         )
     }

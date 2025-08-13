@@ -33,10 +33,6 @@ export class PeersConstructions {
         return `pointer`
     }
 
-    static get validatePeer(): string {
-        return `assertValidPeer`
-    }
-
     static get super(): string {
         return `super`
     }
