@@ -938,7 +938,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             out.append("[return \"LTR\"] \n");
             appendGroupedLog(1, out);
         }
-        return { "LTR", 4 };
+        return { "LTR", 3 };
     }
     Ark_String GetLanguageCodeImpl()
     {
@@ -948,7 +948,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             out.append("[return \"en\"] \n");
             appendGroupedLog(1, out);
         }
-        return { "en", 3 };
+        return { "en", 2 };
     }
     } // EnvironmentBackendAccessor
 
