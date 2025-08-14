@@ -401,37 +401,6 @@ export class NumericConvertor extends BaseArgConvertor {
     }
 }
 
-// TODO use NumericConvertor when double is implemented as interop type
-export class DoubleConvertor extends BaseArgConvertor {
-    constructor(param: string) {
-        // check numericPrimitiveTypes.include(type)
-        super(idl.IDLF64Type, [RuntimeType.NUMBER], false, true, param)
-    }
-    convertorArg(param: string, writer: LanguageWriter): string {
-        return param
-    }
-    convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        return writer.makeStatement(
-            writer.makeMethodCall(`${param}Serializer`, `writeFloat64`,
-                [writer.makeString(value)]
-            ))
-    }
-    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        return assigneer(
-            writer.makeString(`${deserializerName}.readFloat64()`)
-        )
-    }
-    nativeType(): idl.IDLType {
-        return this.idlType
-    }
-    interopType(): idl.IDLType {
-        return this.idlType
-    }
-    isPointerType(): boolean {
-        return false
-    }
-}
-
 export class BigIntToU64Convertor extends BaseArgConvertor {
     constructor(param: string) {
         super(idl.IDLBigintType, [RuntimeType.BIGINT], false, false, param)

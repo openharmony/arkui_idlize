@@ -149,6 +149,7 @@ const KBoolean = "KBoolean"
 const KInt = "KInt"
 const KLong = "KLong"
 const KFloat = "KFloat"
+const KDouble = "KDouble"
 const KNativePointer = "KNativePointer"
 const KInteropNumber = "KInteropNumber"
 const KStringPtr = "KStringPtr"
@@ -235,6 +236,7 @@ export class KotlinCInteropArgConvertor implements TypeConvertor<string> {
             case idl.IDLI32Type: return KInt
             case idl.IDLU32Type: return KInt
             case idl.IDLF32Type: return KFloat
+            case idl.IDLF64Type: return KDouble
             case idl.IDLNumberType: return KInteropNumber
             case idl.IDLBigintType: return KLong
             case idl.IDLSerializerBuffer: return KSerializerBuffer

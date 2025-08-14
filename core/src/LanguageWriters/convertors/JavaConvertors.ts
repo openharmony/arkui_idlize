@@ -160,6 +160,7 @@ export class JavaTypeNameConvertor implements NodeConvertor<string>, IdlNameConv
             case 'int32': case 'KInt': return 'int'
             case 'int64': case 'KLong': return 'long'
             case 'float32': case 'KFloat': return 'float'
+            case 'float64': case 'KDouble': return 'double'
             case 'KUint8ArrayPtr': return 'byte[]'
             case 'KInt32ArrayPtr': return 'int[]'
             case 'KFloat32ArrayPtr': return 'float[]'
@@ -197,6 +198,7 @@ export class JavaInteropArgConvertor extends InteropArgConvertor {
             case idl.IDLI32Type: return "int"
             case idl.IDLU32Type: return "int"
             case idl.IDLF32Type: return "float"
+            case idl.IDLF64Type: return "double"
             case idl.IDLBigintType: return "long"
             case idl.IDLSerializerBuffer: return "long"
             case idl.IDLFunctionType: return "int"

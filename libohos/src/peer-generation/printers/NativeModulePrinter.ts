@@ -346,6 +346,7 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KLong",
             "KBoolean",
             "KFloat",
+            "KDouble",
             "KUInt",
             "KStringPtr",
             "KPointer",

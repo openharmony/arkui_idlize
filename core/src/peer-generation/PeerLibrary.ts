@@ -25,7 +25,6 @@ import {
     NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
     ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
     ObjectConvertor,
-    DoubleConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -353,7 +352,7 @@ export class PeerLibrary implements LibraryInterface {
                 case idl.IDLU64Type: return new NumericConvertor(param, type)
                 case idl.IDLF16Type: return new NumericConvertor(param, type)
                 case idl.IDLF32Type: return new NumericConvertor(param, type)
-                case idl.IDLF64Type: return new DoubleConvertor(param)
+                case idl.IDLF64Type: return new NumericConvertor(param, type)
                 case idl.IDLBigintType: return new BigIntToU64Convertor(param)
                 case idl.IDLSerializerBuffer: new PointerConvertor(param)
                 case idl.IDLPointerType: return new PointerConvertor(param)
