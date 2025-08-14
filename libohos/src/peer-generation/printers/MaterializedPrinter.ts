@@ -179,6 +179,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printCollapsedCtor(clazz: MaterializedClass, ctor: Method, ctorPostfix: string, superClassName?: string) {
         const hasSuperClass = (superClassName != undefined)
         const peerPtr = "peerPtr"
+        const unwrapPeerPtr = "unwrapPeerPtr"
         const ctorSig = ctor.signature as NamedMethodSignature
         const sigWithPointer = new NamedMethodSignature(
             ctorSig.returnType,
@@ -196,7 +197,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         // Used in typescript only
         // add makeIsDefined(...) method to LanguageWriter
         const peerPtrExpr = writer.makeTernary(
-            writer.makeString(`${peerPtr} != undefined`),
+            writer.makeDefinedCheck(peerPtr),
             writer.makeString(peerPtr),
             writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
         )
@@ -207,8 +208,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (hasSuperClass) return
 
             writer.writeStatement(
-                writer.makeAssign(peerPtr, idl.IDLPointerType, peerPtrExpr, false))
-            this.assignFinalizable(this.mangle(implementationClassName), peerPtr, writer)
+                writer.makeAssign(unwrapPeerPtr, idl.IDLPointerType, peerPtrExpr, true))
+            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, writer)
         }, delegationCall)
     }
 
@@ -228,7 +229,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         )
 
         const ctorArgs = [...Array(this.maxCtorParams).fill(writer.makeString("false")), ctorCall]
-        this.printer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
+        writer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
             injectPatch(writer, key, config.patchMaterialized)
             this.collectExtraCallbacks(clazz)
@@ -284,9 +285,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-            const defaultArg = allowsOverloads(this.library.language) ? "false" : "undefined"
-            const args = [...Array(maxCtorParams).fill(defaultArg), "ptr"]
-            writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args.map(arg => writer.makeString(arg)))))
+            const defaultArg = allowsOverloads(this.library.language) ? writer.makeString("false") : writer.makeUndefined()
+            const args = [...Array(maxCtorParams).fill(defaultArg), writer.makeString("ptr")]
+            writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args)))
         })
     }
 
@@ -525,7 +526,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             this.printOverloads(clazz)
             this.printTaggedMethods(clazz)
             this.printMethods(clazz)
-            }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+        }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
     }
 }
 

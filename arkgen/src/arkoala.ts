@@ -386,7 +386,7 @@ export function generateArkoalaFromIdl(config: {
         //         printPredefinedNativeModule(peerLibrary, NativeModule.Interop).content.getOutput().join('\n')
         //     )
         // )
-        writeFile(path.join(arkoala.managedDir, 'peers', 'CallbackKind' + peerLibrary.language.extension),
+        writeFile(path.join(arkoala.managedDir, 'CallbackKind' + peerLibrary.language.extension),
             makeCallbacksKinds(peerLibrary, peerLibrary.language),
             {
                 onlyIntegrated: config.onlyIntegrated,

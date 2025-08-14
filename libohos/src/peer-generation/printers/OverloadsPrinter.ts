@@ -301,6 +301,7 @@ export class OverloadsPrinter {
     private printCollapsedOverloads(peer: string, methods: PeerMethod[]) {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
         if (collapsedMethod.signature.returnType == idl.IDLThisType && this.printer.language == Language.CJ) {
+            // compiler clashes on memo methods returning this
             collapsedMethod.signature.returnType = idl.IDLVoidType
         }
         if (allowNamedOverloads(this.language)) {
@@ -328,11 +329,6 @@ export class OverloadsPrinter {
                 this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
-        if (this.isComponent) {
-            if (this.printer.language == Language.CJ) {
-                this.printer.print(')')
-            }
-        }
     }
 
     printHookedMethodBody(peer: string, method: Method, hookName: string, writer: LanguageWriter) {

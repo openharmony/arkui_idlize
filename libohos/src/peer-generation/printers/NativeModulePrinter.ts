@@ -66,7 +66,7 @@ class NativeModulePrinterBase {
 
 class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
     private static readonly excludes = new Map<Language, Set<string>>([
-        [Language.CJ, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
+        [Language.CJ, new Set(["MaterializeBuffer", "GetNativeBufferPointer", "LoadUserView"])],
         [Language.JAVA, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.CPP, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.TS, new Set()],

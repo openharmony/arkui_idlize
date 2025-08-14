@@ -608,7 +608,7 @@ export class AggregateConvertor extends BaseArgConvertor {
         if (writer.language === Language.CPP) {
             statements.push(assigneer(writer.makeString(bufferName)))
         } else if (writer.language == Language.CJ) {
-            const resultExpression = writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}_${prop.name}`).join(", ")})`)
+            const resultExpression = writer.makeString(`${writer.getNodeName(this.idlType)}(${this.decl.properties.map(prop => `${bufferName}${capitalize(prop.name)}`).join(", ")})`)
             statements.push(assigneer(resultExpression))
         } else if (writer.language == Language.KOTLIN) {
             const resultExpression = this.decl.subkind === idl.IDLInterfaceSubkind.Tuple ?
@@ -1046,7 +1046,7 @@ export class OptionConvertor extends BaseArgConvertor {
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
         const bufferType = this.nativeType()
-        statements.push(writer.makeAssign(bufferName, bufferType, (writer.language == Language.CJ || writer.language == Language.KOTLIN) ? writer.makeNull() : undefined, true, false))
+        statements.push(writer.makeAssign(bufferName, bufferType, (writer.language == Language.CJ || writer.language == Language.KOTLIN) ? writer.makeNull(bufferName) : undefined, true, false)) // maybe change to generic None
 
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {

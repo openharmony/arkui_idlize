@@ -350,13 +350,13 @@ class DeserializeCallbacksVisitor {
                         ? [`thisArray`, `thisLength`]
                         : [`thisDeserializer`]
                     const callbackKindValue = generateCallbackKindAccess(callback, this.writer.language)
-                    writer.print(`case ${callbackKindValue} => return deserializeAndCall${callback.name}(${args.join(', ')});`)
+                    writer.print(`case ${generateCallbackKindValue(callback)}/*${callbackKindValue}*/ => return deserializeAndCall${callback.name}(${args.join(', ')});`)
                 }
                 writer.print(`case _ => throw Exception()`)
                 writer.popIndent()
                 writer.print(`}`)
                 writer.writeStatement(writer.makeThrowError("Unknown callback kind"))
-            } if (writer.language == Language.KOTLIN) {
+            } else if (writer.language == Language.KOTLIN) {
                 writer.print(`when (kind) {`)
                 writer.pushIndent()
                 for (const [idx, callback] of callbacks.entries()) {
@@ -394,7 +394,7 @@ class DeserializeCallbacksVisitor {
             }
         })
         const camelcaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
-        if ([Language.ARKTS, Language.TS, Language.KOTLIN].includes(this.writer.language)) {
+        if (this.writer.language != Language.CPP) {
             this.writer.writeFunctionImplementation(`register${camelcaseModuleName}ApiHandler`, new MethodSignature(idl.IDLVoidType, []), writer => {
                 writer.addFeature('registerApiEventHandler', '@koalaui/interop')
                 const deserializeFunctionReference = this.writer.language === Language.KOTLIN

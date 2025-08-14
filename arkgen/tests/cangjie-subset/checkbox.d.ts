@@ -19,7 +19,7 @@ declare interface CheckboxOptions {
   // indicatorBuilder?: CustomBuilder;
 }
 
-declare interface CommonConfiguration<T> {
+declare interface CommonConfiguration {
 
   /**
    * If the value is true, the contentModifier is available and can respond to operations such as triggerChange.
