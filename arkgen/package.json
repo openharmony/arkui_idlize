@@ -75,7 +75,7 @@
     "sanity": "npm run all:subset:ts && npm run all:sdk:ts && npm run all:subset:arkts",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "compile:arkts:libs": "npm run build -C ../external/incremental/runtime && npm run build -C ../external/interop",
-    "etsgen:sdk": "node ../etsgen --ets2idl --use-component-stubs --output-dir ../etsgen/out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets",
+    "etsgen:sdk": "rimraf ../etsgen/out/idl && node ../etsgen --ets2idl --use-component-stubs --output-dir ../etsgen/out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets",
     "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out external-subset",
     "ARKTS SDK": "#----------------------",
     "gen-idl:sdk:arkts": "npm run etsgen:sdk",

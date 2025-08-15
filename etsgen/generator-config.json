@@ -1,7 +1,9 @@
 {
     "DeletedPackages": [
         "arkui.component.interop",
-        "arkui.component.customComponent"
+        "arkui.component.customComponent",
+        "arkui.component.lazyForEach",
+        "arkui.component.repeat"
     ],
     "DeletedDeclarations": [
         "double",

@@ -104,52 +104,6 @@ interface ForEachInterface {
 
 declare const ForEach: ForEachInterface;
 
-declare interface DataChangeListener {
-    onDataReloaded(): void;
-
-    onDataAdded(index: number): void;
-
-    onDataAdd(index: number): void;
-
-    onDataMoved(from: number, to: number): void;
-
-    onDataMove(from: number, to: number): void;
-
-    onDataDeleted(index: number): void;
-
-    onDataDelete(index: number): void;
-
-    onDataChanged(index: number): void;
-
-    onDataChange(index: number): void;
-
-    onDatasetChange(dataOperations: DataOperation[]): void;
-}
-
-declare interface IDataSource {
-    totalCount(): number;
-
-    getData(index: number): any;
-
-    registerDataChangeListener(listener: DataChangeListener): void;
-
-    unregisterDataChangeListener(listener: DataChangeListener): void;
-}
-
-declare class LazyForEachAttribute implements DynamicNode {
-    onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
-}
-
-interface LazyForEachInterface {
-    (
-        dataSource: IDataSource,
-        itemGenerator: (item: any, index: number) => void,
-        keyGenerator?: (item: any, index: number) => string,
-    ): LazyForEachAttribute;
-}
-
-declare const LazyForEach: LazyForEachInterface;
-
 declare class TextEncoder {
     encode(input?: string): Uint8Array;
     encodeInto(input?: string): Uint8Array;
