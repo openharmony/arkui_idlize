@@ -28,6 +28,7 @@
     "tslib": "*"
   },
   "scripts": {
-    "compile": "tsc --build --force && rollup -c"
+    "compile:self": "tsc --build --force && rollup -c",
+    "compile": "npm run compile -C ../core && npm run compile:self"
   }
 }

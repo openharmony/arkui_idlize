@@ -5,11 +5,11 @@ check arkui interfaces:
     - idlize-ci
     - koala-ci
   needs:
+    - build idlize
     - download sdk
     - build external
   script:
     - !reference [.npm, script]
-    - npm run compile --prefix core
-    - npm run compile --prefix idlinter
-    - npm run run:sdk --prefix etsgen
+    - !reference [.panda, script]
+    - npm run -C etsgen run:sdk
     - node idlinter --check interfaces/interfaces etsgen/out

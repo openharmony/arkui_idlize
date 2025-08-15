@@ -1,27 +1,10 @@
-stages:
-  - build
-  - test
-  - pre-deploy
-  - deploy
-
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "pipeline"
-    - if: $CI_PIPELINE_SOURCE == "parent_pipeline"
-
-variables:
-  GIT_SUBMODULE_STRATEGY: recursive
-
-include:
-    - gitlab/setup.yml
-    - gitlab/npm.yml
-
 check generated XML demo:
     stage: test
     tags:
       - idlize-ci
       - koala-ci
     needs:
+    - build idlize
     - download sdk
     - build external
     before_script:
@@ -38,6 +21,7 @@ check ohos unit tests:
     - idlize-ci
     - koala-ci
   needs:
+    - build idlize
     - build external
   before_script:
     - !reference [.npm, script]
@@ -58,6 +42,7 @@ check ohos demos:
     - idlize-ci
     - koala-ci
   needs:
+  - build idlize
   - download sdk
   - build external
   before_script:
@@ -81,6 +66,7 @@ check ohos system tests:
     - idlize-ci
     - koala-ci
   needs:
+    - build idlize
     - build external
   before_script:
     - !reference [.npm, script]

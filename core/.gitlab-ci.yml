@@ -11,23 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-build core:
-  stage: build
-  interruptible: true
-  tags:
-    - idlize-ci
-  before_script:
-    - !reference [.npm, script]
-  script:
-    - npm run compile --prefix core
-
 test core:
   stage: test
   interruptible: true
   tags:
     - idlize-ci
-  dependencies:
-    - build core
+  needs:
+    - build idlize
   before_script:
     - !reference [.npm, script]
     - npm run compile --prefix core

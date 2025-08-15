@@ -6,21 +6,7 @@ include:
     - npm run panda:sdk:install --prefix ./external/ui2abc/libarkts
     - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
 
-prepare caches:
-    stage: pre-build
-    tags:
-    - idlize-ci
-    - koala-ci
-    script:
-    - !reference [.npm, script]
-    - !reference [.panda, script]
-    cache:
-    -   key: $CI_PIPELINE_ID
-        policy: pull-push
-        paths:
-        - .npm/
-
-build external:
+build idlize:
     stage: build
     tags:
     - idlize-ci
@@ -28,23 +14,54 @@ build external:
     script:
     - !reference [.npm, script]
     - !reference [.panda, script]
+    - node tools/compile-parallel.mjs
+    cache:
+    -   key: $CI_PIPELINE_ID
+        policy: pull-push
+        paths:
+        - .npm/
+    artifacts:
+        paths:
+        - arkgen/build
+        - arkgen/lib
+        - arktscgen/lib
+        - core/build
+        - dtsgen/build
+        - dtsgen/lib
+        - etsgen/build
+        - etsgen/lib
+        - idlinter/build
+        - idlinter/dist
+        - interfaces/dist
+        - libohos/build
+        - linter/lib
+        - ohosgen/lib
+        - runner/lib
+
+
+build external:
+    stage: build
+    tags:
+    - idlize-ci
+    - koala-ci
+    before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+    - npm i --prefix external/ui2abc/annotate --prefer-offline --no-audit --no-fund
+    - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
+    - npm i --prefix external/interop --prefer-offline --no-audit --no-fund
+    script:
     - cd external/ui2abc/libarkts
     - npm run regenerate
     - npm run compile
     - npm run compile:plugins
     - cd -
-    - npm run compile --prefix external/ui2abc/annotate
-    - npm run compile --prefix external/ui2abc/fast-arktsc
-    - npm run compile --prefix external/ui2abc/memo-plugin
-    - npm run compile --prefix external/ui2abc/ui-plugins
-    - npm i --prefix external/ui2abc/annotate
-    - npm run compile --prefix external/ui2abc/annotate
-    - npm run annotate --prefix external/incremental/runtime
-    - npm run annotate:tests --prefix external/incremental/runtime
     - npm run compile --prefix external/interop
     - npm run compile --prefix external/incremental/common
     - npm run compile --prefix external/incremental/compat
     - npm run compile --prefix external/incremental/runtime
+    - npm run compile --prefix external/ui2abc/fast-arktsc
+    - npm run compile --prefix external/ui2abc/memo-plugin
     - npm run build --prefix external/interop
     - npm run build --prefix external/incremental
     artifacts:
@@ -78,7 +95,7 @@ download sdk:
     - !reference [.panda, script]
     - npm run download:sdk
     needs:
-    - prepare caches
+    - build idlize
     - build external
     artifacts:
         paths:

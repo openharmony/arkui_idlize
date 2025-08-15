@@ -3,7 +3,8 @@ etsgen golden:
   tags:
     - idlize-ci
     - koala-ci
-  dependencies:
+  needs:
+  - build idlize
   - build external
   before_script:
     - !reference [.npm, script]

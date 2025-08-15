@@ -64,7 +64,6 @@ import { readLibrary } from "@idlizer/interfaces"
 export function arkgen(argv:string[]) {
     const command = createCommand()
         .option('--show-config-schema', 'Prints JSON schema for config')
-        .option('--dts2test', 'Generate tests from .d.ts to .h')
         .option('--dts2peer', 'Convert .d.ts to peer drafts')
         .option('--ets2ts', 'Convert .ets to .ts')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')

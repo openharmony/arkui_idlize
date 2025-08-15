@@ -7,7 +7,8 @@
     "interfaces/**/*"
   ],
   "scripts": {
-    "compile": "tsc",
+    "compile:self": "tsc",
+    "compile": "npm run compile:self",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

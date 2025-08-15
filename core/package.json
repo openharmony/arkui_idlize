@@ -47,6 +47,7 @@
   "scripts": {
     "test": "mocha",
     "clean": "rimraf -g build",
-    "compile": "tsc -b ."
+    "compile:self": "tsc -b .",
+    "compile": "npm run compile:self"
   }
 }

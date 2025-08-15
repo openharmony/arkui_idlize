@@ -27,6 +27,7 @@
   },
   "scripts": {
     "clean": "rimraf -g build",
-    "compile": "npm run -C ../core compile && tsc -b ."
+    "compile:self": "tsc -b .",
+    "compile": "npm run -C ../core compile && npm run compile:self"
   }
 }

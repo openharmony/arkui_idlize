@@ -28,7 +28,8 @@
     "source-map-support": "^0.5.21"
   },
   "scripts": {
-    "compile": "npm run compile -C ../core && rollup -c",
+    "compile:self": "rollup -c",
+    "compile": "npm run compile -C ../core && npm run compile:self",
     "run": "npm run compile && node . --base-dir ../sdk-patched --input-dir ../sdk-patched/api/@internal/component/ets/,../interface_sdk-js/api/global,../interface_sdk-js/api --output-dir out/linter --whitelist ./whitelist.json || true"
   }
 }

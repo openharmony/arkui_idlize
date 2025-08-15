@@ -30,7 +30,8 @@
     "@koalaui/interop": "1.7.9"
   },
   "scripts": {
-    "compile": "npm run --prefix ../dtsgen compile && npm run --prefix ../libohos compile && rollup -c",
+    "compile:self": "rollup -c",
+    "compile": "npm run --prefix ../dtsgen compile && npm run --prefix ../libohos compile && npm run compile:self",
     "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",
     "panda:sdk:check-install": "npm run panda:sdk:check-install --prefix ../external/incremental/tools/panda",
     "generate:xml:idl": "npm run compile && node ../dtsgen --dts2idl --output-dir ./demos/xml/generated/idl --base-dir ../sdk-patched/api,./demos/xml --input-files ../sdk-patched/api/@ohos.xml.d.ts ./demos/xml/@ohos.xml.test.d.ts --options-file ./demos/xml/config.json",
@@ -60,10 +61,8 @@
     "generate:global:ts": "MODULE_LANG=ts MODULE_NAME=global MODULE_OUT=./out/modules-ts npm run generate:module",
     "generate:modules-all:ts": "MODULE_LANG=ts MODULE_OUT=./out/modules-ts npm run generate:modules-all",
     "generate:modules-all:arkts": "MODULE_LANG=arkts MODULE_OUT=./out/modules-arkts npm run generate:modules-all",
-    "generate:modules-all": "npm run compile && MODULE_NAME=global npm run generate:module && MODULE_NAME=image npm run generate:module",
+    "generate:modules-all": "MODULE_NAME=global npm run generate:module & MODULE_NAME=image npm run generate:module & wait",
     "generate:module": "node . --idl2peer --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --language=${MODULE_LANG} --output-dir ${MODULE_OUT}/${MODULE_NAME} --options-file ../arkgen/generation-config/config.json,../arkgen/generation-config/config-arkui.json,./generation-config/config-${MODULE_NAME}.json",
-    "configure:native-node-host-ts-ohos-context": "cd ./native && meson setup -Dsource_set=ohos-context build-node-host-ts-ohos-context",
-    "compile:native-node-host-ts-ohos-context": "npm run configure:native-node-host-ts-ohos-context && cd native && meson compile --verbose -C build-node-host-ts-ohos-context && meson install -C build-node-host-ts-ohos-context",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json"
   }
 }
