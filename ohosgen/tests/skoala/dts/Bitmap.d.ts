@@ -14,19 +14,13 @@
  */
 
 import { Finalizable } from "./Finalizable"
-import { pointer, KNativePointer, KPointer, withInt32Array, Access, getPtr } from "./utils"
-import { nativeModule } from "@koalaui/arkoala"
-import { uint32, float32 } from "./utils"
+// import { KNativePointer, pointer } from "@koalaui/interop"
 
-import { Bitmap } from "./Bitmap"
-import { SurfaceProps } from "./SurfaceProps"
-import { Paint } from "./Paint"
+export declare class Bitmap extends Finalizable {
+    constructor(ptr: pointer)
+    static getFinalizer(): KNativePointer
+    static make(): Bitmap
+    makeClone(): Bitmap;
+    swap(other: Bitmap): void;
 
-declare class Canvas extends Finalizable {
-    constructor(ptr: pointer, managed?: boolean)
-    static getFinalizer(): KNativePointer 
-    static makeFromBitmap(bitmap: Bitmap, surfaceProps: SurfaceProps): Canvas 
-
-    clear(color: uint32): void
-    drawRect(left: float32, top: float32, right: float32, bottom: float32, paint: Paint): void 
 }

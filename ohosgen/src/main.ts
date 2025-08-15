@@ -102,6 +102,7 @@ if (options.idl2peer) {
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
+        .concat(skoalaPredefinedFiles())
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
@@ -181,4 +182,9 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language)
             })
             .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
     }
+}
+
+function skoalaPredefinedFiles(): string[] {
+    const PREDEFINED_PATH = path.resolve('tests', 'skoala', 'predefined')
+    return scanInputDirs([PREDEFINED_PATH])
 }

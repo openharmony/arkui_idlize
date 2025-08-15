@@ -13,8 +13,9 @@
  * limitations under the License.
  */
 
-import { Point, float32 } from "./utils"
-import { Access, KFloat32ArrayPtr, withFloat32Array } from "./utils"
+// import { float32, Point } from "./utils"
+// import { KFloat32ArrayPtr } from "@koalaui/interop"
+
 export declare class Rect {
     coordinates: Float32Array;
     constructor(left: float32, top: float32, right: float32, bottom: float32);
@@ -61,4 +62,3 @@ export declare class RRect extends Rect {
     static cloneWithInsets(rect: RRect, left: number, top: number, right: number, bottom: number): RRect;
     equals(other: Rect): boolean;
 }
-//# sourceMappingURL=Rect.d.ts.map

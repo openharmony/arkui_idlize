@@ -298,7 +298,17 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             // TODO: rethink that
             ["\"2d\"", () => idl.IDLStringType],
             ["\"auto\"", () => idl.IDLStringType],
-            ["BusinessError", (type) => idl.createReferenceType("BusinessError")]
+            ["BusinessError", (type) => idl.createReferenceType("BusinessError")],
+
+            ["int32", () => idl.IDLI32Type],
+            ["uint32", () => idl.IDLU32Type],
+            ["int8", () => idl.IDLI8Type],
+            ["uint8", () => idl.IDLU8Type],
+            ["float32", () => idl.IDLF32Type],
+            ["float64", () => idl.IDLF64Type],
+            ["pointer", () => idl.IDLPointerType],
+            ["KPointer", () => idl.IDLPointerType],
+            ["KNativePointer", () => idl.IDLPointerType],
         ])
 
     makeEnumMember(parent: idl.IDLEnum, name: string, value: string): idl.IDLEnumMember {

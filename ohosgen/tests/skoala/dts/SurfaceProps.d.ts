@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-import { int32 } from "./utils"
-import { PixelGeometry } from "./PixelGeometry"
+// import { int32 } from "./utils"
+// import { PixelGeometry } from "./PixelGeometry"
 
 /**
  * Surface properties' flags.
@@ -38,7 +38,7 @@ export class SurfaceProps {
         flags: int32
     )
 
-    public static Default: Readonly<SurfaceProps>
+    public static readonly Default: SurfaceProps
 
     public get useDeviceIndependentFonts(): boolean 
 

@@ -45,8 +45,7 @@ import {
 } from "@idlizer/core/idl"
 import { IDLVisitor, loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
-    SkoalaDeserializerPrinter, IdlSkoalaLibrary, IldSkoalaOutFile, generateIdlSkoala,
-    IdlWrapperProcessor, fillSyntheticDeclarations,
+    fillSyntheticDeclarations,
     formatInputPaths,
     validatePaths,
     libohosPredefinedFiles,
@@ -74,7 +73,6 @@ export function arkgen(argv:string[]) {
         .option('--aux-input-files <files...>', 'Comma-separated list of specific aux files to process')
         .option('--library-packages <packages>', 'Comma separated list of packages included into library')
         .option('--idl2peer', 'Convert IDL to peer drafts')
-        .option('--dts2skoala', 'Convert DTS to skoala definitions')
         .option('--verbose', 'Verbose processing')
         .option('--verify-idl', 'Verify produced IDL')
         .option('--common-to-attributes', 'Transform common attributes as IDL attributes')
@@ -135,87 +133,6 @@ export function arkgen(argv:string[]) {
 
     if (process.env.npm_package_version && !options.showConfigSchema) {
         console.log(`IDLize version ${findVersion()}`)
-    }
-
-    if (options.dts2skoala) {
-        patchDefaultConfiguration<PeerGeneratorConfigurationType>({
-            ApiVersion: apiVersion,
-            TypePrefix: "",
-            LibraryPrefix: "",
-            OptionalPrefix: "Opt_",
-        })
-
-        console.log(`Processing all .d.ts from directory: ${options.inputDir ?? "undefined"}`)
-
-        const outputDir: string = options.outputDir ?? "./out/skoala"
-
-        if (!fs.existsSync(outputDir)) {
-            fs.mkdirSync(outputDir, { recursive: true })
-        }
-
-        const generatedIDLMap = new Map<string, IDLEntry[]>()
-        const skoalaLibrary = new IdlSkoalaLibrary()
-
-        const { baseDirs, inputDirs, auxInputDirs, inputFiles, auxInputFiles } = formatInputPaths(options)
-        validatePaths(baseDirs, "dir")
-        validatePaths(inputDirs, "dir")
-        validatePaths(auxInputDirs, "dir")
-        validatePaths(inputFiles, "file")
-        validatePaths(auxInputFiles, "file")
-
-        const dtsInputFiles = scanInputDirs(inputDirs, '.d.ts').concat(inputFiles)
-        const dtsAuxInputFiles = auxInputFiles
-
-        if (dtsInputFiles.length === 0) {
-            console.error("Error: No input directory or files provided.")
-            process.exit(1)
-        }
-
-        generate(
-            baseDirs,
-            [...inputDirs, ...auxInputDirs],
-            dtsInputFiles,
-            dtsAuxInputFiles,
-            outputDir,
-            path.resolve(__dirname, "..", "stdlib.d.ts"),
-            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, skoalaLibrary),
-            {
-                compilerOptions: {
-                    ...defaultCompilerOptions,
-                    paths: {
-                        "@koalaui/common": ["../external/incremental/common/src"],
-                        "@koalaui/compat": ["../external/incremental/compat/src/typescript"],
-                        "@koalaui/interop": ["../external/interop/src/interop"],
-                        "@koalaui/arkoala": ["../external/arkoala-arkts/framework/src"],
-                    },
-                },
-                onSingleFile: (file: IDLFile, outputDirectory, sourceFile) => {
-                    const fileName = path.basename(sourceFile.fileName, ".d.ts")
-
-                    if (!generatedIDLMap.has(fileName)) {
-                        generatedIDLMap.set(fileName, [])
-                    }
-
-                    generatedIDLMap.get(fileName)?.push(...file.entries)
-                    skoalaLibrary.files.push(file)
-                    skoalaLibrary.outFiles.push(new IldSkoalaOutFile(file))
-                },
-                onEnd: (outDir) => {
-                    const wrapperProcessor = new IdlWrapperProcessor(skoalaLibrary)
-                    wrapperProcessor.process()
-                    generateIdlSkoala(outDir, skoalaLibrary, options)
-
-                    try {
-                        SkoalaDeserializerPrinter.generateDeserializer(outputDir, generatedIDLMap)
-                    } catch (error) {
-                        console.error("Error during deserializer generation:", error)
-                    }
-
-                    console.log("All files processed.")
-                }
-            }
-        )
-        didJob = true
     }
 
     if (options.idl2peer) {

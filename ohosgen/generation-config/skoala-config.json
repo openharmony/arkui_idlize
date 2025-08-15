@@ -1,0 +1,53 @@
+{
+    "TypePrefix": "OH_",
+    "LibraryPrefix": "",
+    "OptionalPrefix": "Opt_",
+    "GenerateUnused": false,
+    "ApiKind": 10,
+    "ApiVersion": 9999,
+    "CollapseOverloadsARKTS": true,
+    "dumpSerialized": false,
+    "rootComponents": [
+    ],
+    "cppPrefix": "GENERATED_",
+    "dummy": {
+        "ignoreMethods": {}
+    },
+    "boundProperties": {},
+    "standaloneComponents": [],
+    "parameterized": [],
+    "ignoreMaterialized": [
+        "SurfaceProps",
+        "Rect",
+        "RRect",
+        "Matrix33",
+        "Point"
+    ],
+    "builderClasses": [],
+    "forceMaterialized": [],
+    "forceCallback": {},
+    "forceResource": [],
+    "forceContext": [],
+    "hooks": {},
+    "externalTypes": {},
+    "externalPackages": [],
+    "materialized": {},
+    "moduleName": "skoala",
+    "modules": {
+        "skoala": {
+            "name": "skoala",
+            "packages": [""]
+        }
+    },
+    "globalPackages": [
+        "idlize.stdlib",
+        "org.openharmony.idlize.predefined",
+        "org.openharmony.arkui"
+    ],
+    "IDLVisitor": {
+        "DeletedMethods": {
+        },
+        "NameReplacements": {},
+        "TypeReplacementsFilePath": "./generation-config/type-replacements.idl"
+    }
+}

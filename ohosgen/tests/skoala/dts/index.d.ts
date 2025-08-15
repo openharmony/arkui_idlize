@@ -13,19 +13,16 @@
  * limitations under the License.
  */
 
-import { nativeModule } from "@koalaui/arkoala"
-import { Finalizable } from "./Finalizable"
-import { pointer } from "./utils"
+export * from "./Bitmap"
+export * from "./Canvas"
+export * from "./Drawable"
+export * from "./PixelGeometry"
+export * from "./Rect"
+export * from "./SurfaceProps"
 
-export class RefCounted extends Finalizable {
-    private static _finalizerHolder?: pointer
+// export class Finalizable {}
+// export class RefCounted {}
 
-    static get finalizerHolder(): pointer {
-        return RefCounted._finalizerHolder ??
-            (RefCounted._finalizerHolder = nativeModule()._skoala_impl_RefCnt__getFinalizer())
-    }
+export function testFun(): void
+export function rgbColor(r: uint32, g: uint32, b: uint32, a: uint32): void
 
-    constructor(ptr: pointer, allowClose = true) {
-        super(ptr, RefCounted.finalizerHolder, allowClose)
-    }
-}

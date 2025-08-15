@@ -129,6 +129,7 @@ export class InteropArgConvertor implements TypeConvertor<string> {
         switch (type) {
             case idl.IDLI64Type: return "KLong"
             case idl.IDLU64Type: return "KLong"
+            case idl.IDLU8Type: return "KInt"
             case idl.IDLI32Type: return "KInt"
             case idl.IDLU32Type: return "KInt"
             case idl.IDLF32Type: return "KFloat"

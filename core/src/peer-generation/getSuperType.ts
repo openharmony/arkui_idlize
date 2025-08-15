@@ -49,6 +49,16 @@ function getSuperTuple(declaration:idl.IDLInterface, resolver: ReferenceResolver
     return [resolved, fst]
 }
 
+export function getExtendsChain(declaration: idl.IDLInterface, resolver: ReferenceResolver): idl.IDLReferenceType[] {
+    let extendsChain: idl.IDLReferenceType[] = []
+    let resolved: [idl.IDLInterface, idl.IDLReferenceType] | undefined = getSuperTuple(declaration, resolver)
+    while (resolved) {
+        extendsChain.push(resolved[1])
+        resolved = getSuperTuple(resolved[0], resolver)
+    }
+    return extendsChain
+}
+
 export function getSuper(declaration:idl.IDLInterface, resolver: ReferenceResolver): idl.IDLInterface | undefined {
     return getSuperTuple(declaration, resolver)?.[0]
 }

@@ -60,7 +60,7 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             ignoreMethods: D.map(D.string(), T.stringArray())
         }),
         materialized: D.object({
-            ignoreReturnTypes: T.stringArray(),
+            ignoreReturnTypes: T.stringArray()
         }),
         serializer: D.object({
             ignore: T.stringArray()

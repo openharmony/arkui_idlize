@@ -13,10 +13,10 @@
  * limitations under the License.
  */
 
-import { FieldModifier, IDLInterface, IDLMethod, IDLProperty, isBuilderClass, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
+import { FieldModifier, getSuper, getSuperType, IDLInterface, IDLMethod, IDLProperty, IDLReferenceType, isBuilderClass, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
 import { allowsOverloads, collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 
-export function printDataClasses(library:PeerLibrary): PrinterResult[] {
+export function printDataClasses(library: PeerLibrary): PrinterResult[] {
     return library.files
         .filter(file => isInCurrentModule(file))
         .flatMap(file => {
@@ -37,9 +37,18 @@ export function printDataClasses(library:PeerLibrary): PrinterResult[] {
             collectDeclDependencies(library, entry, collector)
             collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
 
+            let superType: IDLReferenceType | undefined
+            let interfaces: IDLReferenceType[] | undefined
+            if (getSuper(entry, library)) {
+                superType = getSuperType(entry, library)
+                interfaces = entry.inheritance.length > 1 ? entry.inheritance.slice(1) : undefined
+            }
+
             writer.writeClass(entry.name, w => {
                 printInterfaceBody(library, entry, w)
-            })
+            }, superType ? superType.name : undefined,
+                interfaces ? interfaces.map(it => it.name) : undefined
+            )
 
             return [{
                 collector,
@@ -60,22 +69,22 @@ function printInterfaceBody(library: PeerLibrary, entry: IDLInterface, printer: 
         printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional, initExpr)
     })
 
-    const groupedMethods = groupOverloadsIDL(entry.methods, library.language)
-    if (!allowsOverloads(library.language)) {
-        groupedMethods.forEach(methods => {
-            printCollapsedOverloads(library, methods, printer)
-        })
-    } else {
-        // Handle special case for same name AND same signature methods.
-        // Collapse same signature methods
-        groupedMethods.forEach(sameNameGroup => {
-            let copy = Array.from([...sameNameGroup])
-            const sameSignatureMethodsGroups = groupSameSignatureMethodsIDL([...copy])
-            for (let sameSignatureGroup of sameSignatureMethodsGroups) {
-                printCollapsedOverloads(library, sameSignatureGroup, printer)
-            }
-        })
-    }
+    // const groupedMethods = groupOverloadsIDL(entry.methods, library.language)
+    // if (!allowsOverloads(library.language)) {
+    //     groupedMethods.forEach(methods => {
+    //         printCollapsedOverloads(library, methods, printer)
+    //     })
+    // } else {
+    //     // Handle special case for same name AND same signature methods.
+    //     // Collapse same signature methods
+    //     groupedMethods.forEach(sameNameGroup => {
+    //         let copy = Array.from([...sameNameGroup])
+    //         const sameSignatureMethodsGroups = groupSameSignatureMethodsIDL([...copy])
+    //         for (let sameSignatureGroup of sameSignatureMethodsGroups) {
+    //             printCollapsedOverloads(library, sameSignatureGroup, printer)
+    //         }
+    //     })
+    // }
 }
 
 
@@ -96,11 +105,11 @@ function printCollapsedOverloads(library: PeerLibrary, methods: IDLMethod[], pri
 
 function toFieldModifiers(prop: IDLProperty) {
     const modifiers: FieldModifier[] = []
-    if (prop.isReadonly) {
-        modifiers.push(FieldModifier.READONLY)
-    }
     if (prop.isStatic) {
         modifiers.push(FieldModifier.STATIC)
+    }
+    if (prop.isReadonly) {
+        modifiers.push(FieldModifier.READONLY)
     }
     return modifiers
 }

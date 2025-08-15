@@ -53,7 +53,7 @@ export class MaterializedMethod extends PeerMethod {
         return this.method.signature.returnType
     }
 
-    getPrivateMethod() {
+    getPrivateMethod(asProtected: boolean = false) {
         let privateMethod: MaterializedMethod = this
         if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE)) {
             privateMethod = copyMaterializedMethod(this, {
@@ -61,7 +61,8 @@ export class MaterializedMethod extends PeerMethod {
                     modifiers: (this.method.modifiers ?? [])
                         .filter(it => it !== MethodModifier.PUBLIC)
                         .filter(it => it !== MethodModifier.OVERRIDE)
-                        .concat([MethodModifier.PRIVATE])
+                        .filter(it => !asProtected || (it !== MethodModifier.PRIVATE))
+                        .concat([asProtected ? MethodModifier.PROTECTED : MethodModifier.PRIVATE])
                 })
             })
         }
@@ -107,6 +108,7 @@ export class MaterializedClass implements PeerClassBase {
         public readonly methods: MaterializedMethod[],
         public readonly needBeGenerated: boolean = true,
         public readonly taggedMethods: idl.IDLMethod[] = [],
+        public readonly isRefCounted: boolean = false
     ) {}
 
     getImplementationName(): string {

@@ -42,12 +42,11 @@ import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';
 import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { injectPatch } from '../common';
+import { FinalizableType, RefCountedType } from '../idl/IdlPeerGeneratorVisitor';
 
 interface MaterializedFileVisitor {
     visit(): PrinterResult
 }
-
-const FinalizableType = idl.maybeOptional(createReferenceType("Finalizable"), true)
 
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
@@ -89,15 +88,17 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         return clazz.isInterface ? clazz.getImplementationName() : this.mangle(clazz.getImplementationName())
     }
 
-    assignFinalizable(className: string, peerPtr: string, writer: LanguageWriter) {
+    assignFinalizable(className: string, peerPtr: string, isRefCounted: boolean, /*peerType: idl.IDLReferenceType, createFinalizer: boolean,*/ writer: LanguageWriter) {
+        const params = isRefCounted ? [writer.makeString(peerPtr)] : [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]
+        const peerType = isRefCounted ? RefCountedType : FinalizableType
         writer.writeStatement(
             writer.makeAssign(
                 "this.peer",
-                FinalizableType,
+                idl.maybeOptional(peerType, true),
                 writer.makeNewObject(
-                    'Finalizable',
-                    [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]),
-                false
+                    peerType.name,
+                    params
+                ), false
             )
         )
     }
@@ -134,7 +135,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
             if (!hasSuperClass) {
-                this.assignFinalizable(className, peerPtr, writer)
+                this.assignFinalizable(className, peerPtr, clazz.isRefCounted, writer)
             }
             this.printReadonlyFieldsInitialization(clazz)
         }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, superClassName))
@@ -209,7 +210,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
             writer.writeStatement(
                 writer.makeAssign(unwrapPeerPtr, idl.IDLPointerType, peerPtrExpr, true))
-            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, writer)
+            this.assignFinalizable(this.mangle(implementationClassName), unwrapPeerPtr, clazz.isRefCounted, writer)
         }, delegationCall)
     }
 
@@ -304,7 +305,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         })
     }
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
-        const privateMethod = method.getPrivateMethod()
+        const privateMethod = method.getPrivateMethod(true)
         returnType = returnType ?? privateMethod.tsReturnType()
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
@@ -492,9 +493,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         printer.writeClass(implementationClassName, writer => {
             if (!superClassName && !clazz.isStaticMaterialized) {
-                writer.writeFieldDeclaration("peer", FinalizableType, undefined, true, writer.makeNull())
+                const peerType = clazz.isRefCounted ? RefCountedType : FinalizableType
+                writer.writeFieldDeclaration("peer", idl.maybeOptional(peerType, true), undefined, true, writer.makeNull())
                 // write getPeer() method
-                const getPeerSig = new MethodSignature(idl.createOptionalType(idl.createReferenceType("Finalizable")), [])
+                const getPeerSig = new MethodSignature(idl.maybeOptional(peerType, true), [])
                 writer.writeMethodImplementation(new Method("getPeer", getPeerSig, [MethodModifier.PUBLIC, MethodModifier.OVERRIDE]), writer => {
                     writer.writeStatement(writer.makeReturn(writer.makeString("this.peer")))
                 })

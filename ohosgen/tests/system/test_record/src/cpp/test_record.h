@@ -184,6 +184,7 @@ typedef InteropUInt32 OH_UInt32;
 typedef InteropInt64 OH_Int64;
 typedef InteropUInt64 OH_UInt64;
 typedef InteropInt8 OH_Int8;
+typedef InteropUInt8 OH_UInt8;
 typedef InteropBoolean OH_Boolean;
 typedef InteropCharPtr OH_CharPtr;
 typedef InteropNativePointer OH_NativePointer;

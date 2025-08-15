@@ -1,0 +1,4 @@
+package idlize.internal;
+
+interface RefCounted {};
+interface Matrix33 {};

@@ -41,7 +41,9 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     }
 
     protected readonly interopObjects = [
-        'SerializerBase', 'DeserializerBase'
+        'SerializerBase', 
+        'DeserializerBase',
+        'Finalizable'
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {

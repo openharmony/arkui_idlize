@@ -13,19 +13,15 @@
  * limitations under the License.
  */
 
-import { nativeModule } from "@koalaui/arkoala"
+// import { Finalizable } from "index"
 import { Finalizable } from "./Finalizable"
-import { pointer } from "@koalaui/interop"
 
-export class RefCounted extends Finalizable {
-    private static _finalizerHolder?: pointer
+export declare class Canvas extends Finalizable {
+    constructor(ptr: pointer, managed?: boolean/**, owner?: object */)
+    static getFinalizer(): KNativePointer 
+    static makeFromBitmap(bitmap: Bitmap, surfaceProps: SurfaceProps): Canvas 
 
-    static get finalizerHolder(): pointer {
-        return RefCounted._finalizerHolder ??
-            (RefCounted._finalizerHolder = nativeModule()._skoala_impl_RefCnt__getFinalizer())
-    }
-
-    constructor(ptr: pointer, allowClose = true) {
-        super(ptr, RefCounted.finalizerHolder, allowClose)
-    }
+    clear(color: uint32): void
+    drawPoint(x: float32, y: float32, paint: Paint): void;
+    drawRect(left: float32, top: float32, right: float32, bottom: float32, paint: Paint): void 
 }

@@ -29,7 +29,8 @@ import {
     getSuperType,
     PeerMethodSignature,
     PeerMethodArg,
-    createOutArgConvertor
+    createOutArgConvertor,
+    getExtendsChain
 } from '@idlizer/core'
 import { ArgConvertor, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration} from "../../DefaultConfiguration";
@@ -41,6 +42,20 @@ import { convertDeclToFeature } from "../ImportsCollectorUtils"
 import { collectComponents, findComponentByType, IdlComponentDeclaration, isComponentDeclaration } from "../ComponentsCollector"
 import { ReferenceResolver } from "@idlizer/core"
 import * as path from "path"
+
+export const FinalizableType = idl.createReferenceType("Finalizable")
+export const RefCountedType = idl.createReferenceType("RefCounted")
+
+export function isRefCounted(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
+    let extendsChain = getExtendsChain(declaration, resolver)
+    return !!extendsChain.find(it => idl.isEqualByQualifedName(it, RefCountedType, "name"))
+}
+
+export function isFinalizable(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
+    let extendsChain = getExtendsChain(declaration, resolver)
+    let res = extendsChain.find(it => idl.isEqualByQualifedName(it, FinalizableType, "name"))
+    return res ? true : false
+}
 
 export interface DependencyFilter {
     shouldAdd(node: idl.IDLNode): boolean
@@ -169,13 +184,18 @@ export class IdlPeerProcessor {
         const isDeclInterface = idl.isInterfaceSubkind(decl) && !isStaticMaterialized
         const implemenationParentName = isDeclInterface ? getInternalClassName(decl.name) : decl.name
         const resolvedDecl = getSuper(decl, this.library)
-        const interfaces: idl.IDLReferenceType[] = []
+        let interfaces: idl.IDLReferenceType[] = []
         const methodsFromInterface: idl.IDLMethod[] = []
         const propertiesFromInterface: idl.IDLProperty[] = []
+
         let superType: idl.IDLReferenceType | undefined = undefined
+        let isRefCountedClass = isRefCounted(decl, this.library)
+        let isFinalizableClass = isFinalizable(decl, this.library)
         if (resolvedDecl) {
             superType = getSuperType(decl, this.library)
-            if (!resolvedDecl || !idl.isInterface(resolvedDecl) || !isMaterialized(resolvedDecl, this.library)) {
+            if (isRefCountedClass || isFinalizableClass) {
+                superType = undefined
+            } else if (!resolvedDecl || !idl.isInterface(resolvedDecl) || !isMaterialized(resolvedDecl, this.library)) {
                 const [superProperties, superMethods] = getUniquePropertiesFromSuperTypes(decl, this.library)
                 propertiesFromInterface.push(...superProperties)
                 methodsFromInterface.push(...superMethods)
@@ -203,7 +223,7 @@ export class IdlPeerProcessor {
             }
         }
         const mConstructors = isStaticMaterialized ? [] : constructors.map(c => this.makeMaterializedMethod(decl, c, fullCName, implemenationParentName))
-        const mFinalizer = isStaticMaterialized ? undefined : new MaterializedMethod(
+        const mFinalizer = (isRefCountedClass || isStaticMaterialized) ? undefined : new MaterializedMethod(
             new PeerMethodSignature(
                 PeerMethodSignature.GET_FINALIZER,
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.GET_FINALIZER).join('_'),
@@ -220,6 +240,7 @@ export class IdlPeerProcessor {
         const mMethods = decl.methods
             // .concat(...methodsFromInterface) // TODO insert here methods from interfaces
             // TODO: Properly handle methods with return Promise<T> type
+            .filter(it => it.name != PeerMethodSignature.GET_FINALIZER)
             .map(method => this.makeMaterializedMethod(decl, method, fullCName, implemenationParentName))
             .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !peerGeneratorConfiguration().materialized.ignoreReturnTypes.includes(it.method.signature.returnType.name))
 
@@ -242,7 +263,7 @@ export class IdlPeerProcessor {
                 ),
                 fullCName, implemenationParentName, idl.maybeOptional(field.type, f.isNullableOriginalTypeField), false,
                 `get${capitalize(field.name)}`,
-                new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]))
+                new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC] : [])]))
             mMethods.push(getAccessor)
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
             if (!isReadOnly) {
@@ -257,13 +278,13 @@ export class IdlPeerProcessor {
                     ),
                     fullCName, implemenationParentName, idl.IDLVoidType, false,
                     `set${capitalize(field.name)}`,
-                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC]:[])]))
+                    new Method(`set${capitalize(field.name)}`, setSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC] : [])]))
                 mMethods.push(setAccessor)
             }
         })
         this.library.materializedClasses.set(fullCName,
             new MaterializedClass(decl, decl.name, isDeclInterface, isStaticMaterialized, superType, interfaces, decl.typeParameters,
-                mFields, mConstructors, mFinalizer, mMethods, true, taggedMethods))
+                mFields, mConstructors, mFinalizer, mMethods, true, taggedMethods, isRefCountedClass))
     }
 
     private makeMaterializedField(prop: idl.IDLProperty): MaterializedField {

@@ -13,6 +13,10 @@
  * limitations under the License.
  */
 
-export function unsafeCast<T>(value: unknown): T {
-    return value as unknown as T
+export enum PixelGeometry {
+    UNKNOWN,
+    RGB_H,
+    BGR_H,
+    RGB_V,
+    BGR_V
 }
