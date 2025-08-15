@@ -43,12 +43,12 @@ export class FatalParserException extends Error {
 }
 
 enum TokenKind {
-    Words = "Words",
-    Literal = "Literal",
-    Symbol = "Symbol",
-    Comment = "Comment",
-    Whitespace = "Space",
-    End = "End"
+    Words,
+    Literal,
+    Symbol,
+    Comment,
+    Whitespace,
+    End
 }
 
 interface Token {
@@ -101,13 +101,17 @@ export class Parser {
     }
 
     parseIDL(): idl.IDLFile {
+        trac("parseIDL")
         const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
         try {
-            trac("parseIDL")
             this._lexerNext()
             this._prevToken = this._curToken
             let file = this.parseFile()
             file.text = this.content
+            if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
+                // Empty for now, messages will be added in following `catch`.
+                throw new FatalParserException()
+            }
             return file
         } catch (e) {
             if (!(e instanceof DiagnosticException) && !(e instanceof FatalParserException)) {
