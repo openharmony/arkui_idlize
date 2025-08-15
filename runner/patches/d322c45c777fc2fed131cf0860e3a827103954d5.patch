@@ -1,0 +1,498 @@
+diff --git a/api/arkui/component/column.static.d.ets b/api/arkui/component/column.static.d.ets
+index 019f34850..fc9fba5c7 100644
+--- a/api/arkui/component/column.static.d.ets
++++ b/api/arkui/component/column.static.d.ets
+@@ -44,7 +44,7 @@ export interface ColumnOptions {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    space?: string | number;
++    space?: SpaceType;
+ }
+ /**
+  * Column constructor options.
+@@ -61,7 +61,7 @@ export interface ColumnOptionsV2 {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    space?: SpaceType;
++    doNotUseMe: boolean;
+ }
+ export declare interface ColumnAttribute extends CommonMethod {
+     /**
+diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
+index 168d42dd7..26f4c9dbd 100644
+--- a/api/arkui/component/common.static.d.ets
++++ b/api/arkui/component/common.static.d.ets
+@@ -7356,13 +7356,13 @@ export declare interface SheetOptions extends BindOptions {
+     /**
+      * Defines sheet detents
+      *
+-     * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
++     * @type { ?(TripleLengthDetents) }
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @crossplatform
+      * @atomicservice
+      * @since 20
+      */
+-    detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++    detents?: TripleLengthDetents;
+     /**
+      * Background blur of the sheet. By default, there is no background blur.
+      *
+@@ -7748,7 +7748,7 @@ export declare interface SheetOptions extends BindOptions {
+  * @atomicservice
+  * @since 20
+  */
+-export type CustomStyles = (instance: CommonMethod) => void;
++export type CustomStyles = (instance: string) => void;
+ /**
+  * Component State Styles.
+  *
+@@ -10368,13 +10368,13 @@ export declare interface BackgroundOptions {
+ /**
+  * Defines the value of the custom property..
+  *
+- * @typedef { Object | undefined | Record<string, CustomProperty> } CustomProperty
++ * @typedef { Object | undefined } CustomProperty
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @crossplatform
+  * @atomicservice
+  * @since 20
+  */
+-export declare type CustomProperty = Object | undefined | Record<string, CustomProperty>;
++export declare type CustomProperty = Object | undefined;
+ export declare interface CommonMethod {
+     /**
+      * Sets the width of the component or its horizontal layout policy. By default, the
+@@ -11113,7 +11113,7 @@ export declare interface CommonMethod {
+      * @atomicservice
+      * @since 20
+      */
+-    default onKeyEvent(event: Callback<KeyEvent, boolean> | undefined): this;
++    // default onKeyEvent(event: Callback<KeyEvent, boolean> | undefined): this;
+     /**
+      * Digital crown input.
+      *
+@@ -15382,4 +15382,4 @@ export declare function $$<T>(value: T): Bindable<T>;
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @since 20
+  */
+-export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
++export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
+diff --git a/api/arkui/component/lazyForEach.static.d.ets b/api/arkui/component/lazyForEach.static.d.ets
+index 9b39b0399..b286afd01 100644
+--- a/api/arkui/component/lazyForEach.static.d.ets
++++ b/api/arkui/component/lazyForEach.static.d.ets
+@@ -19,6 +19,7 @@
+  */
+ 
+ import { Builder } from './builder';
++import { ItemGeneratorFunc, KeyGeneratorFunc } from './forEach';
+ import { ComponentBuilder } from './../stateManagement/runtime';
+ 
+ /**
+@@ -472,30 +473,6 @@ export interface IDataSource<T> {
+  */
+ export interface LazyForEachAttribute {}
+ 
+-/**
+- * Define item generator function.
+- *
+- * @typedef { function } ItemGeneratorFunc<T>
+- * @param { T } item - item in an array
+- * @param { number } index - index corresponding to an array item.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-@Builder
+-declare type ItemGeneratorFunc<T> = (item: T, index: number) => void;
+-
+-/**
+- * Define key generator function.
+- *
+- * @typedef { function } KeyGeneratorFunc<T>
+- * @param { T } item - item in an array
+- * @param { number } index - index corresponding to an array item.
+- * @returns {string} Character string generated based on item and index
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-declare type KeyGeneratorFunc<T> = (item: T, index: number) => string;
+-
+ /**
+  * Enter the value to obtain the LazyForEach.
+  *
+diff --git a/api/arkui/component/pluginComponent.static.d.ets b/api/arkui/component/pluginComponent.static.d.ets
+index a9a9ed0b5..729c7b262 100644
+--- a/api/arkui/component/pluginComponent.static.d.ets
++++ b/api/arkui/component/pluginComponent.static.d.ets
+@@ -58,7 +58,7 @@ export interface PluginComponentTemplate {
+  * @systemapi
+  * @since 20
+  */
+-export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++export type RecordData = undefined | null | Object;
+ 
+ /**
+  * Define options used to construct a plugin component.
+diff --git a/api/arkui/component/relativeContainer.static.d.ets b/api/arkui/component/relativeContainer.static.d.ets
+index 6dfb46e9a..9225c6493 100644
+--- a/api/arkui/component/relativeContainer.static.d.ets
++++ b/api/arkui/component/relativeContainer.static.d.ets
+@@ -246,7 +246,7 @@ export declare interface RelativeContainerAttribute extends CommonMethod {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    default barrier(barrierStyle: Array<LocalizedBarrierStyle> | undefined): this;
++    // default barrier(barrierStyle: Array<LocalizedBarrierStyle> | undefined): this;
+     /**
+      * Set the attribute modifier
+      *
+diff --git a/api/arkui/component/repeat.static.d.ets b/api/arkui/component/repeat.static.d.ets
+index 0d9490370..d930b5c8d 100644
+--- a/api/arkui/component/repeat.static.d.ets
++++ b/api/arkui/component/repeat.static.d.ets
+@@ -12,239 +12,3 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
+-/**
+- * @file
+- * @kit ArkUI
+- * @arkts 1.2
+- */
+-
+-import { Builder } from './builder';
+-import { ComponentBuilder } from './../stateManagement/runtime';
+-
+-/**
+- * Indicates the type of Repeat's Data Source.
+- *
+- * @typedef { Array<T> | ReadonlyArray<T> | Readonly<Array<T>> }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-type RepeatArray<T> = Array<T> | ReadonlyArray<T> | Readonly<Array<T>>;
+-/**
+- * Function that return typed string to render one template.
+- *
+- * @typedef {function} TemplateTypedFunc<T>
+- * @param { T } item - data item.
+- * @param { number } index - data index number in array.
+- * @returns { string } template type.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-type TemplateTypedFunc<T> = (item: T, index: number) => string;
+-/**
+- * Define builder function to render one template type.
+- *
+- * @typedef {function} RepeatItemBuilder<T>
+- * @param { RepeatItem<T> } repeatItem - the repeat item builder function.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-@Builder
+-type RepeatItemBuilder<T> = (repeatItem: RepeatItem<T>) => void;
+-
+-/**
+- * Construct a new type for each item.
+- *
+- * @interface RepeatItem
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface RepeatItem<T> {
+-  /**
+-   * The origin data.
+-   *
+-   * @type { T }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  item: T;
+-  /**
+-   * index of each item.
+-   *
+-   * @type { number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  index: number;
+-}
+-
+-/**
+- * Function that is used to do lazy loading.
+- *
+- * @typedef {function} OnLazyLoadingFunc
+- * @param { number } index - data index.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-type OnLazyLoadingFunc = (index: number) => void;
+-
+-/**
+- * Define key generator function.
+- *
+- * @typedef {function} KeyGeneratorFunc<T>
+- * @param { T } item - data item.
+- * @param { number } index - data index number in array.
+- * @returns { string } key value.
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-type KeyGeneratorFunc<T> = (item: T, index: number) => string;
+-
+-/**
+- * Function that is used to get total count.
+- *
+- * @typedef {function} OnTotalCountFunc
+- * @returns { number } Returns the total data count
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-type OnTotalCountFunc = () => number;
+-
+-/**
+- * Define the options of repeat virtualScroll to implement reuse and lazy loading.
+- *
+- * @interface VirtualScrollOptions
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface VirtualScrollOptions {
+-  /**
+-   * Total data count.
+-   *
+-   * @type { ?number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  totalCount?: number;
+-  /**
+-   * Reuse or not.
+-   *
+-   * @type { ?boolean }
+-   * @default true
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  reusable?: boolean;
+-  /**
+-   * Data lazy loading
+-   *
+-   * @type { ?OnLazyLoadingFunc }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  onLazyLoading?: OnLazyLoadingFunc;
+-  /**
+-   * The function of total data count.
+-   *
+-   * @type { ?OnTotalCountFunc }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  onTotalCount?: OnTotalCountFunc;
+-  /**
+-   * Indicates whether to activate virtual scroll mode.
+-   *
+-   * @type { ?boolean }
+-   * @default false
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  disableVirtualScroll?: boolean;
+-}
+-
+-/**
+- * Define a builder template option parameter.
+- *
+- * @interface TemplateOptions
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface TemplateOptions {
+-  /**
+-   * The cached number of each template.
+-   *
+-   * @type { ?number }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  cachedCount?: number;
+-}
+-
+-/**
+- * Defines the Repeat component attribute functions.
+- *
+- * @typedef RepeatAttribute<T>
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface RepeatAttribute<T> {
+-  /**
+-   * Executes itemGenerator of each item.
+-   *
+-   * @param { RepeatItemBuilder<T> } itemGenerator
+-   * @returns { this } RepeatAttribute instance
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  each(itemGenerator: RepeatItemBuilder<T>): this;
+-  /**
+-   * Obtains key of each item.
+-   *
+-   * @param { KeyGeneratorFunc<T> } keyGenerator
+-   * @returns { this } RepeatAttribute instance
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  key(keyGenerator: KeyGeneratorFunc<T>): this;
+-  /**
+-   * Enable UI lazy loading when scroll up or down.
+-   *
+-   * @param { VirtualScrollOptions } [virtualScrollOptions] that defines the options of repeat virtual scroll to
+-   *     implement reuse and lazy loading.
+-   * @returns { this } RepeatAttribute instance
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  virtualScroll(virtualScrollOptions?: VirtualScrollOptions): this;
+-  /**
+-   * Type builder function to render specific type of data item.
+-   *
+-   * @param { string } type that defines the template id.
+-   * @param { RepeatItemBuilder<T> } itemBuilder that defines UI builder function.
+-   * @param { TemplateOptions } [templateOptions] that defines a builder template option parameter.
+-   * @returns { this } RepeatAttribute instance
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  template(type: string, itemBuilder: RepeatItemBuilder<T>, templateOptions?: TemplateOptions): this;
+-  /**
+-   * Typed function to render specific type of data item.
+-   *
+-   * @param { TemplateTypedFunc<T> } typedFunc that define template typed function.
+-   * @returns { this } RepeatAttribute instance
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  templateId(typedFunc: TemplateTypedFunc<T>): this;
+-}
+-
+-/**
+- * Indicates the type of Repeat.
+- *
+- * @param { RepeatArray<T> } arr - The Data Source
+- * @returns { RepeatAttribute<T> }
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-@ComponentBuilder
+-export declare function Repeat<T>(arr: RepeatArray<T>): RepeatAttribute<T>;
+\ No newline at end of file
+diff --git a/api/arkui/component/sidebar.static.d.ets b/api/arkui/component/sidebar.static.d.ets
+index 06f39d7e1..5c922b616 100644
+--- a/api/arkui/component/sidebar.static.d.ets
++++ b/api/arkui/component/sidebar.static.d.ets
+@@ -22,7 +22,7 @@
+ 
+ import { Resource } from '../../global/resource';
+ import { Length, ResourceColor, Dimension } from './units';
+-import { CommonMethod, PixelMap, Bindable } from './common';
++import { CommonMethod, PixelMap, Bindable, DividerStyle } from './common';
+ import { memo, ComponentBuilder } from './../stateManagement/runtime';
+ 
+ /**
+@@ -179,53 +179,6 @@ export declare interface ButtonStyle {
+   icons?: ButtonIconOptions;
+ }
+ 
+-/**
+- * Provides an interface for the style of a divider including stroke width, color, start margin
+- * and end margin
+- *
+- * @interface DividerStyle
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface DividerStyle {
+-  /**
+-   * Define the stroke width of the divider
+-   *
+-   * @type { Length }
+-   * @default 1vp
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  strokeWidth: Length;
+-
+-  /**
+-   * Define the color of the divider
+-   *
+-   * @type { ?ResourceColor }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  color?: ResourceColor;
+-
+-  /**
+-   * Define the start margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  startMargin?: Length;
+-
+-  /**
+-   * Define the end margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  endMargin?: Length;
+-}
+-
+ /**
+  * The attribute function of sidebar
+  *
+diff --git a/api/arkui/component/toggle.static.d.ets b/api/arkui/component/toggle.static.d.ets
+index 9f018f7b8..26ab266d8 100644
+--- a/api/arkui/component/toggle.static.d.ets
++++ b/api/arkui/component/toggle.static.d.ets
+@@ -118,7 +118,7 @@ export declare interface ToggleConfiguration extends CommonConfiguration<ToggleC
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    enabled: boolean;
++    toggleEnabled: boolean;
+     /**
+      * Trigger toggle select change
+      *
+diff --git a/api/arkui/component/uiExtensionComponent.static.d.ets b/api/arkui/component/uiExtensionComponent.static.d.ets
+index 6a71e3246..bf5c00604 100644
+--- a/api/arkui/component/uiExtensionComponent.static.d.ets
++++ b/api/arkui/component/uiExtensionComponent.static.d.ets
+@@ -23,16 +23,7 @@ import { CommonMethod, TerminationInfo } from './common';
+ import { ComponentContent } from '../ComponentContent';
+ import { memo, ComponentBuilder } from './../stateManagement/runtime';
+ import { AttributeModifier, CommonMethod } from './common';
+-
+-/**
+- * Defines RecordData.
+- * 
+- * @typedef { undefined | null | Object | Record<string, RecordData> | Array<RecordData> } RecordData
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @systemapi
+- * @since 20
+- */
+-export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++import { RecordData } from './pluginComponent';
+ 
+ /**
+  * Enumeration of different types of DpiFollowStrategy.
