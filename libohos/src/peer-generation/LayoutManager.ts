@@ -143,6 +143,7 @@ function wrapNamespaces(item: PrinterResult | undefined, alreadyWrapped: string[
         alreadyWrapped.pop()
     }
     for (let i = bestMatch; i < ns.length; i++) {
+        printDefaultNamespace(ns[i], writer)
         writer.pushNamespace(ns[i].name, { ident: true, isDeclared: options.isDeclared })
         alreadyWrapped.push(ns[i].name)
     }
@@ -158,4 +159,10 @@ function getNamespaceNameFromResult(a:PrinterResult): string {
 
 function getNamespacePathFromResult(a:PrinterResult): idl.IDLNamespace[] {
     return a.ignoreNamespace ? [] : getNamespacesPathFor(a.over.node)
+}
+
+function printDefaultNamespace(ns: idl.IDLNamespace, writer: LanguageWriter) {
+    if (writer.language != Language.ARKTS) return
+    if (!idl.hasExtAttribute(ns, idl.IDLExtendedAttributes.DefaultExport)) return
+    writer.print(`export default ${ns.name}`)
 }

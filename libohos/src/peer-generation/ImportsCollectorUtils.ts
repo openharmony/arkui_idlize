@@ -42,6 +42,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     return {
         feature,
         module: `${moduleName}`,
+        isDefault: isDefaultDeclaration(node, library.language)
     }
 }
 
@@ -83,7 +84,7 @@ export function collectDeclItself(
         }
 
         const feature = convertDeclToFeature(library, node)
-        emitter.addFeature(feature.feature, feature.module)
+        emitter.addFeature(feature.feature, feature.module, undefined, feature.isDefault)
         if (options?.includeMaterializedInternals) {
             if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)
@@ -135,4 +136,14 @@ export function collectDeclDependencies(
             includeTransformedCallbacks: options?.includeTransformedCallbacks,
         })
     }
+}
+
+
+function isDefaultDeclaration(node: idl.IDLNode, lang: Language): boolean {
+    if (lang != Language.ARKTS) return false
+    // TBD: handle default imports for declarations
+    //if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.DefaultExport)) return true
+    const ns = node.parent
+    if (ns && idl.isNamespace(ns) && idl.hasExtAttribute(ns, idl.IDLExtendedAttributes.DefaultExport)) return true
+    return false
 }

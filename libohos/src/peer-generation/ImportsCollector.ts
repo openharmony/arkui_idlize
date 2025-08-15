@@ -17,8 +17,13 @@ import { posix as path } from "path"
 import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generatorConfiguration, isInCurrentModule } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core";
 
+class FeatureInfo {
+    aliases: Set<string> = new Set()
+    isDefault: boolean = false
+}
+
 export class ImportsCollector {
-    private readonly moduleToFeatures: Map<string, Map<string, Set<string | undefined>>> = new Map()
+    private readonly moduleToFeatures: Map<string, Map<string, FeatureInfo>> = new Map()
 
     /**
      * @param feature Feature to be imported from @module
@@ -26,9 +31,10 @@ export class ImportsCollector {
      */
     addFeature(feature: ImportFeature): void
     addFeature(feature: string, module: string, alias?: string): void
-    addFeature(feature: string | ImportFeature, module?: string, alias?: string) {
+    addFeature(feature: string, module: string, alias?: string, isDefault?: boolean): void
+    addFeature(feature: string | ImportFeature, module?: string, alias?: string, isDefault?: boolean) {
         if (typeof feature != "string")
-            return this.addFeature(feature.feature, feature.module, feature.alias)
+            return this.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
         let normalizedModule = path.normalize(module!)
         // TODO processing cases when there is path to file like `./@ohos.mediaquery` to not recognise it as package.
         // Should migrate to multimodules and then remove this hack
@@ -43,8 +49,9 @@ export class ImportsCollector {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
             const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map())
-            const aliases = getOrPut(features, feature, () => new Set())
-            aliases.add(alias)
+            const info = getOrPut(features, feature, () => new FeatureInfo())
+            info.aliases.add(alias)
+            info.isDefault = isDefault ?? false
         }
     }
 
@@ -55,10 +62,11 @@ export class ImportsCollector {
 
     merge(other: ImportsCollector) {
         for (const [module, features] of other.moduleToFeatures) {
-            const dstFeatures = getOrPut(this.moduleToFeatures, module, () => new Map<string, Set<string|undefined>>())
-            for (const feature of features) {
-                const dstAliases = getOrPut(dstFeatures, feature[0], () => new Set())
-                feature[1].forEach(alias => dstAliases.add(alias))
+            const dstFeatures = getOrPut(this.moduleToFeatures, module, () => new Map<string, FeatureInfo>())
+            for (const [feature, info] of features) {
+                const dstInfo = getOrPut(dstFeatures, feature, () => new FeatureInfo())
+                info.aliases.forEach(alias => dstInfo.aliases.add(alias))
+                dstInfo.isDefault = info.isDefault
             }
         }
     }
@@ -92,8 +100,9 @@ export class ImportsCollector {
                 module = module.substring(1)
             }
             const importNodes = Array.from(features.keys()).flatMap(feature => {
-                const aliases = Array.from(features.get(feature)!)
-                return aliases.map(alias => {
+                const info = features.get(feature)!
+                if (info.isDefault) return `default as ${feature}`
+                return Array.from(info.aliases).map(alias => {
                     if (!alias) return feature
                     return `${feature} as ${alias}`
                 })
@@ -118,4 +127,4 @@ export class ImportsCollector {
     }
 }
 
-export type ImportFeature = { feature: string, alias?: string, module: string,  role?: LayoutNodeRole }
+export type ImportFeature = { feature: string, alias?: string, module: string,  role?: LayoutNodeRole, isDefault?: boolean }

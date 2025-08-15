@@ -13,3 +13,5 @@ export namespace xml {
         testSerialize(options: Record<string, number>): number
     }
 }
+export default xml
+
