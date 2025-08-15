@@ -542,8 +542,10 @@ export abstract class LanguageWriter {
     printTo(file: string): void {
         fs.writeFileSync(file, this.getOutput().join("\n"))
     }
-    writeLines(lines: string): void {
-        lines.split("\n").forEach(it => this.print(it))
+    writeLines(lines: string | stringOrNone[]): void {
+        if (typeof lines === 'string')
+            lines = lines.split("\n")
+        lines.forEach(it => this.print(it))
     }
     writeGetterImplementation(method: Method, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(method.name, method.signature, [MethodModifier.GETTER].concat(method.modifiers ?? [])), op)

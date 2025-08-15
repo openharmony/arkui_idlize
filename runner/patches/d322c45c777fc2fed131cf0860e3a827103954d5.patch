@@ -80,6 +80,19 @@ index 168d42dd7..26f4c9dbd 100644
   */
 -export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
 +export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
+diff --git a/api/arkui/component/extendableComponent.static.d.ets b/api/arkui/component/extendableComponent.static.d.ets
+index 2dbd7d493..5ce88af20 100644
+--- a/api/arkui/component/extendableComponent.static.d.ets
++++ b/api/arkui/component/extendableComponent.static.d.ets
+@@ -77,7 +77,7 @@ export interface LifeCycle {
+      * @atomicservice
+      * @since 20
+      */
+-    @Builder
++    @memo
+     build(): void
+ }
+ 
 diff --git a/api/arkui/component/lazyForEach.static.d.ets b/api/arkui/component/lazyForEach.static.d.ets
 index 9b39b0399..b286afd01 100644
 --- a/api/arkui/component/lazyForEach.static.d.ets

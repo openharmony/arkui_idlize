@@ -102,22 +102,22 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
             return
         }
-        this.writer.print(this.printCallback(node, node.parameters, node.returnType))
+        this.writer.writeLines(this.printCallback(node, node.parameters, node.returnType))
     }
 
     convertInterface(node: idl.IDLInterface) {
-        let result: string | undefined
+        let result: stringOrNone[] | undefined
         if (this.isCallback(node)) {
             result = this.printCallback(node,
                 node.callables[0].parameters,
                 node.callables[0].returnType)
         } else if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             if (!idl.isSyntheticEntry(node))
-                result = this.printTuple(node).join("\n")
+                result = this.printTuple(node)
         } else if (isMaterialized(node, this.peerLibrary)) {
-            result = this.printMaterialized(node).join("\n")
+            result = this.printMaterialized(node)
         } else {
-            result = this.printInterface(node).join("\n")
+            result = this.printInterface(node)
         }
 
         if (result) this.writer.writeLines(result)
@@ -160,8 +160,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             // print `export interface` or `export declare class`, but not `export class`
             return []
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
+        const abstractPrefix = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.Abstract) ? "abstract " : ""
         const isInterface = idl.isInterfaceSubkind(idlInterface)
-        return ([`export ${declaredPrefix}${isInterface ? "interface" : "class"} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
+        return ([`export ${declaredPrefix}${isInterface ? "interface" : `${abstractPrefix}class`} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(isInterface ? [] : idlInterface.constructors
                 .map(it => this.printConstructor(it)).flat())
             .concat(idlInterface.constants
@@ -487,17 +488,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
     }
 
     private isMemo(node: idl.IDLEntry): boolean {
-        if (idl.isCallback(node) && node.name == "CustomBuilder")
+        if (idl.isCallback(node) && node.name == "CustomBuilder" && this.peerLibrary.language == Language.TS)
             return true
         return false
     }
 
-    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
-        parameters: idl.IDLParameter[],
-        returnType: idl.IDLType | undefined): string {
-        const maybeMemo = this.isMemo(node)
-            ? this.peerLibrary.useMemoM3 ? `\n@memo\n` : `\n/** @memo */\n`
-            : ``
+    protected printAnnotations(node: idl.IDLNode): string {
         const annotations: string[] = []
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)) {
             const declaredAnnotations = idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)?.split(';') ?? []
@@ -505,12 +501,20 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
                 ...declaredAnnotations
             )
         }
-        const annotationsString = this.peerLibrary.language === Language.ARKTS
+        return this.peerLibrary.language === Language.ARKTS
             ? annotations.map(a => `@${a} `).join('')
             : ''
+    }
+
+    private printCallback(node: idl.IDLCallback | idl.IDLInterface,
+        parameters: idl.IDLParameter[],
+        returnType: idl.IDLType | undefined): stringOrNone[] {
+        const maybeMemo = this.isMemo(node)
+            ? this.peerLibrary.useMemoM3 ? `\n@memo\n` : `\n/** @memo */\n`
+            : ``
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return `export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${annotationsString}${maybeMemo}(${paramsType}) => ${retType};`
+        return [`export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${this.printAnnotations(node)}${maybeMemo}(${paramsType}) => ${retType};`]
     }
 
     private isCallback(node: idl.IDLInterface) {
@@ -1003,9 +1007,11 @@ export class JavaInterfacesVisitor implements InterfacesVisitor {
 export class ArkTSDeclConvertor extends TSDeclConvertor {
     protected printMethod(method: idl.IDLMethod): stringOrNone[] {
         const staticPrefix = method.isStatic ? "static " : ""
+        const annotations = this.printAnnotations(method)
         return [
             ...this.printExtendedAttributes(method),
-            indentedBy(`${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
+            annotations ? indentedBy(annotations, 1) : undefined,
+            indentedBy(`${this.printAnnotations(method)}${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
         ]
     }
     override convertConstant(node: idl.IDLConstant): void {

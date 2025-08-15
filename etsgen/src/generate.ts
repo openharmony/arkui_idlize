@@ -928,6 +928,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     ...this.traceAttrs(),
                     { name: idl.IDLExtendedAttributes.Entity, value: idl.IDLEntity.Class }
                 ]
+                if (declaration.definition.modifierFlags & arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ABSTRACT) {
+                    attrs.push({ name: idl.IDLExtendedAttributes.Abstract })
+                }
                 const { properties, methods, constructors } = this.processBody(name, declaration.definition?.body)
                 this.entries.push(idl.createInterface(
                     name,
@@ -1086,6 +1089,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
                             extendedAttributes: traceAttrs,
                         },
                     )
+                }
+                const annotations = this.extractAnnotations(method.function?.annotations ?? [])
+                if (annotations !== "") {
+                    extendedAttributes ??= []
+                    extendedAttributes?.push({name:idl.IDLExtendedAttributes.TypeAnnotations, value:annotations})
                 }
                 if (this.overloads.find(methodName)) {
                     let overload = this.overloads.find(methodName)!

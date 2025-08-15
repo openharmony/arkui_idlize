@@ -80,6 +80,7 @@ export enum IDLExtendedAttributes {
     OriginalGenericName = "OriginalGenericName",
     Predefined = "Predefined",
     Protected = "Protected",
+    Abstract = "Abstract",
     Synthetic = "Synthetic",
     Throws = "Throws",
     TraceKey = "TraceKey",

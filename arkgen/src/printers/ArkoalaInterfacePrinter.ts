@@ -140,8 +140,10 @@ class ArkoalaTSInterfacesVisitor extends TSInterfacesVisitor {
 class ArkoalaArkTSDeclConvertor extends ArkoalaTSDeclConvertor {
     protected printMethod(method: idl.IDLMethod): stringOrNone[] {
         const staticPrefix = method.isStatic ? "static " : ""
+        const annotations = this.printAnnotations(method)
         return [
             ...this.printExtendedAttributes(method),
+            annotations ? indentedBy(annotations, 1) : undefined,
             indentedBy(`${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
         ]
     }
