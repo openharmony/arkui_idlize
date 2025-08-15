@@ -11,7 +11,8 @@ arkgen TS subset:
     - npm run -C arkgen setup:subset:ts
     - npm run -C arkgen gen-idl:subset:ts
     - npm run -C arkgen gen:subset:ts
-    - npm run -C arkgen build:subset:ts & npm run -C arkgen build-native:subset:ts & wait
+    - npm run -C arkgen build:subset:ts
+    - npm run -C arkgen build-native:subset:ts
     - npm run -C arkgen exec:subset:ts
   needs:
     - build idlize
@@ -26,7 +27,8 @@ arkgen ArkTS subset:
     - !reference [.panda, script]
   script:
     - npm run -C arkgen gen:subset:arkts
-    - npm run -C arkgen build:subset:arkts & npm run -C arkgen build-native:subset:arkts & wait
+    - npm run -C arkgen build:subset:arkts
+    - npm run -C arkgen build-native:subset:arkts
     - npm run -C arkgen exec:subset:arkts
   needs:
     - build idlize
@@ -59,8 +61,10 @@ arkgen TS sdk:
   script:
     - npm run -C arkgen setup:sdk:ts
     - npm run -C arkgen gen-idl:sdk:ts
-    - npm run -C arkgen gen:sdk:ts & npm run -C arkgen gen-modules:sdk:ts & wait
-    - npm run -C arkgen build:sdk:ts & npm run -C arkgen build-native:sdk:ts & wait
+    - npm run -C arkgen gen:sdk:ts
+    - npm run -C arkgen gen-modules:sdk:ts
+    - npm run -C arkgen build:sdk:ts
+    - npm run -C arkgen build-native:sdk:ts
     - npm run -C arkgen exec:sdk:ts
   needs:
     - build idlize
