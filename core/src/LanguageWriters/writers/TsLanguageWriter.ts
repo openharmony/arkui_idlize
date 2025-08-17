@@ -35,6 +35,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    NamespaceOptions,
     NaryOpExpression,
     ObjectArgs,
     ReturnStatement,
@@ -153,7 +154,7 @@ export class TSLanguageWriter extends LanguageWriter {
 
     maybeSemicolon() { return "" }
 
-    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }): void {
+    pushNamespace(namespace: string, options: NamespaceOptions): void {
         this.namespaceStack.push(namespace)
         const declaredPrefix = options.isDeclared ? "declare " : ""
         this.print(`export ${declaredPrefix}namespace ${namespace} {`)

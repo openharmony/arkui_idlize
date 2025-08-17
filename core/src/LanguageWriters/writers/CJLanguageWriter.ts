@@ -34,6 +34,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    NamespaceOptions,
     ObjectArgs,
     ReturnStatement,
     StringExpression
@@ -601,7 +602,7 @@ export class CJLanguageWriter extends LanguageWriter {
     escapeKeyword(word: string): string {
         return CJKeywords.has(word) ? word.concat("_") : word
     }
-    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }) {}
+    pushNamespace(namespace: string, options: NamespaceOptions) {}
     popNamespace(options: { ident: boolean }) {}
     override castToInt(value: string, bitness: 8|32): string {
         return `Int${bitness}(${this.escapeKeyword(value)})`

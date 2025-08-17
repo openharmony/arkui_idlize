@@ -26,6 +26,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    NamespaceOptions,
     ObjectArgs
 } from "../LanguageWriter"
 import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
@@ -226,6 +227,13 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                 typeConvertor: IdlNameConvertor,
                 private arrayConvertor: IdlNameConvertor) {
         super(printer, resolver, typeConvertor, Language.ARKTS)
+    }
+
+    pushNamespace(namespace: string, options: NamespaceOptions): void {
+        if (options.isDefault) {
+            this.print(`export default ${namespace}`)
+        }
+        super.pushNamespace(namespace, options)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
         return new ETSLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor, this.arrayConvertor)

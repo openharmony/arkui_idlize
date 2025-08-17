@@ -35,6 +35,7 @@ import {
     MethodModifier,
     MethodSignature,
     NamedMethodSignature,
+    NamespaceOptions,
     NaryOpExpression,
     ObjectArgs,
     ReturnStatement,
@@ -611,6 +612,6 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print('}')
     }
-    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }) {}
+    pushNamespace(namespace: string, options: NamespaceOptions) {}
     popNamespace(options: { ident: boolean }) {}
 }

@@ -465,6 +465,12 @@ export interface PrinterLike {
     getOutput(): string[]
 }
 
+export interface NamespaceOptions {
+    ident: boolean,
+    isDeclared?: boolean,
+    isDefault?: boolean
+}
+
 ////////////////////////////////////////////////////////////////
 //                    LANGUAGE WRITER                         //
 ////////////////////////////////////////////////////////////////
@@ -803,7 +809,7 @@ export abstract class LanguageWriter {
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
      */
-    pushNamespace(namespace: string, options: { ident: boolean, isDeclared?: boolean }) { // TODO: namespace-related-to-rework
+    pushNamespace(namespace: string, options: NamespaceOptions) { // TODO: namespace-related-to-rework
         this.print(`namespace ${namespace} {`)
         if (options.ident) this.pushIndent()
     }
