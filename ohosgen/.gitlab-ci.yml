@@ -15,6 +15,22 @@ check generated XML demo:
       - npm run check:ts
       - npm run check:arkts
 
+check generated XML demo for Kotlin:
+    stage: test
+    tags:
+      - idlize-ci
+      - koala-ci
+    needs:
+      - download sdk
+      - build external
+    before_script:
+      - !reference [.npm, script]
+    script:
+      - cd $CI_PROJECT_DIR/external/arkoala-arkts
+      - npm i
+      - cd $CI_PROJECT_DIR/ohosgen/demos/xml
+      - npm run check:kt
+
 check ohos unit tests:
   stage: test
   tags:
