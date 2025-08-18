@@ -159,6 +159,10 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     const doJob = processLogger(inputFiles.length)
     const library: IDLSuperFile[] = []
     let status = new StatusTracker(!!traceStatus)
+    const failed: {
+        error: unknown
+        fileName: string
+    }[] = []
     inputFiles.forEach(file => {
         try {
             doJob(file, () => {
@@ -176,6 +180,10 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
                 console.log(e.trace)
             // But current es2panda just forcefully exits.
             // throw e
+            failed.push({
+                error: e,
+                fileName: file
+            })
         }
     })
     if (traceStatus) {
@@ -439,6 +447,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT)) {
                 if (arkts.isTSInterfaceDeclaration(node)) {
                     this.defaultExportName = node.id!.name
+                }
+                if (arkts.isClassDeclaration(node)) {
+                    this.defaultExportName = node.definition!.ident!.name
                 }
                 if (arkts.isTSModuleDeclaration(node)) {
                     this.defaultExportName = (node.name as arkts.Identifier).name // not sure about this
@@ -772,7 +783,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const methods: idl.IDLMethod[] = []
         const constructors: idl.IDLConstructor[] = []
 
-        members?.forEach(member => this.processNode((member) => {
+        members?.forEach(member => this.processNode((member:arkts.AstNode) => {
             if (arkts.isClassProperty(member)) {
                  if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
                     this.traceDeleted('DeletedMembers')
@@ -1534,23 +1545,17 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
         /* remove synthetic duplicates */
         function removeDuplicatedByScope(entries: idl.IDLEntry[]): idl.IDLEntry[] {
-            const namesCount = new Map<string, number>()
+            const seen = new Set<string>()
             const result: idl.IDLEntry[] = []
-            entries.forEach(entry => {
-                namesCount.set(entry.name, (namesCount.get(entry.name) ?? 0) + 1)
-            })
             entries.forEach(entry => {
                 if (idl.isNamespace(entry)) {
                     entry.members = removeDuplicatedByScope(entry.members)
                 }
-                const count = namesCount.get(entry.name)!
-                if (count > 1) {
-                    if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Synthetic)) {
-                        result.push(entry)
-                    }
-                } else {
-                    result.push(entry)
+                if (seen.has(entry.name)) {
+                    return
                 }
+                seen.add(entry.name)
+                result.push(entry)
             })
             return result
         }

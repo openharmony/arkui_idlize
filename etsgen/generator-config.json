@@ -2,12 +2,17 @@
     "DeletedPackages": [
         "arkui.component.interop",
         "arkui.component.customComponent",
-        "arkui.component.repeat"
+        "arkui.component.repeat",
+        "arkui.component.lazyForEach",
+        "arkui.component.repeat",
+        "ohos.buffer",
+        "ohos.util.ArrayList",
+        "ohos.util.Deque",
+        "ohos.util.List"
     ],
     "DeletedDeclarations": [
         "double",
         "int",
-        "WrappedBuilder",
         "wrapBuilder",
         "AnimatableArithmetic",
         "IMonitorValue",
@@ -76,9 +81,6 @@
         "ScrollableCommonMethod": [
             "onWillScroll",
             "onDidScroll"
-        ],
-        "WrappedBuilder": [
-            "constructor"
         ],
         "SliderBlockStyle": [
             "shape"
