@@ -30,7 +30,7 @@
         "compile:interop:native:ts": "TARGET=node npm run compile:interop:native",
         "compile:interop:native:arkts": "TARGET=panda npm run compile:interop:native",
         "compile:interop:native:kt": "TARGET=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop && npm run compile:native-kotlin-with-node-host -C ../../../external/arkoala-arkts/framework",
-        
+
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",

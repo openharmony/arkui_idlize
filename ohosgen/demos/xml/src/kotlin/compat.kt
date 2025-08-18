@@ -10,11 +10,3 @@ public fun encodeText(text: String): NativeBuffer {
     InteropNativeModule._CopyArray(buffer.data, (encodedString.size + 1).toLong(), encodedString)
     return buffer;
 }
-
-public fun eventTypeStr(eventType: EventType): String {
-    return ""
-}
-
-public fun pullEvents() {
-    checkEvents()
-}
