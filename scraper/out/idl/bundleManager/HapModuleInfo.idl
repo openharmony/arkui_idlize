@@ -1,0 +1,47 @@
+package bundleManager.HapModuleInfo;
+import bundleManager.AbilityInfo.AbilityInfo as AbilityInfo;
+import bundleManager.ExtensionAbilityInfo.ExtensionAbilityInfo as ExtensionAbilityInfo;
+import bundleManager.Metadata.Metadata as Metadata;
+import ohos.bundle.bundleManager.default as bundleManager;
+interface HapModuleInfo {
+    readonly attribute String name;
+    readonly attribute String icon;
+    readonly attribute i64 iconId;
+    readonly attribute String label;
+    readonly attribute i64 labelId;
+    readonly attribute String description;
+    readonly attribute i64 descriptionId;
+    readonly attribute String mainElementName;
+    readonly attribute sequence<AbilityInfo> abilitiesInfo;
+    readonly attribute sequence<ExtensionAbilityInfo> extensionAbilitiesInfo;
+    readonly attribute sequence<Metadata> metadata;
+    readonly attribute sequence<String> deviceTypes;
+    readonly attribute boolean installationFree;
+    readonly attribute String hashValue;
+    readonly attribute bundleManager.ModuleType type;
+    readonly attribute sequence<Dependency> dependencies;
+    readonly attribute sequence<PreloadItem> preloads;
+    readonly attribute String fileContextMenuConfig;
+    readonly attribute sequence<RouterItem> routerMap;
+    readonly attribute String nativeLibraryPath;
+    readonly attribute String codePath;
+};
+interface Dependency {
+    readonly attribute String moduleName;
+    readonly attribute String bundleName;
+    readonly attribute i64 versionCode;
+};
+interface PreloadItem {
+    readonly attribute String moduleName;
+};
+interface RouterItem {
+    readonly attribute String name;
+    readonly attribute String pageSourceFile;
+    readonly attribute String buildFunction;
+    readonly attribute String customData;
+    readonly attribute sequence<DataItem> data;
+};
+interface DataItem {
+    readonly attribute String key;
+    readonly attribute String value;
+};

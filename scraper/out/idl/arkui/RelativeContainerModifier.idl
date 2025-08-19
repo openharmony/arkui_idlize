@@ -1,0 +1,7 @@
+package arkui.RelativeContainerModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.relativeContainer.RelativeContainerAttribute as RelativeContainerAttribute;
+[Entity=Class]
+interface RelativeContainerModifier: RelativeContainerAttribute, [TypeArguments="RelativeContainerAttribute", TypeArguments="RelativeContainerAttribute"] AttributeModifier {
+    constructor();
+};

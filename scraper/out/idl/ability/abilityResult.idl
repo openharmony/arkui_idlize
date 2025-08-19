@@ -1,0 +1,7 @@
+package ability.abilityResult;
+import ohos.app.ability.Want.default as Want;
+interface AbilityResult {
+    attribute i32 resultCode;
+    [Optional]
+    attribute Want want;
+};

@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "core/components_ng/base/frame_node.h"
+#include "core/interfaces/native/utility/converter.h"
+#include "arkoala_api_generated.h"
+
+namespace OHOS::Ace::NG::GeneratedModifier {
+namespace CanvasRenderingContext2DAccessor {
+void DestroyPeerImpl(Ark_CanvasRenderingContext2D peer)
+{
+    auto peerImpl = reinterpret_cast<CanvasRenderingContext2DPeerImpl *>(peer);
+    if (peerImpl) {
+        delete peerImpl;
+    }
+}
+Ark_CanvasRenderingContext2D ConstructImpl(const Opt_RenderingContextSettings* settings,
+                                           const Opt_LengthMetricsUnit* unit)
+{
+    return {};
+}
+Ark_NativePointer GetFinalizerImpl()
+{
+    return reinterpret_cast<void *>(&DestroyPeerImpl);
+}
+Ark_String ToDataURLImpl(Ark_CanvasRenderingContext2D peer,
+                         const Opt_String* type,
+                         const Opt_Number* quality)
+{
+    return {};
+}
+void StartImageAnalyzerImpl(Ark_VMContext vmContext,
+                            Ark_AsyncWorkerPtr asyncWorker,
+                            Ark_CanvasRenderingContext2D peer,
+                            const Ark_ImageAnalyzerConfig* config,
+                            const Callback_Opt_Array_String_Void* outputArgumentForReturningPromise)
+{
+}
+void StopImageAnalyzerImpl(Ark_CanvasRenderingContext2D peer)
+{
+}
+void OnOnAttachImpl(Ark_VMContext vmContext,
+                    Ark_CanvasRenderingContext2D peer,
+                    const Callback_Void* callback_)
+{
+}
+void OffOnAttachImpl(Ark_VMContext vmContext,
+                     Ark_CanvasRenderingContext2D peer,
+                     const Opt_Callback_Void* callback_)
+{
+}
+void OnOnDetachImpl(Ark_CanvasRenderingContext2D peer,
+                    const Callback_Void* callback_)
+{
+}
+void OffOnDetachImpl(Ark_CanvasRenderingContext2D peer,
+                     const Opt_Callback_Void* callback_)
+{
+}
+Ark_Number GetHeightImpl(Ark_CanvasRenderingContext2D peer)
+{
+    return {};
+}
+void SetHeightImpl(Ark_CanvasRenderingContext2D peer,
+                   const Ark_Number* height)
+{
+}
+Ark_Number GetWidthImpl(Ark_CanvasRenderingContext2D peer)
+{
+    return {};
+}
+void SetWidthImpl(Ark_CanvasRenderingContext2D peer,
+                  const Ark_Number* width)
+{
+}
+Ark_FrameNode GetCanvasImpl(Ark_CanvasRenderingContext2D peer)
+{
+    return {};
+}
+void SetCanvasImpl(Ark_CanvasRenderingContext2D peer,
+                   Ark_FrameNode canvas)
+{
+}
+} // CanvasRenderingContext2DAccessor
+const GENERATED_ArkUICanvasRenderingContext2DAccessor* GetCanvasRenderingContext2DAccessor()
+{
+    static const GENERATED_ArkUICanvasRenderingContext2DAccessor CanvasRenderingContext2DAccessorImpl {
+        CanvasRenderingContext2DAccessor::DestroyPeerImpl,
+        CanvasRenderingContext2DAccessor::ConstructImpl,
+        CanvasRenderingContext2DAccessor::GetFinalizerImpl,
+        CanvasRenderingContext2DAccessor::ToDataURLImpl,
+        CanvasRenderingContext2DAccessor::StartImageAnalyzerImpl,
+        CanvasRenderingContext2DAccessor::StopImageAnalyzerImpl,
+        CanvasRenderingContext2DAccessor::OnOnAttachImpl,
+        CanvasRenderingContext2DAccessor::OffOnAttachImpl,
+        CanvasRenderingContext2DAccessor::OnOnDetachImpl,
+        CanvasRenderingContext2DAccessor::OffOnDetachImpl,
+        CanvasRenderingContext2DAccessor::GetHeightImpl,
+        CanvasRenderingContext2DAccessor::SetHeightImpl,
+        CanvasRenderingContext2DAccessor::GetWidthImpl,
+        CanvasRenderingContext2DAccessor::SetWidthImpl,
+        CanvasRenderingContext2DAccessor::GetCanvasImpl,
+        CanvasRenderingContext2DAccessor::SetCanvasImpl,
+    };
+    return &CanvasRenderingContext2DAccessorImpl;
+}
+
+struct CanvasRenderingContext2DPeer {
+    virtual ~CanvasRenderingContext2DPeer() = default;
+};
+}

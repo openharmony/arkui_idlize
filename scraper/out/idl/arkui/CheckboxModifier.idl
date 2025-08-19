@@ -1,0 +1,7 @@
+package arkui.CheckboxModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.checkbox.CheckboxAttribute as CheckboxAttribute;
+[Entity=Class]
+interface CheckboxModifier: CheckboxAttribute, [TypeArguments="CheckboxAttribute", TypeArguments="CheckboxAttribute"] AttributeModifier {
+    constructor();
+};

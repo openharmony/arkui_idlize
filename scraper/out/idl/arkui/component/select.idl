@@ -1,0 +1,132 @@
+package arkui.component.select;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.BlurStyle as BlurStyle;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.button.ControlSize as ControlSize;
+import arkui.component.textPicker.DividerOptions as DividerOptions;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.EdgeOutlineWidths as EdgeOutlineWidths;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.EdgeColors as EdgeColors;
+import arkui.component.units.Resource as Resource;
+import arkui.component.units.Font as Font;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Offset as Offset;
+import arkui.component.units.DividerStyleOptions as DividerStyleOptions;
+import arkui.SymbolGlyphModifier.SymbolGlyphModifier as SymbolGlyphModifier;
+import arkui.TextModifier.TextModifier as TextModifier;
+import arkui.component.enums.OptionWidthMode as OptionWidthMode;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+interface SelectOption {
+    attribute ResourceStr value;
+    [Optional]
+    attribute ResourceStr icon;
+    [Optional]
+    attribute SymbolGlyphModifier symbolIcon;
+};
+dictionary ArrowPosition {
+    number END = 0;
+    number START = 1;
+};
+dictionary MenuAlignType {
+    number START = 0;
+    number CENTER = 1;
+    number END = 2;
+};
+dictionary AvoidanceMode {
+    number COVER_TARGET = 0;
+    number AVOID_AROUND_TARGET = 1;
+};
+callback OnSelectCallback = void (number index, String selectStr);
+interface MenuOutlineOptions {
+    [Optional]
+    attribute (Dimension or EdgeOutlineWidths) width;
+    [Optional]
+    attribute (ResourceColor or EdgeColors) color;
+};
+[Component]
+interface SelectAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((number or Resource or [TypeArguments="number", TypeArguments="number"] Bindable or [TypeArguments="Resource", TypeArguments="Resource"] Bindable) or undefined) selected;
+    [CommonMethod]
+    attribute ((ResourceStr or [TypeArguments="String", TypeArguments="String"] Bindable or [TypeArguments="Resource", TypeArguments="Resource"] Bindable) or undefined) value;
+    [CommonMethod]
+    attribute (Font or undefined) font;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fontColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedOptionBgColor;
+    [CommonMethod]
+    attribute (Font or undefined) selectedOptionFont;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedOptionFontColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) optionBgColor;
+    [CommonMethod]
+    attribute (Font or undefined) optionFont;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) optionFontColor;
+    [CommonMethod]
+    attribute (OnSelectCallback or undefined) onSelect;
+    [CommonMethod]
+    attribute (Length or undefined) space;
+    [CommonMethod]
+    attribute (ArrowPosition or undefined) arrowPosition;
+    [CommonMethod]
+    attribute ((Dimension or OptionWidthMode) or undefined) optionWidth;
+    [CommonMethod]
+    attribute (Dimension or undefined) optionHeight;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) menuBackgroundColor;
+    [CommonMethod]
+    attribute (BlurStyle or undefined) menuBackgroundBlurStyle;
+    [CommonMethod]
+    attribute (ControlSize or undefined) controlSize;
+    [CommonMethod]
+    attribute ([TypeArguments="MenuItemConfiguration", TypeArguments="MenuItemConfiguration"] ContentModifier or undefined) menuItemContentModifier;
+    [CommonMethod]
+    attribute (DividerOptions or undefined) divider;
+    [CommonMethod]
+    attribute (TextModifier or undefined) textModifier;
+    [CommonMethod]
+    attribute (SymbolGlyphModifier or undefined) arrowModifier;
+    [CommonMethod]
+    attribute (TextModifier or undefined) optionTextModifier;
+    [CommonMethod]
+    attribute (TextModifier or undefined) selectedOptionTextModifier;
+    [CommonMethod]
+    attribute (DividerStyleOptions or undefined) dividerStyle;
+    [CommonMethod]
+    attribute (AvoidanceMode or undefined) avoidance;
+    [CommonMethod]
+    attribute (MenuOutlineOptions or undefined) menuOutline;
+    [CommonMethod]
+    attribute (([TypeArguments="SelectAttribute", TypeArguments="SelectAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) backgroundColor;
+    [CommonMethod]
+    this menuAlign((MenuAlignType or undefined) alignType, optional (Offset or undefined) offset);
+};
+interface MenuItemConfiguration: [TypeArguments="MenuItemConfiguration", TypeArguments="MenuItemConfiguration"] CommonConfiguration {
+    attribute ResourceStr value;
+    [Optional]
+    attribute ResourceStr icon;
+    [Optional]
+    attribute SymbolGlyphModifier symbolIcon;
+    attribute boolean selected;
+    attribute number index;
+    void triggerSelect(number index, String value);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface SelectInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] SelectAttribute) invoke(sequence<SelectOption> options);
+};

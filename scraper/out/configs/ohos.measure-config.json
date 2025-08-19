@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.measure",
+  "currentModuleExportedPackages": [
+    "ohos.measure"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.graphics.common2D",
+  "currentModuleExportedPackages": [
+    "ohos.graphics.common2D"
+  ]
+}

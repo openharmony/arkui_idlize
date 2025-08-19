@@ -1,0 +1,7 @@
+package arkui.GridRowModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.gridRow.GridRowAttribute as GridRowAttribute;
+[Entity=Class]
+interface GridRowModifier: GridRowAttribute, [TypeArguments="GridRowAttribute", TypeArguments="GridRowAttribute"] AttributeModifier {
+    constructor();
+};

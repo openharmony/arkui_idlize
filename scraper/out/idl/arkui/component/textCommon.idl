@@ -1,0 +1,178 @@
+package arkui.component.textCommon;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.Length as Length;
+import arkui.component.styledString.DecorationStyleInterface as DecorationStyleInterface;
+import arkui.component.styledString.MutableStyledString as MutableStyledString;
+import arkui.component.styledString.StyledString as StyledString;
+import arkui.component.common.SelectionOptions as SelectionOptions;
+import arkui.component.common.Callback as Callback;
+import arkui.component.enums.TextDecorationType as TextDecorationType;
+import arkui.component.enums.TextDecorationStyle as TextDecorationStyle;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+dictionary TextDataDetectorType {
+    number PHONE_NUMBER = 0;
+    number URL = 1;
+    number EMAIL = 2;
+    number ADDRESS = 3;
+    number DATE_TIME = 4;
+};
+[Synthetic]
+callback Callback_String_Void = void (String value0);
+interface TextDataDetectorConfig {
+    attribute sequence<TextDataDetectorType> types;
+    [Optional]
+    attribute Callback_String_Void onDetectResultUpdate;
+    [Optional]
+    attribute ResourceColor color;
+    [Optional]
+    attribute DecorationStyleInterface decoration;
+};
+interface TextRange {
+    [Optional]
+    attribute number start;
+    [Optional]
+    attribute number end;
+};
+interface InsertValue {
+    attribute number insertOffset;
+    attribute String insertValue;
+};
+dictionary TextDeleteDirection {
+    number BACKWARD = 0;
+    number FORWARD = 1;
+};
+dictionary MenuType {
+    number SELECTION_MENU = 0;
+    number PREVIEW_MENU = 1;
+};
+dictionary AutoCapitalizationMode {
+    number NONE = 0;
+    number WORDS = 1;
+    number SENTENCES = 2;
+    number ALL_CHARACTERS = 3;
+};
+interface DeleteValue {
+    attribute number deleteOffset;
+    attribute TextDeleteDirection direction;
+    attribute String deleteValue;
+};
+callback OnDidChangeCallback = void (TextRange rangeBefore, TextRange rangeAfter);
+callback EditableTextOnChangeCallback = void (String value, optional PreviewText previewText, optional TextChangeOptions options);
+interface TextBaseController {
+    void setSelection(number selectionStart, number selectionEnd, optional SelectionOptions options);
+    void closeSelectionMenu();
+    LayoutManager getLayoutManager();
+};
+interface TextEditControllerEx: TextBaseController {
+    boolean isEditing();
+    void stopEditing();
+    boolean setCaretOffset(number offset);
+    number getCaretOffset();
+    PreviewText getPreviewText();
+};
+interface PreviewText {
+    attribute number offset;
+    attribute String value;
+};
+interface StyledStringController {
+    void setStyledString(StyledString styledString);
+    MutableStyledString getStyledString();
+};
+[Synthetic]
+callback Callback_StyledStringChangeValue_Boolean = boolean (StyledStringChangeValue value0);
+interface StyledStringChangedListener {
+    [Optional]
+    attribute Callback_StyledStringChangeValue_Boolean onWillChange;
+    [Optional]
+    attribute OnDidChangeCallback onDidChange;
+};
+interface StyledStringChangeValue {
+    attribute TextRange range;
+    attribute StyledString replacementString;
+    [Optional]
+    attribute StyledString previewText;
+};
+interface LayoutManager {
+    number getLineCount();
+    PositionWithAffinity getGlyphPositionAtCoordinate(number x, number y);
+};
+interface PositionWithAffinity {
+    attribute number position;
+};
+interface CaretStyle {
+    [Optional]
+    attribute Length width;
+    [Optional]
+    attribute ResourceColor color;
+};
+[Entity=Class]
+interface TextMenuItemId {
+    constructor();
+    static readonly attribute TextMenuItemId CUT;
+    static readonly attribute TextMenuItemId COPY;
+    static readonly attribute TextMenuItemId PASTE;
+    static readonly attribute TextMenuItemId SELECT_ALL;
+    static readonly attribute TextMenuItemId COLLABORATION_SERVICE;
+    static readonly attribute TextMenuItemId CAMERA_INPUT;
+    static readonly attribute TextMenuItemId AI_WRITER;
+    static readonly attribute TextMenuItemId TRANSLATE;
+    static readonly attribute TextMenuItemId SEARCH;
+    static readonly attribute TextMenuItemId SHARE;
+    static TextMenuItemId of(ResourceStr id);
+    boolean equals(TextMenuItemId id);
+};
+interface TextMenuItem {
+    attribute ResourceStr content;
+    [Optional]
+    attribute ResourceStr icon;
+    attribute TextMenuItemId id;
+    [Optional]
+    attribute ResourceStr labelInfo;
+};
+callback OnCreateMenuCallback = sequence<TextMenuItem> (sequence<TextMenuItem> menuItems);
+callback OnMenuItemClickCallback = boolean (TextMenuItem menuItem, TextRange range);
+interface EditMenuOptions {
+    attribute OnCreateMenuCallback onCreateMenu;
+    attribute OnMenuItemClickCallback onMenuItemClick;
+};
+interface DecorationStyleResult {
+    attribute TextDecorationType type;
+    attribute ResourceColor color;
+    [Optional]
+    attribute TextDecorationStyle style;
+};
+interface FontSettingOptions {
+    [Optional]
+    attribute boolean enableVariableFontWeight;
+};
+interface TextChangeOptions {
+    attribute TextRange rangeBefore;
+    attribute TextRange rangeAfter;
+    attribute String oldContent;
+    attribute PreviewText oldPreviewText;
+};
+interface EditableTextChangeValue {
+    attribute String content;
+    [Optional]
+    attribute PreviewText previewText;
+    [Optional]
+    attribute TextChangeOptions options;
+};
+dictionary TextMenuShowMode {
+    number DEFAULT = 0;
+    number PREFER_WINDOW = 1;
+};
+interface TextMenuOptions {
+    [Optional]
+    attribute TextMenuShowMode showMode;
+};
+dictionary KeyboardAppearance {
+    number NONE_IMMERSIVE = 0;
+    number IMMERSIVE = 1;
+    number LIGHT_IMMERSIVE = 2;
+    number DARK_IMMERSIVE = 3;
+};

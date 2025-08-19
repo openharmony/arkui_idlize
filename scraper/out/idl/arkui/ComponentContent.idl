@@ -1,0 +1,22 @@
+package arkui.ComponentContent;
+import arkui.BuilderNode.BuildOptions as BuildOptions;
+import arkui.Content.Content as Content;
+import ohos.arkui.UIContext.UIContext as UIContext;
+import arkui.component.builder.WrappedBuilder as WrappedBuilder;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.builder.CustomBuilderT as CustomBuilderT;
+[Entity=Class, Abstract]
+interface ComponentContentBase: [Extends] Content {
+    constructor();
+};
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface ComponentContent: [Extends] ComponentContentBase {
+    constructor(UIContext uiContext, [TypeArguments="CustomBuilder", TypeArguments="CustomBuilder"] WrappedBuilder builder);
+    constructor(UIContext uiContext, [TypeArguments="[TypeArguments='T'] CustomBuilderT", TypeArguments="[TypeArguments='T', TypeArguments='T'] CustomBuilderT"] WrappedBuilder builder, T args);
+    constructor(UIContext uiContext, [TypeArguments="[TypeArguments='T'] CustomBuilderT", TypeArguments="[TypeArguments='T', TypeArguments='T'] CustomBuilderT"] WrappedBuilder builder, T args, BuildOptions options);
+    void update(T args);
+    void reuse(optional Object param);
+    void recycle();
+    void dispose();
+    void updateConfiguration();
+};

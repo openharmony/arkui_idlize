@@ -1,0 +1,59 @@
+package ohos.arkui.shape;
+import arkui.component.units.Position as Position;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.units.SizeOptions as SizeOptions;
+interface ShapeSize {
+    [Optional]
+    attribute (number or String) width;
+    [Optional]
+    attribute (number or String) height;
+};
+interface RectShapeOptions: ShapeSize {
+    [Optional]
+    attribute (number or String or sequence<(number or String)>) radius;
+};
+interface RoundRectShapeOptions: ShapeSize {
+    [Optional]
+    attribute (number or String) radiusWidth;
+    [Optional]
+    attribute (number or String) radiusHeight;
+};
+interface PathShapeOptions {
+    [Optional]
+    attribute String commands;
+};
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface CommonShapeMethod {
+    constructor();
+    attribute Position offset;
+    attribute ResourceColor fill;
+    attribute Position position;
+};
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface BaseShape: [Extends, TypeArguments="T", TypeArguments="T"] CommonShapeMethod {
+    constructor();
+    T width(Length width);
+    T height(Length height);
+    T size(SizeOptions size);
+};
+[Entity=Class]
+interface RectShape: [Extends, TypeArguments="RectShape", TypeArguments="RectShape"] BaseShape {
+    constructor(optional (RectShapeOptions or RoundRectShapeOptions) options);
+    RectShape radiusWidth((number or String) rWidth);
+    RectShape radiusHeight((number or String) rHeight);
+    RectShape radius((number or String or sequence<(number or String)>) radius);
+};
+[Entity=Class]
+interface CircleShape: [Extends, TypeArguments="CircleShape", TypeArguments="CircleShape"] BaseShape {
+    constructor(optional ShapeSize options);
+};
+[Entity=Class]
+interface EllipseShape: [Extends, TypeArguments="EllipseShape", TypeArguments="EllipseShape"] BaseShape {
+    constructor(optional ShapeSize options);
+};
+[Entity=Class]
+interface PathShape: [Extends, TypeArguments="PathShape", TypeArguments="PathShape"] CommonShapeMethod {
+    constructor(optional PathShapeOptions options);
+    PathShape commands(String commands);
+};

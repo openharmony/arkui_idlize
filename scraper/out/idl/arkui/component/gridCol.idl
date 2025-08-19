@@ -1,0 +1,45 @@
+package arkui.component.gridCol;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+interface GridColColumnOption {
+    [Optional]
+    attribute number xs;
+    [Optional]
+    attribute number sm;
+    [Optional]
+    attribute number md;
+    [Optional]
+    attribute number lg;
+    [Optional]
+    attribute number xl;
+    [Optional]
+    attribute number xxl;
+};
+interface GridColOptions {
+    [Optional]
+    attribute (number or GridColColumnOption) span;
+    [Optional]
+    attribute (number or GridColColumnOption) offset;
+    [Optional]
+    attribute (number or GridColColumnOption) order;
+};
+[Component]
+interface GridColAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((number or GridColColumnOption) or undefined) span;
+    [CommonMethod]
+    attribute ((number or GridColColumnOption) or undefined) gridColOffset;
+    [CommonMethod]
+    attribute ((number or GridColColumnOption) or undefined) order;
+    [CommonMethod]
+    attribute (([TypeArguments="GridColAttribute", TypeArguments="GridColAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface GridColInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] GridColAttribute) invoke(optional GridColOptions option);
+};

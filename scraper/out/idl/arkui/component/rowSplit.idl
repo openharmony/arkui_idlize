@@ -1,0 +1,19 @@
+package arkui.component.rowSplit;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+[Component]
+interface RowSplitAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (boolean or undefined) resizeable;
+    [CommonMethod]
+    attribute (([TypeArguments="RowSplitAttribute", TypeArguments="RowSplitAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface RowSplitInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] RowSplitAttribute) invoke();
+};

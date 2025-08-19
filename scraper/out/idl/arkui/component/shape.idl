@@ -1,0 +1,59 @@
+package arkui.component.shape;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.PixelMap as PixelMap;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import global.resource.Resource as Resource;
+import arkui.component.enums.LineCapStyle as LineCapStyle;
+import arkui.component.enums.LineJoinStyle as LineJoinStyle;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface ViewportRect {
+    [Optional]
+    attribute (f64 or String) x;
+    [Optional]
+    attribute (f64 or String) y;
+    [Optional]
+    attribute (f64 or String) width;
+    [Optional]
+    attribute (f64 or String) height;
+};
+[Component]
+interface ShapeAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ViewportRect or undefined) viewPort;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) stroke;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fill;
+    [CommonMethod]
+    attribute ((f64 or String) or undefined) strokeDashOffset;
+    [CommonMethod]
+    attribute (sequence<Length> or undefined) strokeDashArray;
+    [CommonMethod]
+    attribute (LineCapStyle or undefined) strokeLineCap;
+    [CommonMethod]
+    attribute (LineJoinStyle or undefined) strokeLineJoin;
+    [CommonMethod]
+    attribute ((f64 or String) or undefined) strokeMiterLimit;
+    [CommonMethod]
+    attribute ((f64 or String or Resource) or undefined) strokeOpacity;
+    [CommonMethod]
+    attribute ((f64 or String or Resource) or undefined) fillOpacity;
+    [CommonMethod]
+    attribute ((f64 or String) or undefined) strokeWidth;
+    [CommonMethod]
+    attribute (boolean or undefined) antiAlias;
+    [CommonMethod]
+    attribute (([TypeArguments="ShapeAttribute", TypeArguments="ShapeAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this mesh((sequence<f64> or undefined) value, (i32 or undefined) column, (i32 or undefined) row);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface ShapeInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] ShapeAttribute) invoke(optional PixelMap value);
+};

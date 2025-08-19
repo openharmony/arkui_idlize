@@ -1,0 +1,9 @@
+package ohos.app.ability.Ability;
+import ohos.app.ability.AbilityConstant.default as AbilityConstant;
+import ohos.app.ability.Configuration.Configuration as Configuration;
+[Entity=Class, DefaultExport]
+interface Ability {
+    constructor();
+    void onConfigurationUpdate(Configuration newConfig);
+    void onMemoryLevel(AbilityConstant.MemoryLevel level);
+};

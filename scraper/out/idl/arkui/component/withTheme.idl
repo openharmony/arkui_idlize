@@ -1,0 +1,23 @@
+package arkui.component.withTheme;
+import ohos.arkui.theme.CustomTheme as CustomTheme;
+import arkui.component.common.ThemeColorMode as ThemeColorMode;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface WithThemeOptions {
+    [Optional]
+    attribute CustomTheme theme;
+    [Optional]
+    attribute ThemeColorMode colorMode;
+};
+[Component]
+interface WithThemeAttribute {
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface WithThemeInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] WithThemeAttribute) invoke(WithThemeOptions options);
+};

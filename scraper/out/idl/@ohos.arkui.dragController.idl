@@ -1,0 +1,68 @@
+package ohos.arkui.dragController;
+import arkui.component.common.DragEvent as DragEvent;
+import arkui.component.common.DragPreviewOptions as DragPreviewOptions;
+import arkui.component.common.DragItemInfo as DragItemInfo;
+import arkui.component.common.ICurve as ICurve;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.TouchPoint as TouchPoint;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.enums.Curve as Curve;
+import ohos.base.AsyncCallback as AsyncCallback;
+import ohos.base.BusinessError as BusinessError;
+import ohos.base.Callback as Callback;
+import ohos.data.unifiedDataChannel.default as unifiedDataChannel;
+[DefaultExport]
+namespace dragController {
+    dictionary DragStatus {
+        number STARTED = 0;
+        number ENDED = 1;
+    };
+    interface DragAndDropInfo {
+        attribute DragStatus status;
+        attribute DragEvent event;
+        [Optional]
+        attribute String extraParams;
+    };
+    [Synthetic]
+    callback Callback_DragAndDropInfo_Void = void (DragAndDropInfo value0);
+    interface DragAction {
+        Promise<void> startDrag();
+        [DtsTag="'statusChange'", DtsName="on"]
+        void onStatusChange(Callback_DragAndDropInfo_Void callback_);
+        [DtsTag="'statusChange'", DtsName="off"]
+        void offStatusChange(optional Callback_DragAndDropInfo_Void callback_);
+    };
+    interface DragInfo {
+        attribute number pointerId;
+        [Optional]
+        attribute unifiedDataChannel.UnifiedData data;
+        [Optional]
+        attribute String extraParams;
+        [Optional]
+        attribute TouchPoint touchPoint;
+        [Optional]
+        attribute DragPreviewOptions previewOptions;
+    };
+    interface AnimationOptions {
+        [Optional]
+        attribute number duration;
+        [Optional]
+        attribute (Curve or ICurve) curve;
+    };
+    [Synthetic]
+    callback Callback_Void = void ();
+    [Entity=Class]
+    interface DragPreview {
+        constructor();
+        void setForegroundColor(ResourceColor color);
+        void animate(AnimationOptions options, Callback_Void handler);
+    };
+    interface DragEventParam {
+        attribute DragEvent event;
+        attribute String extraParams;
+    };
+    dictionary DragStartRequestStatus {
+        number WAITING = 0;
+        number READY = 1;
+    };
+};

@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.multimodalInput.pointer",
+  "currentModuleExportedPackages": [
+    "ohos.multimodalInput.pointer"
+  ]
+}

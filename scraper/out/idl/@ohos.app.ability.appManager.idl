@@ -1,0 +1,22 @@
+package ohos.app.ability.appManager;
+import ohos.base.AsyncCallback as AsyncCallback;
+import application.ProcessInformation.ProcessInformation as _ProcessInformation;
+import ohos.bundle.bundleManager.default as bundleManager;
+import application.RunningMultiAppInfo.RunningMultiAppInfo as _RunningMultiAppInfo;
+import application.ApplicationStateObserver.default as _ApplicationStateObserver;
+import application.AbilityStateData.default as _AbilityStateData;
+import application.AppStateData.default as _AppStateData;
+import application.ProcessData.default as _ProcessData;
+import application.AppForegroundStateObserver.default as _AppForegroundStateObserver;
+import application.AbilityFirstFrameStateObserver.AbilityFirstFrameStateObserver as _AbilityFirstFrameStateObserver;
+import application.AbilityFirstFrameStateData.AbilityFirstFrameStateData as _AbilityFirstFrameStateData;
+[DefaultExport]
+namespace appManager {
+    dictionary ProcessState {
+        number STATE_CREATE = 0;
+        number STATE_FOREGROUND = 1;
+        number STATE_ACTIVE = 2;
+        number STATE_BACKGROUND = 3;
+        number STATE_DESTROY = 4;
+    };
+};

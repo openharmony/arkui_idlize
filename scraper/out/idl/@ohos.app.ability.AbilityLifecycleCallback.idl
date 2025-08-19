@@ -1,0 +1,12 @@
+package ohos.app.ability.AbilityLifecycleCallback;
+import ohos.app.ability.UIAbility.default as UIAbility;
+import ohos.window.default as window;
+[DefaultExport]
+interface AbilityLifecycleCallback {
+    void onAbilityCreate(UIAbility ability);
+    void onWindowStageCreate(UIAbility ability, window.WindowStage windowStage);
+    void onWindowStageDestroy(UIAbility ability, window.WindowStage windowStage);
+    void onAbilityDestroy(UIAbility ability);
+    void onAbilityForeground(UIAbility ability);
+    void onAbilityBackground(UIAbility ability);
+};

@@ -1,0 +1,8 @@
+package ohos.app.ability.EnvironmentCallback;
+import ohos.app.ability.AbilityConstant.default as AbilityConstant;
+import ohos.app.ability.Configuration.Configuration as Configuration;
+[DefaultExport]
+interface EnvironmentCallback {
+    void onConfigurationUpdated(Configuration config);
+    void onMemoryLevel(AbilityConstant.MemoryLevel level);
+};

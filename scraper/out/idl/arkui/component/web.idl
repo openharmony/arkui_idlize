@@ -1,0 +1,1039 @@
+package arkui.component.web;
+import ohos.web.webview.default as webview;
+import ohos.multimedia.image.default as image;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.TouchEvent as TouchEvent;
+import arkui.component.common.NestedScrollOptions as NestedScrollOptions;
+import arkui.component.common.KeyEvent as KeyEvent;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import global.resource.Resource as Resource;
+import arkui.component.units.Position as Position;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.textCommon.MenuType as MenuType;
+import arkui.component.textCommon.EditMenuOptions as EditMenuOptions;
+import arkui.component.enums.CopyOptions as CopyOptions;
+import arkui.component.enums.NestedScrollMode as NestedScrollMode;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+typedef webview.WebviewController WebviewController;
+callback OnNavigationEntryCommittedCallback = void (LoadCommittedDetails loadCommittedDetails);
+callback OnSslErrorEventCallback = void (SslErrorEvent sslErrorEvent);
+callback OnLargestContentfulPaintCallback = void (LargestContentfulPaint largestContentfulPaint);
+callback OnFirstMeaningfulPaintCallback = void (FirstMeaningfulPaint firstMeaningfulPaint);
+callback OnOverrideUrlLoadingCallback = boolean (WebResourceRequest webResourceRequest);
+callback OnIntelligentTrackingPreventionCallback = void (IntelligentTrackingPreventionDetails details);
+callback OnNativeEmbedVisibilityChangeCallback = void (NativeEmbedVisibilityInfo nativeEmbedVisibilityInfo);
+interface NativeMediaPlayerConfig {
+    attribute boolean enable;
+    attribute boolean shouldOverlay;
+};
+callback OnRenderProcessNotRespondingCallback = void (RenderProcessNotRespondingData data);
+callback OnRenderProcessRespondingCallback = void ();
+callback OnViewportFitChangedCallback = void (ViewportFit viewportFit);
+callback OnAdsBlockedCallback = void (AdsBlockedDetails details);
+interface AdsBlockedDetails {
+    attribute String url;
+    attribute sequence<String> adsBlocked;
+};
+interface WebKeyboardOptions {
+    attribute boolean useSystemKeyboard;
+    [Optional]
+    attribute i32 enterKeyType;
+    [Optional]
+    attribute CustomBuilder customKeyboard;
+};
+[Entity=Class]
+interface WebKeyboardController {
+    constructor();
+    void insertText(String text);
+    void deleteForward(i32 length);
+    void deleteBackward(i32 length);
+    void sendFunctionKey(i32 key);
+    void close();
+};
+interface WebKeyboardCallbackInfo {
+    attribute WebKeyboardController controller;
+    attribute record<String, String> attributes;
+};
+callback WebKeyboardCallback = WebKeyboardOptions (WebKeyboardCallbackInfo keyboardCallbackInfo);
+dictionary MessageLevel {
+    [OriginalEnumMemberName=Debug]
+    number DEBUG = 0;
+    [OriginalEnumMemberName=Error]
+    number ERROR = 1;
+    [OriginalEnumMemberName=Info]
+    number INFO = 2;
+    [OriginalEnumMemberName=Log]
+    number LOG = 3;
+    [OriginalEnumMemberName=Warn]
+    number WARN = 4;
+};
+dictionary MixedMode {
+    [OriginalEnumMemberName=All]
+    number ALL = 0;
+    [OriginalEnumMemberName=Compatible]
+    number COMPATIBLE = 1;
+    [OriginalEnumMemberName=None]
+    number NONE = 2;
+};
+callback OnSafeBrowsingCheckResultCallback = void (ThreatType threatType);
+dictionary HitTestType {
+    [OriginalEnumMemberName=EditText]
+    number EDIT_TEXT = 0;
+    [OriginalEnumMemberName=Email]
+    number EMAIL = 1;
+    [OriginalEnumMemberName=HttpAnchor]
+    number HTTP_ANCHOR = 2;
+    [OriginalEnumMemberName=HttpAnchorImg]
+    number HTTP_ANCHOR_IMG = 3;
+    [OriginalEnumMemberName=Img]
+    number IMG = 4;
+    [OriginalEnumMemberName=Map]
+    number MAP = 5;
+    [OriginalEnumMemberName=Phone]
+    number PHONE = 6;
+    [OriginalEnumMemberName=Unknown]
+    number UNKNOWN = 7;
+};
+dictionary CacheMode {
+    [OriginalEnumMemberName=Default]
+    number DEFAULT = 0;
+    [OriginalEnumMemberName=None]
+    number NONE = 1;
+    [OriginalEnumMemberName=Online]
+    number ONLINE = 2;
+    [OriginalEnumMemberName=Only]
+    number ONLY = 3;
+};
+dictionary OverScrollMode {
+    number NEVER = 0;
+    number ALWAYS = 1;
+};
+dictionary BlurOnKeyboardHideMode {
+    number SILENT = 0;
+    number BLUR = 1;
+};
+dictionary WebDarkMode {
+    [OriginalEnumMemberName=Off]
+    number OFF = 0;
+    [OriginalEnumMemberName=On]
+    number ON = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+};
+dictionary WebCaptureMode {
+    number HOME_SCREEN = 0;
+};
+dictionary ThreatType {
+    number THREAT_ILLEGAL = 0;
+    number THREAT_FRAUD = 1;
+    number THREAT_RISK = 2;
+    number THREAT_WARNING = 3;
+};
+interface WebMediaOptions {
+    [Optional]
+    attribute i32 resumeInterval;
+    [Optional]
+    attribute boolean audioExclusive;
+    [Optional]
+    attribute AudioSessionType audioSessionType;
+};
+interface ScreenCaptureConfig {
+    attribute WebCaptureMode captureMode;
+};
+[Entity=Class]
+interface FullScreenExitHandler {
+    constructor();
+    void exitFullScreen();
+};
+interface FullScreenEnterEvent {
+    attribute FullScreenExitHandler handler;
+    [Optional]
+    attribute number videoWidth;
+    [Optional]
+    attribute number videoHeight;
+};
+callback OnFullScreenEnterCallback = void (FullScreenEnterEvent event);
+dictionary RenderExitReason {
+    [OriginalEnumMemberName=ProcessAbnormalTermination]
+    number PROCESS_ABNORMAL_TERMINATION = 0;
+    [OriginalEnumMemberName=ProcessWasKilled]
+    number PROCESS_WAS_KILLED = 1;
+    [OriginalEnumMemberName=ProcessCrashed]
+    number PROCESS_CRASHED = 2;
+    [OriginalEnumMemberName=ProcessOom]
+    number PROCESS_OOM = 3;
+    [OriginalEnumMemberName=ProcessExitUnknown]
+    number PROCESS_EXIT_UNKNOWN = 4;
+};
+callback OnContextMenuHideCallback = void ();
+dictionary SslError {
+    [OriginalEnumMemberName=Invalid]
+    number INVALID = 0;
+    [OriginalEnumMemberName=HostMismatch]
+    number HOST_MISMATCH = 1;
+    [OriginalEnumMemberName=DateInvalid]
+    number DATE_INVALID = 2;
+    [OriginalEnumMemberName=Untrusted]
+    number UNTRUSTED = 3;
+};
+dictionary FileSelectorMode {
+    [OriginalEnumMemberName=FileOpenMode]
+    number FILE_OPEN_MODE = 0;
+    [OriginalEnumMemberName=FileOpenMultipleMode]
+    number FILE_OPEN_MULTIPLE_MODE = 1;
+    [OriginalEnumMemberName=FileOpenFolderMode]
+    number FILE_OPEN_FOLDER_MODE = 2;
+    [OriginalEnumMemberName=FileSaveMode]
+    number FILE_SAVE_MODE = 3;
+};
+dictionary WebLayoutMode {
+    number NONE = 0;
+    number FIT_CONTENT = 1;
+};
+dictionary RenderProcessNotRespondingReason {
+    number INPUT_TIMEOUT = 0;
+    number NAVIGATION_COMMIT_TIMEOUT = 1;
+};
+[Entity=Class]
+interface FileSelectorParam {
+    constructor();
+    String getTitle();
+    FileSelectorMode getMode();
+    sequence<String> getAcceptType();
+    boolean isCapture();
+    sequence<String> getMimeTypes();
+};
+[Entity=Class]
+interface JsResult {
+    constructor();
+    void handleCancel();
+    void handleConfirm();
+    void handlePromptConfirm(String result);
+};
+[Entity=Class]
+interface FileSelectorResult {
+    constructor();
+    void handleFileList(sequence<String> fileList);
+};
+[Entity=Class]
+interface HttpAuthHandler {
+    constructor();
+    boolean confirm(String userName, String password);
+    void cancel();
+    boolean isHttpAuthInfoSaved();
+};
+[Entity=Class]
+interface SslErrorHandler {
+    constructor();
+    void handleConfirm();
+    void handleCancel();
+};
+[Entity=Class]
+interface ClientAuthenticationHandler {
+    constructor();
+    void confirm(String priKeyFile, String certChainFile);
+    void confirm(String authUri);
+    void cancel();
+    void ignore();
+};
+dictionary ProtectedResourceType {
+    [OriginalEnumMemberName=MidiSysex]
+    String MIDI_SYSEX = "'TYPE_MIDI_SYSEX'";
+    String VIDEO_CAPTURE = "'TYPE_VIDEO_CAPTURE'";
+    String AUDIO_CAPTURE = "'TYPE_AUDIO_CAPTURE'";
+    String SENSOR = "'TYPE_SENSOR'";
+};
+[Entity=Class]
+interface PermissionRequest {
+    constructor();
+    void deny();
+    String getOrigin();
+    sequence<String> getAccessibleResource();
+    void grant(sequence<String> resources);
+};
+[Entity=Class]
+interface ScreenCaptureHandler {
+    constructor();
+    String getOrigin();
+    void grant(ScreenCaptureConfig config);
+    void deny();
+};
+[Entity=Class]
+interface DataResubmissionHandler {
+    constructor();
+    void resend();
+    void cancel();
+};
+[Entity=Class]
+interface ControllerHandler {
+    constructor();
+    void setWebController(WebviewController controller);
+};
+dictionary ContextMenuSourceType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Mouse]
+    number MOUSE = 1;
+    [OriginalEnumMemberName=LongPress]
+    number LONG_PRESS = 2;
+};
+dictionary ContextMenuMediaType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Image]
+    number IMAGE = 1;
+};
+dictionary ContextMenuInputFieldType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=PlainText]
+    number PLAIN_TEXT = 1;
+    [OriginalEnumMemberName=Password]
+    number PASSWORD = 2;
+    [OriginalEnumMemberName=Number]
+    number NUMBER = 3;
+    [OriginalEnumMemberName=Telephone]
+    number TELEPHONE = 4;
+    [OriginalEnumMemberName=Other]
+    number OTHER = 5;
+};
+dictionary NativeEmbedStatus {
+    number CREATE = 0;
+    number UPDATE = 1;
+    number DESTROY = 2;
+    number ENTER_BFCACHE = 3;
+    number LEAVE_BFCACHE = 4;
+};
+dictionary ContextMenuEditStateFlags {
+    number NONE = 0;
+    number CAN_CUT = 1;
+    number CAN_COPY = 2;
+    number CAN_PASTE = 3;
+    number CAN_SELECT_ALL = 4;
+};
+dictionary WebNavigationType {
+    number UNKNOWN = 0;
+    number MAIN_FRAME_NEW_ENTRY = 1;
+    number MAIN_FRAME_EXISTING_ENTRY = 2;
+    number NAVIGATION_TYPE_NEW_SUBFRAME = 4;
+    number NAVIGATION_TYPE_AUTO_SUBFRAME = 5;
+};
+dictionary RenderMode {
+    number ASYNC_RENDER = 0;
+    number SYNC_RENDER = 1;
+};
+dictionary ViewportFit {
+    number AUTO = 0;
+    number CONTAINS = 1;
+    number COVER = 2;
+};
+[Entity=Class]
+interface WebContextMenuParam {
+    constructor();
+    i32 x();
+    i32 y();
+    String getLinkUrl();
+    String getUnfilteredLinkUrl();
+    String getSourceUrl();
+    boolean existsImageContents();
+    ContextMenuMediaType getMediaType();
+    String getSelectionText();
+    ContextMenuSourceType getSourceType();
+    ContextMenuInputFieldType getInputFieldType();
+    boolean isEditable();
+    i32 getEditStateFlags();
+    i32 getPreviewWidth();
+    i32 getPreviewHeight();
+};
+[Entity=Class]
+interface WebContextMenuResult {
+    constructor();
+    void closeContextMenu();
+    void copyImage();
+    void copy();
+    void paste();
+    void cut();
+    void selectAll();
+};
+[Entity=Class]
+interface ConsoleMessage {
+    constructor();
+    String getMessage();
+    String getSourceId();
+    number getLineNumber();
+    MessageLevel getMessageLevel();
+};
+[Entity=Class]
+interface WebResourceRequest {
+    constructor();
+    sequence<Header> getRequestHeader();
+    String getRequestUrl();
+    boolean isRequestGesture();
+    boolean isMainFrame();
+    boolean isRedirect();
+    String getRequestMethod();
+};
+[Entity=Class]
+interface WebResourceResponse {
+    constructor();
+    String getResponseData();
+    ((String or number or buffer or Resource) or undefined) getResponseDataEx();
+    String getResponseEncoding();
+    String getResponseMimeType();
+    String getReasonMessage();
+    sequence<Header> getResponseHeader();
+    number getResponseCode();
+    void setResponseData((String or number or Resource or buffer) data);
+    void setResponseEncoding(String encoding);
+    void setResponseMimeType(String mimeType);
+    void setReasonMessage(String reason);
+    void setResponseHeader(sequence<Header> header);
+    void setResponseCode(number code);
+    void setResponseIsReady(boolean IsReady);
+    boolean getResponseIsReady();
+};
+interface Header {
+    attribute String headerKey;
+    attribute String headerValue;
+};
+[Entity=Class]
+interface WebResourceError {
+    constructor();
+    String getErrorInfo();
+    number getErrorCode();
+};
+[Entity=Class]
+interface JsGeolocation {
+    constructor();
+    void invoke(String origin, boolean allow, boolean retain);
+};
+[Entity=Class]
+interface EventResult {
+    constructor();
+    void setGestureEventResult(boolean result);
+    void setGestureEventResult(boolean result, boolean stopPropagation);
+};
+interface WebOptions {
+    attribute (String or Resource) src;
+    attribute WebviewController controller;
+    [Optional]
+    attribute RenderMode renderMode;
+    [Optional]
+    attribute boolean incognitoMode;
+    [Optional]
+    attribute String sharedRenderProcessToken;
+};
+interface ScriptItem {
+    attribute String script;
+    attribute sequence<String> scriptRules;
+};
+interface LoadCommittedDetails {
+    attribute boolean isMainFrame;
+    attribute boolean isSameDocument;
+    attribute boolean didReplaceEntry;
+    attribute WebNavigationType navigationType;
+    attribute String url;
+};
+interface IntelligentTrackingPreventionDetails {
+    attribute String host;
+    attribute String trackerHost;
+};
+interface NativeEmbedInfo {
+    [Optional]
+    attribute String id;
+    [Optional]
+    attribute String type;
+    [Optional]
+    attribute String src;
+    [Optional]
+    attribute Position position;
+    [Optional]
+    attribute i32 width;
+    [Optional]
+    attribute i32 height;
+    [Optional]
+    attribute String url;
+    [Optional]
+    attribute String tag;
+    [Optional]
+    attribute record<String, String> params;
+};
+interface NativeEmbedDataInfo {
+    [Optional]
+    attribute NativeEmbedStatus status;
+    [Optional]
+    attribute String surfaceId;
+    [Optional]
+    attribute String embedId;
+    [Optional]
+    attribute NativeEmbedInfo info;
+};
+interface NativeEmbedVisibilityInfo {
+    attribute boolean visibility;
+    attribute String embedId;
+};
+interface NativeEmbedTouchInfo {
+    [Optional]
+    attribute String embedId;
+    [Optional]
+    attribute TouchEvent touchEvent;
+    [Optional]
+    attribute EventResult result;
+};
+interface FirstMeaningfulPaint {
+    [Optional]
+    attribute i64 navigationStartTime;
+    [Optional]
+    attribute i64 firstMeaningfulPaintTime;
+};
+interface LargestContentfulPaint {
+    [Optional]
+    attribute i64 navigationStartTime;
+    [Optional]
+    attribute i64 largestImagePaintTime;
+    [Optional]
+    attribute i64 largestTextPaintTime;
+    [Optional]
+    attribute f64 imageBPP;
+    [Optional]
+    attribute i64 largestImageLoadStartTime;
+    [Optional]
+    attribute i64 largestImageLoadEndTime;
+};
+interface RenderProcessNotRespondingData {
+    attribute String jsStack;
+    attribute i32 pid;
+    attribute RenderProcessNotRespondingReason reason;
+};
+interface OnPageEndEvent {
+    attribute String url;
+};
+interface OnPageBeginEvent {
+    attribute String url;
+};
+interface OnProgressChangeEvent {
+    attribute i32 newProgress;
+};
+interface OnTitleReceiveEvent {
+    attribute String title;
+};
+interface OnGeolocationShowEvent {
+    attribute String origin;
+    attribute JsGeolocation geolocation;
+};
+interface OnAlertEvent {
+    attribute String url;
+    attribute String message;
+    attribute JsResult result;
+};
+interface OnBeforeUnloadEvent {
+    attribute String url;
+    attribute String message;
+    attribute JsResult result;
+};
+interface OnConfirmEvent {
+    attribute String url;
+    attribute String message;
+    attribute JsResult result;
+};
+interface OnPromptEvent {
+    attribute String url;
+    attribute String message;
+    attribute String value;
+    attribute JsResult result;
+};
+interface OnConsoleEvent {
+    attribute ConsoleMessage message;
+};
+interface OnErrorReceiveEvent {
+    attribute WebResourceRequest request;
+    attribute WebResourceError error;
+};
+interface OnHttpErrorReceiveEvent {
+    attribute WebResourceRequest request;
+    attribute WebResourceResponse response;
+};
+interface OnDownloadStartEvent {
+    attribute String url;
+    attribute String userAgent;
+    attribute String contentDisposition;
+    attribute String mimetype;
+    attribute number contentLength;
+};
+interface OnRefreshAccessedHistoryEvent {
+    attribute String url;
+    attribute boolean isRefreshed;
+};
+interface OnRenderExitedEvent {
+    attribute RenderExitReason renderExitReason;
+};
+interface OnShowFileSelectorEvent {
+    attribute FileSelectorResult result;
+    attribute FileSelectorParam fileSelector;
+};
+interface OnResourceLoadEvent {
+    attribute String url;
+};
+interface OnScaleChangeEvent {
+    attribute f64 oldScale;
+    attribute f64 newScale;
+};
+interface OnHttpAuthRequestEvent {
+    attribute HttpAuthHandler handler;
+    attribute String host;
+    attribute String realm;
+};
+interface OnInterceptRequestEvent {
+    attribute WebResourceRequest request;
+};
+interface OnPermissionRequestEvent {
+    attribute PermissionRequest request;
+};
+interface OnScreenCaptureRequestEvent {
+    attribute ScreenCaptureHandler handler;
+};
+interface OnContextMenuShowEvent {
+    attribute WebContextMenuParam param;
+    attribute WebContextMenuResult result;
+};
+interface OnSearchResultReceiveEvent {
+    attribute number activeMatchOrdinal;
+    attribute number numberOfMatches;
+    attribute boolean isDoneCounting;
+};
+interface OnScrollEvent {
+    attribute f64 xOffset;
+    attribute f64 yOffset;
+};
+interface OnSslErrorEventReceiveEvent {
+    attribute SslErrorHandler handler;
+    attribute SslError error;
+    [Optional]
+    attribute sequence<buffer> certChainData;
+};
+interface OnClientAuthenticationEvent {
+    attribute ClientAuthenticationHandler handler;
+    attribute String host;
+    attribute number port;
+    attribute sequence<String> keyTypes;
+    attribute sequence<String> issuers;
+};
+interface OnWindowNewEvent {
+    attribute boolean isAlert;
+    attribute boolean isUserTrigger;
+    attribute String targetUrl;
+    attribute ControllerHandler handler;
+};
+interface OnTouchIconUrlReceivedEvent {
+    attribute String url;
+    attribute boolean precomposed;
+};
+interface OnFaviconReceivedEvent {
+    attribute image.PixelMap favicon;
+};
+interface OnPageVisibleEvent {
+    attribute String url;
+};
+interface OnDataResubmittedEvent {
+    attribute DataResubmissionHandler handler;
+};
+interface OnAudioStateChangedEvent {
+    attribute boolean playing;
+};
+interface OnFirstContentfulPaintEvent {
+    attribute i64 navigationStartTick;
+    attribute i64 firstContentfulPaintMs;
+};
+interface OnLoadInterceptEvent {
+    attribute WebResourceRequest data;
+};
+interface OnOverScrollEvent {
+    attribute f64 xOffset;
+    attribute f64 yOffset;
+};
+interface JavaScriptProxy {
+    attribute Object jsObject;
+    attribute String name;
+    attribute sequence<String> methodList;
+    attribute WebviewController controller;
+    [Optional]
+    attribute sequence<String> asyncMethodList;
+    [Optional]
+    attribute String permission;
+};
+dictionary WebKeyboardAvoidMode {
+    number RESIZE_VISUAL = 0;
+    number RESIZE_CONTENT = 1;
+    number OVERLAYS_CONTENT = 2;
+};
+dictionary WebElementType {
+    number IMAGE = 1;
+};
+dictionary WebResponseType {
+    number LONG_PRESS = 1;
+};
+dictionary AudioSessionType {
+    number AMBIENT = 3;
+};
+[Synthetic]
+callback Callback_Void = void ();
+interface SelectionMenuOptionsExt {
+    [Optional]
+    attribute Callback_Void onAppear;
+    [Optional]
+    attribute Callback_Void onDisappear;
+    [Optional]
+    attribute CustomBuilder preview;
+    [Optional]
+    attribute MenuType menuType;
+};
+[Synthetic]
+callback Callback_OnPageEndEvent_Void = void (OnPageEndEvent value0);
+[Synthetic]
+callback Callback_OnPageBeginEvent_Void = void (OnPageBeginEvent value0);
+[Synthetic]
+callback Callback_OnProgressChangeEvent_Void = void (OnProgressChangeEvent value0);
+[Synthetic]
+callback Callback_OnTitleReceiveEvent_Void = void (OnTitleReceiveEvent value0);
+[Synthetic]
+callback Callback_OnGeolocationShowEvent_Void = void (OnGeolocationShowEvent value0);
+[Synthetic]
+callback Callback_OnAlertEvent_Boolean = boolean (OnAlertEvent value0);
+[Synthetic]
+callback Callback_OnBeforeUnloadEvent_Boolean = boolean (OnBeforeUnloadEvent value0);
+[Synthetic]
+callback Callback_OnConfirmEvent_Boolean = boolean (OnConfirmEvent value0);
+[Synthetic]
+callback Callback_OnPromptEvent_Boolean = boolean (OnPromptEvent value0);
+[Synthetic]
+callback Callback_OnConsoleEvent_Boolean = boolean (OnConsoleEvent value0);
+[Synthetic]
+callback Callback_OnErrorReceiveEvent_Void = void (OnErrorReceiveEvent value0);
+[Synthetic]
+callback Callback_OnHttpErrorReceiveEvent_Void = void (OnHttpErrorReceiveEvent value0);
+[Synthetic]
+callback Callback_OnDownloadStartEvent_Void = void (OnDownloadStartEvent value0);
+[Synthetic]
+callback Callback_OnRefreshAccessedHistoryEvent_Void = void (OnRefreshAccessedHistoryEvent value0);
+[Synthetic]
+callback Callback_OnRenderExitedEvent_Void = void (OnRenderExitedEvent value0);
+[Synthetic]
+callback Callback_OnShowFileSelectorEvent_Boolean = boolean (OnShowFileSelectorEvent value0);
+[Synthetic]
+callback Callback_OnResourceLoadEvent_Void = void (OnResourceLoadEvent value0);
+[Synthetic]
+callback Callback_OnScaleChangeEvent_Void = void (OnScaleChangeEvent value0);
+[Synthetic]
+callback Callback_OnHttpAuthRequestEvent_Boolean = boolean (OnHttpAuthRequestEvent value0);
+[Synthetic]
+callback Callback_OnInterceptRequestEvent_WebResourceResponse = WebResourceResponse (OnInterceptRequestEvent value0);
+[Synthetic]
+callback Callback_OnPermissionRequestEvent_Void = void (OnPermissionRequestEvent value0);
+[Synthetic]
+callback Callback_OnScreenCaptureRequestEvent_Void = void (OnScreenCaptureRequestEvent value0);
+[Synthetic]
+callback Callback_OnContextMenuShowEvent_Boolean = boolean (OnContextMenuShowEvent value0);
+[Synthetic]
+callback Callback_OnSearchResultReceiveEvent_Void = void (OnSearchResultReceiveEvent value0);
+[Synthetic]
+callback Callback_OnScrollEvent_Void = void (OnScrollEvent value0);
+[Synthetic]
+callback Callback_OnSslErrorEventReceiveEvent_Void = void (OnSslErrorEventReceiveEvent value0);
+[Synthetic]
+callback Callback_OnClientAuthenticationEvent_Void = void (OnClientAuthenticationEvent value0);
+[Synthetic]
+callback Callback_OnWindowNewEvent_Void = void (OnWindowNewEvent value0);
+[Synthetic]
+callback Callback_KeyEvent_Boolean = boolean (KeyEvent event);
+[Synthetic]
+callback Callback_OnTouchIconUrlReceivedEvent_Void = void (OnTouchIconUrlReceivedEvent value0);
+[Synthetic]
+callback Callback_OnFaviconReceivedEvent_Void = void (OnFaviconReceivedEvent value0);
+[Synthetic]
+callback Callback_OnPageVisibleEvent_Void = void (OnPageVisibleEvent value0);
+[Synthetic]
+callback Callback_OnDataResubmittedEvent_Void = void (OnDataResubmittedEvent value0);
+[Synthetic]
+callback Callback_OnAudioStateChangedEvent_Void = void (OnAudioStateChangedEvent value0);
+[Synthetic]
+callback Callback_OnFirstContentfulPaintEvent_Void = void (OnFirstContentfulPaintEvent value0);
+[Synthetic]
+callback Callback_OnLoadInterceptEvent_Boolean = boolean (OnLoadInterceptEvent value0);
+[Synthetic]
+callback Callback_OnOverScrollEvent_Void = void (OnOverScrollEvent value0);
+[Synthetic]
+callback Callback_NativeEmbedDataInfo_Void = void (NativeEmbedDataInfo event);
+[Synthetic]
+callback Callback_NativeEmbedTouchInfo_Void = void (NativeEmbedTouchInfo event);
+[Component]
+interface WebAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (boolean or undefined) javaScriptAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) fileAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) onlineImageAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) domStorageAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) imageAccess;
+    [CommonMethod]
+    attribute (MixedMode or undefined) mixedMode;
+    [CommonMethod]
+    attribute (boolean or undefined) zoomAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) geolocationAccess;
+    [CommonMethod]
+    attribute (JavaScriptProxy or undefined) javaScriptProxy;
+    [CommonMethod]
+    attribute (CacheMode or undefined) cacheMode;
+    [CommonMethod]
+    attribute (WebDarkMode or undefined) darkMode;
+    [CommonMethod]
+    attribute (boolean or undefined) forceDarkAccess;
+    [CommonMethod]
+    attribute (WebMediaOptions or undefined) mediaOptions;
+    [CommonMethod]
+    attribute (boolean or undefined) overviewModeAccess;
+    [CommonMethod]
+    attribute (OverScrollMode or undefined) overScrollMode;
+    [CommonMethod]
+    attribute (BlurOnKeyboardHideMode or undefined) blurOnKeyboardHideMode;
+    [CommonMethod]
+    attribute (i32 or undefined) textZoomRatio;
+    [CommonMethod]
+    attribute (boolean or undefined) databaseAccess;
+    [CommonMethod]
+    attribute (f64 or undefined) initialScale;
+    [CommonMethod]
+    attribute (boolean or undefined) metaViewport;
+    [CommonMethod]
+    attribute (Callback_OnPageEndEvent_Void or undefined) onPageEnd;
+    [CommonMethod]
+    attribute (Callback_OnPageBeginEvent_Void or undefined) onPageBegin;
+    [CommonMethod]
+    attribute (Callback_OnProgressChangeEvent_Void or undefined) onProgressChange;
+    [CommonMethod]
+    attribute (Callback_OnTitleReceiveEvent_Void or undefined) onTitleReceive;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onGeolocationHide;
+    [CommonMethod]
+    attribute (Callback_OnGeolocationShowEvent_Void or undefined) onGeolocationShow;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onRequestSelected;
+    [CommonMethod]
+    attribute (Callback_OnAlertEvent_Boolean or undefined) onAlert;
+    [CommonMethod]
+    attribute (Callback_OnBeforeUnloadEvent_Boolean or undefined) onBeforeUnload;
+    [CommonMethod]
+    attribute (Callback_OnConfirmEvent_Boolean or undefined) onConfirm;
+    [CommonMethod]
+    attribute (Callback_OnPromptEvent_Boolean or undefined) onPrompt;
+    [CommonMethod]
+    attribute (Callback_OnConsoleEvent_Boolean or undefined) onConsole;
+    [CommonMethod]
+    attribute (Callback_OnErrorReceiveEvent_Void or undefined) onErrorReceive;
+    [CommonMethod]
+    attribute (Callback_OnHttpErrorReceiveEvent_Void or undefined) onHttpErrorReceive;
+    [CommonMethod]
+    attribute (Callback_OnDownloadStartEvent_Void or undefined) onDownloadStart;
+    [CommonMethod]
+    attribute (Callback_OnRefreshAccessedHistoryEvent_Void or undefined) onRefreshAccessedHistory;
+    [CommonMethod]
+    attribute (Callback_OnRenderExitedEvent_Void or undefined) onRenderExited;
+    [CommonMethod]
+    attribute (Callback_OnShowFileSelectorEvent_Boolean or undefined) onShowFileSelector;
+    [CommonMethod]
+    attribute (Callback_OnResourceLoadEvent_Void or undefined) onResourceLoad;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onFullScreenExit;
+    [CommonMethod]
+    attribute (OnFullScreenEnterCallback or undefined) onFullScreenEnter;
+    [CommonMethod]
+    attribute (Callback_OnScaleChangeEvent_Void or undefined) onScaleChange;
+    [CommonMethod]
+    attribute (Callback_OnHttpAuthRequestEvent_Boolean or undefined) onHttpAuthRequest;
+    [CommonMethod]
+    attribute (Callback_OnInterceptRequestEvent_WebResourceResponse or undefined) onInterceptRequest;
+    [CommonMethod]
+    attribute (Callback_OnPermissionRequestEvent_Void or undefined) onPermissionRequest;
+    [CommonMethod]
+    attribute (Callback_OnScreenCaptureRequestEvent_Void or undefined) onScreenCaptureRequest;
+    [CommonMethod]
+    attribute (Callback_OnContextMenuShowEvent_Boolean or undefined) onContextMenuShow;
+    [CommonMethod]
+    attribute (OnContextMenuHideCallback or undefined) onContextMenuHide;
+    [CommonMethod]
+    attribute (boolean or undefined) mediaPlayGestureAccess;
+    [CommonMethod]
+    attribute (Callback_OnSearchResultReceiveEvent_Void or undefined) onSearchResultReceive;
+    [CommonMethod]
+    attribute (Callback_OnScrollEvent_Void or undefined) onScroll;
+    [CommonMethod]
+    attribute (Callback_OnSslErrorEventReceiveEvent_Void or undefined) onSslErrorEventReceive;
+    [CommonMethod]
+    attribute (OnSslErrorEventCallback or undefined) onSslErrorEvent;
+    [CommonMethod]
+    attribute (Callback_OnClientAuthenticationEvent_Void or undefined) onClientAuthenticationRequest;
+    [CommonMethod]
+    attribute (Callback_OnWindowNewEvent_Void or undefined) onWindowNew;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onWindowExit;
+    [CommonMethod]
+    attribute (boolean or undefined) multiWindowAccess;
+    [CommonMethod]
+    attribute (Callback_KeyEvent_Boolean or undefined) onInterceptKeyEvent;
+    [CommonMethod]
+    attribute (String or undefined) webStandardFont;
+    [CommonMethod]
+    attribute (String or undefined) webSerifFont;
+    [CommonMethod]
+    attribute (String or undefined) webSansSerifFont;
+    [CommonMethod]
+    attribute (String or undefined) webFixedFont;
+    [CommonMethod]
+    attribute (String or undefined) webFantasyFont;
+    [CommonMethod]
+    attribute (String or undefined) webCursiveFont;
+    [CommonMethod]
+    attribute (i32 or undefined) defaultFixedFontSize;
+    [CommonMethod]
+    attribute (i32 or undefined) defaultFontSize;
+    [CommonMethod]
+    attribute (i32 or undefined) minFontSize;
+    [CommonMethod]
+    attribute (i32 or undefined) minLogicalFontSize;
+    [CommonMethod]
+    attribute (String or undefined) defaultTextEncodingFormat;
+    [CommonMethod]
+    attribute (boolean or undefined) forceDisplayScrollBar;
+    [CommonMethod]
+    attribute (boolean or undefined) blockNetwork;
+    [CommonMethod]
+    attribute (boolean or undefined) horizontalScrollBarAccess;
+    [CommonMethod]
+    attribute (boolean or undefined) verticalScrollBarAccess;
+    [CommonMethod]
+    attribute (Callback_OnTouchIconUrlReceivedEvent_Void or undefined) onTouchIconUrlReceived;
+    [CommonMethod]
+    attribute (Callback_OnFaviconReceivedEvent_Void or undefined) onFaviconReceived;
+    [CommonMethod]
+    attribute (Callback_OnPageVisibleEvent_Void or undefined) onPageVisible;
+    [CommonMethod]
+    attribute (Callback_OnDataResubmittedEvent_Void or undefined) onDataResubmitted;
+    [CommonMethod]
+    attribute (boolean or undefined) pinchSmooth;
+    [CommonMethod]
+    attribute (boolean or undefined) allowWindowOpenMethod;
+    [CommonMethod]
+    attribute (Callback_OnAudioStateChangedEvent_Void or undefined) onAudioStateChanged;
+    [CommonMethod]
+    attribute (Callback_OnFirstContentfulPaintEvent_Void or undefined) onFirstContentfulPaint;
+    [CommonMethod]
+    attribute (OnFirstMeaningfulPaintCallback or undefined) onFirstMeaningfulPaint;
+    [CommonMethod]
+    attribute (OnLargestContentfulPaintCallback or undefined) onLargestContentfulPaint;
+    [CommonMethod]
+    attribute (Callback_OnLoadInterceptEvent_Boolean or undefined) onLoadIntercept;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onControllerAttached;
+    [CommonMethod]
+    attribute (Callback_OnOverScrollEvent_Void or undefined) onOverScroll;
+    [CommonMethod]
+    attribute (OnSafeBrowsingCheckResultCallback or undefined) onSafeBrowsingCheckResult;
+    [CommonMethod]
+    attribute (OnNavigationEntryCommittedCallback or undefined) onNavigationEntryCommitted;
+    [CommonMethod]
+    attribute (OnIntelligentTrackingPreventionCallback or undefined) onIntelligentTrackingPreventionResult;
+    [CommonMethod]
+    attribute (sequence<ScriptItem> or undefined) javaScriptOnDocumentStart;
+    [CommonMethod]
+    attribute (sequence<ScriptItem> or undefined) javaScriptOnDocumentEnd;
+    [CommonMethod]
+    attribute (WebLayoutMode or undefined) layoutMode;
+    [CommonMethod]
+    attribute ((NestedScrollOptions or NestedScrollOptionsExt) or undefined) nestedScroll;
+    [CommonMethod]
+    attribute (boolean or undefined) enableNativeEmbedMode;
+    [CommonMethod]
+    attribute (Callback_NativeEmbedDataInfo_Void or undefined) onNativeEmbedLifecycleChange;
+    [CommonMethod]
+    attribute (OnNativeEmbedVisibilityChangeCallback or undefined) onNativeEmbedVisibilityChange;
+    [CommonMethod]
+    attribute (Callback_NativeEmbedTouchInfo_Void or undefined) onNativeEmbedGestureEvent;
+    [CommonMethod]
+    attribute (CopyOptions or undefined) copyOptions;
+    [CommonMethod]
+    attribute (OnOverrideUrlLoadingCallback or undefined) onOverrideUrlLoading;
+    [CommonMethod]
+    attribute (boolean or undefined) textAutosizing;
+    [CommonMethod]
+    attribute (NativeMediaPlayerConfig or undefined) enableNativeMediaPlayer;
+    [CommonMethod]
+    attribute (OnRenderProcessNotRespondingCallback or undefined) onRenderProcessNotResponding;
+    [CommonMethod]
+    attribute (OnRenderProcessRespondingCallback or undefined) onRenderProcessResponding;
+    [CommonMethod]
+    attribute (OnViewportFitChangedCallback or undefined) onViewportFitChanged;
+    [CommonMethod]
+    attribute (WebKeyboardCallback or undefined) onInterceptKeyboardAttach;
+    [CommonMethod]
+    attribute (OnAdsBlockedCallback or undefined) onAdsBlocked;
+    [CommonMethod]
+    attribute (WebKeyboardAvoidMode or undefined) keyboardAvoidMode;
+    [CommonMethod]
+    attribute (EditMenuOptions or undefined) editMenuOptions;
+    [CommonMethod]
+    attribute (boolean or undefined) enableHapticFeedback;
+    [CommonMethod]
+    attribute (boolean or undefined) optimizeParserBudget;
+    [CommonMethod]
+    attribute (boolean or undefined) enableFollowSystemFontWeight;
+    [CommonMethod]
+    attribute (boolean or undefined) enableWebAVSession;
+    [CommonMethod]
+    attribute (sequence<ScriptItem> or undefined) runJavaScriptOnDocumentStart;
+    [CommonMethod]
+    attribute (sequence<ScriptItem> or undefined) runJavaScriptOnDocumentEnd;
+    [CommonMethod]
+    attribute (sequence<ScriptItem> or undefined) runJavaScriptOnHeadEnd;
+    [CommonMethod]
+    attribute (EmbedOptions or undefined) nativeEmbedOptions;
+    [CommonMethod]
+    attribute (([TypeArguments="WebAttribute", TypeArguments="WebAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this registerNativeEmbedRule((String or undefined) tag, (String or undefined) type);
+    [CommonMethod]
+    this bindSelectionMenu((WebElementType or undefined) elementType, (CustomBuilder or undefined) content, (WebResponseType or undefined) responseType, optional (SelectionMenuOptionsExt or undefined) options);
+};
+interface SslErrorEvent {
+    attribute SslErrorHandler handler;
+    attribute SslError error;
+    attribute String url;
+    attribute String originalUrl;
+    attribute String referrer;
+    attribute boolean isFatalError;
+    attribute boolean isMainFrame;
+};
+interface NestedScrollOptionsExt {
+    [Optional]
+    attribute NestedScrollMode scrollUp;
+    [Optional]
+    attribute NestedScrollMode scrollDown;
+    [Optional]
+    attribute NestedScrollMode scrollRight;
+    [Optional]
+    attribute NestedScrollMode scrollLeft;
+};
+interface EmbedOptions {
+    [Optional]
+    attribute boolean supportDefaultIntrinsicSize;
+};
+[ComponentInterface]
+interface WebInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] WebAttribute) invoke(WebOptions value);
+};

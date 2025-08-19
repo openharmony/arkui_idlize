@@ -1,0 +1,56 @@
+package arkui.component.checkbox;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.MarkStyle as MarkStyle;
+import arkui.component.enums.CheckBoxShape as CheckBoxShape;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+interface CheckboxOptions {
+    [Optional]
+    attribute String name;
+    [Optional]
+    attribute String group;
+    [Optional]
+    attribute CustomBuilder indicatorBuilder;
+};
+[Synthetic]
+callback Callback_Boolean_Void = void (boolean value0);
+interface CheckBoxConfiguration: [TypeArguments="CheckBoxConfiguration", TypeArguments="CheckBoxConfiguration"] CommonConfiguration {
+    attribute String name;
+    attribute boolean selected;
+    attribute Callback_Boolean_Void triggerChange;
+};
+callback OnCheckboxChangeCallback = void (boolean value);
+[Component]
+interface CheckboxAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((boolean or [TypeArguments="boolean", TypeArguments="boolean"] Bindable) or undefined) select;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedColor;
+    [CommonMethod]
+    attribute (CheckBoxShape or undefined) shape;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) unselectedColor;
+    [CommonMethod]
+    attribute (MarkStyle or undefined) mark;
+    [CommonMethod]
+    attribute (OnCheckboxChangeCallback or undefined) onChange;
+    [CommonMethod]
+    attribute ([TypeArguments="CheckBoxConfiguration", TypeArguments="CheckBoxConfiguration"] ContentModifier or undefined) contentModifier;
+    [CommonMethod]
+    attribute (([TypeArguments="CheckboxAttribute", TypeArguments="CheckboxAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface CheckboxInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] CheckboxAttribute) invoke(optional CheckboxOptions options);
+};

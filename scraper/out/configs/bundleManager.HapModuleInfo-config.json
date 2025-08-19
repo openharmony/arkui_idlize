@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "bundleManager.HapModuleInfo",
+  "currentModuleExportedPackages": [
+    "bundleManager.HapModuleInfo"
+  ]
+}

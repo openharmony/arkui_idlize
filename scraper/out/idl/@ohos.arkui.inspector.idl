@@ -1,0 +1,21 @@
+package ohos.arkui.inspector;
+import ohos.base.Callback as Callback;
+[DefaultExport]
+namespace inspector {
+    [Synthetic]
+    callback Callback_Void = void ();
+    interface ComponentObserver {
+        [DtsTag="'layout'", DtsName="onLayout"]
+        void onLayoutLayout(Callback_Void callback_);
+        [DtsTag="'layout'", DtsName="offLayout"]
+        void offLayoutLayout(optional Callback_Void callback_);
+        [DtsTag="'draw'", DtsName="onDraw"]
+        void onDrawDraw(Callback_Void callback_);
+        [DtsTag="'draw'", DtsName="offDraw"]
+        void offDrawDraw(optional Callback_Void callback_);
+        [DtsTag="'drawChildren'", DtsName="onDrawChildren"]
+        void onDrawChildrenDrawChildren(Callback_Void callback_);
+        [DtsTag="'drawChildren'", DtsName="offDrawChildren"]
+        void offDrawChildrenDrawChildren(optional Callback_Void callback_);
+    };
+};

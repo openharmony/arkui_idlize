@@ -1,0 +1,68 @@
+package ohos.matrix4;
+[DefaultExport]
+namespace matrix4 {
+    interface TranslateOption {
+        [Optional]
+        attribute number x;
+        [Optional]
+        attribute number y;
+        [Optional]
+        attribute number z;
+    };
+    interface ScaleOption {
+        [Optional]
+        attribute number x;
+        [Optional]
+        attribute number y;
+        [Optional]
+        attribute number z;
+        [Optional]
+        attribute number centerX;
+        [Optional]
+        attribute number centerY;
+    };
+    interface RotateOption {
+        [Optional]
+        attribute number x;
+        [Optional]
+        attribute number y;
+        [Optional]
+        attribute number z;
+        [Optional]
+        attribute number centerX;
+        [Optional]
+        attribute number centerY;
+        [Optional]
+        attribute number angle;
+    };
+    interface Point {
+        attribute number x;
+        attribute number y;
+    };
+    interface PolyToPolyOptions {
+        attribute sequence<Point> src;
+        [Optional]
+        attribute number srcIndex;
+        attribute sequence<Point> dst;
+        [Optional]
+        attribute number dstIndex;
+        [Optional]
+        attribute number pointCount;
+    };
+    [Entity=Tuple, Synthetic]
+    interface Tuple_Number_Number {
+        attribute number value0;
+        attribute number value1;
+    };
+    interface Matrix4Transit {
+        Matrix4Transit copy();
+        Matrix4Transit invert();
+        Matrix4Transit combine(Matrix4Transit options);
+        Matrix4Transit translate(TranslateOption options);
+        Matrix4Transit scale(ScaleOption options);
+        Matrix4Transit skew(number x, number y);
+        Matrix4Transit rotate(RotateOption options);
+        Tuple_Number_Number transformPoint(Tuple_Number_Number options);
+        Matrix4Transit setPolyToPoly(PolyToPolyOptions options);
+    };
+};

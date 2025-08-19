@@ -1,0 +1,7 @@
+package arkui.PolygonModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.polygon.PolygonAttribute as PolygonAttribute;
+[Entity=Class]
+interface PolygonModifier: PolygonAttribute, [TypeArguments="PolygonAttribute", TypeArguments="PolygonAttribute"] AttributeModifier {
+    constructor();
+};

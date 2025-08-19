@@ -1,0 +1,7 @@
+package arkui.GridColModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.gridCol.GridColAttribute as GridColAttribute;
+[Entity=Class]
+interface GridColModifier: GridColAttribute, [TypeArguments="GridColAttribute", TypeArguments="GridColAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.app.ability.ApplicationStateChangeCallback",
+  "currentModuleExportedPackages": [
+    "ohos.app.ability.ApplicationStateChangeCallback"
+  ]
+}

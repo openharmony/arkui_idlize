@@ -1,0 +1,8 @@
+package arkui.SymbolGlyphModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.symbolglyph.SymbolGlyphAttribute as SymbolGlyphAttribute;
+import global.resource.Resource as Resource;
+[Entity=Class]
+interface SymbolGlyphModifier: SymbolGlyphAttribute, [TypeArguments="SymbolGlyphAttribute", TypeArguments="SymbolGlyphAttribute"] AttributeModifier {
+    constructor(optional Resource src);
+};

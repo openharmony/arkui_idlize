@@ -1,0 +1,62 @@
+package arkui.component.badge;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Position as Position;
+import arkui.component.units.Resource as Resource;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.enums.FontWeight as FontWeight;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary BadgePosition {
+    [OriginalEnumMemberName=RightTop]
+    number RIGHT_TOP = 0;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 1;
+    [OriginalEnumMemberName=Left]
+    number LEFT = 2;
+};
+interface BadgeStyle {
+    [Optional]
+    attribute ResourceColor color;
+    [Optional]
+    attribute (number or ResourceStr) fontSize;
+    [Optional]
+    attribute (number or ResourceStr) badgeSize;
+    [Optional]
+    attribute ResourceColor badgeColor;
+    [Optional]
+    attribute ResourceColor borderColor;
+    [Optional]
+    attribute Length borderWidth;
+    [Optional]
+    attribute (number or FontWeight or ResourceStr) fontWeight;
+};
+interface BadgeParam {
+    [Optional]
+    attribute (BadgePosition or Position) position;
+    attribute BadgeStyle style;
+};
+interface BadgeParamWithNumber: BadgeParam {
+    attribute number count;
+    [Optional]
+    attribute number maxCount;
+};
+interface BadgeParamWithString: BadgeParam {
+    attribute ResourceStr value;
+};
+[Component]
+interface BadgeAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (([TypeArguments="BadgeAttribute", TypeArguments="BadgeAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface BadgeInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] BadgeAttribute) invoke(BadgeParamWithNumber value);
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] BadgeAttribute) invoke(BadgeParamWithString value);
+};

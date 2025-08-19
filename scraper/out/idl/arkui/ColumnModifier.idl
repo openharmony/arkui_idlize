@@ -1,0 +1,7 @@
+package arkui.ColumnModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.column.ColumnAttribute as ColumnAttribute;
+[Entity=Class]
+interface ColumnModifier: ColumnAttribute, [TypeArguments="ColumnAttribute", TypeArguments="ColumnAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,0 +1,28 @@
+package ohos.data.unifiedDataChannel;
+import ohos.base.AsyncCallback as AsyncCallback;
+import ohos.multimedia.image.default as image;
+import ohos.app.ability.Want.default as Want;
+[DefaultExport]
+namespace unifiedDataChannel {
+    typedef ((number or String or boolean or image.PixelMap or Want or buffer or Object) or undefined) ValueType;
+    [Entity=Class]
+    interface UnifiedData {
+        constructor(UnifiedRecord record_);
+        constructor();
+        void addRecord(UnifiedRecord record_);
+        sequence<UnifiedRecord> getRecords();
+    };
+    [Entity=Class]
+    interface Summary {
+        constructor();
+        attribute record<String, number> summary;
+        attribute number totalSize;
+    };
+    [Entity=Class]
+    interface UnifiedRecord {
+        constructor();
+        constructor(String type, ValueType value);
+        String getType();
+        ValueType getValue();
+    };
+};

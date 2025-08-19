@@ -1,0 +1,19 @@
+package bundleManager.Skill;
+interface Skill {
+    readonly attribute sequence<String> actions;
+    readonly attribute sequence<String> entities;
+    readonly attribute sequence<SkillUri> uris;
+    readonly attribute boolean domainVerify;
+};
+interface SkillUri {
+    readonly attribute String scheme;
+    readonly attribute String host;
+    readonly attribute i32 port;
+    readonly attribute String path;
+    readonly attribute String pathStartWith;
+    readonly attribute String pathRegex;
+    readonly attribute String type;
+    readonly attribute String utd;
+    readonly attribute i32 maxFileSupported;
+    readonly attribute String linkFeature;
+};

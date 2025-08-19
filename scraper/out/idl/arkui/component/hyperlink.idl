@@ -1,0 +1,21 @@
+package arkui.component.hyperlink;
+import global.resource.Resource as Resource;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.enums.Color as Color;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+[Component]
+interface HyperlinkAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((Color or number or String or Resource) or undefined) color;
+    [CommonMethod]
+    attribute (([TypeArguments="HyperlinkAttribute", TypeArguments="HyperlinkAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface HyperlinkInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] HyperlinkAttribute) invoke((String or Resource) address, optional (String or Resource) content);
+};

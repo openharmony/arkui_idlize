@@ -1,0 +1,185 @@
+package arkui.component.text;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.ShadowOptions as ShadowOptions;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.enums.EllipsisMode as EllipsisMode;
+import arkui.component.enums.TextCase as TextCase;
+import arkui.component.enums.LineBreakStrategy as LineBreakStrategy;
+import arkui.component.enums.TextAlign as TextAlign;
+import arkui.component.enums.FontStyle as FontStyle;
+import arkui.component.enums.FontWeight as FontWeight;
+import arkui.component.enums.WordBreak as WordBreak;
+import arkui.component.enums.TextOverflow as TextOverflow;
+import arkui.component.enums.CopyOptions as CopyOptions;
+import arkui.component.enums.TextHeightAdaptivePolicy as TextHeightAdaptivePolicy;
+import arkui.component.enums.TextSelectableMode as TextSelectableMode;
+import arkui.component.units.Resource as Resource;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Font as Font;
+import arkui.component.units.Length as Length;
+import arkui.component.units.LengthMetrics as LengthMetrics;
+import arkui.component.textCommon.TextDataDetectorConfig as TextDataDetectorConfig;
+import arkui.component.textCommon.LayoutManager as LayoutManager;
+import arkui.component.textCommon.FontSettingOptions as FontSettingOptions;
+import arkui.component.textCommon.EditMenuOptions as EditMenuOptions;
+import arkui.component.styledString.DecorationStyleInterface as DecorationStyleInterface;
+import arkui.component.styledString.StyledString as StyledString;
+import arkui.component.richEditor.SelectionMenuOptions as SelectionMenuOptions;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface TextOverflowOptions {
+    attribute TextOverflow overflow;
+};
+[Synthetic]
+callback Callback_String_Void = void (String value);
+[Synthetic]
+callback Callback_Number_Number_Void = void (number selectionStart, number selectionEnd);
+[Synthetic]
+callback Callback_MarqueeState_Void = void (MarqueeState value0);
+[Component]
+interface TextAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fontColor;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) fontSize;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) minFontSize;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) maxFontSize;
+    [CommonMethod]
+    attribute ((number or Resource) or undefined) minFontScale;
+    [CommonMethod]
+    attribute ((number or Resource) or undefined) maxFontScale;
+    [CommonMethod]
+    attribute (FontStyle or undefined) fontStyle;
+    [CommonMethod]
+    attribute (LengthMetrics or undefined) lineSpacing;
+    [CommonMethod]
+    attribute (TextAlign or undefined) textAlign;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) lineHeight;
+    [CommonMethod]
+    attribute (TextOverflowOptions or undefined) textOverflow;
+    [CommonMethod]
+    attribute ((String or Resource) or undefined) fontFamily;
+    [CommonMethod]
+    attribute (number or undefined) maxLines;
+    [CommonMethod]
+    attribute (DecorationStyleInterface or undefined) decoration;
+    [CommonMethod]
+    attribute ((number or String) or undefined) letterSpacing;
+    [CommonMethod]
+    attribute (TextCase or undefined) textCase;
+    [CommonMethod]
+    attribute ((number or String) or undefined) baselineOffset;
+    [CommonMethod]
+    attribute (CopyOptions or undefined) copyOption;
+    [CommonMethod]
+    attribute (boolean or undefined) draggable;
+    [CommonMethod]
+    attribute ((ShadowOptions or sequence<ShadowOptions>) or undefined) textShadow;
+    [CommonMethod]
+    attribute (TextHeightAdaptivePolicy or undefined) heightAdaptivePolicy;
+    [CommonMethod]
+    attribute (Length or undefined) textIndent;
+    [CommonMethod]
+    attribute (WordBreak or undefined) wordBreak;
+    [CommonMethod]
+    attribute (LineBreakStrategy or undefined) lineBreakStrategy;
+    [CommonMethod]
+    attribute (Callback_String_Void or undefined) onCopy;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) caretColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedBackgroundColor;
+    [CommonMethod]
+    attribute (EllipsisMode or undefined) ellipsisMode;
+    [CommonMethod]
+    attribute (boolean or undefined) enableDataDetector;
+    [CommonMethod]
+    attribute (TextDataDetectorConfig or undefined) dataDetectorConfig;
+    [CommonMethod]
+    attribute (Callback_Number_Number_Void or undefined) onTextSelectionChange;
+    [CommonMethod]
+    attribute (String or undefined) fontFeature;
+    [CommonMethod]
+    attribute (TextMarqueeOptions or undefined) marqueeOptions;
+    [CommonMethod]
+    attribute (Callback_MarqueeState_Void or undefined) onMarqueeStateChange;
+    [CommonMethod]
+    attribute (boolean or undefined) privacySensitive;
+    [CommonMethod]
+    attribute (TextSelectableMode or undefined) textSelectable;
+    [CommonMethod]
+    attribute (EditMenuOptions or undefined) editMenuOptions;
+    [CommonMethod]
+    attribute (boolean or undefined) halfLeading;
+    [CommonMethod]
+    attribute (boolean or undefined) enableHapticFeedback;
+    [CommonMethod]
+    attribute (([TypeArguments="TextAttribute", TypeArguments="TextAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this font((Font or undefined) fontValue, optional (FontSettingOptions or undefined) options);
+    [CommonMethod]
+    this fontWeight(((number or FontWeight or String) or undefined) weight, optional (FontSettingOptions or undefined) options);
+    [CommonMethod]
+    this selection((number or undefined) selectionStart, (number or undefined) selectionEnd);
+    [CommonMethod]
+    this bindSelectionMenu((TextSpanType or undefined) spanType, (CustomBuilder or undefined) content, (TextResponseType or undefined) responseType, optional (SelectionMenuOptions or undefined) options);
+};
+dictionary TextSpanType {
+    number TEXT = 0;
+    number IMAGE = 1;
+    number MIXED = 2;
+    number DEFAULT = 3;
+};
+dictionary TextResponseType {
+    number RIGHT_CLICK = 0;
+    number LONG_PRESS = 1;
+    number SELECT = 2;
+    number DEFAULT = 3;
+};
+dictionary MarqueeState {
+    number START = 0;
+    number BOUNCE = 1;
+    number FINISH = 2;
+};
+dictionary MarqueeStartPolicy {
+    number DEFAULT = 0;
+    number ON_FOCUS = 1;
+};
+interface TextOptions {
+    attribute TextController controller;
+};
+interface TextMarqueeOptions {
+    attribute boolean start;
+    [Optional]
+    attribute number step;
+    [Optional]
+    attribute number loop;
+    [Optional]
+    attribute boolean fromStart;
+    [Optional]
+    attribute number delay;
+    [Optional]
+    attribute boolean fadeout;
+    [Optional]
+    attribute MarqueeStartPolicy marqueeStartPolicy;
+};
+[Entity=Class]
+interface TextController {
+    constructor();
+    void closeSelectionMenu();
+    void setStyledString(StyledString value);
+    LayoutManager getLayoutManager();
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface TextInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] TextAttribute) invoke(optional (String or Resource) content, optional TextOptions value);
+};

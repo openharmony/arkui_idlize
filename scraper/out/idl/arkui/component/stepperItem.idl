@@ -1,0 +1,30 @@
+package arkui.component.stepperItem;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+dictionary ItemState {
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 0;
+    [OriginalEnumMemberName=Disabled]
+    number DISABLED = 1;
+    [OriginalEnumMemberName=Waiting]
+    number WAITING = 2;
+    [OriginalEnumMemberName=Skip]
+    number SKIP = 3;
+};
+[Component]
+interface StepperItemAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (String or undefined) prevLabel;
+    [CommonMethod]
+    attribute (String or undefined) nextLabel;
+    [CommonMethod]
+    attribute (ItemState or undefined) status;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface StepperItemInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] StepperItemAttribute) invoke();
+};

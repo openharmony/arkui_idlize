@@ -1,0 +1,167 @@
+package arkui.Graphics;
+import ohos.graphics.drawing.default as drawing;
+import ohos.graphics.common2D.default as common2D;
+import global.resource.Resource as Resource;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.enums.BorderStyle as BorderStyle;
+interface Size {
+    attribute number width;
+    attribute number height;
+};
+[Entity=Class]
+interface DrawContext {
+    constructor();
+    [Accessor=Getter]
+    attribute Size size;
+    [Accessor=Getter]
+    attribute Size sizeInPixel;
+    [Accessor=Getter]
+    attribute drawing.Canvas canvas;
+};
+interface Vector2 {
+    attribute number x;
+    attribute number y;
+};
+[TypeParameters="T", TypeParameters="T"]
+interface Vector2T {
+    attribute T x;
+    attribute T y;
+};
+interface Vector3 {
+    attribute number x;
+    attribute number y;
+    attribute number z;
+};
+[Entity=Tuple]
+interface Matrix4 {
+    attribute number value0;
+    attribute number value1;
+    attribute number value2;
+    attribute number value3;
+    attribute number value4;
+    attribute number value5;
+    attribute number value6;
+    attribute number value7;
+    attribute number value8;
+    attribute number value9;
+    attribute number value10;
+    attribute number value11;
+    attribute number value12;
+    attribute number value13;
+    attribute number value14;
+    attribute number value15;
+};
+typedef Vector2 Offset;
+typedef Vector2 Position;
+[TypeParameters="T", TypeParameters="T"]
+typedef [TypeArguments="T", TypeArguments="T"] Vector2T PositionT;
+typedef Vector2 Pivot;
+typedef Vector2 Scale;
+typedef Vector2 Translation;
+typedef Vector3 Rotation;
+interface Frame {
+    attribute number x;
+    attribute number y;
+    attribute number width;
+    attribute number height;
+};
+[TypeParameters="T", TypeParameters="T"]
+interface Edges {
+    attribute T left;
+    attribute T right;
+    attribute T top;
+    attribute T bottom;
+};
+dictionary LengthUnit {
+    number PX = 0;
+    number VP = 1;
+    number FP = 2;
+    number PERCENT = 3;
+    number LPX = 4;
+};
+[TypeParameters="T", TypeParameters="T"]
+interface SizeT {
+    attribute T width;
+    attribute T height;
+};
+dictionary LengthMetricsUnit {
+    number DEFAULT = 0;
+    number PX = 1;
+};
+[Entity=Class]
+interface LengthMetrics {
+    constructor(number value, optional LengthUnit unit);
+    attribute LengthUnit unit;
+    attribute number value;
+    static LengthMetrics px(number value);
+    static LengthMetrics vp(number value);
+    static LengthMetrics fp(number value);
+    static LengthMetrics percent(number value);
+    static LengthMetrics lpx(number value);
+    static LengthMetrics resource(Resource value);
+};
+[Entity=Class]
+interface ColorMetrics {
+    constructor();
+    [Accessor=Getter]
+    attribute String color;
+    [Accessor=Getter]
+    attribute number red;
+    [Accessor=Getter]
+    attribute number green;
+    [Accessor=Getter]
+    attribute number blue;
+    [Accessor=Getter]
+    attribute number alpha;
+    static ColorMetrics numeric(number value);
+    static ColorMetrics rgba(number red, number green, number blue, optional number alpha);
+    static ColorMetrics resourceColor(ResourceColor color);
+    ColorMetrics blendColor(ColorMetrics overlayColor);
+};
+[TypeParameters="T", TypeParameters="T"]
+interface Corners {
+    attribute T topLeft;
+    attribute T topRight;
+    attribute T bottomLeft;
+    attribute T bottomRight;
+};
+typedef [TypeArguments="Vector2", TypeArguments="Vector2"] Corners CornerRadius;
+typedef [TypeArguments="number", TypeArguments="number"] Corners BorderRadiuses;
+typedef common2D.Rect Rect;
+interface RoundRect {
+    attribute Rect rect;
+    attribute CornerRadius corners;
+};
+interface Circle {
+    attribute number centerX;
+    attribute number centerY;
+    attribute number radius;
+};
+interface CommandPath {
+    attribute String commands;
+};
+[Entity=Class]
+interface ShapeMask {
+    constructor();
+    attribute number fillColor;
+    attribute number strokeColor;
+    attribute number strokeWidth;
+    void setRectShape(Rect rect);
+    void setRoundRectShape(RoundRect roundRect);
+    void setCircleShape(Circle circle);
+    void setOvalShape(Rect oval);
+    void setCommandPath(CommandPath path);
+};
+[Entity=Class]
+interface ShapeClip {
+    constructor();
+    void setRectShape(Rect rect);
+    void setRoundRectShape(RoundRect roundRect);
+    void setCircleShape(Circle circle);
+    void setOvalShape(Rect oval);
+    void setCommandPath(CommandPath path);
+};
+([TypeArguments="number"] Edges) edgeColors(number all);
+([TypeArguments="number"] Edges) edgeWidths(number all);
+([TypeArguments="BorderStyle"] Edges) borderStyles(BorderStyle all);
+BorderRadiuses borderRadiuses(number all);

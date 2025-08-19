@@ -1,0 +1,56 @@
+package arkui.component.relativeContainer;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.enums.Axis as Axis;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+interface GuideLinePosition {
+    [Optional]
+    attribute Dimension start;
+    [Optional]
+    attribute Dimension end;
+};
+interface GuideLineStyle {
+    attribute String id;
+    attribute Axis direction;
+    attribute GuideLinePosition position;
+};
+dictionary BarrierDirection {
+    number LEFT = 0;
+    number RIGHT = 1;
+    number TOP = 2;
+    number BOTTOM = 3;
+};
+dictionary LocalizedBarrierDirection {
+    number START = 0;
+    number END = 1;
+    number TOP = 2;
+    number BOTTOM = 3;
+};
+interface BarrierStyle {
+    attribute String id;
+    attribute BarrierDirection direction;
+    attribute sequence<String> referencedId;
+};
+interface LocalizedBarrierStyle {
+    attribute String id;
+    attribute LocalizedBarrierDirection localizedDirection;
+    attribute sequence<String> referencedId;
+};
+[Component]
+interface RelativeContainerAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (sequence<GuideLineStyle> or undefined) guideLine;
+    [CommonMethod]
+    attribute (sequence<BarrierStyle> or undefined) barrier;
+    [CommonMethod]
+    attribute (([TypeArguments="RelativeContainerAttribute", TypeArguments="RelativeContainerAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface RelativeContainerInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] RelativeContainerAttribute) invoke();
+};

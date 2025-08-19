@@ -1,0 +1,7 @@
+package arkui.ButtonModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.button.ButtonAttribute as ButtonAttribute;
+[Entity=Class]
+interface ButtonModifier: ButtonAttribute, [TypeArguments="ButtonAttribute", TypeArguments="ButtonAttribute"] AttributeModifier {
+    constructor();
+};

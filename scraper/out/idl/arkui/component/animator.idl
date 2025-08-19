@@ -1,0 +1,67 @@
+package arkui.component.animator;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.enums.Curve as Curve;
+import arkui.component.enums.AnimationStatus as AnimationStatus;
+import arkui.component.enums.FillMode as FillMode;
+import arkui.component.enums.PlayMode as PlayMode;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+[Entity=Class]
+interface SpringProp {
+    constructor(number mass, number stiffness, number damping);
+};
+[Entity=Class]
+interface SpringMotion {
+    constructor(number start, number end, number velocity, SpringProp prop);
+};
+[Entity=Class]
+interface FrictionMotion {
+    constructor(number friction, number position, number velocity);
+};
+[Entity=Class]
+interface ScrollMotion {
+    constructor(number position, number velocity, number min, number max, SpringProp prop);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[Synthetic]
+callback Callback_Number_Void = void (number value);
+[Component]
+interface AnimatorAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (AnimationStatus or undefined) state;
+    [CommonMethod]
+    attribute (number or undefined) duration;
+    [CommonMethod]
+    attribute (Curve or undefined) curve;
+    [CommonMethod]
+    attribute (number or undefined) delay;
+    [CommonMethod]
+    attribute (FillMode or undefined) fillMode;
+    [CommonMethod]
+    attribute (number or undefined) iterations;
+    [CommonMethod]
+    attribute (PlayMode or undefined) playMode;
+    [CommonMethod]
+    attribute ((SpringMotion or FrictionMotion or ScrollMotion) or undefined) motion;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onStart;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onPause;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onRepeat;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onCancel;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onFinish;
+    [CommonMethod]
+    attribute (Callback_Number_Void or undefined) onFrame;
+    [CommonMethod]
+    attribute (([TypeArguments="AnimatorAttribute", TypeArguments="AnimatorAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[ComponentInterface]
+interface AnimatorInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] AnimatorAttribute) invoke(String value);
+};

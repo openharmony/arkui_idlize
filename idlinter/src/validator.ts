@@ -215,6 +215,20 @@ inheritancePass.on({kind: idl.IDLKind.Interface}).before = (node, st) => {
     findCycle(node)
 }
 
+// const reexportNamePass = idlManager.newPass("sameNameCheck", [], () => ({ index: new Map<string, string[]>() }))
+// reexportNamePass.on({}).before = (node, st) => {
+//     if ([idl.IDLKind.Callback, idl.IDLKind.Typedef, idl.IDLKind.Interface, idl.IDLKind.Namespace].includes(node.kind)) {
+//         appendTo(st.index, node.name, idl.getFileFor(node)?.fileName ?? '')
+//     }
+// }
+// reexportNamePass.afterAll = ({ index }) => {
+//     for (const [name, files] of index) {
+//         if (files.length > 1) {
+//             console.error(name, files)
+//         }
+//     }
+// }
+
 const genPass = idlManager.newPass(".genPass", [enumPass], ()=>({lines: ([] as string[])}))
 genPass.on({kind: idl.IDLKind.File}).before = (node, st) => { st.lines = [] }
 genPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.lines.push(`enum ${node.name} {`)

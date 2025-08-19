@@ -1,0 +1,165 @@
+package arkui.component.image;
+import ohos.multimedia.image.default as image;
+import ohos.graphics.drawing.default as drawing;
+import ohos.matrix4.default as matrix4;
+import ohos.base.BusinessError as BusinessError;
+import ohos.arkui.drawableDescriptor.DrawableDescriptor as DrawableDescriptor;
+import arkui.component.imageCommon.ImageAIOptions as ImageAIOptions;
+import arkui.component.imageCommon.ImageAnalyzerConfig as ImageAnalyzerConfig;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.ColorFilter as ColorFilter;
+import arkui.component.units.EdgeWidths as EdgeWidths;
+import arkui.component.units.ColorMetrics as ColorMetrics;
+import arkui.component.enums.ImageFit as ImageFit;
+import arkui.component.enums.ImageRepeat as ImageRepeat;
+import arkui.component.enums.CopyOptions as CopyOptions;
+import global.resource.Resource as Resource;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.PointLightStyle as PointLightStyle;
+import arkui.component.common.PixelMap as PixelMap;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+typedef drawing.ColorFilter DrawingColorFilter;
+typedef image.ResolutionQuality ResolutionQuality;
+typedef drawing.Lattice DrawingLattice;
+typedef matrix4.Matrix4Transit ImageMatrix;
+dictionary ImageRenderMode {
+    [OriginalEnumMemberName=Original]
+    number ORIGINAL = 0;
+    [OriginalEnumMemberName=Template]
+    number TEMPLATE = 1;
+};
+dictionary ImageContent {
+    number EMPTY = 0;
+};
+dictionary DynamicRangeMode {
+    number HIGH = 0;
+    number CONSTRAINT = 1;
+    number STANDARD = 2;
+};
+dictionary ImageInterpolation {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Low]
+    number LOW = 1;
+    [OriginalEnumMemberName=Medium]
+    number MEDIUM = 2;
+    [OriginalEnumMemberName=High]
+    number HIGH = 3;
+};
+dictionary ImageRotateOrientation {
+    number AUTO = 0;
+    number UP = 1;
+    number RIGHT = 2;
+    number DOWN = 3;
+    number LEFT = 4;
+    number UP_MIRRORED = 5;
+    number RIGHT_MIRRORED = 6;
+    number DOWN_MIRRORED = 7;
+    number LEFT_MIRRORED = 8;
+};
+interface ImageCompleteEvent {
+    attribute number width;
+    attribute number height;
+    attribute number componentWidth;
+    attribute number componentHeight;
+    attribute number loadingStatus;
+    attribute number contentWidth;
+    attribute number contentHeight;
+    attribute number contentOffsetX;
+    attribute number contentOffsetY;
+};
+interface ImageSourceSize {
+    attribute number width;
+    attribute number height;
+};
+[Entity=Class]
+interface ColorContent {
+    constructor();
+    static readonly attribute ColorContent ORIGIN;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[Component]
+interface ImageAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((String or Resource or PixelMap) or undefined) alt;
+    [CommonMethod]
+    attribute (boolean or undefined) matchTextDirection;
+    [CommonMethod]
+    attribute (boolean or undefined) fitOriginalSize;
+    [CommonMethod]
+    attribute ((ResourceColor or ColorContent or ColorMetrics) or undefined) fillColor;
+    [CommonMethod]
+    attribute (ImageFit or undefined) objectFit;
+    [CommonMethod]
+    attribute (ImageMatrix or undefined) imageMatrix;
+    [CommonMethod]
+    attribute (ImageRepeat or undefined) objectRepeat;
+    [CommonMethod]
+    attribute (boolean or undefined) autoResize;
+    [CommonMethod]
+    attribute (ImageRenderMode or undefined) renderMode;
+    [CommonMethod]
+    attribute (DynamicRangeMode or undefined) dynamicRangeMode;
+    [CommonMethod]
+    attribute (ImageInterpolation or undefined) interpolation;
+    [CommonMethod]
+    attribute (ImageSourceSize or undefined) sourceSize;
+    [CommonMethod]
+    attribute (boolean or undefined) syncLoad;
+    [CommonMethod]
+    attribute ((ColorFilter or DrawingColorFilter) or undefined) colorFilter;
+    [CommonMethod]
+    attribute (CopyOptions or undefined) copyOption;
+    [CommonMethod]
+    attribute (boolean or undefined) draggable;
+    [CommonMethod]
+    attribute (PointLightStyle or undefined) pointLight;
+    [CommonMethod]
+    attribute (number or undefined) edgeAntialiasing;
+    [CommonMethod]
+    attribute (ImageOnCompleteCallback or undefined) onComplete;
+    [CommonMethod]
+    attribute (ImageErrorCallback or undefined) onError;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onFinish;
+    [CommonMethod]
+    attribute (boolean or undefined) enableAnalyzer;
+    [CommonMethod]
+    attribute (ImageAnalyzerConfig or undefined) analyzerConfig;
+    [CommonMethod]
+    attribute (ResizableOptions or undefined) resizable;
+    [CommonMethod]
+    attribute (boolean or undefined) privacySensitive;
+    [CommonMethod]
+    attribute (ResolutionQuality or undefined) enhancedImageQuality;
+    [CommonMethod]
+    attribute (ImageRotateOrientation or undefined) orientation;
+    [CommonMethod]
+    attribute (([TypeArguments="ImageAttribute", TypeArguments="ImageAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+callback ImageErrorCallback = void (ImageError error);
+callback ImageOnCompleteCallback = void (optional ImageCompleteEvent loadEvent);
+interface ImageError {
+    attribute number componentWidth;
+    attribute number componentHeight;
+    attribute String message;
+    [Optional]
+    attribute BusinessError error;
+};
+interface ResizableOptions {
+    [Optional]
+    attribute EdgeWidths slice;
+    [Optional]
+    attribute DrawingLattice lattice;
+};
+[ComponentInterface]
+interface ImageInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] ImageAttribute) invoke((PixelMap or ResourceStr or DrawableDescriptor or ImageContent) src);
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] ImageAttribute) invoke((PixelMap or ResourceStr or DrawableDescriptor) src, ImageAIOptions imageAIOptions);
+};

@@ -1,0 +1,682 @@
+{
+  "moduleName": "arkui",
+  "modules": {
+    "arkui": {
+      "name": "arkui",
+      "packages": [
+        "arkui.AttributeUpdater",
+        "arkui.BlankModifier",
+        "arkui.BuilderNode",
+        "arkui.ButtonModifier",
+        "arkui.CheckboxModifier",
+        "arkui.ColumnModifier",
+        "arkui.ColumnSplitModifier",
+        "arkui.CommonModifier",
+        "arkui.ComponentContent",
+        "arkui.ContainerSpanModifier",
+        "arkui.Content",
+        "arkui.DividerModifier",
+        "arkui.FlexModifier",
+        "arkui.FolderStackModifier",
+        "arkui.FrameNode",
+        "arkui.Graphics",
+        "arkui.GridColModifier",
+        "arkui.GridItemModifier",
+        "arkui.GridModifier",
+        "arkui.GridRowModifier",
+        "arkui.HyperlinkModifier",
+        "arkui.ImageSpanModifier",
+        "arkui.LineModifier",
+        "arkui.ListItemGroupModifier",
+        "arkui.ListItemModifier",
+        "arkui.ListModifier",
+        "arkui.MenuItemModifier",
+        "arkui.MenuModifier",
+        "arkui.NavDestinationModifier",
+        "arkui.NavigationModifier",
+        "arkui.NodeContent",
+        "arkui.NodeController",
+        "arkui.PathModifier",
+        "arkui.PolygonModifier",
+        "arkui.PolylineModifier",
+        "arkui.RectModifier",
+        "arkui.RefreshModifier",
+        "arkui.RelativeContainerModifier",
+        "arkui.RenderNode",
+        "arkui.RichEditorModifier",
+        "arkui.RowModifier",
+        "arkui.RowSplitModifier",
+        "arkui.ScrollModifier",
+        "arkui.SearchModifier",
+        "arkui.SelectModifier",
+        "arkui.ShapeModifier",
+        "arkui.SideBarContainerModifier",
+        "arkui.SpanModifier",
+        "arkui.StackModifier",
+        "arkui.StepperItemModifier",
+        "arkui.StepperModifier",
+        "arkui.SwiperModifier",
+        "arkui.SymbolGlyphModifier",
+        "arkui.SymbolSpanModifier",
+        "arkui.TextAreaModifier",
+        "arkui.TextInputModifier",
+        "arkui.TextModifier",
+        "arkui.UserView",
+        "arkui.VideoModifier",
+        "arkui.WaterFlowModifier",
+        "arkui.component.actionSheet",
+        "arkui.component.alertDialog",
+        "arkui.component.alphabetIndexer",
+        "arkui.component.animator",
+        "arkui.component.badge",
+        "arkui.component.blank",
+        "arkui.component.builder",
+        "arkui.component.button",
+        "arkui.component.calendarPicker",
+        "arkui.component.canvas",
+        "arkui.component.checkbox",
+        "arkui.component.checkboxgroup",
+        "arkui.component.circle",
+        "arkui.component.column",
+        "arkui.component.columnSplit",
+        "arkui.component.common",
+        "arkui.component.containerSpan",
+        "arkui.component.contentSlot",
+        "arkui.component.counter",
+        "arkui.component.customDialogController",
+        "arkui.component.dataPanel",
+        "arkui.component.datePicker",
+        "arkui.component.divider",
+        "arkui.component.effectComponent",
+        "arkui.component.ellipse",
+        "arkui.component.embeddedComponent",
+        "arkui.component.enums",
+        "arkui.component.extendableComponent",
+        "arkui.component.flex",
+        "arkui.component.flowItem",
+        "arkui.component.focus",
+        "arkui.component.folderStack",
+        "arkui.component.forEach",
+        "arkui.component.formComponent",
+        "arkui.component.formLink",
+        "arkui.component.gauge",
+        "arkui.component.gesture",
+        "arkui.component.grid",
+        "arkui.component.gridCol",
+        "arkui.component.gridItem",
+        "arkui.component.gridRow",
+        "arkui.component.hyperlink",
+        "arkui.component.image",
+        "arkui.component.imageAnimator",
+        "arkui.component.imageCommon",
+        "arkui.component.imageSpan",
+        "arkui.component.indicatorcomponent",
+        "arkui.component.inspector",
+        "arkui.component.lazyGridLayout",
+        "arkui.component.line",
+        "arkui.component.linearindicator",
+        "arkui.component.list",
+        "arkui.component.listItem",
+        "arkui.component.listItemGroup",
+        "arkui.component.loadingProgress",
+        "arkui.component.marquee",
+        "arkui.component.matrix2d",
+        "arkui.component.mediaCachedImage",
+        "arkui.component.menu",
+        "arkui.component.menuItem",
+        "arkui.component.menuItemGroup",
+        "arkui.component.navDestination",
+        "arkui.component.navigation",
+        "arkui.component.nodeContainer",
+        "arkui.component.pageTransition",
+        "arkui.component.particle",
+        "arkui.component.pasteButton",
+        "arkui.component.path",
+        "arkui.component.patternLock",
+        "arkui.component.pluginComponent",
+        "arkui.component.polygon",
+        "arkui.component.polyline",
+        "arkui.component.progress",
+        "arkui.component.qrcode",
+        "arkui.component.radio",
+        "arkui.component.rating",
+        "arkui.component.rect",
+        "arkui.component.refresh",
+        "arkui.component.relativeContainer",
+        "arkui.component.remoteWindow",
+        "arkui.component.resources",
+        "arkui.component.richEditor",
+        "arkui.component.richText",
+        "arkui.component.rootScene",
+        "arkui.component.row",
+        "arkui.component.rowSplit",
+        "arkui.component.saveButton",
+        "arkui.component.screen",
+        "arkui.component.scroll",
+        "arkui.component.scrollBar",
+        "arkui.component.search",
+        "arkui.component.securityComponent",
+        "arkui.component.select",
+        "arkui.component.shape",
+        "arkui.component.sidebar",
+        "arkui.component.slider",
+        "arkui.component.span",
+        "arkui.component.stack",
+        "arkui.component.stepper",
+        "arkui.component.stepperItem",
+        "arkui.component.styledString",
+        "arkui.component.swiper",
+        "arkui.component.symbolSpan",
+        "arkui.component.symbolglyph",
+        "arkui.component.tabContent",
+        "arkui.component.tabs",
+        "arkui.component.text",
+        "arkui.component.textArea",
+        "arkui.component.textClock",
+        "arkui.component.textCommon",
+        "arkui.component.textInput",
+        "arkui.component.textPicker",
+        "arkui.component.textTimer",
+        "arkui.component.timePicker",
+        "arkui.component.toggle",
+        "arkui.component.toolbar",
+        "arkui.component.uiExtensionComponent",
+        "arkui.component.units",
+        "arkui.component.video",
+        "arkui.component.waterFlow",
+        "arkui.component.web",
+        "arkui.component.windowScene",
+        "arkui.component.withTheme",
+        "arkui.component.xcomponent",
+        "arkui.external.resource",
+
+        "arkui.component.idlize",
+        "api.internal.component.ets",
+        "arkui.stateManagement"
+      ]
+    },
+    "ohos.animator": {
+      "name": "ohos.animator",
+      "external": true,
+      "packages": [
+        "ohos.animator"
+      ]
+    },
+    "ohos.app.ability.Ability": {
+      "name": "ohos.app.ability.Ability",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.Ability"
+      ]
+    },
+    "ohos.app.ability.ApplicationStateChangeCallback": {
+      "name": "ohos.app.ability.ApplicationStateChangeCallback",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.ApplicationStateChangeCallback"
+      ]
+    },
+    "ohos.app.ability.AtomicServiceOptions": {
+      "name": "ohos.app.ability.AtomicServiceOptions",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.AtomicServiceOptions"
+      ]
+    },
+    "ohos.app.ability.Configuration": {
+      "name": "ohos.app.ability.Configuration",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.Configuration"
+      ]
+    },
+    "ohos.app.ability.EnvironmentCallback": {
+      "name": "ohos.app.ability.EnvironmentCallback",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.EnvironmentCallback"
+      ]
+    },
+    "ohos.app.ability.InteropAbilityLifecycleCallback": {
+      "name": "ohos.app.ability.InteropAbilityLifecycleCallback",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.InteropAbilityLifecycleCallback"
+      ]
+    },
+    "ohos.app.ability.OpenLinkOptions": {
+      "name": "ohos.app.ability.OpenLinkOptions",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.OpenLinkOptions"
+      ]
+    },
+    "ohos.app.ability.StartOptions": {
+      "name": "ohos.app.ability.StartOptions",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.StartOptions"
+      ]
+    },
+    "ohos.app.ability.UIAbility": {
+      "name": "ohos.app.ability.UIAbility",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.UIAbility"
+      ]
+    },
+    "ohos.app.ability.Want": {
+      "name": "ohos.app.ability.Want",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.Want"
+      ]
+    },
+    "ohos.app.ability.appManager": {
+      "name": "ohos.app.ability.appManager",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.appManager"
+      ]
+    },
+    "ohos.app.ability.common": {
+      "name": "ohos.app.ability.common",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.common"
+      ]
+    },
+    "ohos.app.ability.contextConstant": {
+      "name": "ohos.app.ability.contextConstant",
+      "external": true,
+      "packages": [
+        "ohos.app.ability.contextConstant"
+      ]
+    },
+    "ohos.arkui.UIContext": {
+      "name": "ohos.arkui.UIContext",
+      "external": true,
+      "packages": [
+        "ohos.arkui.UIContext"
+      ]
+    },
+    "ohos.arkui.componentSnapshot": {
+      "name": "ohos.arkui.componentSnapshot",
+      "external": true,
+      "packages": [
+        "ohos.arkui.componentSnapshot"
+      ]
+    },
+    "ohos.arkui.componentUtils": {
+      "name": "ohos.arkui.componentUtils",
+      "external": true,
+      "packages": [
+        "ohos.arkui.componentUtils"
+      ]
+    },
+    "ohos.arkui.dragController": {
+      "name": "ohos.arkui.dragController",
+      "external": true,
+      "packages": [
+        "ohos.arkui.dragController"
+      ]
+    },
+    "ohos.arkui.drawableDescriptor": {
+      "name": "ohos.arkui.drawableDescriptor",
+      "external": true,
+      "packages": [
+        "ohos.arkui.drawableDescriptor"
+      ]
+    },
+    "ohos.arkui.inspector": {
+      "name": "ohos.arkui.inspector",
+      "external": true,
+      "packages": [
+        "ohos.arkui.inspector"
+      ]
+    },
+    "ohos.arkui.observer": {
+      "name": "ohos.arkui.observer",
+      "external": true,
+      "packages": [
+        "ohos.arkui.observer"
+      ]
+    },
+    "ohos.arkui.shape": {
+      "name": "ohos.arkui.shape",
+      "external": true,
+      "packages": [
+        "ohos.arkui.shape"
+      ]
+    },
+    "ohos.arkui.theme": {
+      "name": "ohos.arkui.theme",
+      "external": true,
+      "packages": [
+        "ohos.arkui.theme"
+      ]
+    },
+    "ohos.base": {
+      "name": "ohos.base",
+      "external": true,
+      "packages": [
+        "ohos.base"
+      ]
+    },
+    "ohos.bundle.bundleManager": {
+      "name": "ohos.bundle.bundleManager",
+      "external": true,
+      "packages": [
+        "ohos.bundle.bundleManager"
+      ]
+    },
+    "ohos.curves": {
+      "name": "ohos.curves",
+      "external": true,
+      "packages": [
+        "ohos.curves"
+      ]
+    },
+    "ohos.data.unifiedDataChannel": {
+      "name": "ohos.data.unifiedDataChannel",
+      "external": true,
+      "packages": [
+        "ohos.data.unifiedDataChannel"
+      ]
+    },
+    "ohos.data.uniformTypeDescriptor": {
+      "name": "ohos.data.uniformTypeDescriptor",
+      "external": true,
+      "packages": [
+        "ohos.data.uniformTypeDescriptor"
+      ]
+    },
+    "ohos.font": {
+      "name": "ohos.font",
+      "external": true,
+      "packages": [
+        "ohos.font"
+      ]
+    },
+    "ohos.graphics.colorSpaceManager": {
+      "name": "ohos.graphics.colorSpaceManager",
+      "external": true,
+      "packages": [
+        "ohos.graphics.colorSpaceManager"
+      ]
+    },
+    "ohos.graphics.common2D": {
+      "name": "ohos.graphics.common2D",
+      "external": true,
+      "packages": [
+        "ohos.graphics.common2D"
+      ]
+    },
+    "ohos.graphics.drawing": {
+      "name": "ohos.graphics.drawing",
+      "external": true,
+      "packages": [
+        "ohos.graphics.drawing"
+      ]
+    },
+    "ohos.graphics.uiEffect": {
+      "name": "ohos.graphics.uiEffect",
+      "external": true,
+      "packages": [
+        "ohos.graphics.uiEffect"
+      ]
+    },
+    "ohos.intl": {
+      "name": "ohos.intl",
+      "external": true,
+      "packages": [
+        "ohos.intl"
+      ]
+    },
+    "ohos.matrix4": {
+      "name": "ohos.matrix4",
+      "external": true,
+      "packages": [
+        "ohos.matrix4"
+      ]
+    },
+    "ohos.measure": {
+      "name": "ohos.measure",
+      "external": true,
+      "packages": [
+        "ohos.measure"
+      ]
+    },
+    "ohos.mediaquery": {
+      "name": "ohos.mediaquery",
+      "external": true,
+      "packages": [
+        "ohos.mediaquery"
+      ]
+    },
+    "ohos.multimedia.image": {
+      "name": "ohos.multimedia.image",
+      "external": true,
+      "packages": [
+        "ohos.multimedia.image"
+      ]
+    },
+    "ohos.multimodalInput.intentionCode": {
+      "name": "ohos.multimodalInput.intentionCode",
+      "external": true,
+      "packages": [
+        "ohos.multimodalInput.intentionCode"
+      ]
+    },
+    "ohos.multimodalInput.pointer": {
+      "name": "ohos.multimodalInput.pointer",
+      "external": true,
+      "packages": [
+        "ohos.multimodalInput.pointer"
+      ]
+    },
+    "ohos.print": {
+      "name": "ohos.print",
+      "external": true,
+      "packages": [
+        "ohos.print"
+      ]
+    },
+    "ohos.promptAction": {
+      "name": "ohos.promptAction",
+      "external": true,
+      "packages": [
+        "ohos.promptAction"
+      ]
+    },
+    "ohos.resourceManager": {
+      "name": "ohos.resourceManager",
+      "external": true,
+      "packages": [
+        "ohos.resourceManager"
+      ]
+    },
+    "ohos.router": {
+      "name": "ohos.router",
+      "external": true,
+      "packages": [
+        "ohos.router"
+      ]
+    },
+    "ohos.rpc": {
+      "name": "ohos.rpc",
+      "external": true,
+      "packages": [
+        "ohos.rpc"
+      ]
+    },
+    "ohos.security.cert": {
+      "name": "ohos.security.cert",
+      "external": true,
+      "packages": [
+        "ohos.security.cert"
+      ]
+    },
+    "ohos.security.cryptoFramework": {
+      "name": "ohos.security.cryptoFramework",
+      "external": true,
+      "packages": [
+        "ohos.security.cryptoFramework"
+      ]
+    },
+    "ohos.web.netErrorList": {
+      "name": "ohos.web.netErrorList",
+      "external": true,
+      "packages": [
+        "ohos.web.netErrorList"
+      ]
+    },
+    "ohos.web.webview": {
+      "name": "ohos.web.webview",
+      "external": true,
+      "packages": [
+        "ohos.web.webview"
+      ]
+    },
+    "ohos.window": {
+      "name": "ohos.window",
+      "external": true,
+      "packages": [
+        "ohos.window"
+      ]
+    },
+    "ability.abilityResult": {
+      "name": "ability.abilityResult",
+      "external": true,
+      "packages": [
+        "ability.abilityResult"
+      ]
+    },
+    "ability.connectOptions": {
+      "name": "ability.connectOptions",
+      "external": true,
+      "packages": [
+        "ability.connectOptions"
+      ]
+    },
+    "application.AbilityStartCallback": {
+      "name": "application.AbilityStartCallback",
+      "external": true,
+      "packages": [
+        "application.AbilityStartCallback"
+      ]
+    },
+    "application.ApplicationContext": {
+      "name": "application.ApplicationContext",
+      "external": true,
+      "packages": [
+        "application.ApplicationContext"
+      ]
+    },
+    "application.BaseContext": {
+      "name": "application.BaseContext",
+      "external": true,
+      "packages": [
+        "application.BaseContext"
+      ]
+    },
+    "application.Context": {
+      "name": "application.Context",
+      "external": true,
+      "packages": [
+        "application.Context"
+      ]
+    },
+    "application.EventHub": {
+      "name": "application.EventHub",
+      "external": true,
+      "packages": [
+        "application.EventHub"
+      ]
+    },
+    "application.ExtensionContext": {
+      "name": "application.ExtensionContext",
+      "external": true,
+      "packages": [
+        "application.ExtensionContext"
+      ]
+    },
+    "application.ProcessInformation": {
+      "name": "application.ProcessInformation",
+      "external": true,
+      "packages": [
+        "application.ProcessInformation"
+      ]
+    },
+    "application.UIAbilityContext": {
+      "name": "application.UIAbilityContext",
+      "external": true,
+      "packages": [
+        "application.UIAbilityContext"
+      ]
+    },
+    "bundleManager.AbilityInfo": {
+      "name": "bundleManager.AbilityInfo",
+      "external": true,
+      "packages": [
+        "bundleManager.AbilityInfo"
+      ]
+    },
+    "bundleManager.ApplicationInfo": {
+      "name": "bundleManager.ApplicationInfo",
+      "external": true,
+      "packages": [
+        "bundleManager.ApplicationInfo"
+      ]
+    },
+    "bundleManager.ElementName": {
+      "name": "bundleManager.ElementName",
+      "external": true,
+      "packages": [
+        "bundleManager.ElementName"
+      ]
+    },
+    "bundleManager.ExtensionAbilityInfo": {
+      "name": "bundleManager.ExtensionAbilityInfo",
+      "external": true,
+      "packages": [
+        "bundleManager.ExtensionAbilityInfo"
+      ]
+    },
+    "bundleManager.HapModuleInfo": {
+      "name": "bundleManager.HapModuleInfo",
+      "external": true,
+      "packages": [
+        "bundleManager.HapModuleInfo"
+      ]
+    },
+    "bundleManager.Metadata": {
+      "name": "bundleManager.Metadata",
+      "external": true,
+      "packages": [
+        "bundleManager.Metadata"
+      ]
+    },
+    "bundleManager.Skill": {
+      "name": "bundleManager.Skill",
+      "external": true,
+      "packages": [
+        "bundleManager.Skill"
+      ]
+    },
+    "global.rawFileDescriptor": {
+      "name": "global.rawFileDescriptor",
+      "external": true,
+      "packages": [
+        "global.rawFileDescriptor"
+      ]
+    },
+    "global.resource": {
+      "name": "global.resource",
+      "external": true,
+      "packages": [
+        "global.resource"
+      ]
+    }
+  }
+}

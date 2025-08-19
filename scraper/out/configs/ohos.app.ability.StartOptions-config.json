@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.app.ability.StartOptions",
+  "currentModuleExportedPackages": [
+    "ohos.app.ability.StartOptions"
+  ]
+}

@@ -1,0 +1,7 @@
+package arkui.ShapeModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.shape.ShapeAttribute as ShapeAttribute;
+[Entity=Class]
+interface ShapeModifier: ShapeAttribute, [TypeArguments="ShapeAttribute", TypeArguments="ShapeAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,0 +1,220 @@
+package arkui.component.textArea;
+import arkui.component.richEditor.KeyboardOptions as KeyboardOptions;
+import arkui.component.richEditor.PasteEvent as PasteEvent;
+import arkui.component.textCommon.CaretStyle as CaretStyle;
+import arkui.component.textCommon.DeleteValue as DeleteValue;
+import arkui.component.textCommon.EditMenuOptions as EditMenuOptions;
+import arkui.component.textCommon.EditableTextOnChangeCallback as EditableTextOnChangeCallback;
+import arkui.component.textCommon.InsertValue as InsertValue;
+import arkui.component.textCommon.AutoCapitalizationMode as AutoCapitalizationMode;
+import arkui.component.textCommon.EditableTextChangeValue as EditableTextChangeValue;
+import arkui.component.textCommon.KeyboardAppearance as KeyboardAppearance;
+import arkui.component.enums.BarState as BarState;
+import arkui.component.enums.CopyOptions as CopyOptions;
+import arkui.component.enums.FontStyle as FontStyle;
+import arkui.component.enums.FontWeight as FontWeight;
+import arkui.component.enums.LineBreakStrategy as LineBreakStrategy;
+import arkui.component.enums.TextContentStyle as TextContentStyle;
+import arkui.component.enums.TextAlign as TextAlign;
+import arkui.component.enums.TextOverflow as TextOverflow;
+import arkui.component.enums.TextHeightAdaptivePolicy as TextHeightAdaptivePolicy;
+import arkui.component.enums.WordBreak as WordBreak;
+import arkui.component.enums.EllipsisMode as EllipsisMode;
+import arkui.component.textInput.EnterKeyType as EnterKeyType;
+import arkui.component.textInput.SubmitEvent as SubmitEvent;
+import arkui.component.textInput.ContentType as ContentType;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.Font as Font;
+import arkui.component.units.Length as Length;
+import arkui.component.units.LengthMetrics as LengthMetrics;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.common.InputCounterOptions as InputCounterOptions;
+import arkui.component.common.TextContentControllerBase as TextContentControllerBase;
+import arkui.component.common.SelectionOptions as SelectionOptions;
+import arkui.component.common.TextDecorationOptions as TextDecorationOptions;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import global.resource.Resource as Resource;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+[Entity=Class]
+interface TextAreaController: [Extends] TextContentControllerBase {
+    constructor();
+    void caretPosition(number value);
+    void setTextSelection(number selectionStart, number selectionEnd, optional SelectionOptions options);
+    void stopEditing();
+};
+interface TextAreaOptions {
+    [Optional]
+    attribute ResourceStr placeholder;
+    [Optional]
+    attribute (ResourceStr or [TypeArguments="ResourceStr", TypeArguments="ResourceStr"] Bindable or [TypeArguments="Resource", TypeArguments="Resource"] Bindable or [TypeArguments="String", TypeArguments="String"] Bindable) text;
+    [Optional]
+    attribute TextAreaController controller;
+};
+dictionary TextAreaType {
+    number NORMAL = 0;
+    number NUMBER = 2;
+    number PHONE_NUMBER = 3;
+    number EMAIL = 5;
+    number NUMBER_DECIMAL = 12;
+    number URL = 13;
+};
+callback TextAreaSubmitCallback = void (EnterKeyType enterKeyType, optional SubmitEvent event);
+[Synthetic]
+callback Callback_String_Void = void (String value);
+[Synthetic]
+callback Callback_EnterKeyType_Void = void (EnterKeyType enterKey);
+[Synthetic]
+callback Callback_Number_Number_Void = void (number selectionStart, number selectionEnd);
+[Synthetic]
+callback Callback_Boolean_Void = void (boolean isEditing);
+[Synthetic]
+callback Callback_String_PasteEvent_Void = void (String value, PasteEvent event);
+[Synthetic]
+callback Callback_InsertValue_Boolean = boolean (InsertValue value0);
+[Synthetic]
+callback Callback_InsertValue_Void = void (InsertValue value0);
+[Synthetic]
+callback Callback_DeleteValue_Boolean = boolean (DeleteValue value0);
+[Synthetic]
+callback Callback_DeleteValue_Void = void (DeleteValue value0);
+[Synthetic]
+callback Callback_EditableTextChangeValue_Boolean = boolean (EditableTextChangeValue value0);
+[Component]
+interface TextAreaAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) placeholderColor;
+    [CommonMethod]
+    attribute (Font or undefined) placeholderFont;
+    [CommonMethod]
+    attribute (EnterKeyType or undefined) enterKeyType;
+    [CommonMethod]
+    attribute (TextAlign or undefined) textAlign;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) caretColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fontColor;
+    [CommonMethod]
+    attribute (Length or undefined) fontSize;
+    [CommonMethod]
+    attribute (FontStyle or undefined) fontStyle;
+    [CommonMethod]
+    attribute ((number or FontWeight or String) or undefined) fontWeight;
+    [CommonMethod]
+    attribute (ResourceStr or undefined) fontFamily;
+    [CommonMethod]
+    attribute (TextOverflow or undefined) textOverflow;
+    [CommonMethod]
+    attribute (Dimension or undefined) textIndent;
+    [CommonMethod]
+    attribute (CaretStyle or undefined) caretStyle;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedBackgroundColor;
+    [CommonMethod]
+    attribute ((Callback_EnterKeyType_Void or TextAreaSubmitCallback) or undefined) onSubmit;
+    [CommonMethod]
+    attribute (EditableTextOnChangeCallback or undefined) onChange;
+    [CommonMethod]
+    attribute (Callback_Number_Number_Void or undefined) onTextSelectionChange;
+    [CommonMethod]
+    attribute (Callback_Number_Number_Void or undefined) onContentScroll;
+    [CommonMethod]
+    attribute (Callback_Boolean_Void or undefined) onEditChange;
+    [CommonMethod]
+    attribute (Callback_String_Void or undefined) onCopy;
+    [CommonMethod]
+    attribute (Callback_String_Void or undefined) onCut;
+    [CommonMethod]
+    attribute (Callback_String_PasteEvent_Void or undefined) onPaste;
+    [CommonMethod]
+    attribute (CopyOptions or undefined) copyOption;
+    [CommonMethod]
+    attribute (boolean or undefined) enableKeyboardOnFocus;
+    [CommonMethod]
+    attribute (number or undefined) maxLength;
+    [CommonMethod]
+    attribute (TextContentStyle or undefined) style;
+    [CommonMethod]
+    attribute (BarState or undefined) barState;
+    [CommonMethod]
+    attribute (boolean or undefined) selectionMenuHidden;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) minFontSize;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) maxFontSize;
+    [CommonMethod]
+    attribute ((number or Resource) or undefined) minFontScale;
+    [CommonMethod]
+    attribute ((number or Resource) or undefined) maxFontScale;
+    [CommonMethod]
+    attribute (TextHeightAdaptivePolicy or undefined) heightAdaptivePolicy;
+    [CommonMethod]
+    attribute (number or undefined) maxLines;
+    [CommonMethod]
+    attribute (WordBreak or undefined) wordBreak;
+    [CommonMethod]
+    attribute (LineBreakStrategy or undefined) lineBreakStrategy;
+    [CommonMethod]
+    attribute (TextDecorationOptions or undefined) decoration;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) letterSpacing;
+    [CommonMethod]
+    attribute (LengthMetrics or undefined) lineSpacing;
+    [CommonMethod]
+    attribute ((number or String or Resource) or undefined) lineHeight;
+    [CommonMethod]
+    attribute (TextAreaType or undefined) type;
+    [CommonMethod]
+    attribute (boolean or undefined) enableAutoFill;
+    [CommonMethod]
+    attribute (ContentType or undefined) contentType;
+    [CommonMethod]
+    attribute (String or undefined) fontFeature;
+    [CommonMethod]
+    attribute (Callback_InsertValue_Boolean or undefined) onWillInsert;
+    [CommonMethod]
+    attribute (Callback_InsertValue_Void or undefined) onDidInsert;
+    [CommonMethod]
+    attribute (Callback_DeleteValue_Boolean or undefined) onWillDelete;
+    [CommonMethod]
+    attribute (Callback_DeleteValue_Void or undefined) onDidDelete;
+    [CommonMethod]
+    attribute (EditMenuOptions or undefined) editMenuOptions;
+    [CommonMethod]
+    attribute (boolean or undefined) enablePreviewText;
+    [CommonMethod]
+    attribute (boolean or undefined) enableHapticFeedback;
+    [CommonMethod]
+    attribute (AutoCapitalizationMode or undefined) autoCapitalizationMode;
+    [CommonMethod]
+    attribute (boolean or undefined) halfLeading;
+    [CommonMethod]
+    attribute (EllipsisMode or undefined) ellipsisMode;
+    [CommonMethod]
+    attribute (boolean or undefined) stopBackPress;
+    [CommonMethod]
+    attribute (Callback_EditableTextChangeValue_Boolean or undefined) onWillChange;
+    [CommonMethod]
+    attribute (KeyboardAppearance or undefined) keyboardAppearance;
+    [CommonMethod]
+    attribute (([TypeArguments="TextAreaAttribute", TypeArguments="TextAreaAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this inputFilter((ResourceStr or undefined) value, optional (Callback_String_Void or undefined) error);
+    [CommonMethod]
+    this showCounter((boolean or undefined) value, optional (InputCounterOptions or undefined) options);
+    [CommonMethod]
+    this customKeyboard((CustomBuilder or undefined) value, optional (KeyboardOptions or undefined) options);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface TextAreaInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] TextAreaAttribute) invoke(optional TextAreaOptions value);
+};

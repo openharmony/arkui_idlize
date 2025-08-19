@@ -1,0 +1,50 @@
+package arkui.component.marquee;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.enums.FontWeight as FontWeight;
+import arkui.component.enums.MarqueeUpdateStrategy as MarqueeUpdateStrategy;
+import global.resource.Resource as Resource;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface MarqueeOptions {
+    attribute boolean start;
+    [Optional]
+    attribute number step;
+    [Optional]
+    attribute number loop;
+    [Optional]
+    attribute boolean fromStart;
+    attribute String src;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[Component]
+interface MarqueeAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fontColor;
+    [CommonMethod]
+    attribute (Length or undefined) fontSize;
+    [CommonMethod]
+    attribute (boolean or undefined) allowScale;
+    [CommonMethod]
+    attribute ((number or FontWeight or String) or undefined) fontWeight;
+    [CommonMethod]
+    attribute ((String or Resource) or undefined) fontFamily;
+    [CommonMethod]
+    attribute (MarqueeUpdateStrategy or undefined) marqueeUpdateStrategy;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onStart;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onBounce;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onFinish;
+    [CommonMethod]
+    attribute (([TypeArguments="MarqueeAttribute", TypeArguments="MarqueeAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[ComponentInterface]
+interface MarqueeInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] MarqueeAttribute) invoke(MarqueeOptions options);
+};

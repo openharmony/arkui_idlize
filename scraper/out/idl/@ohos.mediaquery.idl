@@ -1,0 +1,17 @@
+package ohos.mediaquery;
+import ohos.base.Callback as Callback;
+[DefaultExport]
+namespace mediaquery {
+    interface MediaQueryResult {
+        readonly attribute boolean matches;
+        readonly attribute String media;
+    };
+    [Synthetic]
+    callback Callback_MediaQueryResult_Void = void (MediaQueryResult value0);
+    interface MediaQueryListener: MediaQueryResult {
+        [DtsTag="'change'", DtsName="on"]
+        void onChange(Callback_MediaQueryResult_Void callback_);
+        [DtsTag="'change'", DtsName="off"]
+        void offChange(optional Callback_MediaQueryResult_Void callback_);
+    };
+};

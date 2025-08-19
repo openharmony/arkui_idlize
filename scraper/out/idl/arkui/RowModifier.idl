@@ -1,0 +1,7 @@
+package arkui.RowModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.row.RowAttribute as RowAttribute;
+[Entity=Class]
+interface RowModifier: RowAttribute, [TypeArguments="RowAttribute", TypeArguments="RowAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,0 +1,7 @@
+package arkui.MenuModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.menu.MenuAttribute as MenuAttribute;
+[Entity=Class]
+interface MenuModifier: MenuAttribute, [TypeArguments="MenuAttribute", TypeArguments="MenuAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,0 +1,7 @@
+package arkui.PathModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.path.PathAttribute as PathAttribute;
+[Entity=Class]
+interface PathModifier: PathAttribute, [TypeArguments="PathAttribute", TypeArguments="PathAttribute"] AttributeModifier {
+    constructor();
+};

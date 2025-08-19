@@ -1,0 +1,41 @@
+package ohos.animator;
+import arkui.component.enums.FillMode as FillMode;
+import arkui.component.enums.PlayMode as PlayMode;
+import arkui.component.common.ExpectedFrameRateRange as ExpectedFrameRateRange;
+interface AnimatorOptions {
+    attribute number duration;
+    attribute String easing;
+    attribute number delay;
+    attribute String fill;
+    attribute String direction;
+    attribute number iterations;
+    attribute number begin;
+    attribute number end;
+};
+[Entity=Class]
+interface SimpleAnimatorOptions {
+    constructor(number begin, number end);
+    SimpleAnimatorOptions duration(number duration);
+    SimpleAnimatorOptions easing(String curve);
+    SimpleAnimatorOptions delay(number delay);
+    SimpleAnimatorOptions fill(FillMode fillMode);
+    SimpleAnimatorOptions direction(PlayMode direction);
+    SimpleAnimatorOptions iterations(number iterations);
+};
+[Synthetic]
+callback Callback_Number_Void = void (number progress);
+[Synthetic]
+callback Callback_Void = void ();
+interface AnimatorResult {
+    attribute Callback_Number_Void onFrame;
+    attribute Callback_Void onFinish;
+    attribute Callback_Void onCancel;
+    attribute Callback_Void onRepeat;
+    void reset((AnimatorOptions or SimpleAnimatorOptions) options);
+    void play();
+    void finish();
+    void pause();
+    void cancel();
+    void reverse();
+    void setExpectedFrameRateRange(ExpectedFrameRateRange rateRange);
+};

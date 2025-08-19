@@ -1,0 +1,16 @@
+package arkui.component.contentSlot;
+import arkui.Content.Content as Content;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+[Component]
+interface ContentSlotAttribute {
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface ContentSlotInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] ContentSlotAttribute) invoke(Content content);
+};

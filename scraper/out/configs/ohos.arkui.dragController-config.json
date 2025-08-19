@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.arkui.dragController",
+  "currentModuleExportedPackages": [
+    "ohos.arkui.dragController"
+  ]
+}

@@ -1,0 +1,8 @@
+package arkui.SideBarContainerModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.sidebar.SideBarContainerAttribute as SideBarContainerAttribute;
+[Entity=Class]
+interface SideBarContainerModifier: SideBarContainerAttribute, [TypeArguments="SideBarContainerAttribute", TypeArguments="SideBarContainerAttribute"] AttributeModifier {
+    constructor();
+    void applyNormalAttribute(SideBarContainerAttribute instance);
+};

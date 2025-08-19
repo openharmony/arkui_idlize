@@ -1,0 +1,10 @@
+package ohos.app.ability.AtomicServiceOptions;
+import ohos.app.ability.StartOptions.default as StartOptions;
+[Entity=Class, DefaultExport]
+interface AtomicServiceOptions: [Extends] StartOptions {
+    constructor();
+    [Optional]
+    attribute (i32 or undefined) flags;
+    [Optional]
+    attribute (record<String, Object> or undefined) parameters;
+};

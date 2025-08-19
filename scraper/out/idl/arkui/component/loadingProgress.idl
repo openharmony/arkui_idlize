@@ -1,0 +1,37 @@
+package arkui.component.loadingProgress;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary LoadingProgressStyle {
+    [OriginalEnumMemberName=Default]
+    number DEFAULT = 0;
+    [OriginalEnumMemberName=Circular]
+    number CIRCULAR = 1;
+    [OriginalEnumMemberName=Orbital]
+    number ORBITAL = 2;
+};
+[Component]
+interface LoadingProgressAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) color;
+    [CommonMethod]
+    attribute (boolean or undefined) enableLoading;
+    [CommonMethod]
+    attribute ([TypeArguments="LoadingProgressConfiguration", TypeArguments="LoadingProgressConfiguration"] ContentModifier or undefined) contentModifier;
+    [CommonMethod]
+    attribute (([TypeArguments="LoadingProgressAttribute", TypeArguments="LoadingProgressAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+interface LoadingProgressConfiguration: [TypeArguments="LoadingProgressConfiguration", TypeArguments="LoadingProgressConfiguration"] CommonConfiguration {
+    attribute boolean enableLoading;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface LoadingProgressInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] LoadingProgressAttribute) invoke();
+};

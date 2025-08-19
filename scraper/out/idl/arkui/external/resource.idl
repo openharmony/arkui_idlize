@@ -1,0 +1,3 @@
+package arkui.external.resource;
+import global.resource.Resource as __Resource__;
+typedef __Resource__ Resource;

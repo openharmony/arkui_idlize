@@ -1,0 +1,24 @@
+package arkui.component.circle;
+import arkui.component.common.CommonShapeMethod as CommonShapeMethod;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface CircleOptions {
+    [Optional]
+    attribute (String or f64) width;
+    [Optional]
+    attribute (String or f64) height;
+};
+[Component]
+interface CircleAttribute: CommonShapeMethod {
+    [CommonMethod]
+    attribute (([TypeArguments="CircleAttribute", TypeArguments="CircleAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface CircleInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] CircleAttribute) invoke(optional CircleOptions options);
+};

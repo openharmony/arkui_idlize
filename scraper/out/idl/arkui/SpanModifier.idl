@@ -1,0 +1,7 @@
+package arkui.SpanModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.span.SpanAttribute as SpanAttribute;
+[Entity=Class]
+interface SpanModifier: SpanAttribute, [TypeArguments="SpanAttribute", TypeArguments="SpanAttribute"] AttributeModifier {
+    constructor();
+};

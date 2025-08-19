@@ -1,0 +1,7 @@
+package arkui.ContainerSpanModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.containerSpan.ContainerSpanAttribute as ContainerSpanAttribute;
+[Entity=Class]
+interface ContainerSpanModifier: ContainerSpanAttribute, [TypeArguments="ContainerSpanAttribute", TypeArguments="ContainerSpanAttribute"] AttributeModifier {
+    constructor();
+};

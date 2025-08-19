@@ -1,0 +1,8 @@
+package arkui.StepperModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.stepper.StepperAttribute as StepperAttribute;
+[Entity=Class]
+interface StepperModifier: StepperAttribute, [TypeArguments="StepperAttribute", TypeArguments="StepperAttribute"] AttributeModifier {
+    constructor();
+    void applyNormalAttribute(StepperAttribute instance);
+};

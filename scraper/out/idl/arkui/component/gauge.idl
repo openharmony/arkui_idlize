@@ -1,0 +1,72 @@
+package arkui.component.gauge;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.MultiShadowOptions as MultiShadowOptions;
+import arkui.component.common.Optional as Optional;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.dataPanel.LinearGradient as LinearGradient;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+interface GaugeOptions {
+    attribute number value;
+    [Optional]
+    attribute number min;
+    [Optional]
+    attribute number max;
+};
+interface GaugeShadowOptions: MultiShadowOptions {
+};
+interface GaugeIndicatorOptions {
+    [Optional]
+    attribute ResourceStr icon;
+    [Optional]
+    attribute Dimension space;
+};
+interface GaugeConfiguration: [TypeArguments="GaugeConfiguration", TypeArguments="GaugeConfiguration"] CommonConfiguration {
+    attribute number value;
+    attribute number min;
+    attribute number max;
+};
+[Entity=Tuple, Synthetic]
+interface Tuple_Union_ResourceColor_LinearGradient_Number {
+    attribute (ResourceColor or LinearGradient) value0;
+    attribute number value1;
+};
+[Component]
+interface GaugeAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (number or undefined) value;
+    [CommonMethod]
+    attribute (number or undefined) startAngle;
+    [CommonMethod]
+    attribute (number or undefined) endAngle;
+    [CommonMethod]
+    attribute ((ResourceColor or LinearGradient or sequence<Tuple_Union_ResourceColor_LinearGradient_Number>) or undefined) colors;
+    [CommonMethod]
+    attribute (Length or undefined) strokeWidth;
+    [CommonMethod]
+    attribute (CustomBuilder or undefined) description;
+    [CommonMethod]
+    attribute (GaugeShadowOptions or undefined) trackShadow;
+    [CommonMethod]
+    attribute (GaugeIndicatorOptions or undefined) indicator;
+    [CommonMethod]
+    attribute (boolean or undefined) privacySensitive;
+    [CommonMethod]
+    attribute ([TypeArguments="GaugeConfiguration", TypeArguments="GaugeConfiguration"] ContentModifier or undefined) contentModifier;
+    [CommonMethod]
+    attribute (([TypeArguments="GaugeAttribute", TypeArguments="GaugeAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface GaugeInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] GaugeAttribute) invoke(GaugeOptions options);
+};

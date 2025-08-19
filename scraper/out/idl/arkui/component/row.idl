@@ -1,0 +1,33 @@
+package arkui.component.row;
+import arkui.component.enums.VerticalAlign as VerticalAlign;
+import arkui.component.enums.FlexAlign as FlexAlign;
+import arkui.component.column.SpaceType as SpaceType;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+interface RowOptions {
+    [Optional]
+    attribute (String or number) space;
+};
+interface RowOptionsV2 {
+    attribute i32 _stub;
+};
+[Component]
+interface RowAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (VerticalAlign or undefined) alignItems;
+    [CommonMethod]
+    attribute (FlexAlign or undefined) justifyContent;
+    [CommonMethod]
+    attribute (boolean or undefined) reverse;
+    [CommonMethod]
+    attribute (([TypeArguments="RowAttribute", TypeArguments="RowAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface RowInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] RowAttribute) invoke(optional (RowOptions or RowOptionsV2) options);
+};

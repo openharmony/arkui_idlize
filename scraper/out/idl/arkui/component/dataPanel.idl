@@ -1,0 +1,63 @@
+package arkui.component.dataPanel;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.common.MultiShadowOptions as MultiShadowOptions;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary DataPanelType {
+    [OriginalEnumMemberName=Line]
+    number LINE = 0;
+    [OriginalEnumMemberName=Circle]
+    number CIRCLE = 1;
+};
+interface ColorStop {
+    attribute ResourceColor color;
+    attribute Length offset;
+};
+[Entity=Class]
+interface LinearGradient {
+    constructor(sequence<ColorStop> colorStops);
+};
+interface DataPanelShadowOptions: MultiShadowOptions {
+    [Optional]
+    attribute sequence<(ResourceColor or LinearGradient)> colors;
+};
+interface DataPanelOptions {
+    attribute sequence<number> values;
+    [Optional]
+    attribute number max;
+    [Optional]
+    attribute DataPanelType type;
+};
+interface DataPanelConfiguration: [TypeArguments="DataPanelConfiguration", TypeArguments="DataPanelConfiguration"] CommonConfiguration {
+    attribute sequence<number> values;
+    attribute number maxValue;
+};
+[Component]
+interface DataPanelAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (boolean or undefined) closeEffect;
+    [CommonMethod]
+    attribute (sequence<(ResourceColor or LinearGradient)> or undefined) valueColors;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) trackBackgroundColor;
+    [CommonMethod]
+    attribute (Length or undefined) strokeWidth;
+    [CommonMethod]
+    attribute (DataPanelShadowOptions or undefined) trackShadow;
+    [CommonMethod]
+    attribute ([TypeArguments="DataPanelConfiguration", TypeArguments="DataPanelConfiguration"] ContentModifier or undefined) contentModifier;
+    [CommonMethod]
+    attribute (([TypeArguments="DataPanelAttribute", TypeArguments="DataPanelAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface DataPanelInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] DataPanelAttribute) invoke(DataPanelOptions options);
+};

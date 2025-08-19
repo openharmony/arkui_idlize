@@ -1,0 +1,38 @@
+package arkui.component.indicatorcomponent;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Callback as Callback;
+import arkui.component.swiper.DotIndicator as DotIndicator;
+import arkui.component.swiper.DigitIndicator as DigitIndicator;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+[Entity=Class]
+interface IndicatorComponentController {
+    constructor();
+    void showNext();
+    void showPrevious();
+    void changeIndex(number index, optional boolean useAnimation);
+};
+[Synthetic]
+callback Callback_Number_Void = void (number value0);
+[Component]
+interface IndicatorComponentAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (number or undefined) initialIndex;
+    [CommonMethod]
+    attribute (number or undefined) count;
+    [CommonMethod]
+    attribute ((DotIndicator or DigitIndicator) or undefined) style;
+    [CommonMethod]
+    attribute (boolean or undefined) loop;
+    [CommonMethod]
+    attribute (boolean or undefined) vertical;
+    [CommonMethod]
+    attribute (Callback_Number_Void or undefined) onChange;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface IndicatorComponentInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] IndicatorComponentAttribute) invoke(optional IndicatorComponentController controller);
+};

@@ -1,0 +1,40 @@
+package arkui.component.pageTransition;
+import arkui.component.common.ICurve as ICurve;
+import arkui.component.common.TranslateOptions as TranslateOptions;
+import arkui.component.common.ScaleOptions as ScaleOptions;
+import arkui.component.enums.Curve as Curve;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+dictionary RouteType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Push]
+    number PUSH = 1;
+    [OriginalEnumMemberName=Pop]
+    number POP = 2;
+};
+dictionary SlideEffect {
+    [OriginalEnumMemberName=Left]
+    number LEFT = 0;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 1;
+    [OriginalEnumMemberName=Top]
+    number TOP = 2;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 3;
+    number START = 5;
+    number END = 6;
+};
+interface PageTransitionOptions {
+    [Optional]
+    attribute RouteType type;
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute (Curve or String or ICurve) curve;
+    [Optional]
+    attribute number delay;
+};
+callback PageTransitionCallback = void (RouteType type, number progress);

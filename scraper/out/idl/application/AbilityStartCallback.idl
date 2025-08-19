@@ -1,0 +1,9 @@
+package application.AbilityStartCallback;
+import ability.abilityResult.AbilityResult as AbilityResult;
+callback OnResultFn = void (AbilityResult parameter);
+[DefaultExport]
+interface AbilityStartCallback {
+    [Optional]
+    attribute OnResultFn onResult;
+    void onError(number code, String name, String message);
+};

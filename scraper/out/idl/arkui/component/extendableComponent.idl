@@ -1,0 +1,24 @@
+package arkui.component.extendableComponent;
+import ohos.arkui.UIContext.UIContext as UIContext;
+import arkui.component.builder.Builder as Builder;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.NavDestinationInfo as NavDestinationInfo;
+import arkui.component.common.NavigationInfo as NavigationInfo;
+import arkui.component.common.RouterPageInfo as RouterPageInfo;
+interface LifeCycle {
+    void aboutToAppear();
+    void aboutToDisappear();
+    void onDidBuild();
+    [TypeAnnotations=memo]
+    void build();
+};
+[Entity=Class, Abstract]
+interface ExtendableComponent: LifeCycle {
+    constructor();
+    UIContext getUIContext();
+    i32 getUniqueId();
+    (NavDestinationInfo or undefined) queryNavDestinationInfo();
+    (NavDestinationInfo or undefined) queryNavDestinationInfo((boolean or undefined) isInner);
+    (NavigationInfo or undefined) queryNavigationInfo();
+    (RouterPageInfo or undefined) queryRouterPageInfo();
+};

@@ -1,0 +1,20 @@
+package arkui.component.windowScene;
+import arkui.component.units.Position as Position;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+[Component]
+interface WindowSceneAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (([TypeArguments="WindowSceneAttribute", TypeArguments="WindowSceneAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this attractionEffect((Position or undefined) destination, (number or undefined) fraction);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface WindowSceneInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] WindowSceneAttribute) invoke(number persistentId);
+};

@@ -1,0 +1,44 @@
+package arkui.BuilderNode;
+import ohos.arkui.UIContext.UIContext as UIContext;
+import arkui.FrameNode.FrameNode as FrameNode;
+import arkui.Graphics.Size as Size;
+import arkui.component.common.TouchEvent as TouchEvent;
+import arkui.component.common.MouseEvent as MouseEvent;
+import arkui.component.common.AxisEvent as AxisEvent;
+import arkui.component.builder.WrappedBuilder as WrappedBuilder;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.builder.CustomBuilderT as CustomBuilderT;
+dictionary NodeRenderType {
+    number RENDER_TYPE_DISPLAY = 0;
+    number RENDER_TYPE_TEXTURE = 1;
+};
+interface RenderOptions {
+    [Optional]
+    attribute Size selfIdealSize;
+    [Optional]
+    attribute NodeRenderType type;
+    [Optional]
+    attribute String surfaceId;
+};
+interface BuildOptions {
+    [Optional]
+    attribute boolean useParallel;
+};
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface BuilderNode {
+    constructor(UIContext uiContext, optional RenderOptions options);
+    void build([TypeArguments="CustomBuilder", TypeArguments="CustomBuilder"] WrappedBuilder builder);
+    void build([TypeArguments="[TypeArguments='T'] CustomBuilderT", TypeArguments="[TypeArguments='T', TypeArguments='T'] CustomBuilderT"] WrappedBuilder builder, T arg);
+    void build([TypeArguments="[TypeArguments='T'] CustomBuilderT", TypeArguments="[TypeArguments='T', TypeArguments='T'] CustomBuilderT"] WrappedBuilder builder, T arg, BuildOptions options);
+    void update(T arg);
+    (FrameNode or undefined) getFrameNode();
+    boolean postTouchEvent(TouchEvent event);
+    void dispose();
+    void reuse(optional Object param);
+    void recycle();
+    void updateConfiguration();
+    boolean isDisposed();
+    boolean postInputEvent(InputEventType event);
+    void inheritFreezeOptions(boolean enabled);
+};
+typedef (TouchEvent or MouseEvent or AxisEvent) InputEventType;

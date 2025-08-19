@@ -1,0 +1,24 @@
+package bundleManager.ExtensionAbilityInfo;
+import bundleManager.ApplicationInfo.ApplicationInfo as ApplicationInfo;
+import bundleManager.Metadata.Metadata as Metadata;
+import ohos.bundle.bundleManager.default as bundleManager;
+import bundleManager.Skill.Skill as Skill;
+interface ExtensionAbilityInfo {
+    readonly attribute String bundleName;
+    readonly attribute String moduleName;
+    readonly attribute String name;
+    readonly attribute i64 labelId;
+    readonly attribute i64 descriptionId;
+    readonly attribute i64 iconId;
+    readonly attribute boolean exported;
+    readonly attribute bundleManager.ExtensionAbilityType extensionAbilityType;
+    readonly attribute String extensionAbilityTypeName;
+    readonly attribute sequence<String> permissions;
+    readonly attribute (ApplicationInfo or undefined) applicationInfo;
+    readonly attribute sequence<Metadata> metadata;
+    readonly attribute boolean enabled;
+    readonly attribute String readPermission;
+    readonly attribute String writePermission;
+    readonly attribute sequence<Skill> skills;
+    readonly attribute i32 appIndex;
+};

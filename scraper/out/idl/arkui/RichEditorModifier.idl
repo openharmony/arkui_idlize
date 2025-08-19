@@ -1,0 +1,7 @@
+package arkui.RichEditorModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.richEditor.RichEditorAttribute as RichEditorAttribute;
+[Entity=Class]
+interface RichEditorModifier: RichEditorAttribute, [TypeArguments="RichEditorAttribute", TypeArguments="RichEditorAttribute"] AttributeModifier {
+    constructor();
+};

@@ -1,66 +1,6 @@
 {
     "module": [
         {
-            "fileName": "@ohos.arkui.Parallelize.idl",
-            "packageName": "ohos.arkui.Parallelize"
-        },
-        {
-            "fileName": "@ohos.arkui.UIContext.idl",
-            "packageName": "ohos.arkui.UIContext"
-        },
-        {
-            "fileName": "@ohos.arkui.advanced.FullScreenLaunchComponent.idl",
-            "packageName": "ohos.arkui.advanced.FullScreenLaunchComponent"
-        },
-        {
-            "fileName": "@ohos.arkui.advanced.SplitLayout.idl",
-            "packageName": "ohos.arkui.advanced.SplitLayout"
-        },
-        {
-            "fileName": "@ohos.arkui.advanced.SwipeRefresher.idl",
-            "packageName": "ohos.arkui.advanced.SwipeRefresher"
-        },
-        {
-            "fileName": "@ohos.arkui.componentSnapshot.idl",
-            "packageName": "ohos.arkui.componentSnapshot"
-        },
-        {
-            "fileName": "@ohos.arkui.componentUtils.idl",
-            "packageName": "ohos.arkui.componentUtils"
-        },
-        {
-            "fileName": "@ohos.arkui.dragController.idl",
-            "packageName": "ohos.arkui.dragController"
-        },
-        {
-            "fileName": "@ohos.arkui.drawableDescriptor.idl",
-            "packageName": "ohos.arkui.drawableDescriptor"
-        },
-        {
-            "fileName": "@ohos.arkui.inspector.idl",
-            "packageName": "ohos.arkui.inspector"
-        },
-        {
-            "fileName": "@ohos.arkui.observer.idl",
-            "packageName": "ohos.arkui.observer"
-        },
-        {
-            "fileName": "@ohos.arkui.performanceMonitor.idl",
-            "packageName": "ohos.arkui.performanceMonitor"
-        },
-        {
-            "fileName": "@ohos.arkui.shape.idl",
-            "packageName": "ohos.arkui.shape"
-        },
-        {
-            "fileName": "@ohos.arkui.theme.idl",
-            "packageName": "ohos.arkui.theme"
-        },
-        {
-            "fileName": "@ohos.arkui.uiExtension.idl",
-            "packageName": "ohos.arkui.uiExtension"
-        },
-        {
             "fileName": "arkui/AttributeUpdater.idl",
             "packageName": "arkui.AttributeUpdater"
         },
@@ -821,44 +761,16 @@
             "packageName": "arkui.runtimeApi.koalaui.runtime.tree.ReadonlyTreeNode"
         },
         {
-            "fileName": "arkui/stateManagement/decorator.idl",
-            "packageName": "arkui.stateManagement.decorator"
-        },
-        {
-            "fileName": "arkui/stateManagement/memorize/state.idl",
-            "packageName": "arkui.stateManagement.memorize.state"
-        },
-        {
-            "fileName": "arkui/stateManagement/remember.idl",
-            "packageName": "arkui.stateManagement.remember"
-        },
-        {
             "fileName": "arkui/stateManagement/runtime.idl",
             "packageName": "arkui.stateManagement.runtime"
-        },
-        {
-            "fileName": "arkui/stateManagement/storage/appStorage.idl",
-            "packageName": "arkui.stateManagement.storage.appStorage"
-        },
-        {
-            "fileName": "arkui/stateManagement/storage/environment.idl",
-            "packageName": "arkui.stateManagement.storage.environment"
         },
         {
             "fileName": "arkui/stateManagement/storage/localStorage.idl",
             "packageName": "arkui.stateManagement.storage.localStorage"
         },
         {
-            "fileName": "arkui/stateManagement/storage/persistentStorage.idl",
-            "packageName": "arkui.stateManagement.storage.persistentStorage"
-        },
-        {
             "fileName": "arkui/stateManagement/storage/storageProperty.idl",
             "packageName": "arkui.stateManagement.storage.storageProperty"
-        },
-        {
-            "fileName": "arkui/stateManagement/utils.idl",
-            "packageName": "arkui.stateManagement.utils"
         }
     ],
     "external": [
@@ -923,8 +835,48 @@
             "packageName": "ohos.app.ability.appManager"
         },
         {
+            "fileName": "@ohos.app.ability.common.idl",
+            "packageName": "ohos.app.ability.common"
+        },
+        {
             "fileName": "@ohos.app.ability.contextConstant.idl",
             "packageName": "ohos.app.ability.contextConstant"
+        },
+        {
+            "fileName": "@ohos.arkui.UIContext.idl",
+            "packageName": "ohos.arkui.UIContext"
+        },
+        {
+            "fileName": "@ohos.arkui.componentSnapshot.idl",
+            "packageName": "ohos.arkui.componentSnapshot"
+        },
+        {
+            "fileName": "@ohos.arkui.componentUtils.idl",
+            "packageName": "ohos.arkui.componentUtils"
+        },
+        {
+            "fileName": "@ohos.arkui.dragController.idl",
+            "packageName": "ohos.arkui.dragController"
+        },
+        {
+            "fileName": "@ohos.arkui.drawableDescriptor.idl",
+            "packageName": "ohos.arkui.drawableDescriptor"
+        },
+        {
+            "fileName": "@ohos.arkui.inspector.idl",
+            "packageName": "ohos.arkui.inspector"
+        },
+        {
+            "fileName": "@ohos.arkui.observer.idl",
+            "packageName": "ohos.arkui.observer"
+        },
+        {
+            "fileName": "@ohos.arkui.shape.idl",
+            "packageName": "ohos.arkui.shape"
+        },
+        {
+            "fileName": "@ohos.arkui.theme.idl",
+            "packageName": "ohos.arkui.theme"
         },
         {
             "fileName": "@ohos.base.idl",
@@ -1131,7 +1083,17 @@
         "@ohos.app.ability.UIAbility.idl",
         "@ohos.app.ability.Want.idl",
         "@ohos.app.ability.appManager.idl",
+        "@ohos.app.ability.common.idl",
         "@ohos.app.ability.contextConstant.idl",
+        "@ohos.arkui.UIContext.idl",
+        "@ohos.arkui.componentSnapshot.idl",
+        "@ohos.arkui.componentUtils.idl",
+        "@ohos.arkui.dragController.idl",
+        "@ohos.arkui.drawableDescriptor.idl",
+        "@ohos.arkui.inspector.idl",
+        "@ohos.arkui.observer.idl",
+        "@ohos.arkui.shape.idl",
+        "@ohos.arkui.theme.idl",
         "@ohos.base.idl",
         "@ohos.bundle.bundleManager.idl",
         "@ohos.curves.idl",

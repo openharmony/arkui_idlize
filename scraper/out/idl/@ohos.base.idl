@@ -1,0 +1,14 @@
+package ohos.base;
+[TypeParameters="T", TypeParameters="T"]
+callback ErrorCallback = void (T err);
+[TypeParameters="T", TypeParameters="T"]
+callback AsyncCallback = void ((BusinessError or undefined) err, (T or undefined) data);
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface BusinessError: [Extends] Error {
+    constructor();
+    constructor(i32 code, Error error);
+    constructor(i32 code, T data, Error error);
+    attribute i32 code;
+    [Optional]
+    attribute (T or undefined) data;
+};

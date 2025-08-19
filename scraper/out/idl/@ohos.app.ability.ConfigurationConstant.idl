@@ -1,0 +1,23 @@
+package ohos.app.ability.ConfigurationConstant;
+[DefaultExport]
+namespace ConfigurationConstant {
+    dictionary ColorMode {
+        number COLOR_MODE_NOT_SET = -1;
+        number COLOR_MODE_DARK = 0;
+        number COLOR_MODE_LIGHT = 1;
+    };
+    dictionary Direction {
+        number DIRECTION_NOT_SET = -1;
+        number DIRECTION_VERTICAL = 0;
+        number DIRECTION_HORIZONTAL = 1;
+    };
+    dictionary ScreenDensity {
+        number SCREEN_DENSITY_NOT_SET = 0;
+        number SCREEN_DENSITY_SDPI = 120;
+        number SCREEN_DENSITY_MDPI = 160;
+        number SCREEN_DENSITY_LDPI = 240;
+        number SCREEN_DENSITY_XLDPI = 320;
+        number SCREEN_DENSITY_XXLDPI = 480;
+        number SCREEN_DENSITY_XXXLDPI = 640;
+    };
+};

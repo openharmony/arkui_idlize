@@ -1,0 +1,46 @@
+package bundleManager.ApplicationInfo;
+import bundleManager.Metadata.Metadata as Metadata;
+import global.resource.Resource as Resource;
+import ohos.bundle.bundleManager.default as bundleManager;
+interface ApplicationInfo {
+    readonly attribute String name;
+    readonly attribute String description;
+    readonly attribute i64 descriptionId;
+    readonly attribute boolean enabled;
+    readonly attribute String label;
+    readonly attribute i64 labelId;
+    readonly attribute String icon;
+    readonly attribute i64 iconId;
+    readonly attribute String process;
+    readonly attribute sequence<String> permissions;
+    readonly attribute String codePath;
+    readonly attribute sequence<ModuleMetadata> metadataArray;
+    readonly attribute boolean removable;
+    readonly attribute i64 accessTokenId;
+    readonly attribute i32 uid;
+    readonly attribute Resource iconResource;
+    readonly attribute Resource labelResource;
+    readonly attribute Resource descriptionResource;
+    readonly attribute String appDistributionType;
+    readonly attribute String appProvisionType;
+    readonly attribute boolean systemApp;
+    readonly attribute bundleManager.BundleType bundleType;
+    readonly attribute boolean debug;
+    readonly attribute boolean dataUnclearable;
+    readonly attribute String nativeLibraryPath;
+    readonly attribute MultiAppMode multiAppMode;
+    readonly attribute i32 appIndex;
+    readonly attribute String installSource;
+    readonly attribute String releaseType;
+    readonly attribute boolean cloudFileSyncEnabled;
+    [Optional]
+    readonly attribute i32 flags;
+};
+interface ModuleMetadata {
+    readonly attribute String moduleName;
+    readonly attribute sequence<Metadata> metadata;
+};
+interface MultiAppMode {
+    readonly attribute bundleManager.MultiAppModeType multiAppModeType;
+    readonly attribute i32 maxCount;
+};

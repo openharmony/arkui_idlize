@@ -1,0 +1,40 @@
+package arkui.component.menu;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Font as Font;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.BorderRadiuses as BorderRadiuses;
+import arkui.component.units.DividerStyleOptions as DividerStyleOptions;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary SubMenuExpandingMode {
+    number SIDE_EXPAND = 0;
+    number EMBEDDED_EXPAND = 1;
+    number STACK_EXPAND = 2;
+};
+[Component]
+interface MenuAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (Font or undefined) font;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) fontColor;
+    [CommonMethod]
+    attribute ((Dimension or BorderRadiuses) or undefined) radius;
+    [CommonMethod]
+    attribute (DividerStyleOptions or undefined) menuItemDivider;
+    [CommonMethod]
+    attribute (DividerStyleOptions or undefined) menuItemGroupDivider;
+    [CommonMethod]
+    attribute (SubMenuExpandingMode or undefined) subMenuExpandingMode;
+    [CommonMethod]
+    attribute (([TypeArguments="MenuAttribute", TypeArguments="MenuAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface MenuInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] MenuAttribute) invoke();
+};

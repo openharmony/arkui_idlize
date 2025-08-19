@@ -1,0 +1,8 @@
+package bundleManager.Metadata;
+interface Metadata {
+    attribute String name;
+    attribute String value;
+    attribute String resource;
+    [Optional]
+    readonly attribute i64 valueId;
+};

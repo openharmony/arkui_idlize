@@ -1,0 +1,51 @@
+package arkui.component.checkboxgroup;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.MarkStyle as MarkStyle;
+import arkui.component.enums.CheckBoxShape as CheckBoxShape;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary SelectStatus {
+    [OriginalEnumMemberName=All]
+    number ALL = 0;
+    [OriginalEnumMemberName=Part]
+    number PART = 1;
+    [OriginalEnumMemberName=None]
+    number NONE = 2;
+};
+interface CheckboxGroupOptions {
+    [Optional]
+    attribute String group;
+};
+interface CheckboxGroupResult {
+    attribute sequence<String> name;
+    attribute SelectStatus status;
+};
+callback OnCheckboxGroupChangeCallback = void (CheckboxGroupResult value);
+[Component]
+interface CheckboxGroupAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((boolean or [TypeArguments="boolean", TypeArguments="boolean"] Bindable) or undefined) selectAll;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) unselectedColor;
+    [CommonMethod]
+    attribute (MarkStyle or undefined) mark;
+    [CommonMethod]
+    attribute (OnCheckboxGroupChangeCallback or undefined) onChange;
+    [CommonMethod]
+    attribute (CheckBoxShape or undefined) checkboxShape;
+    [CommonMethod]
+    attribute (([TypeArguments="CheckboxGroupAttribute", TypeArguments="CheckboxGroupAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface CheckboxGroupInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] CheckboxGroupAttribute) invoke(optional CheckboxGroupOptions options);
+};

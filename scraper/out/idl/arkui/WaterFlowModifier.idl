@@ -1,0 +1,7 @@
+package arkui.WaterFlowModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.waterFlow.WaterFlowAttribute as WaterFlowAttribute;
+[Entity=Class]
+interface WaterFlowModifier: WaterFlowAttribute, [TypeArguments="WaterFlowAttribute", TypeArguments="WaterFlowAttribute"] AttributeModifier {
+    constructor();
+};

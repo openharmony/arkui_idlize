@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.app.ability.InteropAbilityLifecycleCallback",
+  "currentModuleExportedPackages": [
+    "ohos.app.ability.InteropAbilityLifecycleCallback"
+  ]
+}

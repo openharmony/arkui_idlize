@@ -1,0 +1,24 @@
+package arkui.component.stack;
+import arkui.component.enums.Alignment as Alignment;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+interface StackOptions {
+    [Optional]
+    attribute Alignment alignContent;
+};
+[Component]
+interface StackAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (Alignment or undefined) alignContent;
+    [CommonMethod]
+    attribute (([TypeArguments="StackAttribute", TypeArguments="StackAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface StackInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] StackAttribute) invoke(optional StackOptions options);
+};

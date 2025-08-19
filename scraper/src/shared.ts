@@ -15,6 +15,12 @@
 
 import { join, resolve } from "node:path";
 
+export interface AppOptions {
+    target: string[],
+    exclude: string[],
+}
+
 export const OUT_DIR = resolve(process.cwd(), 'out')
 export const SUMMARY_PATH = join(OUT_DIR, 'summary.json')
-
+export const ADDITIONAL_CONFIG_DIR = join(OUT_DIR, 'configs')
+export const BASIC_CONFIG_PATH = join(OUT_DIR, 'main-config.json')

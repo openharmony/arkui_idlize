@@ -1,0 +1,28 @@
+package ohos.arkui.componentSnapshot;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import ohos.base.AsyncCallback as AsyncCallback;
+import ohos.multimedia.image.default as image;
+[DefaultExport]
+namespace componentSnapshot {
+    interface SnapshotRegion {
+        attribute number left;
+        attribute number right;
+        attribute number top;
+        attribute number bottom;
+    };
+    interface LocalizedSnapshotRegion {
+        attribute number start;
+        attribute number end;
+        attribute number top;
+        attribute number bottom;
+    };
+    typedef (SnapshotRegion or LocalizedSnapshotRegion) SnapshotRegionType;
+    interface SnapshotOptions {
+        [Optional]
+        attribute number scale;
+        [Optional]
+        attribute boolean waitUntilRenderFinished;
+        [Optional]
+        attribute SnapshotRegionType region;
+    };
+};

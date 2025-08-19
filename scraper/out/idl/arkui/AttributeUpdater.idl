@@ -1,0 +1,14 @@
+package arkui.AttributeUpdater;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+[TypeParameters="T", TypeParameters="T"]
+callback Initializer = T (sequence<Object>... params);
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface AttributeUpdater: [TypeArguments="T", TypeArguments="T"] AttributeModifier {
+    constructor();
+    [Accessor=Getter]
+    attribute (T or undefined) attribute_;
+    [Accessor=Getter]
+    attribute [TypeArguments="T", TypeArguments="T"] Initializer updateConstructorParams;
+    void initializeModifier(T instance);
+    void onComponentChanged(T component);
+};

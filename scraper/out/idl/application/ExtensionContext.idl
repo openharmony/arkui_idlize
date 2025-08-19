@@ -1,0 +1,12 @@
+package application.ExtensionContext;
+import bundleManager.HapModuleInfo.HapModuleInfo as HapModuleInfo;
+import ohos.app.ability.Configuration.Configuration as Configuration;
+import application.Context.default as Context;
+import bundleManager.ExtensionAbilityInfo.ExtensionAbilityInfo as ExtensionAbilityInfo;
+[Entity=Class, DefaultExport]
+interface ExtensionContext: [Extends] Context {
+    constructor();
+    attribute HapModuleInfo currentHapModuleInfo;
+    attribute Configuration config;
+    attribute ExtensionAbilityInfo extensionAbilityInfo;
+};

@@ -1,0 +1,20 @@
+package ohos.app.ability.contextConstant;
+[DefaultExport]
+namespace contextConstant {
+    dictionary AreaMode {
+        number EL1 = 0;
+        number EL2 = 1;
+        number EL3 = 2;
+        number EL4 = 3;
+        number EL5 = 4;
+    };
+    dictionary ProcessMode {
+        number NEW_PROCESS_ATTACH_TO_PARENT = 1;
+        number NEW_PROCESS_ATTACH_TO_STATUS_BAR_ITEM = 2;
+        number ATTACH_TO_STATUS_BAR_ITEM = 3;
+    };
+    dictionary StartupVisibility {
+        number STARTUP_HIDE = 0;
+        number STARTUP_SHOW = 1;
+    };
+};

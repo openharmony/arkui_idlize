@@ -1,0 +1,33 @@
+package ohos.router;
+[DefaultExport]
+namespace router {
+    dictionary RouterMode {
+        [OriginalEnumMemberName=Standard]
+        number STANDARD = 0;
+        [OriginalEnumMemberName=Single]
+        number SINGLE = 1;
+    };
+    interface RouterOptions {
+        attribute String url;
+        [Optional]
+        attribute Object params;
+        [Optional]
+        attribute boolean recoverable;
+    };
+    interface RouterState {
+        attribute number index;
+        attribute String name;
+        attribute String path;
+        attribute Object params;
+    };
+    interface EnableAlertOptions {
+        attribute String message;
+    };
+    interface NamedRouterOptions {
+        attribute String name;
+        [Optional]
+        attribute Object params;
+        [Optional]
+        attribute boolean recoverable;
+    };
+};

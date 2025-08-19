@@ -1,0 +1,139 @@
+package ohos.security.cert;
+import ohos.base.AsyncCallback as AsyncCallback;
+import ohos.security.cryptoFramework.default as cryptoFramework;
+[DefaultExport]
+namespace cert {
+    interface DataBlob {
+        attribute buffer data;
+    };
+    interface DataArray {
+        attribute sequence<buffer> data;
+    };
+    dictionary EncodingFormat {
+        number FORMAT_DER = 0;
+        number FORMAT_PEM = 1;
+        number FORMAT_PKCS7 = 2;
+    };
+    dictionary CertItemType {
+        number CERT_ITEM_TYPE_TBS = 0;
+        number CERT_ITEM_TYPE_PUBLIC_KEY = 1;
+        number CERT_ITEM_TYPE_ISSUER_UNIQUE_ID = 2;
+        number CERT_ITEM_TYPE_SUBJECT_UNIQUE_ID = 3;
+        number CERT_ITEM_TYPE_EXTENSIONS = 4;
+    };
+    dictionary ExtensionOidType {
+        number EXTENSION_OID_TYPE_ALL = 0;
+        number EXTENSION_OID_TYPE_CRITICAL = 1;
+        number EXTENSION_OID_TYPE_UNCRITICAL = 2;
+    };
+    dictionary ExtensionEntryType {
+        number EXTENSION_ENTRY_TYPE_ENTRY = 0;
+        number EXTENSION_ENTRY_TYPE_ENTRY_CRITICAL = 1;
+        number EXTENSION_ENTRY_TYPE_ENTRY_VALUE = 2;
+    };
+    interface EncodingBlob {
+        attribute buffer data;
+        attribute EncodingFormat encodingFormat;
+    };
+    dictionary EncodingType {
+        number ENCODING_UTF8 = 0;
+    };
+    interface X509Cert {
+        void verify(cryptoFramework.PubKey key, [TypeArguments="void", TypeArguments="void"] AsyncCallback callback_);
+        Promise<void> verify(cryptoFramework.PubKey key);
+        void getEncoded([TypeArguments="EncodingBlob", TypeArguments="EncodingBlob"] AsyncCallback callback_);
+        Promise<EncodingBlob> getEncoded();
+        cryptoFramework.PubKey getPublicKey();
+        void checkValidityWithDate(String date);
+        i32 getVersion();
+        bigint getCertSerialNumber();
+        DataBlob getIssuerName();
+        String getIssuerName(EncodingType encodingType);
+        DataBlob getSubjectName(optional EncodingType encodingType);
+        String getNotBeforeTime();
+        String getNotAfterTime();
+        DataBlob getSignature();
+        String getSignatureAlgName();
+        String getSignatureAlgOid();
+        DataBlob getSignatureAlgParams();
+        DataBlob getKeyUsage();
+        DataArray getExtKeyUsage();
+        i32 getBasicConstraints();
+        DataArray getSubjectAltNames();
+        DataArray getIssuerAltNames();
+        DataBlob getItem(CertItemType itemType);
+        boolean match(X509CertMatchParameters param);
+        DataArray getCRLDistributionPoint();
+        X500DistinguishedName getIssuerX500DistinguishedName();
+        X500DistinguishedName getSubjectX500DistinguishedName();
+        String toString();
+        String toString(EncodingType encodingType);
+        buffer hashCode();
+        CertExtension getExtensionsObject();
+    };
+    interface CertExtension {
+        EncodingBlob getEncoded();
+        DataArray getOidList(ExtensionOidType valueType);
+        DataBlob getEntry(ExtensionEntryType valueType, DataBlob oid);
+        i32 checkCA();
+        boolean hasUnsupportedCriticalExtension();
+    };
+    dictionary GeneralNameType {
+        number GENERAL_NAME_TYPE_OTHER_NAME = 0;
+        number GENERAL_NAME_TYPE_RFC822_NAME = 1;
+        number GENERAL_NAME_TYPE_DNS_NAME = 2;
+        number GENERAL_NAME_TYPE_X400_ADDRESS = 3;
+        number GENERAL_NAME_TYPE_DIRECTORY_NAME = 4;
+        number GENERAL_NAME_TYPE_EDI_PARTY_NAME = 5;
+        number GENERAL_NAME_TYPE_UNIFORM_RESOURCE_ID = 6;
+        number GENERAL_NAME_TYPE_IP_ADDRESS = 7;
+        number GENERAL_NAME_TYPE_REGISTERED_ID = 8;
+    };
+    interface GeneralName {
+        attribute GeneralNameType type;
+        [Optional]
+        attribute buffer name;
+    };
+    interface X509CertMatchParameters {
+        [Optional]
+        attribute sequence<GeneralName> subjectAlternativeNames;
+        [Optional]
+        attribute boolean matchAllSubjectAltNames;
+        [Optional]
+        attribute buffer authorityKeyIdentifier;
+        [Optional]
+        attribute i32 minPathLenConstraint;
+        [Optional]
+        attribute X509Cert x509Cert;
+        [Optional]
+        attribute String validDate;
+        [Optional]
+        attribute buffer issuer;
+        [Optional]
+        attribute sequence<String> extendedKeyUsage;
+        [Optional]
+        attribute buffer nameConstraints;
+        [Optional]
+        attribute sequence<String> certPolicy;
+        [Optional]
+        attribute String privateKeyValid;
+        [Optional]
+        attribute sequence<boolean> keyUsage;
+        [Optional]
+        attribute bigint serialNumber;
+        [Optional]
+        attribute buffer subject;
+        [Optional]
+        attribute buffer subjectKeyIdentifier;
+        [Optional]
+        attribute DataBlob publicKey;
+        [Optional]
+        attribute String publicKeyAlgID;
+    };
+    interface X500DistinguishedName {
+        String getName();
+        String getName(EncodingType encodingType);
+        sequence<String> getName(String type);
+        EncodingBlob getEncoded();
+    };
+};

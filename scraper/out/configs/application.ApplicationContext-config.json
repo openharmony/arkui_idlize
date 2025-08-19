@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "application.ApplicationContext",
+  "currentModuleExportedPackages": [
+    "application.ApplicationContext"
+  ]
+}

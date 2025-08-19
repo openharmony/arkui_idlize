@@ -1,0 +1,7 @@
+package arkui.RowSplitModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.rowSplit.RowSplitAttribute as RowSplitAttribute;
+[Entity=Class]
+interface RowSplitModifier: RowSplitAttribute, [TypeArguments="RowSplitAttribute", TypeArguments="RowSplitAttribute"] AttributeModifier {
+    constructor();
+};

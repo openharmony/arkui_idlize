@@ -1,0 +1,13 @@
+package ohos.app.ability.InteropAbilityLifecycleCallback;
+import ohos.window.default as window;
+callback AbilityCallbackFn = void (Any ability);
+callback WindowStageCallbackFn = void (Any ability, window.WindowStage windowStage);
+[DefaultExport]
+interface InteropAbilityLifecycleCallback {
+    attribute AbilityCallbackFn onAbilityCreate;
+    attribute WindowStageCallbackFn onWindowStageCreate;
+    attribute WindowStageCallbackFn onWindowStageDestroy;
+    attribute AbilityCallbackFn onAbilityDestroy;
+    attribute AbilityCallbackFn onAbilityForeground;
+    attribute AbilityCallbackFn onAbilityBackground;
+};

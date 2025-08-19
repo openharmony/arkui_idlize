@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.arkui.observer",
+  "currentModuleExportedPackages": [
+    "ohos.arkui.observer"
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.app.ability.Configuration",
+  "currentModuleExportedPackages": [
+    "ohos.app.ability.Configuration"
+  ]
+}

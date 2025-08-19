@@ -1,0 +1,100 @@
+package arkui.component.waterFlow;
+import arkui.component.common.ScrollableCommonMethod as ScrollableCommonMethod;
+import arkui.component.common.NestedScrollOptions as NestedScrollOptions;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.OnWillScrollCallback as OnWillScrollCallback;
+import arkui.component.common.OnScrollCallback as OnScrollCallback;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.Margin as Margin;
+import arkui.component.units.ConstraintSizeOptions as ConstraintSizeOptions;
+import arkui.component.units.Resource as Resource;
+import arkui.component.scroll.Scroller as Scroller;
+import arkui.component.scroll.OnScrollFrameBeginCallback as OnScrollFrameBeginCallback;
+import arkui.component.list.ScrollState as ScrollState;
+import arkui.component.enums.FlexDirection as FlexDirection;
+import arkui.ComponentContent.ComponentContent as ComponentContent;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+callback GetItemMainSizeByIndex = number (number index);
+[Entity=Class]
+interface SectionOptions {
+    constructor();
+    attribute number itemsCount;
+    [Optional]
+    attribute (number or undefined) crossCount;
+    [Optional]
+    attribute (GetItemMainSizeByIndex or undefined) onGetItemMainSizeByIndex;
+    [Optional]
+    attribute (Dimension or undefined) columnsGap;
+    [Optional]
+    attribute (Dimension or undefined) rowsGap;
+    [Optional]
+    attribute ((Margin or Dimension) or undefined) margin;
+};
+[Entity=Class]
+interface WaterFlowSections {
+    constructor();
+    boolean splice(number start, optional number deleteCount, optional sequence<SectionOptions> sections);
+    boolean push(SectionOptions section);
+    boolean update(number sectionIndex, SectionOptions section);
+    sequence<SectionOptions> values();
+    number length();
+};
+dictionary WaterFlowLayoutMode {
+    number ALWAYS_TOP_DOWN = 0;
+    number SLIDING_WINDOW = 1;
+};
+interface WaterFlowOptions {
+    [Optional]
+    attribute CustomBuilder footer;
+    [Optional]
+    attribute ComponentContent footerContent;
+    [Optional]
+    attribute Scroller scroller;
+    [Optional]
+    attribute WaterFlowSections sections;
+    [Optional]
+    attribute WaterFlowLayoutMode layoutMode;
+};
+[Synthetic]
+callback Callback_Number_Number_Void = void (number first, number last);
+[Component]
+interface WaterFlowAttribute: ScrollableCommonMethod {
+    [CommonMethod]
+    attribute (String or undefined) columnsTemplate;
+    [CommonMethod]
+    attribute (ConstraintSizeOptions or undefined) itemConstraintSize;
+    [CommonMethod]
+    attribute (String or undefined) rowsTemplate;
+    [CommonMethod]
+    attribute (Length or undefined) columnsGap;
+    [CommonMethod]
+    attribute (Length or undefined) rowsGap;
+    [CommonMethod]
+    attribute (FlexDirection or undefined) layoutDirection;
+    [CommonMethod]
+    attribute (number or undefined) cachedCount;
+    [CommonMethod]
+    attribute (OnScrollFrameBeginCallback or undefined) onScrollFrameBegin;
+    [CommonMethod]
+    attribute (Callback_Number_Number_Void or undefined) onScrollIndex;
+    [CommonMethod]
+    attribute (OnWillScrollCallback or undefined) onWillScroll;
+    [CommonMethod]
+    attribute (OnScrollCallback or undefined) onDidScroll;
+    [CommonMethod]
+    attribute (([TypeArguments="WaterFlowAttribute", TypeArguments="WaterFlowAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this cachedCount((number or undefined) count, (boolean or undefined) show);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface WaterFlowInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] WaterFlowAttribute) invoke(optional WaterFlowOptions options);
+};

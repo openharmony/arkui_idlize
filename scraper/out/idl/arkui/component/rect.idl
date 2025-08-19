@@ -1,0 +1,48 @@
+package arkui.component.rect;
+import arkui.component.common.CommonShapeMethod as CommonShapeMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.units.Length as Length;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+[Entity=Tuple]
+interface RadiusItem {
+    attribute Length value0;
+    attribute Length value1;
+};
+interface RectOptions {
+    [Optional]
+    attribute (f64 or String) width;
+    [Optional]
+    attribute (f64 or String) height;
+    [Optional]
+    attribute (Length or sequence<RadiusItem>) radius;
+};
+interface RoundedRectOptions {
+    [Optional]
+    attribute (f64 or String) width;
+    [Optional]
+    attribute (f64 or String) height;
+    [Optional]
+    attribute (f64 or String) radiusWidth;
+    [Optional]
+    attribute (f64 or String) radiusHeight;
+};
+[Component]
+interface RectAttribute: CommonShapeMethod {
+    [CommonMethod]
+    attribute ((f64 or String) or undefined) radiusWidth;
+    [CommonMethod]
+    attribute ((f64 or String) or undefined) radiusHeight;
+    [CommonMethod]
+    attribute ((Length or sequence<RadiusItem>) or undefined) radius;
+    [CommonMethod]
+    attribute (([TypeArguments="RectAttribute", TypeArguments="RectAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface RectInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] RectAttribute) invoke(optional (RectOptions or RoundedRectOptions) options);
+};

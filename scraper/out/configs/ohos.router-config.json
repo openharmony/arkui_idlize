@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.router",
+  "currentModuleExportedPackages": [
+    "ohos.router"
+  ]
+}

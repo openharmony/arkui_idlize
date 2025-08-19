@@ -1,0 +1,80 @@
+package arkui.component.listItem;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.Length as Length;
+import arkui.ComponentContent.ComponentContent as ComponentContent;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary SwipeEdgeEffect {
+    [OriginalEnumMemberName=Spring]
+    number SPRING = 0;
+    [OriginalEnumMemberName=None]
+    number NONE = 1;
+};
+dictionary SwipeActionState {
+    number COLLAPSED = 0;
+    number EXPANDED = 1;
+    number ACTIONING = 2;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[Synthetic]
+callback Callback_SwipeActionState_Void = void (SwipeActionState state);
+interface SwipeActionItem {
+    [Optional]
+    attribute CustomBuilder builder;
+    [Optional]
+    attribute ComponentContent builderComponent;
+    [Optional]
+    attribute Length actionAreaDistance;
+    [Optional]
+    attribute Callback_Void onAction;
+    [Optional]
+    attribute Callback_Void onEnterActionArea;
+    [Optional]
+    attribute Callback_Void onExitActionArea;
+    [Optional]
+    attribute Callback_SwipeActionState_Void onStateChange;
+};
+[Synthetic]
+callback Callback_Number_Void = void (number offset);
+interface SwipeActionOptions {
+    [Optional]
+    attribute (CustomBuilder or SwipeActionItem) start;
+    [Optional]
+    attribute (CustomBuilder or SwipeActionItem) end;
+    [Optional]
+    attribute SwipeEdgeEffect edgeEffect;
+    [Optional]
+    attribute Callback_Number_Void onOffsetChange;
+};
+dictionary ListItemStyle {
+    number NONE = 0;
+    number CARD = 1;
+};
+interface ListItemOptions {
+    [Optional]
+    attribute ListItemStyle style;
+};
+[Synthetic]
+callback Callback_Boolean_Void = void (boolean isSelected);
+[Component]
+interface ListItemAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (boolean or undefined) selectable;
+    [CommonMethod]
+    attribute ((boolean or [TypeArguments="boolean", TypeArguments="boolean"] Bindable) or undefined) selected;
+    [CommonMethod]
+    attribute (SwipeActionOptions or undefined) swipeAction;
+    [CommonMethod]
+    attribute (Callback_Boolean_Void or undefined) onSelect;
+    [CommonMethod]
+    attribute (([TypeArguments="ListItemAttribute", TypeArguments="ListItemAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[ComponentInterface]
+interface ListItemInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] ListItemAttribute) invoke(optional ListItemOptions value);
+};

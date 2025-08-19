@@ -1,0 +1,110 @@
+package arkui.component.particle;
+import arkui.Graphics.LengthMetrics as LengthMetrics;
+import arkui.Graphics.SizeT as SizeT;
+import arkui.Graphics.PositionT as PositionT;
+import arkui.component.units.VP as VP;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.enums.ImageFit as ImageFit;
+import arkui.component.enums.Curve as Curve;
+import arkui.component.common.ICurve as ICurve;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+[Entity=Tuple, Synthetic]
+interface Tuple_Number_Number {
+    attribute number value0;
+    attribute number value1;
+};
+interface VelocityOptions {
+    attribute Tuple_Number_Number speed;
+    attribute Tuple_Number_Number angle;
+};
+interface PointParticleParameters {
+    attribute VP radius;
+};
+[Entity=Tuple, Synthetic]
+interface Tuple_Dimension_Dimension {
+    attribute Dimension value0;
+    attribute Dimension value1;
+};
+interface ImageParticleParameters {
+    attribute ResourceStr src;
+    attribute Tuple_Dimension_Dimension size;
+    [Optional]
+    attribute ImageFit objectFit;
+};
+typedef (PointParticleParameters or ImageParticleParameters) ParticleConfigs;
+interface EmitterProperty {
+    attribute i32 _stub;
+};
+interface EmitterParticleOptions {
+    attribute ParticleType type;
+    attribute ParticleConfigs config;
+    attribute number count;
+    [Optional]
+    attribute number lifetime;
+    [Optional]
+    attribute number lifetimeRange;
+};
+typedef ((Tuple_Number_Number or sequence<[TypeArguments="number", TypeArguments="number"] ParticlePropertyAnimation>) or undefined) ParticlePropertyUpdaterConfigs;
+interface ParticleUpdaterOptions {
+    attribute ParticleUpdater type;
+    attribute ParticlePropertyUpdaterConfigs config;
+};
+interface ParticleColorOptions {
+    attribute Tuple_Number_Number r;
+    attribute Tuple_Number_Number g;
+    attribute Tuple_Number_Number b;
+    attribute Tuple_Number_Number a;
+};
+interface ParticleColorUpdaterOptions {
+    attribute ParticleUpdater type;
+    attribute ParticleColorPropertyUpdaterConfigs config;
+};
+typedef ((ParticleColorOptions or sequence<[TypeArguments="ResourceColor", TypeArguments="ResourceColor"] ParticlePropertyAnimation>) or undefined) ParticleColorPropertyUpdaterConfigs;
+[TypeParameters="T", TypeParameters="T"]
+interface ParticlePropertyAnimation {
+    attribute T from;
+    attribute T to;
+    attribute number startMillis;
+    attribute number endMillis;
+    [Optional]
+    attribute (Curve or ICurve) curve;
+};
+dictionary ParticleType {
+    String POINT = "'point'";
+    String IMAGE = "'image'";
+};
+dictionary ParticleEmitterShape {
+    String RECTANGLE = "'rectangle'";
+    String CIRCLE = "'circle'";
+    String ELLIPSE = "'ellipse'";
+    String ANNULUS = "'annulus'";
+};
+dictionary DistributionType {
+    number UNIFORM = 0;
+    number GAUSSIAN = 1;
+};
+dictionary ParticleUpdater {
+    String NONE = "'none'";
+    String RANDOM = "'random'";
+    String CURVE = "'curve'";
+};
+dictionary DisturbanceFieldShape {
+    number RECT = 0;
+    number CIRCLE = 1;
+    number ELLIPSE = 2;
+};
+interface ParticleAnnulusRegion {
+    [Optional]
+    attribute [TypeArguments="LengthMetrics", TypeArguments="LengthMetrics"] PositionT center;
+    attribute LengthMetrics outerRadius;
+    attribute LengthMetrics innerRadius;
+    [Optional]
+    attribute number startAngle;
+    [Optional]
+    attribute number endAngle;
+};

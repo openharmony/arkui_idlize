@@ -1,0 +1,8 @@
+package arkui.SwiperModifier;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.swiper.SwiperAttribute as SwiperAttribute;
+[Entity=Class]
+interface SwiperModifier: SwiperAttribute, [TypeArguments="SwiperAttribute", TypeArguments="SwiperAttribute"] AttributeModifier {
+    constructor();
+    void applyNormalAttribute(SwiperAttribute instance);
+};

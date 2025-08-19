@@ -1,0 +1,125 @@
+package arkui.component.tabContent;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.enums.TextHeightAdaptivePolicy as TextHeightAdaptivePolicy;
+import arkui.component.enums.TextOverflow as TextOverflow;
+import arkui.component.enums.VerticalAlign as VerticalAlign;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.Font as Font;
+import arkui.component.units.Length as Length;
+import arkui.component.units.LocalizedPadding as LocalizedPadding;
+import arkui.component.units.Padding as Padding;
+import arkui.component.units.Resource as Resource;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.VoidCallback as VoidCallback;
+import arkui.ComponentContent.ComponentContent as ComponentContent;
+import arkui.SymbolGlyphModifier.SymbolGlyphModifier as SymbolGlyphModifier;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary SelectedMode {
+    number INDICATOR = 0;
+    number BOARD = 1;
+};
+dictionary LayoutMode {
+    number AUTO = 0;
+    number VERTICAL = 1;
+    number HORIZONTAL = 2;
+};
+interface SubTabBarIndicatorStyle {
+    [Optional]
+    attribute ResourceColor color;
+    [Optional]
+    attribute Length height;
+    [Optional]
+    attribute Length width;
+    [Optional]
+    attribute Length borderRadius;
+    [Optional]
+    attribute Length marginTop;
+};
+interface BoardStyle {
+    [Optional]
+    attribute Length borderRadius;
+};
+interface TabBarLabelStyle {
+    [Optional]
+    attribute TextOverflow overflow;
+    [Optional]
+    attribute number maxLines;
+    [Optional]
+    attribute (number or ResourceStr) minFontSize;
+    [Optional]
+    attribute (number or ResourceStr) maxFontSize;
+    [Optional]
+    attribute TextHeightAdaptivePolicy heightAdaptivePolicy;
+    [Optional]
+    attribute Font font;
+    [Optional]
+    attribute ResourceColor selectedColor;
+    [Optional]
+    attribute ResourceColor unselectedColor;
+};
+interface TabBarIconStyle {
+    [Optional]
+    attribute ResourceColor selectedColor;
+    [Optional]
+    attribute ResourceColor unselectedColor;
+};
+[Entity=Class]
+interface TabBarSymbol {
+    constructor();
+    attribute SymbolGlyphModifier normal;
+    [Optional]
+    attribute (SymbolGlyphModifier or undefined) selected;
+};
+interface TabBarOptions {
+    [Optional]
+    attribute (String or Resource) icon;
+    [Optional]
+    attribute (String or Resource) text;
+};
+[Entity=Class]
+interface SubTabBarStyle {
+    constructor(ResourceStr content);
+    constructor((ResourceStr or ComponentContent) content);
+    static SubTabBarStyle of((ResourceStr or ComponentContent) content);
+    SubTabBarStyle indicator(SubTabBarIndicatorStyle style);
+    SubTabBarStyle selectedMode(SelectedMode value);
+    SubTabBarStyle board(BoardStyle value);
+    SubTabBarStyle labelStyle(TabBarLabelStyle style);
+    SubTabBarStyle padding((Padding or Dimension) value);
+    SubTabBarStyle padding(LocalizedPadding padding);
+    SubTabBarStyle id(String value);
+};
+[Entity=Class]
+interface BottomTabBarStyle {
+    constructor((ResourceStr or TabBarSymbol) icon, ResourceStr text);
+    static BottomTabBarStyle of((ResourceStr or TabBarSymbol) icon, ResourceStr text);
+    BottomTabBarStyle labelStyle(TabBarLabelStyle style);
+    BottomTabBarStyle padding((Padding or Dimension or LocalizedPadding) value);
+    BottomTabBarStyle layoutMode(LayoutMode value);
+    BottomTabBarStyle verticalAlign(VerticalAlign value);
+    BottomTabBarStyle symmetricExtensible(boolean value);
+    BottomTabBarStyle id(String value);
+    BottomTabBarStyle iconStyle(TabBarIconStyle style);
+};
+[Component]
+interface TabContentAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((ComponentContent or SubTabBarStyle or BottomTabBarStyle or String or Resource or CustomBuilder or TabBarOptions) or undefined) tabBar;
+    [CommonMethod]
+    attribute (VoidCallback or undefined) onWillShow;
+    [CommonMethod]
+    attribute (VoidCallback or undefined) onWillHide;
+    [CommonMethod]
+    attribute (([TypeArguments="TabContentAttribute", TypeArguments="TabContentAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface TabContentInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] TabContentAttribute) invoke();
+};

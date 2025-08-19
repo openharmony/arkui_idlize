@@ -1,0 +1,193 @@
+package arkui.component.swiper;
+import arkui.component.indicatorcomponent.IndicatorComponentController as IndicatorComponentController;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.ICurve as ICurve;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.enums.EdgeEffect as EdgeEffect;
+import arkui.component.enums.Curve as Curve;
+import arkui.component.enums.PageFlipMode as PageFlipMode;
+import arkui.component.units.Length as Length;
+import arkui.component.units.LengthMetrics as LengthMetrics;
+import arkui.component.units.VoidCallback as VoidCallback;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.VP as VP;
+import arkui.component.units.Font as Font;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+[Entity=Class]
+interface SwiperController {
+    constructor();
+    void showNext();
+    void showPrevious();
+    void changeIndex(number index, optional (SwiperAnimationMode or boolean) animationMode);
+    void finishAnimation(optional VoidCallback callback_);
+    Promise<void> preloadItems((sequence<number> or undefined) indices);
+};
+[Entity=Class, TypeParameters="T", TypeParameters="T"]
+interface Indicator {
+    constructor();
+    T left(Length value);
+    T top(Length value);
+    T right(Length value);
+    T bottom(Length value);
+    T start(LengthMetrics value);
+    T end(LengthMetrics value);
+    static DotIndicator dot();
+    static DigitIndicator digit();
+};
+[Entity=Class]
+interface DotIndicator: [Extends, TypeArguments="DotIndicator", TypeArguments="DotIndicator"] Indicator {
+    constructor();
+    DotIndicator itemWidth(Length value);
+    DotIndicator itemHeight(Length value);
+    DotIndicator selectedItemWidth(Length value);
+    DotIndicator selectedItemHeight(Length value);
+    DotIndicator mask(boolean value);
+    DotIndicator color(ResourceColor value);
+    DotIndicator selectedColor(ResourceColor value);
+    DotIndicator maxDisplayCount(number maxDisplayCount);
+    DotIndicator space(LengthMetrics space);
+};
+interface SwiperAutoFill {
+    attribute VP minSize;
+};
+[Entity=Class]
+interface DigitIndicator: [Extends, TypeArguments="DigitIndicator", TypeArguments="DigitIndicator"] Indicator {
+    constructor();
+    DigitIndicator fontColor(ResourceColor value);
+    DigitIndicator selectedFontColor(ResourceColor value);
+    DigitIndicator digitFont(Font value);
+    DigitIndicator selectedDigitFont(Font value);
+};
+interface ArrowStyle {
+    [Optional]
+    attribute boolean showBackground;
+    [Optional]
+    attribute boolean isSidebarMiddle;
+    [Optional]
+    attribute Length backgroundSize;
+    [Optional]
+    attribute ResourceColor backgroundColor;
+    [Optional]
+    attribute Length arrowSize;
+    [Optional]
+    attribute ResourceColor arrowColor;
+};
+dictionary SwiperDisplayMode {
+    number STRETCH = 0;
+};
+interface SwiperAnimationEvent {
+    attribute number currentOffset;
+    attribute number targetOffset;
+    attribute number velocity;
+};
+interface AutoPlayOptions {
+    attribute boolean stopWhenTouched;
+};
+dictionary SwiperNestedScrollMode {
+    number SELF_ONLY = 0;
+    number SELF_FIRST = 1;
+};
+dictionary SwiperAnimationMode {
+    number NO_ANIMATION = 0;
+    number DEFAULT_ANIMATION = 1;
+    number FAST_ANIMATION = 2;
+};
+callback OnSwiperAnimationStartCallback = void (number index, number targetIndex, SwiperAnimationEvent extraInfo);
+callback OnSwiperAnimationEndCallback = void (number index, SwiperAnimationEvent extraInfo);
+callback OnSwiperGestureSwipeCallback = void (number index, SwiperAnimationEvent extraInfo);
+[Synthetic]
+callback Callback_Number_Void = void (number value0);
+[Component]
+interface SwiperAttribute: CommonMethod {
+    [CommonMethod]
+    attribute ((number or [TypeArguments="number", TypeArguments="number"] Bindable) or undefined) index;
+    [CommonMethod]
+    attribute (number or undefined) interval;
+    [CommonMethod]
+    attribute ((IndicatorComponentController or DotIndicator or DigitIndicator or boolean) or undefined) indicator;
+    [CommonMethod]
+    attribute (boolean or undefined) loop;
+    [CommonMethod]
+    attribute (number or undefined) duration;
+    [CommonMethod]
+    attribute (boolean or undefined) vertical;
+    [CommonMethod]
+    attribute ((number or String) or undefined) itemSpace;
+    [CommonMethod]
+    attribute (SwiperDisplayMode or undefined) displayMode;
+    [CommonMethod]
+    attribute (number or undefined) cachedCount;
+    [CommonMethod]
+    attribute (EdgeEffect or undefined) effectMode;
+    [CommonMethod]
+    attribute (boolean or undefined) disableSwipe;
+    [CommonMethod]
+    attribute ((Curve or String or ICurve) or undefined) curve;
+    [CommonMethod]
+    attribute (Callback_Number_Void or undefined) onChange;
+    [CommonMethod]
+    attribute (Callback_Number_Void or undefined) onSelected;
+    [CommonMethod]
+    attribute (Callback_Number_Void or undefined) onUnselected;
+    [CommonMethod]
+    attribute (OnSwiperAnimationStartCallback or undefined) onAnimationStart;
+    [CommonMethod]
+    attribute (OnSwiperAnimationEndCallback or undefined) onAnimationEnd;
+    [CommonMethod]
+    attribute (OnSwiperGestureSwipeCallback or undefined) onGestureSwipe;
+    [CommonMethod]
+    attribute (SwiperNestedScrollMode or undefined) nestedScroll;
+    [CommonMethod]
+    attribute (SwiperContentAnimatedTransition or undefined) customContentTransition;
+    [CommonMethod]
+    attribute (ContentDidScrollCallback or undefined) onContentDidScroll;
+    [CommonMethod]
+    attribute (boolean or undefined) indicatorInteractive;
+    [CommonMethod]
+    attribute (PageFlipMode or undefined) pageFlipMode;
+    [CommonMethod]
+    attribute (ContentWillScrollCallback or undefined) onContentWillScroll;
+    [CommonMethod]
+    this autoPlay((boolean or undefined) autoPlay, (AutoPlayOptions or undefined) options);
+    [CommonMethod]
+    this displayArrow(((ArrowStyle or boolean) or undefined) value, optional (boolean or undefined) isHoverShow);
+    [CommonMethod]
+    this cachedCount((number or undefined) count, (boolean or undefined) isShown);
+    [CommonMethod]
+    this displayCount(((number or String or SwiperAutoFill) or undefined) value, optional (boolean or undefined) swipeByGroup);
+    [CommonMethod]
+    this prevMargin((Length or undefined) value, optional (boolean or undefined) ignoreBlank);
+    [CommonMethod]
+    this nextMargin((Length or undefined) value, optional (boolean or undefined) ignoreBlank);
+};
+[Synthetic]
+callback Callback_SwiperContentTransitionProxy_Void = void (SwiperContentTransitionProxy value0);
+interface SwiperContentAnimatedTransition {
+    [Optional]
+    attribute number timeout;
+    attribute Callback_SwiperContentTransitionProxy_Void transition;
+};
+interface SwiperContentTransitionProxy {
+    attribute number selectedIndex;
+    attribute number index;
+    attribute number position;
+    attribute number mainAxisLength;
+    void finishTransition();
+};
+interface SwiperContentWillScrollResult {
+    attribute number currentIndex;
+    attribute number comingIndex;
+    attribute number offset;
+};
+callback ContentDidScrollCallback = void (number selectedIndex, number index, number position, number mainAxisLength);
+callback ContentWillScrollCallback = boolean (SwiperContentWillScrollResult result);
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface SwiperInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] SwiperAttribute) invoke(optional SwiperController controller);
+};

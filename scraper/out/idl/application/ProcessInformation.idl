@@ -1,0 +1,13 @@
+package application.ProcessInformation;
+import ohos.app.ability.appManager.default as appManager;
+import ohos.bundle.bundleManager.default as bundleManager;
+interface ProcessInformation {
+    attribute i32 pid;
+    attribute i32 uid;
+    attribute String processName;
+    attribute sequence<String> bundleNames;
+    attribute appManager.ProcessState state;
+    attribute bundleManager.BundleType bundleType;
+    [Optional]
+    attribute i32 appCloneIndex;
+};

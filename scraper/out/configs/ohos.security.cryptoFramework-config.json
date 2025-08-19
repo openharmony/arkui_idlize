@@ -1,0 +1,7 @@
+{
+  "TypePrefix": "OH_",
+  "moduleName": "ohos.security.cryptoFramework",
+  "currentModuleExportedPackages": [
+    "ohos.security.cryptoFramework"
+  ]
+}

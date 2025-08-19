@@ -1,0 +1,717 @@
+package arkui.component.enums;
+import ohos.curves.default as curves;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+dictionary CheckBoxShape {
+    number CIRCLE = 0;
+    number ROUNDED_SQUARE = 1;
+};
+dictionary Color {
+    [OriginalEnumMemberName=White]
+    number WHITE = 0;
+    [OriginalEnumMemberName=Black]
+    number BLACK = 1;
+    [OriginalEnumMemberName=Blue]
+    number BLUE = 2;
+    [OriginalEnumMemberName=Brown]
+    number BROWN = 3;
+    [OriginalEnumMemberName=Gray]
+    number GRAY = 4;
+    [OriginalEnumMemberName=Green]
+    number GREEN = 5;
+    [OriginalEnumMemberName=Grey]
+    number GREY = 6;
+    [OriginalEnumMemberName=Orange]
+    number ORANGE = 7;
+    [OriginalEnumMemberName=Pink]
+    number PINK = 8;
+    [OriginalEnumMemberName=Red]
+    number RED = 9;
+    [OriginalEnumMemberName=Yellow]
+    number YELLOW = 10;
+    [OriginalEnumMemberName=Transparent]
+    number TRANSPARENT = 11;
+};
+dictionary ColoringStrategy {
+    String INVERT = "'invert'";
+    String AVERAGE = "'average'";
+    String PRIMARY = "'primary'";
+};
+dictionary ImageFit {
+    [OriginalEnumMemberName=Contain]
+    number CONTAIN = 0;
+    [OriginalEnumMemberName=Cover]
+    number COVER = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+    [OriginalEnumMemberName=Fill]
+    number FILL = 3;
+    [OriginalEnumMemberName=ScaleDown]
+    number SCALE_DOWN = 4;
+    [OriginalEnumMemberName=None]
+    number NONE = 5;
+    number TOP_START = 7;
+    number TOP = 8;
+    number TOP_END = 9;
+    number START = 10;
+    number CENTER = 11;
+    number END = 12;
+    number BOTTOM_START = 13;
+    number BOTTOM = 14;
+    number BOTTOM_END = 15;
+    number MATRIX = 16;
+};
+dictionary BorderStyle {
+    [OriginalEnumMemberName=Dotted]
+    number DOTTED = 0;
+    [OriginalEnumMemberName=Dashed]
+    number DASHED = 1;
+    [OriginalEnumMemberName=Solid]
+    number SOLID = 2;
+};
+dictionary LineJoinStyle {
+    [OriginalEnumMemberName=Miter]
+    number MITER = 0;
+    [OriginalEnumMemberName=Round]
+    number ROUND = 1;
+    [OriginalEnumMemberName=Bevel]
+    number BEVEL = 2;
+};
+dictionary TouchType {
+    [OriginalEnumMemberName=Down]
+    number DOWN = 0;
+    [OriginalEnumMemberName=Up]
+    number UP = 1;
+    [OriginalEnumMemberName=Move]
+    number MOVE = 2;
+    [OriginalEnumMemberName=Cancel]
+    number CANCEL = 3;
+};
+dictionary InteractionHand {
+    number NONE = 0;
+    number LEFT = 1;
+    number RIGHT = 2;
+};
+dictionary MouseButton {
+    [OriginalEnumMemberName=Left]
+    number LEFT = 0;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 1;
+    [OriginalEnumMemberName=Middle]
+    number MIDDLE = 2;
+    [OriginalEnumMemberName=Back]
+    number BACK = 3;
+    [OriginalEnumMemberName=Forward]
+    number FORWARD = 4;
+    [OriginalEnumMemberName=None]
+    number NONE = 5;
+};
+dictionary MouseAction {
+    [OriginalEnumMemberName=Press]
+    number PRESS = 0;
+    [OriginalEnumMemberName=Release]
+    number RELEASE = 1;
+    [OriginalEnumMemberName=Move]
+    number MOVE = 2;
+    [OriginalEnumMemberName=Hover]
+    number HOVER = 3;
+    number CANCEL = 13;
+};
+dictionary AnimationStatus {
+    [OriginalEnumMemberName=Initial]
+    number INITIAL = 0;
+    [OriginalEnumMemberName=Running]
+    number RUNNING = 1;
+    [OriginalEnumMemberName=Paused]
+    number PAUSED = 2;
+    [OriginalEnumMemberName=Stopped]
+    number STOPPED = 3;
+};
+typedef curves.Curve Curve;
+dictionary FillMode {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Forwards]
+    number FORWARDS = 1;
+    [OriginalEnumMemberName=Backwards]
+    number BACKWARDS = 2;
+    [OriginalEnumMemberName=Both]
+    number BOTH = 3;
+};
+dictionary PlayMode {
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 0;
+    [OriginalEnumMemberName=Reverse]
+    number REVERSE = 1;
+    [OriginalEnumMemberName=Alternate]
+    number ALTERNATE = 2;
+    [OriginalEnumMemberName=AlternateReverse]
+    number ALTERNATE_REVERSE = 3;
+};
+dictionary KeyType {
+    [OriginalEnumMemberName=Down]
+    number DOWN = 0;
+    [OriginalEnumMemberName=Up]
+    number UP = 1;
+};
+dictionary KeySource {
+    [OriginalEnumMemberName=Unknown]
+    number UNKNOWN = 0;
+    [OriginalEnumMemberName=Keyboard]
+    number KEYBOARD = 1;
+    number JOYSTICK = 2;
+};
+dictionary Edge {
+    [OriginalEnumMemberName=Top]
+    number TOP = 0;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 1;
+    [OriginalEnumMemberName=Start]
+    number START = 2;
+    [OriginalEnumMemberName=End]
+    number END = 3;
+};
+dictionary Week {
+    [OriginalEnumMemberName=Mon]
+    number MON = 0;
+    [OriginalEnumMemberName=Tue]
+    number TUE = 1;
+    [OriginalEnumMemberName=Wed]
+    number WED = 2;
+    [OriginalEnumMemberName=Thur]
+    number THUR = 3;
+    [OriginalEnumMemberName=Fri]
+    number FRI = 4;
+    [OriginalEnumMemberName=Sat]
+    number SAT = 5;
+    [OriginalEnumMemberName=Sun]
+    number SUN = 6;
+};
+dictionary Direction {
+    [OriginalEnumMemberName=Ltr]
+    number LTR = 0;
+    [OriginalEnumMemberName=Rtl]
+    number RTL = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+};
+dictionary BarState {
+    [OriginalEnumMemberName=Off]
+    number OFF = 0;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 1;
+    [OriginalEnumMemberName=On]
+    number ON = 2;
+};
+dictionary EdgeEffect {
+    [OriginalEnumMemberName=Spring]
+    number SPRING = 0;
+    [OriginalEnumMemberName=Fade]
+    number FADE = 1;
+    [OriginalEnumMemberName=None]
+    number NONE = 2;
+};
+dictionary Alignment {
+    [OriginalEnumMemberName=TopStart]
+    number TOP_START = 0;
+    [OriginalEnumMemberName=Top]
+    number TOP = 1;
+    [OriginalEnumMemberName=TopEnd]
+    number TOP_END = 2;
+    [OriginalEnumMemberName=Start]
+    number START = 3;
+    [OriginalEnumMemberName=Center]
+    number CENTER = 4;
+    [OriginalEnumMemberName=End]
+    number END = 5;
+    [OriginalEnumMemberName=BottomStart]
+    number BOTTOM_START = 6;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 7;
+    [OriginalEnumMemberName=BottomEnd]
+    number BOTTOM_END = 8;
+};
+dictionary TransitionType {
+    [OriginalEnumMemberName=All]
+    number ALL = 0;
+    [OriginalEnumMemberName=Insert]
+    number INSERT = 1;
+    [OriginalEnumMemberName=Delete]
+    number DELETE = 2;
+};
+dictionary RelateType {
+    number FILL = 0;
+    number FIT = 1;
+};
+dictionary Visibility {
+    [OriginalEnumMemberName=Visible]
+    number VISIBLE = 0;
+    [OriginalEnumMemberName=Hidden]
+    number HIDDEN = 1;
+    [OriginalEnumMemberName=None]
+    number NONE = 2;
+};
+dictionary LineCapStyle {
+    [OriginalEnumMemberName=Butt]
+    number BUTT = 0;
+    [OriginalEnumMemberName=Round]
+    number ROUND = 1;
+    [OriginalEnumMemberName=Square]
+    number SQUARE = 2;
+};
+dictionary Axis {
+    [OriginalEnumMemberName=Vertical]
+    number VERTICAL = 0;
+    [OriginalEnumMemberName=Horizontal]
+    number HORIZONTAL = 1;
+};
+dictionary HorizontalAlign {
+    [OriginalEnumMemberName=Start]
+    number START = 0;
+    [OriginalEnumMemberName=Center]
+    number CENTER = 1;
+    [OriginalEnumMemberName=End]
+    number END = 2;
+};
+dictionary FlexAlign {
+    [OriginalEnumMemberName=Start]
+    number START = 0;
+    [OriginalEnumMemberName=Center]
+    number CENTER = 1;
+    [OriginalEnumMemberName=End]
+    number END = 2;
+    [OriginalEnumMemberName=SpaceBetween]
+    number SPACE_BETWEEN = 3;
+    [OriginalEnumMemberName=SpaceAround]
+    number SPACE_AROUND = 4;
+    [OriginalEnumMemberName=SpaceEvenly]
+    number SPACE_EVENLY = 5;
+};
+dictionary ItemAlign {
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 0;
+    [OriginalEnumMemberName=Start]
+    number START = 1;
+    [OriginalEnumMemberName=Center]
+    number CENTER = 2;
+    [OriginalEnumMemberName=End]
+    number END = 3;
+    [OriginalEnumMemberName=Baseline]
+    number BASELINE = 4;
+    [OriginalEnumMemberName=Stretch]
+    number STRETCH = 5;
+};
+dictionary FlexDirection {
+    [OriginalEnumMemberName=Row]
+    number ROW = 0;
+    [OriginalEnumMemberName=Column]
+    number COLUMN = 1;
+    [OriginalEnumMemberName=RowReverse]
+    number ROW_REVERSE = 2;
+    [OriginalEnumMemberName=ColumnReverse]
+    number COLUMN_REVERSE = 3;
+};
+dictionary PixelRoundCalcPolicy {
+    number NO_FORCE_ROUND = 0;
+    number FORCE_CEIL = 1;
+    number FORCE_FLOOR = 2;
+};
+dictionary PixelRoundMode {
+    number PIXEL_ROUND_ON_LAYOUT_FINISH = 0;
+    number PIXEL_ROUND_AFTER_MEASURE = 1;
+};
+dictionary FlexWrap {
+    [OriginalEnumMemberName=NoWrap]
+    number NO_WRAP = 0;
+    [OriginalEnumMemberName=Wrap]
+    number WRAP = 1;
+    [OriginalEnumMemberName=WrapReverse]
+    number WRAP_REVERSE = 2;
+};
+dictionary VerticalAlign {
+    [OriginalEnumMemberName=Top]
+    number TOP = 0;
+    [OriginalEnumMemberName=Center]
+    number CENTER = 1;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 2;
+};
+dictionary ImageRepeat {
+    [OriginalEnumMemberName=NoRepeat]
+    number NO_REPEAT = 0;
+    number X = 1;
+    number Y = 2;
+    number XY = 3;
+};
+dictionary ImageSize {
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 0;
+    [OriginalEnumMemberName=Cover]
+    number COVER = 1;
+    [OriginalEnumMemberName=Contain]
+    number CONTAIN = 2;
+    number FILL = 3;
+};
+dictionary GradientDirection {
+    [OriginalEnumMemberName=Left]
+    number LEFT = 0;
+    [OriginalEnumMemberName=Top]
+    number TOP = 1;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 2;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 3;
+    [OriginalEnumMemberName=LeftTop]
+    number LEFT_TOP = 4;
+    [OriginalEnumMemberName=LeftBottom]
+    number LEFT_BOTTOM = 5;
+    [OriginalEnumMemberName=RightTop]
+    number RIGHT_TOP = 6;
+    [OriginalEnumMemberName=RightBottom]
+    number RIGHT_BOTTOM = 7;
+    [OriginalEnumMemberName=None]
+    number NONE = 8;
+};
+dictionary SharedTransitionEffectType {
+    [OriginalEnumMemberName=Static]
+    number STATIC = 0;
+    [OriginalEnumMemberName=Exchange]
+    number EXCHANGE = 1;
+};
+dictionary FontStyle {
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 0;
+    [OriginalEnumMemberName=Italic]
+    number ITALIC = 1;
+};
+dictionary FontWeight {
+    [OriginalEnumMemberName=Lighter]
+    number LIGHTER = 0;
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 1;
+    [OriginalEnumMemberName=Regular]
+    number REGULAR = 2;
+    [OriginalEnumMemberName=Medium]
+    number MEDIUM = 3;
+    [OriginalEnumMemberName=Bold]
+    number BOLD = 4;
+    [OriginalEnumMemberName=Bolder]
+    number BOLDER = 5;
+};
+dictionary TextAlign {
+    [OriginalEnumMemberName=Center]
+    number CENTER = 0;
+    [OriginalEnumMemberName=Start]
+    number START = 1;
+    [OriginalEnumMemberName=End]
+    number END = 2;
+    number JUSTIFY = 3;
+};
+dictionary TextOverflow {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Clip]
+    number CLIP = 1;
+    [OriginalEnumMemberName=Ellipsis]
+    number ELLIPSIS = 2;
+    number MARQUEE = 3;
+};
+dictionary TextDecorationType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Underline]
+    number UNDERLINE = 1;
+    [OriginalEnumMemberName=Overline]
+    number OVERLINE = 2;
+    [OriginalEnumMemberName=LineThrough]
+    number LINE_THROUGH = 3;
+};
+dictionary TextCase {
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 0;
+    [OriginalEnumMemberName=LowerCase]
+    number LOWER_CASE = 1;
+    [OriginalEnumMemberName=UpperCase]
+    number UPPER_CASE = 2;
+};
+dictionary TextHeightAdaptivePolicy {
+    number MAX_LINES_FIRST = 0;
+    number MIN_FONT_SIZE_FIRST = 1;
+    number LAYOUT_CONSTRAINT_FIRST = 2;
+};
+dictionary ResponseType {
+    [OriginalEnumMemberName=RightClick]
+    number RIGHT_CLICK = 0;
+    [OriginalEnumMemberName=LongPress]
+    number LONG_PRESS = 1;
+};
+dictionary HoverEffect {
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 0;
+    [OriginalEnumMemberName=Scale]
+    number SCALE = 1;
+    [OriginalEnumMemberName=Highlight]
+    number HIGHLIGHT = 2;
+    [OriginalEnumMemberName=None]
+    number NONE = 3;
+};
+dictionary Placement {
+    [OriginalEnumMemberName=Left]
+    number LEFT = 0;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 1;
+    [OriginalEnumMemberName=Top]
+    number TOP = 2;
+    [OriginalEnumMemberName=Bottom]
+    number BOTTOM = 3;
+    [OriginalEnumMemberName=TopLeft]
+    number TOP_LEFT = 4;
+    [OriginalEnumMemberName=TopRight]
+    number TOP_RIGHT = 5;
+    [OriginalEnumMemberName=BottomLeft]
+    number BOTTOM_LEFT = 6;
+    [OriginalEnumMemberName=BottomRight]
+    number BOTTOM_RIGHT = 7;
+    [OriginalEnumMemberName=LeftTop]
+    number LEFT_TOP = 8;
+    [OriginalEnumMemberName=LeftBottom]
+    number LEFT_BOTTOM = 9;
+    [OriginalEnumMemberName=RightTop]
+    number RIGHT_TOP = 10;
+    [OriginalEnumMemberName=RightBottom]
+    number RIGHT_BOTTOM = 11;
+};
+dictionary ArrowPointPosition {
+    String START = "'Start'";
+    String CENTER = "'Center'";
+    String END = "'End'";
+};
+dictionary CopyOptions {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=InApp]
+    number IN_APP = 1;
+    [OriginalEnumMemberName=LocalDevice]
+    number LOCAL_DEVICE = 2;
+};
+dictionary HitTestMode {
+    [OriginalEnumMemberName=Default]
+    number DEFAULT = 0;
+    [OriginalEnumMemberName=Block]
+    number BLOCK = 1;
+    [OriginalEnumMemberName=Transparent]
+    number TRANSPARENT = 2;
+    [OriginalEnumMemberName=None]
+    number NONE = 3;
+};
+dictionary TitleHeight {
+    [OriginalEnumMemberName=MainOnly]
+    number MAIN_ONLY = 0;
+    [OriginalEnumMemberName=MainWithSub]
+    number MAIN_WITH_SUB = 1;
+};
+dictionary ModifierKey {
+    number CTRL = 0;
+    number SHIFT = 1;
+    number ALT = 2;
+};
+dictionary FunctionKey {
+    number ESC = 0;
+    number F1 = 1;
+    number F2 = 2;
+    number F3 = 3;
+    number F4 = 4;
+    number F5 = 5;
+    number F6 = 6;
+    number F7 = 7;
+    number F8 = 8;
+    number F9 = 9;
+    number F10 = 10;
+    number F11 = 11;
+    number F12 = 12;
+    number TAB = 13;
+    number DPAD_UP = 14;
+    number DPAD_DOWN = 15;
+    number DPAD_LEFT = 16;
+    number DPAD_RIGHT = 17;
+};
+dictionary ImageSpanAlignment {
+    number BASELINE = 0;
+    number BOTTOM = 1;
+    number CENTER = 2;
+    number TOP = 3;
+};
+dictionary ObscuredReasons {
+    number PLACEHOLDER = 0;
+};
+dictionary TextContentStyle {
+    number DEFAULT = 0;
+    number INLINE = 1;
+};
+dictionary ClickEffectLevel {
+    number LIGHT = 0;
+    number MIDDLE = 1;
+    number HEAVY = 2;
+};
+dictionary XComponentType {
+    number SURFACE = 0;
+    number TEXTURE = 1;
+};
+dictionary NestedScrollMode {
+    number SELF_ONLY = 0;
+    number SELF_FIRST = 1;
+    number PARENT_FIRST = 2;
+    number PARALLEL = 3;
+};
+dictionary ScrollSource {
+    number DRAG = 0;
+    number FLING = 1;
+    number EDGE_EFFECT = 2;
+    number OTHER_USER_INPUT = 3;
+    number SCROLL_BAR = 4;
+    number SCROLL_BAR_FLING = 5;
+    number SCROLLER = 6;
+    number SCROLLER_ANIMATION = 7;
+};
+dictionary RenderFit {
+    number CENTER = 0;
+    number TOP = 1;
+    number BOTTOM = 2;
+    number LEFT = 3;
+    number RIGHT = 4;
+    number TOP_LEFT = 5;
+    number TOP_RIGHT = 6;
+    number BOTTOM_LEFT = 7;
+    number BOTTOM_RIGHT = 8;
+    number RESIZE_FILL = 9;
+    number RESIZE_CONTAIN = 10;
+    number RESIZE_CONTAIN_TOP_LEFT = 11;
+    number RESIZE_CONTAIN_BOTTOM_RIGHT = 12;
+    number RESIZE_COVER = 13;
+    number RESIZE_COVER_TOP_LEFT = 14;
+    number RESIZE_COVER_BOTTOM_RIGHT = 15;
+};
+dictionary DialogButtonStyle {
+    number DEFAULT = 0;
+    number HIGHLIGHT = 1;
+};
+dictionary WordBreak {
+    number NORMAL = 0;
+    number BREAK_ALL = 1;
+    number BREAK_WORD = 2;
+    number HYPHENATION = 3;
+};
+dictionary LineBreakStrategy {
+    number GREEDY = 0;
+    number HIGH_QUALITY = 1;
+    number BALANCED = 2;
+};
+dictionary IlluminatedType {
+    number NONE = 0;
+    number BORDER = 1;
+    number CONTENT = 2;
+    number BORDER_CONTENT = 3;
+    number BLOOM_BORDER = 4;
+    number BLOOM_BORDER_CONTENT = 5;
+};
+dictionary EllipsisMode {
+    number START = 0;
+    number CENTER = 1;
+    number END = 2;
+};
+[TypeParameters="T", TypeParameters="T"]
+typedef (T or undefined) Nullable;
+dictionary OptionWidthMode {
+    String FIT_CONTENT = "'fit_content'";
+    String FIT_TRIGGER = "'fit_trigger'";
+};
+dictionary FoldStatus {
+    number FOLD_STATUS_UNKNOWN = 0;
+    number FOLD_STATUS_EXPANDED = 1;
+    number FOLD_STATUS_FOLDED = 2;
+    number FOLD_STATUS_HALF_FOLDED = 3;
+};
+dictionary AppRotation {
+    number ROTATION_0 = 0;
+    number ROTATION_90 = 1;
+    number ROTATION_180 = 2;
+    number ROTATION_270 = 3;
+};
+dictionary EmbeddedType {
+    number EMBEDDED_UI_EXTENSION = 0;
+};
+dictionary MarqueeUpdateStrategy {
+    number DEFAULT = 0;
+    number PRESERVE_POSITION = 1;
+};
+dictionary TextDecorationStyle {
+    number SOLID = 0;
+    number DOUBLE = 1;
+    number DOTTED = 2;
+    number DASHED = 3;
+    number WAVY = 4;
+};
+dictionary TextSelectableMode {
+    number SELECTABLE_UNFOCUSABLE = 0;
+    number SELECTABLE_FOCUSABLE = 1;
+    number UNSELECTABLE = 2;
+};
+dictionary AccessibilityHoverType {
+    number HOVER_ENTER = 0;
+    number HOVER_MOVE = 1;
+    number HOVER_EXIT = 2;
+    number HOVER_CANCEL = 3;
+};
+dictionary WidthBreakpoint {
+    number WIDTH_XS = 0;
+    number WIDTH_SM = 1;
+    number WIDTH_MD = 2;
+    number WIDTH_LG = 3;
+    number WIDTH_XL = 4;
+};
+dictionary HeightBreakpoint {
+    number HEIGHT_SM = 0;
+    number HEIGHT_MD = 1;
+    number HEIGHT_LG = 2;
+};
+dictionary AxisModel {
+    number ABS_X = 0;
+    number ABS_Y = 1;
+    number ABS_Z = 2;
+    number ABS_RZ = 3;
+    number ABS_GAS = 4;
+    number ABS_BRAKE = 5;
+    number ABS_HAT0X = 6;
+    number ABS_HAT0Y = 7;
+};
+dictionary PageFlipMode {
+    number CONTINUOUS = 0;
+    number SINGLE = 1;
+};
+dictionary CrownAction {
+    number BEGIN = 0;
+    number UPDATE = 1;
+    number END = 2;
+};
+dictionary CrownSensitivity {
+    number LOW = 0;
+    number MEDIUM = 1;
+    number HIGH = 2;
+};
+dictionary AxisAction {
+    number NONE = 0;
+    number BEGIN = 1;
+    number UPDATE = 2;
+    number END = 3;
+    number CANCEL = 4;
+};
+dictionary FocusDrawLevel {
+    number SELF = 0;
+    number TOP = 1;
+};
+dictionary DividerMode {
+    number FLOATING_ABOVE_MENU = 0;
+    number EMBEDDED_IN_MENU = 1;
+};

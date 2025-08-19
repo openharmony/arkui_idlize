@@ -1,0 +1,139 @@
+package arkui.component.slider;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.CommonConfiguration as CommonConfiguration;
+import arkui.component.common.ContentModifier as ContentModifier;
+import arkui.component.common.Optional as Optional;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.enums.Axis as Axis;
+import arkui.component.enums.CrownSensitivity as CrownSensitivity;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.SizeOptions as SizeOptions;
+import arkui.component.circle.CircleAttribute as CircleAttribute;
+import arkui.component.rect.RectAttribute as RectAttribute;
+import arkui.component.path.PathAttribute as PathAttribute;
+import arkui.component.ellipse.EllipseAttribute as EllipseAttribute;
+import arkui.component.dataPanel.LinearGradient as LinearGradient;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary SliderStyle {
+    [OriginalEnumMemberName=OutSet]
+    number OUT_SET = 0;
+    [OriginalEnumMemberName=InSet]
+    number IN_SET = 1;
+    number NONE = 2;
+};
+dictionary SliderChangeMode {
+    [OriginalEnumMemberName=Begin]
+    number BEGIN = 0;
+    [OriginalEnumMemberName=Moving]
+    number MOVING = 1;
+    [OriginalEnumMemberName=End]
+    number END = 2;
+    [OriginalEnumMemberName=Click]
+    number CLICK = 3;
+};
+dictionary SliderInteraction {
+    number SLIDE_AND_CLICK = 0;
+    number SLIDE_ONLY = 1;
+    number SLIDE_AND_CLICK_UP = 2;
+};
+interface SlideRange {
+    [Optional]
+    attribute number from;
+    [Optional]
+    attribute number to;
+};
+interface SliderOptions {
+    [Optional]
+    attribute ((number or [TypeArguments="number", TypeArguments="number"] Bindable) or undefined) value;
+    [Optional]
+    attribute number min;
+    [Optional]
+    attribute number max;
+    [Optional]
+    attribute number step;
+    [Optional]
+    attribute SliderStyle style;
+    [Optional]
+    attribute Axis direction;
+    [Optional]
+    attribute boolean reverse;
+};
+dictionary SliderBlockType {
+    number DEFAULT = 0;
+    number IMAGE = 1;
+    number SHAPE = 2;
+};
+interface SliderBlockStyle {
+    attribute SliderBlockType type;
+    [Optional]
+    attribute ResourceStr image;
+};
+callback SliderTriggerChangeCallback = void (number value, SliderChangeMode mode);
+interface SliderConfiguration: [TypeArguments="SliderConfiguration", TypeArguments="SliderConfiguration"] CommonConfiguration {
+    attribute number value;
+    attribute number min;
+    attribute number max;
+    attribute number step;
+    attribute SliderTriggerChangeCallback triggerChange;
+};
+[Synthetic]
+callback Callback_Number_SliderChangeMode_Void = void (number value, SliderChangeMode mode);
+[Component]
+interface SliderAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) blockColor;
+    [CommonMethod]
+    attribute ((ResourceColor or LinearGradient) or undefined) trackColor;
+    [CommonMethod]
+    attribute ((ResourceColor or LinearGradient) or undefined) selectedColor;
+    [CommonMethod]
+    attribute (boolean or undefined) showSteps;
+    [CommonMethod]
+    attribute (Length or undefined) trackThickness;
+    [CommonMethod]
+    attribute (Callback_Number_SliderChangeMode_Void or undefined) onChange;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) blockBorderColor;
+    [CommonMethod]
+    attribute (Length or undefined) blockBorderWidth;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) stepColor;
+    [CommonMethod]
+    attribute (Length or undefined) trackBorderRadius;
+    [CommonMethod]
+    attribute (Dimension or undefined) selectedBorderRadius;
+    [CommonMethod]
+    attribute (SizeOptions or undefined) blockSize;
+    [CommonMethod]
+    attribute (SliderBlockStyle or undefined) blockStyle;
+    [CommonMethod]
+    attribute (Length or undefined) stepSize;
+    [CommonMethod]
+    attribute (SliderInteraction or undefined) sliderInteractionMode;
+    [CommonMethod]
+    attribute (number or undefined) minResponsiveDistance;
+    [CommonMethod]
+    attribute ([TypeArguments="SliderConfiguration", TypeArguments="SliderConfiguration"] ContentModifier or undefined) contentModifier;
+    [CommonMethod]
+    attribute (SlideRange or undefined) slideRange;
+    [CommonMethod]
+    attribute (CrownSensitivity or undefined) digitalCrownSensitivity;
+    [CommonMethod]
+    attribute (boolean or undefined) enableHapticFeedback;
+    [CommonMethod]
+    attribute (([TypeArguments="SliderAttribute", TypeArguments="SliderAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this showTips((boolean or undefined) value, optional (ResourceStr or undefined) content);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface SliderInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] SliderAttribute) invoke(optional SliderOptions options);
+};

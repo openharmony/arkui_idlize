@@ -1,0 +1,170 @@
+package arkui.component.navDestination;
+import ohos.window.default as window;
+import global.resource.Resource as Resource;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.Callback as Callback;
+import arkui.component.common.LayoutSafeAreaType as LayoutSafeAreaType;
+import arkui.component.common.LayoutSafeAreaEdge as LayoutSafeAreaEdge;
+import arkui.component.common.PixelMap as PixelMap;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.component.units.Length as Length;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.enums.TitleHeight as TitleHeight;
+import arkui.component.enums.Curve as Curve;
+import arkui.component.navigation.NavPathInfo as NavPathInfo;
+import arkui.component.navigation.NavPathStack as NavPathStack;
+import arkui.component.navigation.NavigationTitleOptions as NavigationTitleOptions;
+import arkui.component.navigation.NavigationMenuItem as NavigationMenuItem;
+import arkui.component.navigation.NavigationToolbarOptions as NavigationToolbarOptions;
+import arkui.component.navigation.ToolbarItem as ToolbarItem;
+import arkui.component.navigation.NavigationMenuOptions as NavigationMenuOptions;
+import arkui.component.navigation.NavigationOperation as NavigationOperation;
+import arkui.component.navigation.SystemBarStyle as SystemBarStyle;
+import arkui.SymbolGlyphModifier.SymbolGlyphModifier as SymbolGlyphModifier;
+import arkui.component.scroll.Scroller as Scroller;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+typedef window.Orientation Orientation;
+interface NavDestinationCommonTitle {
+    attribute (String or Resource) main;
+    attribute (String or Resource) sub;
+};
+interface NavDestinationCustomTitle {
+    attribute CustomBuilder builder;
+    attribute (TitleHeight or Length) height;
+};
+dictionary NavigationSystemTransitionType {
+    number DEFAULT = 0;
+    number NONE = 1;
+    number TITLE = 2;
+    number CONTENT = 3;
+    number FADE = 4;
+    number EXPLODE = 5;
+    number SLIDE_RIGHT = 6;
+    number SLIDE_BOTTOM = 7;
+};
+dictionary NavDestinationMode {
+    number STANDARD = 0;
+    number DIALOG = 1;
+};
+dictionary NavDestinationActiveReason {
+    number TRANSITION = 0;
+    number CONTENT_COVER = 1;
+    number SHEET = 2;
+    number DIALOG = 3;
+    number OVERLAY = 4;
+    number APP_STATE = 5;
+};
+interface RouteMapConfig {
+    attribute String name;
+    attribute String pageSourceFile;
+    attribute Object data;
+};
+interface NavDestinationContext {
+    attribute NavPathInfo pathInfo;
+    attribute NavPathStack pathStack;
+    [Optional]
+    attribute String navDestinationId;
+    (RouteMapConfig or undefined) getConfigInRouteMap();
+};
+interface NestedScrollInfo {
+    attribute Scroller parent;
+    attribute Scroller child;
+};
+[Synthetic]
+callback Callback_Void = void ();
+interface NavDestinationTransition {
+    [Optional]
+    attribute Callback_Void onTransitionEnd;
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute Curve curve;
+    [Optional]
+    attribute number delay;
+    attribute Callback_Void event;
+};
+[Synthetic]
+callback Callback_Boolean = boolean ();
+[Synthetic]
+callback Callback_Union_Object_Undefined_Void = void ((Object or undefined) value0);
+[Synthetic]
+callback Callback_NavDestinationContext_Void = void (NavDestinationContext value0);
+[Synthetic]
+callback Callback_NavDestinationActiveReason_Void = void (NavDestinationActiveReason value0);
+[Component]
+interface NavDestinationAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (boolean or undefined) hideTitleBar;
+    [CommonMethod]
+    attribute (boolean or undefined) hideBackButton;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onShown;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onHidden;
+    [CommonMethod]
+    attribute (Callback_Boolean or undefined) onBackPressed;
+    [CommonMethod]
+    attribute (Callback_Union_Object_Undefined_Void or undefined) onResult;
+    [CommonMethod]
+    attribute (NavDestinationMode or undefined) mode;
+    [CommonMethod]
+    attribute ((ResourceStr or PixelMap or SymbolGlyphModifier) or undefined) backButtonIcon;
+    [CommonMethod]
+    attribute ((sequence<NavigationMenuItem> or CustomBuilder) or undefined) menus;
+    [CommonMethod]
+    attribute (Callback_NavDestinationContext_Void or undefined) onReady;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onWillAppear;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onWillDisappear;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onWillShow;
+    [CommonMethod]
+    attribute (Callback_Void or undefined) onWillHide;
+    [CommonMethod]
+    attribute (SystemBarStyle or undefined) systemBarStyle;
+    [CommonMethod]
+    attribute (boolean or undefined) recoverable;
+    [CommonMethod]
+    attribute (NavigationSystemTransitionType or undefined) systemTransition;
+    [CommonMethod]
+    attribute (sequence<Scroller> or undefined) bindToScrollable;
+    [CommonMethod]
+    attribute (sequence<NestedScrollInfo> or undefined) bindToNestedScrollable;
+    [CommonMethod]
+    attribute (Callback_NavDestinationActiveReason_Void or undefined) onActive;
+    [CommonMethod]
+    attribute (Callback_NavDestinationActiveReason_Void or undefined) onInactive;
+    [CommonMethod]
+    attribute (NavDestinationTransitionDelegate or undefined) customTransition;
+    [CommonMethod]
+    attribute (Callback_Union_Object_Undefined_Void or undefined) onNewParam;
+    [CommonMethod]
+    attribute (Orientation or undefined) preferredOrientation;
+    [CommonMethod]
+    attribute (boolean or undefined) enableNavigationIndicator;
+    [CommonMethod]
+    this title(((String or CustomBuilder or NavDestinationCommonTitle or NavDestinationCustomTitle or Resource) or undefined) value, optional (NavigationTitleOptions or undefined) options);
+    [CommonMethod]
+    this hideTitleBar((boolean or undefined) hide, (boolean or undefined) animated);
+    [CommonMethod]
+    this backButtonIcon(((ResourceStr or PixelMap or SymbolGlyphModifier) or undefined) icon, optional (ResourceStr or undefined) accessibilityText);
+    [CommonMethod]
+    this menus(((sequence<NavigationMenuItem> or CustomBuilder) or undefined) items, optional (NavigationMenuOptions or undefined) options);
+    [CommonMethod]
+    this toolbarConfiguration(((sequence<ToolbarItem> or CustomBuilder) or undefined) toolbarParam, optional (NavigationToolbarOptions or undefined) options);
+    [CommonMethod]
+    this hideToolBar((boolean or undefined) hide, optional (boolean or undefined) animated);
+    [CommonMethod]
+    this ignoreLayoutSafeArea(optional (sequence<LayoutSafeAreaType> or undefined) types, optional (sequence<LayoutSafeAreaEdge> or undefined) edges);
+    [CommonMethod]
+    this enableStatusBar((boolean or undefined) enabled, optional (boolean or undefined) animated);
+};
+callback NavDestinationTransitionDelegate = (sequence<NavDestinationTransition> or undefined) (NavigationOperation operation, boolean isEnter);
+[ComponentInterface]
+interface NavDestinationInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] NavDestinationAttribute) invoke();
+};

@@ -1,0 +1,47 @@
+package arkui.component.folderStack;
+import ohos.window.default as window;
+import arkui.component.enums.FoldStatus as FoldStatus;
+import arkui.component.enums.Alignment as Alignment;
+import arkui.component.enums.AppRotation as AppRotation;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+typedef window.WindowStatusType WindowStatusType;
+interface FolderStackOptions {
+    [Optional]
+    attribute sequence<String> upperItems;
+};
+interface OnFoldStatusChangeInfo {
+    attribute FoldStatus foldStatus;
+};
+callback OnFoldStatusChangeCallback = void (OnFoldStatusChangeInfo event);
+callback OnHoverStatusChangeCallback = void (HoverEventParam param);
+[Component]
+interface FolderStackAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (Alignment or undefined) alignContent;
+    [CommonMethod]
+    attribute (OnFoldStatusChangeCallback or undefined) onFolderStateChange;
+    [CommonMethod]
+    attribute (OnHoverStatusChangeCallback or undefined) onHoverStatusChange;
+    [CommonMethod]
+    attribute (boolean or undefined) enableAnimation;
+    [CommonMethod]
+    attribute (boolean or undefined) autoHalfFold;
+    [CommonMethod]
+    attribute (([TypeArguments="FolderStackAttribute", TypeArguments="FolderStackAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+interface HoverEventParam {
+    attribute FoldStatus foldStatus;
+    attribute boolean isHoverMode;
+    attribute AppRotation appRotation;
+    attribute WindowStatusType windowStatusType;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface FolderStackInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] FolderStackAttribute) invoke(optional FolderStackOptions options);
+};

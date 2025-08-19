@@ -1,0 +1,27 @@
+package arkui.component.polygon;
+import arkui.component.common.CommonShapeMethod as CommonShapeMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.line.ShapePoint as ShapePoint;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+interface PolygonOptions {
+    [Optional]
+    attribute (String or f64) width;
+    [Optional]
+    attribute (String or f64) height;
+};
+[Component]
+interface PolygonAttribute: CommonShapeMethod {
+    [CommonMethod]
+    attribute (sequence<ShapePoint> or undefined) points;
+    [CommonMethod]
+    attribute (([TypeArguments="PolygonAttribute", TypeArguments="PolygonAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface PolygonInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] PolygonAttribute) invoke(optional PolygonOptions options);
+};

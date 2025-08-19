@@ -1,0 +1,90 @@
+package arkui.component.alphabetIndexer;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.BlurStyle as BlurStyle;
+import arkui.component.common.Bindable as Bindable;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.units.Length as Length;
+import arkui.component.units.Position as Position;
+import arkui.component.units.Font as Font;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+dictionary IndexerAlign {
+    [OriginalEnumMemberName=Left]
+    number LEFT = 0;
+    [OriginalEnumMemberName=Right]
+    number RIGHT = 1;
+    number START = 2;
+    number END = 3;
+};
+interface AlphabetIndexerOptions {
+    attribute sequence<String> arrayValue;
+    attribute (number or [TypeArguments="number", TypeArguments="number"] Bindable) selected;
+};
+callback OnAlphabetIndexerSelectCallback = void (number index);
+callback OnAlphabetIndexerPopupSelectCallback = void (number index);
+callback OnAlphabetIndexerRequestPopupDataCallback = sequence<String> (number index);
+[Component]
+interface AlphabetIndexerAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (ResourceColor or undefined) color;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) selectedBackgroundColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupBackground;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupSelectedColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupUnselectedColor;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupItemBackgroundColor;
+    [CommonMethod]
+    attribute (boolean or undefined) usingPopup;
+    [CommonMethod]
+    attribute (Font or undefined) selectedFont;
+    [CommonMethod]
+    attribute (Font or undefined) popupFont;
+    [CommonMethod]
+    attribute (Font or undefined) popupItemFont;
+    [CommonMethod]
+    attribute ((String or number) or undefined) itemSize;
+    [CommonMethod]
+    attribute (Font or undefined) font;
+    [CommonMethod]
+    attribute (OnAlphabetIndexerSelectCallback or undefined) onSelect;
+    [CommonMethod]
+    attribute (OnAlphabetIndexerRequestPopupDataCallback or undefined) onRequestPopupData;
+    [CommonMethod]
+    attribute (OnAlphabetIndexerPopupSelectCallback or undefined) onPopupSelect;
+    [CommonMethod]
+    attribute ((number or [TypeArguments="number", TypeArguments="number"] Bindable) or undefined) selected;
+    [CommonMethod]
+    attribute (Position or undefined) popupPosition;
+    [CommonMethod]
+    attribute (boolean or undefined) autoCollapse;
+    [CommonMethod]
+    attribute (number or undefined) popupItemBorderRadius;
+    [CommonMethod]
+    attribute (number or undefined) itemBorderRadius;
+    [CommonMethod]
+    attribute (BlurStyle or undefined) popupBackgroundBlurStyle;
+    [CommonMethod]
+    attribute (ResourceColor or undefined) popupTitleBackground;
+    [CommonMethod]
+    attribute (boolean or undefined) enableHapticFeedback;
+    [CommonMethod]
+    attribute (([TypeArguments="AlphabetIndexerAttribute", TypeArguments="AlphabetIndexerAttribute"] AttributeModifier or [TypeArguments="CommonMethod", TypeArguments="CommonMethod"] AttributeModifier) or undefined) attributeModifier;
+    [CommonMethod]
+    this alignStyle((IndexerAlign or undefined) value, optional (Length or undefined) offset);
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface AlphabetIndexerInterface {
+    [Annotations=memo, CallSignature]
+    ([Annotations=memo, CallSignature] AlphabetIndexerAttribute) invoke(AlphabetIndexerOptions options);
+};
