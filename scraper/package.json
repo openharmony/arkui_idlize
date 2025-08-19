@@ -1,0 +1,26 @@
+{
+  "name": "@idlizer/scraper",
+  "version": "0.0.0",
+  "private": true,
+  "main": "build/lib/main.js",
+  "scripts": {
+    "compile:self": "rollup -c",
+    "compile": "npm run -C ../core compile && npm run compile:self",
+    "go": "npm run compile && node . ../etsgen/out/idl --target arkui"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@idlizer/core": "2.1.10+devel",
+    "commander": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.24.4",
+    "typescript": "^4.9.5"
+  }
+}
