@@ -1,6 +1,66 @@
 {
     "module": [
         {
+            "fileName": "@ohos.arkui.Parallelize.idl",
+            "packageName": "ohos.arkui.Parallelize"
+        },
+        {
+            "fileName": "@ohos.arkui.UIContext.idl",
+            "packageName": "ohos.arkui.UIContext"
+        },
+        {
+            "fileName": "@ohos.arkui.advanced.FullScreenLaunchComponent.idl",
+            "packageName": "ohos.arkui.advanced.FullScreenLaunchComponent"
+        },
+        {
+            "fileName": "@ohos.arkui.advanced.SplitLayout.idl",
+            "packageName": "ohos.arkui.advanced.SplitLayout"
+        },
+        {
+            "fileName": "@ohos.arkui.advanced.SwipeRefresher.idl",
+            "packageName": "ohos.arkui.advanced.SwipeRefresher"
+        },
+        {
+            "fileName": "@ohos.arkui.componentSnapshot.idl",
+            "packageName": "ohos.arkui.componentSnapshot"
+        },
+        {
+            "fileName": "@ohos.arkui.componentUtils.idl",
+            "packageName": "ohos.arkui.componentUtils"
+        },
+        {
+            "fileName": "@ohos.arkui.dragController.idl",
+            "packageName": "ohos.arkui.dragController"
+        },
+        {
+            "fileName": "@ohos.arkui.drawableDescriptor.idl",
+            "packageName": "ohos.arkui.drawableDescriptor"
+        },
+        {
+            "fileName": "@ohos.arkui.inspector.idl",
+            "packageName": "ohos.arkui.inspector"
+        },
+        {
+            "fileName": "@ohos.arkui.observer.idl",
+            "packageName": "ohos.arkui.observer"
+        },
+        {
+            "fileName": "@ohos.arkui.performanceMonitor.idl",
+            "packageName": "ohos.arkui.performanceMonitor"
+        },
+        {
+            "fileName": "@ohos.arkui.shape.idl",
+            "packageName": "ohos.arkui.shape"
+        },
+        {
+            "fileName": "@ohos.arkui.theme.idl",
+            "packageName": "ohos.arkui.theme"
+        },
+        {
+            "fileName": "@ohos.arkui.uiExtension.idl",
+            "packageName": "ohos.arkui.uiExtension"
+        },
+        {
             "fileName": "arkui/AttributeUpdater.idl",
             "packageName": "arkui.AttributeUpdater"
         },
@@ -803,40 +863,80 @@
     ],
     "external": [
         {
-            "fileName": "@ohos.arkui.UIContext.idl",
-            "packageName": "ohos.arkui.UIContext"
+            "fileName": "@ohos.animator.idl",
+            "packageName": "ohos.animator"
         },
         {
-            "fileName": "global/resource.idl",
-            "packageName": "global.resource"
+            "fileName": "@ohos.app.ability.Ability.idl",
+            "packageName": "ohos.app.ability.Ability"
         },
         {
-            "fileName": "@ohos.graphics.drawing.idl",
-            "packageName": "ohos.graphics.drawing"
+            "fileName": "@ohos.app.ability.AbilityConstant.idl",
+            "packageName": "ohos.app.ability.AbilityConstant"
         },
         {
-            "fileName": "@ohos.graphics.common2D.idl",
-            "packageName": "ohos.graphics.common2D"
+            "fileName": "@ohos.app.ability.AbilityLifecycleCallback.idl",
+            "packageName": "ohos.app.ability.AbilityLifecycleCallback"
         },
         {
-            "fileName": "@ohos.promptAction.idl",
-            "packageName": "ohos.promptAction"
+            "fileName": "@ohos.app.ability.ApplicationStateChangeCallback.idl",
+            "packageName": "ohos.app.ability.ApplicationStateChangeCallback"
+        },
+        {
+            "fileName": "@ohos.app.ability.AtomicServiceOptions.idl",
+            "packageName": "ohos.app.ability.AtomicServiceOptions"
+        },
+        {
+            "fileName": "@ohos.app.ability.Configuration.idl",
+            "packageName": "ohos.app.ability.Configuration"
+        },
+        {
+            "fileName": "@ohos.app.ability.ConfigurationConstant.idl",
+            "packageName": "ohos.app.ability.ConfigurationConstant"
+        },
+        {
+            "fileName": "@ohos.app.ability.EnvironmentCallback.idl",
+            "packageName": "ohos.app.ability.EnvironmentCallback"
+        },
+        {
+            "fileName": "@ohos.app.ability.InteropAbilityLifecycleCallback.idl",
+            "packageName": "ohos.app.ability.InteropAbilityLifecycleCallback"
+        },
+        {
+            "fileName": "@ohos.app.ability.OpenLinkOptions.idl",
+            "packageName": "ohos.app.ability.OpenLinkOptions"
+        },
+        {
+            "fileName": "@ohos.app.ability.StartOptions.idl",
+            "packageName": "ohos.app.ability.StartOptions"
+        },
+        {
+            "fileName": "@ohos.app.ability.UIAbility.idl",
+            "packageName": "ohos.app.ability.UIAbility"
+        },
+        {
+            "fileName": "@ohos.app.ability.Want.idl",
+            "packageName": "ohos.app.ability.Want"
+        },
+        {
+            "fileName": "@ohos.app.ability.appManager.idl",
+            "packageName": "ohos.app.ability.appManager"
+        },
+        {
+            "fileName": "@ohos.app.ability.contextConstant.idl",
+            "packageName": "ohos.app.ability.contextConstant"
+        },
+        {
+            "fileName": "@ohos.base.idl",
+            "packageName": "ohos.base"
+        },
+        {
+            "fileName": "@ohos.bundle.bundleManager.idl",
+            "packageName": "ohos.bundle.bundleManager"
         },
         {
             "fileName": "@ohos.curves.idl",
             "packageName": "ohos.curves"
-        },
-        {
-            "fileName": "@ohos.multimedia.image.idl",
-            "packageName": "ohos.multimedia.image"
-        },
-        {
-            "fileName": "application/Context.idl",
-            "packageName": "application.Context"
-        },
-        {
-            "fileName": "@ohos.multimodalInput.pointer.idl",
-            "packageName": "ohos.multimodalInput.pointer"
         },
         {
             "fileName": "@ohos.data.unifiedDataChannel.idl",
@@ -847,168 +947,100 @@
             "packageName": "ohos.data.uniformTypeDescriptor"
         },
         {
-            "fileName": "@ohos.multimodalInput.intentionCode.idl",
-            "packageName": "ohos.multimodalInput.intentionCode"
-        },
-        {
-            "fileName": "@ohos.graphics.uiEffect.idl",
-            "packageName": "ohos.graphics.uiEffect"
-        },
-        {
-            "fileName": "@ohos.arkui.shape.idl",
-            "packageName": "ohos.arkui.shape"
-        },
-        {
-            "fileName": "@ohos.arkui.observer.idl",
-            "packageName": "ohos.arkui.observer"
-        },
-        {
-            "fileName": "@ohos.app.ability.Want.idl",
-            "packageName": "ohos.app.ability.Want"
-        },
-        {
-            "fileName": "@ohos.intl.idl",
-            "packageName": "ohos.intl"
-        },
-        {
-            "fileName": "@ohos.base.idl",
-            "packageName": "ohos.base"
-        },
-        {
-            "fileName": "@ohos.window.idl",
-            "packageName": "ohos.window"
-        },
-        {
-            "fileName": "@ohos.matrix4.idl",
-            "packageName": "ohos.matrix4"
-        },
-        {
-            "fileName": "@ohos.arkui.drawableDescriptor.idl",
-            "packageName": "ohos.arkui.drawableDescriptor"
-        },
-        {
-            "fileName": "@ohos.arkui.advanced.FullScreenLaunchComponent.idl",
-            "packageName": "ohos.arkui.advanced.FullScreenLaunchComponent"
-        },
-        {
-            "fileName": "@ohos.web.webview.idl",
-            "packageName": "ohos.web.webview"
-        },
-        {
-            "fileName": "@ohos.arkui.theme.idl",
-            "packageName": "ohos.arkui.theme"
-        },
-        {
-            "fileName": "@ohos.animator.idl",
-            "packageName": "ohos.animator"
-        },
-        {
-            "fileName": "application/UIAbilityContext.idl",
-            "packageName": "application.UIAbilityContext"
-        },
-        {
-            "fileName": "application/ExtensionContext.idl",
-            "packageName": "application.ExtensionContext"
+            "fileName": "@ohos.font.idl",
+            "packageName": "ohos.font"
         },
         {
             "fileName": "@ohos.graphics.colorSpaceManager.idl",
             "packageName": "ohos.graphics.colorSpaceManager"
         },
         {
-            "fileName": "application/BaseContext.idl",
-            "packageName": "application.BaseContext"
+            "fileName": "@ohos.graphics.common2D.idl",
+            "packageName": "ohos.graphics.common2D"
         },
         {
-            "fileName": "@ohos.resourceManager.idl",
-            "packageName": "ohos.resourceManager"
+            "fileName": "@ohos.graphics.drawing.idl",
+            "packageName": "ohos.graphics.drawing"
         },
         {
-            "fileName": "bundleManager/ApplicationInfo.idl",
-            "packageName": "bundleManager.ApplicationInfo"
+            "fileName": "@ohos.graphics.uiEffect.idl",
+            "packageName": "ohos.graphics.uiEffect"
         },
         {
-            "fileName": "application/EventHub.idl",
-            "packageName": "application.EventHub"
+            "fileName": "@ohos.intl.idl",
+            "packageName": "ohos.intl"
         },
         {
-            "fileName": "@ohos.app.ability.contextConstant.idl",
-            "packageName": "ohos.app.ability.contextConstant"
-        },
-        {
-            "fileName": "application/ApplicationContext.idl",
-            "packageName": "application.ApplicationContext"
-        },
-        {
-            "fileName": "@ohos.security.cert.idl",
-            "packageName": "ohos.security.cert"
-        },
-        {
-            "fileName": "@ohos.print.idl",
-            "packageName": "ohos.print"
-        },
-        {
-            "fileName": "@ohos.font.idl",
-            "packageName": "ohos.font"
-        },
-        {
-            "fileName": "@ohos.mediaquery.idl",
-            "packageName": "ohos.mediaquery"
-        },
-        {
-            "fileName": "@ohos.arkui.inspector.idl",
-            "packageName": "ohos.arkui.inspector"
-        },
-        {
-            "fileName": "@ohos.router.idl",
-            "packageName": "ohos.router"
-        },
-        {
-            "fileName": "@ohos.arkui.componentUtils.idl",
-            "packageName": "ohos.arkui.componentUtils"
-        },
-        {
-            "fileName": "@ohos.telephony.observer.idl",
-            "packageName": "ohos.telephony.observer"
-        },
-        {
-            "fileName": "@ohos.arkui.dragController.idl",
-            "packageName": "ohos.arkui.dragController"
+            "fileName": "@ohos.matrix4.idl",
+            "packageName": "ohos.matrix4"
         },
         {
             "fileName": "@ohos.measure.idl",
             "packageName": "ohos.measure"
         },
         {
-            "fileName": "@ohos.arkui.componentSnapshot.idl",
-            "packageName": "ohos.arkui.componentSnapshot"
+            "fileName": "@ohos.mediaquery.idl",
+            "packageName": "ohos.mediaquery"
         },
         {
-            "fileName": "bundleManager/AbilityInfo.idl",
-            "packageName": "bundleManager.AbilityInfo"
+            "fileName": "@ohos.multimedia.image.idl",
+            "packageName": "ohos.multimedia.image"
         },
         {
-            "fileName": "bundleManager/HapModuleInfo.idl",
-            "packageName": "bundleManager.HapModuleInfo"
+            "fileName": "@ohos.multimodalInput.intentionCode.idl",
+            "packageName": "ohos.multimodalInput.intentionCode"
         },
         {
-            "fileName": "@ohos.app.ability.Configuration.idl",
-            "packageName": "ohos.app.ability.Configuration"
+            "fileName": "@ohos.multimodalInput.pointer.idl",
+            "packageName": "ohos.multimodalInput.pointer"
         },
         {
-            "fileName": "@ohos.app.ability.StartOptions.idl",
-            "packageName": "ohos.app.ability.StartOptions"
+            "fileName": "@ohos.print.idl",
+            "packageName": "ohos.print"
         },
         {
-            "fileName": "@ohos.app.ability.OpenLinkOptions.idl",
-            "packageName": "ohos.app.ability.OpenLinkOptions"
+            "fileName": "@ohos.promptAction.idl",
+            "packageName": "ohos.promptAction"
+        },
+        {
+            "fileName": "@ohos.resourceManager.idl",
+            "packageName": "ohos.resourceManager"
+        },
+        {
+            "fileName": "@ohos.router.idl",
+            "packageName": "ohos.router"
+        },
+        {
+            "fileName": "@ohos.rpc.idl",
+            "packageName": "ohos.rpc"
+        },
+        {
+            "fileName": "@ohos.security.cert.idl",
+            "packageName": "ohos.security.cert"
+        },
+        {
+            "fileName": "@ohos.security.cryptoFramework.idl",
+            "packageName": "ohos.security.cryptoFramework"
+        },
+        {
+            "fileName": "@ohos.telephony.observer.idl",
+            "packageName": "ohos.telephony.observer"
+        },
+        {
+            "fileName": "@ohos.web.netErrorList.idl",
+            "packageName": "ohos.web.netErrorList"
+        },
+        {
+            "fileName": "@ohos.web.webview.idl",
+            "packageName": "ohos.web.webview"
+        },
+        {
+            "fileName": "@ohos.window.idl",
+            "packageName": "ohos.window"
         },
         {
             "fileName": "ability/abilityResult.idl",
             "packageName": "ability.abilityResult"
-        },
-        {
-            "fileName": "@ohos.app.ability.UIAbility.idl",
-            "packageName": "ohos.app.ability.UIAbility"
         },
         {
             "fileName": "ability/connectOptions.idl",
@@ -1019,48 +1051,52 @@
             "packageName": "application.AbilityStartCallback"
         },
         {
-            "fileName": "@ohos.app.ability.AtomicServiceOptions.idl",
-            "packageName": "ohos.app.ability.AtomicServiceOptions"
+            "fileName": "application/ApplicationContext.idl",
+            "packageName": "application.ApplicationContext"
         },
         {
-            "fileName": "@ohos.app.ability.ConfigurationConstant.idl",
-            "packageName": "ohos.app.ability.ConfigurationConstant"
+            "fileName": "application/BaseContext.idl",
+            "packageName": "application.BaseContext"
         },
         {
-            "fileName": "bundleManager/ExtensionAbilityInfo.idl",
-            "packageName": "bundleManager.ExtensionAbilityInfo"
+            "fileName": "application/Context.idl",
+            "packageName": "application.Context"
         },
         {
-            "fileName": "global/rawFileDescriptor.idl",
-            "packageName": "global.rawFileDescriptor"
+            "fileName": "application/EventHub.idl",
+            "packageName": "application.EventHub"
         },
         {
-            "fileName": "@ohos.bundle.bundleManager.idl",
-            "packageName": "ohos.bundle.bundleManager"
-        },
-        {
-            "fileName": "@ohos.app.ability.AbilityLifecycleCallback.idl",
-            "packageName": "ohos.app.ability.AbilityLifecycleCallback"
-        },
-        {
-            "fileName": "@ohos.app.ability.InteropAbilityLifecycleCallback.idl",
-            "packageName": "ohos.app.ability.InteropAbilityLifecycleCallback"
-        },
-        {
-            "fileName": "@ohos.app.ability.EnvironmentCallback.idl",
-            "packageName": "ohos.app.ability.EnvironmentCallback"
-        },
-        {
-            "fileName": "@ohos.app.ability.ApplicationStateChangeCallback.idl",
-            "packageName": "ohos.app.ability.ApplicationStateChangeCallback"
+            "fileName": "application/ExtensionContext.idl",
+            "packageName": "application.ExtensionContext"
         },
         {
             "fileName": "application/ProcessInformation.idl",
             "packageName": "application.ProcessInformation"
         },
         {
-            "fileName": "@ohos.security.cryptoFramework.idl",
-            "packageName": "ohos.security.cryptoFramework"
+            "fileName": "application/UIAbilityContext.idl",
+            "packageName": "application.UIAbilityContext"
+        },
+        {
+            "fileName": "bundleManager/AbilityInfo.idl",
+            "packageName": "bundleManager.AbilityInfo"
+        },
+        {
+            "fileName": "bundleManager/ApplicationInfo.idl",
+            "packageName": "bundleManager.ApplicationInfo"
+        },
+        {
+            "fileName": "bundleManager/ElementName.idl",
+            "packageName": "bundleManager.ElementName"
+        },
+        {
+            "fileName": "bundleManager/ExtensionAbilityInfo.idl",
+            "packageName": "bundleManager.ExtensionAbilityInfo"
+        },
+        {
+            "fileName": "bundleManager/HapModuleInfo.idl",
+            "packageName": "bundleManager.HapModuleInfo"
         },
         {
             "fileName": "bundleManager/Metadata.idl",
@@ -1071,24 +1107,77 @@
             "packageName": "bundleManager.Skill"
         },
         {
-            "fileName": "@ohos.app.ability.AbilityConstant.idl",
-            "packageName": "ohos.app.ability.AbilityConstant"
+            "fileName": "global/rawFileDescriptor.idl",
+            "packageName": "global.rawFileDescriptor"
         },
         {
-            "fileName": "@ohos.app.ability.appManager.idl",
-            "packageName": "ohos.app.ability.appManager"
-        },
-        {
-            "fileName": "bundleManager/ElementName.idl",
-            "packageName": "bundleManager.ElementName"
-        },
-        {
-            "fileName": "@ohos.app.ability.Ability.idl",
-            "packageName": "ohos.app.ability.Ability"
-        },
-        {
-            "fileName": "@ohos.web.netErrorList.idl",
-            "packageName": "ohos.web.netErrorList"
+            "fileName": "global/resource.idl",
+            "packageName": "global.resource"
         }
+    ],
+    "externalNames": [
+        "@ohos.animator.idl",
+        "@ohos.app.ability.Ability.idl",
+        "@ohos.app.ability.AbilityConstant.idl",
+        "@ohos.app.ability.AbilityLifecycleCallback.idl",
+        "@ohos.app.ability.ApplicationStateChangeCallback.idl",
+        "@ohos.app.ability.AtomicServiceOptions.idl",
+        "@ohos.app.ability.Configuration.idl",
+        "@ohos.app.ability.ConfigurationConstant.idl",
+        "@ohos.app.ability.EnvironmentCallback.idl",
+        "@ohos.app.ability.InteropAbilityLifecycleCallback.idl",
+        "@ohos.app.ability.OpenLinkOptions.idl",
+        "@ohos.app.ability.StartOptions.idl",
+        "@ohos.app.ability.UIAbility.idl",
+        "@ohos.app.ability.Want.idl",
+        "@ohos.app.ability.appManager.idl",
+        "@ohos.app.ability.contextConstant.idl",
+        "@ohos.base.idl",
+        "@ohos.bundle.bundleManager.idl",
+        "@ohos.curves.idl",
+        "@ohos.data.unifiedDataChannel.idl",
+        "@ohos.data.uniformTypeDescriptor.idl",
+        "@ohos.font.idl",
+        "@ohos.graphics.colorSpaceManager.idl",
+        "@ohos.graphics.common2D.idl",
+        "@ohos.graphics.drawing.idl",
+        "@ohos.graphics.uiEffect.idl",
+        "@ohos.intl.idl",
+        "@ohos.matrix4.idl",
+        "@ohos.measure.idl",
+        "@ohos.mediaquery.idl",
+        "@ohos.multimedia.image.idl",
+        "@ohos.multimodalInput.intentionCode.idl",
+        "@ohos.multimodalInput.pointer.idl",
+        "@ohos.print.idl",
+        "@ohos.promptAction.idl",
+        "@ohos.resourceManager.idl",
+        "@ohos.router.idl",
+        "@ohos.rpc.idl",
+        "@ohos.security.cert.idl",
+        "@ohos.security.cryptoFramework.idl",
+        "@ohos.telephony.observer.idl",
+        "@ohos.web.netErrorList.idl",
+        "@ohos.web.webview.idl",
+        "@ohos.window.idl",
+        "ability/abilityResult.idl",
+        "ability/connectOptions.idl",
+        "application/AbilityStartCallback.idl",
+        "application/ApplicationContext.idl",
+        "application/BaseContext.idl",
+        "application/Context.idl",
+        "application/EventHub.idl",
+        "application/ExtensionContext.idl",
+        "application/ProcessInformation.idl",
+        "application/UIAbilityContext.idl",
+        "bundleManager/AbilityInfo.idl",
+        "bundleManager/ApplicationInfo.idl",
+        "bundleManager/ElementName.idl",
+        "bundleManager/ExtensionAbilityInfo.idl",
+        "bundleManager/HapModuleInfo.idl",
+        "bundleManager/Metadata.idl",
+        "bundleManager/Skill.idl",
+        "global/rawFileDescriptor.idl",
+        "global/resource.idl"
     ]
 }

@@ -431,6 +431,23 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
     private mode: 'regular' | 'arkoala' = 'arkoala'
 
+    // Temporary fix
+    private sanitizePromise(type:idl.IDLType): idl.IDLType {
+        if (!idl.isUnionType(type)) {
+            return type
+        }
+        let promiseType: idl.IDLType | undefined = undefined
+        idl.forEachChild(type, (node) => {
+            if (idl.isContainerType(node) && idl.IDLContainerUtils.isPromise(node)) {
+                promiseType = node
+            }
+        })
+        if (promiseType) {
+            return promiseType
+        }
+        return type
+    }
+
     constructor(
         protected basePath: string,
         protected originalFileName: string,
@@ -1199,7 +1216,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isTSArrayType(type))
             return idl.createContainerType('sequence', [this.serializeType((type as arkts.TSArrayType).elementType)])
         if (arkts.isETSUnionType(type))
-            return collapseTypes((type as arkts.ETSUnionType).types.map((it) => this.serializeType(it)))
+            return this.sanitizePromise(collapseTypes((type as arkts.ETSUnionType).types.map((it) => this.serializeType(it))))
         if (arkts.isETSPrimitiveType(type))
             return this.serializePrimitive((type as arkts.ETSPrimitiveType).primitiveType)
         if (arkts.isETSTypeReference(type)) {

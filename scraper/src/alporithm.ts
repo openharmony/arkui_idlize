@@ -53,8 +53,10 @@ export function solve(library:IDLFile[], targets:string[]) {
     const result: any = {}
     result.module = []
     result.external = []
+    result.externalNames = []
 
-    for (const fileName of fileNames) {
+    const sortedNames = Array.from(fileNames).sort()
+    for (const fileName of sortedNames) {
         const packageName = index.get(fileName)?.packageClause.join('.')
         const record = {
             fileName,
@@ -63,6 +65,7 @@ export function solve(library:IDLFile[], targets:string[]) {
         if (targets.some(t => packageName?.startsWith(t))) {
             result.module.push(record)
         } else {
+            result.externalNames.push(record.fileName)
             result.external.push(record)
         }
     }
