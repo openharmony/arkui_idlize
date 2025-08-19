@@ -24,7 +24,6 @@ import {
     unpackNonNullableNode,
     unpackNode,
     unpackNodeArray,
-    assertValidPeer,
     AstNode,
     KNativePointer,
     nodeByType,
