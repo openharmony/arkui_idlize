@@ -212,7 +212,9 @@
             "CustomStyles",
             "applyStyles",
             "UIGestureEvent",
-            "GestureModifier"
+            "GestureModifier",
+            "ItemGeneratorFunc",
+            "KeyGeneratorFunc"
         ],
         "ignoreEntry": [
             "Optional",
