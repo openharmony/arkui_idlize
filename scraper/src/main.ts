@@ -18,8 +18,7 @@ import { Command } from "commander"
 import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { solve } from "./alporithm"
-
-const OUT_DIR = resolve(process.cwd(), 'out')
+import { OUT_DIR } from "./shared"
 
 function scan(root:string):string[] {
     return statSync(root).isDirectory()

@@ -1023,10 +1023,6 @@
             "packageName": "ohos.security.cryptoFramework"
         },
         {
-            "fileName": "@ohos.telephony.observer.idl",
-            "packageName": "ohos.telephony.observer"
-        },
-        {
             "fileName": "@ohos.web.netErrorList.idl",
             "packageName": "ohos.web.netErrorList"
         },
@@ -1113,6 +1109,10 @@
         {
             "fileName": "global/resource.idl",
             "packageName": "global.resource"
+        },
+        {
+            "fileName": "stdlib.idl",
+            "packageName": ""
         }
     ],
     "externalNames": [
@@ -1156,7 +1156,6 @@
         "@ohos.rpc.idl",
         "@ohos.security.cert.idl",
         "@ohos.security.cryptoFramework.idl",
-        "@ohos.telephony.observer.idl",
         "@ohos.web.netErrorList.idl",
         "@ohos.web.webview.idl",
         "@ohos.window.idl",
@@ -1178,6 +1177,7 @@
         "bundleManager/Metadata.idl",
         "bundleManager/Skill.idl",
         "global/rawFileDescriptor.idl",
-        "global/resource.idl"
+        "global/resource.idl",
+        "stdlib.idl"
     ]
 }

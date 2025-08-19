@@ -14,7 +14,9 @@
  */
 
 import { Language, NativeModuleType, PeerLibrary } from "@idlizer/core";
-import { forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isNamespace, isReferenceType, linearizeNamespaceMembers } from "@idlizer/core/idl";
+import { forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isReferenceType } from "@idlizer/core/idl";
+import { writeFileSync } from "node:fs";
+import { SUMMARY_PATH } from "./shared";
 
 export function solve(library:IDLFile[], targets:string[]) {
     const resolver = new PeerLibrary(Language.ARKTS, new NativeModuleType("___"), false)
@@ -69,7 +71,8 @@ export function solve(library:IDLFile[], targets:string[]) {
             result.external.push(record)
         }
     }
-    console.log(JSON.stringify(result, null, 4))
+
+    writeFileSync(SUMMARY_PATH, JSON.stringify(result, null, 4), 'utf-8')
 }
 
 function findRootFiles(library:IDLFile[], targets:string[]) {

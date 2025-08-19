@@ -16,3 +16,6 @@ namespace jsonx {
 interface LocalStorage {};
 
 interface DataView {};
+
+[TypeParameters="T"]
+interface Partial {};
