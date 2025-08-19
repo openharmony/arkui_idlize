@@ -147,6 +147,7 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
 
     const returnType = collapseReturnTypes(overloads.map(it => it.returnType), library.language)
     return new PeerMethod(
+        overloads[0].decl,
         new PeerMethodSignature(
              method.name,
              "%STUB&",

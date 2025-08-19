@@ -348,6 +348,7 @@ class IDLDeserializer {
             node.arguments.map(it => this.toIDLParameter(file, it)),
             undefined, {
             documentation: this.makeDocs(node),
+            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
         }))
     }
     toIDLParameter(file: string, node: webidl2.Argument): idl.IDLParameter {

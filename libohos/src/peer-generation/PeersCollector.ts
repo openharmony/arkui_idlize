@@ -50,6 +50,7 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
         })
     }
     return new PeerMethod(
+        method,
         new PeerMethodSignature(
             newMethodName,
             idl.getFQName(method.parent as idl.IDLInterface).split('.').concat(newMethodName).join('_'),
@@ -81,6 +82,7 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
     const overloadInfo = PeerMethodSignature.mangleOverloadedName(prop)
     const methodName = `set${capitalize(overloadInfo.alias ?? (prop.name + overloadInfo.postfix))}`
     return new PeerMethod(
+        prop,
         new PeerMethodSignature(
             methodName,
             idl.getFQName(prop.parent as idl.IDLInterface).split('.').concat(methodName).join('_'),
@@ -152,7 +154,7 @@ function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration):
         throw new Error(`Not found a file corresponding to attributes class: ${baseName} (${resolvedPath})`)
     }
 
-    const peer = new PeerClass(file, component.name, baseName)
+    const peer = new PeerClass(component.attributeDeclaration, file, component.name, baseName)
 
     if (component.interfaceDeclaration) {
         fillInterface(library, peer, component.interfaceDeclaration)

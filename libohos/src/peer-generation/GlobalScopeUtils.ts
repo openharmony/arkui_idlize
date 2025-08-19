@@ -34,6 +34,7 @@ export function idlFreeMethodsGroupToLegacy(library: PeerLibrary, methods: IDLMe
 
 function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
     return new MaterializedMethod(
+        method,
         new PeerMethodSignature(
             mangledGlobalScopeName(method),
             getFQName(method).split('.').join('_'),

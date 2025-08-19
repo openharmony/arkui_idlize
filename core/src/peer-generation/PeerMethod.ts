@@ -85,6 +85,7 @@ export class PeerMethodSignature {
 
 export class PeerMethod {
     constructor(
+        public decl: idl.IDLConstructor | idl.IDLMethod | idl.IDLCallable | idl.IDLProperty | undefined,
         public sig: PeerMethodSignature,
         public originalParentName: string,
         public returnType: IDLType,

@@ -38,6 +38,7 @@ export class MaterializedField {
 
 export class MaterializedMethod extends PeerMethod {
     constructor(
+        public decl: idl.IDLConstructor | idl.IDLMethod | undefined,
         sig: PeerMethodSignature,
         originalParentName: string,
         public implementationParentName: string,
@@ -46,7 +47,7 @@ export class MaterializedMethod extends PeerMethod {
         uniqueOverloadName: string,
         method: Method,
     ) {
-        super(sig, originalParentName, returnType, isCallSignature, uniqueOverloadName, method)
+        super(decl, sig, originalParentName, returnType, isCallSignature, uniqueOverloadName, method)
     }
 
     tsReturnType(): idl.IDLType | undefined {
@@ -84,6 +85,7 @@ export function copyMaterializedMethod(method: MaterializedMethod, overrides: {
     // add more if you need
 }) {
     return new MaterializedMethod(
+        method.decl,
         method.sig,
         method.originalParentName,
         method.implementationParentName,
@@ -133,6 +135,7 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         return undefined
     }
     return new MaterializedMethod(
+            undefined,
             new PeerMethodSignature(
                 PeerMethodSignature.DESTROY,
                 '%NEVER_USED$',

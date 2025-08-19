@@ -224,6 +224,7 @@ export class IdlPeerProcessor {
         }
         const mConstructors = isStaticMaterialized ? [] : constructors.map(c => this.makeMaterializedMethod(decl, c, fullCName, implemenationParentName))
         const mFinalizer = (isRefCountedClass || isStaticMaterialized) ? undefined : new MaterializedMethod(
+            undefined,
             new PeerMethodSignature(
                 PeerMethodSignature.GET_FINALIZER,
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.GET_FINALIZER).join('_'),
@@ -254,6 +255,7 @@ export class IdlPeerProcessor {
             const sameNamedGetters = mFields.filter(it => it.field.name === f.field.name)
             const overloadPostfix = sameNamedGetters.length > 1 ? sameNamedGetters.indexOf(f).toString() : ``
             const getAccessor = new MaterializedMethod(
+                undefined,
                 new PeerMethodSignature(
                     `get${capitalize(field.name)}${overloadPostfix}`,
                     idl.getFQName(decl).split('.').concat(`get${capitalize(field.name)}${overloadPostfix}`).join('_'),
@@ -269,6 +271,7 @@ export class IdlPeerProcessor {
             if (!isReadOnly) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.maybeOptional(idlType, f.isNullableOriginalTypeField)], [field.name])
                 const setAccessor = new MaterializedMethod(
+                    undefined,
                     new PeerMethodSignature(
                         `set${capitalize(field.name)}${overloadPostfix}`,
                         idl.getFQName(decl).split('.').concat(`set${capitalize(field.name)}${overloadPostfix}`).join('_'),
@@ -317,7 +320,7 @@ export class IdlPeerProcessor {
         if (method === undefined) {
             // interface or class without constructors
             const ctor = new Method(PeerMethodSignature.CTOR, new NamedMethodSignature(idl.createReferenceType(decl), [], []), [MethodModifier.STATIC])
-            return new MaterializedMethod(new PeerMethodSignature(
+            return new MaterializedMethod(undefined, new PeerMethodSignature(
                 PeerMethodSignature.CTOR,
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.CTOR).join('_'),
                 [],
@@ -329,6 +332,7 @@ export class IdlPeerProcessor {
         const overloadInfo = PeerMethodSignature.mangleOverloadedName(method)
         const overloadedName = overloadInfo.alias ?? (methodName + overloadInfo.postfix)
         return new MaterializedMethod(
+            method,
             new PeerMethodSignature(
                 overloadedName,
                 idl.getFQName(decl).split('.').concat(overloadedName).join('_'),

@@ -15,12 +15,25 @@
 
 import * as fs from 'fs'
 import * as path from 'path'
+import * as idl from '@idlizer/core/idl'
 
-import { IndentedPrinter, PeerClass, createConstructPeerMethod, MaterializedClass, PeerLibrary } from '@idlizer/core'
+import { capitalize, IndentedPrinter, PeerClass, createConstructPeerMethod, MaterializedClass, PeerLibrary } from '@idlizer/core'
 import { IDLEnum } from '@idlizer/core/idl'
+import { collectDeclarationTargets } from "./DeclarationTargetCollector"
 import { collectPeersForFile } from './PeersCollector'
 
-const STATUSES = ["Total", "In Progress", "Done", "Blocked"]
+const STATUSES = ["Total", "In Progress", "Done", "Blocked", "Managed side"]
+
+function getFileName(node: idl.IDLNode | undefined) {
+    if (node && idl.isEnumMember(node)) node = node.parent // Fix for enum member not having fileName
+    return node?.fileName?.split('/').at(-1)
+}
+
+function traceColumns(node: idl.IDLNode | undefined) {
+    let trace = node ? idl.getExtAttribute(node, idl.IDLExtendedAttributes.TraceKey) : undefined
+    trace ??= `${getFileName(node)}:unknown:unknown:-1`
+    return `|${trace.replaceAll(':','|')}`
+}
 
 class TrackerVisitor {
     private out = new IndentedPrinter()
@@ -37,40 +50,67 @@ class TrackerVisitor {
     private tracked = new Set<string>()
 
     tracking(key: string): string {
-        const record = this.track.get(key)
+        let record = this.track.get(key)
+        if (record === undefined && key.endsWith('0')) record = this.track.get(key.substr(0, key.length - 1))
         if (record) {
-            return `${record.owner} | ${record.status} |`
+            return `${record.owner} | ${record.status} | ${record.comment} |`
         }
-        return '| |'
+        return ` |  |  |`
     }
 
     printPeerClass(clazz: PeerClass): void {
-        const compKey = key(clazz.componentName, "Component")
+        const compKey = key(clazz.componentName, `set${clazz.componentName}Options`)
         this.incAllStatus(compKey, this.allComponents)
-        this.out.print(`|*${clazz.componentName}*| *Component* | ${this.tracking(compKey)}`)
+        this.out.print(`${traceColumns(clazz.decl)}|unnamed|*${clazz.componentName}*|*Component*| ${this.tracking(compKey)}`)
         let methods = [createConstructPeerMethod(clazz), ...clazz.methods]
         methods.forEach(method => {
             let mname = method.sig.name
             const funcKey = key(clazz.componentName, mname)
             this.incAllStatus(funcKey, this.allFunctions)
-            this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)
+            this.out.print(`${traceColumns(method.decl)}|${clazz.componentName}|${mname}|Function| ${this.tracking(funcKey)}`)
         })
     }
 
     printMaterializedClass(clazz: MaterializedClass) {
         const classKey = key(clazz.className, "Class")
         this.incAllStatus(classKey, this.allMaterialized)
-        this.out.print(`|*${clazz.className}*| *Class* | ${this.tracking(classKey)}`)
+        this.out.print(`${traceColumns(clazz.decl)}|unnamed|*${clazz.className}*|*Class*| ${this.tracking(classKey)}`)
         clazz.ctors.concat(clazz.methods).forEach(method => {
             let mname = method.sig.name
             const funcKey = key(clazz.className, mname)
             this.incAllStatus(funcKey, this.allFunctions)
-            this.out.print(`|\`${mname}\`| Function | ${this.tracking(funcKey)}`)
+            let origName = method.method.name
+            if (origName.startsWith("set") || origName.startsWith("get")) {
+                if (clazz.decl.methods.findIndex(it => it.name == origName) == -1) {
+                    let noPrefix = origName.substr(3)
+                    let idx = clazz.decl.properties.findIndex(it => capitalize(it.name) == noPrefix)
+                    if (idx != -1) {
+                        let prop = clazz.decl.properties[idx]
+                        this.out.print(`${traceColumns(prop)}|${clazz.className}|${mname}|Property| ${this.tracking(funcKey)}`)
+                        return
+                    }
+                }
+            }
+            this.out.print(`${traceColumns(method.decl)}|${clazz.className}|${mname}|Function| ${this.tracking(funcKey)}`)
         })
     }
 
-    printEnum(enam: IDLEnum) {
-        this.out.print(`## Enum ${enam.name}`)
+    printStruct(struct: idl.IDLInterface) {
+        this.out.print(`${traceColumns(struct)}|unnamed|*${struct.name}*|*Interface*| |generated| |`)
+        struct.properties.forEach(prop => {
+            this.out.print(`${traceColumns(prop)}|${struct.name}|${prop.name}|Property| |generated| |`)
+        })
+    }
+
+    printEnum(enam: idl.IDLEnum) {
+        this.out.print(`${traceColumns(enam)}|unnamed|*${enam.name}*|*Enum*| |generated| |`)
+        enam.elements.forEach(elem => {
+            this.out.print(`${traceColumns(elem)}|${enam.name}|${elem.name}|Enum| |generated| |`)
+        })
+    }
+
+    printTypedef(ref: idl.IDLNamedNode) {
+        this.out.print(`${traceColumns(ref)}|unnamed|${ref.name}|Typedef| |generated| |`)
     }
 
     printStats() {
@@ -94,7 +134,7 @@ class TrackerVisitor {
         STATUSES.slice(1).forEach((status, index) => {
             this.incStatus(statusRecord, status, index + 1, counter, updated)
         })
-        if (!updated.flag) {
+        if (!updated.flag && statusRecord.status != '') {
             console.log(`Unknown status "${statusRecord.status}" for key ${key}`)
         }
     }
@@ -107,13 +147,27 @@ class TrackerVisitor {
     }
 
     printTo(fileName: string) {
-        this.out.print(`| Name | Kind | Owner | Status |`)
-        this.out.print(`| ---- | ---- | ----- | ------ |`)
+        this.out.print(`| Package | SDK Parent | SDK Name | Ovr | C API Parent | C API Name | Type | Owner | Status | Comments |`)
+        this.out.print(`| ------- | ---------- | -------- | --- | ------------ | ---------- | ---- | ----- | ------ | -------- |`)
 
         this.library.files.forEach(file => {
             collectPeersForFile(this.library, file).forEach(clazz => this.printPeerClass(clazz))
-            //file.enums.forEach(enam => this.printEnum(enam))
-
+            file.entries.forEach(target => {
+                if (idl.hasExtAttribute(target, idl.IDLExtendedAttributes.ComponentInterface)) return
+                if (idl.isInterface(target) && idl.isInterfaceSubkind(target) && target.methods.length == 0) {
+                    this.printStruct(target)
+                }
+                if (idl.isSyntheticEntry(target)) return
+                if (idl.isEnum(target)) {
+                    this.printEnum(target)
+                }
+                if (idl.isTypedef(target) && !idl.hasExtAttribute(target, idl.IDLExtendedAttributes.Import)) {
+                    this.printTypedef(target)
+                }
+                if (idl.isCallback(target)) {
+                    this.printTypedef(target)
+                }
+            })
         })
         this.library.materializedClasses.forEach(clazz => {
             this.printMaterializedClass(clazz)
@@ -135,7 +189,9 @@ class StatusRecord {
         public component: string,
         public func: string,
         public owner: string,
-        public status: string) { }
+        public status: string,
+        public comment: string,
+    ) { }
 }
 
 function key(component: string, func: string): string {
@@ -156,7 +212,17 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
         let parent = ""
         lines.forEach(line => {
             const parts = line.split('|')
-            if (parts.length > 4) {
+            if (parts.length > 10) {
+                // New format
+                let parent = trimName(parts[5].trim())
+                let name = trimName(parts[6].trim())
+                let kind = trimName(parts[7].trim())
+                let owner = parts[8].trim()
+                let status = parts[9].trim()
+                let comment = parts[10].trim()
+                const k = kind === "Class" ? key(name, kind) : key(parent, name)
+                track.set(k, new StatusRecord(name, kind, owner, status, comment))
+            } else if (parts.length > 4) {
                 let name = trimName(parts[1].trim())
                 let kind = trimName(parts[2].trim())
                 let owner = parts[3].trim()
@@ -165,7 +231,7 @@ export function generateTracker(outDir: string, peerLibrary: PeerLibrary, tracke
                     parent = name
                 }
                 const k = kind === "Function" ? key(parent, name) : key(name, kind)
-                track.set(k, new StatusRecord(name, kind, owner, status))
+                track.set(k, new StatusRecord(name, kind, owner, status, ''))
             }
         })
     }
