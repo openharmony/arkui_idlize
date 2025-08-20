@@ -7,7 +7,7 @@
     "compile:self": "rollup -c",
     "compile": "npm run -C ../core compile && npm run compile:self",
     "chmod": "chmod +x ./out/go-additional.sh && chmod +x ./out/go-main.sh",
-    "go": "npm run compile && node . ../etsgen/out/idl --target arkui.component arkui.AttributeUpdater --exclude arkui.runtimeApi arkui.stateManagement && npm run chmod"
+    "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod"
   },
   "keywords": [],
   "author": "",

@@ -16,7 +16,7 @@
 import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlizer/core";
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { ADDITIONAL_CONFIG_DIR, AppOptions, BASIC_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
+import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
 import { dirname, join, relative } from "node:path";
 
 interface SummaryResultRecord {
@@ -27,10 +27,17 @@ interface SummaryResultRecord {
 interface SummaryResult {
     module: SummaryResultRecord[]
     external: SummaryResultRecord[]
+    others: SummaryResultRecord[]
     externalNames: string[]
 }
 
-export function solve(root: string, library: IDLFile[], targets: string[], options:AppOptions) {
+export function solve(root: string, library: IDLFile[], targets: string[], options:AppConfig) {
+    if (targets.length === 0) {
+        console.log('No targets was provided')
+        process.exitCode = -1
+        return
+    }
+
     const resolver = new PeerLibrary(Language.ARKTS, new NativeModuleType("___"), false)
     resolver.files.push(...library)
 
@@ -71,6 +78,7 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
     const result: SummaryResult = {
         module: [],
         external: [],
+        others: [],
         externalNames: [],
     }
 
@@ -82,13 +90,24 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
             fileName: strippedFileName,
             packageName,
         }
-        if (targets.some(t => packageName?.startsWith(t))) {
+        if (options.banned.some(t => packageName.startsWith(t))) {
+            result.others.push(record)
+        } else if (targets.some(t => packageName?.startsWith(t))) {
             result.module.push(record)
         } else {
             result.externalNames.push(record.fileName)
             result.external.push(record)
         }
     }
+
+    library.forEach(file => {
+        if (!fileNames.has(file.fileName ?? '<<<<')) {
+            result.others.push({
+                fileName: file.fileName ?? '',
+                packageName: file.packageClause.join('.') ?? '',
+            })
+        }
+    })
 
     writeFileSync(SUMMARY_PATH, JSON.stringify(result, null, 4), 'utf-8')
 
@@ -102,6 +121,9 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
         name: 'arkui',
         packages: result.module.map(r => r.packageName)
     }
+    if (options.main) {
+        generatorConfig.modules['arkui'].packages.push(...options.main.additionalPackages)
+    }
     result.external.forEach(record => {
         if (record.packageName === '') {
             return
@@ -112,6 +134,13 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
             packages: [record.packageName]
         }
     })
+    if (result.others.length) {
+        generatorConfig.modules["$other"] = {
+            name: "$other",
+            external: true,
+            packages: result.others.map(r => r.packageName)
+        }
+    }
 
     writeFileSync(BASIC_CONFIG_PATH, JSON.stringify(generatorConfig, null, 2), 'utf-8')
 
@@ -232,7 +261,7 @@ rule ohosgen
     writeFileSync(join(OUT_DIR, 'go-additional.build.ninja'), additionalStartScript, 'utf-8')
 }
 
-function findRootFiles(library: IDLFile[], targets: string[], options:AppOptions) {
+function findRootFiles(library: IDLFile[], targets: string[], options:AppConfig) {
     return library.filter(file => {
         const clause = file.packageClause.join('.')
         return targets.some(target => clause.startsWith(target))

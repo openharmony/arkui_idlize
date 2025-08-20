@@ -15,10 +15,10 @@
 
 import { toIDLFile } from "@idlizer/core"
 import { Command } from "commander"
-import { existsSync, mkdirSync, readdirSync, statSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { solve } from "./alporithm"
-import { ADDITIONAL_CONFIG_DIR, AppOptions, OUT_DIR } from "./shared"
+import { ADDITIONAL_CONFIG_DIR, AppConfigSchema, AppOptions, CONFIG_PATH, OUT_DIR } from "./shared"
 
 function scan(root:string):string[] {
     return statSync(root).isDirectory()
@@ -36,11 +36,9 @@ function prepare() {
 }
 
 function go(root:string, options:AppOptions) {
-    if (options.target.length === 0) {
-        console.log('No targets was provided')
-        process.exitCode = -1
-        return
-    }
+    const configText = readFileSync(CONFIG_PATH, 'utf-8')
+    const configContent = JSON.parse(configText)
+    const config = AppConfigSchema.validate(configContent).unwrap()
     prepare()
 
     const input = scan(resolve(root))
@@ -53,14 +51,14 @@ function go(root:string, options:AppOptions) {
         }
     })
 
-    solve(root, library, options.target, options)
+    config.target.push(...options.target)
+    solve(root, library, config.target, config)
 }
 
 function main(args:string[]) {
     new Command("@idlizer/scraper")
         .argument('<input-directory>', 'Input directory')
         .option('--target <target-names...>', 'Packages', [])
-        .option('--exclude <target-names...>', 'Packages to exclude', [])
         .action(go)
         .parse(args, { from: 'user' })
 }
