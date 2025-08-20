@@ -1,6 +1,7 @@
 {
     "target": [
-        "arkui.component"
+        "arkui.component",
+        "arkui.AttributeUpdater"
     ],
     "main": {
         "additionalPackages": [
