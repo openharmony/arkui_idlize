@@ -215,21 +215,21 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
 
     writeFileSync(join(OUT_DIR, 'go-main.sh'), startScript, 'utf-8')
 
-    let additionalStartScript = ''
+    let additionalStartScript = `
+rule ohosgen
+    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json,./main-config.json,$in
+    description = "Generate $in"
+
+`
     result.external.forEach(record => {
         if (record.packageName === '') {
             return
         }
-        additionalStartScript += 'node ../../ohosgen \\\n'
-        additionalStartScript += '  --idl2peer \\\n'
-        additionalStartScript += '  --language arkts \\\n'
-        additionalStartScript += `  --options-file ../../arkgen/generation-config/config.json,./main-config.json,./configs/${record.packageName}-config.json \\\n`
-        additionalStartScript += `  --output-dir ${join(OUT_DIR, 'modules', record.packageName)} \\\n`
-        additionalStartScript += `  --input-dir ${join(OUT_DIR, 'idl')}\n`
-        additionalStartScript += '\n'
+        additionalStartScript += `build ${join(OUT_DIR, 'modules', record.packageName)}: ohosgen ./configs/${record.packageName}-config.json`
+        additionalStartScript += `\n\n`
     })
 
-    writeFileSync(join(OUT_DIR, 'go-additional.sh'), additionalStartScript, 'utf-8')
+    writeFileSync(join(OUT_DIR, 'go-additional.build.ninja'), additionalStartScript, 'utf-8')
 }
 
 function findRootFiles(library: IDLFile[], targets: string[], options:AppOptions) {

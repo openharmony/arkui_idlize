@@ -1174,7 +1174,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         })
     }
 
-    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]+$/g)
+    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]*$/g)
     private static isFunctionTypeReference(name: string) {
         return IDLVisitor.etsFunctionTypeReferencePattern.test(name)
             || name === 'Callback'
