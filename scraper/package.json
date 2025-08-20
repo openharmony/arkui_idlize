@@ -6,7 +6,7 @@
   "scripts": {
     "compile:self": "rollup -c",
     "compile": "npm run -C ../core compile && npm run compile:self",
-    "go": "npm run compile && node . ../etsgen/out/idl --target arkui --exclude arkui.runtimeApi arkui.stateManagement"
+    "go": "npm run compile && node . ../etsgen/out/idl --target arkui.component arkui.AttributeUpdater --exclude arkui.runtimeApi arkui.stateManagement"
   },
   "keywords": [],
   "author": "",

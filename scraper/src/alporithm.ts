@@ -211,7 +211,7 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
     startScript += '  --reference-names ../../arkgen/generation-config/references/ets-sdk.refs.json \\\n'
     startScript += '  --options-file main-config.json \\\n'
     startScript += `  --output-dir ${join(OUT_DIR, 'generated')} \\\n`
-    startScript += `  --input-dir $(find ${join(OUT_DIR, 'idl')} -type f | tr '\n' ' ')\n`
+    startScript += `  --input-files $(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ')\n`
 
     writeFileSync(join(OUT_DIR, 'go-main.sh'), startScript, 'utf-8')
 
