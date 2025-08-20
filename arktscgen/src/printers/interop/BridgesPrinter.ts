@@ -20,6 +20,7 @@ import {
     IDLMethod,
     IndentedPrinter,
     isVoidType,
+    LanguageExpression,
     LanguageStatement,
     MethodSignature,
     PrimitiveType,
@@ -152,28 +153,32 @@ export class BridgesPrinter extends InteropPrinter {
         } else {
            writer.writeStatements(
                writer.makeAssign(BridgesConstructions.result, undefined, nativeCall, true, false),
-               writer.makeReturn(writer.makeString(
-                   this.maybeDropConst(this.makeReturnExpression(node.returnType), node)
-               ))
+               writer.makeReturn(this.makeReturnExpression(node))
            )
         }
     }
 
-    private makeReturnExpression(returnType: IDLType): string {
-        if (isSequence(returnType)) {
-            return BridgesConstructions.sequenceConstructor(
-                BridgesConstructions.result,
-                BridgesConstructions.sequenceLengthUsage
-            )
-        }
-        if (isString(returnType)) {
-            return BridgesConstructions.stringConstructor(BridgesConstructions.result)
+    private makeReturnExpression(node: IDLMethod): LanguageExpression {
+        const makeStringCtor = () => BridgesConstructions.stringConstructor(BridgesConstructions.result)
+        const makeSequenceCtor = () => BridgesConstructions.sequenceConstructor(
+            BridgesConstructions.result,
+            BridgesConstructions.sequenceLengthUsage
+        )
+        const expr = this.maybeDropConst(node,
+            isSequence(node.returnType) ? makeSequenceCtor() :
+                isString(node.returnType) ? makeStringCtor() :
+                    BridgesConstructions.result
+        )
+
+        if (isSequence(node.returnType)) {
+            // writer.makeTernary annoys by adding the extra parentheses
+            return this.writer.makeString(`${BridgesConstructions.sequenceLengthUsage} ? ${expr} : nullptr`)
         }
 
-        return BridgesConstructions.result
+        return this.writer.makeString(expr)
     }
 
-    private maybeDropConst(value: string, node: IDLMethod): string {
+    private maybeDropConst(node: IDLMethod, value: string): string {
         if (this.typechecker.isConstReturnValue(node)) {
             return BridgesConstructions.dropConstCast(value)
         }
