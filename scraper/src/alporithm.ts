@@ -17,7 +17,7 @@ import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlize
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
-import { dirname, join, relative } from "node:path";
+import { dirname, join, relative, basename } from "node:path";
 
 interface SummaryResultRecord {
     fileName: string
@@ -131,7 +131,8 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
         generatorConfig.modules[record.packageName] = {
             name: record.packageName,
             external: true,
-            packages: [record.packageName]
+            packages: [record.packageName],
+            tsLikePackage: findTsLikePackage(record, options)
         }
     })
     if (result.others.length) {
@@ -140,6 +141,11 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
             external: true,
             packages: result.others.map(r => r.packageName)
         }
+    }
+    for (let [moduleName, tsLikePackage] of options.tsLikePackages) {
+        if (!(moduleName in generatorConfig.modules))
+            throw new Error(`Can not find module ${moduleName} to assign tsLikePackage`)
+        generatorConfig.modules[moduleName].tsLikePackage = tsLikePackage
     }
 
     writeFileSync(BASIC_CONFIG_PATH, JSON.stringify(generatorConfig, null, 2), 'utf-8')
@@ -254,11 +260,53 @@ rule ohosgen
         if (record.packageName === '') {
             return
         }
-        additionalStartScript += `build ${join(OUT_DIR, 'modules', record.packageName)}: ohosgen ./configs/${record.packageName}-config.json`
-        additionalStartScript += `\n\n`
+        additionalStartScript += `build ${join(OUT_DIR, 'modules', record.packageName)}: ohosgen ./configs/${record.packageName}-config.json\n`
+        additionalStartScript += `build ${record.packageName}: phony ${join(OUT_DIR, 'modules', record.packageName)}\n`
+        additionalStartScript += `\n`
     })
 
     writeFileSync(join(OUT_DIR, 'go-additional.build.ninja'), additionalStartScript, 'utf-8')
+
+    const arktsconfigBase: any = {
+        "compilerOptions": {
+            "baseUrl": "./generated/arkts",
+            "outDir": "build/panda/out",
+            "paths": {
+                "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
+                "@koalaui/common": ["../../../../../../external/incremental/common/src"],
+                "@koalaui/compat": ["../../../../../../external/incremental/compat/src/arkts"],
+                "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
+            }
+        },
+        "include": ["generated/arkts/**/*.ts"]
+    }
+    for (const record of result.external) {
+        if (record.packageName === "") {
+            continue
+        }
+        const tsLikePackage = findTsLikePackage(record, options)
+        arktsconfigBase["compilerOptions"]["paths"][tsLikePackage] = [join(OUT_DIR, 'modules', record.packageName, "generated", "arkts")]
+    }
+    result.external.forEach(record => {
+        const arktsconfig = JSON.parse(JSON.stringify(arktsconfigBase))
+        arktsconfig["compilerOptions"]["package"] = findTsLikePackage(record, options).split(".").slice(0, -1).join(".")
+        writeFileSync(
+            join(OUT_DIR, 'modules', record.packageName, 'arktsconfig.json'),
+            JSON.stringify(arktsconfig, undefined, 4),
+            'utf-8'
+        )
+    })
+}
+
+function findTsLikePackage(record: SummaryResultRecord, options: AppConfig): string {
+    if (options.tsLikePackages.has(record.packageName)) {
+        return options.tsLikePackages.get(record.packageName)!
+    }
+    let tsLikePackage = record.packageName
+    if (basename(record.fileName).startsWith("@")) {
+        tsLikePackage = "@" + tsLikePackage
+    }
+    return tsLikePackage
 }
 
 function findRootFiles(library: IDLFile[], targets: string[], options:AppConfig) {

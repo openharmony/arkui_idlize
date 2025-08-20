@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule, isInStdlibModule } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -62,6 +62,9 @@ export function collectDeclItself(
         // ArkTS can inline callbacks and tuples, but not type literals
         if (library.language === Language.ARKTS && !(idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface))
             return
+    }
+    if (isInStdlibModule(node)) {
+        return
     }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
         node = maybeRestoreGenerics(node, library) ?? node

@@ -29,6 +29,9 @@ import {
     IDLEntry,
     LayoutNodeRole,
     IDLPointerType,
+    isInCurrentModule,
+    hasExtAttribute,
+    IDLExtendedAttributes,
 } from "@idlizer/core";
 import {
     writeIntegratedFile,
@@ -97,7 +100,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
             generatedFiles.push('./' + path.relative(ohos.managedDir(), it))
         })
         writeIntegratedFile(path.join(ohos.managedDir(), 'index.ts'),
-            makeOhosModule(ohos.managedDir(), generatedFiles)
+            makeOhosModule(peerLibrary, ohos.managedDir(), generatedFiles)
         )
     }
 
@@ -112,10 +115,25 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, config: P
     setDefaultConfiguration(origGenConfig)
 }
 
-function makeOhosModule(root:string, componentsFiles: string[]): string {
-    return componentsFiles.map(file => {
+function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: string[]): string {
+    const filesWithDefault = library.files.filter(file => {
+        if (!isInCurrentModule(file))
+            return
+        return file.entries.some(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport))
+    })
+    let defaultExports: string[] = []
+    if (filesWithDefault.length > 0) {
+        const entry = filesWithDefault[0].entries.find(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport))!
+        const filePath = library.layout.resolve({ node: entry, role: LayoutNodeRole.INTERFACE })
+        defaultExports.push(
+            `import { default as ${entry.name} } from "./${filePath}"`,
+            `export default ${entry.name}`
+        )
+    }
+    const exports = componentsFiles.map(file => {
         const relativePath = path.relative(root, file)
         const fileNameNoExt = relativePath.replaceAll(path.extname(file), "")
         return `export * from "./${fileNameNoExt}"`
-    }).sort().join("\n")
+    }).sort()
+    return defaultExports.concat(exports).join("\n")
 }

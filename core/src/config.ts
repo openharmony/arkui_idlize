@@ -25,6 +25,7 @@ export const ModuleConfigurationSchema = D.object({
     external: D.maybe(D.boolean()),
     packages: T.stringArray(),
     useFoldersLayout: D.maybe(D.boolean()),
+    tsLikePackage: D.maybe(D.string()),
 })
 
 export const HookMethodSchema = D.object({

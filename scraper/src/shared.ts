@@ -22,7 +22,8 @@ export const AppConfigSchema = D.object({
     banned: D.default(D.array(D.string()), []),
     main: D.maybe(D.object({
         additionalPackages: D.default(D.array(D.string()), [])
-    }))
+    })),
+    tsLikePackages: D.default(D.map(D.string(), D.string()), new Map<string, string>),
 })
 export type AppConfigType = ConfigTypeInfer<typeof AppConfigSchema>
 

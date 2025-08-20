@@ -6,6 +6,7 @@ const stdlibModule: ModuleConfiguration = {
     packages: [""],
     useFoldersLayout: false,
     external: true,
+    tsLikePackage: "__stdlib"
 }
 
 const modulesCache = new Map<string, ModuleConfiguration>()
