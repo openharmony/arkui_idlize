@@ -335,8 +335,13 @@ rule ohosgen
     result.external.forEach(record => {
         const arktsconfig = JSON.parse(JSON.stringify(arktsconfigBase))
         arktsconfig["compilerOptions"]["package"] = findTsLikePackage(record, options).split(".").slice(0, -1).join(".")
+        const configPath = join(OUT_DIR, 'modules', record.packageName, 'arktsconfig.json')
+        const configPathDir = dirname(configPath)
+        if (!existsSync(configPathDir)) {
+            mkdirSync(configPathDir, { recursive: true })
+        }
         writeFileSync(
-            join(OUT_DIR, 'modules', record.packageName, 'arktsconfig.json'),
+            configPath,
             JSON.stringify(arktsconfig, undefined, 4),
             'utf-8'
         )
