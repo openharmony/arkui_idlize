@@ -305,7 +305,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         })
     }
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
-        const privateMethod = method.getPrivateMethod(true)
+        const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
+        const privateMethod = method.getPrivateMethod(useProtected)
         returnType = returnType ?? privateMethod.tsReturnType()
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
