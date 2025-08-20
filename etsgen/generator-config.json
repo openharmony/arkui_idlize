@@ -8,7 +8,8 @@
         "ohos.buffer",
         "ohos.util.ArrayList",
         "ohos.util.Deque",
-        "ohos.util.List"
+        "ohos.util.List",
+        "internal.component.ets"
     ],
     "DeletedDeclarations": [
         "double",

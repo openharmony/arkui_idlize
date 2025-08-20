@@ -112,6 +112,16 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     const script = arkts.createETSModuleFromContext()
     let localStatus = new StatusTracker(status.enabled)
     let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)
+    if (config.DeletedPackages.some(deleted => idl.qualifiedNameStartsWith(idlVisitor.packageClause, deleted.split(".")))) {
+        return {
+            originalFileName: file,
+            generatedFileName: idlVisitor.fileName,
+            writeFilePath: idlVisitor.fileName,
+            skipped: true,
+            file: idl.createFile([]),
+            exports: new Map,
+        }
+    }
     idlVisitor.visitor(script)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
@@ -122,10 +132,6 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     }
     if (!idlFile.file.entries.length) {
         idlFile.skipped = true
-    } else if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
-        console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
-        idlFile.skipped = true
-        localStatus.status.forEach(it => it.status = `DeletedPackages`)
     }
     if (!idlFile.skipped) {
         fs.writeFileSync(outFile, idl.toIDLString(idlFile.file, {}), 'utf8')
@@ -426,6 +432,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             .split(path.sep)
             .map(it => it.replaceAll('@', ''))
             .map(it => it.split('-').map((it, i) => i === 0 ? it : capitalize(it)).join('')) // kebab-case to camelCase
+            .flatMap(it => it.split("."))
             .filter(it => it.length && it !== '.' && it !== '..')
     }
 

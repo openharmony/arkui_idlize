@@ -1873,6 +1873,17 @@ export function decomposeQualifiedName(type: IDLReferenceType): [string | undefi
     return [undefined, typeName]
 }
 
+export function qualifiedNameStartsWith(node: IDLNode | string[], template: string[]): boolean {
+    const name = Array.isArray(node) ? node : getFQName(node).split(".")
+    if (name.length < template.length)
+        return false
+    for (let i = 0; i < template.length; i++) {
+        if (name[i] != template[i])
+            return false
+    }
+    return true
+}
+
 export function maybeUnwrapOptionalType(type: IDLType): IDLType {
     if (isOptionalType(type)) {
         return type.type
