@@ -2,15 +2,11 @@
     "target": [
         "arkui.component"
     ],
-    "exclude": [
-        "arkui.runtimeApi.koalaui",
-        "arkui.stateManagement"
-    ],
     "main": {
         "additionalPackages": [
             "arkui.component.idlize",
             "api.internal.component.ets",
-            "arkui.stateManagement"
+            "arkui.stateManagement.internal"
         ]
     }
 }
