@@ -1273,6 +1273,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.IDLDate
                 case 'date': return idl.IDLDate
+                case 'Partial': return idl.IDLObjectType
                 case 'Object': return idl.IDLObjectType
                 case 'object': return idl.IDLObjectType
                 case 'ArrayBuffer': return idl.IDLBufferType
