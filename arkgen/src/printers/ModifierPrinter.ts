@@ -145,7 +145,7 @@ class ModifiersFileVisitor {
             }
         }
         importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
-        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdater")
+        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdaterFlag")
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
             role: LayoutNodeRole.COMPONENT,

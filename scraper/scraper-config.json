@@ -7,7 +7,8 @@
         "additionalPackages": [
             "arkui.component.idlize",
             "api.internal.component.ets",
-            "arkui.stateManagement.internal"
+            "arkui.stateManagement.internal",
+            "arkui.AttributeUpdaterFlag"
         ]
     },
     "tsLikePackages": {

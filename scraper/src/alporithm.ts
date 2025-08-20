@@ -17,7 +17,7 @@ import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlize
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
-import { dirname, join, relative, basename } from "node:path";
+import { dirname, join, relative, basename, resolve } from "node:path";
 
 interface SummaryResultRecord {
     fileName: string
@@ -237,6 +237,7 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
     ///////
 
     let startScript = ''
+    startScript += 'cd "$(dirname "$0")"\n\n'
     startScript += 'node ../../arkgen \\\n'
     startScript += '  --idl2peer \\\n'
     startScript += '  --arkts-extension .ets \\\n'
@@ -267,6 +268,50 @@ rule ohosgen
 
     writeFileSync(join(OUT_DIR, 'go-additional.build.ninja'), additionalStartScript, 'utf-8')
 
+    ///////
+
+    // arkui
+    const arkuiGeneratedDir = join(OUT_DIR, 'generated')
+    const arkuiGeneratedPath = (...chunks:string[]) => join(arkuiGeneratedDir, 'sig', 'arkoala-arkts', 'arkui', 'generated', ...chunks)
+    const externalDir = resolve(process.cwd(), '..', 'external')
+    const externalPath = (...chunks:string[]) => join(externalDir, ...chunks)
+    const arkuiConfig: any = {
+        compilerOptions: {
+            package: "arkui",
+            baseUrl: arkuiGeneratedPath(),
+            outDir:  join(arkuiGeneratedDir, 'abc'),
+            paths: {
+                "#components": ["./framework/arkts"],
+                "#handwritten": ["./handwritten"],
+                "@arkoala/arkui": ["./framework"],
+                "@koalaui/builderLambda": ["./annotations"],
+                "@koalaui/interop": [externalPath("interop", "src", "arkts")],
+                "@koalaui/common": [externalPath("incremental", "common", "src")],
+                "@koalaui/compat": [externalPath("incremental", "compat", "src", "arkts")],
+                "@koalaui/runtime": [externalPath("incremental", "runtime", "src")],
+                "@koalaui/runtime/annotations": [externalPath("incremental", "runtime", "annotations")],
+            }
+        },
+        include: [
+            relative(OUT_DIR, arkuiGeneratedPath('**', '*.ets'))
+        ],
+    }
+    result.external.forEach(record => {
+        if (record.packageName === '') {
+            return
+        }
+        const generatedPath = join(OUT_DIR, 'modules', record.packageName, 'generated', 'arkts')
+        const frontendFilePath = generatedPath
+        arkuiConfig.compilerOptions.paths['@' + record.packageName] = [frontendFilePath]
+    })
+
+    writeFileSync(
+        join(OUT_DIR, 'ui2abcconfig.json'),
+        JSON.stringify(arkuiConfig, null, 2),
+        'utf-8'
+    )
+
+    // modules
     const arktsconfigBase: any = {
         "compilerOptions": {
             "baseUrl": "./generated/arkts",

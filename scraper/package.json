@@ -7,7 +7,8 @@
     "compile:self": "rollup -c",
     "compile": "npm run -C ../core compile && npm run compile:self",
     "chmod": "chmod +x ./out/go-main.sh",
-    "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod"
+    "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod",
+    "build": "cd out && fast-arktsc --config ./ui2abcconfig.json --link-name ./build/abc/all.abc --compiler ../../external/incremental/tools/panda/arkts/arktsc && ninja -C ./generated/abc -f build.ninja"
   },
   "keywords": [],
   "author": "",
