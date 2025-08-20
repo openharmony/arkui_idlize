@@ -10,12 +10,25 @@ const stdlibModule: ModuleConfiguration = {
 
 const modulesCache = new Map<string, ModuleConfiguration>()
 
+/**
+ * Is source submodule of target.
+ * Every source is submodule if target is empty string
+ * @example `isSubmodule("a.b.c", "a") === true`
+ * @example `isSubmodule("a", "a.b.c") === false`
+ * @example `isSubmodule("a.b.cd", "a.b.c") === false`
+ */
+export function isSubmodule(source:string, target:string): boolean {
+    return source === target
+        || target === ""
+        || source.startsWith(target + '.')
+}
+
 export function isInModule(node: idl.IDLNode, module: ModuleConfiguration): boolean
 export function isInModule(packageName: string, module: ModuleConfiguration): boolean
 export function isInModule(nodeOrPackage: idl.IDLNode | string, module: ModuleConfiguration): boolean {
     if (typeof nodeOrPackage === 'object')
         return isInModule(idl.getPackageName(nodeOrPackage), module)
-    return module.packages.some(modulePackage => idl.qualifiedNameStartsWith(nodeOrPackage.split("."), modulePackage.split(".")))
+    return module.packages.some(modulePackage => isSubmodule(nodeOrPackage, modulePackage))
 }
 
 export function isInExternalModule(node: idl.IDLNode): boolean {
