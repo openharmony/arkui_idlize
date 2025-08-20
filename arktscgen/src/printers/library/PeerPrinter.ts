@@ -93,7 +93,7 @@ export class PeerPrinter extends SingleFilePrinter {
 
     private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
 
-    private bindingReturnValueTypeConvertor = new BindingReturnValueTypeConvertor(this.typechecker)
+    private bindingReturnValueTypeConvertor = new BindingReturnValueTypeConvertor(this.typechecker, this.importer)
 
     private parent = parent(this.node) ?? Config.defaultAncestor
 

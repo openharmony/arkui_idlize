@@ -16,9 +16,13 @@
 import { TopLevelTypeConvertor } from "../TopLevelTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
 import {
+    IDLContainerType,
+    IDLInterface,
+    IDLNamedNode,
     IDLOptionalType,
     IDLReferenceType,
     IDLType,
+    isInterface,
     isReferenceType,
     LanguageExpression,
     LanguageWriter, throwException
@@ -26,34 +30,58 @@ import {
 import { PeersConstructions } from "../../../constuctions/PeersConstructions"
 import { Config } from "../../../general/Config"
 import { baseNameString } from "../../../utils/idl"
+import { Importer } from "../../../printers/library/Importer"
 
 export class BindingReturnValueTypeConvertor extends TopLevelTypeConvertor<
     (writer: LanguageWriter, call: LanguageExpression) => LanguageExpression
 > {
     constructor(
-        typechecker: Typechecker
+        typechecker: Typechecker,
+        private importer: Importer
     ) {
         const plain = (type: IDLType) =>
             (writer: LanguageWriter, call: LanguageExpression) =>
                 call
-        const wrap = (wrapWith: string) =>
+
+        const wrap = (wrapWith: string, ...args: string[]) =>
                 (writer: LanguageWriter, call: LanguageExpression) =>
-                    writer.makeFunctionCall(wrapWith, [call])
+                    writer.makeFunctionCall(wrapWith, [call, ...args.map(a => writer.makeString(a))])
+
+        const isAstNode = (ref: IDLNamedNode): ref is IDLInterface =>
+            (isReferenceType(ref) || isInterface(ref)) && this.typechecker.isHeir(ref, Config.astNodeCommonAncestor)
+
+        const makeArgs = (type: IDLType): string[] => {
+            const iface = isReferenceType(type)
+                ? this.typechecker.resolveReference(type)
+                : undefined
+
+            if (iface && isAstNode(iface) && !this.typechecker.hasDescendants(iface)) {
+                const astNodeTypeName = this.typechecker.nodeTypeName(iface)
+                if (astNodeTypeName) {
+                    importer.withEnumImport(Config.nodeTypeAttribute)
+                    return [astNodeTypeName]
+                }
+            }
+
+            return []
+
+        }
+
         super(typechecker, {
-            sequence: (type: IDLType) =>
-                wrap(PeersConstructions.arrayOfPointersToArrayOfPeers),
+            sequence: (type: IDLContainerType) =>
+                wrap(PeersConstructions.arrayOfPointersToArrayOfPeers, ...makeArgs(type.elementType[0])),
             string: (type: IDLType) =>
                 wrap(PeersConstructions.receiveString),
             reference: (type: IDLReferenceType) =>
-                this.typechecker.isHeir(type, Config.astNodeCommonAncestor)
-                    ? wrap(PeersConstructions.unpackNonNullable)
+                isAstNode(type)
+                    ? wrap(PeersConstructions.unpackNonNullable, ...makeArgs(type))
                     : wrap(baseNameString(type.name)),
             optional: (type: IDLOptionalType) => {
-                if (isReferenceType(type.type)) {
-                    if (this.typechecker.isHeir(type.type, Config.astNodeCommonAncestor)) {
-                        return wrap(PeersConstructions.unpackNullable)
-                    }
-                    return wrap(PeersConstructions.newOf(baseNameString(type.type.name)))
+                const innerType = type.type
+                if (isReferenceType(innerType)) {
+                    return isAstNode(innerType)
+                        ? wrap(PeersConstructions.unpackNullable, ...makeArgs(innerType))
+                        : wrap(PeersConstructions.newOf(baseNameString(innerType.name)))
                 }
                 throwException(`unexpected optional of non-reference type`)
             },

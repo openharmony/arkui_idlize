@@ -15,28 +15,24 @@
 
 import {
     createReferenceType,
-    IDLEntry,
     IDLFile,
     IDLInterface,
+    IDLKind,
     IDLMethod,
     IDLNamedNode,
     IDLNamespace,
     IDLNode,
     IDLReferenceType,
     IDLType,
-    IDLVoidType,
-    isEntry,
     isEnum,
     isInterface,
     isNamespace,
     isPrimitiveType,
     isReferenceType,
-    linearizeNamespaceMembers,
-    printType,
     resolveNamedNode
 } from "@idlizer/core"
 import { Config } from "./Config"
-import { baseNameString, flatParentsImpl, fqName, isIrNamespace, nodeNamespace, nodeType, parent } from "../utils/idl"
+import { flatParentsImpl, fqName, nodeType } from "../utils/idl"
 import { isImplInterface } from "./common"
 
 export class Typechecker {
@@ -100,6 +96,37 @@ export class Typechecker {
         }
 
         return ancestor === Config.defaultAncestor
+    }
+
+    hasDescendants(ref: IDLReferenceType|IDLInterface): boolean {
+        const iface = isReferenceType(ref) ? this.resolveReference(ref) : ref
+        if (!iface || !isInterface(iface)) {
+            return false
+        }
+
+        const lookupScopes: IDLNode[] = []
+        const parent = iface.parent
+        if (parent && isNamespace(parent)) {
+            lookupScopes.push(...this.namespaces.filter(ns => ns.name === parent.name))
+        } else {
+            lookupScopes.push(this.file)
+        }
+
+        const visitInterfaces = (node: IDLNode, cb: (_: IDLInterface) => boolean): boolean => {
+            switch (node.kind) {
+                case IDLKind.File:
+                    return (node as IDLFile).entries.some((value) => visitInterfaces(value, cb))
+                case IDLKind.Namespace:
+                    return (node as IDLNamespace).members.some((value) => visitInterfaces(value, cb))
+                case IDLKind.Interface:
+                    return cb(node as IDLInterface)
+            }
+            return false
+        }
+
+        return lookupScopes.some(scope => visitInterfaces(
+            scope, (node: IDLInterface) => node.name !== iface.name && this.isHeir(node, iface.name)
+        ))
     }
 
     isPeer(node: IDLInterface|IDLReferenceType): boolean {
