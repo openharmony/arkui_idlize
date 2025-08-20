@@ -1,7 +1,0 @@
-package ohos.arkui.drawableDescriptor;
-import ohos.multimedia.image.default as image;
-[Entity=Class]
-interface DrawableDescriptor {
-    constructor();
-    (image.PixelMap or undefined) getPixelMap();
-};

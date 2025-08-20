@@ -1,7 +1,0 @@
-package arkui.DividerModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.divider.DividerAttribute as DividerAttribute;
-[Entity=Class]
-interface DividerModifier: DividerAttribute, [TypeArguments="DividerAttribute", TypeArguments="DividerAttribute"] AttributeModifier {
-    constructor();
-};

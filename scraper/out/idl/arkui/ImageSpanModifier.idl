@@ -1,7 +1,0 @@
-package arkui.ImageSpanModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.imageSpan.ImageSpanAttribute as ImageSpanAttribute;
-[Entity=Class]
-interface ImageSpanModifier: ImageSpanAttribute, [TypeArguments="ImageSpanAttribute", TypeArguments="ImageSpanAttribute"] AttributeModifier {
-    constructor();
-};

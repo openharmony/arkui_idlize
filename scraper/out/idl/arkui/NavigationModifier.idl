@@ -1,8 +1,0 @@
-package arkui.NavigationModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.navigation.NavigationAttribute as NavigationAttribute;
-[Entity=Class]
-interface NavigationModifier: NavigationAttribute, [TypeArguments="NavigationAttribute", TypeArguments="NavigationAttribute"] AttributeModifier {
-    constructor();
-    void applyNormalAttribute(NavigationAttribute instance);
-};

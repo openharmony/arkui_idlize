@@ -1,7 +1,0 @@
-package arkui.CommonModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.common.CommonAttribute as CommonAttribute;
-[Entity=Class]
-interface CommonModifier: CommonAttribute, [TypeArguments="CommonAttribute", TypeArguments="CommonAttribute"] AttributeModifier {
-    constructor();
-};

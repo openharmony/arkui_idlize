@@ -1,7 +1,0 @@
-package arkui.FolderStackModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.folderStack.FolderStackAttribute as FolderStackAttribute;
-[Entity=Class]
-interface FolderStackModifier: FolderStackAttribute, [TypeArguments="FolderStackAttribute", TypeArguments="FolderStackAttribute"] AttributeModifier {
-    constructor();
-};

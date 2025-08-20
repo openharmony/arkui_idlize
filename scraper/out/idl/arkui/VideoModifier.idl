@@ -1,7 +1,0 @@
-package arkui.VideoModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.video.VideoAttribute as VideoAttribute;
-[Entity=Class]
-interface VideoModifier: VideoAttribute, [TypeArguments="VideoAttribute", TypeArguments="VideoAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,7 +1,0 @@
-package arkui.SymbolSpanModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.symbolSpan.SymbolSpanAttribute as SymbolSpanAttribute;
-[Entity=Class]
-interface SymbolSpanModifier: SymbolSpanAttribute, [TypeArguments="SymbolSpanAttribute", TypeArguments="SymbolSpanAttribute"] AttributeModifier {
-    constructor();
-};

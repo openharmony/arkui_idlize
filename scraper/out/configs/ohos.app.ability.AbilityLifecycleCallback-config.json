@@ -1,7 +1,0 @@
-{
-  "TypePrefix": "OH_",
-  "moduleName": "ohos.app.ability.AbilityLifecycleCallback",
-  "currentModuleExportedPackages": [
-    "ohos.app.ability.AbilityLifecycleCallback"
-  ]
-}

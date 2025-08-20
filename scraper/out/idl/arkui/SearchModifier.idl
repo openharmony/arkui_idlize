@@ -1,7 +1,0 @@
-package arkui.SearchModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.search.SearchAttribute as SearchAttribute;
-[Entity=Class]
-interface SearchModifier: SearchAttribute, [TypeArguments="SearchAttribute", TypeArguments="SearchAttribute"] AttributeModifier {
-    constructor();
-};

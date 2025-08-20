@@ -1,7 +1,0 @@
-package arkui.ColumnSplitModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.columnSplit.ColumnSplitAttribute as ColumnSplitAttribute;
-[Entity=Class]
-interface ColumnSplitModifier: ColumnSplitAttribute, [TypeArguments="ColumnSplitAttribute", TypeArguments="ColumnSplitAttribute"] AttributeModifier {
-    constructor();
-};

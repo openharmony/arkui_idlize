@@ -1,7 +1,0 @@
-package arkui.ScrollModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.scroll.ScrollAttribute as ScrollAttribute;
-[Entity=Class]
-interface ScrollModifier: ScrollAttribute, [TypeArguments="ScrollAttribute", TypeArguments="ScrollAttribute"] AttributeModifier {
-    constructor();
-};

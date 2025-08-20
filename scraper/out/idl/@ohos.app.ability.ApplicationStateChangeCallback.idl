@@ -1,6 +1,0 @@
-package ohos.app.ability.ApplicationStateChangeCallback;
-[DefaultExport]
-interface ApplicationStateChangeCallback {
-    void onApplicationForeground();
-    void onApplicationBackground();
-};

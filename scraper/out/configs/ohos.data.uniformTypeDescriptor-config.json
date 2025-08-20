@@ -1,7 +1,0 @@
-{
-  "TypePrefix": "OH_",
-  "moduleName": "ohos.data.uniformTypeDescriptor",
-  "currentModuleExportedPackages": [
-    "ohos.data.uniformTypeDescriptor"
-  ]
-}

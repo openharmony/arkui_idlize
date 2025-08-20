@@ -1,7 +1,0 @@
-package arkui.RefreshModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.refresh.RefreshAttribute as RefreshAttribute;
-[Entity=Class]
-interface RefreshModifier: RefreshAttribute, [TypeArguments="RefreshAttribute", TypeArguments="RefreshAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,9 +1,0 @@
-package application.EventHub;
-import ohos.base.BusinessError as BusinessError;
-[Entity=Class, DefaultExport]
-interface EventHub {
-    constructor();
-    void on(String event, Function callback_);
-    void off(String event, optional Function callback_);
-    void emit(String event, sequence<(Object or undefined)> args);
-};

@@ -1,7 +1,0 @@
-{
-  "TypePrefix": "OH_",
-  "moduleName": "ohos.rpc",
-  "currentModuleExportedPackages": [
-    "ohos.rpc"
-  ]
-}

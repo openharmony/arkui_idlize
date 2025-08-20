@@ -1,7 +1,0 @@
-{
-  "TypePrefix": "OH_",
-  "moduleName": "ohos.data.unifiedDataChannel",
-  "currentModuleExportedPackages": [
-    "ohos.data.unifiedDataChannel"
-  ]
-}

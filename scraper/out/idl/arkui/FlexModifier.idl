@@ -1,7 +1,0 @@
-package arkui.FlexModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.flex.FlexAttribute as FlexAttribute;
-[Entity=Class]
-interface FlexModifier: FlexAttribute, [TypeArguments="FlexAttribute", TypeArguments="FlexAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,6 +1,0 @@
-package arkui.component.forEach;
-import arkui.component.builder.Builder as Builder;
-[TypeParameters="T", TypeParameters="T"]
-callback ItemGeneratorFunc = void (T item, number index);
-[TypeParameters="T", TypeParameters="T"]
-callback KeyGeneratorFunc = String (T item, number index);

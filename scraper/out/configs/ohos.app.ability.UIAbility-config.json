@@ -1,7 +1,0 @@
-{
-  "TypePrefix": "OH_",
-  "moduleName": "ohos.app.ability.UIAbility",
-  "currentModuleExportedPackages": [
-    "ohos.app.ability.UIAbility"
-  ]
-}

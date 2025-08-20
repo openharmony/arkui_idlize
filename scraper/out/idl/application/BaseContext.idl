@@ -1,6 +1,0 @@
-package application.BaseContext;
-[Entity=Class, Abstract, DefaultExport]
-interface BaseContext {
-    constructor();
-    attribute boolean stageMode;
-};

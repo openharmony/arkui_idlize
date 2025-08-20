@@ -1,7 +1,0 @@
-package arkui.ListModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.list.ListAttribute as ListAttribute;
-[Entity=Class]
-interface ListModifier: ListAttribute, [TypeArguments="ListAttribute", TypeArguments="ListAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,8 +1,0 @@
-package ohos.app.ability.OpenLinkOptions;
-[DefaultExport]
-interface OpenLinkOptions {
-    [Optional]
-    attribute boolean appLinkingOnly;
-    [Optional]
-    attribute record<String, Object> parameters;
-};

@@ -1,8 +1,0 @@
-package arkui.NavDestinationModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.navDestination.NavDestinationAttribute as NavDestinationAttribute;
-[Entity=Class]
-interface NavDestinationModifier: NavDestinationAttribute, [TypeArguments="NavDestinationAttribute", TypeArguments="NavDestinationAttribute"] AttributeModifier {
-    constructor();
-    void applyNormalAttribute(NavDestinationAttribute instance);
-};

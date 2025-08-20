@@ -1,7 +1,0 @@
-package arkui.TextModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.text.TextAttribute as TextAttribute;
-[Entity=Class]
-interface TextModifier: TextAttribute, [TypeArguments="TextAttribute", TypeArguments="TextAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,7 +1,0 @@
-package arkui.LineModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.line.LineAttribute as LineAttribute;
-[Entity=Class]
-interface LineModifier: LineAttribute, [TypeArguments="LineAttribute", TypeArguments="LineAttribute"] AttributeModifier {
-    constructor();
-};

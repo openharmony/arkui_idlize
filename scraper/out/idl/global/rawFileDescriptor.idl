@@ -1,6 +1,0 @@
-package global.rawFileDescriptor;
-interface RawFileDescriptor {
-    attribute i32 fd;
-    attribute i64 offset;
-    attribute i64 length;
-};

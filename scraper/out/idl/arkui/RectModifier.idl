@@ -1,7 +1,0 @@
-package arkui.RectModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.rect.RectAttribute as RectAttribute;
-[Entity=Class]
-interface RectModifier: RectAttribute, [TypeArguments="RectAttribute", TypeArguments="RectAttribute"] AttributeModifier {
-    constructor();
-};

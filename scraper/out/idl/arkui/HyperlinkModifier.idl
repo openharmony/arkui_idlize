@@ -1,7 +1,0 @@
-package arkui.HyperlinkModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.hyperlink.HyperlinkAttribute as HyperlinkAttribute;
-[Entity=Class]
-interface HyperlinkModifier: HyperlinkAttribute, [TypeArguments="HyperlinkAttribute", TypeArguments="HyperlinkAttribute"] AttributeModifier {
-    constructor();
-};

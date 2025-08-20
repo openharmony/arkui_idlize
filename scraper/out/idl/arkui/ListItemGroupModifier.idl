@@ -1,7 +1,0 @@
-package arkui.ListItemGroupModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.listItemGroup.ListItemGroupAttribute as ListItemGroupAttribute;
-[Entity=Class]
-interface ListItemGroupModifier: ListItemGroupAttribute, [TypeArguments="ListItemGroupAttribute", TypeArguments="ListItemGroupAttribute"] AttributeModifier {
-    constructor();
-};

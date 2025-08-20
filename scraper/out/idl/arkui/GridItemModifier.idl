@@ -1,7 +1,0 @@
-package arkui.GridItemModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.gridItem.GridItemAttribute as GridItemAttribute;
-[Entity=Class]
-interface GridItemModifier: GridItemAttribute, [TypeArguments="GridItemAttribute", TypeArguments="GridItemAttribute"] AttributeModifier {
-    constructor();
-};

@@ -1,7 +1,0 @@
-package arkui.PolylineModifier;
-import arkui.component.common.AttributeModifier as AttributeModifier;
-import arkui.component.polyline.PolylineAttribute as PolylineAttribute;
-[Entity=Class]
-interface PolylineModifier: PolylineAttribute, [TypeArguments="PolylineAttribute", TypeArguments="PolylineAttribute"] AttributeModifier {
-    constructor();
-};
