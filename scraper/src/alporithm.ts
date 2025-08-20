@@ -301,8 +301,8 @@ rule ohosgen
             return
         }
         const generatedPath = join(OUT_DIR, 'modules', record.packageName, 'generated', 'arkts')
-        const frontendFilePath = generatedPath
-        arkuiConfig.compilerOptions.paths['@' + record.packageName] = [frontendFilePath]
+        const frontendFilePath = join(generatedPath, record.packageName.split('.').at(-1) + '.ts')
+        arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath]
     })
 
     writeFileSync(

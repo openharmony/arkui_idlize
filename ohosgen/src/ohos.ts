@@ -32,6 +32,7 @@ import {
     isInCurrentModule,
     hasExtAttribute,
     IDLExtendedAttributes,
+    isNamespace,
 } from "@idlizer/core";
 import {
     writeIntegratedFile,
@@ -119,7 +120,7 @@ function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: stri
     const filesWithDefault = library.files.filter(file => {
         if (!isInCurrentModule(file))
             return
-        return file.entries.some(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport))
+        return file.entries.some(entry => hasExtAttribute(entry, IDLExtendedAttributes.DefaultExport) && isNamespace(entry))
     })
     let defaultExports: string[] = []
     if (filesWithDefault.length > 0) {
