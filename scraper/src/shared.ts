@@ -20,6 +20,7 @@ export const AppConfigSchema = D.object({
     target: D.default(D.array(D.string()), []),
     exclude: D.default(D.array(D.string()), []),
     banned: D.default(D.array(D.string()), []),
+    rewriteArkConfigPath: D.default(D.map(D.string(), D.array(D.string())), new Map<string, string[]>()),
     main: D.maybe(D.object({
         additionalPackages: D.default(D.array(D.string()), [])
     })),

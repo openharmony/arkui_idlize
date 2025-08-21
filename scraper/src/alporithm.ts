@@ -314,7 +314,11 @@ rule ohosgen
     //     arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
     // })
     scanAbsolutePathDir().forEach(([packageName, fileName]) => {
-        arkuiConfig.compilerOptions.paths[packageName] = [fileName]
+        let value = [fileName]
+        if (options.rewriteArkConfigPath.has(packageName)) {
+            value = options.rewriteArkConfigPath.get(packageName)!
+        }
+        arkuiConfig.compilerOptions.paths[packageName] = value
     })
 
     writeFileSync(
