@@ -1285,7 +1285,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'ReadonlyArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'FixedArray': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'number': return idl.IDLNumberType
-                case 'ErrorCallback': return idl.createReferenceType(name)
                 case 'BusinessError': return idl.createReferenceType(name)
                 case 'Required':
                 case 'Readonly': return typeArgs![0]

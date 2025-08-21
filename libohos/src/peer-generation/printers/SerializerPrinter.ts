@@ -289,7 +289,7 @@ class SerializerPrinter {
         if (prefix == "" && this.language === Language.CPP)
             prefix = generatorConfiguration().TypePrefix + this.library.libraryPrefix
         const serializerDeclarations = getSerializerDeclarations(this.library,
-            createSerializerDependencyFilter(this.language))
+            createSerializerDependencyFilter(this.library, this.language))
 
         return serializerDeclarations.flatMap(decl => {
             // internal modules provide serializers
@@ -343,7 +343,9 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it) && !peerGeneratorConfiguration().components.custom.includes(it.name) && !peerGeneratorConfiguration().isHandWritten(it.name))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
-        .filter(it => !it.typeParameters?.length || it.typeParameters.every(it => it.includes('=')))
+        .filter(it => !it.typeParameters?.length
+            || it.typeParameters.every(it => it.includes('='))
+            || idl.isInterface(it) && isMaterialized(it, library))
         .filter(it => {
             const fullName = qualifiedName(it, "_", "namespace.name")
             const seen = seenNames.has(fullName)
@@ -384,13 +386,13 @@ const MATERIALIZED_BASE = idl.createInterface(
     [idl.createProperty("peer", idl.IDLBooleanType)],
 )
 
-export function createSerializerDependencyFilter(language: Language): DependencyFilter {
+export function createSerializerDependencyFilter(library: PeerLibrary, language: Language): DependencyFilter {
     switch (language) {
         case Language.TS: return new DefaultSerializerDependencyFilter()
         case Language.ARKTS: return new ArkTSSerializerDependencyFilter()
         case Language.JAVA: return new DefaultSerializerDependencyFilter()
         case Language.CJ: return new DefaultSerializerDependencyFilter()
-        case Language.CPP: return new DefaultSerializerDependencyFilter()
+        case Language.CPP: return new CppSerializerDependencyFilter(library)
         case Language.KOTLIN: return new DefaultSerializerDependencyFilter()
     }
     throwException("Unimplemented filter")
@@ -399,7 +401,7 @@ export function createSerializerDependencyFilter(language: Language): Dependency
 class DefaultSerializerDependencyFilter implements DependencyFilter {
     shouldAdd(node: IDLEntry): boolean {
         return !peerGeneratorConfiguration().serializer.ignore.includes(node.name!)
-            && (!this.isParameterized(node) || this.isParametrizedWithAllDefaults(node))
+            && (!this.isParameterized(node) || this.isParametrizedWithAllDefaults(node) || this.canHandleParametrized(node))
             && this.canSerializeDependency(node)
     }
     isParameterized(node: idl.IDLEntry) {
@@ -410,6 +412,9 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
         return !!idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)?.split(',').every(it => it.includes("="))
     }
 
+    canHandleParametrized(node: idl.IDLEntry): boolean {
+        return false
+    }
     canSerializeDependency(dep: idl.IDLEntry): dep is SerializableTarget  {
         if (idl.isInterface(dep)) {
             return [idl.IDLInterfaceSubkind.Class, idl.IDLInterfaceSubkind.Interface].includes(dep.subkind)
@@ -430,5 +435,15 @@ class ArkTSSerializerDependencyFilter extends DefaultSerializerDependencyFilter 
             return false
         }
         return super.shouldAdd(node)
+    }
+}
+
+class CppSerializerDependencyFilter extends DefaultSerializerDependencyFilter {
+    constructor(protected library: PeerLibrary) {
+        super()
+    }
+
+    canHandleParametrized(node: idl.IDLEntry): boolean {
+        return idl.isInterface(node) && isMaterialized(node, this.library)
     }
 }
