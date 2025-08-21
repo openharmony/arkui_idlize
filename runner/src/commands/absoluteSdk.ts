@@ -36,11 +36,17 @@ export function absoluteSdk({
                 return all
             const fromAbsolute = path.join(apiPath, file, '..', from)
             const fromRelatire = path.relative(apiPath, fromAbsolute)
-            return all.replace(from, fromRelatire.replaceAll("/", "."))
+            return all.replace(from, pathToPackage(fromRelatire))
         })
         const fileNoExt = file.substring(0, file.length - ".d.ets".length)
-        arktsconfig["compilerOptions"]["paths"][fileNoExt.replaceAll("/", ".")] = [path.join(apiPath, file).substring(0, path.join(apiPath, file).length-".d.ets".length)]
+        arktsconfig["compilerOptions"]["paths"][pathToPackage(fileNoExt)] = [path.join(apiPath, file).substring(0, path.join(apiPath, file).length-".d.ets".length)]
         fs.writeFileSync(path.join(apiPath, file), content, { encoding: 'utf-8' })
     }
     fs.writeFileSync(path.join(absolutePreparedSdk12, "arktsconfig.json"), JSON.stringify(arktsconfig, undefined, 4), { encoding: 'utf-8' })
+}
+
+function pathToPackage(s: string): string {
+    if (path.basename(s).startsWith("@"))
+        return path.basename(s)
+    return s.replaceAll("/", ".")
 }
