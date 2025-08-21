@@ -67,6 +67,12 @@ function sdk(sdkPathInput:string, installPath12:string, installPath11:string) {
     commands.install({ sourceDir: sdkPath11, installPath: installPath11 })
 }
 
+///
+
+function absoluteSdk(preparedSdk12: string, absolutePreparedSdk12: string) {
+    commands.absoluteSdk({ preparedSdk12, absolutePreparedSdk12 })
+}
+
 /////////////////////////////////////////////////
 
 function main(argv:string[]) {
@@ -85,6 +91,9 @@ function main(argv:string[]) {
     program.command('sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>')
         .description('prepares sdk')
         .action(sdk)
+
+    program.command('absolute-sdk <prepared-sdk-12> <absolute-prepared-sdk-12')
+        .action(absoluteSdk)
 
     program.parse(argv, { from: 'user' })
 }

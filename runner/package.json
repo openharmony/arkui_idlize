@@ -32,6 +32,7 @@
     "compile:self": "rollup -c",
     "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && npm run compile:self",
     "prepare:sdk": "rimraf ../sdk-patched-arkts ../sdk-patched && npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched",
+    "absolute:sdk": "rimraf ../absolute-sdk-patched-arkts && npm run compile && node . absolute-sdk ../sdk-patched-arkts ../absolute-sdk-patched-arkts",
     "compile:parallel": "npm run compile -C core"
   }
 }

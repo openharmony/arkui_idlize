@@ -1,0 +1,192 @@
+diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
+index 168d42dd7..26f4c9dbd 100644
+--- a/api/arkui/component/common.static.d.ets
++++ b/api/arkui/component/common.static.d.ets
+@@ -7356,13 +7356,13 @@ export declare interface SheetOptions extends BindOptions {
+     /**
+      * Defines sheet detents
+      *
+-     * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
++     * @type { ?(TripleLengthDetents) }
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @crossplatform
+      * @atomicservice
+      * @since 20
+      */
+-    detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
++    detents?: TripleLengthDetents;
+     /**
+      * Background blur of the sheet. By default, there is no background blur.
+      *
+@@ -10368,13 +10368,13 @@ export declare interface BackgroundOptions {
+ /**
+  * Defines the value of the custom property..
+  *
+- * @typedef { Object | undefined | Record<string, CustomProperty> } CustomProperty
++ * @typedef { Object | undefined } CustomProperty
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @crossplatform
+  * @atomicservice
+  * @since 20
+  */
+-export declare type CustomProperty = Object | undefined | Record<string, CustomProperty>;
++export declare type CustomProperty = Object | undefined;
+ export declare interface CommonMethod {
+     /**
+      * Sets the width of the component or its horizontal layout policy. By default, the
+@@ -11113,7 +11113,7 @@ export declare interface CommonMethod {
+      * @atomicservice
+      * @since 20
+      */
+-    default onKeyEvent(event: Callback<KeyEvent, boolean> | undefined): this;
++    // default onKeyEvent(event: Callback<KeyEvent, boolean> | undefined): this;
+     /**
+      * Digital crown input.
+      *
+@@ -15382,4 +15382,4 @@ export declare function $$<T>(value: T): Bindable<T>;
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @since 20
+  */
+-export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
++export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
+diff --git a/api/arkui/component/extendableComponent.static.d.ets b/api/arkui/component/extendableComponent.static.d.ets
+index 2dbd7d493..5ce88af20 100644
+--- a/api/arkui/component/extendableComponent.static.d.ets
++++ b/api/arkui/component/extendableComponent.static.d.ets
+@@ -77,7 +77,7 @@ export interface LifeCycle {
+      * @atomicservice
+      * @since 20
+      */
+-    @Builder
++    @memo
+     build(): void
+ }
+ 
+diff --git a/api/arkui/component/pluginComponent.static.d.ets b/api/arkui/component/pluginComponent.static.d.ets
+index a9a9ed0b5..729c7b262 100644
+--- a/api/arkui/component/pluginComponent.static.d.ets
++++ b/api/arkui/component/pluginComponent.static.d.ets
+@@ -58,7 +58,7 @@ export interface PluginComponentTemplate {
+  * @systemapi
+  * @since 20
+  */
+-export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++export type RecordData = undefined | null | Object;
+ 
+ /**
+  * Define options used to construct a plugin component.
+diff --git a/api/arkui/component/relativeContainer.static.d.ets b/api/arkui/component/relativeContainer.static.d.ets
+index 6dfb46e9a..9225c6493 100644
+--- a/api/arkui/component/relativeContainer.static.d.ets
++++ b/api/arkui/component/relativeContainer.static.d.ets
+@@ -246,7 +246,7 @@ export declare interface RelativeContainerAttribute extends CommonMethod {
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    default barrier(barrierStyle: Array<LocalizedBarrierStyle> | undefined): this;
++    // default barrier(barrierStyle: Array<LocalizedBarrierStyle> | undefined): this;
+     /**
+      * Set the attribute modifier
+      *
+diff --git a/api/arkui/component/sidebar.static.d.ets b/api/arkui/component/sidebar.static.d.ets
+index 06f39d7e1..5c922b616 100644
+--- a/api/arkui/component/sidebar.static.d.ets
++++ b/api/arkui/component/sidebar.static.d.ets
+@@ -22,7 +22,7 @@
+ 
+ import { Resource } from '../../global/resource';
+ import { Length, ResourceColor, Dimension } from './units';
+-import { CommonMethod, PixelMap, Bindable } from './common';
++import { CommonMethod, PixelMap, Bindable, DividerStyle } from './common';
+ import { memo, ComponentBuilder } from './../stateManagement/runtime';
+ 
+ /**
+@@ -179,53 +179,6 @@ export declare interface ButtonStyle {
+   icons?: ButtonIconOptions;
+ }
+ 
+-/**
+- * Provides an interface for the style of a divider including stroke width, color, start margin
+- * and end margin
+- *
+- * @interface DividerStyle
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @since 20
+- */
+-export interface DividerStyle {
+-  /**
+-   * Define the stroke width of the divider
+-   *
+-   * @type { Length }
+-   * @default 1vp
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  strokeWidth: Length;
+-
+-  /**
+-   * Define the color of the divider
+-   *
+-   * @type { ?ResourceColor }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  color?: ResourceColor;
+-
+-  /**
+-   * Define the start margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  startMargin?: Length;
+-
+-  /**
+-   * Define the end margin of the divider
+-   *
+-   * @type { ?Length }
+-   * @syscap SystemCapability.ArkUI.ArkUI.Full
+-   * @since 20
+-   */
+-  endMargin?: Length;
+-}
+-
+ /**
+  * The attribute function of sidebar
+  *
+diff --git a/api/arkui/component/toggle.static.d.ets b/api/arkui/component/toggle.static.d.ets
+index 9f018f7b8..26ab266d8 100644
+--- a/api/arkui/component/toggle.static.d.ets
++++ b/api/arkui/component/toggle.static.d.ets
+@@ -118,7 +118,7 @@ export declare interface ToggleConfiguration extends CommonConfiguration<ToggleC
+      * @syscap SystemCapability.ArkUI.ArkUI.Full
+      * @since 20
+      */
+-    enabled: boolean;
++    toggleEnabled: boolean;
+     /**
+      * Trigger toggle select change
+      *
+diff --git a/api/arkui/component/uiExtensionComponent.static.d.ets b/api/arkui/component/uiExtensionComponent.static.d.ets
+index 6a71e3246..bf5c00604 100644
+--- a/api/arkui/component/uiExtensionComponent.static.d.ets
++++ b/api/arkui/component/uiExtensionComponent.static.d.ets
+@@ -23,16 +23,7 @@ import { CommonMethod, TerminationInfo } from './common';
+ import { ComponentContent } from '../ComponentContent';
+ import { memo, ComponentBuilder } from './../stateManagement/runtime';
+ import { AttributeModifier, CommonMethod } from './common';
+-
+-/**
+- * Defines RecordData.
+- * 
+- * @typedef { undefined | null | Object | Record<string, RecordData> | Array<RecordData> } RecordData
+- * @syscap SystemCapability.ArkUI.ArkUI.Full
+- * @systemapi
+- * @since 20
+- */
+-export type RecordData = undefined | null | Object | Record<string, RecordData> | Array<RecordData>;
++import { RecordData } from './pluginComponent';
+ 
+ /**
+  * Enumeration of different types of DpiFollowStrategy.
