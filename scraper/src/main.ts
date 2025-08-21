@@ -15,16 +15,11 @@
 
 import { toIDLFile } from "@idlizer/core"
 import { Command } from "commander"
-import { existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs"
-import { join, resolve } from "node:path"
+import { existsSync, mkdirSync, readFileSync } from "node:fs"
+import { resolve } from "node:path"
 import { solve } from "./alporithm"
 import { ADDITIONAL_CONFIG_DIR, AppConfigSchema, AppOptions, CONFIG_PATH, OUT_DIR } from "./shared"
-
-function scan(root:string):string[] {
-    return statSync(root).isDirectory()
-        ? readdirSync(root).flatMap(p => scan(join(root, p)))
-        : [root]
-}
+import { scan } from "./utils"
 
 function prepare() {
     if (!existsSync(OUT_DIR)) {

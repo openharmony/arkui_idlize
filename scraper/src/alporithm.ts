@@ -17,7 +17,8 @@ import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlize
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
-import { dirname, join, relative, basename, resolve, extname } from "node:path";
+import { dirname, join, relative, basename, resolve, extname, sep } from "node:path";
+import { scan } from "./utils";
 
 interface SummaryResultRecord {
     fileName: string
@@ -302,15 +303,18 @@ rule ohosgen
             relative(OUT_DIR, arkuiGeneratedPath('**', '*.ets'))
         ],
     }
-    const SDK_DIR = resolve('..', 'sdk-patched-arkts', 'api')
-    result.external.forEach(record => {
-        if (record.packageName === '') {
-            return
-        }
-        const idlFileName = record.fileName
-        const pureFilePath = join(dirname(idlFileName), basename(idlFileName, extname(idlFileName)))
-        const frontendFilePath = join(SDK_DIR, pureFilePath)
-        arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
+    // const SDK_DIR = resolve('..', 'sdk-patched-arkts', 'api')
+    // result.external.forEach(record => {
+    //     if (record.packageName === '') {
+    //         return
+    //     }
+    //     const idlFileName = record.fileName
+    //     const pureFilePath = join(dirname(idlFileName), basename(idlFileName, extname(idlFileName)))
+    //     const frontendFilePath = join(SDK_DIR, pureFilePath)
+    //     arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
+    // })
+    scanAbsolutePathDir().forEach(([packageName, fileName]) => {
+        arkuiConfig.compilerOptions.paths[packageName] = [fileName]
     })
 
     writeFileSync(
@@ -372,5 +376,21 @@ function findRootFiles(library: IDLFile[], targets: string[], options:AppConfig)
         const clause = file.packageClause.join('.')
         return targets.some(target => clause.startsWith(target))
             && !options.exclude.some(exclude => clause.startsWith(exclude))
+    })
+}
+
+const ABSOLUTE_PATH_DIR = resolve('..', 'absolute-sdk-patched-arkts', 'api')
+function scanAbsolutePathDir() {
+    const fileNames = scan(ABSOLUTE_PATH_DIR)
+    return fileNames.map((fileName): [string, string] => {
+        const packageName = relative(ABSOLUTE_PATH_DIR, fileName)
+            .replaceAll('.d.ets', '')
+            .split(sep)
+            .filter(p => p)
+            .join('.')
+
+        const fixedFileName = fileName.replaceAll('.d.ets', '')
+
+        return [packageName, fixedFileName]
     })
 }
