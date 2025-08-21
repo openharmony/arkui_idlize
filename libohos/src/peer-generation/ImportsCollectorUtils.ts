@@ -29,6 +29,10 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
         return convertDeclToFeature(library, decl)
     }
 
+    if (isInStdlibModule(node)) {
+        return { module: '', feature: '' }
+    }
+
     let feature = convertDeclaration(featureNameConvertor, node)
     const featureNs = idl.getNamespaceName(node)
     if ([Language.TS, Language.ARKTS].includes(library.language) && featureNs !== '') {
@@ -63,9 +67,6 @@ export function collectDeclItself(
         if (library.language === Language.ARKTS && !(idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface))
             return
     }
-    if (isInStdlibModule(node)) {
-        return
-    }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
         node = maybeRestoreGenerics(node, library) ?? node
         if (idl.isReferenceType(node)) {
@@ -87,6 +88,9 @@ export function collectDeclItself(
         }
 
         const feature = convertDeclToFeature(library, node)
+        if (!feature.module) {
+            return
+        }
         emitter.addFeature(feature.feature, feature.module, undefined, feature.isDefault)
         if (options?.includeMaterializedInternals) {
             if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {

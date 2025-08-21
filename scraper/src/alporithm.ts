@@ -16,7 +16,7 @@
 import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlizer/core";
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
+import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
 import { dirname, join, relative, basename, resolve } from "node:path";
 
 interface SummaryResultRecord {
@@ -150,6 +150,12 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
 
     writeFileSync(BASIC_CONFIG_PATH, JSON.stringify(generatorConfig, null, 2), 'utf-8')
 
+    const modulesGeneratorConfig = JSON.parse(JSON.stringify(generatorConfig))
+    for (let [moduleName, module] of Object.entries(modulesGeneratorConfig["modules"])) {
+        (module as any)["external"] = false
+    }
+    writeFileSync(BASIC_MODULES_CONFIG_PATH, JSON.stringify(modulesGeneratorConfig, null, 2), 'utf-8')
+
     result.external.forEach(record => {
         if (record.packageName === '') {
             return
@@ -253,7 +259,7 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
 
     let additionalStartScript = `
 rule ohosgen
-    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json,./main-config.json,$in
+    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json,${BASIC_MODULES_CONFIG_PATH},$in
     description = "Generate $in"
 
 `

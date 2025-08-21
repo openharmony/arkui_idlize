@@ -37,5 +37,6 @@ export const OUT_DIR = resolve(process.cwd(), 'out')
 export const SUMMARY_PATH = join(OUT_DIR, 'summary.json')
 export const ADDITIONAL_CONFIG_DIR = join(OUT_DIR, 'configs')
 export const BASIC_CONFIG_PATH = join(OUT_DIR, 'main-config.json')
+export const BASIC_MODULES_CONFIG_PATH = join(OUT_DIR, 'main-modules-config.json')
 
 export const CONFIG_PATH = resolve(process.cwd(), 'scraper-config.json')

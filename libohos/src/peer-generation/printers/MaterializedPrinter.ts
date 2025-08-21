@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -597,7 +597,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             }
         }
         // specific runtime dependencies
-        collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)
+        collectDeclItself(this.library, idl.createReferenceType(`${PACKAGE_IDLIZE_INTERNAL}.${NativeModule.Generated.name}`), this.collector)
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], './CallbackTransformer')
             if (this.library.language === Language.TS) {
