@@ -17,7 +17,7 @@ import { Language, NativeModuleType, PeerLibrary, throwException } from "@idlize
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, linearizeNamespaceMembers, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
-import { dirname, join, relative, basename, resolve } from "node:path";
+import { dirname, join, relative, basename, resolve, extname } from "node:path";
 
 interface SummaryResultRecord {
     fileName: string
@@ -283,7 +283,7 @@ rule ohosgen
     const externalPath = (...chunks:string[]) => join(externalDir, ...chunks)
     const arkuiConfig: any = {
         compilerOptions: {
-            package: "arkui",
+            package: "idlize.test",
             baseUrl: arkuiGeneratedPath(),
             outDir:  join(arkuiGeneratedDir, 'abc'),
             paths: {
@@ -302,13 +302,15 @@ rule ohosgen
             relative(OUT_DIR, arkuiGeneratedPath('**', '*.ets'))
         ],
     }
+    const SDK_DIR = resolve('..', 'sdk-patched-arkts', 'api')
     result.external.forEach(record => {
         if (record.packageName === '') {
             return
         }
-        const generatedPath = join(OUT_DIR, 'modules', record.packageName, 'generated', 'arkts')
-        const frontendFilePath = join(generatedPath, record.packageName.split('.').at(-1) + '.ts')
-        arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath]
+        const idlFileName = record.fileName
+        const pureFilePath = join(dirname(idlFileName), basename(idlFileName, extname(idlFileName)))
+        const frontendFilePath = join(SDK_DIR, pureFilePath)
+        arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
     })
 
     writeFileSync(

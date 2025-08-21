@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1613,9 +1614,9 @@ export function printExtendedAttributes(idl: IDLNode, indentLevel: number): Prin
         break
     }
     const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
-    if (typeParameters?.length)
+    if (typeParameters?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeParameters))
         attributes.push({ name: IDLExtendedAttributes.TypeParameters, value: typeParameters.join(",") })
-    if (typeArguments?.length)
+    if (typeArguments?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeArguments))
         attributes.push({ name: IDLExtendedAttributes.TypeArguments, value: typeArguments.map(it=>printType(it)).join(",") })
 
     if (idl.documentation) {
