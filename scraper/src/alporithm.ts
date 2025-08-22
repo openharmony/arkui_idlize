@@ -387,12 +387,13 @@ const ABSOLUTE_PATH_DIR = resolve('..', 'absolute-sdk-patched-arkts', 'api')
 function scanAbsolutePathDir() {
     const fileNames = scan(ABSOLUTE_PATH_DIR)
     return fileNames.map((fileName): [string, string] => {
-        const packageName = relative(ABSOLUTE_PATH_DIR, fileName)
+        let packageName = relative(ABSOLUTE_PATH_DIR, fileName)
             .replaceAll('.d.ets', '')
             .split(sep)
             .filter(p => p)
             .join('.')
-
+        if (packageName.indexOf("@") >= 0)
+            packageName = packageName.substring(packageName.indexOf("@"))
         const fixedFileName = fileName.replaceAll('.d.ets', '')
 
         return [packageName, fixedFileName]

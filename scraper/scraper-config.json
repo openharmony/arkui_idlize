@@ -19,6 +19,7 @@
         "arkui.SymbolGlyphModifier": ["./SymbolGlyphModifier"],
         "arkui.TextModifier": ["./TextModifier"],
         "arkui.component.enums": ["./component/enums"],
+        "arkui.component.image": ["./component/image"],
         "arkui.component.navDestination": ["./component/navDestination"],
         "arkui.component.navigation": ["./component/navigation"]
     }

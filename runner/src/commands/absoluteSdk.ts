@@ -31,7 +31,7 @@ export function absoluteSdk({
         if (!fs.statSync(path.join(apiPath, file)).isFile() || !file.endsWith('.d.ets')) {
             continue
         }
-        const content = fs.readFileSync(path.join(apiPath, file), { encoding: 'utf-8' }).replaceAll(/^(import|export) .* from ['"](.*)['"];$/gm, (all: string, _: string, from: string): string => {
+        const content = fs.readFileSync(path.join(apiPath, file), { encoding: 'utf-8' }).replaceAll(/^(import|export) .* from ['"](.*)['"];?$/gm, (all: string, _: string, from: string): string => {
             if (!from.startsWith('.'))
                 return all
             const fromAbsolute = path.join(apiPath, file, '..', from)
