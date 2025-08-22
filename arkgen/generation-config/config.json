@@ -20,7 +20,6 @@
         "TapGestureHandler",
         "UIGestureEvent",
         "MenuItemConfiguration",
-        "WrappedBuilder",
         "TouchTestInfo",
         "TouchResult",
         "SectionOptions"
@@ -215,7 +214,8 @@
             "UIGestureEvent",
             "GestureModifier",
             "ItemGeneratorFunc",
-            "KeyGeneratorFunc"
+            "KeyGeneratorFunc",
+            "WrappedBuilder"
         ],
         "ignoreEntry": [
             "Optional",

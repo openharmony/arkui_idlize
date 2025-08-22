@@ -71,7 +71,7 @@ export function collectDeclItself(
         node = maybeRestoreGenerics(node, library) ?? node
         if (idl.isReferenceType(node)) {
             const decl = library.resolveTypeReference(node)
-            if (decl && (idl.isCallback(decl) || idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple)) {
+            if (decl && idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple) {
                 return
             }
         }

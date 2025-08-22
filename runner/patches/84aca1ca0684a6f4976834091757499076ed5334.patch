@@ -1,5 +1,31 @@
+diff --git a/api/@ohos.arkui.theme.d.ts b/api/@ohos.arkui.theme.d.ts
+index b2c873def..78b760e69 100644
+--- a/api/@ohos.arkui.theme.d.ts
++++ b/api/@ohos.arkui.theme.d.ts
+@@ -644,7 +644,7 @@ export declare interface CustomTheme {
+  * @atomicservice
+  * @since 12
+  */
+-export declare type CustomColors = Partial<Colors>;
++export declare type CustomColors = Object;
+ /**
+  * Class ThemeControl provides the Theme management for whole Ability and pages.
+  *
+diff --git a/api/@ohos.arkui.theme.static.d.ets b/api/@ohos.arkui.theme.static.d.ets
+index 01238b37d..af871628d 100644
+--- a/api/@ohos.arkui.theme.static.d.ets
++++ b/api/@ohos.arkui.theme.static.d.ets
+@@ -478,7 +478,7 @@ export declare interface CustomTheme {
+  * @syscap SystemCapability.ArkUI.ArkUI.Full
+  * @since 20
+  */
+-export type CustomColors = Partial<Colors>;
++export type CustomColors = Object;
+ /**
+  * Class ThemeControl provides the Theme management for whole Ability and pages.
+  *
 diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
-index 168d42dd7..26f4c9dbd 100644
+index 168d42dd7..375f5e334 100644
 --- a/api/arkui/component/common.static.d.ets
 +++ b/api/arkui/component/common.static.d.ets
 @@ -7356,13 +7356,13 @@ export declare interface SheetOptions extends BindOptions {
@@ -49,19 +75,6 @@ index 168d42dd7..26f4c9dbd 100644
   */
 -export declare function applyStyles<T extends CommonMethod>(this: T, customStyles: CustomStyles): T;
 +export declare function applyStyles<T extends CommonMethod>(self: T, customStyles: CustomStyles): T;
-diff --git a/api/arkui/component/extendableComponent.static.d.ets b/api/arkui/component/extendableComponent.static.d.ets
-index 2dbd7d493..5ce88af20 100644
---- a/api/arkui/component/extendableComponent.static.d.ets
-+++ b/api/arkui/component/extendableComponent.static.d.ets
-@@ -77,7 +77,7 @@ export interface LifeCycle {
-      * @atomicservice
-      * @since 20
-      */
--    @Builder
-+    @memo
-     build(): void
- }
- 
 diff --git a/api/arkui/component/pluginComponent.static.d.ets b/api/arkui/component/pluginComponent.static.d.ets
 index a9a9ed0b5..729c7b262 100644
 --- a/api/arkui/component/pluginComponent.static.d.ets
@@ -89,7 +102,7 @@ index 6dfb46e9a..9225c6493 100644
       * Set the attribute modifier
       *
 diff --git a/api/arkui/component/sidebar.static.d.ets b/api/arkui/component/sidebar.static.d.ets
-index 06f39d7e1..5c922b616 100644
+index 361c6e519..52a2dad8a 100644
 --- a/api/arkui/component/sidebar.static.d.ets
 +++ b/api/arkui/component/sidebar.static.d.ets
 @@ -22,7 +22,7 @@
@@ -190,3 +203,44 @@ index 6a71e3246..bf5c00604 100644
  
  /**
   * Enumeration of different types of DpiFollowStrategy.
+diff --git a/api/bundleManager/AbilityInfo.d.ts b/api/bundleManager/AbilityInfo.d.ts
+index ea1dfb1d2..18f12a1cf 100644
+--- a/api/bundleManager/AbilityInfo.d.ts
++++ b/api/bundleManager/AbilityInfo.d.ts
+@@ -575,14 +575,14 @@ export interface AbilityInfo {
+   /**
+    * Obtains configuration information about an application
+    *
+-   * @type { ApplicationInfo | null }
++   * @type { ApplicationInfo | undefined }
+    * @readonly
+    * @syscap SystemCapability.BundleManager.BundleFramework.Core
+    * @crossplatform
+    * @since 20
+    * @arkts 1.2
+    */
+-  readonly applicationInfo: ApplicationInfo | null;
++  readonly applicationInfo: ApplicationInfo | undefined;
+ 
+   /**
+    * Indicates the metadata of ability
+diff --git a/api/bundleManager/ExtensionAbilityInfo.d.ts b/api/bundleManager/ExtensionAbilityInfo.d.ts
+index 663f38676..0c7238995 100644
+--- a/api/bundleManager/ExtensionAbilityInfo.d.ts
++++ b/api/bundleManager/ExtensionAbilityInfo.d.ts
+@@ -254,13 +254,13 @@ export interface ExtensionAbilityInfo {
+   /**
+    * Obtains configuration information about an application
+    *
+-   * @type { ApplicationInfo | null }
++   * @type { ApplicationInfo | undefined }
+    * @readonly
+    * @syscap SystemCapability.BundleManager.BundleFramework.Core
+    * @since 20
+    * @arkts 1.2
+    */
+-  readonly applicationInfo: ApplicationInfo | null;
++  readonly applicationInfo: ApplicationInfo | undefined;
+ 
+   /**
+    * Indicates the metadata of bundle

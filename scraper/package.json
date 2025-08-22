@@ -8,7 +8,9 @@
     "compile": "npm run -C ../core compile && npm run compile:self",
     "chmod": "chmod +x ./out/go-main.sh",
     "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod",
-    "build": "cd out && fast-arktsc --config ./ui2abcconfig.json --simultaneous --link-name ./build/abc/all.abc --compiler ../../external/incremental/tools/panda/arkts/ui2abc && ninja -C ./generated/abc -f build.ninja"
+    "build": "cd out && fast-arktsc --config ./ui2abcconfig.json --simultaneous --link-name ./build/abc/all.abc --compiler ../../external/incremental/tools/panda/arkts/ui2abc && ninja -C ./generated/abc -f build.ninja",
+    "generate": "./out/go-main.sh",
+    "clean:generate": "rimraf out/generated && npm run generate"
   },
   "keywords": [],
   "author": "",
