@@ -98,7 +98,7 @@
     "Components": [
         "BaseSpan",
         "CommonMethod",
-        "CommonShapeMethod",
+        "arkui.component.common.CommonShapeMethod",
         "ScrollableCommonMethod"
     ],
     "Throws": [

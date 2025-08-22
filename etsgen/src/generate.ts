@@ -1537,7 +1537,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
             }
 
             this.entries.forEach(entry => {
-                if (idl.isInterface(entry) && this.config.Components.includes(entry.name)) {
+                const entryFQName = this.packageClause.concat(entry.name).join(".")
+                if (idl.isInterface(entry) && (this.config.Components.includes(entry.name) || this.config.Components.includes(entryFQName))) {
                     this.postprocessComponent(entry)
                 }
             })
