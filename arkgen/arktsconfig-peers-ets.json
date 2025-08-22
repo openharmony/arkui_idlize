@@ -22,6 +22,6 @@
         "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
     ],
     "exclude": [
-        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/**/*"
+        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/generated/**/*"
     ]
 }

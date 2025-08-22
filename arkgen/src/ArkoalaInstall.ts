@@ -81,7 +81,7 @@ class ArkTSArkoalaInstall extends BaseArkoalaInstall {
         return path.join(this.root, "arkoala-arkts/arkui/generated")
     }
     get managedSdkDir(): string {
-        return path.join(this.root, "arkoala-arkts/arkui/sdk")
+        return path.join(this.root, "arkoala-arkts/arkui/sdk/generated")
     }
     get tsTypesDir(): string {
         return path.join(this.root, "arkoala-arkts/arkui/types/")

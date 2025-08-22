@@ -2,7 +2,7 @@
     "compilerOptions": {
         "package": "@ohos.arkui",
         "outDir": "out/ets-arkts-peers/sdk/abc",
-        "baseUrl": "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk",
+        "baseUrl": "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/generated",
         "paths": {
             "#components": ["./generated/arkts"],
             "@arkoala/arkui": ["./generated"],
@@ -15,6 +15,6 @@
         }
     },
     "include": [
-        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/**/*.ets"
+        "out/ets-arkts-peers/generated/sig/arkoala-arkts/arkui/sdk/generated/**/*.ets"
     ]
 }
