@@ -73,7 +73,8 @@
         ]
     },
     "forceResource": [
-	    "ContentModifier"
+	    "ContentModifier",
+        "ComponentContent"
     ],
     "boundProperties": {
         "Checkbox": [
