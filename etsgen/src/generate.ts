@@ -1073,7 +1073,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 let ii = parameters.length - 1
                 while (ii >= 0) {
                     const last = parameters.at(-1)!
-                    if (last.type === idl.IDLUndefinedType) {
+                    if (last.type === idl.IDLUndefinedType || idl.isReferenceType(last.type) && last.type.name === "idlize.stdlib.Null") {
                         parameters.pop()
                     } else {
                         break
@@ -1184,7 +1184,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isTSStringKeyword(type))
             return idl.IDLStringType
         if (arkts.isETSNullType(type))
-            return idl.IDLUndefinedType
+            return idl.createReferenceType('idlize.stdlib.Null')
         if (arkts.isTSArrayType(type))
             return idl.createContainerType('sequence', [this.serializeType((type as arkts.TSArrayType).elementType)])
         if (arkts.isETSUnionType(type))

@@ -335,10 +335,10 @@ export class PeerLibrary implements LibraryInterface {
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
         if (isOptionalParam) {
-            return new OptionConvertor(this, param, idl.maybeUnwrapOptionalType(type))
+            return new OptionConvertor(this, param, idl.isOptionalType(type) ? type : idl.createOptionalType(type))
         }
         if (idl.isOptionalType(type)) {
-            return new OptionConvertor(this, param, type.type)
+            return new OptionConvertor(this, param, type)
         }
         if (idl.isPrimitiveType(type)) {
             switch (type) {
@@ -479,7 +479,8 @@ export class PeerLibrary implements LibraryInterface {
             case `Record`:
                 return new CustomTypeConvertor(param, "Record", false, "Record<string, string>")
             case `Optional`:
-                return new OptionConvertor(this, param, type.typeArguments![0])
+                throw new Error("Not expected to have reference type named Optional")
+                // return new OptionConvertor(this, param, type.typeArguments![0])
         }
         return undefined
     }

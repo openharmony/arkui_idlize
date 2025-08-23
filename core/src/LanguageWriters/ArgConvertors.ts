@@ -1004,8 +1004,8 @@ export class CustomTypeConvertor extends BaseArgConvertor {
 export class OptionConvertor extends BaseArgConvertor {
     private readonly typeConvertor: ArgConvertor
     // TODO: be smarter here, and for smth like Length|undefined or number|undefined pass without serializer.
-    constructor(library: LibraryInterface, param: string, public type: idl.IDLType) {
-        let conv = library.typeConvertor(param, type)
+    constructor(library: LibraryInterface, param: string, public type: idl.IDLOptionalType) {
+        let conv = library.typeConvertor(param, type.type)
         let currentConv:ArgConvertor = conv
         while (currentConv instanceof ProxyConvertor) {
             currentConv = currentConv.convertor
@@ -1026,7 +1026,7 @@ export class OptionConvertor extends BaseArgConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const valueValue = `${value}TmpValue`.replaceAll('.', '_')
         return printer.makeCondition(
-            printer.makeDefinedCheck(value),
+            printer.makeDefinedCheck(value, this.type),
             new BlockStatement([
                 printer.makeStatement(printer.makeMethodCall(`${param}Serializer`, "writeInt8", [printer.makeRuntimeType(RuntimeType.OBJECT)])),
                 printer.makeAssign(valueValue, undefined, printer.makeValueFromOption(value, this.typeConvertor), true),
@@ -1046,7 +1046,7 @@ export class OptionConvertor extends BaseArgConvertor {
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
         const bufferType = this.nativeType()
-        statements.push(writer.makeAssign(bufferName, bufferType, (writer.language == Language.CJ || writer.language == Language.KOTLIN) ? writer.makeNull(bufferName) : undefined, true, false)) // maybe change to generic None
+        statements.push(writer.makeAssign(bufferName, bufferType, writer.language === Language.CPP ? undefined : writer.makeNull(this.type), true, false)) // maybe change to generic None
 
         const thenStatement = new BlockStatement([
             this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {
@@ -1061,10 +1061,10 @@ export class OptionConvertor extends BaseArgConvertor {
         return writer.makeBlock(statements, false)
     }
     nativeType(): idl.IDLType {
-        return idl.createOptionalType(this.type)
+        return this.type
     }
     interopType(): idl.IDLType {
-        return idl.createOptionalType(this.type)
+        return this.type
     }
     isPointerType(): boolean {
         return true

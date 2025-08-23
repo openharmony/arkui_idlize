@@ -76,6 +76,8 @@ export enum IDLExtendedAttributes {
     Interfaces = "Interfaces",
     NativeModule = "NativeModule",
     Optional = "Optional",
+    UnionOnlyNull = "OptionalOnlyNull",
+    UnionWithNull = "OptionalWithNull",
     OriginalEnumMemberName = "OriginalEnumMemberName",
     OriginalGenericName = "OriginalGenericName",
     Predefined = "Predefined",

@@ -67,6 +67,7 @@ export * from "./peer-generation/unions"
 export * from "./peer-generation/getSuperType"
 export * from "./transformers/FqnTransformer"
 export * from "./transformers/GenericTransformer"
+export * from "./transformers/NullTransformer"
 
 export * from "./LanguageWriters"
 export * from "./peer-generation/ReferenceResolver"

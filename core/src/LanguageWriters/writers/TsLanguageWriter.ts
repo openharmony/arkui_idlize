@@ -343,7 +343,9 @@ export class TSLanguageWriter extends LanguageWriter {
         )
         this.printer.print(`${prefix}${name}${typeParams}(${normalizedArgs.map((it, index) => `${this.escapeKeyword(signature.argName(index))}${signature.isArgOptional(index) ? "?" : ``}: ${this.getNodeName(it)}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
     }
-    makeNull(): LanguageExpression {
+    makeNull(type?: idl.IDLOptionalType): LanguageExpression {
+        if (type && idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull))
+            return new StringExpression("null")
         return new StringExpression("undefined")
     }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {
@@ -402,7 +404,14 @@ export class TSLanguageWriter extends LanguageWriter {
     makeRuntimeType(rt: RuntimeType): LanguageExpression {
         return this.makeString(`RuntimeType.${RuntimeType[rt]}`)
     }
-    makeDefinedCheck(value: string): LanguageExpression {
+    makeDefinedCheck(value: string, type?: idl.IDLOptionalType): LanguageExpression {
+        if (type) {
+            if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionWithNull)) {
+                return this.makeString(`${value} !== undefined && ${value} !== null`)
+            } else if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)) {
+                return this.makeString(`${value} !== null`)
+            }
+        }
         return this.makeString(`${value} !== undefined`)
     }
     makeTupleAlloc(option: string): LanguageStatement {

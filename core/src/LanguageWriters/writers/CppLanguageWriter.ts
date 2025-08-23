@@ -378,7 +378,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     writePrintLog(message: string): void {
         this.print(`printf("${message}\\n");`)
     }
-    makeDefinedCheck(value: string, isTag?: boolean): LanguageExpression {
+    makeDefinedCheck(value: string, type?: idl.IDLOptionalType, isTag?: boolean): LanguageExpression {
         return this.makeString(
             isTag ? `${value} != ${PrimitiveTypeList.UndefinedTag}`
                   : `runtimeType(${value}) != ${PrimitiveTypeList.UndefinedRuntime}`)
