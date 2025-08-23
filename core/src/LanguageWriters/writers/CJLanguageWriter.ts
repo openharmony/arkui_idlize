@@ -555,7 +555,7 @@ export class CJLanguageWriter extends LanguageWriter {
     makeMapInsert(keyAccessor: string, key: string, valueAccessor: string, value: string): LanguageStatement {
         return this.makeStatement(this.makeMethodCall(keyAccessor, "add", [this.makeString(key), this.makeString(value)]))
     }
-    makeNull(value?: string): LanguageExpression {
+    makeNull(): LanguageExpression {
         return this.makeUndefined()
     }
     getTagType(): idl.IDLType {

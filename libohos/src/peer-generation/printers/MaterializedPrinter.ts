@@ -198,7 +198,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         // Used in typescript only
         // add makeIsDefined(...) method to LanguageWriter
         const peerPtrExpr = writer.makeTernary(
-            writer.makeDefinedCheck(peerPtr),
+            writer.makeDefinedCheck(peerPtr, undefined),
             writer.makeString(peerPtr),
             writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
         )

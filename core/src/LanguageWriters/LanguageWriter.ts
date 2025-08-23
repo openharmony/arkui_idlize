@@ -595,7 +595,7 @@ export abstract class LanguageWriter {
     makeThis(): LanguageExpression {
         return new StringExpression("this")
     }
-    makeNull(value?: string): LanguageExpression {
+    makeNull(type?: idl.IDLOptionalType): LanguageExpression {
         return new StringExpression("null")
     }
     makeVoid(): LanguageExpression {
@@ -643,7 +643,7 @@ export abstract class LanguageWriter {
     nativeReceiver(nativeModule: NativeModuleType): string {
         return nativeModule.name
     }
-    abstract makeDefinedCheck(value: string, isTag?: boolean): LanguageExpression
+    abstract makeDefinedCheck(value: string, type?: idl.IDLOptionalType, isTag?: boolean): LanguageExpression
     makeRuntimeTypeDefinedCheck(runtimeType: string): LanguageExpression {
         return this.makeRuntimeTypeCondition(runtimeType, false, RuntimeType.UNDEFINED)
     }

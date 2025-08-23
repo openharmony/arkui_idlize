@@ -50,7 +50,13 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return node.name
     }
     convertOptional(type: idl.IDLOptionalType): string {
-        return `${this.convert(type.type)} | undefined`
+        if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionOnlyNull)) {
+            return `${this.convert(type.type)} | null`
+        } else if (idl.hasExtAttribute(type, idl.IDLExtendedAttributes.UnionWithNull)) {
+            return `${this.convert(type.type)} | null | undefined`
+        } else {
+            return `${this.convert(type.type)} | undefined`
+        }
     }
     convertUnion(type: idl.IDLUnionType): string {
         return type.types.
