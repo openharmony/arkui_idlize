@@ -405,10 +405,10 @@
     "dummy": {
         "ignoreMethods": {
             "CommonMethod": [
-                "onClick",
-                "onClick0",
-                "onClick1",
-                "drawModifier"
+                "setOnClick",
+                "setOnClick0",
+                "setOnClick1",
+                "setDrawModifier"
             ],
             "EnvironmentBackend": [
                 "isAccessibilityEnabled",

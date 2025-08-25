@@ -830,7 +830,7 @@ void ShowCrash(Ark_CharPtr message) {}
 // handWritten implementations
 namespace OHOS::Ace::NG::GeneratedModifier {
     namespace CommonMethodModifier {
-        void OnClick0Impl(Ark_NativePointer node,
+        void SetOnClick0Impl(Ark_NativePointer node,
                       const Opt_Callback_ClickEvent_Void* event)
     {
         RegisterOnClick(node, &event->value);
@@ -842,7 +842,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void OnClick1Impl(Ark_NativePointer node,
+    void SetOnClick1Impl(Ark_NativePointer node,
                       const Opt_Callback_ClickEvent_Void* event,
                       const Opt_Number* distanceThreshold)
     {
@@ -857,7 +857,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void OnClickImpl(Ark_NativePointer node,
+    void SetOnClickImpl(Ark_NativePointer node,
         const Callback_ClickEvent_Void* event,
         const Ark_Number* distanceThreshold)
     {
@@ -872,7 +872,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         out.append(") \n");
         appendGroupedLog(1, out);
     }
-    void DrawModifierImpl(Ark_NativePointer node,
+    void SetDrawModifierImpl(Ark_NativePointer node,
                           const Opt_DrawModifier* value)
     {
         if (value->value) {
