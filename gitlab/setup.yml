@@ -3,7 +3,7 @@ include:
 
 .panda:
     script:
-    - npm run panda:sdk:install --prefix ./external/ui2abc/libarkts
+    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
     - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
 
 build idlize:
