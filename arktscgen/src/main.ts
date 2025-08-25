@@ -14,7 +14,7 @@
  */
 
 import * as path from "node:path"
-import { toIDLFile } from "@idlizer/core"
+import { parseIDLFile } from "@idlizer/core"
 import { DynamicEmitter } from "./emitters/DynamicEmitter"
 import { Config } from "./general/Config"
 import { IgnoreOptions, IrHackOptions } from "./options/IgnoreOptions"
@@ -37,13 +37,12 @@ function main() {
     new DynamicEmitter(
         options.outputDir,
         options.pandaSdkPath,
-        toIDLFile(
+        parseIDLFile(
             path.join(
                 options.pandaSdkPath,
                 pandaSdkIdlFilePath
-            ),
-            { inheritanceMode: 'single' }
-        )[0],
+            )
+        ),
         new Config(
             new IgnoreOptions(options.optionsFile),
             new NonNullableOptions(options.optionsFile),

@@ -23,7 +23,7 @@ import {
     findVersion,
     verifyIDLLinter,
     scanInputDirs,
-    toIDLFile,
+    parseIDLFile,
     setDefaultConfiguration,
     patchDefaultConfiguration,
     D,
@@ -149,7 +149,7 @@ export function arkgen(argv:string[]) {
         const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
         idlInputFiles.forEach(idlFilename => {
             idlFilename = path.resolve(idlFilename)
-            const [file] = toIDLFile(idlFilename)
+            const file = parseIDLFile(idlFilename)
             linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
             idlLibrary.files.push(file)
         })
@@ -195,7 +195,7 @@ export function arkgen(argv:string[]) {
         {
             const pushOne = (idlFilename: string, resultFilesArray: IDLFile[]) => {
                 idlFilename = path.resolve(idlFilename)
-                const [file] = toIDLFile(idlFilename)
+                const file = parseIDLFile(idlFilename)
                 resultFilesArray.push(file)
             }
             idlInputFiles.forEach(idlFilename => pushOne(idlFilename, idlLibrary.files))

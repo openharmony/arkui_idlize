@@ -29,7 +29,7 @@ import {
     verifyIDLLinter,
     PeerLibrary,
     scanInputDirs,
-    toIDLFile,
+    parseIDLFile,
     generatorConfiguration,
     IDLLinterError,
 } from "@idlizer/core"
@@ -99,20 +99,20 @@ function main() {
     if (options.lint) {
         const resolver = new PeerLibrary(Language.TS, NativeModule.Interop)
         const files = dtsInputFiles.map((filePath) => {
-            const result = toIDLFile(filePath)
-            resolver.files.push(result[0])
+            const result = parseIDLFile(filePath)
+            resolver.files.push(result)
             return result
         })
         resolver.disableFallback()
         let totalErrors = 0
         const errorRecords: [string, number][] = []
-        files.forEach(([file, info]) => {
+        files.forEach((file) => {
             try {
                 verifyIDLLinter(file, resolver, {
                     checkEnumsConsistency: true,
                     checkReferencesResolved: true,
                     validEntryAttributes: peerGeneratorConfiguration().linter.validEntryAttributes
-                }, info)
+                })
             } catch (error) {
                 if (error instanceof IDLLinterError) {
                     totalErrors += error.size

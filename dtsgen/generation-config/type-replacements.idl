@@ -35,7 +35,7 @@ interface BorderImageOption {
     attribute (String or Resource or LinearGradient_common) source;
 };
 
-[Synthetic, Entity=Tuple, Synthetic]
+[Synthetic, Entity=Tuple]
 interface AnimationRange_Number {
     attribute number value0;
     attribute number value1;

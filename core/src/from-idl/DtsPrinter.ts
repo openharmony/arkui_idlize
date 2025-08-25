@@ -98,7 +98,7 @@ import {
     isType,
     IDLObjectType
 } from "../idl"
-import { resolveSyntheticType, toIDLFile } from "./deserialize"
+import { resolveSyntheticType, parseIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
 import { isInIdlize } from "../idlize"
@@ -439,7 +439,7 @@ export class CustomPrintVisitor {
 
 export function idlToDtsString(name: string, content: string): string {
     let printer = new CustomPrintVisitor(resolveSyntheticType, Language.TS)
-    const [idlFile] = toIDLFile(name, {content})
+    const idlFile = parseIDLFile(name, content)
     printer.printPackage(idlFile)
     linearizeNamespaceMembers(idlFile.entries).forEach(it => {
         transformMethodsAsync2ReturnPromise(it)

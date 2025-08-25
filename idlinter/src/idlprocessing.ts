@@ -159,7 +159,7 @@ export class IdlProcessingManager {
 
     addFile(fileName: string, parseOnly?: boolean): void {
         try {
-            const loaded = idl.toIDLFile(fileName)[0]
+            const loaded = idl.parseIDLFile(fileName, undefined, true)
             this.entries.push(loaded)
             this.entriesByPath.set(fileName, loaded)
             if (parseOnly) {

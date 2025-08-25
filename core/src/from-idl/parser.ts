@@ -16,7 +16,7 @@
 import * as fs from "fs"
 import * as idl from "../idl"
 import { DiagnosticException, DiagnosticMessage, Location, Position } from "../diagnostictypes"
-import { DiagnosticMessageGroup, LoadingFatal, ParsingFatal, InternalFatal } from "../diagnosticmessages"
+import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
 
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
@@ -27,12 +27,14 @@ const IncorrectLiteral = new DiagnosticMessageGroup("error", "IncorrectLiteral",
 const IncorrectIdentifier = new DiagnosticMessageGroup("error", "IncorrectIdentifier", "Incorrect identifier")
 const UnexpectedToken = new DiagnosticMessageGroup("error", "UnexpectedToken", "Unexpected token")
 const UnexpectedEndOfFile = new DiagnosticMessageGroup("fatal", "UnexpectedEndOfFile", "Unexpected end of file")
+const UnrecognizedSymbols = new DiagnosticMessageGroup("fatal", "UnrecognizedSymbols", "Unrecognized symbols")
 const UnsupportedSyntax = new DiagnosticMessageGroup("error", "UnsupportedSyntax", "Unsupported syntax")
 const WrongDeclarationPlacement = new DiagnosticMessageGroup("error", "WrongDeclarationPlacement", "Wrong declaration placement")
 const ExpectedPrimitiveType = new DiagnosticMessageGroup("error", "ExpectedPrimitiveType", "Expected primitive type")
 const ExpectedReferenceType = new DiagnosticMessageGroup("error", "ExpectedReferenceType", "Expected reference type")
 const ExpectedGenericArguments = new DiagnosticMessageGroup("error", "ExpectedGenericArguments", "Expected generic arguments")
 const UnexpectedGenericArguments = new DiagnosticMessageGroup("error", "UnexpectedGenericArguments", "Unexpected generic arguments")
+const InlineParsingDepthExceeded = new DiagnosticMessageGroup("fatal", "InlineParsingDepthExceeded", "Inline parsing depth exceeded")
 
 export class FatalParserException extends Error {
     diagnosticMessages?: DiagnosticMessage[]
@@ -130,7 +132,7 @@ export class Parser {
     _generics: string[][] = []
 
     // TypeArguments parsing support
-    _enableInLiteralParsing: boolean = false
+    _inLiteralParsingLevel: number = 0
 
     _match(re: RegExp, kind: TokenKind): Token | undefined {
         re.lastIndex = this._curOffset
@@ -187,10 +189,10 @@ export class Parser {
             this._curToken = {kind: TokenKind.End, value: "", location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
             return
         }
-        if (this._enableInLiteralParsing && this.content[this._curOffset] == "\"") {
+        if (this._inLiteralParsingLevel && (this.content[this._curOffset] == "\"" || this.content[this._curOffset] == "'")) {
             // TypeArguments parsing support
             const pos: Position = {line: this._curLine + 1, character: this._curOffset - this.offsets[this._curLine] + 1}
-            this._curToken = {kind: TokenKind.Symbol, value: "\"", location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
+            this._curToken = {kind: TokenKind.Symbol, value: this.content[this._curOffset], location: {documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}}
             this._curOffset += 1
             return
         }
@@ -203,7 +205,7 @@ export class Parser {
         )
         if (!token) {
             const pos: Position = {line: this._curLine + 1, character: this._curOffset - this.offsets[this._curLine] + 1}
-            ParsingFatal.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}], "Unrecognized symbols")
+            UnrecognizedSymbols.throwDiagnosticMessage([{documentPath: this.fileName, lines: this.lines, range: {start: pos, end: pos}}])
         }
         // Uncomment in case of parser debugging
         // if (token) {
@@ -546,22 +548,27 @@ export class Parser {
             if (name.value == idl.IDLExtendedAttributes.TypeArguments) {
                 // TypeArguments parsing support
                 try {
-                    this._enableInLiteralParsing = true
+                    this._inLiteralParsingLevel += 1
+                    if (this._inLiteralParsingLevel > 2) {
+                        InlineParsingDepthExceeded.throwDiagnosticMessage([this.curLocation])
+                    }
                     this.skip("=")
                     const vloc = this.trackLocation()
                     const start = this._curOffset // Already after first quote
-                    this.skip("\"")
+                    this.skip(this._inLiteralParsingLevel == 2 ? "'" : "\"")
                     const types = this.parseTypeList()
                     const end = this._curOffset - 1 // Already after second quote
-                    this._enableInLiteralParsing = false
-                    this.skip("\"")
+                    this._inLiteralParsingLevel -= 1
+                    // Note that second this._inLiteralParsingLevel comparison happens after decrement
+                    this.skip(this._inLiteralParsingLevel == 1 ? "'" : "\"")
                     const stringValue = this.content.slice(start, end)
                     ext.push({name: name.value, value: stringValue, typesValue: types, nameLocation: name.location, valueLocation: vloc()})
                 } catch (e) {
-                    this.skipToAfter("\"")
+                    if (e instanceof DiagnosticException && e.diagnosticMessage.severity != "fatal") {
+                        this.skipToAfter("\"")
+                    }
+                    this._inLiteralParsingLevel = 0
                     throw e
-                } finally {
-                    this._enableInLiteralParsing = false
                 }
             } else {
                 let value: Token | undefined
@@ -747,9 +754,9 @@ export class Parser {
         const name = this.parseSingleIdentifier()
         this.skip("=")
         const value = this.parseLiteral()
-        const extracted = extractLiteral(value)
         this.skip(";")
-        return idl.createConstant(name.value, type, extracted.extractedString, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
+        // Note that raw value (with quoted strings) is used here, that provides compatibility with older code (while being different from `dictionary` processing)
+        return idl.createConstant(name.value, type, value.value, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
     }
 
     parseAttribute(): idl.IDLProperty {
@@ -845,11 +852,14 @@ export class Parser {
         const sloc = this.trackLocation()
         const type = this.parsePrimitiveType()
         const name = this.parseSingleIdentifier()
-        this.skip("=")
-        const value = this.parseLiteral()
-        const extracted = extractLiteral(value)
+        let value: Token | undefined
+        let extracted: ExtractedLiteral | undefined
+        if (this.seeAndSkip("=")) {
+            value = this.parseLiteral()
+            extracted = extractLiteral(value)
+        }
         this.skip(";")
-        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted.extractedValue, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
+        return idl.createEnumMember(name.value, undefined as any as idl.IDLEnum, type, extracted?.extractedValue, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parsePackage(): {location: Location, name: string} {

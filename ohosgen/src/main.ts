@@ -22,7 +22,7 @@ import {
     setDefaultConfiguration,
     PeerLibrary,
     verifyIDLLinter,
-    toIDLFile,
+    parseIDLFile,
     scanInputDirs,
     D,
     NativeModuleType,
@@ -107,7 +107,7 @@ if (options.idl2peer) {
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
-        const [file] = toIDLFile(idlFilename)
+        const file = parseIDLFile(idlFilename)
         linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
         idlLibrary.files.push(file)
     })

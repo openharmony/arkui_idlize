@@ -30,6 +30,7 @@ import { collapseTypes, generateSyntheticUnionName } from "../peer-generation/id
 import { commonRange, Location, Range } from "../diagnostictypes"
 import { DiagnosticMessageGroup, LoadingFatal, ParsingFatal, InternalFatal } from "../diagnosticmessages"
 import { FatalParserException, Parser } from "./parser"
+import { outputDiagnosticMessageFormatted } from "../formatter"
 
 export type WebIDLTokenCollection = Record<string, webidl2.Token | null | undefined>
 export type IDLTokenInfoMap = Map<unknown, WebIDLTokenCollection>
@@ -51,7 +52,6 @@ export function resolveSyntheticType(type: idl.IDLReferenceType): idl.IDLEntry |
     return syntheticTypes.get(type.name)
 }
 
-type IDLInheritanceMode = 'single' | 'multiple'
 class IDLDeserializer {
 
     private namespacePathNames: string[] = []
@@ -63,8 +63,7 @@ class IDLDeserializer {
     }
 
     constructor(
-        private info: IDLTokenInfoMap,
-        private inheritanceMode: IDLInheritanceMode = 'multiple'
+        private info: IDLTokenInfoMap
     ) { }
 
     ///
@@ -211,6 +210,8 @@ class IDLDeserializer {
             // is it IDLStringType?
             const refType = idl.createReferenceType(type)
             refType.fileName = file
+            // Here is a bug: type.extAttrs are ignored, so typeArguments on ([TypeArguments="T"] Something) are always lost
+            // That must be fixed together with fixing non-generic placeholders on generic types in pipelines (like WrappedBuilder)
             refType.typeArguments = this.extractTypeArguments(file, extAttrs, idl.IDLExtendedAttributes.TypeArguments)
             return refType
         }
@@ -613,14 +614,9 @@ class IDLDeserializer {
     }
 }
 
-interface ToIDLFileProps {
-    inheritanceMode?:IDLInheritanceMode
-    content?: string
-}
-
 export function toIdlType(fileName: string, content: string): idl.IDLType {
     const lexicalInfo: IDLTokenInfoMap = new Map()
-    const deserializer = new IDLDeserializer(lexicalInfo, 'multiple')
+    const deserializer = new IDLDeserializer(lexicalInfo)
     return deserializer.toIDLType(fileName, webidl2.parseType(content, fileName))
 }
 
@@ -714,15 +710,43 @@ function compareDeep(oldData: any, newData: any, paths: Set<string>): Diff[] {
     return []
 }
 
-function compareParsingResults(oldFile: idl.IDLFile, newFile: idl.IDLFile): void {
+export function compareParsingResults(oldFile: idl.IDLFile, newFile: idl.IDLFile): boolean {
     const paths = new Set<string>()
     compareDeep(oldFile, newFile, paths)
     if (paths.size > 0) {
         DifferenceFound.reportDiagnosticMessage([newFile.nodeLocation!], "Differences found in those paths:\n" + [...paths].join("\n"))
     }
+    return paths.size == 0
 }
 
-function parseIdlNew(fileName: string, content?: string, registerSynthetics?: boolean) {
+export function parseIDLFile(fileName: string, content?: string, quiet?: boolean): idl.IDLFile {
+    const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
+    try {
+        let newFile!: idl.IDLFile
+        // Temporarily is set to use old parser by default
+        // Old parser has a bug, it ignores extended attributes on return types, but some pipelines depend on that behavior
+        // So pipelines and old parser must be fixed before permanent switch to a new parser
+        const mode = process.env.IDLPARSE
+        if (mode == "compare" || mode == "new") {
+            newFile = parseIDLFileNew(fileName, content, mode == "new")
+            if (mode == "new") {
+                return newFile
+            }
+        }
+        const file = parseIDLFileOld(fileName, content)
+        if (mode == "compare") {
+            compareParsingResults(file, newFile)
+            return newFile
+        }
+        return file
+    } finally {
+        if (!quiet && DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
+            DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).map(it => outputDiagnosticMessageFormatted(it))
+        }
+    }
+}
+
+export function parseIDLFileNew(fileName: string, content?: string, registerSynthetics?: boolean) {
     let file = new Parser(fileName, content).parseIDL()
     const ancestors: idl.IDLNode[] = []
     const namespaces: string[] = []
@@ -758,17 +782,9 @@ function parseIdlNew(fileName: string, content?: string, registerSynthetics?: bo
     return file
 }
 
-export function toIDLFile(fileName: string, { content, inheritanceMode = 'multiple' }:ToIDLFileProps = {}): [idl.IDLFile, IDLTokenInfoMap] {
-    let newFile!: idl.IDLFile
-    const mode = process.env.IDLPARSE
-    if (mode == "compare" || mode == "new") {
-        newFile = parseIdlNew(fileName, content, mode == "new")
-        if (mode == "new") {
-            return [newFile, new Map()]
-        }
-    }
+function parseIDLFileOld(fileName: string, content?: string): idl.IDLFile {
     const lexicalInfo: IDLTokenInfoMap = new Map()
-    const deserializer = new IDLDeserializer(lexicalInfo, inheritanceMode)
+    const deserializer = new IDLDeserializer(lexicalInfo)
     if (undefined === content) {
         try {
             content = fs.readFileSync(fileName).toString()
@@ -815,11 +831,7 @@ export function toIDLFile(fileName: string, { content, inheritanceMode = 'multip
             node.nameLocation = nameLocation
         }
     })
-    if (mode == "compare") {
-        compareParsingResults(file, newFile)
-        return [newFile, new Map()]
-    }
-    return [file, lexicalInfo]
+    return file
 }
 
 function prepareOffsets(lines: string[]): number[] {

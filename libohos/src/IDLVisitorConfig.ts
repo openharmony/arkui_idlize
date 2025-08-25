@@ -18,7 +18,7 @@ import {
     D,
     identName,
     isDefined,
-    toIDLFile,
+    parseIDLFile,
 } from "@idlizer/core";
 import * as idl from '@idlizer/core/idl'
 import * as ts from "typescript"
@@ -170,10 +170,7 @@ export function expandIDLVisitorConfig(data:IDLVisitorConfigurationSchemaType): 
             return name
         },
         parsePredefinedIDLFiles(pathBase: string) {
-            const typeReplacementsFile = toIDLFile(path.resolve(path.join(pathBase, this.TypeReplacementsFilePath)))
-            if (typeReplacementsFile) {
-                this.TypeReplacementsFile = typeReplacementsFile[0]
-            }
+            this.TypeReplacementsFile = parseIDLFile(path.resolve(path.join(pathBase, this.TypeReplacementsFilePath)))
         },
 
         TypeReplacementsFile: idl.createFile([]),
