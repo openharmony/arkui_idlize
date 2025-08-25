@@ -1,5 +1,4 @@
 test arktscgen:
-  allow_failure: true
   stage: test
   tags:
     - idlize-ci

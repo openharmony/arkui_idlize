@@ -14,6 +14,5 @@
             "@koalaui/runtime": ["../../../external/incremental/runtime/src"]
         }
     },
-    "include": ["src/**/*.ts", "generated/arkts/**/*.ts"],
-    "exclude": ["src/node", "src/panda/main.ts", "generated/ts"]
+    "include": ["src/panda/**/*.ts", "generated/arkts/**/*.ts", "src/app.ts"]
 }

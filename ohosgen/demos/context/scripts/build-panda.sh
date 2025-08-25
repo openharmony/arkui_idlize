@@ -8,7 +8,8 @@ out_dir=build/panda
 
 function build_lib {
     mkdir -p $1/$out_dir/out
-    $arkts_dir/arktsc --arktsconfig $1/arktsconfig.json --ets-module
+    npx fast-arktsc --compiler $arkts_dir/ui2abc --link-name $out_dir/out/$1.abc --config $1/arktsconfig.json --simultaneous
+    ninja -C $1/$out_dir/out
 }
 
 build_lib application
@@ -17,6 +18,6 @@ build_lib launcher
 
 mkdir -p $out_dir/out
 $arkts_dir/arklink --output $out_dir/app.abc -- \
-    application/$out_dir/out/**/*.abc           \
-    bundleManager/$out_dir/out/**/*.abc         \
-    launcher/$out_dir/out/**/*.abc
+    $out_dir/out/application.abc           \
+    $out_dir/out/bundleManager.abc         \
+    $out_dir/out/launcher.abc
