@@ -8,7 +8,7 @@
     "dumpSerialized": false,
     "ignoreMaterialized": [],
     "forceMaterialized": [
-        "BaseContext"
+        "application.BaseContext.BaseContext"
     ],
     "forceCallback": {
         "EditMenuOptions": [],

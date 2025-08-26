@@ -1,0 +1,28 @@
+{
+    "$schema": "./schema.json",
+    "forceMaterialized": [
+        "internal.component.ets.TapGestureInterface",
+        "internal.component.ets.LongPressGestureInterface",
+        "internal.component.ets.PanGestureInterface",
+        "internal.component.ets.SwipeGestureInterface",
+        "internal.component.ets.PinchGestureInterface",
+        "internal.component.ets.RotationGestureInterface",
+        "internal.component.ets.GestureGroupInterface",
+        "internal.component.ets.BaseContext.BaseContext",
+        "internal.component.ets.ClickEvent",
+        "internal.component.ets.AccessibilityHoverEvent",
+        "internal.component.ets.BaseEvent",
+        "internal.component.ets.BaseGestureEvent",
+        "internal.component.ets.FocusAxisEvent",
+        "internal.component.ets.GestureEvent",
+        "internal.component.ets.HoverEvent",
+        "internal.component.ets.KeyEvent",
+        "internal.component.ets.LongPressGestureEvent",
+        "internal.component.ets.MouseEvent",
+        "internal.component.ets.PanGestureEvent",
+        "internal.component.ets.PinchGestureEvent",
+        "internal.component.ets.RotationGestureEvent",
+        "internal.component.ets.SwipeGestureEvent",
+        "internal.component.ets.TapGestureEvent"
+    ]
+}

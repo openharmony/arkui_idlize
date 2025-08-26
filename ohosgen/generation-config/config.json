@@ -9,7 +9,7 @@
     "ApiVersion": 9999,
     "ignoreMaterialized": [],
     "forceMaterialized": [
-        "BaseContext"
+        "application.BaseContext.BaseContext"
     ],
     "forceCallback": [],
     "forceResource": [],

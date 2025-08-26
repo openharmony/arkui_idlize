@@ -26,7 +26,7 @@ export function isMaterialized(declaration: idl.IDLInterface, resolver: Referenc
         return false
     }
 
-    if (generatorConfiguration().forceMaterialized.includes(declaration.name)) {
+    if (generatorConfiguration().forceMaterialized.some(r => r === idl.getFQName(declaration))) {
         return true
     }
 
