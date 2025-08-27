@@ -727,14 +727,14 @@ export function parseIDLFile(fileName: string, content?: string, quiet?: boolean
         // Old parser has a bug, it ignores extended attributes on return types, but some pipelines depend on that behavior
         // So pipelines and old parser must be fixed before permanent switch to a new parser
         const mode = process.env.IDLPARSE
-        if (mode == "compare" || mode == "new") {
-            newFile = parseIDLFileNew(fileName, content, mode == "new")
-            if (mode == "new") {
+        if (mode === "compare" || mode === "old") {
+            newFile = parseIDLFileOld(fileName, content)
+            if (mode === "old") {
                 return newFile
             }
         }
-        const file = parseIDLFileOld(fileName, content)
-        if (mode == "compare") {
+        const file = parseIDLFileNew(fileName, content, mode !== "compare")
+        if (mode === "compare") {
             compareParsingResults(file, newFile)
             return newFile
         }

@@ -134,8 +134,8 @@ declare interface PreviewParams {
     roundScreen?: boolean;
 }
 
-declare class WrappedBuilder {
-    builder: ((arg: Object) => void);
+declare class WrappedBuilder<T> {
+    builder: ((arg: T) => void);
 }
 
 declare namespace window {
