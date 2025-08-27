@@ -685,6 +685,8 @@ typedef struct ViewPeer* Ark_View;
 typedef struct Opt_View Opt_View;
 typedef struct Ark_VP Ark_VP;
 typedef struct Opt_VP Opt_VP;
+typedef struct Ark_Want Ark_Want;
+typedef struct Opt_Want Opt_Want;
 typedef struct Ark_WebAttribute Ark_WebAttribute;
 typedef struct Opt_WebAttribute Opt_WebAttribute;
 typedef struct WebResourceResponsePeer WebResourceResponsePeer;
@@ -5275,6 +5277,14 @@ typedef struct Opt_VP {
     Ark_Tag tag;
     Ark_VP value;
 } Opt_VP;
+typedef struct Ark_Want {
+    /* kind: Interface */
+    Ark_Number field1;
+} Ark_Want;
+typedef struct Opt_Want {
+    Ark_Tag tag;
+    Ark_Want value;
+} Opt_Want;
 typedef struct Ark_WebAttribute {
     /* kind: Interface */
     void *handle;
@@ -8503,7 +8513,7 @@ typedef struct Opt_TapGestureParameters {
 typedef struct Ark_TerminationInfo {
     /* kind: Interface */
     Ark_Number code;
-    Opt_CustomObject want;
+    Opt_Want want;
 } Ark_TerminationInfo;
 typedef struct Opt_TerminationInfo {
     Ark_Tag tag;
@@ -12226,7 +12236,7 @@ typedef struct GENERATED_ArkUIEmbeddedComponentModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
     void (*setEmbeddedComponentOptions)(Ark_NativePointer node,
-                                        const Ark_CustomObject* loader,
+                                        const Ark_Want* loader,
                                         Ark_EmbeddedType type);
     void (*setOnTerminated)(Ark_NativePointer node,
                             const Opt_Callback_TerminationInfo_Void* callback_);

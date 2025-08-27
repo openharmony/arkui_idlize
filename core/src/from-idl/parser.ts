@@ -545,7 +545,7 @@ export class Parser {
                 duplicates.add(name.value)
             }
             names.add(name.value)
-            if (name.value == idl.IDLExtendedAttributes.TypeArguments) {
+            if (name.value == idl.IDLExtendedAttributes.TypeArguments || name.value == idl.IDLExtendedAttributes.TypeParametersDefaults) {
                 // TypeArguments parsing support
                 try {
                     this._inLiteralParsingLevel += 1

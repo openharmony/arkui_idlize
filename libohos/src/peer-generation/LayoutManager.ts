@@ -21,6 +21,7 @@ import { ImportsCollector } from "./ImportsCollector"
 import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 import { tsCopyrightAndWarning } from "./FileGenerators"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
+import { collectDeclItself } from "./ImportsCollectorUtils"
 
 export interface PrinterResult {
     over: LayoutTargetDescription
@@ -88,8 +89,11 @@ export function install(
         let content: string[] = []
 
         results.forEach(it => {
-            it.content.features.forEach(([feature, module]) => {
-                imports.addFeature({ feature, module })
+            it.content.features.forEach(feature => {
+                if (feature.type === "raw")
+                    imports.addFeature(feature)
+                else
+                    collectDeclItself(library, feature.node, imports)
             })
             imports.merge(it.collector)
         })

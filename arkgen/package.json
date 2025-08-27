@@ -30,7 +30,7 @@
   "dependencies": {
     "@koalaui/interop": "1.7.9",
     "@idlizer/core": "2.1.10+devel",
-    "@idlizer/interfaces": "2.1.9+devel",
+    "@idlizer/interfaces": "2.1.10+devel",
     "@idlizer/libohos": "2.1.10+devel",
     "@types/node": "^18.0.0",
     "commander": "^10.0.0",
@@ -87,7 +87,7 @@
     "all:sdk:arkts": "npm run compile && npm run compile -C ../etsgen && npm run etsgen:sdk && npm run gen:sdk:arkts && npm run gen-modules:sdk:arkts && npm run build:sdk:arkts && npm run build-native:sdk:arkts && npm run compile:arkts:libs &&npm run exec:sdk:arkts",
     "ARKTS SUBSET": "#-------------------",
     "TODO migrate to dtsgen": "",
-    "gen:subset:arkts": "node . --use-memo-m3 --arkts-extension .ets --no-implicit-predefined --api-version 99 --dts2peer --use-component-optional --base-dir ./,./tests/arkts-subset/api --input-dir ./tests/arkts-subset/api/@internal/component/ets/,./tests/arkts-subset/api/application,./tests/arkts-subset/api/arkui,./tests/idls --output-dir ./out/arkts-subset/generated --language arkts --options-file generation-config/subset-arkts-config.json",
+    "gen:subset:arkts": "node . --use-memo-m3 --arkts-extension .ets --no-implicit-predefined --api-version 99 --dts2peer --use-component-optional --base-dir ./,./tests/arkts-subset/api --input-dir ./tests/arkts-subset/api/@internal/component/ets/,./tests/arkts-subset/api/application,./tests/arkts-subset/api/arkui,./tests/idls,./tests/arkts-subset/api --output-dir ./out/arkts-subset/generated --language arkts --options-file generation-config/subset-arkts-config.json",
     "build:subset:arkts": "fast-arktsc --config ./arktsconfig-subset.json --link-name ./out/arkts-subset/abc/all.abc --compiler ../external/incremental/tools/panda/arkts/ui2abc --simultaneous && ninja -C ./out/arkts-subset/abc -f build.ninja",
     "build-native:subset:arkts": "cd ./native && meson setup -Dsource_set=arkts-subset build-subset-arkts && meson compile --verbose -C build-subset-arkts && meson install -C build-subset-arkts",
     "exec:subset:arkts": "ACE_LIBRARY_PATH=./native/build-subset-arkts LD_LIBRARY_PATH=./native bash ../external/incremental/tools/panda/arkts/ark --ark-entry-point arkui.framework.main.ETSGLOBAL::main --ark-boot-files ../external/interop/build/interop.abc:../external/incremental/runtime/build/incremental.abc:./out/arkts-subset/abc/all.abc out/arkts-subset/abc/all.abc --driver-log info",

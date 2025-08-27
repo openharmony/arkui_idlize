@@ -30,6 +30,7 @@ import {
     inplaceGenerics,
     PeerLibrary,
     inplaceNullsAsUndefined,
+    inplaceTransformOnSerializeFromConfig,
 } from "@idlizer/core"
 import {
     IDLEntry,
@@ -158,6 +159,7 @@ export function arkgen(argv:string[]) {
                 verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
             })
         }
+        idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
         idlLibrary.files.forEach(inplaceNullsAsUndefined)
         inplaceArkoalaGenerics(idlLibrary)
         fillSyntheticDeclarations(idlLibrary)

@@ -39,6 +39,10 @@ function getTokens(node: webidl2.AbstractBase): WebIDLTokenCollection {
     return (node as any).tokens
 }
 
+const extendedAttributesWithTypesValue: string[] = [
+    idl.IDLExtendedAttributes.TypeArguments,
+    idl.IDLExtendedAttributes.TypeParametersDefaults,
+]
 const syntheticTypes = new Map<string, idl.IDLEntry>()
 
 export function addSyntheticType(name: string, type: idl.IDLEntry) {
@@ -167,7 +171,7 @@ class IDLDeserializer {
                 node.inheritance.forEach(it => {
                     const attributes = it.extAttrs
                     const parentTypeArgs = this.extractTypeArguments(file, attributes ?? [], idl.IDLExtendedAttributes.TypeArguments)
-                    const attrs = this.toExtendedAttributes(attributes ?? []) // ?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
+                    const attrs = this.toExtendedAttributes(file, attributes ?? []) // ?.filter(it => it.name !== idl.IDLExtendedAttributes.TypeArguments)
                     const ref = idl.createReferenceType(it.inheritance, parentTypeArgs, {
                         extendedAttributes: attrs
                     })
@@ -194,7 +198,7 @@ class IDLDeserializer {
             {
                 fileName: file,
                 documentation: this.makeDocs(node),
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+                extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
             }
         )
         this.genericsScopes.pop()
@@ -272,7 +276,7 @@ class IDLDeserializer {
                 idlRefType = ref
             }
             idlRefType.fileName = file
-            idlRefType.extendedAttributes = this.toExtendedAttributes(combinedExtAttrs)
+            idlRefType.extendedAttributes = this.toExtendedAttributes(file, combinedExtAttrs)
             return this.withInfo(type, idlRefType)
         }
         if (isSequenceTypeDescription(type) || isPromiseTypeDescription(type) || isRecordTypeDescription(type)) {
@@ -313,7 +317,7 @@ class IDLDeserializer {
                 isAsync: node.async,
             }, {
             documentation: this.makeDocs(node),
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
         }, generics))
         this.genericsScopes.pop()
         return result
@@ -325,8 +329,6 @@ class IDLDeserializer {
         const generics = this.extractGenerics(node.extAttrs)
         this.enterGenericScope(generics)
         const returnType = this.toIDLType(file, node.idlType, node.extAttrs)
-        if (idl.isReferenceType(returnType))
-            returnType.typeArguments = this.extractTypeArguments(file, node.extAttrs, idl.IDLExtendedAttributes.TypeArguments)
         const result = this.withInfo(node, idl.createMethod(
             node.name ?? "",
             node.arguments.map(it => this.toIDLParameter(file, it ?? new Map())),
@@ -338,7 +340,7 @@ class IDLDeserializer {
                 isFree
             }, {
             documentation: this.makeDocs(node),
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
         }, generics,
         ))
         this.genericsScopes.pop()
@@ -349,7 +351,7 @@ class IDLDeserializer {
             node.arguments.map(it => this.toIDLParameter(file, it)),
             undefined, {
             documentation: this.makeDocs(node),
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
         }))
     }
     toIDLParameter(file: string, node: webidl2.Argument): idl.IDLParameter {
@@ -370,7 +372,7 @@ class IDLDeserializer {
             this.toIDLType(file, node.idlType, undefined),
             {
                 fileName: file,
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+                extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
                 documentation: this.makeDocs(node),
             },
             generics
@@ -390,7 +392,7 @@ class IDLDeserializer {
             this.toIDLType(file, node.idlType, undefined, node.name),
             generics,
             {
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+                extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
                 documentation: this.makeDocs(node),
                 fileName: file,
             }))
@@ -405,7 +407,7 @@ class IDLDeserializer {
             node.name,
             [], {
             documentation: this.makeDocs(node),
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
             fileName: file,
         })
         result.elements = node.members.map(it => this.toIDLEnumMember(file, it, result))
@@ -416,7 +418,7 @@ class IDLDeserializer {
             node.name,
             [],
             {
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+                extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
                 fileName: file
             }
         )
@@ -429,7 +431,7 @@ class IDLDeserializer {
         return this.withInfo(node, idl.createVersion(
             node.value,
             {
-                extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+                extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
                 fileName: file
             }
         ))
@@ -443,7 +445,7 @@ class IDLDeserializer {
             isOptional(node), {
             documentation: this.makeDocs(node),
             fileName: file,
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs)
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs)
         }))
     }
     toIDLEnumMember(file: string, node: webidl2.DictionaryMemberType, parent: idl.IDLEnum): idl.IDLEnumMember {
@@ -462,12 +464,18 @@ class IDLDeserializer {
             parent,
             this.toIDLType(file, node.idlType, undefined) as idl.IDLPrimitiveType,
             initializer, {
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
         }))
     }
-    toExtendedAttributes(extAttrs: webidl2.ExtendedAttribute[]): idl.IDLExtendedAttribute[] | undefined {
+    toExtendedAttributes(file: string, extAttrs: webidl2.ExtendedAttribute[]): idl.IDLExtendedAttribute[] | undefined {
         return extAttrs.map(it => {
-            return this.withInfo(it, { name: it.name, value: this.toExtendedAttributeValue(it) })
+            return this.withInfo(it, {
+                name: it.name,
+                value: this.toExtendedAttributeValue(it),
+                typesValue: extendedAttributesWithTypesValue.includes(it.name) 
+                    ? this.extractTypeArguments(file, extAttrs, it.name as idl.IDLExtendedAttributes)
+                    : undefined
+            })
         })
     }
     toExtendedAttributeValue(attr: webidl2.ExtendedAttribute): stringOrNone {
@@ -484,7 +492,7 @@ class IDLDeserializer {
             [], {
             fileName: file,
             documentation: this.makeDocs(node),
-            extendedAttributes: this.toExtendedAttributes(node.extAttrs),
+            extendedAttributes: this.toExtendedAttributes(file, node.extAttrs),
         })
         result.elements = node.values.map((it: { value: string }) => idl.createEnumMember(
             it.value,

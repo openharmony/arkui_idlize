@@ -1,7 +1,6 @@
 import * as idl from "../idl"
 import { generateSyntheticUnionName } from "../peer-generation/idl/common"
 
-export const NULL_REFERENCE = "idlize.stdlib.Null"
 export function inplaceNullsAsUndefined(
     node: idl.IDLNode,
 ): void {
@@ -31,5 +30,5 @@ export function inplaceNullsAsUndefined(
 }
 
 function isNullReference(node: idl.IDLNode): boolean {
-    return idl.isReferenceType(node) && node.name === NULL_REFERENCE
+    return idl.isReferenceType(node) && node.name === idl.IDLNullTypeName
 }

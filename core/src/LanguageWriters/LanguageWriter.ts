@@ -305,8 +305,11 @@ export abstract class LambdaExpression implements LanguageExpression {
         if (this.body) {
             writer.writeStatement(new BlockStatement(this.body, isScoped, false))
         }
-        writer.features.forEach(([feature, module]) => {
-            this.originalWriter.addFeature(feature, module)
+        writer.features.forEach((feature) => {
+            if (feature.type === "raw")
+                this.originalWriter.addFeature(feature.feature, feature.module)
+            else
+                this.originalWriter.addFeature(feature.node)
         })
 
         return writer.getOutput()
@@ -489,9 +492,14 @@ export abstract class LanguageWriter {
 
     maybeSemicolon() { return ";" }
 
-    features: [string, string][] = []
-    addFeature(feature: string, module:string) {
-        this.features.push([feature, module])
+    features: ({ type: "raw", feature: string, module: string} | { type: "idl", node: idl.IDLEntry | idl.IDLReferenceType })[] = []
+    addFeature(node: idl.IDLEntry | idl.IDLReferenceType): void
+    addFeature(feature: string, module:string): void
+    addFeature(featureOrNode: string | idl.IDLEntry | idl.IDLReferenceType, module?: string): void {
+        if (typeof featureOrNode === "string")
+            this.features.push({type: "raw", feature: featureOrNode, module: module! })
+        else
+            this.features.push({ type: "idl", node: featureOrNode })
     }
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void

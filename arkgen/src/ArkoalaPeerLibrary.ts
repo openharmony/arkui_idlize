@@ -72,7 +72,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
             if (isImportAttr(declaration))
                 return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
 
-            if (idl.isInterface(declaration)) {
+            if (idl.isInterface(declaration) && !idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
                 if (isMaterialized(declaration, this)) {
                     return new ArkoalaMaterializedClassConvertor(this, param, declaration)
                 }

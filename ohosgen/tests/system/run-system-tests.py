@@ -22,7 +22,7 @@ success_count = 0
 failure_list = []
 ignored_list = []
 
-prepare_ret_code = os.system("npm run prepare")
+prepare_ret_code = os.system("npm run compile -C ../..")
 if prepare_ret_code != 0:
     raise RuntimeError("Failure during preparation.")
 

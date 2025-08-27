@@ -28,6 +28,7 @@ import {
     NativeModuleType,
     inplaceGenerics,
     inplaceNullsAsUndefined,
+    inplaceTransformOnSerializeFromConfig,
 } from "@idlizer/core"
 import {
     linearizeNamespaceMembers,
@@ -42,6 +43,7 @@ import { loadPeerConfiguration,
     PeerGeneratorConfigurationSchema,
     NativeModule,
 } from "@idlizer/libohos"
+import { readLibrary } from "@idlizer/interfaces"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
 
@@ -71,6 +73,7 @@ const command = createCommand()
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
+    .option('--implicit-predefined', "Removes predefined from the generator input", false)
 const options = command
     .parse()
     .opts()
@@ -104,6 +107,7 @@ if (options.idl2peer) {
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
         .concat(skoalaPredefinedFiles())
+        .concat(options.implicitPredefined ? readLibrary('arkuiExtra') : [])
     const idlInputFiles = allInputFiles.filter(it => it.endsWith('.idl'))
     idlInputFiles.forEach(idlFilename => {
         idlFilename = path.resolve(idlFilename)
@@ -118,6 +122,7 @@ if (options.idl2peer) {
     }
 
     initLibraryName(idlLibrary)
+    idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
     idlLibrary.files.forEach(inplaceNullsAsUndefined)
     idlLibrary.files.forEach(file => inplaceGenerics(file, idlLibrary))
     fillSyntheticDeclarations(idlLibrary)

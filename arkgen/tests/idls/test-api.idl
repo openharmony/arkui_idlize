@@ -17,3 +17,13 @@ interface RenderServiceNode {
 interface ScreenshotService {
   static boolean requestScreenshot(String target, String name);
 };
+
+[TypeParameters="T"]
+interface BusinessErrorInterface {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+    attribute i32 code;
+    attribute T data;
+};

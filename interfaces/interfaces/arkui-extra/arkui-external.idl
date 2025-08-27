@@ -103,3 +103,13 @@ interface IndicatorStyle {
     [Optional, Deprecated] attribute Length size;
     [Optional, Deprecated] attribute boolean mask;
 };
+
+[TypeParameters="T"]
+interface BusinessErrorInterface {
+    attribute String name;
+    attribute String message;
+    [Optional]
+    attribute String stack;
+    attribute i32 code;
+    attribute T data;
+};

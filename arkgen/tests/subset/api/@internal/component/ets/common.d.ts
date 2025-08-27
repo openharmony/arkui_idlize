@@ -13,7 +13,6 @@
  * limitations under the License.
  */
 
-declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 
 declare type AnimationRange<T> = [from: T, to: T];
 

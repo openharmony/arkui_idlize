@@ -55,6 +55,12 @@
         "arkui.component.gesture.SwipeGestureEvent",
         "arkui.component.gesture.TapGestureEvent"
     ],
+    "transformOnSerialize": [
+        {
+            "from": "ohos.base.BusinessError",
+            "to": "arkui.component.idlize.BusinessErrorInterface"
+        }
+    ],
     "forceCallback": {
         "EditMenuOptions": [],
         "XComponentController": [
@@ -253,9 +259,7 @@
             "RectShape",
             "EllipseShape",
             "CircleShape",
-            "BusinessError",
             "Error",
-            "ErrorCallback",
             "getRectangleById",
             "edgeColors",
             "edgeWidths",

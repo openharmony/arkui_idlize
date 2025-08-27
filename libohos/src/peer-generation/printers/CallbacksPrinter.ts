@@ -212,6 +212,7 @@ class DeserializeCallbacksVisitor {
                     writer.makeMethodCall(`ResourceHolder`, `get`, [writer.makeString(resourceIdName)]),
                     callback), true))
             } else {
+                writer.addFeature(callback)
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder.instance()`, `get`, [writer.makeString(resourceIdName)]),
                     idl.createReferenceType(callback)), true))

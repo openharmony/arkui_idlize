@@ -144,7 +144,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
     realizationWriter.writeClass(realizationHolder.name, w => {
         w.makeStaticBlock(() => {
             peerMethodWriter.getOutput().forEach(it => w.print(it))
-            peerMethodWriter.features.forEach(item => realizationWriter.addFeature(item[0], item[1]))
+            peerMethodWriter.features.forEach(item => item.type === "idl"
+                ? realizationWriter.addFeature(item.node)
+                : realizationWriter.addFeature(item.feature, item.module))
         })
     })
     fillPeerImports(peerImports, library)

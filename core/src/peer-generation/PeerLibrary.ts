@@ -25,6 +25,7 @@ import {
     NumberConvertor, NumericConvertor, CustomTypeConvertor, UnionConvertor, MaterializedClassConvertor,
     ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
     ObjectConvertor,
+    TransformOnSerializeConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -44,6 +45,7 @@ import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 import { NativeModuleType } from '../LanguageWriters/common'
+import { toIdlType } from '../from-idl/deserialize'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -432,6 +434,10 @@ export class PeerLibrary implements LibraryInterface {
                 return new CustomTypeConvertor(param, declaration.name, false, declaration.name)
             }
         }
+        if (idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
+            const targetRef = idl.createReferenceType(idl.getExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)!)
+            return new TransformOnSerializeConvertor(param, this, declaration, targetRef)
+        }
         if (idl.isEnum(declaration)) {
             return new EnumConvertor(param, declaration)
         }
@@ -523,6 +529,10 @@ export class PeerLibrary implements LibraryInterface {
             if (decl && idl.isTypedef(decl) && isCyclicTypeDef(decl)) {
                 warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
                 return ArkCustomObject
+            }
+            if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
+                const type = toIdlType("", idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)!)
+                return this.toDeclaration(type)
             }
             return !decl ? ArkCustomObject  // assume some builtin type
                 : idl.isTypedef(decl) ? this.toDeclaration(decl.type)

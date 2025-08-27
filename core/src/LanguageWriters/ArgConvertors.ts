@@ -33,7 +33,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { capitalize, getExtractor, hashCodeFromString, throwException, warn } from "../util";
+import { capitalize, getExtractor, getTransformer, hashCodeFromString, throwException, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
@@ -1541,6 +1541,63 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
     }
     isPointerType(): boolean {
         return true
+    }
+}
+
+export class TransformOnSerializeConvertor extends BaseArgConvertor {
+    private targetConvertor: ArgConvertor
+    constructor(param: string, protected library: PeerLibrary, protected managedDeclaration: idl.IDLEntry, protected target: idl.IDLType) {
+        const targetConvertor = library.typeConvertor(param, target)
+        super(target, targetConvertor.runtimeTypes, false, targetConvertor.useArray, param)
+        this.targetConvertor = targetConvertor
+    }
+    isPointerType(): boolean {
+        return this.targetConvertor.isPointerType()
+    }
+    nativeType(): idl.IDLType {
+        return this.targetConvertor.nativeType()
+    }
+    convertorArg(param: string, writer: LanguageWriter): string {
+        throw new Error("Method not implemented.");
+    }
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            return this.targetConvertor.convertorSerialize(param, value, writer)
+        }
+        if (idl.isReferenceType(this.target)) {
+            writer.addFeature(this.target)
+        }
+        const transformerInfo = getTransformer(this.library, this.managedDeclaration, this.target)
+        const transformCallExpression = transformerInfo.receiver
+            ? writer.makeMethodCall(transformerInfo.receiver, transformerInfo.method, [writer.makeString(value)])
+            : writer.makeFunctionCall(transformerInfo.method, [writer.makeString(value)])
+        const statements = [
+            writer.makeAssign(`${value}Transformed`, this.target, transformCallExpression, true),
+            this.targetConvertor.convertorSerialize(param, `${value}Transformed`, writer)
+        ]
+        return writer.makeBlock(statements, false)
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            return this.targetConvertor.convertorDeserialize(bufferName, deserializerName, assigneer, writer)
+        }
+        if (idl.isReferenceType(this.target)) {
+            writer.addFeature(this.target)
+        }
+        const targetDeserialize = this.targetConvertor.convertorDeserialize(
+            `${bufferName}D`,
+            deserializerName,
+            (expr) => writer.makeAssign(`${bufferName}Deserialized`, this.target, expr, true),
+            writer,
+        )
+        const transformerInfo = getTransformer(this.library, this.target, this.managedDeclaration)
+        const transformCallExpression = transformerInfo.receiver
+            ? writer.makeMethodCall(transformerInfo.receiver, transformerInfo.method, [writer.makeString(`${bufferName}Deserialized`)])
+            : writer.makeFunctionCall(transformerInfo.method, [writer.makeString(`${bufferName}Deserialized`)])
+        return writer.makeBlock([
+            targetDeserialize,
+            assigneer(transformCallExpression)
+        ], false)
     }
 }
 

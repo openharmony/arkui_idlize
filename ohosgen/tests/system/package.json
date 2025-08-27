@@ -14,8 +14,6 @@
         "_meson:install": "meson install -C ./${TEST_CASE}/build/native/${TARGET_VM}",
         "_meson": "npm run _meson:setup && npm run _meson:compile && npm run _meson:install",
 
-        "prepare": "rm -rf ./__temp__ && npm run compile -C ../..",
-
         "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
         "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
         "compile:interop:native:arkts": "TARGET_VM=panda npm run compile:interop:native",

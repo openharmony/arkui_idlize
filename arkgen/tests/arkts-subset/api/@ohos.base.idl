@@ -2,10 +2,6 @@ package ohos.base;
 
 [TypeParameters="T"]
 callback Callback = void (T data);
-[TypeParameters="T", TypeParametersDefaults="BusinessError"]
-callback ErrorCallback = void (T err);
-[TypeParameters="T,E", TypeParametersDefaults="void"]
-callback AsyncCallback = void (([TypeArguments="E"] BusinessError or idlize.stdlib.Null) err, (T or undefined) data);
 [TypeParameters="T", TypeParametersDefaults="void"]
 interface BusinessError {
     attribute String name;

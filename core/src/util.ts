@@ -22,6 +22,7 @@ import { generatorConfiguration } from './config'
 import { qualifiedName } from './peer-generation/idl/common'
 import { isInExternalModule } from './peer-generation/modules'
 import { getInternalClassName, getInternalClassQualifiedName } from './peer-generation/Materialized'
+import { LibraryInterface } from './LibraryInterface'
 
 export interface NameWithType {
     name?: ts.DeclarationName
@@ -764,4 +765,12 @@ export function getExtractor(target: idl.IDLInterface, lang: Language, toPtr: bo
     const extractorClass = getExtractorClass(target, toPtr)
     const method = toPtr ? `to${extractorClass}Ptr` : `from${extractorClass}Ptr`
     return { receiver, method }
+}
+
+export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
+    const convertor = library.createTypeNameConvertor(Language.CPP)
+    return {
+        receiver: "extractors",
+        method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
+    }
 }
