@@ -139,8 +139,6 @@ function inplaceReferenceGenerics(
     if (!ref.typeArguments?.length || hasTypeParameterTypeChild(ref)) {
         return
     }
-    if (ref.name.endsWith("ComponentContent"))
-        console.log("AAA")
     ref.typeArguments.forEach(it => inplaceFQN(it, resolver))
     const resolved = resolver.resolveTypeReference(ref)
     if (!resolved) {
