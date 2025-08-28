@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { capitalize, DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
 
@@ -51,8 +51,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         printer.pushIndent()
+        // const filteredMethods = peer!.methods
+        //     .filter(it => !it.isCallSignature)
         const filteredMethods = peer!.methods
-            .filter(it => !it.isCallSignature)
         const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
         const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
@@ -81,6 +82,12 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
+        // {
+        //     const callableMethods = peer.methods.filter(it => it.isCallSignature)[0]
+        //     const methodName = `set${capitalize(peer.componentName)}Options`
+        //     printer.writeMethod
+        // }
+        
         printer.popIndent()
         printer.print('}')
         const stylePrinter = this.peerLibrary.createLanguageWriter()
@@ -111,7 +118,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
         for (const method of peer.methods) {
-            if (method.isCallSignature) continue
+            // if (method.isCallSignature) continue
             if (method.uniqueOverloadName != method.method.name) {
                 if (!overloads.has(method.method.name))
                     overloads.set(method.method.name, [])

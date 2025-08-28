@@ -1,0 +1,16 @@
+package arkui.component.idlize;
+
+callback RouterFinishCallback = void (pointer value);
+
+[Entity=Class]
+interface RouterExtender {
+  static pointer push(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
+  static pointer replace(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback enterFinishCallback);
+  static void moveCommonUnderPageNode(pointer commonNode, pointer pageNode);
+  static void back();
+  static void backWithOptions(String url, optional Object params);
+  static pointer runPage(pointer jsView, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
+  static void clear();
+  static void showAlertBeforeBackPage(String message);
+  static void hideAlertBeforeBackPage();
+};

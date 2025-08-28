@@ -73,7 +73,6 @@ export function prepareSdk({
             'node', '.',
             ['--input-dir', PREPARED_SDK_ARKTS_INTERNAL],
             ['--target-dir', PREPARED_SDK_ARKTS_ARKUI_COMPONENT],
-            ['--use-memo-m3']
         ])
     })
 
