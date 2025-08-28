@@ -1353,9 +1353,6 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         const type = variable.type ? this.convertType(variable.type) : ""
         return `${this.writer.escapeKeyword(idl.escapeIDLKeyword(variable.name!))}: ${isOptional ? "?" : ""}${type}`
     }
-    protected printTypeParameters(typeParameters: string[] | undefined): string {
-        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
-    }
     protected convertType(idlType: idl.IDLType): string {
         return this.writer.getNodeName(idlType)
     }
@@ -1436,6 +1433,27 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
         })
     }
 
+    extractTypeParameters(type: idl.IDLInterface): string[] | undefined {
+        if (isComponentDeclaration(this.peerLibrary, type))
+            return undefined
+
+        return type.typeParameters?.map(it => {
+            const types = it.split("extends").map(it => it.trim())
+            const typeParameter = types[0]
+            const extendable = types[1]
+            if (extendable != undefined) {
+                const type = this.peerLibrary.resolveTypeReference(idl.createReferenceType(extendable))
+                if (type !== undefined && idl.isEnum(type)) {
+                    return typeParameter
+                }
+            }
+            return it
+        })
+    }
+    printTypeParameters(typeParameters: string[] | undefined): string {
+        return typeParameters?.length ? `<${typeParameters.join(",").replace("[]", "")}>` : ""
+    }
+
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
         const superNames = type.inheritance
         let parentProperties: idl.IDLProperty[] = []
@@ -1447,19 +1465,30 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
 
         let FQInterfaceName = removePoints(idl.getNamespaceName(type)).concat(type.name)
 
-        // No need in type params
-        // let typeParams = type.typeParameters && type.typeParameters?.length != 0 ? `<${type.typeParameters.map(it => it.split('extends')[0].split('=')[0]).join(', ')}>` : ''
+        const typeParameters = this.extractTypeParameters(type)
+        let typeParams = this.printTypeParameters(typeParameters)
 
-        writer.writeInterface(`${FQInterfaceName}${isMaterialized(type, this.peerLibrary) ? '' : 'Interfaces'}`, (writer) => {
+        let inheritancePart: string[] | undefined
+        if (superNames && superNames.length > 0) {
+            inheritancePart = []
+            for (let iface of superNames) {
+                let resolvedIface = this.peerLibrary.resolveTypeReference(iface)
+                if (resolvedIface!! && idl.isInterface(resolvedIface)) {
+                    inheritancePart.push(`${removePoints(idl.getNamespaceName(resolvedIface))}${resolvedIface.name}Interfaces${this.printTypeParameters(this.extractTypeParameters(resolvedIface))}`)
+                }
+            }
+        }
+
+        writer.writeInterface(`${FQInterfaceName}${isMaterialized(type, this.peerLibrary) ? '' : 'Interfaces'}${typeParams}`, (writer) => {
             for (const p of ownProperties) {
                 const modifiers: FieldModifier[] = []
                 if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
                 if (p.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
-        }, superNames && superNames.length > 0 ? superNames.map(it => `${removePoints(idl.getNamespaceName(it as unknown as idl.IDLEntry))}${it.name}Interfaces`) : undefined) // make proper inheritance
+        }, inheritancePart)
 
-        writer.writeClass(`${FQInterfaceName}`, () => {
+        writer.writeClass(`${FQInterfaceName}${typeParams}`, () => {
             ownProperties.concat(parentProperties).forEach(it => {
                 let modifiers: FieldModifier[] = []
                 if (it.isReadonly) modifiers.push(FieldModifier.READONLY)
@@ -1474,7 +1503,7 @@ class CJDeclarationConvertor implements DeclarationConvertor<void> {
                             writer.print(`this.${i.name}_container = ${writer.escapeKeyword(i.name)}`)
                         }
                     })
-        }, undefined, [`${FQInterfaceName}Interfaces`])
+        }, undefined, [`${FQInterfaceName}Interfaces${typeParams}`])
     }
 }
 

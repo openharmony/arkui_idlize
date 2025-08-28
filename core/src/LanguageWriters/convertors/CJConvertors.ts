@@ -157,7 +157,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
     private callbackType(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${this.convert(it.type!)}`)
+            `${CJKeywords.has(it.name) ? it.name.concat("_") : it.name}: ${it.isOptional ? "?" : ""}${this.convert(it.type!)}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 

@@ -61,7 +61,7 @@ build external:
     - npm run compile --prefix external/incremental/compat
     - npm run compile --prefix external/incremental/runtime
     - npm run compile --prefix external/ui2abc/fast-arktsc
-    - npm run compile --prefix external/ui2abc/memo-plugin
+    - npm run compile --prefix external/ui2abc/memo-plugin-ng
     - npm run build --prefix external/interop
     - npm run build --prefix external/incremental
     artifacts:

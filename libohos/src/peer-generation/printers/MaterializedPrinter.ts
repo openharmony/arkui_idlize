@@ -147,7 +147,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const collapsedCtor = collapseSameNamedMethods(ctors.map(it => it.method), undefined, undefined)
         this.printCollapsedCtor(clazz, collapsedCtor, ctorPostfix, superClassName)
         this.overloadsPrinter.setPostfix(ctorPostfix)
-        this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), ctors)
+        this.overloadsPrinter.printGroupedComponentOverloads(this.mangle(clazz.getImplementationName()), ctors)
         this.overloadsPrinter.setPostfix()
         for (const ctor of clazz.ctors) {
             this.printMethod(ctor, `${ctorPostfix}_serialize`, idl.IDLPointerType)
@@ -200,7 +200,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const peerPtrExpr = writer.makeTernary(
             writer.makeDefinedCheck(peerPtr, undefined),
             writer.makeString(peerPtr),
-            writer.makeMethodCall(implementationClassName, `${ctor.name}${ctorPostfix}`, ctorArgs)
+            writer.makeMethodCall(this.mangle(implementationClassName), `${ctor.name}${ctorPostfix}`, ctorArgs)
         )
         const delegationCall = this.getSuperDelegationCall(writer, clazz, peerPtrExpr, superClassName)
 
@@ -348,7 +348,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const isReaonly = mField.modifiers.includes(FieldModifier.READONLY)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (isReaonly && this.printer.language != Language.TS) {
+            if (isReaonly && (this.printer.language != Language.TS && this.printer.language != Language.CJ)) {
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
@@ -456,7 +456,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     }
                     const typeArgs = it.typeArguments?.length ? `<${it.typeArguments.map(arg => printer.getNodeName(arg))}>` : ""
                     const nsName = printer.language === Language.CJ ? decl.name : idl.getQualifiedName(decl, 'namespace.name')
-                    return `${this.namespacePrefix}${nsName}${printer.language == Language.CJ ? 'Interface' : ''}${typeArgs}`
+                    return `${this.namespacePrefix}${nsName}${printer.language == Language.CJ ? 'Interfaces' : ''}${typeArgs}`
                 }))
         }
 
@@ -730,6 +730,8 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     override get namespacePrefix(): string {
         return idl.getNamespaceName(this.clazz.decl)
     }
+    // we cant use open methods inside class constructor
+    override printReadonlyFieldsInitialization(clazz: MaterializedClass) { }
 
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)

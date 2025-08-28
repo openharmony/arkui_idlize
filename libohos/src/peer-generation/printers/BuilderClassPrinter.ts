@@ -519,8 +519,8 @@ function processTSBuilderClass(clazz: BuilderClass): BuilderClass {
 }
 
 function processCJBuilderClass(clazz: BuilderClass): BuilderClass {
-    const methods = clazz.methods
-    let constructors = clazz.constructors
+    const methods = collapse(clazz.methods)
+    let constructors = collapse(clazz.constructors)
 
     if (!constructors || constructors.length == 0) {
         // make a constructor from a static method parameters

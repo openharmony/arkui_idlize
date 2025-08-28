@@ -168,7 +168,6 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
 export function allowsOverloads(language: Language): boolean {
     switch (language) {
         case Language.TS:
-        case Language.CJ:
             return false
         default:
             return true
@@ -350,6 +349,8 @@ export class OverloadsPrinter {
                 const argName = collapsedMethod.signature.argName(argIndex)
                 this.printer.language == Language.JAVA ?
                     this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
+                this.printer.language == Language.CJ ? 
+                    undefined :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                 return new UnionRuntimeTypeChecker(
                     methods.map(m => m.argConvertors(this.library)[argIndex] ?? OverloadsPrinter.undefinedConvertor))

@@ -354,20 +354,6 @@ export class CJLanguageWriter extends LanguageWriter {
         this.writeDeclaration(name, signature, modifiers)
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
-        let i = 1
-        while (signature.isArgOptional(signature.args.length - i)) {
-            let smallerSignature = signature.args.slice(0, -i)
-            this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}init(${smallerSignature.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(it)}`).join(", ")}) {`)
-            this.pushIndent()
-            let lessArgs = signature.args?.slice(0, -i).map((_, i) => this.escapeKeyword(signature.argName(i))).join(', ')
-            for (let idx = 0; idx < i; idx++) {
-                lessArgs = lessArgs.concat(`${i == signature.args.length && idx == 0 ? '' : ', '}Option.None`)
-            }
-            this.print(`this(${lessArgs})`)
-            this.popIndent()
-            this.printer.print(`}`)
-            i += 1
-        }
         this.printer.print(`${modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(' ') + ' ' : ''}init(${signature.args.map((it, index) => `${this.escapeKeyword(signature.argName(index))}: ${this.getNodeName(idl.maybeOptional(it, signature.isArgOptional(index)))}`).join(", ")}) {`)
         this.pushIndent()
         if (delegationCall) {
@@ -604,6 +590,16 @@ export class CJLanguageWriter extends LanguageWriter {
     }
     pushNamespace(namespace: string, options: NamespaceOptions) {}
     popNamespace(options: { ident: boolean }) {}
+    instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return this.makeString(`${value} is ${this.getNodeName(type)}`)
+    }
+    discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        if (runtimeTypes.includes(RuntimeType.UNDEFINED)) {
+            return `${value}.isNone()`
+        } else {
+            return `${value}.getSelector() == ${index}` 
+        }
+    }
     override castToInt(value: string, bitness: 8|32): string {
         return `Int${bitness}(${this.escapeKeyword(value)})`
     }

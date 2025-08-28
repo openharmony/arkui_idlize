@@ -698,7 +698,7 @@ export class InterfaceConvertor extends BaseArgConvertor {
         const accessor = getSerializerName(this.declaration)
         writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         return writer.makeStatement(
-            writer.makeStaticMethodCall(accessor, 'write', [writer.makeString(`${param}Serializer`), writer.makeString(value)])
+            writer.makeStaticMethodCall(accessor, 'write', [writer.makeString(`${param}Serializer`), writer.makeString(writer.escapeKeyword(value))])
         )
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
