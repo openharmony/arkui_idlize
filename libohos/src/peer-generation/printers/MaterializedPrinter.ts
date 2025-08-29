@@ -586,6 +586,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'RuntimeType',
             'SerializerBase',
             'DeserializerBase',
+            'toPeerPtr',
             'KPointer',
         ], '@koalaui/interop')
         this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
@@ -597,11 +598,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         }
         if (this.library.language === Language.TS) {
             this.collector.addFeature('isInstanceOf', '@koalaui/interop')
-        }
-        if (this.library.language === Language.KOTLIN) {
-            this.collector.addFeature('peerPtr', '@koalaui/interop')
-        } else {
-            this.collector.addFeature('toPeerPtr', '@koalaui/interop')
         }
 
         const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)

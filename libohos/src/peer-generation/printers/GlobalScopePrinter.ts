@@ -180,6 +180,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
         'DeserializerBase',
         'MaterializedBase',
         'KPointer',
+        'toPeerPtr',
     ], '@koalaui/interop')
     collector.addFeature('unsafeCast', '@koalaui/common')
     collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
@@ -189,11 +190,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     }
     if (library.language === idl.Language.TS) {
         collector.addFeature('isInstanceOf', '@koalaui/interop')
-    }
-    if (library.language === idl.Language.KOTLIN) {
-        collector.addFeature('peerPtr', '@koalaui/interop')
-    } else {
-        collector.addFeature('toPeerPtr', '@koalaui/interop')
     }
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
     if (library.name === 'arkoala') {

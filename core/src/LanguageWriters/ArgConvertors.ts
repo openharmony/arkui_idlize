@@ -1196,8 +1196,6 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         switch (writer.language) {
             case Language.CPP:
                 return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
-            case Language.KOTLIN:
-                return `MaterializedBase.peerPtr(${writer.escapeKeyword(param)})`
             case Language.JAVA:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${writer.escapeKeyword(param)})`

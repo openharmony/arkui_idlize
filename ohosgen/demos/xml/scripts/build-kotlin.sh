@@ -5,8 +5,6 @@ shopt -s globstar
 external_dir=../../../external
 out_dir=build/kotlin
 
-npm run build:framework -C ../../../external/arkoala-kotlin/framework
-
 cinterop -def ./generated/native/cinterop.def \
     -pkg idlize \
     -compiler-option -Igenerated/native \
@@ -14,13 +12,9 @@ cinterop -def ./generated/native/cinterop.def \
     -o $out_dir/idlize_cinterop
 
 konanc ./generated/kotlin/*.kt \
-    $external_dir/arkoala-kotlin/framework/kotlin/src/VMLoaderWrapper.kt \
     -l $out_dir/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \
-    -l $external_dir/arkoala-kotlin/framework/build/arkoala.klib \
     -linker-options "-L$out_dir -lOHOS_XMLNativeModule" \
     -linker-options "-L$external_dir/interop/build -lInteropNativeModule" \
-    -p dynamic -o ./build/kotlin/kotlin_koala
-
-npm run build:loader -C ../../../external/arkoala-kotlin/framework
+    -p program -entry main -o ./build/kotlin/xml-demo
