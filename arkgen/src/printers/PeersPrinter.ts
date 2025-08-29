@@ -55,6 +55,7 @@ import {
     writePeerMethod
 } from "@idlizer/libohos";
 import { HandwrittenModule } from '../ArkoalaLayout';
+import { write } from 'fs';
 
 export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
@@ -148,7 +149,7 @@ class PeerFileVisitor {
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => { },
             { delegationArgs: ['peerPtr', 'id', 'name', 'flags'].map(it => printer.makeString(it)), delegationName: peer.parentComponentName },
-            [MethodModifier.PROTECTED])
+            [MethodModifier.PUBLIC])
     }
 
     protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
@@ -199,6 +200,7 @@ class PeerFileVisitor {
 
     protected printPeer(peer: PeerClass, printer: LanguageWriter) {
         printer.writeClass(componentToPeerClass(peer.componentName), (writer) => {
+            writer.print(`attributeSet?: ${componentToPeerClass(peer.componentName)};`)
             this.printPeerConstructor(peer, writer)
             this.printCreateMethod(peer, writer);
             (peer.methods as any[])

@@ -119,6 +119,8 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
+        imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
+        imports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
@@ -197,6 +199,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
             // todo stub until we can process AttributeModifier
             writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
+                writer.print(`hook${component.name}AttributeModifier(this, value);`)
                 writer.writeStatement(writer.makeReturn(writer.makeThis()))
             })
 
