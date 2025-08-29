@@ -676,6 +676,10 @@
             "gestureModifier": {
                 "hookName": "hookGestureModifier",
                 "replaceImplementation": true
+            },
+            "customProperty": {
+                "hookName": "hookCustomPropertyImpl",
+                "replaceImplementation": true
             }
         },
         "CheckboxAttribute": {

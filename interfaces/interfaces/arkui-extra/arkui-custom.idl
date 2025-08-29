@@ -15,6 +15,12 @@ interface LazyForEachOps {
 };
 
 [Entity=Class]
+interface LengthMetricsCustom {
+    attribute number unit;
+    attribute number value;
+};
+
+[Entity=Class]
 interface SystemOps {
     static pointer StartFrame();
     static void EndFrame(pointer root);
@@ -24,6 +30,7 @@ interface SystemOps {
     static void resourceManagerReset();
     static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
+    static LengthMetricsCustom resoureToLengthMetrics(Resource res);
 };
 
 [Entity=Class]
@@ -185,3 +192,15 @@ interface BuilderNodeOps {
     boolean postTouchEvent(TouchEvent event);
     pointer setRootFrameNodeInBuilderNode(pointer node);
 };
+
+[Entity=Class]
+interface NodeContainerOps {
+    static void addNodeContainerRootNode(pointer self, pointer child);
+    static void setAboutToAppear(pointer self, Callback_Void value);
+    static void setAboutToDisappear(pointer self, Callback_Void value);
+    static void setAboutToResize(pointer self, Callback_Size_Void value);
+    static void setOnAttach(pointer self, Callback_Void value);
+    static void setOnDetach(pointer self, Callback_Void value);
+    static void setOnTouchEvent(pointer self, optional Callback_TouchEvent_Void value);
+};
+callback Callback_Size_Void = void (Size size);
