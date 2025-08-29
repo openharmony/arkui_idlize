@@ -133,7 +133,11 @@ class PeerFileVisitor {
         if (this.library.language == Language.ARKTS) {
             imports.addFeature("TypeChecker", "#components")
         }
-        imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
+        if (this.library.language == Language.KOTLIN) {
+            imports.addFeatures(["MaterializedBase", "peerPtr"], "@koalaui/interop")
+        } else {
+            imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
+        }
         // collectMaterializedImports(imports, this.library)
     }
 

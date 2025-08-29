@@ -13,7 +13,7 @@ test arktscgen:
     - npm run compile --prefix external/incremental/harness
     - npm run build --prefix external/incremental/harness
     - npm run test --prefix external/ui2abc/libarkts
-    - npm run test:all --prefix external/ui2abc/memo-plugin
+    - npm run test:all --prefix external/ui2abc/memo-plugin-ng
 
 pack idlize-arktscgen:
   extends:

@@ -114,8 +114,10 @@ class SerializerPrinter {
             case Language.CPP:
                 peerExpr = valueExpr
                 break
-            case Language.JAVA:
             case Language.KOTLIN:
+                peerExpr = writer.makeMethodCall("MaterializedBase", "peerPtr", [valueExpr])
+                break
+            case Language.JAVA:
             case Language.CJ:
                 peerExpr = writer.makeMethodCall("MaterializedBase", "toPeerPtr", [valueExpr])
                 break

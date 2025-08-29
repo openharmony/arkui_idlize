@@ -70,8 +70,8 @@ build external:
         - external/ui2abc/libarkts/build
         - external/ui2abc/annotate/lib
         - external/ui2abc/fast-arktsc/lib
-        - external/ui2abc/memo-plugin/lib
-        - external/ui2abc/ui-plugins/lib
+        - external/ui2abc/memo-plugin-ng/lib
+        - external/ui2abc/ui-plugins-ng/lib
         - external/incremental/common/build/lib
         - external/incremental/compat/build
         - external/incremental/runtime/build/lib
@@ -81,8 +81,8 @@ build external:
         - external/interop/build/lib
         - external/interop/build/interop.abc
         # need these symlinks for require in es2panda.js to work
-        - external/ui2abc/node_modules/@koalaui/memo-plugin
-        - external/ui2abc/node_modules/@koalaui/ui-plugins
+        - external/ui2abc/node_modules/@koalaui/memo-plugin-ng
+        - external/ui2abc/node_modules/@koalaui/ui-plugins-ng
         expire_in: 1 day
 
 download sdk:
