@@ -62,7 +62,7 @@ export class Importer {
             return it
         }
         this.seen.add(it)
-        this.import(it, "../../reexport-for-generated")
+        this.import(it, "../../src/reexport-for-generated")
         return it
     }
 

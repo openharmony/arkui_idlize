@@ -29,6 +29,6 @@ import {
     nodeByType,
     ArktsObject,
     unpackString
-} from "../../reexport-for-generated"
+} from "../../src/reexport-for-generated"
 
 %GENERATED_PART%

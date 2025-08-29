@@ -31,6 +31,6 @@ import {
     isSameNativeObject,
     unpackString,
     updateNodeByNode
-} from "../reexport-for-generated"
+} from "../src/reexport-for-generated"
 
 %GENERATED_PART%

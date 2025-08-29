@@ -12,8 +12,7 @@
     "./build/libarkts-copy/generator",
     "./build/libarkts-copy/package.json",
     "./build/libarkts-copy/tsconfig.json",
-    "!./build/libarkts-copy/src/generated",
-    "!./build/libarkts-copy/native/src/generated",
+    "!./build/libarkts-copy/generated",
     "!./build/libarkts-copy/native/build"
   ],
   "license": "Apache-2.0",
@@ -41,7 +40,7 @@
     "compile:self": "rollup -c",
     "compile": "npm run compile:core && npm run compile:self",
     "external:test": "npm run --prefix ../external/ui2abc/libarkts run",
-    "external:clean": "rimraf ../external/ui2abc/libarkts/src/generated/peers",
+    "external:clean": "rimraf ../external/ui2abc/libarkts/generated",
     "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/ui2abc/ --options-file ../external/ui2abc/libarkts/generator/options.json5 --debug --no-initialize",
     "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
     "prepack": "npm run compile && mkdir -p ./build && cp -r ../external/ui2abc/libarkts ./build/libarkts-copy",
