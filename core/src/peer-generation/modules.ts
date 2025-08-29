@@ -1,6 +1,13 @@
 import { generatorConfiguration, ModuleConfiguration } from "../config"
 import * as idl from "../idl"
 
+const stdlibModule: ModuleConfiguration = {
+    name: "__stdlib",
+    packages: [""],
+    useFoldersLayout: false,
+    external: true,
+    tsLikePackage: "__stdlib"
+}
 
 const modulesCache = new Map<string, ModuleConfiguration>()
 
@@ -48,7 +55,7 @@ function getApplicableModuleFor(packageName: string): ModuleConfiguration {
     if (applicableModules.length === 0) {
         if (packageName === '') {
             console.error("WARNING: use current module for empty package")
-            return currentModule()
+            return stdlibModule
         }
         if (packageName.startsWith(`idlize.`)) {
             return currentModule()
@@ -79,4 +86,13 @@ export function isInCurrentModule(nodeOrPackage: idl.IDLNode | string): boolean 
         ? getModuleFor(nodeOrPackage)
         : getModuleFor(nodeOrPackage)
     return generatorConfiguration().moduleName == module.name
+}
+
+export function isInStdlibModule(node: idl.IDLNode): boolean
+export function isInStdlibModule(packageName: string): boolean
+export function isInStdlibModule(nodeOrPackage: idl.IDLNode | string): boolean {
+    const module = typeof nodeOrPackage === 'string'
+        ? getModuleFor(nodeOrPackage)
+        : getModuleFor(nodeOrPackage)
+    return stdlibModule.name == module.name
 }

@@ -77,7 +77,11 @@ function getModuleImport(node: idl.IDLEntry, role: LayoutNodeRole, lang: Languag
     // return idl.mapLibraryName(node, lang, conf?.libraryNameMapping)
 
     const packageName = idl.getPackageName(node)
-    const renamedPackageName = conf.libraryNameMapping?.get(packageName)?.get(lang.name)
+    const module = idl.getModuleFor(node)
+    if (module.tsLikePackage !== undefined) {
+        return `^` + module.tsLikePackage
+    }
+    let renamedPackageName = conf.libraryNameMapping?.get(packageName)?.get(lang.name)
     // Use '^' prefix as a workaround to distinguish outer module name from the current
     // in the ImportsCollector.printToLines(...)
     if (renamedPackageName) return `^${renamedPackageName}`

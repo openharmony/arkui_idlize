@@ -77,7 +77,7 @@ export function idlinterMain() {
     const options = cmd.parse().opts()
 
     try {
-        idlManager.activeFeatures = options.features ?? []
+        idlManager.loadFeatures(options.features)
     } catch (e: any) {
         console.error(e.message)
         process.exit(1)

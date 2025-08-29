@@ -1,0 +1,21 @@
+interface Error {};
+
+[TypeParameters="T"]
+interface AsyncCallback {};
+
+typedef Object Any;
+
+interface Function {};
+
+interface ESObject {};
+
+namespace jsonx {
+    interface JsonElement {};
+};
+
+interface LocalStorage {};
+
+interface DataView {};
+
+[TypeParameters="T"]
+interface Partial {};

@@ -2,12 +2,18 @@
     "DeletedPackages": [
         "arkui.component.interop",
         "arkui.component.customComponent",
-        "arkui.component.repeat"
+        "arkui.component.repeat",
+        "arkui.component.lazyForEach",
+        "arkui.component.repeat",
+        "ohos.buffer",
+        "ohos.util.ArrayList",
+        "ohos.util.Deque",
+        "ohos.util.List",
+        "internal.component.ets"
     ],
     "DeletedDeclarations": [
         "double",
         "int",
-        "WrappedBuilder",
         "wrapBuilder",
         "AnimatableArithmetic",
         "IMonitorValue",
@@ -58,7 +64,6 @@
         "UIPageTransitionEnter",
         "UIPageTransitionExit",
         "ForEach",
-        "GestureGroup",
         "LongPressGesture",
         "PanGesture",
         "PinchGesture",
@@ -77,9 +82,6 @@
             "onWillScroll",
             "onDidScroll"
         ],
-        "WrappedBuilder": [
-            "constructor"
-        ],
         "SliderBlockStyle": [
             "shape"
         ]
@@ -96,7 +98,7 @@
     "Components": [
         "BaseSpan",
         "CommonMethod",
-        "CommonShapeMethod",
+        "arkui.component.common.CommonShapeMethod",
         "ScrollableCommonMethod"
     ],
     "Throws": [

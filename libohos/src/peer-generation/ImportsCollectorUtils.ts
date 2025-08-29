@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule } from "@idlizer/core"
+import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule, isInStdlibModule } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -27,6 +27,10 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
             throw new Error(`Expected to have an entry: ${node.name}`)
         }
         return convertDeclToFeature(library, decl)
+    }
+
+    if (isInStdlibModule(node)) {
+        return { module: '', feature: '' }
     }
 
     let feature = convertDeclaration(featureNameConvertor, node)
@@ -70,7 +74,7 @@ export function collectDeclItself(
         node = maybeRestoreGenerics(node, library) ?? node
         if (idl.isReferenceType(node)) {
             const decl = library.resolveTypeReference(node)
-            if (decl && (idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple)) {
+            if (decl && idl.isInterface(decl) && decl.subkind === idl.IDLInterfaceSubkind.Tuple) {
                 return
             }
         }
@@ -87,6 +91,9 @@ export function collectDeclItself(
         }
 
         const feature = convertDeclToFeature(library, node)
+        if (!feature.module) {
+            return
+        }
         emitter.addFeature(feature.feature, feature.module, undefined, feature.isDefault)
         if (options?.includeMaterializedInternals) {
             if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
@@ -143,9 +150,9 @@ export function collectDeclDependencies(
 
 
 function isDefaultDeclaration(node: idl.IDLNode, lang: Language): boolean {
-    if (lang != Language.ARKTS) return false
+    if (lang !== Language.ARKTS) return false
     // TBD: handle default imports for declarations
-    //if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.DefaultExport)) return true
+    if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.DefaultExport)) return true
     const ns = node.parent
     if (ns && idl.isNamespace(ns) && idl.hasExtAttribute(ns, idl.IDLExtendedAttributes.DefaultExport)) return true
     return false

@@ -18,6 +18,11 @@ import * as fs from "fs"
 import { idlManager } from "./idlprocessing"
 import { IdlNodeAny } from "./idltypes"
 
+export enum KnownFeatures {
+    ohos = 'ohos',
+    arkui = 'arkui',
+}
+
 function nodeLoc(...nodes: idl.IDLNode[]): idl.Location[] {
     return nodes.map(x => x.nodeLocation ?? {documentPath: "<unknown>"})
 }
@@ -34,6 +39,8 @@ const WrongAttributeName = new idl.DiagnosticMessageGroup("error", "WrongAttribu
 const WrongAttributePlacement = new idl.DiagnosticMessageGroup("error", "WrongAttributePlacement", "Wrong attribute placement")
 
 const CyclicInheritance = new idl.DiagnosticMessageGroup("error", "CyclicInheritance", "Cyclic inheritance")
+
+idlManager.newFeature(KnownFeatures.arkui, 'ArkUI-specific checks')
 
 const enumPass = idlManager.newPass("enumPass", [], () => ({enums: new Map<idl.IDLNode, IdlNodeAny[]>()}))
 enumPass.on({kind: idl.IDLKind.Enum}).before = (node, st) => st.enums.set(node, [])
@@ -115,13 +122,33 @@ checkDuplicates.on({}).before = (node, st) => {
 }
 checkDuplicates.afterAll = (st) => {
     for (const [name, nodes] of st.byName) {
-        if (nodes.length > 1) {
-            DuplicateIdentifier.reportDiagnosticMessage(nameLoc(...nodes), `Duplicate identifier "${nodes[0].name}"`)
+        if (nodes.length === 1) {
+            continue // ok, continue
         }
+
+        if (nodes.every(m => idl.isMethod(m) || idl.isCallable(m))) {
+            continue // just overloads
+        }
+        if (nodes.length === 2) {
+            const getter = nodes.find(x => idl.getExtAttribute(x, idl.IDLExtendedAttributes.Accessor) === idl.IDLAccessorAttribute.Getter)
+            const setter = nodes.find(x => idl.getExtAttribute(x, idl.IDLExtendedAttributes.Accessor) === idl.IDLAccessorAttribute.Setter)
+
+            if (getter !== setter) {
+                continue // it is just setter and getter
+            }
+        }
+        if (idlManager.activeFeatures.has(KnownFeatures.arkui)) {
+            if (nodes.every(m => idl.hasExtAttribute(m, idl.IDLExtendedAttributes.CommonMethod))) {
+                continue // it is just component attributes overloads
+            }
+        }
+
+        // real redefinition, let's report it!
+        DuplicateIdentifier.reportDiagnosticMessage(nameLoc(...nodes), `Duplicate identifier "${nodes[0].name}"`)
     }
 }
 
-idlManager.newFeature("ohos", "OHOS-specific checks")
+idlManager.newFeature(KnownFeatures.ohos, "OHOS-specific checks")
 const ohosValidAttributes = new Map([
             [idl.IDLKind.Import, ["Deprecated", "Documentation"]],
             [idl.IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
@@ -136,6 +163,7 @@ const ohosValidAttributes = new Map([
             [idl.IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
             [idl.IDLKind.Constructor, ["Deprecated", "Documentation"]]
 ])
+
 const attrPass = idlManager.newPass("ohos.attrPass", [], () => {})
 attrPass.on({}).before = (node, st) => {
     if(!node.extendedAttributes || node.extendedAttributes.length == 0) {
@@ -157,6 +185,10 @@ const inheritancePass = idlManager.newPass("inheritancePass", [resolvePass], ()=
 inheritancePass.on({kind: idl.IDLKind.Interface}).before = (node, st) => {
     const checking = new Set<IdlNodeAny>()
     const findCycle: (cnode: IdlNodeAny) => boolean = (cnode) => {
+        if (idl.isTypedef(cnode)) {
+            const resolved = st.resolvedNodes.get(cnode.type)!
+            return findCycle(resolved)
+        }
         if (st.checked.has(cnode)) {
             return false
         }
@@ -182,6 +214,20 @@ inheritancePass.on({kind: idl.IDLKind.Interface}).before = (node, st) => {
     }
     findCycle(node)
 }
+
+// const reexportNamePass = idlManager.newPass("sameNameCheck", [], () => ({ index: new Map<string, string[]>() }))
+// reexportNamePass.on({}).before = (node, st) => {
+//     if ([idl.IDLKind.Callback, idl.IDLKind.Typedef, idl.IDLKind.Interface, idl.IDLKind.Namespace].includes(node.kind)) {
+//         appendTo(st.index, node.name, idl.getFileFor(node)?.fileName ?? '')
+//     }
+// }
+// reexportNamePass.afterAll = ({ index }) => {
+//     for (const [name, files] of index) {
+//         if (files.length > 1) {
+//             console.error(name, files)
+//         }
+//     }
+// }
 
 const genPass = idlManager.newPass(".genPass", [enumPass], ()=>({lines: ([] as string[])}))
 genPass.on({kind: idl.IDLKind.File}).before = (node, st) => { st.lines = [] }

@@ -134,10 +134,6 @@ declare interface PreviewParams {
     roundScreen?: boolean;
 }
 
-declare class WrappedBuilder<T> {
-    builder: ((arg: T) => void);
-}
-
 declare namespace window {
     enum Orientation {
         UNSPECIFIED = 0,
@@ -159,9 +155,4 @@ declare namespace window {
         USER_ROTATION_LANDSCAPE_INVERTED = 16,
         FOLLOW_DESKTOP = 17
     }
-}
-
-declare class GestureGroup {
-    static $_instantiate(factory: () => GestureGroup, mode: GestureMode, ...gesture: GestureType[]): GestureGroup;
-    onCancel(event: () => void): GestureGroup;
 }

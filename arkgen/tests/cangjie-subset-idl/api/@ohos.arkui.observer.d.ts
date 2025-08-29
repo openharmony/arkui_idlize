@@ -1,4 +1,10 @@
 
-export interface NavDestinationInfo {}
-export interface NavigationInfo {}
-export interface RouterPageInfo {}
+export interface NavDestinationInfo {
+    stub(): void
+}
+export interface NavigationInfo {
+    stub(): void
+}
+export interface RouterPageInfo {
+    stub(): void
+}

@@ -157,6 +157,9 @@ export class TSLanguageWriter extends LanguageWriter {
     pushNamespace(namespace: string, options: NamespaceOptions): void {
         this.namespaceStack.push(namespace)
         const declaredPrefix = options.isDeclared ? "declare " : ""
+        if (options.isDefault) {
+            this.print(`export default ${namespace}`)
+        }
         this.print(`export ${declaredPrefix}namespace ${namespace} {`)
         if (options.ident) this.pushIndent()
     }

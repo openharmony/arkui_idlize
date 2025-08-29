@@ -140,6 +140,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const seenFields = new Set<string>()
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         const kindPrefix = isBuilderClass(idlInterface) ? "class " : "interface "
+        const isDefault = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.DefaultExport)
         return ([`export ${declaredPrefix}${kindPrefix}${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
                 .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
@@ -153,6 +154,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.callables
                 .map(it => this.printIfNotSeen(it, it => this.printFunction(it), seenFields)).flat())
             .concat(["}"])
+            .concat([isDefault ? `export default ${idlInterface.name}` : undefined])
     }
 
     protected printMaterialized(idlInterface: idl.IDLInterface): stringOrNone[] {
@@ -162,6 +164,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
         const abstractPrefix = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.Abstract) ? "abstract " : ""
         const isInterface = idl.isInterfaceSubkind(idlInterface)
+        const isDefault = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.DefaultExport)
         return ([`export ${declaredPrefix}${isInterface ? "interface" : `${abstractPrefix}class`} ${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(isInterface ? [] : idlInterface.constructors
                 .map(it => this.printConstructor(it)).flat())
@@ -175,6 +178,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.callables
                 .map(it => this.printFunction(it)).flat())
             .concat(["}"])
+            .concat([isDefault ? `export default ${idlInterface.name}` : undefined])
     }
 
     protected hasIntersection(a: idl.IDLType, b: idl.IDLType): boolean {

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -412,6 +412,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 this.writeNamedOverloadsGroups(decl.methods, writer)
             }
         }, superInterface, clazz.generics?.map(sanitizeGenerics))
+        if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
+            writer.writeLines([
+                `export default ${decl.name}`
+            ])
+        }
     }
 
     protected writeNamedOverloadsGroups(methods: idl.IDLMethod[], writer: LanguageWriter): void {
@@ -530,6 +535,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             this.printTaggedMethods(clazz)
             this.printMethods(clazz)
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
+
+        if (idl.isClassSubkind(clazz.decl) && idl.hasExtAttribute(clazz.decl, idl.IDLExtendedAttributes.DefaultExport)) {
+            printer.writeLines([
+                `export default ${clazz.decl.name}`
+            ])
+        }
     }
 }
 
@@ -602,7 +613,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             }
         }
         // specific runtime dependencies
-        collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), this.collector)
+        collectDeclItself(this.library, idl.createReferenceType(`${PACKAGE_IDLIZE_INTERNAL}.${NativeModule.Generated.name}`), this.collector)
         if (this.library.name === 'arkoala') {
             this.collector.addFeatures(['CallbackTransformer'], './CallbackTransformer')
             if (this.library.language === Language.TS) {

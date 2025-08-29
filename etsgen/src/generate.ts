@@ -107,6 +107,16 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     const script = arkts.createETSModuleFromContext()
     let localStatus = new StatusTracker(status.enabled)
     let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)
+    if (config.DeletedPackages.some(deleted => idl.qualifiedNameStartsWith(idlVisitor.packageClause, deleted.split(".")))) {
+        return {
+            originalFileName: file,
+            generatedFileName: idlVisitor.fileName,
+            writeFilePath: idlVisitor.fileName,
+            skipped: true,
+            file: idl.createFile([]),
+            exports: new Map,
+        }
+    }
     idlVisitor.visitor(script)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
@@ -117,10 +127,6 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     }
     if (!idlFile.file.entries.length) {
         idlFile.skipped = true
-    } else if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
-        console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
-        idlFile.skipped = true
-        localStatus.status.forEach(it => it.status = `DeletedPackages`)
     }
     if (!idlFile.skipped) {
         fs.writeFileSync(outFile, idl.toIDLString(idlFile.file, {}), 'utf8')
@@ -154,6 +160,10 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     const doJob = processLogger(inputFiles.length)
     const library: IDLSuperFile[] = []
     let status = new StatusTracker(!!traceStatus)
+    const failed: {
+        error: unknown
+        fileName: string
+    }[] = []
     inputFiles.forEach(file => {
         try {
             doJob(file, () => {
@@ -171,6 +181,10 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
                 console.log(e.trace)
             // But current es2panda just forcefully exits.
             // throw e
+            failed.push({
+                error: e,
+                fileName: file
+            })
         }
     })
     if (traceStatus) {
@@ -414,10 +428,28 @@ class IDLVisitor extends arkts.AbstractVisitor {
             .split(path.sep)
             .map(it => it.replaceAll('@', ''))
             .map(it => it.split('-').map((it, i) => i === 0 ? it : capitalize(it)).join('')) // kebab-case to camelCase
+            .flatMap(it => it.split("."))
             .filter(it => it.length && it !== '.' && it !== '..')
     }
 
     private mode: 'regular' | 'arkoala' = 'arkoala'
+
+    // Temporary fix
+    private sanitizePromise(type:idl.IDLType): idl.IDLType {
+        if (!idl.isUnionType(type)) {
+            return type
+        }
+        let promiseType: idl.IDLType | undefined = undefined
+        idl.forEachChild(type, (node) => {
+            if (idl.isContainerType(node) && idl.IDLContainerUtils.isPromise(node)) {
+                promiseType = node
+            }
+        })
+        if (promiseType) {
+            return promiseType
+        }
+        return type
+    }
 
     constructor(
         protected basePath: string,
@@ -435,6 +467,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.hasModifierFlag(node, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_DEFAULT_EXPORT)) {
                 if (arkts.isTSInterfaceDeclaration(node)) {
                     this.defaultExportName = node.id!.name
+                }
+                if (arkts.isClassDeclaration(node)) {
+                    this.defaultExportName = node.definition!.ident!.name
                 }
                 if (arkts.isTSModuleDeclaration(node)) {
                     this.defaultExportName = (node.name as arkts.Identifier).name // not sure about this
@@ -767,7 +802,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const methods: idl.IDLMethod[] = []
         const constructors: idl.IDLConstructor[] = []
 
-        members?.forEach(member => this.processNode((member) => {
+        members?.forEach(member => this.processNode((member:arkts.AstNode) => {
             if (arkts.isClassProperty(member)) {
                  if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
                     this.traceDeleted('DeletedMembers')
@@ -1132,7 +1167,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         })
     }
 
-    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]+$/g)
+    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]*$/g)
     private static isFunctionTypeReference(name: string) {
         return IDLVisitor.etsFunctionTypeReferencePattern.test(name)
             || name === 'Callback'
@@ -1181,7 +1216,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isTSArrayType(type))
             return idl.createContainerType('sequence', [this.serializeType((type as arkts.TSArrayType).elementType)])
         if (arkts.isETSUnionType(type))
-            return collapseTypes((type as arkts.ETSUnionType).types.map((it) => this.serializeType(it)))
+            return this.sanitizePromise(collapseTypes((type as arkts.ETSUnionType).types.map((it) => this.serializeType(it))))
         if (arkts.isETSPrimitiveType(type))
             return this.serializePrimitive((type as arkts.ETSPrimitiveType).primitiveType)
         if (arkts.isETSTypeReference(type)) {
@@ -1230,6 +1265,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Array': return idl.createContainerType('sequence', typeArgs ?? [] /* better check here? */)
                 case 'Date': return idl.IDLDate
                 case 'date': return idl.IDLDate
+                case 'Partial': return idl.IDLObjectType
                 case 'Object': return idl.IDLObjectType
                 case 'object': return idl.IDLObjectType
                 case 'ArrayBuffer': return idl.IDLBufferType
@@ -1497,7 +1533,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
             }
 
             this.entries.forEach(entry => {
-                if (idl.isInterface(entry) && this.config.Components.includes(entry.name)) {
+                const entryFQName = this.packageClause.concat(entry.name).join(".")
+                if (idl.isInterface(entry) && (this.config.Components.includes(entry.name) || this.config.Components.includes(entryFQName))) {
                     this.postprocessComponent(entry)
                 }
             })
@@ -1529,23 +1566,17 @@ class IDLVisitor extends arkts.AbstractVisitor {
 
         /* remove synthetic duplicates */
         function removeDuplicatedByScope(entries: idl.IDLEntry[]): idl.IDLEntry[] {
-            const namesCount = new Map<string, number>()
+            const seen = new Set<string>()
             const result: idl.IDLEntry[] = []
-            entries.forEach(entry => {
-                namesCount.set(entry.name, (namesCount.get(entry.name) ?? 0) + 1)
-            })
             entries.forEach(entry => {
                 if (idl.isNamespace(entry)) {
                     entry.members = removeDuplicatedByScope(entry.members)
                 }
-                const count = namesCount.get(entry.name)!
-                if (count > 1) {
-                    if (idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.Synthetic)) {
-                        result.push(entry)
-                    }
-                } else {
-                    result.push(entry)
+                if (seen.has(entry.name)) {
+                    return
                 }
+                seen.add(entry.name)
+                result.push(entry)
             })
             return result
         }

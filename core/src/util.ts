@@ -20,7 +20,7 @@ import * as idl from "./idl"
 import { Language } from './Language'
 import { generatorConfiguration } from './config'
 import { qualifiedName } from './peer-generation/idl/common'
-import { isInExternalModule } from './peer-generation/modules'
+import { getModuleFor, isInExternalModule } from './peer-generation/modules'
 import { getInternalClassName, getInternalClassQualifiedName } from './peer-generation/Materialized'
 import { LibraryInterface } from './LibraryInterface'
 
@@ -739,8 +739,12 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
 }
 
 export function mapLibraryName(node: idl.IDLEntry, lang: Language, mapping?: Map<string, Map<string, string>>, prefix: string = "@"): string {
+    const module = getModuleFor(node)
+    if (module.tsLikePackage !== undefined) {
+        return `^` + module.tsLikePackage
+    }
     const packageName = idl.getPackageName(node)
-    return mapping?.get(packageName)?.get(lang.name) ?? `${prefix}${packageName}`
+    return `^` + (mapping?.get(packageName)?.get(lang.name) ?? `${prefix}${packageName}`)
 }
 
 function getExtractorClass(target: idl.IDLInterface, toPtr: boolean = true): string {

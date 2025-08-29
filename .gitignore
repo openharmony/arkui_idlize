@@ -3,6 +3,7 @@
 /interface_sdk-js/
 /sdk-patched/
 /sdk-patched-arkts/
+/absolute-sdk-patched-arkts/
 /build/
 /lib/
 /core/build/

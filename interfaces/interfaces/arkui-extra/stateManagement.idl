@@ -1,4 +1,4 @@
-package arkui.stateManagement;
+package arkui.stateManagement.internal;
 
 [Entity=Class]
 interface PersistentStorageBackend {

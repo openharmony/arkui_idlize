@@ -16,7 +16,12 @@ const preCompileScripts = {
 function computePackagesDependencies(packages) {
     const dependencies = new Map
     for (const pack of packages) {
-        const packDependencies = pack.read("dependencies") ?? {}
+        const deps = pack.read("dependencies") ?? {}
+        const devDeps = pack.read("devDependencies") ?? {}
+        const packDependencies = {
+            ...deps,
+            ...devDeps,
+        }
         dependencies.set(pack, packages.filter(it => {
             return (it.read("name") ?? "") in packDependencies
         }))

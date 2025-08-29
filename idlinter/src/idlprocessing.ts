@@ -142,7 +142,7 @@ export class IdlProcessingManager {
     entriesToValidate: idl.IDLFile[] = []
 
     featuresByName: Map<string, string> = new Map()
-    _activeFeatures: string[] = []
+    _activeFeatures: Set<string> = new Set()
 
     passes: IdlProcessingPass<any>[] = []
     passesByName: Map<string, IdlProcessingPass<any>> = new Map()
@@ -257,7 +257,7 @@ export class IdlProcessingManager {
         return pass
     }
 
-    set activeFeatures(value: string[]) {
+    set activeFeatures(value: Set<string>) {
         for (const feature of value) {
             if (!this.featuresByName.has(feature)) {
                 throw new Error(`Feature "${feature}" does not exist`)
@@ -266,14 +266,20 @@ export class IdlProcessingManager {
         this._activeFeatures = value
     }
 
-    get activeFeatures(): string[] {
+    loadFeatures(value?: string[]) {
+        if (value) {
+            this.activeFeatures = new Set(value)
+        }
+    }
+
+    get activeFeatures(): Set<string> {
         return this._activeFeatures
     }
 
     get featuresHelp(): string {
         const lines: string[] = []
         for (const [k, v] of this.featuresByName) {
-            lines.push(`${k}  ${v}`)
+            lines.push(`${k}\t${v}`)
         }
         return lines.join("\n")
     }

@@ -1,0 +1,18 @@
+{
+    "target": [
+        "arkui.component",
+        "arkui.AttributeUpdater"
+    ],
+    "main": {
+        "additionalPackages": [
+            "arkui.component.idlize",
+            "arkui.component.navigator",
+            "api.internal.component.ets",
+            "arkui.stateManagement.internal",
+            "arkui.AttributeUpdaterFlag"
+        ]
+    },
+    "tsLikePackages": {
+        "arkui": "@ohos.arkui.component"
+    }
+}

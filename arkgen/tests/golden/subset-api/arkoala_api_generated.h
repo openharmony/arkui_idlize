@@ -685,7 +685,8 @@ typedef struct ViewPeer* Ark_View;
 typedef struct Opt_View Opt_View;
 typedef struct Ark_VP Ark_VP;
 typedef struct Opt_VP Opt_VP;
-typedef struct Ark_Want Ark_Want;
+typedef struct WantPeer WantPeer;
+typedef struct WantPeer* Ark_Want;
 typedef struct Opt_Want Opt_Want;
 typedef struct Ark_WebAttribute Ark_WebAttribute;
 typedef struct Opt_WebAttribute Opt_WebAttribute;
@@ -1970,6 +1971,8 @@ typedef struct Ark_Union_RichEditorImageSpanResult_RichEditorTextSpanResult Ark_
 typedef struct Opt_Union_RichEditorImageSpanResult_RichEditorTextSpanResult Opt_Union_RichEditorImageSpanResult_RichEditorTextSpanResult;
 typedef struct Ark_Union_RichEditorTextSpanResult_RichEditorImageSpanResult Ark_Union_RichEditorTextSpanResult_RichEditorImageSpanResult;
 typedef struct Opt_Union_RichEditorTextSpanResult_RichEditorImageSpanResult Opt_Union_RichEditorTextSpanResult_RichEditorImageSpanResult;
+typedef Ark_Object Ark_ComponentContent;
+typedef Opt_Object Opt_ComponentContent;
 typedef Ark_Object Ark_ContentModifier;
 typedef Opt_Object Opt_ContentModifier;
 typedef enum Ark_AccessibilityHoverType {
@@ -5179,7 +5182,7 @@ typedef struct Ark_Union_String_Resource_ComponentContent {
     union {
         Ark_String value0;
         Ark_CustomObject value1;
-        Ark_CustomObject value2;
+        Ark_ComponentContent value2;
     };
 } Ark_Union_String_Resource_ComponentContent;
 typedef struct Opt_Union_String_Resource_ComponentContent {
@@ -5277,10 +5280,6 @@ typedef struct Opt_VP {
     Ark_Tag tag;
     Ark_VP value;
 } Opt_VP;
-typedef struct Ark_Want {
-    /* kind: Interface */
-    Ark_Number field1;
-} Ark_Want;
 typedef struct Opt_Want {
     Ark_Tag tag;
     Ark_Want value;
@@ -9082,7 +9081,7 @@ typedef struct Ark_Union_ResourceStr_ComponentContent {
     Ark_Int32 selector;
     union {
         Ark_ResourceStr value0;
-        Ark_CustomObject value1;
+        Ark_ComponentContent value1;
     };
 } Ark_Union_ResourceStr_ComponentContent;
 typedef struct Opt_Union_ResourceStr_ComponentContent {
@@ -9204,7 +9203,7 @@ typedef struct Ark_Union_String_CustomBuilder_ComponentContent {
     union {
         Ark_String value0;
         CustomBuilder value1;
-        Ark_CustomObject value2;
+        Ark_ComponentContent value2;
     };
 } Ark_Union_String_CustomBuilder_ComponentContent;
 typedef struct Opt_Union_String_CustomBuilder_ComponentContent {
@@ -12236,7 +12235,7 @@ typedef struct GENERATED_ArkUIEmbeddedComponentModifier {
     Ark_NativePointer (*construct)(Ark_Int32 id,
                                    Ark_Int32 flags);
     void (*setEmbeddedComponentOptions)(Ark_NativePointer node,
-                                        const Ark_Want* loader,
+                                        Ark_Want loader,
                                         Ark_EmbeddedType type);
     void (*setOnTerminated)(Ark_NativePointer node,
                             const Opt_Callback_TerminationInfo_Void* callback_);
@@ -15190,6 +15189,15 @@ typedef struct GENERATED_ArkUIViewAccessor {
                                 Ark_NativePointer value);
 } GENERATED_ArkUIViewAccessor;
 
+typedef struct GENERATED_ArkUIWantAccessor {
+    void (*destroyPeer)(Ark_Want peer);
+    Ark_Want (*construct)();
+    Ark_NativePointer (*getFinalizer)();
+    Ark_Number (*getField1)(Ark_Want peer);
+    void (*setField1)(Ark_Want peer,
+                      const Ark_Number* field1);
+} GENERATED_ArkUIWantAccessor;
+
 typedef struct GENERATED_ArkUIWebResourceResponseAccessor {
     void (*destroyPeer)(Ark_WebResourceResponse peer);
     Ark_WebResourceResponse (*construct)();
@@ -15399,6 +15407,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIUIExtensionProxyAccessor* (*getUIExtensionProxyAccessor)();
     const GENERATED_ArkUIUrlStyleAccessor* (*getUrlStyleAccessor)();
     const GENERATED_ArkUIViewAccessor* (*getViewAccessor)();
+    const GENERATED_ArkUIWantAccessor* (*getWantAccessor)();
     const GENERATED_ArkUIWebResourceResponseAccessor* (*getWebResourceResponseAccessor)();
     const GENERATED_ArkUIGlobalScopeAccessor* (*getGlobalScopeAccessor)();
 } GENERATED_ArkUIAccessors;

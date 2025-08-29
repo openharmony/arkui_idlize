@@ -29,6 +29,7 @@ export function etsgen(argv:string[]) {
         .option('--idl2ets', 'Convert IDL to .d.sts definitions')
         .option('--use-component-stubs', 'Add components stubs to produced idl files')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')
+        .option('--exclude <patterns>', 'Paths to exclude from input-dir scan')
         .option('--base-dir <path>', 'Base directories, for the purpose of packetization of IDL modules, comma separated, defaulted to --input-dir if missing')
         .option('--output-dir <path>', 'Path to output dir')
         .option('--input-files <files...>', 'Comma-separated list of specific files to process')

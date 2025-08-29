@@ -1,4 +1,4 @@
 import { Content } from './Content';
-export class ComponentContent<T extends Object> extends Content{
+export class ComponentContent extends Content{
     ctp: number
 }

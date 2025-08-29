@@ -14,21 +14,27 @@
  */
 
 import { arkgen } from "@idlizer/arkgen/app"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
+import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
 import { flat, scan } from "../utils"
 
 export interface Idl2PeerConfig {
-    target: string,
-    language: string,
-    optionsFile?: string,
+    target: string
+    language: string
+    idlPath: string
+    optionsFile?: string
+}
+
+export interface Idl2PeerResult {
+    peersPath: string
 }
 
 export function idl2peer({
     target,
     language,
+    idlPath,
     optionsFile,
-}: Idl2PeerConfig) {
-    const idlFiles = scan(GENERATED_IDL_DIR)
+}: Idl2PeerConfig): Idl2PeerResult {
+    const idlFiles = scan(idlPath)
 
     let arkgenTarget = ''
     if (target === 'sig') {
@@ -47,9 +53,13 @@ export function idl2peer({
             ['--generator-target', arkgenTarget],
             ['--language', language],
             '--only-integrated',
+            '--no-type-checker',
             '--use-memo-m3',
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],
         ])
     )
+    return {
+        peersPath: GENERATED_PEER_DIR
+    }
 }

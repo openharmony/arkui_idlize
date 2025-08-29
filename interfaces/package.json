@@ -1,23 +1,22 @@
 {
-  "name": "@idlizer/interfaces",
-  "version": "2.1.10+devel",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.js",
-  "files": [
-    "dist/**/*",
-    "interfaces/**/*"
-  ],
-  "scripts": {
-    "compile:self": "tsc",
-    "compile": "npm run compile:self",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
-  "devDependencies": {
-    "@types/node": "^24.0.7",
-    "typescript": "^5.8.3"
-  }
+    "name": "@idlizer/interfaces",
+    "version": "2.1.10+devel",
+    "main": "dist/index.js",
+    "files": [
+        "dist/**/*",
+        "interfaces/**/*"
+    ],
+    "scripts": {
+        "compile:self": "tsc",
+        "compile": "npm run compile:self",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "devDependencies": {
+        "@types/node": "^24.0.7",
+        "typescript": "^5.8.3"
+    }
 }

@@ -1,0 +1,43 @@
+{
+  "name": "@idlizer/scraper",
+  "version": "2.1.10+devel",
+  "main": "build/lib/main.js",
+  "bin": "build/lib/main.js",
+  "typesVersions": {
+    "*": {
+      "app": [
+        "build/lib/src/app.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    "./app": [
+      "./build/lib/library.js"
+    ]
+  },
+  "scripts": {
+    "compile:self": "tsc && rollup -c",
+    "compile": "npm run -C ../core compile && npm run compile:self",
+    "chmod": "chmod +x ./out/go-main.sh",
+    "go": "npm run compile && node . ../etsgen/out/idl && npm run chmod",
+    "build": "cd out && fast-arktsc --config ./ui2abcconfig.json --simultaneous --link-name ./build/abc/all.abc --compiler ../../external/incremental/tools/panda/arkts/ui2abc && ninja -C ./generated/abc -f build.ninja",
+    "generate": "./out/go-main.sh",
+    "clean:generate": "rimraf out/generated && npm run generate"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@idlizer/core": "2.1.10+devel",
+    "commander": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.0",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "rollup": "^4.24.4",
+    "typescript": "^4.9.5"
+  }
+}

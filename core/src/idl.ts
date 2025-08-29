@@ -1,3 +1,4 @@
+
 /*
  * Copyright (c) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1624,11 +1625,10 @@ export function printExtendedAttributes(idl: IDLNode, indentLevel: number): Prin
         typeArguments = (idl as IDLUnspecifiedGenericType).typeArguments
         break
     }
-
-    const attributes = (idl.extendedAttributes ?? []).filter(it => it.name != IDLExtendedAttributes.TypeParameters && it.name != IDLExtendedAttributes.TypeArguments)
-    if (typeParameters?.length)
+    const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
+    if (typeParameters?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeParameters))
         attributes.push({ name: IDLExtendedAttributes.TypeParameters, value: typeParameters.join(",") })
-    if (typeArguments?.length)
+    if (typeArguments?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeArguments))
         attributes.push({ name: IDLExtendedAttributes.TypeArguments, value: typeArguments.map(it=>printType(it)).join(",") })
 
     if (idl.documentation) {
@@ -1913,6 +1913,17 @@ export function decomposeQualifiedName(type: IDLReferenceType): [string | undefi
         return [qualifier, realTypeName]
     }
     return [undefined, typeName]
+}
+
+export function qualifiedNameStartsWith(node: IDLNode | string[], template: string[]): boolean {
+    const name = Array.isArray(node) ? node : getFQName(node).split(".")
+    if (name.length < template.length)
+        return false
+    for (let i = 0; i < template.length; i++) {
+        if (name[i] != template[i])
+            return false
+    }
+    return true
 }
 
 export function maybeUnwrapOptionalType(type: IDLType): IDLType {

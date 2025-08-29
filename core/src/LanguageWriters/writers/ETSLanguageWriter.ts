@@ -230,9 +230,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
 
     pushNamespace(namespace: string, options: NamespaceOptions): void {
-        if (options.isDefault) {
-            this.print(`export default ${namespace}`)
-        }
         super.pushNamespace(namespace, options)
     }
     fork(options?: { resolver?: ReferenceResolver }): LanguageWriter {
