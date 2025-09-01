@@ -1,0 +1,2 @@
+callback AsyncCallback_Boolean_Number_String = String (boolean flag, number count);
+callback Callback_T_Void = void (T data);

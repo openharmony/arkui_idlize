@@ -643,7 +643,7 @@ interface Diff {
     newValue: any
 }
 
-const noCompare = new Set(["parent", "fileName", "nodeLocation", "nameLocation", "valueLocation", "typesValue"])
+const noCompare = new Set(["parent", "fileName", "nodeLocation", "nameLocation", "valueLocation", "typesValue", "text"])
 const canContainMoreCompare = new Set(["extendedAttributes", "typeParameters", "typeArguments"])
 
 function safeString(value: any) {

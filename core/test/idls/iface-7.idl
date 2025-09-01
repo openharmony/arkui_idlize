@@ -1,0 +1,7 @@
+interface IDLCheckConstructor {
+    attribute number count;
+    attribute boolean flag;
+    constructor(number count);
+    constructor(boolean flag);
+    constructor(number count, boolean flag);
+};

@@ -1,0 +1,5 @@
+dictionary IDLStringEnum {
+    String E1 = "e111";
+    String E2 = "e222";
+    String E3 = "e333";
+};
