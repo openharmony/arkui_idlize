@@ -148,7 +148,7 @@ class PeerFileVisitor {
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => { },
             { delegationArgs: ['peerPtr', 'id', 'name', 'flags'].map(it => printer.makeString(it)), delegationName: peer.parentComponentName },
-            [MethodModifier.PROTECTED])
+            [MethodModifier.PUBLIC])
     }
 
     protected printCreateMethod(peer: PeerClass, writer: LanguageWriter): void {
