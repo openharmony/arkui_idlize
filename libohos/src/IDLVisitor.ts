@@ -612,7 +612,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             return idl.createTypedef(
                 nameSuggestion.name,
                 this.serializeImportTypeNode(nameSuggestion, node.type),
-                undefined, {
+                this.collectTypeParameters(node.typeParameters), {
                 extendedAttributes: extendedAttributes,
                 fileName: node.getSourceFile().fileName
             })
