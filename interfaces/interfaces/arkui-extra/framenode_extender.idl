@@ -1,15 +1,9 @@
 package arkui.component.idlize;
 
 import arkui.component.common;
-// import ohos.arkui.UIContext.UIContext as UIContext;
-// import arkui.Graphics.Size as Size;
-// import arkui.Graphics.Position as Position;
 import ohos.arkui.UIContext;
 import arkui.Graphics;
 import arkui.FrameNode;
-// import arkui.FrameNode.FrameNode as FrameNode;
-// import arkui.FrameNode.FrameNode.LayoutConstraint as LayoutConstraint;
-// import arkui.FrameNode.FrameNode.CrossLanguageOptions as CrossLanguageOptions;
 
 [Entity=Class]
 interface FrameNodeExtender {
@@ -29,10 +23,6 @@ interface FrameNodeExtender {
   Position getPositionToParent();
   Size getMeasuredSize();
   Position getLayoutPosition();
-  ([TypeArguments="LengthMetrics"] Edges) getUserConfigBorderWidth();
-  ([TypeArguments="LengthMetrics"] Edges) getUserConfigPadding();
-  ([TypeArguments="LengthMetrics"] Edges) getUserConfigMargin();
-  ([TypeArguments="LengthMetrics"] SizeT) getUserConfigSize();
   String getId();
   number getUniqueId();
   String getNodeType();

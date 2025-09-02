@@ -158,6 +158,9 @@ export class ArkTsLayout extends CommonLayoutBase {
     // replace point symbol inside names, but not when it is a part of path
     readonly replacePattern = /(\.)[^\.\/]/g
     resolve(target: idl.LayoutTargetDescription): string {
+        if (target.hint === 'component.handwritten') {
+            return 'handwritten/modifiers/hooks'
+        }
         if (target.hint === 'component.modifier') {
             return modifierNameGenerator(target.node.name)
         }

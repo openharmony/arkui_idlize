@@ -38,17 +38,6 @@ interface FocusController {
     static void requestFocus(String key);
 };
 
-[Entity=Class]
-interface Scene {
-    // attribute Environment environment;
-    // readonly attribute sequence<Animation> animations;
-    // readonly attribute (Node or undefined) root;
-    static async Scene load(optional ResourceStr uri);
-    // (Node or undefined) getNodeByPath(String path, optional NodeType type);
-    // SceneResourceFactory getResourceFactory();
-    void destroy();
-};
-
 [Entity=Interface]
 interface CustomColors {
     [Optional] attribute ResourceColor brand;

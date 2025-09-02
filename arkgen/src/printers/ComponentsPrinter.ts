@@ -83,6 +83,15 @@ export function generateAttributeModifierSignature(library: PeerLibrary, compone
     )
 }
 
+export function generateHookAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): idl.IDLUnionType {
+    const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
+        idl.createReferenceType(getReferenceTo('AttributeModifier'),
+            [idl.createReferenceType(componentToAttributesInterface(it.name))],
+        )
+    )
+    return idl.createUnionType([...modifiers, idl.IDLUndefinedType])
+}
+
 class ComponentPrintResult {
     constructor(public targetFile: TargetFile, public writer: LanguageWriter) { }
 }
@@ -211,6 +220,45 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             })
         }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
 
+
+        const hookPrinter = this.library.createLanguageWriter()
+        const hookImports = new ImportsCollector();
+        const componentAttributePath = `component/${this.library.layout.resolve({
+                    node: component.attributeDeclaration,
+                    role: LayoutNodeRole.COMPONENT
+                })}`
+        const valueType =  hookPrinter.getNodeName(generateHookAttributeModifierSignature(this.library, component))
+
+        hookPrinter.print(`function hook${component.name}AttributeModifier(componenet: ${componentClassName}, value: ${valueType}):void {}`)
+        hookImports.addFeature(`AttributeModifier`, `#handwritten`)
+        hookImports.addFeatures([`${componentClassName}`, component.attributeDeclaration.name], componentAttributePath)
+
+        if (peer.originalParentFilename) {
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            while (parentDecl) {
+                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+                const parentGeneratedPath = this.library.layout.resolve({
+                    node: parentDecl,
+                    role: LayoutNodeRole.COMPONENT
+                })
+
+                hookImports.addFeatures([
+                    componentToStyleClass(parentComponent.attributeDeclaration.name),
+                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
+                ], `./${parentGeneratedPath}`)
+                if (parentComponent.attributeDeclaration.inheritance.length) {
+                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
+                    parentDecl = this.library.resolveTypeReference(parentRef)
+                } else {
+                    parentDecl = undefined
+                }
+            }
+        }
+
+        hookImports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
+
+
         return [{
             collector: imports,
             content: printer,
@@ -218,6 +266,14 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 node: component.attributeDeclaration,
                 role: LayoutNodeRole.COMPONENT,
                 hint: 'component.implementation'
+            }
+        }, {
+            collector: hookImports,
+            content: hookPrinter,
+            over: {
+                node: component.attributeDeclaration,
+                role: LayoutNodeRole.COMPONENT,
+                hint: 'component.handwritten'
             }
         }]
     }
