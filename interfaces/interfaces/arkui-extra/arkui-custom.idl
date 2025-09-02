@@ -3,6 +3,7 @@ package arkui.component.idlize;
 import arkui.component.units;
 import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
+import arkui.Graphics.Size as Size;
 import global.resource.Resource as Resource; 
 
 callback Callback_RangeUpdate = void (i32 start, i32 end);

@@ -116,6 +116,8 @@ checkDuplicates.on({}).before = (node, st) => {
     if (node.parent?.kind == idl.IDLKind.Interface) {
         // To remove false positives for now, before permanent fix in getFQName
         name = `${idl.getFQName(node.parent)}/${name}`
+        if (node.kind == idl.IDLKind.Method)
+            return
     }
 
     appendTo(st.byName, name, node)

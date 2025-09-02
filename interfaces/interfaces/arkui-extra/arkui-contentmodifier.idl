@@ -1,5 +1,19 @@
 package arkui.component.idlize;
 
+import arkui.component.button;
+import arkui.component.checkbox;
+import arkui.component.dataPanel;
+import arkui.component.gauge;
+import arkui.component.loadingProgress;
+import arkui.component.progress;
+import arkui.component.radio;
+import arkui.component.rating;
+import arkui.component.select;
+import arkui.component.slider;
+import arkui.component.textClock;
+import arkui.component.textTimer;
+import arkui.component.toggle;
+
 [Synthetic]
 callback ButtonModifierBuilder = pointer (pointer parentNode, ButtonConfiguration config);
 [Synthetic]

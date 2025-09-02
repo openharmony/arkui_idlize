@@ -1,5 +1,8 @@
 package api.internal.component.ets;
 
+import arkui.component.units;
+import arkui.component.common;
+
 callback TextFieldValueCallback = void (ResourceStr value);
 [Entity=Class]
 interface TextFieldOps {

@@ -12,4 +12,4 @@ check arkui interfaces:
     - !reference [.npm, script]
     - !reference [.panda, script]
     - npm run -C etsgen run:sdk
-    - node idlinter --check interfaces/interfaces etsgen/out
+    - node idlinter --check interfaces/interfaces --load etsgen/out/idl

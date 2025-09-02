@@ -3,8 +3,11 @@ package arkui.component.idlize;
 import arkui.component.navigation.NavPathInfo as NavPathInfo;
 import arkui.component.navigation.NavPathStack as NavPathStack;
 import arkui.component.navigation.NavigationOptions as NavigationOptions;
+import arkui.component.arkui.component.text;
 
 callback NavExtender_OnUpdateStack = void ();
+
+callback Callback_String_Void = void (String value);
 
 [Entity=Class]
 interface NavExtender {
