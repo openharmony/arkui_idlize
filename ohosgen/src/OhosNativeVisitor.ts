@@ -239,13 +239,22 @@ class OHOSNativeVisitor {
 
         const propertiesFromInterface: IDLProperty[] = this.getPropertiesFromInterfaces(clazz)
         propertiesFromInterface.concat(clazz.properties).forEach(property => {
+
+            const accessor = idl.getExtAttribute(property, idl.IDLExtendedAttributes.Accessor)
+            const isGetter = accessor == idl.IDLAccessorAttribute.Getter
+            const isSetter = accessor == idl.IDLAccessorAttribute.Setter
+
             let accessorMethods = []
-            let getterMethod = createMethod(
-                `get${capitalize(property.name)}`, [], property.type, {
-                isStatic: property.isStatic,
-                isAsync: false, isOptional: false, isFree: false})
-            accessorMethods.push(getterMethod)
-            if (!property.isReadonly) {
+
+            if (!isSetter) {
+                let getterMethod = createMethod(
+                    `get${capitalize(property.name)}`, [], property.type, {
+                    isStatic: property.isStatic,
+                    isAsync: false, isOptional: false, isFree: false
+                })
+                accessorMethods.push(getterMethod)
+            }
+            if (!property.isReadonly && !isGetter) {
                 let setterMethod = createMethod(
                     `set${capitalize(property.name)}`,
                     [createParameter("value", property.type)],

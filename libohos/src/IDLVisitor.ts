@@ -1159,15 +1159,15 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     }
 
     serializeAccessor(accessor: ts.GetAccessorDeclaration | ts.SetAccessorDeclaration, nameSuggestion: NameSuggestion | undefined): idl.IDLProperty {
-        const [accessorType, accessorAttr, readonly] = ts.isGetAccessorDeclaration(accessor)
-            ? [accessor.type, idl.IDLAccessorAttribute.Getter, true]
-            : [accessor.parameters[0].type, idl.IDLAccessorAttribute.Setter, false]
+        const [accessorType, accessorAttr] = ts.isGetAccessorDeclaration(accessor)
+            ? [accessor.type, idl.IDLAccessorAttribute.Getter]
+            : [accessor.parameters[0].type, idl.IDLAccessorAttribute.Setter]
         const name = asString(accessor.name)
         nameSuggestion = nameSuggestion?.extend(name)
         return idl.createProperty(
             name,
             this.serializeType(accessorType, nameSuggestion),
-            readonly,
+            false,
             false,
             false, {
             fileName: accessor.getSourceFile().fileName,

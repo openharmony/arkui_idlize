@@ -1,0 +1,26 @@
+package test_props;
+
+[Entity=Interface]
+interface IDLCheckProps {
+
+    attribute number prop;
+
+    readonly attribute number propReadonly;
+
+    [Accessor=Getter]
+    attribute number propWithGetter;
+
+    [Accessor=Setter]
+    attribute number propWithSetter;
+
+    [Accessor=Getter]
+    attribute number propWithGetterAndSetter;
+
+    [Accessor=Setter]
+    attribute number propWithGetterAndSetter;
+
+    void check();
+};
+
+IDLCheckProps testIDLCheckProps(IDLCheckProps arg);
+

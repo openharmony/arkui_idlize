@@ -1036,3 +1036,32 @@ void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr 
         (Opt_Array_String){ INTEROP_TAG_OBJECT, { errors, 1 } }
     );
 }
+
+OH_UNIT_IDLCheckPropsHandle IDLCheckProps_constructImpl() {
+    return {};
+}
+void IDLCheckProps_destructImpl(OH_UNIT_IDLCheckPropsHandle thisPtr) {
+}
+OH_Number IDLCheckProps_getPropImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_Number IDLCheckProps_getPropReadonlyImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_Number IDLCheckProps_getPropWithGetterAndSetterImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_Number IDLCheckProps_getPropWithGetterImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+void IDLCheckProps_setPropImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+}
+void IDLCheckProps_setPropWithGetterAndSetterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+}
+void IDLCheckProps_setPropWithSetterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+}
+void IDLCheckProps_checkImpl(OH_NativePointer thisPtr) {
+}
+OH_UNIT_IDLCheckProps GlobalScope_testIDLCheckPropsImpl(OH_UNIT_IDLCheckProps arg) {
+    return {};
+}

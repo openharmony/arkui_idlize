@@ -345,22 +345,24 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const mField = field.field
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
-            const isReaonly = mField.modifiers.includes(FieldModifier.READONLY)
+            const isReadonly = mField.modifiers.includes(FieldModifier.READONLY)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (isReaonly && (this.printer.language != Language.TS && this.printer.language != Language.CJ)) {
+            if (isReadonly && (this.printer.language != Language.TS && this.printer.language != Language.CJ)) {
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
+                const isGetter = !mField.modifiers.includes(FieldModifier.SET)
+                const isSetter = !isReadonly && !mField.modifiers.includes(FieldModifier.GET)
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
-                    {
+                    isGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
                             this.printer.writeStatement(
                                 this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                             )
                         }
-                    },
-                    {
+                    } : undefined,
+                    isSetter ? {
                         method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
@@ -374,7 +376,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             }
                             this.printer.writeMethodCall(receiver, `set${capitalize(mField.name)}`, [castedNonNullArg])
                         }
-                    }
+                    } : undefined
                 )
             }
         })
@@ -395,6 +397,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             for (const p of decl.properties.filter(p => !p.isStatic)) {
                 const modifiers: FieldModifier[] = []
                 if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
+                const accessor = idl.getExtAttribute(p, idl.IDLExtendedAttributes.Accessor)
+                if (accessor == idl.IDLAccessorAttribute.Getter) modifiers.push(FieldModifier.GET)
+                if (accessor == idl.IDLAccessorAttribute.Setter) modifiers.push(FieldModifier.SET)
                 writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
             }
             for (const m of decl.methods) {

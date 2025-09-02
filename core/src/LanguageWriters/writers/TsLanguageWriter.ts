@@ -245,10 +245,19 @@ export class TSLanguageWriter extends LanguageWriter {
         this.printer.print("}")
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
-        const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         let prefix = this.makeFieldModifiersList(modifiers)
+        const typeName = this.getNodeName(type)
+        if (modifiers?.includes(FieldModifier.GET)) {
+            this.printer.print(`${prefix}get ${name}(): ${typeName}`)
+            return
+        }
+        if (modifiers?.includes(FieldModifier.SET)) {
+            this.printer.print(`${prefix}set ${name}(value: ${typeName})`)
+            return
+        }
+        const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         if (prefix) prefix += " "
-        this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${this.getNodeName(type)}${init}`)
+        this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${typeName}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
         let name = method.name
@@ -291,7 +300,6 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let isStatic = modifiers.includes(FieldModifier.STATIC)
-        let isMutable = !modifiers.includes(FieldModifier.READONLY)
         let containerName = propName.concat("_container")
         if (getter) {
             if(!getter!.op) {
@@ -304,20 +312,19 @@ export class TSLanguageWriter extends LanguageWriter {
                     writer.print(`return ${containerName}`)
                 }
             )
-            if (isMutable) {
-                const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
-                this.writeSetterImplementation(
-                    new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
-                    setter ? setter!.op :
+        }
+        if (setter) {
+            const setSignature = new NamedMethodSignature(idl.IDLVoidType, [propType], [propName])
+            this.writeSetterImplementation(
+                new Method(propName, setSignature, isStatic ? [MethodModifier.STATIC] : []),
+                setter ? setter!.op :
                     (writer) => {
                         writer.print(`${containerName} = ${propName}`)
                     }
-                )
-            }
+            )
         }
-        else {
-            this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType), initExpr)
-        }
+        if (getter || setter) return
+        this.writeFieldDeclaration(propName, propType, modifiers, idl.isOptionalType(propType), initExpr)
     }
     override writeTypeDeclaration(decl: idl.IDLTypedef): void {
         const type = this.getNodeName(decl.type)

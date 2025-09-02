@@ -336,7 +336,9 @@ export enum FieldModifier {
     FINAL,
     VOLATILE,
     INTERNAL,
-    OVERRIDE
+    OVERRIDE,
+    GET,
+    SET,
 }
 
 export enum MethodModifier {

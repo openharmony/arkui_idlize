@@ -59,6 +59,7 @@
                 "test_constructor",
                 "test_materialized_interfaces",
                 "test_return_buffer",
+                "test_props",
 
                 "idlize.stdlib",
                 "idlize.internal"

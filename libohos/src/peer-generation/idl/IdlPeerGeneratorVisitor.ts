@@ -235,8 +235,6 @@ export class IdlPeerProcessor {
             "getFinalizer",
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
         const mFields = propertiesFromInterface.concat(decl.properties)
-            // TODO what to do with setter accessors? Do we need FieldModifier.WRITEONLY? For now, just skip them
-            .filter(it => idl.getExtAttribute(it, idl.IDLExtendedAttributes.Accessor) !== idl.IDLAccessorAttribute.Setter)
             .map(it => this.makeMaterializedField(it))
         const mMethods = decl.methods
             // .concat(...methodsFromInterface) // TODO insert here methods from interfaces
@@ -252,23 +250,29 @@ export class IdlPeerProcessor {
             const idlType = field.type
             const isStatic = field.modifiers.includes(FieldModifier.STATIC)
             const getSignature = new NamedMethodSignature(idl.maybeOptional(field.type, f.isNullableOriginalTypeField), [], [])
-            const sameNamedGetters = mFields.filter(it => it.field.name === f.field.name)
-            const overloadPostfix = sameNamedGetters.length > 1 ? sameNamedGetters.indexOf(f).toString() : ``
-            const getAccessor = new MaterializedMethod(
-                undefined,
-                new PeerMethodSignature(
-                    `get${capitalize(field.name)}${overloadPostfix}`,
-                    idl.getFQName(decl).split('.').concat(`get${capitalize(field.name)}${overloadPostfix}`).join('_'),
-                    [],
-                    idl.maybeOptional(idlType, f.isNullableOriginalTypeField),
-                    isStatic ? undefined : decl,
-                ),
-                fullCName, implemenationParentName, idl.maybeOptional(field.type, f.isNullableOriginalTypeField), false,
-                `get${capitalize(field.name)}`,
-                new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC] : [])]))
-            mMethods.push(getAccessor)
+            // const sameNamedGetters = mFields.filter(it => it.field.name === f.field.name)
             const isReadOnly = field.modifiers.includes(FieldModifier.READONLY)
-            if (!isReadOnly) {
+            const isGetter = field.modifiers.includes(FieldModifier.GET)
+            const isSetter = field.modifiers.includes(FieldModifier.SET)
+            // const overloadPostfix = !isGetter && !isSetter && sameNamedGetters.length > 1 ? sameNamedGetters.indexOf(f).toString() : ``
+            const overloadPostfix = ``
+            if (!isSetter) {
+                const getAccessor = new MaterializedMethod(
+                    undefined,
+                    new PeerMethodSignature(
+                        `get${capitalize(field.name)}${overloadPostfix}`,
+                        idl.getFQName(decl).split('.').concat(`get${capitalize(field.name)}${overloadPostfix}`).join('_'),
+                        [],
+                        idl.maybeOptional(idlType, f.isNullableOriginalTypeField),
+                        isStatic ? undefined : decl,
+                    ),
+                    fullCName, implemenationParentName, idl.maybeOptional(field.type, f.isNullableOriginalTypeField), false,
+                    `get${capitalize(field.name)}`,
+                    new Method(`get${capitalize(field.name)}`, getSignature, [MethodModifier.PRIVATE, ...(isStatic ? [MethodModifier.STATIC] : [])]))
+                mMethods.push(getAccessor)
+            }
+
+            if (!isReadOnly && !isGetter) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.maybeOptional(idlType, f.isNullableOriginalTypeField)], [field.name])
                 const setAccessor = new MaterializedMethod(
                     undefined,
@@ -297,6 +301,11 @@ export class IdlPeerProcessor {
             modifiers.push(FieldModifier.STATIC)
         if (prop.isReadonly)
             modifiers.push(FieldModifier.READONLY)
+        const accessor = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.Accessor)
+        if (accessor == idl.IDLAccessorAttribute.Getter)
+            modifiers.push(FieldModifier.GET)
+        if (accessor == idl.IDLAccessorAttribute.Setter)
+            modifiers.push(FieldModifier.SET)
         return new MaterializedField(
             new Field(prop.name, prop.type, modifiers),
             argConvertor,
