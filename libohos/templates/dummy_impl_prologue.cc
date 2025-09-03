@@ -900,15 +900,15 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         }
         return false;
     }
-    Ark_Int32 GetColorModeImpl()
+    Ark_ColorMode GetColorModeImpl()
     {
         if (needGroupedLog(1))
         {
             string out("getColorMode() \n");
-            out.append("[return 1] \n");
+            out.append("[return Ark_ColorMode::ARK_COLOR_MODE_LIGHT] \n");
             appendGroupedLog(1, out);
         }
-        return 1;
+        return Ark_ColorMode::ARK_COLOR_MODE_LIGHT;
     }
     Ark_Float32 GetFontScaleImpl()
     {
@@ -930,15 +930,15 @@ namespace OHOS::Ace::NG::GeneratedModifier {
         }
         return 1.0;
     }
-    Ark_String GetLayoutDirectionImpl()
+    Ark_LayoutDirection GetLayoutDirectionImpl()
     {
         if (needGroupedLog(1))
         {
             string out("getLayoutDirection() \n");
-            out.append("[return \"LTR\"] \n");
+            out.append("[return Ark_LayoutDirection::ARK_LAYOUT_DIRECTION_LTR] \n");
             appendGroupedLog(1, out);
         }
-        return { "LTR", 3 };
+        return Ark_LayoutDirection::ARK_LAYOUT_DIRECTION_LTR;
     }
     Ark_String GetLanguageCodeImpl()
     {

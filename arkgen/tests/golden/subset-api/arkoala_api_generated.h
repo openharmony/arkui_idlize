@@ -2275,6 +2275,14 @@ typedef struct Opt_ColoringStrategy {
     Ark_Tag tag;
     Ark_ColoringStrategy value;
 } Opt_ColoringStrategy;
+typedef enum Ark_ColorMode {
+    ARK_COLOR_MODE_LIGHT = 0,
+    ARK_COLOR_MODE_DARK = 1,
+} Ark_ColorMode;
+typedef struct Opt_ColorMode {
+    Ark_Tag tag;
+    Ark_ColorMode value;
+} Opt_ColorMode;
 typedef enum Ark_ContentClipMode {
     ARK_CONTENT_CLIP_MODE_CONTENT_ONLY = 0,
     ARK_CONTENT_CLIP_MODE_BOUNDARY = 1,
@@ -2950,6 +2958,15 @@ typedef struct Opt_LaunchMode {
     Ark_Tag tag;
     Ark_LaunchMode value;
 } Opt_LaunchMode;
+typedef enum Ark_LayoutDirection {
+    ARK_LAYOUT_DIRECTION_LTR = 0,
+    ARK_LAYOUT_DIRECTION_RTL = 1,
+    ARK_LAYOUT_DIRECTION_AUTO = 2,
+} Ark_LayoutDirection;
+typedef struct Opt_LayoutDirection {
+    Ark_Tag tag;
+    Ark_LayoutDirection value;
+} Opt_LayoutDirection;
 typedef enum Ark_LayoutMode {
     ARK_LAYOUT_MODE_AUTO = 0,
     ARK_LAYOUT_MODE_VERTICAL = 1,

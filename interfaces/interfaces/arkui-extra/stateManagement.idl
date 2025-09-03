@@ -9,12 +9,24 @@ interface PersistentStorageBackend {
     static void clear();
 };
 
+dictionary ColorMode {
+    number LIGHT = 0;
+    number DARK = 1;
+};
+
+dictionary LayoutDirection {
+    number LTR = 0;
+    number RTL = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+};
+
 [Entity=Class]
 interface EnvironmentBackend {
     static boolean isAccessibilityEnabled();
-    static i32 getColorMode();
+    static ColorMode getColorMode();
     static f32 getFontScale();
     static f32 getFontWeightScale();
-    static String getLayoutDirection();
+    static LayoutDirection getLayoutDirection();
     static String getLanguageCode();
 };
