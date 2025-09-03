@@ -247,14 +247,15 @@ export class TSLanguageWriter extends LanguageWriter {
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let prefix = this.makeFieldModifiersList(modifiers)
         const typeName = this.getNodeName(type)
-        if (modifiers?.includes(FieldModifier.GET)) {
+        const isGetter = modifiers?.includes(FieldModifier.GET)
+        const isSetter = modifiers?.includes(FieldModifier.SET)
+        if (isGetter) {
             this.printer.print(`${prefix}get ${name}(): ${typeName}`)
-            return
         }
-        if (modifiers?.includes(FieldModifier.SET)) {
+        if (isSetter) {
             this.printer.print(`${prefix}set ${name}(value: ${typeName})`)
-            return
         }
+        if (isGetter || isSetter) return
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
         if (prefix) prefix += " "
         this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${typeName}${init}`)

@@ -354,17 +354,15 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
-                const isGetter = !mField.modifiers.includes(FieldModifier.SET)
-                const isSetter = !isReadonly && !mField.modifiers.includes(FieldModifier.GET)
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
-                    isGetter ? {
+                    field.hasGetter() ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
                             this.printer.writeStatement(
                                 this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                             )
                         }
                     } : undefined,
-                    isSetter ? {
+                    field.hasSetter() ? {
                         method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
@@ -396,13 +394,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
                 }
             })
-            for (const p of decl.properties.filter(p => !p.isStatic)) {
-                const modifiers: FieldModifier[] = []
-                if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
-                const accessor = idl.getExtAttribute(p, idl.IDLExtendedAttributes.Accessor)
-                if (accessor == idl.IDLAccessorAttribute.Getter) modifiers.push(FieldModifier.GET)
-                if (accessor == idl.IDLAccessorAttribute.Setter) modifiers.push(FieldModifier.SET)
-                writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
+            for (const field of clazz.fields.filter(f => !f.field.modifiers.includes(FieldModifier.STATIC))) {
+                const f = field.field
+                writer.writeProperty(f.name, writer.language == Language.JAVA ? f.type : maybeOptional(f.type, field.isNullableOriginalTypeField), f.modifiers)
             }
             for (const m of decl.methods) {
                 const overloadInfo = PeerMethodSignature.mangleOverloadedName(m)

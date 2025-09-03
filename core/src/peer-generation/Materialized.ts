@@ -18,7 +18,7 @@ import * as idl from '../idl'
 import { Language } from '../Language'
 import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
 import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
-import { copyMethod, Field, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
+import { copyMethod, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { capitalize } from '../util'
 import { isBuilderClass } from './BuilderClass'
 import { qualifiedName } from './idl/common'
@@ -34,6 +34,21 @@ export class MaterializedField {
         public isNullableOriginalTypeField?: boolean,
         public extraMethodName: string | undefined = undefined
     ) { }
+
+    hasGetter(): boolean {
+        const isGetter = this.field.modifiers.includes(FieldModifier.GET)
+        const isSetter = this.field.modifiers.includes(FieldModifier.SET)
+        const isAccessor = isGetter || isSetter
+        return !isAccessor || isGetter
+    }
+
+    hasSetter(): boolean {
+        const isReadonly = this.field.modifiers.includes(FieldModifier.READONLY)
+        const isGetter = this.field.modifiers.includes(FieldModifier.GET)
+        const isSetter = this.field.modifiers.includes(FieldModifier.SET)
+        const isAccessor = isGetter || isSetter
+        return (!isAccessor && !isReadonly) || isSetter
+    }
 }
 
 export class MaterializedMethod extends PeerMethod {
