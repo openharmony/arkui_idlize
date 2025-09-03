@@ -222,6 +222,15 @@ class ModifiersFileVisitor {
             attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
         })
 
+        const topmostParent = expandComponentWithSupers(this.library, component.attributeDeclaration).at(-1)!
+        const isTopmost = topmostParent === componentAttribute
+        const implementsClauses = [componentAttribute.name]
+        if (isTopmost) {
+            implementsClauses.push(`AttributeModifier<${componentAttribute.name}>`)
+        } else {
+            printer.print(`// panda bug #29363: must implement AttributeModifier<${componentAttribute.name}>, but crashes in AOT or in runtime`)
+        }
+
         printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
             writer.print("_instanceId: number = -1;")
 
@@ -234,11 +243,16 @@ class ModifiersFileVisitor {
             )
 
             writer.print(`isUpdater: () => boolean = () => false`)
-            writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
+            let manglePostfix = ""
+            if (!isTopmost) {
+                writer.print("// mangled because of panda bug #29363")
+                manglePostfix = `_${componentAttribute.name}`
+            }
+            writer.print(`applyNormalAttribute${manglePostfix}(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyPressedAttribute${manglePostfix}(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyFocusedAttribute${manglePostfix}(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyDisabledAttribute${manglePostfix}(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applySelectedAttribute${manglePostfix}(instance: ${componentAttribute.name}): void { }`)
 
             attributeTypes.forEach(attribute => {
                 writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
@@ -387,7 +401,7 @@ class ModifiersFileVisitor {
             writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                 writer.writeStatement(writer.makeThrowError("Not implemented"))
             })
-        }, parentSet, [`${componentAttribute.name}`, `AttributeModifier<${componentAttribute.name}>`])
+        }, parentSet, implementsClauses)
 
         return [{
             collector: this.printImports(peer),
