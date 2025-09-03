@@ -729,6 +729,8 @@ export function getNamespacesPathFor(node: IDLNode): IDLNamespace[] {
     return result
 }
 
+const nodesWithoutIDLFiles = new Set<string>()
+
 export function getFileFor(node: IDLNode): IDLFile | undefined {
     let iterator: IDLNode | undefined = node
     while (iterator) {
@@ -736,7 +738,11 @@ export function getFileFor(node: IDLNode): IDLFile | undefined {
             return iterator
         iterator = iterator.parent
     }
-    console.warn(`Node ${getQualifiedName(node, "namespace.name")} does not have IDLFile in parents`)
+    const name = getQualifiedName(node, "namespace.name")
+    if (!nodesWithoutIDLFiles.has(name)) {
+        console.warn(`Node ${name} does not have IDLFile in parents`)
+        nodesWithoutIDLFiles.add(name)
+    }
     return undefined
 }
 
