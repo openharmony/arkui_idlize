@@ -45,8 +45,7 @@ pg cj:run:
     - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
-    - env
-    - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run check:subset:cj
+    - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run all:subset:cj
 
 arkgen TS sdk:
   stage: test
