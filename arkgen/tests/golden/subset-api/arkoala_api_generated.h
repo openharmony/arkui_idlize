@@ -349,6 +349,7 @@ typedef struct EventTargetInfoPeer* Ark_EventTargetInfo;
 typedef struct Opt_EventTargetInfo Opt_EventTargetInfo;
 typedef struct Ark_FlexAttribute Ark_FlexAttribute;
 typedef struct Opt_FlexAttribute Opt_FlexAttribute;
+typedef struct Opt_Float64 Opt_Float64;
 typedef struct Ark_FormComponentAttribute Ark_FormComponentAttribute;
 typedef struct Opt_FormComponentAttribute Opt_FormComponentAttribute;
 typedef struct GestureGroupInterfacePeer GestureGroupInterfacePeer;
@@ -797,8 +798,6 @@ typedef struct AsyncCallback_CustomSpanMeasureInfo_CustomSpanMetrics AsyncCallba
 typedef struct Opt_AsyncCallback_CustomSpanMeasureInfo_CustomSpanMetrics Opt_AsyncCallback_CustomSpanMeasureInfo_CustomSpanMetrics;
 typedef struct AsyncCallback_TextMenuItem_TextRange_Boolean AsyncCallback_TextMenuItem_TextRange_Boolean;
 typedef struct Opt_AsyncCallback_TextMenuItem_TextRange_Boolean Opt_AsyncCallback_TextMenuItem_TextRange_Boolean;
-typedef struct ButtonTriggerClickCallback ButtonTriggerClickCallback;
-typedef struct Opt_ButtonTriggerClickCallback Opt_ButtonTriggerClickCallback;
 typedef struct Callback_Area_Area_Void Callback_Area_Area_Void;
 typedef struct Opt_Callback_Area_Area_Void Opt_Callback_Area_Area_Void;
 typedef struct Callback_Array_TextMenuItem_Void Callback_Array_TextMenuItem_Void;
@@ -1009,12 +1008,8 @@ typedef struct OnContentScrollCallback OnContentScrollCallback;
 typedef struct Opt_OnContentScrollCallback Opt_OnContentScrollCallback;
 typedef struct OnDidChangeCallback OnDidChangeCallback;
 typedef struct Opt_OnDidChangeCallback Opt_OnDidChangeCallback;
-typedef struct OnMoveHandler OnMoveHandler;
-typedef struct Opt_OnMoveHandler Opt_OnMoveHandler;
 typedef struct OnPasteCallback OnPasteCallback;
 typedef struct Opt_OnPasteCallback Opt_OnPasteCallback;
-typedef struct OnScrollCallback OnScrollCallback;
-typedef struct Opt_OnScrollCallback Opt_OnScrollCallback;
 typedef struct OnScrollEdgeCallback OnScrollEdgeCallback;
 typedef struct Opt_OnScrollEdgeCallback Opt_OnScrollEdgeCallback;
 typedef struct OnScrollFrameBeginCallback OnScrollFrameBeginCallback;
@@ -4112,6 +4107,10 @@ typedef struct Opt_FlexAttribute {
     Ark_Tag tag;
     Ark_FlexAttribute value;
 } Opt_FlexAttribute;
+typedef struct Opt_Float64 {
+    Ark_Tag tag;
+    Ark_Float64 value;
+} Opt_Float64;
 typedef struct Ark_FormComponentAttribute {
     /* kind: Interface */
     void *handle;
@@ -5784,16 +5783,6 @@ typedef struct Opt_AsyncCallback_TextMenuItem_TextRange_Boolean {
     Ark_Tag tag;
     AsyncCallback_TextMenuItem_TextRange_Boolean value;
 } Opt_AsyncCallback_TextMenuItem_TextRange_Boolean;
-typedef struct ButtonTriggerClickCallback {
-    /* kind: Callback */
-    Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number xPos, const Ark_Number yPos);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number xPos, const Ark_Number yPos);
-} ButtonTriggerClickCallback;
-typedef struct Opt_ButtonTriggerClickCallback {
-    Ark_Tag tag;
-    ButtonTriggerClickCallback value;
-} Opt_ButtonTriggerClickCallback;
 typedef struct Callback_Area_Area_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -6844,16 +6833,6 @@ typedef struct Opt_OnDidChangeCallback {
     Ark_Tag tag;
     OnDidChangeCallback value;
 } Opt_OnDidChangeCallback;
-typedef struct OnMoveHandler {
-    /* kind: Callback */
-    Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to);
-} OnMoveHandler;
-typedef struct Opt_OnMoveHandler {
-    Ark_Tag tag;
-    OnMoveHandler value;
-} Opt_OnMoveHandler;
 typedef struct OnPasteCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -6864,16 +6843,6 @@ typedef struct Opt_OnPasteCallback {
     Ark_Tag tag;
     OnPasteCallback value;
 } Opt_OnPasteCallback;
-typedef struct OnScrollCallback {
-    /* kind: Callback */
-    Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number scrollOffset, Ark_ScrollState scrollState);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number scrollOffset, Ark_ScrollState scrollState);
-} OnScrollCallback;
-typedef struct Opt_OnScrollCallback {
-    Ark_Tag tag;
-    OnScrollCallback value;
-} Opt_OnScrollCallback;
 typedef struct OnScrollEdgeCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -9549,8 +9518,8 @@ typedef struct Opt_DotIndicator {
 typedef struct Ark_DragPreviewOptions {
     /* kind: Interface */
     Opt_Union_DragPreviewMode_Array_DragPreviewMode mode;
-    Opt_CustomObject modifier;
     Opt_Union_Boolean_Number numberBadge;
+    Opt_CustomObject sizeChangeEffect;
 } Ark_DragPreviewOptions;
 typedef struct Opt_DragPreviewOptions {
     Ark_Tag tag;
@@ -11858,7 +11827,7 @@ typedef struct GENERATED_ArkUICommonMethodModifier {
                         const Opt_Callback_ClickEvent_Void* event);
     void (*setOnClick1)(Ark_NativePointer node,
                         const Opt_Callback_ClickEvent_Void* event,
-                        const Opt_Number* distanceThreshold);
+                        const Opt_Float64* distanceThreshold);
     void (*setOnHover)(Ark_NativePointer node,
                        const Opt_Callback_Boolean_HoverEvent_Void* event);
     void (*setOnAccessibilityHover)(Ark_NativePointer node,
@@ -15242,6 +15211,7 @@ typedef struct GENERATED_ArkUIGlobalScopeAccessor {
     Ark_Number (*px2fp)(const Ark_Number* value);
     Ark_Number (*px2lpx)(const Ark_Number* value);
     Ark_Number (*px2vp)(const Ark_Number* value);
+    void (*toIncludeDouble)(const Opt_Float64* value);
     Ark_Number (*vp2px)(const Ark_Number* value);
 } GENERATED_ArkUIGlobalScopeAccessor;
 

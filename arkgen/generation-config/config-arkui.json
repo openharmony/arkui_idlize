@@ -32,6 +32,7 @@
                 "ohos.promptAction",
                 "ohos.window",
                 "ohos.web.webview",
+                "graphics3d.Scene",
 
                 "idlize.stdlib",
                 "idlize.internal"

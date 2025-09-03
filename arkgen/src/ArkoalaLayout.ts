@@ -175,7 +175,7 @@ export class ArkTsLayout extends CommonLayoutBase {
         if (moduleImport) return moduleImport
 
         let customPath: string | undefined
-        if (packageName && (customPath = customPathSuggestion(packageName))) {
+        if (packageName && idl.isInCurrentModule(target.node) && (customPath = customPathSuggestion(packageName))) {
             return customPath
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName

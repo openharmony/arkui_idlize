@@ -1258,6 +1258,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             const typeArgs = type.part?.typeParams?.params.map(it => this.serializeType(it))
             // special cases //
             switch (name) {
+                case 'Any': return idl.IDLAnyType
                 case 'string': return idl.IDLStringType
                 case 'Promise': return idl.createContainerType('Promise', typeArgs ?? [] /* better check here? */)
                 case 'Record': return idl.createContainerType('record', typeArgs ?? [] /* better check here? */)

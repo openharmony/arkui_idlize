@@ -16,23 +16,33 @@
 import { ConfigTypeInfer, D } from "@idlizer/core";
 import { join, resolve } from "node:path";
 
+export const Ui2AbcConfigSchema = D.object({
+    baseConfig: D.maybe(D.string()),
+    absoluteSdkDir: D.string(),
+    outDir: D.string(),
+    rewriteArkConfigPrefix: D.default(D.map(D.string(), D.string()), new Map<string, string>()),
+    rewriteArkConfigPath: D.default(D.map(D.string(), D.array(D.string())), new Map<string, string[]>()),
+    rewriteArkConfigPathIgnore: D.default(D.array(D.string()), new Array<string>()),
+})
 export const AppConfigSchema = D.object({
     target: D.default(D.array(D.string()), []),
     exclude: D.default(D.array(D.string()), []),
     banned: D.default(D.array(D.string()), []),
-    rewriteArkConfigPath: D.default(D.map(D.string(), D.array(D.string())), new Map<string, string[]>()),
     main: D.maybe(D.object({
         additionalPackages: D.default(D.array(D.string()), [])
     })),
     tsLikePackages: D.default(D.map(D.string(), D.string()), new Map<string, string>),
+    ui2abc: Ui2AbcConfigSchema,
 })
 export type AppConfigType = ConfigTypeInfer<typeof AppConfigSchema>
+export type Ui2AbcConfigType = ConfigTypeInfer<typeof Ui2AbcConfigSchema>
 
 export interface AppOptions {
     target: string[],
 }
 
 export type AppConfig = AppOptions & AppConfigType
+export type Ui2AbcConfig = Ui2AbcConfigType
 
 export const OUT_DIR = resolve(process.cwd(), 'out')
 export const SUMMARY_PATH = join(OUT_DIR, 'summary.json')

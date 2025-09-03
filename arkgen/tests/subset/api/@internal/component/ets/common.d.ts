@@ -67,10 +67,6 @@ declare interface LayoutChild {
     layout(childLayoutInfo: LayoutInfo): void
 }
 
-declare interface Callback<T, V = void> {
-  (data: T): V;
-}
-
 declare interface BaseEvent {
     source: SourceType;
     axisHorizontal?: number;
@@ -576,6 +572,8 @@ declare interface Rectangle {
 
     height?: Length;
 }
+
+function toIncludeDouble(value?: double)
 
 declare interface RectResult {
     x: number;

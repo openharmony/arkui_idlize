@@ -115,3 +115,5 @@ interface BusinessErrorInterface {
     attribute i32 code;
     attribute T data;
 };
+
+callback PageMapNodeBuilder = pointer (pointer parentNode, String name, (Object or idlize.stdlib.Null or undefined) param);

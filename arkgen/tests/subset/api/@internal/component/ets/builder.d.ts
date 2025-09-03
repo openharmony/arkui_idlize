@@ -1,0 +1,1 @@
+declare type PageMapBuilder = (name: string, param: Object | undefined) => void

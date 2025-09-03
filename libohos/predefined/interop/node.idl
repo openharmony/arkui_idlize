@@ -1,6 +1,6 @@
 package idlize.internal.interop;
 
-interface Node {
+interface NativeModuleNode {
     pointer CreateNode(i32 node_t, i32 arg0, i32 arg1);
     pointer GetNodeFinalizer();
     pointer GetNodeByViewStack();

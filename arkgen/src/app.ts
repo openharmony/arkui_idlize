@@ -244,6 +244,8 @@ export function arkgen(argv:string[]) {
                             verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
                         })
                     }
+                    idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
+                    idlLibrary.files.forEach(inplaceNullsAsUndefined)
                     fillSyntheticDeclarations(idlLibrary)
                     idlLibrary.enableCache()
                     const peerProcessor = new IdlPeerProcessor(idlLibrary)

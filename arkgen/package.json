@@ -100,7 +100,7 @@
     "build:sdk:ts": "cd out/ets-ts-peers && tsc -p . && rollup -c",
     "build-native:sdk:ts": "cd ./native && meson setup -Dsource_set=ets-ts-peers build-sdk-ts && meson compile --verbose -C build-sdk-ts && meson install -C build-sdk-ts",
     "exec:sdk:ts": "node out/ets-ts-peers/lib/main.js",
-    "all:sdk:ts": "npm run compile && npm run compile -C ../dtsgen && npm run compile -C ../ohosgen && npm run setup:sdk:ts && npm run gen-idl:sdk:ts && npm run gen:sdk:ts && npm run gen-modules:sdk:ts && npm run build:sdk:ts && npm run build-native:sdk:ts && npm run exec:sdk:ts",
+    "all:sdk:ts": "npm run compile && npm run compile -C ../dtsgen && npm run compile -C ../ohosgen && npm run compile -C ../etsgen && npm run setup:sdk:ts && npm run gen-idl:sdk:ts && npm run gen:sdk:ts && npm run gen-modules:sdk:ts && npm run build:sdk:ts && npm run build-native:sdk:ts && npm run exec:sdk:ts",
     "TS SUBSET": "#----------------------",
     "setup:subset:ts": "npm run setup-out -C .. -- --out arkgen/out/ts-subset --template ts_subset",
     "gen-idl:subset:ts": "node ../dtsgen --dts2idl --base-dir ./tests/subset/api --input-dir ./tests/subset/api/@internal/component/ets,./tests/subset/api,./tests/subset/api/arkui,./tests/subset/api/global --output-dir ./out/ts-subset/generated/idl --options-file ./generation-config/config.json",

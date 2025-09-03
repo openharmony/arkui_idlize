@@ -519,7 +519,7 @@ export function collectPredefinedNativeModuleEntries(library: PeerLibrary, modul
         case NativeModule.Test:
             return interopDeclarations.filter(it => it.name === "Test")
         case NativeModule.ArkUI:
-            return interopDeclarations.filter(it => it.name === "Node")
+            return interopDeclarations.filter(it => it.name === "NativeModuleNode")
         default:
             throw new Error(`NativeModuleType.${module} is not predefined`)
     }

@@ -58,6 +58,7 @@ export function collectUniqueCallbacks(library: LibraryInterface, options?: { tr
         .filter(idl.isCallback)
         .filter(it => !idl.hasTypeParameters(it))
         .filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+        .filter(it => !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.TransformOnSerialize))
         .forEach(it => {
             if (!uniqueCallbacksNames.has(it.name)) {
                 uniqueCallbacksNames.add(it.name)

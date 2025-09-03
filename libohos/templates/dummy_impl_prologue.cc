@@ -844,7 +844,7 @@ namespace OHOS::Ace::NG::GeneratedModifier {
     }
     void SetOnClick1Impl(Ark_NativePointer node,
                       const Opt_Callback_ClickEvent_Void* event,
-                      const Opt_Number* distanceThreshold)
+                      const Opt_Float64* distanceThreshold)
     {
         RegisterOnClick(node, &event->value);
         if (!needGroupedLog(1)) {

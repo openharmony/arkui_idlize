@@ -30,7 +30,7 @@ export function ets2idl({
     configPath
 }: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
-    const files = scan(sdkApiPath)
+    const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
     etsgen(
         flat([
             '--ets2idl',

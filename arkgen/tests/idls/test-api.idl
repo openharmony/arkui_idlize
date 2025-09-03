@@ -39,3 +39,4 @@ dictionary LayoutDirection {
     [OriginalEnumMemberName=Auto]
     number AUTO = 2;
 };
+callback PageMapNodeBuilder = pointer (pointer parentNode, String name, (Object or idlize.stdlib.Null or undefined) param);

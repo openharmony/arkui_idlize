@@ -433,6 +433,10 @@
         {
             "from": "ohos.base.BusinessError",
             "to": "arkui.component.idlize.BusinessErrorInterface"
+        },
+        {
+            "from": "arkui.component.builder.PageMapBuilder",
+            "to": "arkui.component.idlize.PageMapNodeBuilder"
         }
     ],
     "forceCallback": {
@@ -454,7 +458,10 @@
     },
     "forceResource": [
         "ContentModifier",
-        "ComponentContent"
+        "ComponentContent",
+        "ComponentContentBase",
+        "ImageModifier",
+        "ExtendableComponent"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -580,6 +587,7 @@
             "SyncedPropertyTwoWay",
             "AttributeModifier",
             "AttributeUpdater",
+            "Initializer",
             "AbstractProperty",
             "SubscribaleAbstract",
             "IPropertySubscriber",
@@ -596,7 +604,10 @@
             "GestureModifier",
             "ItemGeneratorFunc",
             "KeyGeneratorFunc",
-            "WrappedBuilder"
+            "WrappedBuilder",
+            "ExtendableComponent",
+            "LifeCycle",
+            "makeBuilderParameterProxy"
         ],
         "ignoreEntry": [
             "Optional",

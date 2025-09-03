@@ -14933,42 +14933,9 @@ declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').Sy
  * @since 12
  */
 declare interface DragPreviewOptions {
-  /**
-  * Drag preview mode.
-  *
-  * @type { ?DragPreviewMode }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @since 11
-  */
- /**
-  * Drag preview mode.
-  *
-  * @type { ?(DragPreviewMode | Array<DragPreviewMode>) }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  mode?: DragPreviewMode | Array<DragPreviewMode>;
-
-  /**
-  * Drag preview modifier.
-  *
-  * @type { ?ImageModifier }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  modifier?: ImageModifier;
-
-  /**
-  * The flag for number showing.
-  *
-  * @type { ?(boolean | number) }
-  * @syscap SystemCapability.ArkUI.ArkUI.Full
-  * @atomicservice
-  * @since 12
-  */
-  numberBadge?: boolean | number;
+    mode?: DragPreviewMode | Array<DragPreviewMode>;
+    numberBadge?: boolean | number;
+    sizeChangeEffect?: DraggingSizeChangeEffect;
 }
 
 /**
@@ -16594,7 +16561,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  onClick(event: Callback<ClickEvent>, distanceThreshold: number): T;
+  onClick(event: Callback<ClickEvent> | undefined, distanceThreshold: double | undefined): T;
 
   /**
    * Trigger a hover event.
@@ -22596,6 +22563,8 @@ declare interface RectResult {
    */
   height: number;
 }
+
+function toIncludeDouble(value?: double)
 
 /**
  * CaretOffset info.

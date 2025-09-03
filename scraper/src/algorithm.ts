@@ -15,8 +15,8 @@
 
 import { Language, NativeModuleType, PeerLibrary, throwException, parseIDLFile } from "@idlizer/core";
 import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, OUT_DIR, SUMMARY_PATH } from "./shared";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { ADDITIONAL_CONFIG_DIR, AppConfig, BASIC_CONFIG_PATH, BASIC_MODULES_CONFIG_PATH, CONFIG_PATH, OUT_DIR, SUMMARY_PATH, Ui2AbcConfig } from "./shared";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
 import { scan } from "./utils";
 
@@ -287,33 +287,6 @@ rule ohosgen
     writeFileSync(join(OUT_DIR, 'go-additional.build.ninja'), additionalStartScript, 'utf-8')
 
     ///////
-
-    // arkui
-    const arkuiGeneratedDir = join(OUT_DIR, 'generated')
-    const arkuiGeneratedPath = (...chunks:string[]) => join(arkuiGeneratedDir, 'sig', 'arkoala-arkts', 'arkui', 'generated', ...chunks)
-    const externalDir = resolve(process.cwd(), '..', 'external')
-    const externalPath = (...chunks:string[]) => join(externalDir, ...chunks)
-    const arkuiConfig: any = {
-        compilerOptions: {
-            package: "idlize.test",
-            baseUrl: arkuiGeneratedPath(),
-            outDir:  join(arkuiGeneratedDir, 'abc'),
-            paths: {
-                "#components": ["./framework/arkts"],
-                "#handwritten": ["./handwritten"],
-                "@arkoala/arkui": ["./framework"],
-                "@koalaui/builderLambda": ["./annotations"],
-                "@koalaui/interop": [externalPath("interop", "src", "arkts")],
-                "@koalaui/common": [externalPath("incremental", "common", "src")],
-                "@koalaui/compat": [externalPath("incremental", "compat", "src", "arkts")],
-                "@koalaui/runtime": [externalPath("incremental", "runtime", "src")],
-                "@koalaui/runtime/annotations": [externalPath("incremental", "runtime", "annotations")],
-            }
-        },
-        include: [
-            relative(OUT_DIR, arkuiGeneratedPath('**', '*.ets'))
-        ],
-    }
     // const SDK_DIR = resolve('..', 'sdk-patched-arkts', 'api')
     // result.external.forEach(record => {
     //     if (record.packageName === '') {
@@ -324,19 +297,7 @@ rule ohosgen
     //     const frontendFilePath = join(SDK_DIR, pureFilePath)
     //     arkuiConfig.compilerOptions.paths[findTsLikePackage(record, options)] = [frontendFilePath + '.d.ets']
     // })
-    scanAbsolutePathDir().forEach(([packageName, fileName]) => {
-        let value = [fileName]
-        if (options.rewriteArkConfigPath.has(packageName)) {
-            value = options.rewriteArkConfigPath.get(packageName)!
-        }
-        arkuiConfig.compilerOptions.paths[packageName] = value
-    })
-
-    writeFileSync(
-        join(OUT_DIR, 'ui2abcconfig.json'),
-        JSON.stringify(arkuiConfig, null, 2),
-        'utf-8'
-    )
+    createUi2abcConfig(CONFIG_PATH, options.ui2abc)
 
     // modules
     const arktsconfigBase: any = {
@@ -394,11 +355,10 @@ function findRootFiles(library: IDLFile[], targets: string[], options:AppConfig)
     })
 }
 
-const ABSOLUTE_PATH_DIR = resolve('..', 'absolute-sdk-patched-arkts', 'api')
-function scanAbsolutePathDir() {
-    const fileNames = scan(ABSOLUTE_PATH_DIR)
+function scanAbsolutePathDir(absoluteSdkDir: string) {
+    const fileNames = scan(absoluteSdkDir)
     return fileNames.map((fileName): [string, string] => {
-        let packageName = relative(ABSOLUTE_PATH_DIR, fileName)
+        let packageName = relative(absoluteSdkDir, fileName)
             .replaceAll('.d.ets', '')
             .split(sep)
             .filter(p => p)
@@ -409,4 +369,40 @@ function scanAbsolutePathDir() {
 
         return [packageName, fixedFileName]
     })
+}
+
+function createUi2abcConfig(configPath: string, options: Ui2AbcConfig) {
+    const absoluteSdkDir = resolve(dirname(configPath), options.absoluteSdkDir, 'api')
+    const baseConfig = options.baseConfig ? resolve(dirname(configPath), options.baseConfig) : undefined
+    const outDir = resolve(dirname(configPath), options.outDir)
+
+    let arkuiConfig: any = baseConfig ? JSON.parse(readFileSync(baseConfig, { encoding: 'utf-8'})) : {}
+    if (!("compilerOptions" in arkuiConfig))
+        arkuiConfig.compilerOptions = {}
+    if (!("paths" in arkuiConfig.compilerOptions))
+        arkuiConfig.compilerOptions.paths = {}
+
+    scanAbsolutePathDir(absoluteSdkDir).forEach(([packageName, fileName]) => {
+        let value = [relative(outDir, fileName)]
+        for (let [prefix, paths] of options.rewriteArkConfigPath.entries()) {
+            if (packageName.startsWith(prefix) && !options.rewriteArkConfigPathIgnore.some(it => packageName.startsWith(it))) {
+                const relativePath = packageName.substring(prefix.length + 1).split(".").join("/")
+                if (relativePath.length > 0) {
+                    paths = paths.map(it => './' + join(it, relativePath))
+                }
+                value = paths
+            }
+        }
+        if (options.rewriteArkConfigPrefix.has(packageName)) {
+            const prefix = options.rewriteArkConfigPrefix.get(packageName)!
+            arkuiConfig.compilerOptions.paths[prefix] = value
+        }
+        arkuiConfig.compilerOptions.paths[packageName] = value
+    })
+
+    writeFileSync(
+        join(outDir, 'ui2abcconfig.json'),
+        JSON.stringify(arkuiConfig, null, 2),
+        'utf-8'
+    )
 }
