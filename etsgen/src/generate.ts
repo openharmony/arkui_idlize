@@ -1354,7 +1354,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const [[parameters, returnType], typeParams] = this.useTypeParametersTrap(() => {
             const parameters = type.params.map(it => {
                 let param = it as arkts.ETSParameterExpression
-                return idl.createParameter(param.name, this.serializeType(param.typeAnnotation!), param.isOptional, param.isRestParameter)
+                let paramName = param.name
+                if (paramName === '=t') {
+                    paramName = 'this'
+                }
+                return idl.createParameter(paramName, this.serializeType(param.typeAnnotation!), param.isOptional, param.isRestParameter)
             })
             const returnType = this.serializeType(type.returnType)
             return [parameters, returnType] as const
