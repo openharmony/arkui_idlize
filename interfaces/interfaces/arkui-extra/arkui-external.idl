@@ -66,12 +66,6 @@ interface CommonShape {
     CommonShape fill(ResourceColor color);
     CommonShape position(Position position);
 };
-[Entity=Class]
-interface BaseShape {
-    BaseShape width(Length width);
-    BaseShape height(Length height);
-    BaseShape size(SizeOptions size);
-};
 
 [Entity=Class]
 interface GlobalScope_ohos_font {

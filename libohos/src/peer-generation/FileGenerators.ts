@@ -14,7 +14,7 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, CppConvertor, PrimitiveTypesInstance } from "@idlizer/core"
+import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, CppConvertor, PrimitiveTypesInstance, LibraryInterface } from "@idlizer/core"
 import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
 import { CppLanguageWriter, LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
@@ -120,8 +120,8 @@ export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
     return applyBridgeTemplate(customApi, "bridge_custom_prologue.h")
 }
 
-export function appendModifiersCommonPrologue(): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function appendModifiersCommonPrologue(library: LibraryInterface): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     let body = readTemplate('impl_prologue.cc')
 
     body = body.replaceAll("%CPP_PREFIX%", peerGeneratorConfiguration().cppPrefix)
@@ -140,8 +140,8 @@ export function getNodeTypes(library: PeerLibrary): string[] {
     return [...peerGeneratorConfiguration().components.customNodeTypes, ...components.sort()]
 }
 
-export function completeModifiersContent(content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function completeModifiersContent(library: LibraryInterface, content: PrinterLike, basicVersion: number, fullVersion: number, extendedVersion: number): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
     epilogue = epilogue
@@ -165,7 +165,7 @@ ${lines}
 `
 }
 
-export function dummyImplementations(modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
+export function dummyImplementations(library: LibraryInterface, modifiers: LanguageWriter, accessors: LanguageWriter, basicVersion: number, fullVersion: number, extendedVersion: number, apiGeneratedFile: string): LanguageWriter {
     let prologue = readTemplate('dummy_impl_prologue.cc')
     let epilogue = readTemplate('dummy_impl_epilogue.cc')
 
@@ -178,7 +178,7 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
         .replaceAll(`%ARKUI_FULL_API_VERSION_VALUE%`, fullVersion.toString())
         .replaceAll(`%ARKUI_EXTENDED_NODE_API_VERSION_VALUE%`, extendedVersion.toString())
 
-    let result = createLanguageWriter(Language.CPP)
+    let result = createLanguageWriter(Language.CPP, library)
     result.writeLines(prologue)
     result.print("namespace OHOS::Ace::NG::GeneratedModifier {")
     result.pushIndent()
@@ -190,8 +190,8 @@ export function dummyImplementations(modifiers: LanguageWriter, accessors: Langu
     return result
 }
 
-export function modifierStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function modifierStructList(library: LibraryInterface, lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUINodeModifiers* ${peerGeneratorConfiguration().cppPrefix}GetArkUINodeModifiers()`)
     result.print("{")
     result.pushIndent()
@@ -208,8 +208,8 @@ export function modifierStructList(lines: LanguageWriter): LanguageWriter {
     return result
 }
 
-export function accessorStructList(lines: LanguageWriter): LanguageWriter {
-    let result = createLanguageWriter(Language.CPP)
+export function accessorStructList(library: LibraryInterface, lines: LanguageWriter): LanguageWriter {
+    let result = createLanguageWriter(Language.CPP, library)
     result.print(`const ${peerGeneratorConfiguration().cppPrefix}ArkUIAccessors* ${peerGeneratorConfiguration().cppPrefix}GetArkUIAccessors()`)
     result.print("{")
     result.pushIndent()

@@ -10,7 +10,7 @@ const packagesToCompile = all_packages.concat(
     new Package(path.join(IDLIZE_HOME, "external/ui2abc/libarkts"))
 )
 const preCompileScripts = {
-    "@koalaui/libarkts": "npm run reinstall:regenerate"
+    // "@koalaui/libarkts": "npm run reinstall:regenerate"
 }
 
 function computePackagesDependencies(packages) {

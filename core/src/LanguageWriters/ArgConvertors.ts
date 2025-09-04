@@ -43,9 +43,13 @@ import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { PeerMethodSignature } from "../peer-generation/PeerMethod";
 import { isInExternalModule } from "../peer-generation/modules";
+import { findTopLevelConflicts, isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations";
+import { InteropArgConvertor } from "./convertors/InteropConvertors";
 
-export function getSerializerName(declaration:idl.IDLEntry) {
-    return `${idl.getQualifiedName(declaration, "namespace.name").split('.').join('_')}_serializer`;
+export function getSerializerName(library: LibraryInterface, language: Language, declaration:idl.IDLEntry) {
+    const qualifier = isTopLevelConflicted(library, language, declaration)
+        ? "package.namespace.name" : "namespace.name"
+    return `${idl.getQualifiedName(declaration, qualifier).split('.').join('_')}_serializer`;
 }
 
 export interface ArgConvertor {
@@ -371,8 +375,8 @@ export class NumberConvertor extends BaseArgConvertor {
 }
 
 export class NumericConvertor extends BaseArgConvertor {
-    private readonly interopNameConvertor = new CppNameConvertor(createEmptyReferenceResolver())
-    constructor(param: string, type: idl.IDLPrimitiveType) {
+    private readonly interopNameConvertor = new CppNameConvertor(this.library)
+    constructor(protected library: LibraryInterface, param: string, type: idl.IDLPrimitiveType) {
         // check numericPrimitiveTypes.include(type)
         super(type, [RuntimeType.NUMBER], false, false, param)
     }
@@ -695,14 +699,14 @@ export class InterfaceConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        const accessor = getSerializerName(this.declaration)
+        const accessor = getSerializerName(this.library, writer.language, this.declaration)
         writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         return writer.makeStatement(
             writer.makeStaticMethodCall(accessor, 'write', [writer.makeString(`${param}Serializer`), writer.makeString(writer.escapeKeyword(value))])
         )
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const accessor = getSerializerName(this.declaration)
+        const accessor = getSerializerName(this.library, writer.language, this.declaration)
         writer.addFeature(accessor, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         return assigneer(writer.makeStaticMethodCall(accessor, 'read', [writer.makeString(deserializerName)]))
     }
@@ -1193,9 +1197,10 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         super(idl.createReferenceType(declaration), [RuntimeType.OBJECT], false, false, param)
     }
     convertorArg(param: string, writer: LanguageWriter): string {
+        const nameConvertor = this.library.createTypeNameConvertor(Language.CPP)
         switch (writer.language) {
             case Language.CPP:
-                return `static_cast<${generatorTypePrefix()}${qualifiedName(this.declaration, "_", "namespace.name")}>(${param})`
+                return `static_cast<${nameConvertor.convert(this.declaration)}>(${param})`
             case Language.JAVA:
             case Language.CJ:
                 return `MaterializedBase.toPeerPtr(${writer.escapeKeyword(param)})`
@@ -1209,7 +1214,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
     }
 
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const accessorRoot = getSerializerName(this.declaration)
+        const accessorRoot = getSerializerName(this.library, printer.language, this.declaration)
         printer.addFeature(accessorRoot, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         return printer.makeStatement(
             printer.makeStaticMethodCall(
@@ -1219,7 +1224,7 @@ export class MaterializedClassConvertor extends BaseArgConvertor {
         )
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const accessorRoot = getSerializerName(this.declaration)
+        const accessorRoot = getSerializerName(this.library, writer.language, this.declaration)
         writer.addFeature(accessorRoot, this.library.layout.resolve({ node: this.declaration, role: LayoutNodeRole.SERIALIZER }))
         const readStatement = writer.makeCast(
             writer.makeStaticMethodCall(accessorRoot, "read", [writer.makeString(deserializerName)]),
@@ -1307,8 +1312,10 @@ export class CallbackConvertor extends BaseArgConvertor {
                     new StringExpression(`${value}.callSync`), idl.IDLPointerType, { unsafe: true })]))
             ], false)
         }
-        if (this.isTransformed)
-            value = `CallbackTransformer.transformFrom${this.library.getInteropName(this.decl)}(${value})`
+        if (this.isTransformed) {
+            const convertor = this.library.createTypeNameConvertor(Language.CPP)
+            value = `CallbackTransformer.transformFrom${convertor.convert(this.decl)}(${value})`
+        }
         return writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, `holdAndWriteCallback`, [writer.makeString(`${value}`)]))
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter, useSyncVersion: boolean = true): LanguageStatement {

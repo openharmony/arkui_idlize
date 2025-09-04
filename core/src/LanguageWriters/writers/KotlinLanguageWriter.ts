@@ -563,14 +563,14 @@ export class KotlinLanguageWriter extends LanguageWriter {
             return this.makeDefinedCheck(varName)
         } else {
             const op = equals ? "==" : "!="
-            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}.toInt()`)])
+            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}.toByte()`)])
         }
     }
     getTagType(): idl.IDLType {
         return idl.createReferenceType("Tag")
     }
     getRuntimeType(): idl.IDLType {
-        return idl.IDLNumberType
+        return idl.IDLI8Type
     }
     makeTupleAssign(receiver: string, fields: string[]): LanguageStatement {
         throw new Error("Not implemented")

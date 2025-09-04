@@ -74,6 +74,7 @@ import {
     getSuper,
     PeerMethodSignature,
     createOutArgConvertor,
+    wrapCurrentFileDescription,
 } from '@idlizer/core'
 import {
     getInteropRootPath,
@@ -413,7 +414,9 @@ class OHOSNativeVisitor {
         this.cppWriter.concat(printBridgeCc(this.library).generated)
         this.cinteropHeader.content.concat(printBridgeHeader(this.library).generated)
         createDeserializeAndCallPrinter(this.library.name, Language.CPP)(this.library).forEach(result => {
-            this.cppWriter.concat(result.content)
+            const generated = wrapCurrentFileDescription(result.over, result.generate)
+            const content = generated instanceof LanguageWriter ? generated : generated.content
+            this.cppWriter.concat(content)
         })
         // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)

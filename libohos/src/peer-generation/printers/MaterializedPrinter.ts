@@ -52,7 +52,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected readonly collector = new ImportsCollector()
     protected readonly printer = this.library.createLanguageWriter()
-    protected readonly internalPrinter = this.library.createLanguageWriter(this.library.language)
     protected overloadsPrinter = new OverloadsPrinter(this.library, this.printer, this.library.language, false, this.library.useMemoM3)
 
     private extraAssignCallbacks: { callback: string, method: string }[] = []
@@ -634,10 +633,11 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE,
@@ -698,8 +698,7 @@ class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
     visit(): PrinterResult {
         this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => this.printer,
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE
@@ -746,10 +745,11 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
     override printReadonlyFieldsInitialization(clazz: MaterializedClass) { }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE
@@ -786,10 +786,11 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
         return {
-            collector: this.collector,
-            content: this.printer,
+            generate: () => {
+                this.printMaterializedClass(this.clazz)
+                return { content: this.printer, imports: this.collector }
+            },
             over: {
                 node: this.clazz.decl,
                 role: LayoutNodeRole.INTERFACE

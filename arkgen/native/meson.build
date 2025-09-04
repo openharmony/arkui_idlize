@@ -20,7 +20,7 @@ java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdo
 is_node = true
 is_arkts = true
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
-is_jni = java_home != 'undefined'
+is_jni = false
 is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
 

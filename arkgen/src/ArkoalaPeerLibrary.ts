@@ -27,7 +27,8 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     CJIDLTypeToForeignStringConvertor,
     isBuilderClass,
     TSTypeNameConvertor,
-    ETSTypeNameConvertor
+    ETSTypeNameConvertor,
+    findTopLevelConflicts
 } from "@idlizer/core";
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
@@ -70,7 +71,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         }
         if (declaration) {
             if (isImportAttr(declaration))
-                return new ArkoalaImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+                return new ArkoalaImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
 
             if (idl.isInterface(declaration) && !idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
                 if (isMaterialized(declaration, this)) {

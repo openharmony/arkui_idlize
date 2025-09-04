@@ -14,13 +14,13 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { createFeatureNameConvertor, Language, convertDeclaration, LayoutNodeRole, isStaticMaterialized, lib, maybeRestoreGenerics, isInExternalModule, isInStdlibModule } from "@idlizer/core"
+import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { createDependenciesCollector, ArkTSInterfaceDependenciesCollector } from "./idl/IdlDependenciesCollector"
+import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
-    const featureNameConvertor = createFeatureNameConvertor(library.language)
+    const featureNameConvertor = library.createTypeNameConvertor(library.language)
     if (idl.isReferenceType(node)) {
         const decl = library.resolveTypeReference(node)
         if (!decl) {
@@ -33,10 +33,14 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
         return { module: '', feature: '' }
     }
 
-    let feature = convertDeclaration(featureNameConvertor, node)
-    const featureNs = idl.getNamespaceName(node)
-    if ([Language.TS, Language.ARKTS].includes(library.language) && featureNs !== '') {
-        feature = featureNs.split('.')[0]
+    let feature = featureNameConvertor.convert(node).split(".")[0]
+    let alias: string | undefined
+    if ([Language.TS, Language.ARKTS].includes(library.language)) {
+        if (isTopLevelConflicted(library, library.language, node)) {
+            const featureNs = idl.getNamespaceName(node)
+            alias = feature
+            feature = featureNs.at(0) ?? node.name
+        }
     }
 
     const moduleName = library.layout.resolve({
@@ -45,6 +49,7 @@ export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | 
     })
     return {
         feature,
+        alias,
         module: `${moduleName}`,
         isDefault: isDefaultDeclaration(node, library.language)
     }
@@ -94,7 +99,7 @@ export function collectDeclItself(
         if (!feature.module) {
             return
         }
-        emitter.addFeature(feature.feature, feature.module, undefined, feature.isDefault)
+        emitter.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
         if (options?.includeMaterializedInternals) {
             if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)

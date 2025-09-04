@@ -32,6 +32,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, Indente
     PeerMethodSignature,
     capitalize,
     qualifiedName,
+    LibraryInterface,
 } from '@idlizer/core'
 import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName, IDLObjectType } from '@idlizer/core/idl'
@@ -74,8 +75,9 @@ function peerParentNamespaceName(library: PeerLibrary, context: idl.IDLInterface
 
 function peerReturnValue(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string | undefined {
     if (idl.isInterface(context) && isMaterialized(context, library)) {
+        const nameConvertor = library.createTypeNameConvertor(Language.CPP)
         if (method.sig.name === PeerMethodSignature.CTOR)
-            return `reinterpret_cast<Ark_${context.name}>(100)`
+            return `reinterpret_cast<${nameConvertor.convert(context)}>(100)`
         if (method.sig.name === PeerMethodSignature.GET_FINALIZER)
             return `fnPtr<KNativePointer>(dummyClassFinalizer)`
     }
@@ -475,11 +477,12 @@ class AccessorVisitor extends ModifierVisitor {
 }
 
 export class MultiFileModifiersVisitorState {
-    dummy = createLanguageWriter(Language.CPP)
-    real = createLanguageWriter(Language.CPP)
-    accessors = createLanguageWriter(Language.CPP)
-    modifiers = createLanguageWriter(Language.CPP)
-    getterDeclarations = createLanguageWriter(Language.CPP)
+    constructor(private library: LibraryInterface) {}
+    dummy = createLanguageWriter(Language.CPP, this.library)
+    real = createLanguageWriter(Language.CPP, this.library)
+    accessors = createLanguageWriter(Language.CPP, this.library)
+    modifiers = createLanguageWriter(Language.CPP, this.library)
+    getterDeclarations = createLanguageWriter(Language.CPP, this.library)
 }
 
 export class MultiFileModifiersVisitor extends AccessorVisitor {
@@ -495,7 +498,7 @@ export class MultiFileModifiersVisitor extends AccessorVisitor {
         const slug = makeFileNameFromClassName(className)
         let state = storage.get(slug)
         if (!state) {
-            state = new MultiFileModifiersVisitorState()
+            state = new MultiFileModifiersVisitorState(this.library)
             storage.set(slug, state)
         }
         this.dummy = state.dummy
@@ -516,9 +519,9 @@ export function printRealAndDummyModifiers(peerLibrary: PeerLibrary, isDummy: bo
     visitor.commentedCode = false
     visitor.printRealAndDummyModifiers()
     const dummy =
-        visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
+        visitor.dummy.concat(visitor.modifiers).concat(modifierStructList(peerLibrary, visitor.modifierList))
     const real =
-        visitor.real.concat(visitor.modifiers).concat(modifierStructList(visitor.modifierList))
+        visitor.real.concat(visitor.modifiers).concat(modifierStructList(peerLibrary, visitor.modifierList))
     return {dummy, real}
 }
 
@@ -532,10 +535,10 @@ export function printRealAndDummyAccessors(peerLibrary: PeerLibrary): {dummy: La
     }
 
     const dummy =
-        visitor.dummy.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
+        visitor.dummy.concat(visitor.accessors).concat(accessorStructList(peerLibrary, visitor.accessorList))
 
     const real =
-        visitor.real.concat(visitor.accessors).concat(accessorStructList(visitor.accessorList))
+        visitor.real.concat(visitor.accessors).concat(accessorStructList(peerLibrary, visitor.accessorList))
     return {dummy, real}
 }
 

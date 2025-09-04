@@ -18,7 +18,7 @@ import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generator
 import { LanguageWriter } from "@idlizer/core";
 
 class FeatureInfo {
-    aliases: Set<string> = new Set()
+    aliases: Set<string | undefined> = new Set()
     isDefault: boolean = false
 }
 
@@ -43,12 +43,12 @@ export class ImportsCollector {
         // Checking for name collisions between modules
         // TODO: needs to be done more effectively
         const featureInAnotherModule = [...this.moduleToFeatures.entries()]
-            .find(it => it[0] !== normalizedModule && it[1].get(feature))
+            .find(it => it[0] !== normalizedModule && it[1].get(feature)?.aliases.has(alias))
         // TBD: use modules for externa types
         if (featureInAnotherModule) {
             console.warn(`WARNING: Skip feature:'${feature}' is already imported from '${featureInAnotherModule[0]}'`)
         } else {
-            const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map())
+            const features = getOrPut(this.moduleToFeatures, normalizedModule, () => new Map<string, FeatureInfo>())
             const info = getOrPut(features, feature, () => new FeatureInfo())
             info.aliases.add(alias)
             info.isDefault = isDefault ?? false
@@ -101,10 +101,12 @@ export class ImportsCollector {
             }
             const importNodes = Array.from(features.keys()).flatMap(feature => {
                 const info = features.get(feature)!
-                if (info.isDefault) return `default as ${feature}`
                 return Array.from(info.aliases).map(alias => {
-                    if (!alias) return feature
-                    return `${feature} as ${alias}`
+                    if (info.isDefault)
+                        return `default as ${alias ?? feature}`
+                    if (alias)
+                        return `${feature} as ${alias}`
+                    return feature
                 })
             })
             lines.push(`import { ${importNodes.join(', ')} } from "${module}"`)

@@ -610,17 +610,15 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
     }
 
     printInterfaces(): PrinterResult[] {
-        const moduleToEntries = new Map<string, idl.IDLEntry[]>()
+        const entriesToPrint = new Map<string, idl.IDLEntry>()
         const registerEntry = (entry: idl.IDLEntry) => {
             if (this.shouldNotPrint(entry)) {
                 return
             }
-            const module = convertDeclToFeature(this.peerLibrary, entry).module
-            if (!moduleToEntries.has(module))
-                moduleToEntries.set(module, [])
-            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry, "namespace.name")))
-                return
-            moduleToEntries.get(module)!.push(entry)
+            const key = idl.getFQName(entry)
+            if (!entriesToPrint.has(key)) {
+                entriesToPrint.set(key, entry)
+            }
         }
         const syntheticGenerator = new TSSyntheticGenerator(this.peerLibrary, (entry) => {
             registerEntry(entry)
@@ -644,11 +642,10 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
         }
 
         const result: PrinterResult[] = []
-        for (const entries of moduleToEntries.values()) {
-            const seenNames = new Set<string>()
-            for (const entry of entries) {
+        for (const entry of entriesToPrint.values()) {
+            const generate = () => {
                 const imports = new ImportsCollector()
-                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+                const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
                 getCommonImports(writer.language, { isDeclared: false, useMemoM3: this.peerLibrary.useMemoM3, libraryName: this.peerLibrary.name })
                     .forEach(it => imports.addFeature(it.feature, it.module))
@@ -656,16 +653,16 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
 
                 const printVisitor = this.getDeclConvertor(writer, this.peerLibrary, false)
                 convertDeclaration(printVisitor, entry)
-
-                result.push({
-                    collector: imports,
-                    content: writer,
-                    over: {
-                        node: entry,
-                        role: LayoutNodeRole.INTERFACE
-                    }
-                })
+                return { content: writer, imports}
             }
+
+            result.push({
+                generate,
+                over: {
+                    node: entry,
+                    role: LayoutNodeRole.INTERFACE
+                }
+            })
         }
         return result
     }
@@ -978,8 +975,7 @@ export class JavaInterfacesVisitor implements InterfacesVisitor {
         const result: PrinterResult[] = []
         const declarationConverter = new JavaDeclarationConvertor(this.peerLibrary, (entry, declaration) => {
             result.push({
-                content: declaration.writer,
-                collector: new ImportsCollector(),
+                generate: () => declaration.writer,
                 over: {
                     node: entry,
                     role: LayoutNodeRole.INTERFACE
@@ -1092,17 +1088,15 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
     }
 
     printInterfaces(): PrinterResult[] {
-        const moduleToEntries = new Map<string, idl.IDLEntry[]>()
+        const entriesToPrint = new Map<string, idl.IDLEntry>()
         const registerEntry = (entry: idl.IDLEntry) => {
             if (this.shouldNotPrint(entry)) {
                 return
             }
-            const module = convertDeclToFeature(this.peerLibrary, entry).module
-            if (!moduleToEntries.has(module))
-                moduleToEntries.set(module, [])
-            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry)))
-                return
-            moduleToEntries.get(module)!.push(entry)
+            const key = idl.getFQName(entry)
+            if (!entriesToPrint.has(key)) {
+                entriesToPrint.set(key, entry)
+            }
         }
         const syntheticGenerator = new ArkTSSyntheticGenerator(this.peerLibrary, (entry) => {
             registerEntry(entry)
@@ -1127,12 +1121,11 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         }
 
         const result: PrinterResult[] = []
-        for (const entries of moduleToEntries.values()) {
-            const seenNames = new Set<string>()
-            for (const entry of entries) {
-                if (idl.isImport(entry)) {
-                    continue
-                }
+        for (const entry of entriesToPrint.values()) {
+            if (idl.isImport(entry)) {
+                continue
+            }
+            const generate = () => {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter()
 
@@ -1142,19 +1135,19 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
 
                 const typeConvertor = this.getDeclConvertor(writer, this.peerLibrary, this.isDeclarationFile)
                 convertDeclaration(typeConvertor, entry)
-
-                result.push({
-                    collector: imports,
-                    content: writer,
-                    over: {
-                        node: entry,
-                        role: LayoutNodeRole.INTERFACE,
-                        hint: idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
-                            ? 'component.modifier'
-                            : undefined
-                    }
-                })
+                return { content: writer, imports }
             }
+
+            result.push({
+                generate,
+                over: {
+                    node: entry,
+                    role: LayoutNodeRole.INTERFACE,
+                    hint: idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
+                        ? 'component.modifier'
+                        : undefined
+                }
+            })
         }
         return result
     }
@@ -1215,17 +1208,19 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
         for (const entries of moduleToEntries.values()) {
             const seenNames = new Set<string>()
             for (const entry of entries) {
-                const imports = new ImportsCollector()
-                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+                const generate = () => {
+                    const imports = new ImportsCollector()
+                    const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
-                collectDeclDependencies(this.peerLibrary, entry, imports)
+                    collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const printVisitor = new CJDeclarationConvertor(writer, seenNames, this.peerLibrary)
-                convertDeclaration(printVisitor, entry)
+                    const printVisitor = new CJDeclarationConvertor(writer, seenNames, this.peerLibrary)
+                    convertDeclaration(printVisitor, entry)
+                    return { content: writer, imports }
+                }
 
                 result.push({
-                    collector: new ImportsCollector(),
-                    content: writer,
+                    generate,
                     over: {
                         node: entry,
                         role: LayoutNodeRole.INTERFACE
@@ -1237,17 +1232,19 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
             const nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.CJ)
             const seenNames = new Set<string>()
             for (const entry of entries) {
-                const imports = new ImportsCollector()
-                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+                const generate = () => {
+                    const imports = new ImportsCollector()
+                    const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
-                collectDeclDependencies(this.peerLibrary, entry, imports)
+                    collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const printVisitor = new CJDeclarationConvertor(writer, seenNames, this.peerLibrary)
-                printVisitor.makeUnion(writer, entry)
+                    const printVisitor = new CJDeclarationConvertor(writer, seenNames, this.peerLibrary)
+                    printVisitor.makeUnion(writer, entry)
+                    return { content: writer, imports}
+                }
 
                 result.push({
-                    collector: new ImportsCollector(),
-                    content: writer,
+                    generate,
                     over: {
                         node: idl.createTypedef(nameConvertor.convert(entry), entry),
                         role: LayoutNodeRole.INTERFACE
@@ -1567,7 +1564,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             const seenNames = new Set<string>()
             for (const entry of entries) {
                 const imports = new ImportsCollector()
-                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+                const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
@@ -1575,8 +1572,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                 convertDeclaration(printVisitor, entry)
 
                 result.push({
-                    collector: new ImportsCollector(),
-                    content: writer,
+                    generate: () => writer,
                     over: {
                         node: entry,
                         role: LayoutNodeRole.INTERFACE
@@ -1589,7 +1585,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             const seenNames = new Set<string>()
             for (const entry of entries) {
                 const imports = new ImportsCollector()
-                const writer = createLanguageWriter(this.peerLibrary.language, this.peerLibrary)
+                const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
@@ -1597,8 +1593,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                 printVisitor.makeUnion(writer, entry)
 
                 result.push({
-                    collector: new ImportsCollector(),
-                    content: writer,
+                    generate: () => writer,
                     over: {
                         node: idl.createTypedef(nameConvertor.convert(entry), entry),
                         role: LayoutNodeRole.INTERFACE

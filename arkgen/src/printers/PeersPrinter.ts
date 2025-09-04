@@ -209,17 +209,18 @@ class PeerFileVisitor {
     printFile(): PrinterResult[] {
         return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
-            const imports = new ImportsCollector()
-            const content = this.library.createLanguageWriter(this.library.language)
-            this.printImports(peer, imports)
-            this.printPeer(peer, content)
             return {
                 over: {
                     node: component!.attributeDeclaration,
                     role: LayoutNodeRole.PEER,
                 },
-                collector: imports,
-                content
+                generate: () => {
+                    const imports = new ImportsCollector()
+                    const content = this.library.createLanguageWriter(this.library.language)
+                    this.printImports(peer, imports)
+                    this.printPeer(peer, content)
+                    return { imports, content }
+                }
             }
         })
     }
@@ -276,24 +277,21 @@ class JavaPeerFileVisitor extends PeerFileVisitor {
 
     printFile(): PrinterResult[] {
         return Array.from(collectPeersForFile(this.library, this.file).values()).map(peer => {
-            let printer = this.library.createLanguageWriter()
-            this.printPackage(printer)
-
-            const idlPeer = peer as PeerClass
-            const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.method.signature.args))
-            printJavaImports(printer, imports)
-
-
-            this.printPeer(peer, printer)
-
             const component = findComponentByName(this.library, peer.componentName)
             return {
                 over: {
                     node: component!.attributeDeclaration,
                     role: LayoutNodeRole.PEER,
                 },
-                content: printer,
-                collector: new ImportsCollector()
+                generate:() => {
+                    let content = this.library.createLanguageWriter()
+                    this.printPackage(content)
+                    const idlPeer = peer as PeerClass
+                    const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.method.signature.args))
+                    printJavaImports(content, imports)
+                    this.printPeer(peer, content)
+                    return content
+                },
             }
 
             // TODO: attributes
@@ -322,15 +320,16 @@ class CJPeerFileVisitor extends PeerFileVisitor {
     printFile(): PrinterResult[] {
         return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
-            const printer = this.library.createLanguageWriter()
-            this.printPeer(peer, printer)
             return {
                 over: {
                     node: component!.attributeDeclaration,
                     role: LayoutNodeRole.PEER,
                 },
-                content: printer,
-                collector: new ImportsCollector()
+                generate: () => {
+                    const printer = this.library.createLanguageWriter()
+                    this.printPeer(peer, printer)
+                    return printer
+                },
             }
         })
     }
@@ -348,14 +347,16 @@ class KotlinPeerFileVisitor extends PeerFileVisitor {
     printFile(): PrinterResult[] {
         return collectPeersForFile(this.library, this.file).map(peer => {
             const component = findComponentByName(this.library, peer.componentName)
-            const printer = this.library.createLanguageWriter()
-            this.printPeer(peer, printer)
             return {
                 over: {
                     node: component!.attributeDeclaration,
                     role: LayoutNodeRole.PEER,
                 },
-                content: printer,
+                generate: () => {
+                    const printer = this.library.createLanguageWriter()
+                    this.printPeer(peer, printer)
+                    return printer
+                },
                 collector: new ImportsCollector()
             }
         })

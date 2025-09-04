@@ -1208,6 +1208,8 @@ typedef struct Ark_InputCounterOptions Ark_InputCounterOptions;
 typedef struct Opt_InputCounterOptions Opt_InputCounterOptions;
 typedef struct Ark_InsertValue Ark_InsertValue;
 typedef struct Opt_InsertValue Opt_InsertValue;
+typedef struct Ark_internal_component_ets_TranslateOptions Ark_internal_component_ets_TranslateOptions;
+typedef struct Opt_internal_component_ets_TranslateOptions Opt_internal_component_ets_TranslateOptions;
 typedef struct Ark_InvertOptions Ark_InvertOptions;
 typedef struct Opt_InvertOptions Opt_InvertOptions;
 typedef struct Ark_ItemDragInfo Ark_ItemDragInfo;
@@ -1429,8 +1431,8 @@ typedef struct Ark_TouchObject Ark_TouchObject;
 typedef struct Opt_TouchObject Opt_TouchObject;
 typedef struct Ark_TouchResult Ark_TouchResult;
 typedef struct Opt_TouchResult Opt_TouchResult;
-typedef struct Ark_TranslateOptions Ark_TranslateOptions;
-typedef struct Opt_TranslateOptions Opt_TranslateOptions;
+typedef struct Ark_TransitionEffects Ark_TransitionEffects;
+typedef struct Opt_TransitionEffects Opt_TransitionEffects;
 typedef struct Ark_Tuple_Boolean_Number Ark_Tuple_Boolean_Number;
 typedef struct Opt_Tuple_Boolean_Number Opt_Tuple_Boolean_Number;
 typedef struct Ark_Tuple_Dimension_Dimension Ark_Tuple_Dimension_Dimension;
@@ -1703,8 +1705,6 @@ typedef struct Ark_TextStyleInterface Ark_TextStyleInterface;
 typedef struct Opt_TextStyleInterface Opt_TextStyleInterface;
 typedef struct Ark_ToolbarItem Ark_ToolbarItem;
 typedef struct Opt_ToolbarItem Opt_ToolbarItem;
-typedef struct Ark_TransitionEffects Ark_TransitionEffects;
-typedef struct Opt_TransitionEffects Opt_TransitionEffects;
 typedef struct Ark_TransitionOptions Ark_TransitionOptions;
 typedef struct Opt_TransitionOptions Opt_TransitionOptions;
 typedef struct Ark_Type_NavDestinationAttribute_title_value Ark_Type_NavDestinationAttribute_title_value;
@@ -7630,6 +7630,16 @@ typedef struct Opt_InsertValue {
     Ark_Tag tag;
     Ark_InsertValue value;
 } Opt_InsertValue;
+typedef struct Ark_internal_component_ets_TranslateOptions {
+    /* kind: Interface */
+    Opt_Union_Number_String x;
+    Opt_Union_Number_String y;
+    Opt_Union_Number_String z;
+} Ark_internal_component_ets_TranslateOptions;
+typedef struct Opt_internal_component_ets_TranslateOptions {
+    Ark_Tag tag;
+    Ark_internal_component_ets_TranslateOptions value;
+} Opt_internal_component_ets_TranslateOptions;
 typedef struct Ark_InvertOptions {
     /* kind: Interface */
     Ark_Number low;
@@ -8578,16 +8588,21 @@ typedef struct Opt_TouchResult {
     Ark_Tag tag;
     Ark_TouchResult value;
 } Opt_TouchResult;
-typedef struct Ark_TranslateOptions {
+typedef struct Ark_TransitionEffects {
     /* kind: Interface */
-    Opt_Union_Number_String x;
-    Opt_Union_Number_String y;
-    Opt_Union_Number_String z;
-} Ark_TranslateOptions;
-typedef struct Opt_TranslateOptions {
+    Ark_Undefined identity;
+    Ark_Number opacity;
+    Ark_Undefined slideSwitch;
+    Ark_TransitionEdge move;
+    Ark_internal_component_ets_TranslateOptions translate;
+    Ark_RotateOptions rotate;
+    Ark_ScaleOptions scale;
+    Ark_Literal_TransitionEffect_appear_disappear asymmetric;
+} Ark_TransitionEffects;
+typedef struct Opt_TransitionEffects {
     Ark_Tag tag;
-    Ark_TranslateOptions value;
-} Opt_TranslateOptions;
+    Ark_TransitionEffects value;
+} Opt_TransitionEffects;
 typedef struct Ark_Tuple_Boolean_Number {
     /* kind: Interface */
     Opt_Boolean value0;
@@ -10092,26 +10107,11 @@ typedef struct Opt_ToolbarItem {
     Ark_Tag tag;
     Ark_ToolbarItem value;
 } Opt_ToolbarItem;
-typedef struct Ark_TransitionEffects {
-    /* kind: Interface */
-    Ark_Undefined identity;
-    Ark_Number opacity;
-    Ark_Undefined slideSwitch;
-    Ark_TransitionEdge move;
-    Ark_TranslateOptions translate;
-    Ark_RotateOptions rotate;
-    Ark_ScaleOptions scale;
-    Ark_Literal_TransitionEffect_appear_disappear asymmetric;
-} Ark_TransitionEffects;
-typedef struct Opt_TransitionEffects {
-    Ark_Tag tag;
-    Ark_TransitionEffects value;
-} Opt_TransitionEffects;
 typedef struct Ark_TransitionOptions {
     /* kind: Interface */
     Opt_TransitionType type;
     Opt_Number opacity;
-    Opt_TranslateOptions translate;
+    Opt_internal_component_ets_TranslateOptions translate;
     Opt_ScaleOptions scale;
     Opt_RotateOptions rotate;
 } Ark_TransitionOptions;
@@ -11923,7 +11923,7 @@ typedef struct GENERATED_ArkUICommonMethodModifier {
     void (*setFreeze)(Ark_NativePointer node,
                       const Opt_Boolean* value);
     void (*setTranslate)(Ark_NativePointer node,
-                         const Opt_TranslateOptions* value);
+                         const Opt_internal_component_ets_TranslateOptions* value);
     void (*setScale)(Ark_NativePointer node,
                      const Opt_ScaleOptions* value);
     void (*setGridSpan)(Ark_NativePointer node,
@@ -15101,7 +15101,7 @@ typedef struct GENERATED_ArkUITransitionEffectAccessor {
     Ark_TransitionEffect (*construct)(const Ark_String* type,
                                       const Ark_TransitionEffects* effect);
     Ark_NativePointer (*getFinalizer)();
-    Ark_TransitionEffect (*translate)(const Ark_TranslateOptions* options);
+    Ark_TransitionEffect (*translate)(const Ark_internal_component_ets_TranslateOptions* options);
     Ark_TransitionEffect (*rotate)(const Ark_RotateOptions* options);
     Ark_TransitionEffect (*scale)(const Ark_ScaleOptions* options);
     Ark_TransitionEffect (*opacity)(const Ark_Number* alpha);

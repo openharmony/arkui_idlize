@@ -14,14 +14,30 @@
  */
 
 import * as idl from '../../idl'
+import { Language } from '../../Language'
+import { LibraryInterface } from '../../LibraryInterface'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
+import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
-    constructor(protected resolver: ReferenceResolver) { }
+    constructor(protected library: LibraryInterface) { }
 
+    protected mangleTopLevel(decl: idl.IDLEntry): string | undefined {
+        if (!isDeclaredInCurrentFile(this.library.layout, { node: decl, role: LayoutNodeRole.INTERFACE }) && isTopLevelConflicted(this.library, Language.TS, decl)) {
+            const namespaces = idl.getNamespacesPathFor(decl)
+            if (namespaces.length === 0) {
+                return idl.getQualifiedName(decl, "package.namespace.name").replaceAll('.', '_')
+            }
+            const [rootNamespace, ...otherNamespaces] = idl.getNamespacesPathFor(decl)
+            const mangledRoot = idl.getQualifiedName(rootNamespace, "package.namespace.name").replaceAll('.', '_')
+            return [mangledRoot, ...otherNamespaces, decl.name].join(".")
+        }
+        return undefined
+    }
     convert(node: idl.IDLNode): string {
         return convertNode(this, node)
     }
@@ -30,18 +46,18 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return idl.getQualifiedName(node, "namespace.name")
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertEnum(node: idl.IDLEnum): string {
-        return idl.getQualifiedName(node, "namespace.name")
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertTypedef(node: idl.IDLTypedef): string {
-        return node.name
+        return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertCallback(node: idl.IDLCallback): string {
         return idl.isSyntheticEntry(node)
             ? this.mapCallback(node)
-            : node.name
+            : this.mangleTopLevel(node) ?? node.name
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name
@@ -91,13 +107,13 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
         const maybeTypeArguments = type.typeArguments?.length ? `<${type.typeArguments.join(', ')}>` : ""
-        let decl = this.resolver.resolveTypeReference(type)
+        let decl = this.library.resolveTypeReference(type)
         if (decl)
             return `${decl.name}${maybeTypeArguments}`
         return `${type.name}${maybeTypeArguments}`
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        let decl = this.resolver.resolveTypeReference(type)
+        let decl = this.library.resolveTypeReference(type)
         if (decl) {
             if (idl.isSyntheticEntry(decl)) {
                 if (idl.isCallback(decl)) {
@@ -118,10 +134,10 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 decl = decl.parent
             }
 
-            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.resolver)
+            let maybeRestoredGeneric = maybeRestoreGenerics(type, this.library)
             if (maybeRestoredGeneric) {
                 type = maybeRestoredGeneric
-                decl = this.resolver.resolveTypeReference(maybeRestoredGeneric)
+                decl = this.library.resolveTypeReference(maybeRestoredGeneric)
             }
             let typeSpec = type.name
             let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
@@ -133,7 +149,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             if (decl) {
                 const path = idl.getNamespacesPathFor(decl).map(it => it.name)
                 path.push(decl.name)
-                return `${path.join(".")}${maybeTypeArguments}`
+                return `${this.mangleTopLevel(decl) ?? path.join(".")}${maybeTypeArguments}`
             }
             return `${type.name}${maybeTypeArguments}`
         }

@@ -31,28 +31,30 @@ export function printDataClasses(library: PeerLibrary): PrinterResult[] {
                 return []
             }
 
-            const writer = library.createLanguageWriter()
-            const collector = new ImportsCollector()
+            const generate = () => {
+                const writer = library.createLanguageWriter()
+                const collector = new ImportsCollector()
 
-            collectDeclDependencies(library, entry, collector)
-            collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
+                collectDeclDependencies(library, entry, collector)
+                collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
 
-            let superType: IDLReferenceType | undefined
-            let interfaces: IDLReferenceType[] | undefined
-            if (getSuper(entry, library)) {
-                superType = getSuperType(entry, library)
-                interfaces = entry.inheritance.length > 1 ? entry.inheritance.slice(1) : undefined
+                let superType: IDLReferenceType | undefined
+                let interfaces: IDLReferenceType[] | undefined
+                if (getSuper(entry, library)) {
+                    superType = getSuperType(entry, library)
+                    interfaces = entry.inheritance.length > 1 ? entry.inheritance.slice(1) : undefined
+                }
+
+                writer.writeClass(entry.name, w => {
+                    printInterfaceBody(library, entry, w)
+                }, superType ? superType.name : undefined,
+                    interfaces ? interfaces.map(it => it.name) : undefined
+                )
+                return { content: writer, imports: collector }
             }
 
-            writer.writeClass(entry.name, w => {
-                printInterfaceBody(library, entry, w)
-            }, superType ? superType.name : undefined,
-                interfaces ? interfaces.map(it => it.name) : undefined
-            )
-
             return [{
-                collector,
-                content: writer,
+                generate,
                 over: {
                     node: entry,
                     role: LayoutNodeRole.INTERFACE

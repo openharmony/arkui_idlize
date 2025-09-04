@@ -24,6 +24,22 @@ import { qualifiedName } from '../../peer-generation/idl/common'
 import { capitalize } from '../../util'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { isInIdlizeInternal } from '../../idlize'
+import { LibraryInterface } from '../../LibraryInterface'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
+import { Language } from '../../Language'
+
+function isSubtypeTopLevelConflicted(library: LibraryInterface, node: idl.IDLType) {
+    let hasConflicts = false
+    idl.forEachChild(node, (child) => {
+        if (idl.isReferenceType(child)) {
+            const decl = library.resolveTypeReference(child)
+            if (decl) {
+                hasConflicts ||= isTopLevelConflicted(library, Language.CPP, decl)
+            }
+        }
+    })
+    return hasConflicts
+}
 
 export interface ConvertResult {
     text: string,
@@ -33,7 +49,9 @@ export interface ConvertResult {
 
 export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
 
-    constructor(protected resolver: ReferenceResolver) {}
+    constructor(
+        protected library: LibraryInterface,
+    ) {}
 
     private make(text: string, resolvedType: idl.IDLType, noPrefix = false): ConvertResult {
         return { text, noPrefix, resolvedType }
@@ -92,6 +110,12 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         return this.make(prefix + converted.text, type, true)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
+        if (isSubtypeTopLevelConflicted(this.library, type)) {
+            if (type.parent && idl.isTypedef(type.parent)) {
+                return this.make(type.parent.name, type, false)
+            }
+            return this.make('Union_' + type.types.map(it => convertType(this, it).text).join("_"), type, false)
+        }
         return this.make(type.name, type, false)
     }
     convertContainer(type: idl.IDLContainerType): ConvertResult {
@@ -121,14 +145,11 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         if (generatorConfiguration().parameterized.includes(refName)) {
             return this.make('CustomObject', idl.IDLCustomObjectType)
         }
-        let decl = this.resolver.toDeclaration(type)
+        let decl = this.library.toDeclaration(type)
         if (idl.isCallback(decl)) {
-            decl = maybeTransformManagedCallback(decl, this.resolver) ?? decl
+            decl = maybeTransformManagedCallback(decl, this.library) ?? decl
         }
         if (idl.isType(decl)) {
-            if (idl.isReferenceType(decl)) {
-                return this.make(`${capitalize(decl.name)}`, decl)
-            }
             return this.convertNode(decl)
         }
         let res = this.convertNode(decl as idl.IDLEntry)
@@ -173,6 +194,9 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
 
     private qualifiedName(target: idl.IDLNode): string {
+        if (idl.isEntry(target) && isTopLevelConflicted(this.library, Language.CPP, target)) {
+            return qualifiedName(target, "_", "package.namespace.name")
+        }
         return qualifiedName(target, "_", "namespace.name")
     }
 
@@ -205,10 +229,10 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
     private isPrimitiveOrPrimitiveAlias(type: idl.IDLNode): boolean {
         if (!idl.isType(type)) return false
 
-        const { resolver } = this
+        const { library } = this
         const seen = new Set<idl.IDLNode>
         while (type && idl.isReferenceType(type)) {
-            const resolved = resolver.resolveTypeReference(type)
+            const resolved = library.resolveTypeReference(type)
             if (!resolved) return false
             if (!idl.isTypedef(resolved)) break
             if (seen.has(resolved))
@@ -227,8 +251,8 @@ export class CppConvertor extends GenericCppConvertor implements IdlNameConverto
 
 export class CppNameConvertor implements IdlNameConvertor {
     private readonly cppConvertor: GenericCppConvertor
-    constructor(protected resolver: ReferenceResolver) {
-        this.cppConvertor = new GenericCppConvertor(resolver)
+    constructor(protected library: LibraryInterface) {
+        this.cppConvertor = new GenericCppConvertor(library)
     }
     convert(node: idl.IDLNode): string {
         return this.cppConvertor.convertNode(node).text
@@ -259,9 +283,9 @@ export class CppInteropArgConvertor extends InteropArgConvertor {
 export class CppReturnTypeConvertor implements TypeConvertor<string> {
     private convertor: CppConvertor
     constructor(
-        private resolver: ReferenceResolver
+        private library: LibraryInterface,
     ) {
-        this.convertor = new CppConvertor(resolver)
+        this.convertor = new CppConvertor(library)
     }
     isVoid(returnType: idl.IDLType): boolean {
         return this.convert(returnType) == 'void'
@@ -292,10 +316,6 @@ export class CppReturnTypeConvertor implements TypeConvertor<string> {
         return this.convertor.convert(type)
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl && idl.isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return generatorTypePrefix() + qualifiedName(decl, "_", "namespace.name")
-        }
         return this.convertor.convert(type)
     }
     convertUnion(type: idl.IDLUnionType): string {

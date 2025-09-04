@@ -90,9 +90,10 @@ class TypeCheckSyntheticCollector extends DependenciesCollector {
 function collectTypeCheckDeclarations(library: PeerLibrary): (idl.IDLInterface | idl.IDLEnum | idl.IDLContainerType)[] {
     const seenNames = new Set<string>()
     const res = new Array<idl.IDLInterface | idl.IDLEnum | idl.IDLContainerType>()
+    const cppConvertor = library.createTypeNameConvertor(Language.CPP)
     const syntheticCollector = new TypeCheckSyntheticCollector(library, (entry) => {
         const name = idl.isContainerType(entry)
-            ? library.getInteropName(entry)
+            ? cppConvertor.convert(entry)
             : idl.getFQName(entry)
         if (!seenNames.has(name)) {
             seenNames.add(name)
@@ -177,6 +178,7 @@ abstract class TypeCheckerPrinter {
 
     print() {
         const importFeatures: ImportFeature[] = []
+        const cppConvertor = this.library.createTypeNameConvertor(Language.CPP)
         const declNameConvertor = createDeclarationNameConvertor(this.library.language)
         const interfaces: { name: string, type?: idl.IDLType, descriptor: StructDescriptor }[] = []
         const arrays: idl.IDLContainerType[] = []
@@ -212,7 +214,7 @@ abstract class TypeCheckerPrinter {
                 this.writeEnumNumeric(e)
             }
             for (const array of arrays) {
-                const name = this.library.getInteropName(array)
+                const name = cppConvertor.convert(array)
                 this.writeArrayChecker(name, array)
             }
         })
@@ -344,8 +346,9 @@ class ARKTSTypeCheckerPrinter extends TypeCheckerPrinter {
         )
     }
 
-    protected writeInterfaceChecker(name: string, descriptor: StructDescriptor): void {
-        this.writeInstanceofChecker(name, generateTypeCheckerName(name), descriptor.getFields().length, [])
+    protected writeInterfaceChecker(name: string, descriptor: StructDescriptor, type?: idl.IDLType): void {
+        const convertor = this.library.createTypeNameConvertor(this.library.language)
+        this.writeInstanceofChecker(type ? convertor.convert(type) : name, generateTypeCheckerName(name), descriptor.getFields().length, [])
     }
 
     protected writeArrayChecker(typeName: string, type: idl.IDLContainerType): void {
@@ -524,28 +527,30 @@ class TSTypeCheckerPrinter extends TypeCheckerPrinter {
 }
 
 export function printTSTypeChecker(library: PeerLibrary): PrinterResult[] {
-    const checker = new TSTypeCheckerPrinter(library)
-    checker.print()
     return [{
         over: {
             node: library.resolveTypeReference(idl.createReferenceType('TSTypeChecker')) as idl.IDLEntry,
             role: LayoutNodeRole.PEER
         },
-        collector: checker.imports,
-        content: checker.writer,
+        generate: () => {
+            const checker = new TSTypeCheckerPrinter(library)
+            checker.print()
+            return { content: checker.writer, imports: checker.imports}
+        },
     }]
 }
 
 export function printArkTSTypeChecker(library: PeerLibrary): PrinterResult[] {
-    const checker = new ARKTSTypeCheckerPrinter(library)
-    checker.print()
     return [{
         over: {
             node: library.resolveTypeReference(idl.createReferenceType('ArkTSTypeChecker')) as idl.IDLEntry,
             role: LayoutNodeRole.PEER
         },
-        collector: checker.imports,
-        content: checker.writer,
+        generate: () => {
+            const checker = new ARKTSTypeCheckerPrinter(library)
+            checker.print()
+            return { content: checker.writer, imports: checker.imports }
+        },
     }]
 }
 

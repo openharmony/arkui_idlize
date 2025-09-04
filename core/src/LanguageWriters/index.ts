@@ -1,5 +1,6 @@
 import { IndentedPrinter } from "../IndentedPrinter"
 import { Language } from "../Language"
+import { LibraryInterface } from "../LibraryInterface"
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType"
 import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver"
 import { CJIDLTypeToForeignStringConvertor, CJInteropArgConvertor, CJTypeNameConvertor } from "./convertors/CJConvertors"
@@ -20,22 +21,21 @@ import { TSLanguageWriter } from "./writers/TsLanguageWriter"
 
 export * from "./nameConvertor"
 
-export function createLanguageWriter(language: Language, resolver?: ReferenceResolver): LanguageWriter {
-    resolver ??= EmptyReferenceResolver
+export function createLanguageWriter(language: Language, library: LibraryInterface): LanguageWriter {
     const printer = new IndentedPrinter()
     switch (language) {
-        case Language.TS: return new TSLanguageWriter(printer, resolver,
-            new TSTypeNameConvertor(resolver))
-        case Language.ARKTS: return new ETSLanguageWriter(printer, resolver,
-            new ETSTypeNameConvertor(resolver), new CppConvertor(resolver))
-        case Language.JAVA: return new JavaLanguageWriter(printer, resolver,
-            new JavaTypeNameConvertor(resolver))
-        case Language.CPP: return new CppLanguageWriter(printer, resolver,
-            new CppConvertor(resolver), PrimitiveTypesInstance)
-        case Language.CJ: return new CJLanguageWriter(printer, resolver,
-            new CJTypeNameConvertor(resolver), new CJIDLTypeToForeignStringConvertor(resolver))
-        case Language.KOTLIN: return new KotlinLanguageWriter(printer, resolver,
-            new KotlinTypeNameConvertor(resolver))
+        case Language.TS: return new TSLanguageWriter(printer, library,
+            new TSTypeNameConvertor(library))
+        case Language.ARKTS: return new ETSLanguageWriter(printer, library,
+            new ETSTypeNameConvertor(library), new CppConvertor(library))
+        case Language.JAVA: return new JavaLanguageWriter(printer, library,
+            new JavaTypeNameConvertor(library))
+        case Language.CPP: return new CppLanguageWriter(printer, library,
+            new CppConvertor(library), PrimitiveTypesInstance)
+        case Language.CJ: return new CJLanguageWriter(printer, library,
+            new CJTypeNameConvertor(library), new CJIDLTypeToForeignStringConvertor(library))
+        case Language.KOTLIN: return new KotlinLanguageWriter(printer, library,
+            new KotlinTypeNameConvertor(library))
         default: throw new Error(`Language ${language.toString()} is not supported`)
     }
 }

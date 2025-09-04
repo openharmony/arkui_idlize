@@ -153,9 +153,6 @@ export class PeerLibrary implements LibraryInterface {
         throw new Error(`IdlNameConvertor for ${language} is not implemented`)
     }
 
-    protected readonly targetNameConvertorInstance: IdlNameConvertor = this.createTypeNameConvertor(this.language)
-    private readonly interopNameConvertorInstance: IdlNameConvertor = new CppNameConvertor(this)
-
     get libraryPrefix(): string {
         return this.name ? this.name + "_" : ""
     }
@@ -196,7 +193,7 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     mapType(type: idl.IDLType): string {
-        return this.targetNameConvertorInstance.convert(type)
+        return this.createTypeNameConvertor(this.language).convert(type)
     }
 
     private referenceCache: Map<idl.IDLReferenceType | string, idl.IDLEntry | undefined> | undefined
@@ -344,17 +341,17 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isPrimitiveType(type)) {
             switch (type) {
-                case idl.IDLI8Type: return new NumericConvertor(param, type)
-                case idl.IDLU8Type: return new NumericConvertor(param, type)
-                case idl.IDLI16Type: return new NumericConvertor(param, type)
-                case idl.IDLU16Type: return new NumericConvertor(param, type)
-                case idl.IDLI32Type: return new NumericConvertor(param, type)
-                case idl.IDLU32Type: return new NumericConvertor(param, type)
-                case idl.IDLI64Type: return new NumericConvertor(param, type)
-                case idl.IDLU64Type: return new NumericConvertor(param, type)
-                case idl.IDLF16Type: return new NumericConvertor(param, type)
-                case idl.IDLF32Type: return new NumericConvertor(param, type)
-                case idl.IDLF64Type: return new NumericConvertor(param, type)
+                case idl.IDLI8Type: return new NumericConvertor(this, param, type)
+                case idl.IDLU8Type: return new NumericConvertor(this, param, type)
+                case idl.IDLI16Type: return new NumericConvertor(this, param, type)
+                case idl.IDLU16Type: return new NumericConvertor(this, param, type)
+                case idl.IDLI32Type: return new NumericConvertor(this, param, type)
+                case idl.IDLU32Type: return new NumericConvertor(this, param, type)
+                case idl.IDLI64Type: return new NumericConvertor(this, param, type)
+                case idl.IDLU64Type: return new NumericConvertor(this, param, type)
+                case idl.IDLF16Type: return new NumericConvertor(this, param, type)
+                case idl.IDLF32Type: return new NumericConvertor(this, param, type)
+                case idl.IDLF64Type: return new NumericConvertor(this, param, type)
                 case idl.IDLBigintType: return new BigIntToU64Convertor(param)
                 case idl.IDLSerializerBuffer: new PointerConvertor(param)
                 case idl.IDLPointerType: return new PointerConvertor(param)
@@ -378,10 +375,10 @@ export class PeerLibrary implements LibraryInterface {
             // TODO: this types are not references! NativeModulePrinter must be fixed
             switch (type.name.replaceAll('%TEXT%:', '')) { // this is really bad stub, to fix legacy references
                 case 'KBoolean': return new BooleanConvertor(param)
-                case 'KInt': return new NumericConvertor(param, idl.IDLI32Type)
-                case 'KFloat': return new NumericConvertor(param, idl.IDLF32Type)
-                case 'KLong': return new NumericConvertor(param, idl.IDLI64Type)
-                case 'KDouble': return new NumericConvertor(param, idl.IDLF64Type)
+                case 'KInt': return new NumericConvertor(this, param, idl.IDLI32Type)
+                case 'KFloat': return new NumericConvertor(this, param, idl.IDLF32Type)
+                case 'KLong': return new NumericConvertor(this, param, idl.IDLI64Type)
+                case 'KDouble': return new NumericConvertor(this, param, idl.IDLF64Type)
                 case 'KStringPtr': return new StringConvertor(param)
                 case 'number': return new NumberConvertor(param)
                 case 'KPointer': return new PointerConvertor(param)
@@ -391,7 +388,7 @@ export class PeerLibrary implements LibraryInterface {
             }
             const decl = this.resolveTypeReference(type)
             if (decl && isImportAttr(decl) || !decl && isImportAttr(type))
-                return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+                return new ImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
             return this.declarationConvertor(param, type, decl)
         }
         if (idl.isUnionType(type)) {
@@ -405,7 +402,7 @@ export class PeerLibrary implements LibraryInterface {
         }
         if (idl.isTypeParameterType(type)) {
             // TODO: unlikely correct.
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), true, `<${type.name}>`)
+            return new CustomTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type), true, `<${type.name}>`)
         }
         throw new Error(`Cannot convert: ${type.kind}`)
     }
@@ -418,12 +415,12 @@ export class PeerLibrary implements LibraryInterface {
         if (customConv)
             return customConv
         if (!declaration) {
-            return new CustomTypeConvertor(param, this.targetNameConvertorInstance.convert(type), false, this.targetNameConvertorInstance.convert(type)) // assume some predefined type
+            return new CustomTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type), false, this.createTypeNameConvertor(this.language).convert(type)) // assume some predefined type
         }
 
         const declarationName = declaration.name!
         if (isImportAttr(declaration)) {
-            return new ImportTypeConvertor(param, this.targetNameConvertorInstance.convert(type))
+            return new ImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
         }
         if (idl.isImport(declaration)) {
             const target = this.resolveImport(declaration)
@@ -489,10 +486,6 @@ export class PeerLibrary implements LibraryInterface {
                 // return new OptionConvertor(this, param, type.typeArguments![0])
         }
         return undefined
-    }
-
-    getInteropName(node: idl.IDLNode) {
-        return this.interopNameConvertorInstance.convert(node)
     }
 
     toDeclaration(type: idl.IDLType | idl.IDLTypedef | idl.IDLCallback | idl.IDLEnum | idl.IDLInterface): idl.IDLEntry | idl.IDLType {

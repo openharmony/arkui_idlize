@@ -59,3 +59,19 @@ export class LayoutManager {
         return new LayoutManager({ resolve: () => '', handwrittenPackage: () => '' })
     }
 }
+
+let currentGenerationDescription: LayoutTargetDescription | undefined
+export function wrapCurrentFileDescription<T>(description: LayoutTargetDescription, op: () => T): T {
+    const prev = currentGenerationDescription
+    currentGenerationDescription = description
+    const result = op()
+    currentGenerationDescription = prev
+    return result
+}
+export function isDeclaredInCurrentFile(layout: LayoutManagerStrategy, over: LayoutTargetDescription): boolean {
+    if (!currentGenerationDescription)
+        throw new Error("Current file context is not set up. Please use `wrapCurrentFileDescription` to set up current context. That must be temporary solution until structural printers are ready")
+    if (layout.resolve(currentGenerationDescription) === layout.resolve(over))
+        return true
+    return false
+}

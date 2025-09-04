@@ -95,32 +95,34 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
 
 export function createCallbackKindPrinter(language: Language): PrinterFunction {
     return (library: PeerLibrary) => {
-        const writer = library.createLanguageWriter(language)
-        const imports = new ImportsCollector()
-        if (language === Language.ARKTS) {
-            imports.addFeatures(['int32', 'float32'], '@koalaui/common')
+        const generate = () => {
+            const writer = library.createLanguageWriter(language)
+            const imports = new ImportsCollector()
+            if (language === Language.ARKTS) {
+                imports.addFeatures(['int32', 'float32'], '@koalaui/common')
+            }
+            if (language === Language.CJ) {
+                writer.print('package idlize\n')
+            }
+            let callbacksKindsEnum = idl.createEnum(
+                CallbackKind, [], {}
+            )
+            callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
+                idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
+            )
+            if (callbacksKindsEnum.elements.length === 0) {
+                // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
+                callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
+            }
+            writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, { isExport: true }))
+            return { content: writer, imports }
         }
-        if (language === Language.CJ) {
-            writer.print('package idlize\n')
-        }
-        let callbacksKindsEnum = idl.createEnum(
-            CallbackKind, [], {}
-        )
-        callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
-            idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
-        )
-        if (callbacksKindsEnum.elements.length === 0) {
-            // TODO We should skip generation of CallbackKind at all, but there are references to this type in common code
-            callbacksKindsEnum.elements.push(idl.createEnumMember("Kind_EMPTY_Callback", callbacksKindsEnum, idl.IDLNumberType, -1))
-        }
-        writer.writeStatement(writer.makeEnumEntity(callbacksKindsEnum, { isExport: true }))
         return [{
             over: {
                 node: library.resolveTypeReference(idl.createReferenceType("CallbackKind")) as idl.IDLEntry,
                 role: LayoutNodeRole.PEER,
             },
-            collector: imports,
-            content: writer,
+            generate,
         }]
     }
 }
@@ -589,16 +591,17 @@ class ManagedCallCallbackVisitor {
 
 export function createDeserializeAndCallPrinter(libraryName: string, language: Language): PrinterFunction {
     return (library: PeerLibrary): PrinterResult[] => {
-        const writer = library.createLanguageWriter(language)
-        const imports = new ImportsCollector()
-        new DeserializeCallbacksVisitor(libraryName, library, writer, imports).visit()
         return [{
             over: {
                 node: library.resolveTypeReference(idl.createReferenceType("deserializeAndCallCallback")) as idl.IDLEntry,
                 role: LayoutNodeRole.PEER,
             },
-            collector: imports,
-            content: writer,
+            generate: () => {
+                const content = library.createLanguageWriter(language)
+                const imports = new ImportsCollector()
+                new DeserializeCallbacksVisitor(libraryName, library, content, imports).visit()
+                return { content, imports}
+            },
         }]
     }
 }

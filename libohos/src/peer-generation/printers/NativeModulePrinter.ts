@@ -457,30 +457,32 @@ export function printCJPredefinedNativeFunctions(library: PeerLibrary, module: N
 
 export function createGeneratedNativeModulePrinter(module: NativeModuleType, more?:(w:LanguageWriter) => void): PrinterFunction {
     return (library) => {
-        const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
-        visitor.visit()
-        const content = library.createLanguageWriter()
-        const imports = new ImportsCollector()
-        collectNativeModuleImports(module, imports, library)
-        if (content.language == Language.CJ) {
-            (content as CJLanguageWriter).writeCJForeign(writer => {
-                writer.concat((visitor as CJNativeModuleArkUIGeneratedVisitor).nativeFunctions)
+        const generate = () => {
+            const visitor = createArkUIGeneratedNativeModuleVisitor(library, library.language)
+            visitor.visit()
+            const content = library.createLanguageWriter()
+            const imports = new ImportsCollector()
+            collectNativeModuleImports(module, imports, library)
+            if (content.language == Language.CJ) {
+                (content as CJLanguageWriter).writeCJForeign(writer => {
+                    writer.concat((visitor as CJNativeModuleArkUIGeneratedVisitor).nativeFunctions)
+                })
+            }
+            content.writeClass(module.name, writer => {
+                content.makeStaticBlock(() => {
+                    printNativeModuleRegistration(library.language, module, content)
+                    more?.(writer)
+                    writer.concat(visitor.nativeModule)
+                })
             })
+            return { content, imports }
         }
-        content.writeClass(module.name, writer => {
-            content.makeStaticBlock(() => {
-                printNativeModuleRegistration(library.language, module, content)
-                more?.(writer)
-                writer.concat(visitor.nativeModule)
-            })
-        })
         return [{
             over: {
                 node: library.resolveTypeReference(idl.createReferenceType(module.name)) as idl.IDLInterface,
                 role: LayoutNodeRole.PEER
             },
-            collector: imports,
-            content: content,
+            generate,
         }]
     }
 }

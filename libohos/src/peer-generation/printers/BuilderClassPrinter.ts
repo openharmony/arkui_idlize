@@ -98,23 +98,28 @@ class TSBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        const content = this.peerLibrary.createLanguageWriter(this.language)
-        const imports = new ImportsCollector()
-        this.printBuilderClass(this.builderClass, imports, content)
+        const generate = () => {
+            const content = this.peerLibrary.createLanguageWriter(this.language)
+            const imports = new ImportsCollector()
+            this.printBuilderClass(this.builderClass, imports, content)
+            return {
+                content,
+                imports
+            }
+        }
         return [{
             over: {
                 node: this.builderClass.declaration,
                 role: LayoutNodeRole.INTERFACE
             },
-            collector: imports,
-            content: content,
+            generate,
         }]
     }
 }
 
 class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
 
-    private readonly printer: LanguageWriter = this.library.createLanguageWriter(this.library.language)
+    private printer: LanguageWriter = this.library.createLanguageWriter(this.library.language)
 
     constructor(
         private readonly library: PeerLibrary,
@@ -284,14 +289,17 @@ class JavaBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        this.printBuilderClass(this.builderClass)
+        const generate = () => {
+            this.printer = this.library.createLanguageWriter(this.library.language)
+            this.printBuilderClass(this.builderClass)
+            return this.printer
+        }
         return [{
             over: {
                 node: this.builderClass.declaration,
                 role: LayoutNodeRole.INTERFACE
             },
-            collector: new ImportsCollector(),
-            content: this.printer
+            generate
         }]
     }
 }
@@ -363,16 +371,18 @@ class CJBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        const content = this.peerLibrary.createLanguageWriter(Language.CJ)
-        const imports = new ImportsCollector()
-        this.printBuilderClass(this.builderClass, imports, content)
+        const generate = () => {
+            const content = this.peerLibrary.createLanguageWriter(Language.CJ)
+            const imports = new ImportsCollector()
+            this.printBuilderClass(this.builderClass, imports, content)
+            return { content, imports }
+        }
         return [{
             over: {
                 node: this.builderClass.declaration,
                 role: LayoutNodeRole.INTERFACE
             },
-            collector: imports,
-            content: content,
+            generate,
         }]
     }
 }
@@ -409,16 +419,17 @@ class KotlinBuilderClassFileVisitor implements BuilderClassFileVisitor {
     }
 
     printFile(): PrinterResult[] {
-        const content = this.peerLibrary.createLanguageWriter(Language.KOTLIN)
-        const imports = new ImportsCollector()
-        this.printBuilderClass(this.builderClass, imports, content)
         return [{
             over: {
                 node: this.builderClass.declaration,
                 role: LayoutNodeRole.INTERFACE
             },
-            collector: imports,
-            content: content,
+            generate: () => {
+                const content = this.peerLibrary.createLanguageWriter(Language.KOTLIN)
+                const imports = new ImportsCollector()
+                this.printBuilderClass(this.builderClass, imports, content)
+                return { content, imports }
+            },
         }]
     }
 }
