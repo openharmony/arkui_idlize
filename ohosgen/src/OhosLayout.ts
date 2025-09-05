@@ -1,5 +1,4 @@
 import * as idl from "@idlizer/core/idl"
-import * as path from "path"
 import { currentModule, mapLibraryName, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "@idlizer/libohos"
 
@@ -102,6 +101,81 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     }
 }
 
+export class OhosKotlinLayout implements LayoutManagerStrategy {
+    constructor(
+        protected library: PeerLibrary
+    ) { }
+
+    handwrittenPackage(): string {
+        return "#handwritten"
+    }
+
+    protected readonly interopObjects = [
+        'SerializerBase', 
+        'DeserializerBase',
+        'Finalizable'
+    ]
+
+    private selectInteropPath() {
+        return "koalaui.interop"
+    }
+
+    protected selectInterface(node: idl.IDLEntry): string {
+        if (isInIdlize(node)) {
+            if (this.interopObjects.includes(node.name)) {
+                return this.selectInteropPath()
+            }
+            return selectInternalsPath()
+        }
+        if (idl.isHandwritten(node)) {
+            return HandwrittenModule(this.library.language)
+        }
+        if (isInCurrentModule(node)) {
+            if (canCropCurrentModulePrefix()) {
+                const cropped = cropCurrentModulePrefix(idl.getPackageName(node))
+                return currentModule().useFoldersLayout
+                    ? cropped.split('.').join("/") || 'synthetic'
+                    : cropped
+            }
+            return currentModule().useFoldersLayout
+                ? idl.getPackageClause(node).join("/") || 'synthetic'
+                : idl.getPackageName(node)
+        }
+
+        const conf = peerGeneratorConfiguration()
+        return mapLibraryName(node, this.library.language, conf?.libraryNameMapping)
+    }
+
+    protected selectPeer(node:idl.IDLEntry): string {
+        return this.selectInterface(node)
+    }
+
+    protected selectGlobal(node:idl.IDLEntry): string {
+        if (idl.getPackageName(node) === '')
+            return selectInternalsPath()
+        return this.selectInterface(node)
+    }
+
+    protected selectSerializer(node:idl.IDLEntry): string {
+        if (isInExternalModule(node)) {
+            return selectInternalsPath()
+        }
+        return this.selectInterface(node)
+    }
+
+    /////
+
+    resolve({ role, node }: LayoutTargetDescription): string {
+        switch (role) {
+            case LayoutNodeRole.SERIALIZER: return this.selectSerializer(node)
+            case LayoutNodeRole.INTERFACE: return this.selectInterface(node)
+            case LayoutNodeRole.PEER: return this.selectPeer(node)
+            case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
+            case LayoutNodeRole.COMPONENT: return ''
+        }
+    }
+}
+
 // export class OhosCJLayout implements LayoutManagerStrategy {
 //     constructor(private library: PeerLibrary) {}
 
@@ -154,9 +228,9 @@ export function ohosLayout(library: PeerLibrary): LayoutManagerStrategy {
         case Language.TS:
         case Language.ARKTS:
         case Language.CJ:
-        case Language.KOTLIN:
             return new OhosTsLayout(library)
-        //     return new CJLayout(library)
+        case Language.KOTLIN:
+            return new OhosKotlinLayout(library)
         default: throw new Error(`Ohos layout for language ${library.language.name} is not implemented`)
     }
 }

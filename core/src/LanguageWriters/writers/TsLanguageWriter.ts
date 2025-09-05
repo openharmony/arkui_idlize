@@ -44,10 +44,9 @@ import {
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
-import { rightmostIndexOf, throwException } from "../../util"
+import { rightmostIndexOf } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 import { TSKeywords } from '../../languageSpecificKeywords';
-import { isStringEnumType } from '../../peer-generation/isEnumType';
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -177,6 +176,10 @@ export class TSLanguageWriter extends LanguageWriter {
             }
         }
        return this.typeConvertor.convert(type)
+    }
+
+    override get interopModule(): string {
+        return "@koalaui/interop"
     }
 
     writeClass(
@@ -334,6 +337,16 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
         this.print(`export const ${constName}: ${this.getNodeName(constType)}${constVal ? ' = ' + constVal : ''}`)
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        const importNodes: string[] = []
+        for (let i = 0; i < importedFeatures.length; i++) {
+            importNodes.push(importedFeatures[i] + (aliases[i] ? ` as ${aliases[i]}` : ``))
+        }
+        this.writeExpressionStatement(this.makeString(`import { ${importNodes.join(', ')} } from "${moduleName}"`))
     }
     private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = !modifiers ? undefined : this.supportedModifiers

@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, isInExternalModule, getExtractor, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -759,7 +759,41 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
 }
 
 class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    override printImports(): void { }
+    protected collectImports(imports: ImportsCollector) {
+        const decl = this.clazz.decl
+        collectDeclDependencies(this.library, decl, imports, {
+            expandTypedefs: true,
+            includeTransformedCallbacks: true,
+            includeMaterializedInternals: true,
+        })
+        this.clazz.fields.forEach(field => {
+            if (idl.isReferenceType(field.field.type)) {
+                collectDeclItself(this.library, field.field.type, imports, {
+                    includeMaterializedInternals: true,
+                    includeTransformedCallbacks: true
+                })
+            }
+        })
+        // specific runtime dependencies
+        collectDeclItself(this.library, idl.createReferenceType(`${PACKAGE_IDLIZE_INTERNAL}.${NativeModule.Generated.name}`), this.collector)
+    }
+
+    override printImports() {
+        // collect imports
+        this.collectImports(this.collector)
+
+        // common runtime dependencies
+        this.collector.addFeatures([
+            "Finalizable",
+            "RuntimeType",
+            "SerializerBase",
+            "DeserializerBase",
+            "toPeerPtr",
+            "KPointer",
+            "MaterializedBase",
+            "NativeBuffer",
+        ], "koalaui.interop")
+    }
 
     convertToPropertyType(field: MaterializedField): IDLType {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)

@@ -18,8 +18,6 @@ import * as fs from "fs"
 import * as ts from "typescript"
 import * as idl from "./idl"
 import { Language } from './Language'
-import { generatorConfiguration } from './config'
-import { qualifiedName } from './peer-generation/idl/common'
 import { getModuleFor, isInExternalModule } from './peer-generation/modules'
 import { getInternalClassName, getInternalClassQualifiedName } from './peer-generation/Materialized'
 import { LibraryInterface } from './LibraryInterface'
@@ -777,4 +775,8 @@ export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to:
         receiver: "extractors",
         method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
     }
+}
+
+export function removePoints(s: string) {
+    return s.split(/[\.\-]/g).join('_')
 }

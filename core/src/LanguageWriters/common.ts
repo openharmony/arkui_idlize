@@ -27,7 +27,6 @@ export enum RuntimeType {
 }
 
 export class NativeModuleType {
-    constructor(public name: string) {
-
-    }
+    constructor(public name: string) {}
 }
+

@@ -74,6 +74,9 @@ export function collectDeclItself(
         // ArkTS can inline callbacks and tuples, but not type literals
         if (library.language === Language.ARKTS && !(idl.isInterface(node) && node.subkind === idl.IDLInterfaceSubkind.AnonymousInterface))
             return
+        // Kotlin can only inline callbacks
+        if (library.language === Language.KOTLIN && idl.isCallback(node))
+            return
     }
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
         node = maybeRestoreGenerics(node, library) ?? node

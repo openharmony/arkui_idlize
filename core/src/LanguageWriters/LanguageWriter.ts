@@ -17,13 +17,11 @@ import { Language } from "../Language"
 import { IndentedPrinter } from "../IndentedPrinter"
 
 import * as idl from "../idl"
-import { indentedBy, stringOrNone } from "../util";
+import { stringOrNone } from "../util";
 import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { IdlNameConvertor } from "./nameConvertor";
-import { CppInteropArgConvertor } from "./convertors/CppConvertors";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -503,6 +501,7 @@ export abstract class LanguageWriter {
         else
             this.features.push({ type: "idl", node: featureOrNode })
     }
+    abstract get interopModule(): string
 
     abstract writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport?: boolean): void
     abstract writeEnum(name: string, members: { name: string, alias?: string, stringId: string | undefined, numberId: number }[], options: { isExport: boolean, isDeclare?: boolean }, op?: (writer: this) => void): void
@@ -515,7 +514,8 @@ export abstract class LanguageWriter {
     abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
-    abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void;
+    abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void
+    abstract writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
     abstract makeThrowError(message: string): LanguageStatement

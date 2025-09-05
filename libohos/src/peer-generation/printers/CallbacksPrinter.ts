@@ -18,10 +18,10 @@ import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
-import { Language, LibraryInterface, CallbackConvertor, maybeTransformManagedCallback } from  '@idlizer/core'
+import { Language, LibraryInterface, CallbackConvertor } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
 import { PrintHint } from "@idlizer/core";
-import { CppSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { CppSourceFile, SourceFile } from "./SourceFile";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 import { collectDeclarationTargets } from '../DeclarationTargetCollector';
 import { PrinterFunction, PrinterResult } from '../LayoutManager';
@@ -174,6 +174,19 @@ class DeserializeCallbacksVisitor {
 
         if (this.writer.language === Language.ARKTS) {
             collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.imports)
+        }
+
+        if (this.writer.language === Language.KOTLIN) {
+            this.imports.addFeatures([
+                "ResourceHolder", "KInt", "KStringPtr",
+                "DeserializerBase", "SerializerBase", "CallbackResource",
+                "InteropNativeModule", "KPointer", "RuntimeType",
+                "KSerializerBuffer", "NativeBuffer",
+            ], "koalaui.interop")
+            for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
+                collectDeclItself(this.library, callback, this.imports)
+                collectDeclDependencies(this.library, callback, this.imports, { expandTypedefs: true })
+            }
         }
     }
 
@@ -400,7 +413,7 @@ class DeserializeCallbacksVisitor {
         const camelcaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
         if (this.writer.language != Language.CPP) {
             this.writer.writeFunctionImplementation(`register${camelcaseModuleName}ApiHandler`, new MethodSignature(idl.IDLVoidType, []), writer => {
-                writer.addFeature('registerApiEventHandler', '@koalaui/interop')
+                writer.addFeature('registerApiEventHandler', writer.interopModule)
                 const deserializeFunctionReference = this.writer.language === Language.KOTLIN
                     ? "::deserializeAndCallCallback" : "deserializeAndCallCallback"
                 writer.writeExpressionStatement(writer.makeFunctionCall(`registerApiEventHandler`, [

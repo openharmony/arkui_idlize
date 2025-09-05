@@ -14,7 +14,7 @@
  */
 
 import { posix as path } from "path"
-import { getOrPut, renameDtsToPeer, Language, IDLNode, LayoutNodeRole, generatorConfiguration, isInCurrentModule } from "@idlizer/core"
+import { getOrPut, Language, LayoutNodeRole } from "@idlizer/core"
 import { LanguageWriter } from "@idlizer/core";
 
 class FeatureInfo {
@@ -75,43 +75,53 @@ export class ImportsCollector {
         this.moduleToFeatures.clear()
     }
 
-    print(printer: LanguageWriter, currentModule: string) {
-        this.printToLines(currentModule).forEach(it => printer.print(it))
+    private unfoldAliases(features: Map<string, FeatureInfo>): [string[], string[]] {
+        const importedFeatures: string[] = []
+        const aliases: string[] = []
+        Array.from(features.keys()).forEach(feature => {
+            const info = features.get(feature)!
+            Array.from(info.aliases).forEach(alias => {
+                if (info.isDefault) {
+                    importedFeatures.push("default")
+                    aliases.push(alias ?? feature)
+                    return
+                }
+                importedFeatures.push(feature)
+                aliases.push(alias ?? "")
+            })
+        })
+        return [importedFeatures, aliases]
     }
 
-    printToLines(currentModule: string, basePath?: string): string[] {
-        const lines = new Array<string>()
+    print(printer: LanguageWriter, currentModule: string, basePath?: string) {
         const basedModule = basePath ? path.resolve(basePath, currentModule) : currentModule
         const currentModuleDir = path.dirname(basedModule)
         this.moduleToFeatures.forEach((features, module) => {
-            if (path.relative(currentModule, module) === "")
-                return
-            // The global.resource package belongs top the outer module
-            // and its name does not start neither with '@' nor '#'
-            // Prefix '^' used for module name as a workaround
-            // as the information about the outer module is lost
-            if (!module.startsWith('@') && !module.startsWith('#') && !module.startsWith(`^`)) {
-                module = basePath ? path.resolve(basePath, module) : module
-                if (path.relative(basedModule, module) === "")
+            if (printer.language === Language.TS || printer.language === Language.ARKTS) {
+                if (path.relative(currentModule, module) === "")
                     return
-                module = `./${path.relative(currentModuleDir, module)}`
+                // The global.resource package belongs top the outer module
+                // and its name does not start neither with '@' nor '#'
+                // Prefix '^' used for module name as a workaround
+                // as the information about the outer module is lost
+                if (!module.startsWith('@') && !module.startsWith('#') && !module.startsWith(`^`)) {
+                    module = basePath ? path.resolve(basePath, module) : module
+                    if (path.relative(basedModule, module) === "")
+                        return
+                    module = `./${path.relative(currentModuleDir, module)}`
+                }
+                if (module.startsWith(`^`)) {
+                    module = module.substring(1)
+                }
             }
-            if (module.startsWith(`^`)) {
-                module = module.substring(1)
+            if (printer.language === Language.KOTLIN) {
+                if (currentModule === module) {
+                    return
+                }
             }
-            const importNodes = Array.from(features.keys()).flatMap(feature => {
-                const info = features.get(feature)!
-                return Array.from(info.aliases).map(alias => {
-                    if (info.isDefault)
-                        return `default as ${alias ?? feature}`
-                    if (alias)
-                        return `${feature} as ${alias}`
-                    return feature
-                })
-            })
-            lines.push(`import { ${importNodes.join(', ')} } from "${module}"`)
+            const [importedFeatures, aliases] = this.unfoldAliases(features)
+            printer.writeImports(module, importedFeatures, aliases)
         })
-        return lines
     }
 
     static resolveRelative(povModule: string, targetModule: string): string | undefined {

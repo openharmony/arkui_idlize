@@ -16,7 +16,7 @@
 import * as idl from '@idlizer/core/idl'
 import { NodeConvertor, convertNode, convertType, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
-import { Language, getInternalClassName, isMaterialized } from '@idlizer/core'
+import { Language } from '@idlizer/core'
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
     constructor(protected readonly library: LibraryInterface) {}
@@ -190,11 +190,7 @@ class JavaDependenciesCollector extends DependenciesCollector {
     }
 }
 
-class KotlinDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        return []
-    }
-}
+class KotlinDependenciesCollector extends DependenciesCollector {}
 
 export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
     switch (library.language) {

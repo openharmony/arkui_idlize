@@ -14,8 +14,8 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { generatorConfiguration, Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlize, isInIdlizeInternal, createLanguageWriter, lib, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, isTopLevelConflicted, wrapCurrentFileDescription } from '@idlizer/core'
-import { ExpressionStatement, LanguageStatement, Method, MethodSignature, NamedMethodSignature } from "../LanguageWriters"
+import { Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
+import { Method, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
 import { ImportsCollector } from "../ImportsCollector"
@@ -24,16 +24,12 @@ import {
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
 import { collectAllProperties, collectProperties } from '../printers/StructPrinter'
-import { FieldModifier, MethodModifier, ProxyStatement } from '@idlizer/core'
-import { createDeclarationNameConvertor } from '@idlizer/core'
+import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
-import { convertDeclaration, generateCallbackKindValue } from '@idlizer/core'
-import { getInternalClassName, getInternalClassQualifiedName, LayoutNodeRole } from '@idlizer/core'
-import { collectUniqueCallbacks } from './CallbacksPrinter'
-import { collectDeclItself, collectDeclDependencies, convertDeclToFeature } from '../ImportsCollectorUtils'
+import { LayoutNodeRole } from '@idlizer/core'
+import { collectDeclItself, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { collectDeclarationTargets } from '../DeclarationTargetCollector'
-import { qualifiedName, flattenUnionType, maybeTransformManagedCallback } from '@idlizer/core'
-import { NativeModule } from '../NativeModule'
+import { flattenUnionType } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { isComponentDeclaration } from '../ComponentsCollector'
 
@@ -426,13 +422,23 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             collector.addFeature("CallbackTransformer", "./CallbackTransformer")
         }
     }
+    else if (library.language === Language.KOTLIN) {
+        collector.addFeatures([
+            "SerializerBase",
+            "DeserializerBase",
+            "CallbackResource",
+            "InteropNativeModule",
+            "MaterializedBase",
+            "Tag",
+            "RuntimeType",
+            "toPeerPtr",
+            "nullptr",
+            "KPointer",
+            "NativeBuffer",
+            "KUint8ArrayPtr",
+        ], "koalaui.interop")
+    }
 }
-
-const MATERIALIZED_BASE = idl.createInterface(
-    "MaterializedBase",
-    idl.IDLInterfaceSubkind.Interface, [], [], [],
-    [idl.createProperty("peer", idl.IDLBooleanType)],
-)
 
 export function createSerializerDependencyFilter(library: PeerLibrary, language: Language): DependencyFilter {
     switch (language) {

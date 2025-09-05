@@ -16,7 +16,7 @@ import * as path from "path"
 import { join } from "node:path"
 import * as idl from "@idlizer/core"
 import { writeIntegratedFile } from "./common"
-import { getNamespaceName, getNamespacesPathFor, IDLEntry, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
+import { getNamespaceName, getNamespacesPathFor, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
 import { ImportsCollector } from "./ImportsCollector"
 import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 import { tsCopyrightAndWarning } from "./FileGenerators"
@@ -125,23 +125,22 @@ export function install(
             })
         })
         content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
+        const codePrefix: string[] = []
         if (library.language === Language.KOTLIN) {
-            imports.clear()
-            content = ['@file:OptIn(ExperimentalForeignApi::class)', 'package idlize', 'import kotlinx.cinterop.*', 'import koalaui.interop.*'].concat(content)
+            codePrefix.push(`package ${filePath}\n`)
         }
         if (library.language === Language.CJ) {
             imports.clear()
-            content = ['package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime'].concat(content)
+            codePrefix.push('package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime')
         }
         if (library.language === Language.JAVA) {
-            content = [`package ${ARKOALA_PACKAGE};`].concat(content)
+            codePrefix.push(`package ${ARKOALA_PACKAGE};\n`)
         }
 
-        const text = tsCopyrightAndWarning(
-            imports.printToLines(filePath, outDir)
-                .concat(content)
-                .join('\n')
-        )
+        const importsWriter = library.createLanguageWriter()
+        imports.print(importsWriter, filePath, outDir)
+        const completeCode = codePrefix.concat(importsWriter.getOutput()).concat(content).join('\n')
+        const text = tsCopyrightAndWarning(completeCode)
 
         writeIntegratedFile(installPath, text, 'producing')
     })

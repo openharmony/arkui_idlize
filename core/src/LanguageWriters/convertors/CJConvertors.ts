@@ -17,6 +17,7 @@ import * as idl from '../../idl'
 import { CJKeywords } from '../../languageSpecificKeywords'
 import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { removePoints } from '../../util'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import { InteropArgConvertor } from './InteropConvertors'
 
@@ -209,8 +210,4 @@ export class CJInteropArgConvertor extends InteropArgConvertor {
         }
         return super.convertPrimitiveType(type)
     }
-}
-
-export function removePoints(s: string) {
-    return s.split(/[\.\-]/g).join('_')
 }

@@ -175,35 +175,52 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 }
 
 function fillCommonImports(collector: ImportsCollector, language: idl.Language) {
-    collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
-    if (language === idl.Language.ARKTS) {
-        collector.addFeature('NativeBuffer', '@koalaui/interop')
+    if (language === idl.Language.TS || language === idl.Language.ARKTS) {
+        collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
+        if (language === idl.Language.ARKTS) {
+            collector.addFeature('NativeBuffer', '@koalaui/interop')
+        }
+    }
+    if (language === idl.Language.KOTLIN) {
+        collector.addFeature("NativeBuffer", "koalaui.interop")
     }
 }
 
 function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
     fillCommonImports(collector, library.language)
-    collector.addFeatures([
-        'Finalizable',
-        'runtimeType',
-        'RuntimeType',
-        'SerializerBase',
-        'DeserializerBase',
-        'MaterializedBase',
-        'KPointer',
-        'toPeerPtr',
-    ], '@koalaui/interop')
-    collector.addFeature('unsafeCast', '@koalaui/common')
+    if (library.language === idl.Language.TS || library.language === idl.Language.ARKTS) {
+        collector.addFeatures(['unsafeCast'], '@koalaui/common')
+        collector.addFeatures([
+            'Finalizable',
+            'runtimeType',
+            'RuntimeType',
+            'SerializerBase',
+            'DeserializerBase',
+            'MaterializedBase',
+            'KPointer',
+            'toPeerPtr',
+        ], '@koalaui/interop')
+        if (library.language === idl.Language.ARKTS) {
+            importTypeChecker(library, collector)
+        }
+        if (library.language === idl.Language.TS) {
+            collector.addFeature('isInstanceOf', '@koalaui/interop')
+        }
+        if (library.name === 'arkoala') {
+            collector.addFeature('CallbackTransformer', './CallbackTransformer')
+        }
+    }
+    if (library.language === idl.Language.KOTLIN) {
+        collector.addFeatures([
+            "Finalizable",
+            "RuntimeType",
+            "SerializerBase",
+            "DeserializerBase",
+            "MaterializedBase",
+            "KPointer",
+            "toPeerPtr",
+        ], "koalaui.interop")
+    }
     collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
-    if (library.language === idl.Language.ARKTS) {
-        collector.addFeature('NativeBuffer', '@koalaui/interop')
-        importTypeChecker(library, collector)
-    }
-    if (library.language === idl.Language.TS) {
-        collector.addFeature('isInstanceOf', '@koalaui/interop')
-    }
     collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
-    if (library.name === 'arkoala') {
-        collector.addFeature('CallbackTransformer', './CallbackTransformer')
-    }
 }

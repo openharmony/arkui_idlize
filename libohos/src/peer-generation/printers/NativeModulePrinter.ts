@@ -15,7 +15,7 @@
 import { maybeReadLangTemplate, readLangTemplate } from "../FileGenerators";
 import { FunctionCallExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters";
 import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, MethodSignature, NaryOpExpression,
-    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language, InteropArgConvertor,
+    createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary, Language,
     createInteropArgConvertor, NativeModuleType, CJLanguageWriter, isStructureType, isEnumType, InteropReturnTypeConvertor,
     isInIdlizeInterop,
     TypeConvertor,
@@ -25,18 +25,16 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isDirectMethod,
     isVMContextMethod,
     LayoutNodeRole,
-    lib,
     createOutArgConvertor,
     isInCurrentModule,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
-import { ArkTSSourceFile, CJSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
 import { collectPeersForFile } from "../PeersCollector";
-import { collapseIdlPeerMethods } from "./OverloadsPrinter";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 
 class NativeModulePrinterBase {
@@ -361,6 +359,24 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "NativeBuffer",
         ], "@koalaui/interop")
         imports.addFeatures(["int32", "int64", "float32"], "@koalaui/common")
+    }
+    else if (library.language === Language.KOTLIN) {
+        imports.addFeatures([
+            "KBoolean",
+            "KByte",
+            "KInt",
+            "KLong",
+            "KFloat",
+            "KDouble",
+            "KUInt",
+            "KStringPtr",
+            "KPointer",
+            "pointer",
+            "KUint8ArrayPtr",
+            "KInteropReturnBuffer",
+            "KSerializerBuffer",
+        ], "koalaui.interop")
+        imports.addFeature("*", "kotlinx.cinterop")
     }
 }
 

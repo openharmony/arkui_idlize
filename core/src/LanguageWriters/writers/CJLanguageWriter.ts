@@ -37,11 +37,10 @@ import {
     NamespaceOptions,
     ObjectArgs,
     ReturnStatement,
-    StringExpression
 } from "../LanguageWriter"
 import { IdlNameConvertor } from "../nameConvertor"
 import { Language } from "../../Language";
-import { indentedBy, isDefined, throwException } from "../../util";
+import { indentedBy, isDefined } from "../../util";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
@@ -280,6 +279,10 @@ export class CJLanguageWriter extends LanguageWriter {
         return this.typeConvertor.convert(type)
     }
 
+    override get interopModule(): string {
+        return "Interop"
+    }
+
     writeClass(
         name: string,
         op: (writer: this) => void,
@@ -429,6 +432,15 @@ export class CJLanguageWriter extends LanguageWriter {
         op(this)
         this.popIndent()
         this.print('}')
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        for (let i = 0; i < importedFeatures.length; i++) {
+            const alias =  aliases[i] ? ` as ${aliases[i]}` : ``
+            this.writeExpressionStatement(this.makeString(`import ${moduleName}.${importedFeatures[i]}` + alias))
+        }
     }
     private writeDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], postfix?: string, generics?: string[]): void {
         let prefix = modifiers

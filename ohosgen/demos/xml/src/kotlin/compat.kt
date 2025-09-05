@@ -1,8 +1,9 @@
-package idlize
+package xmldemo
 
-import koalaui.interop.*
-
-public typealias EventType = xml_EventType
+import koalaui.interop.checkEvents
+import koalaui.interop.InteropNativeModule
+import koalaui.interop.NativeBuffer
+import ohos.xml.INTERNAL.registerOhosXmlApiHandler
 
 public fun encodeText(text: String): NativeBuffer {
     val encodedString = text.encodeToByteArray().toUByteArray()

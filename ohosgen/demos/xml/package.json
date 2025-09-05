@@ -19,7 +19,7 @@
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate && cp ./src/cangjie/* ./generated/cangjie",
-        "generate:kt": "TARGET=kt npm run generate && cp ./src/kotlin/* ./generated/kotlin",
+        "generate:kt": "TARGET=kt npm run generate",
 
         "build": "npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET} && npm run compile:${TARGET}",
         "build:ts": "TARGET=ts npm run build",

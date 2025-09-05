@@ -14,7 +14,6 @@
  */
 
 import * as idl from '../../idl'
-import { isOptionalType } from '../../idl'
 import { Language } from '../../Language'
 import { IndentedPrinter } from "../../IndentedPrinter";
 import {
@@ -24,7 +23,6 @@ import {
     DelegationType,
     ExpressionStatement,
     FieldModifier,
-    IfStatement,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -36,17 +34,15 @@ import {
     MethodSignature,
     NamedMethodSignature,
     NamespaceOptions,
-    NaryOpExpression,
     ObjectArgs,
     ReturnStatement,
-    StringExpression
 } from "../LanguageWriter"
 import { ArgConvertor } from "../ArgConvertors"
 import { IdlNameConvertor } from "../nameConvertor"
 import { RuntimeType } from "../common";
-import { isDefined, rightmostIndexOf, throwException } from "../../util"
+import { isDefined } from "../../util"
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
-import { removePoints } from '../convertors/CJConvertors';
+import { removePoints } from '../../util';
 
 export class KotlinLambdaReturnStatement implements LanguageStatement {
     constructor(public expression?: LanguageExpression) { }
@@ -270,6 +266,10 @@ export class KotlinLanguageWriter extends LanguageWriter {
        return this.typeConvertor.convert(type)
     }
 
+    override get interopModule(): string {
+        return "koalaui.interop"
+    }
+
     writeClass(
         name: string,
         op: (writer: this) => void,
@@ -342,27 +342,63 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let name = method.name
         let signature = method.signature
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
+            const pins = signature.args.map((type, index) => this.pinArrayArgument(signature.argName(index), type))
+            const unpins = signature.args.map((type, index) => this.unpinArrayArgument(signature.argName(index), type))
+            pins.filter(it => !!it).forEach(it => this.writeStatement(it!))
             const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
+            this.printForeignApiOptIn()
             const interopCallExpression = this.makeFunctionCall(`kotlin${name}`, args)
             if (signature.returnType === idl.IDLVoidType) {
                 this.writeExpressionStatement(interopCallExpression)
+                unpins.filter(it => !!it).forEach(it => this.writeExpressionStatement(it!))
                 return
             }
             const retval = "retval"
+            // this.printForeignApiOptIn()
             this.writeStatement(this.makeAssign(retval, undefined, interopCallExpression))
+            unpins.filter(it => !!it).forEach(it => this.writeExpressionStatement(it!))
+            this.printForeignApiOptIn()
             this.writeStatement(this.makeReturn(this.convertInteropReturnValue(retval, signature.returnType)))
         })
+    }
+    private printForeignApiOptIn() {
+        this.print("@OptIn(ExperimentalForeignApi::class)")
+    }
+    private isPrimitiveArray(type: idl.IDLType): boolean {
+        if (!idl.IDLContainerUtils.isSequence(type)) {
+            return false
+        }
+        const elementType = (type as idl.IDLContainerType).elementType[0]
+        const allowedTypes: idl.IDLType[] = [idl.IDLU8Type, idl.IDLI32Type, idl.IDLF32Type]
+        return allowedTypes.includes(elementType)
+    }
+    private pinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement | undefined {
+        if (this.isPrimitiveArray(type)) {
+            const pinCallExpression = this.makeMethodCall(varName, "pin", [])
+            return this.makeAssign(`${varName}Pinned`, undefined, pinCallExpression, true, true)
+        }
+        return undefined
+    }
+    private unpinArrayArgument(varName: string, type: idl.IDLType): LanguageExpression | undefined {
+        if (this.isPrimitiveArray(type)) {
+            return this.makeMethodCall(`${varName}Pinned`, "unpin", [])
+        }
+        return undefined
     }
     private convertInteropArgument(varName: string, type: idl.IDLType): LanguageExpression {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
+            case "UByteArray":
+            case "IntArray":
+            case "FloatArray": expr = `${varName}Pinned.addressOf(0)`; break
             case "KPointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
             case "KInt":
             case "KLong":
             case "KFloat":
             case "KDouble":
+            case "String":
             case "KStringPtr":
             case "KBoolean":
             case "Float64":
@@ -469,6 +505,15 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
         throw new Error("Not implemented")
     }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        for (let i = 0; i < importedFeatures.length; i++) {
+            const alias =  aliases[i] ? ` as ${aliases[i]}` : ``
+            this.writeExpressionStatement(this.makeString(`import ${moduleName}.${importedFeatures[i]}` + alias))
+        }
+    }
     makeNull(): LanguageExpression {
         return this.makeString('null')
     }
@@ -563,7 +608,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             return this.makeDefinedCheck(varName)
         } else {
             const op = equals ? "==" : "!="
-            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}.toByte()`)])
+            return this.makeNaryOp(op, [this.makeRuntimeType(type), this.makeString(`${typeVarName}`)])
         }
     }
     getTagType(): idl.IDLType {

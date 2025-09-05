@@ -1,6 +1,10 @@
-package idlize
+package xmldemo
 
-import koalaui.interop.*
+import ohos.xml.xml_EventType
+import ohos.xml.xml_MapTest
+import ohos.xml.xml_ParseInfo
+import ohos.xml.xml_ParseOptions
+import ohos.xml.xml_XmlPullParser
 
 public fun run() {
     val sampleXml = "<foo valOfFoo=\"xx\">Hello<bar>124</bar>World</foo>"
@@ -11,16 +15,16 @@ public fun run() {
         object: xml_ParseOptions {
             override var supportDoctype: Boolean? = true;
             override var ignoreNameSpace: Boolean? = false;
-            override var tagValueCallbackFunction: ((name: String, value: String) -> Boolean)? = { name: String, value: String ->
+            override var tagValueCallbackFunction: ((name: String, value: String) -> Boolean)? = { name, value ->
                 println("TAG ${name} VALUE ${value}")
                 true
             };
-            override var attributeValueCallbackFunction: ((name: String, value: String) -> Boolean)? = { name: String, value: String ->
+            override var attributeValueCallbackFunction: ((name: String, value: String) -> Boolean)? = { name, value ->
                 println("ATTR ${name} VALUE ${value}")
                 true
             };
-            override var tokenValueCallbackFunction: ((eventType: xml_EventType, value: xml_ParseInfo) -> Boolean)? = { eventType: EventType, value: xml_ParseInfo ->
-                println("TOKEN eventType VALUE value")
+            override var tokenValueCallbackFunction: ((eventType: xml_EventType, value: xml_ParseInfo) -> Boolean)? = { eventType, value ->
+                println("TOKEN ${eventType} VALUE ${value}")
                 true
             }
         }

@@ -6,12 +6,13 @@ external_dir=../../../external
 out_dir=build/kotlin
 
 cinterop -def ./generated/native/cinterop.def \
-    -pkg idlize \
+    -pkg ohos.xml.INTERNAL \
     -compiler-option -Igenerated/native \
     -compiler-option -I$external_dir/interop/src/cpp/kotlin \
     -o $out_dir/idlize_cinterop
 
 konanc ./generated/kotlin/*.kt \
+    ./src/kotlin/*.kt \
     -l $out_dir/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \

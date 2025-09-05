@@ -18,7 +18,6 @@ import { IndentedPrinter } from "../../IndentedPrinter";
 import {
     AssignStatement,
     BlockStatement,
-    ClassModifier,
     DelegationCall,
     FieldModifier,
     LambdaExpression,
@@ -31,7 +30,6 @@ import {
     MethodSignature,
     NamedMethodSignature,
     ObjectArgs,
-    StringExpression,
 } from "../LanguageWriter"
 import {
     CLikeExpressionStatement,
@@ -137,6 +135,10 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
         return new JavaLanguageWriter(new IndentedPrinter([], this.indentDepth()), options?.resolver ?? this.resolver, this.typeConvertor)
     }
 
+    override get interopModule(): string {
+        return "org.koalaui.interop"
+    }
+
     writeClass(name: string, op: (writer: this) => void, superClass?: string, interfaces?: string[], generics?: string[], isDeclared?: boolean, isExport: boolean = true): void {
         let genericsClause = generics?.length ? `<${generics.join(', ')}> ` : ``
         let extendsClause = superClass ? ` extends ${superClass}` : ''
@@ -215,6 +217,14 @@ export class JavaLanguageWriter extends CLikeLanguageWriter {
     }
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
         throw new Error("writeConstant for Java is not implemented yet.")
+    }
+    override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
+        if (importedFeatures.length !== aliases.length) {
+            throw new Error(`Inconsistent imports from ${moduleName}`)
+        }
+        for (let i = 0; i < importedFeatures.length; i++) {
+            this.writeExpressionStatement(this.makeString(`import ${moduleName}.${importedFeatures[i]}`))
+        }
     }
     makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression, isDeclared: boolean = true, isConst: boolean = true): LanguageStatement {
         return new JavaAssignStatement(variableName, type, expr, isDeclared, isConst)
