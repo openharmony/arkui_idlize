@@ -459,29 +459,21 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void {
         let containerName = propName.concat("_container")
         let truePropName = this.escapeKeyword(propName)
-        if (getter) {
-            if(!getter!.op) {
-                this.print(`private var ${containerName}: ${this.getNodeName(propType)}`)
-            }
-        }
-        let isMutable = !modifiers.includes(FieldModifier.READONLY)
+        const isReadonly = modifiers.includes(FieldModifier.READONLY)
+        const isGetter = modifiers.includes(FieldModifier.GET)
+        const isSetter = modifiers.includes(FieldModifier.SET)
+        const isImmutable = isReadonly || (isGetter && !isSetter)
         let isOverride = modifiers.includes(FieldModifier.OVERRIDE)
         let initializer = initExpr ? ` = ${initExpr.asString()}` : ""
-        this.print(`${isOverride ? 'override ' : ''}public ${isMutable ? "var " : "val "}${truePropName}: ${this.getNodeName(propType)}${initializer}`)
+        this.print(`${isOverride ? 'override ' : ''}public ${isImmutable ? "val " : "var "}${truePropName}: ${this.getNodeName(propType)}${initializer}`)
         if (getter) {
             this.pushIndent()
             this.writeGetterImplementation(getter.method, getter.op)
-            if (isMutable) {
-                if (setter) {
-                    this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => {this.print(`${containerName} = ${truePropName}`)})
-                } else {
-                    this.print(`set(${truePropName}) {`)
-                    this.pushIndent()
-                    this.print(`${containerName} = ${truePropName}`)
-                    this.popIndent()
-                    this.print(`}`)
-                }
-            }
+            this.popIndent()
+        }
+        if (setter) {
+            this.pushIndent()
+            this.writeSetterImplementation(setter.method, setter ? setter.op : (writer) => { writer.print(`${containerName} = ${truePropName}`) })
             this.popIndent()
         }
     }
