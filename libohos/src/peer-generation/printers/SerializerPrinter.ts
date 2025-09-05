@@ -268,7 +268,7 @@ class SerializerPrinter {
     printCppForwardDeclarations(): LanguageWriter {
         const printer = this.library.createLanguageWriter(Language.CPP) as CppLanguageWriter
         const serializerDeclarations = getSerializerDeclarations(this.library,
-            createSerializerDependencyFilter(this.library, this.language))
+            createSerializerDependencyFilter(this.library, this.language), this.language)
 
         serializerDeclarations.forEach(decl => {
             // internal modules provide serializers
@@ -329,7 +329,7 @@ class SerializerPrinter {
 
     print(): PrinterResult[] {
         const serializerDeclarations = getSerializerDeclarations(this.library,
-            createSerializerDependencyFilter(this.library, this.language))
+            createSerializerDependencyFilter(this.library, this.language), this.language)
 
         return serializerDeclarations.flatMap(decl => {
             // internal modules provide serializers
@@ -379,13 +379,14 @@ export function createCSerializerPrinter(library: PeerLibrary, language: Languag
     return serializers
 }
 
-export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter): SerializableTarget[] {
+export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter: DependencyFilter, language: Language): SerializableTarget[] {
     const nameConvertor = library.createTypeNameConvertor(Language.CPP)
     const seenNames = new Set<string>()
     return collectDeclarationTargets(library)
         .map(it => it)
         .filter((it): it is SerializableTarget => dependencyFilter.shouldAdd(it))
         .filter(it => !idl.isHandwritten(it) && !isInIdlizeInternal(it) && !peerGeneratorConfiguration().components.custom.includes(it.name) && !peerGeneratorConfiguration().isHandWritten(it.name))
+        .filter(it => !peerGeneratorConfiguration().ignoreEntry(it.name, language))
         .filter(it => !(idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)))
         .filter(it => !it.typeParameters?.length
             || it.typeParameters.every(it => it.includes('='))

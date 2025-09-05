@@ -14676,7 +14676,7 @@ declare interface ContentModifier<T> {
    * @atomicservice
    * @since 12
    */
-  applyContent(): WrappedBuilder<[T]>
+  applyContent(): WrappedBuilder<Object[]>
 }
 
 /**
@@ -16509,61 +16509,6 @@ declare class CommonMethod<T> {
   foregroundColor(value: ResourceColor | ColoringStrategy): T;
 
   /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * Trigger a click event when a click is clicked.
-   *
-   * @param { function } event
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   */
-  // TODO: temporary!
-  onClick(event: (event: ClickEvent) => void): T;
-
-  /**
-   * Trigger a click event when a click is clicked, move distance should smaller than distanceThreshold.
-   *
-   * @param { function } event - this function callback executed when the click action is recognized
-   * @param { number } distanceThreshold - the distance threshold of finger's movement when detecting a click action
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 12
-   */
-  onClick(event: Callback<ClickEvent> | undefined, distanceThreshold: double | undefined): T;
-
-  /**
    * Trigger a hover event.
    *
    * @param { function } event
@@ -17073,111 +17018,6 @@ declare class CommonMethod<T> {
    * @since 12
    */
   transition(effect: TransitionEffect, onFinish: Optional<TransitionFinishCallback>): T;
-
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Bind gesture recognition.
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  gesture(gesture: GestureType, mask?: GestureMask): T;
-
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Binding Preferential Recognition Gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  priorityGesture(gesture: GestureType, mask?: GestureMask): T;
-
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Binding gestures that can be triggered simultaneously with internal component gestures
-   * gesture:Bound Gesture Type,mask:GestureMask;
-   *
-   * @param { GestureType } gesture
-   * @param { GestureMask } mask
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  parallelGesture(gesture: GestureType, mask?: GestureMask): T;
 
   /**
    * Adds the content blurring effect for the current component. The input parameter is the blurring radius.
@@ -19555,65 +19395,6 @@ declare class CommonMethod<T> {
   advancedBlendMode(effect: BlendMode | Blender, type?: BlendApplyType): T;
 
   /**
-   * Whether to crop the sub components beyond the current component range.
-   *
-   * @param { boolean } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 12
-   */
-  clip(value: boolean): T;
-
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * When the parameter is of the Shape type, the current component is cropped according to the specified shape.
-   * When the parameter is of the boolean type, this parameter specifies whether to crop based on the edge contour.
-   *
-   * @param { boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   * @deprecated since 12
-   * @useinstead CommonMethod#clipShape
-   */
-  clip(value: boolean | CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute): T;
-
-  /**
   * The current component is cropped according to the specified shape.
   *
   * @param { CircleShape | EllipseShape | PathShape | RectShape } value - indicates the shape of the clip.
@@ -19625,60 +19406,6 @@ declare class CommonMethod<T> {
   * @since 12
   */
   clipShape(value: CircleShape | EllipseShape | PathShape | RectShape): T;
-
-  /**
-   * Sets the mask of the current component.
-   *
-   * @param { ProgressMask } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  mask(value: ProgressMask): T;
-
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 7
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @form
-   * @since 9
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @since 10
-   */
-  /**
-   * Applies a mask of the specified shape to the current assembly.
-   *
-   * @param { CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask } value - indicates the shape of the mask.
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @form
-   * @atomicservice
-   * @since 11
-   * @deprecated since 12
-   * @useinstead CommonMethod#maskShape
-   */
-  mask(value: CircleAttribute | EllipseAttribute | PathAttribute | RectAttribute | ProgressMask): T;
 
   /**
    * Applies a mask of the specified shape to the current assembly.

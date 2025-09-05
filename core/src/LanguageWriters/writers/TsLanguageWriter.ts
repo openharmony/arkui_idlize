@@ -249,6 +249,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         let prefix = this.makeFieldModifiersList(modifiers)
+        if (prefix) prefix += " "
         const typeName = this.getNodeName(type)
         const isGetter = modifiers?.includes(FieldModifier.GET)
         const isSetter = modifiers?.includes(FieldModifier.SET)
@@ -260,7 +261,6 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         if (isGetter || isSetter) return
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
-        if (prefix) prefix += " "
         this.printer.print(`${prefix}${name}${optional ? "?"  : ""}: ${typeName}${init}`)
     }
     writeNativeMethodDeclaration(method: Method): void {
