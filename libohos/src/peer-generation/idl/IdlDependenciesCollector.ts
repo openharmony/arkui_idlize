@@ -18,17 +18,22 @@ import { NodeConvertor, convertNode, convertType, maybeRestoreGenerics } from "@
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language } from '@idlizer/core'
 
+function excludeRecursive(types: idl.IDLType[], excludes: Set<string>): idl.IDLType[] {
+    if (excludes.size == 0) return types
+    return types.filter(it => !(idl.isNamedNode(it) && excludes.has(idl.getFQName(it))))
+}
 export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
+    private excludes: Set<string> = new Set<string>()
     constructor(protected readonly library: LibraryInterface) {}
 
     convertOptional(type: idl.IDLOptionalType): idl.IDLEntry[] {
         return convertType(this, type.type)
     }
     convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
-        return type.types.flatMap(ty => convertType(this, ty))
+        return excludeRecursive(type.types, this.excludes).flatMap(ty => convertType(this, ty))
     }
     convertContainer(type: idl.IDLContainerType): idl.IDLEntry[] {
-        return type.elementType.flatMap(ty => convertType(this, ty))
+        return excludeRecursive(type.elementType, this.excludes).flatMap(ty => convertType(this, ty))
     }
     convertImport(import_: idl.IDLImport): idl.IDLEntry[] {
         const maybeDecl = this.library.resolveTypeReference(idl.createReferenceType(import_.clause.join(".")))
@@ -89,7 +94,11 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         return []
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
-        return this.convert(decl.type)
+        const fqn = idl.getFQName(decl)
+        this.excludes.add(fqn)
+        const entries = this.convert(decl.type)
+        this.excludes.delete(fqn)
+        return entries
     }
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {
         return [
