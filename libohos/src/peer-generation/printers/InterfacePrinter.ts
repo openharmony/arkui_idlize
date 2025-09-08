@@ -1646,7 +1646,7 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
     convertConstant(node: idl.IDLConstant): void {
         // TODO: namespace-related-to-rework
-        throw new Error("not implemented yet")
+        this.writer.print(`val ${node.name} = ${node.value}`)
     }
     convertEnum(node: idl.IDLEnum): void {
         this.writer.writeStatement(this.writer.makeEnumEntity(node, { isExport: true, isDeclare: false }))

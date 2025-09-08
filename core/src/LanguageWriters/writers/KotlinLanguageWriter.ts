@@ -394,6 +394,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "FloatArray": expr = `${varName}Pinned.addressOf(0)`; break
             case "KPointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
+            case "BigInteger":
             case "KInt":
             case "KLong":
             case "KFloat":
@@ -418,6 +419,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "KInt":
             case "KLong":
             case "Float64":
+            case "BigInteger":
             case "Float":
             case "Double":
             case "Long":
@@ -495,7 +497,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         throw new Error("Not implemented")
     }
     writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void {
-        throw new Error("Not implemented")
+        this.print(`val ${constName} = ${constVal}`)
     }
     override writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void {
         if (importedFeatures.length !== aliases.length) {

@@ -12,16 +12,19 @@
         "clean:ts": "rm -rf generated/ts",
         "clean:arkts": "rm -rf generated/arkts",
         "clean:cj": "rm -rf generated/cj",
+        "clean:kt": "rm -rf generated/kotlin",
         "clean:native": "rm -rf generated/native",
 
         "generate": "npm run run:unit:${TARGET} -C ../.. -- --output-dir tests/unit --options-file tests/unit/conf/config.json",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
         "generate:cj": "TARGET=cj npm run generate",
+        "generate:kt": "TARGET=kt npm run generate",
 
         "compile:ts": "rollup -c",
         "compile:arkts": "bash scripts/build-panda.sh",
         "compile:cj": "",
+        "compile:kt": "bash scripts/build-kotlin.sh",
 
         "compile:interop:native": "npm run compile:native-${TARGET_VM}-host --prefix ../../../external/interop",
         "compile:interop:native:ts": "TARGET_VM=node npm run compile:interop:native",
@@ -32,20 +35,24 @@
         "compile:native:ts": "TARGET_VM=node npm run compile:native",
         "compile:native:arkts": "TARGET_VM=panda npm run compile:native",
         "compile:native:cj": "TARGET_VM=cangjie npm run compile:native",
+        "compile:interop:native:kt": "TARGET=kotlin npm run compile:interop:native && npm run compile:kotlin:interop --prefix ../../../external/interop",
 
         "start:ts": "bash scripts/run-ts.sh",
         "start:arkts": "bash scripts/run-panda.sh",
         "start:cj": "bash scripts/run-cj.sh",
+        "start:kt": "bash scripts/run-kt.sh",
 
         "build": "npm run compile:${TARGET} && npm run compile:interop:native:${TARGET} && npm run compile:native:${TARGET}",
         "build:ts": "TARGET=ts npm run build",
         "build:arkts": "TARGET=arkts npm run build",
         "build:cj": "TARGET=cj npm run build",
+        "build:kt": "TARGET=kt npm run build",
 
         "check": "npm run clean:native && npm run clean:${TARGET} && npm run generate:${TARGET} && npm run build:${TARGET} && npm run start:${TARGET}",
         "check:ts": "TARGET=ts npm run check",
         "check:arkts": "TARGET=arkts npm run check",
-        "check:cj": "TARGET=cj npm run check"
+        "check:cj": "TARGET=cj npm run check",
+        "check:kt": "TARGET=kt npm run check"
     },
     "dependencies": {
         "@koalaui/common": "latest"

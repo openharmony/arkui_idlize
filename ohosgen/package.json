@@ -54,6 +54,7 @@
     "generate:unit:idl": "npm run compile && node ../dtsgen --dts2idl --input-dir ./tests/unit/dts --output-dir ./tests/unit/generated/idl --options-file ./tests/unit/conf/config.json",
     "run:unit:ts": "npm run generate:unit:idl && node . --idl2peer --language=ts --default-idl-package unit --input-dir ./tests/unit/generated/idl,./tests/unit/idl --output-dir ./tests/unit",
     "run:unit:arkts": "npm run generate:unit:idl && node . --idl2peer --language=arkts --default-idl-package unit --input-dir ./tests/unit/generated/idl,./tests/unit/idl --output-dir ./tests/unit",
+    "run:unit:kt": "npm run generate:unit:idl && node . --idl2peer --language=kotlin --default-idl-package unit --input-dir ./tests/unit/generated/idl,./tests/unit/idl --output-dir ./tests/unit",
     "generate:dummy:idl": "npm run compile && node ../dtsgen --dts2idl --input-dir ./tests/dummy/dts --output-dir ./tests/dummy/generated/idl --options-file ./tests/dummy/conf/config.json",
     "run:dummy:ts": "npm run generate:dummy:idl && node . --idl2peer --language=ts --default-idl-package dummy --input-dir ./tests/dummy/generated/idl,./tests/dummy/idl --output-dir ./tests/dummy",
     "run:dummy:arkts": "npm run generate:dummy:idl && node . --idl2peer --language=arkts --default-idl-package dummy --input-dir ./tests/dummy/generated/idl,./tests/dummy/idl --output-dir ./tests/dummy",
