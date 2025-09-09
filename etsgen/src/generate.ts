@@ -115,6 +115,7 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
             skipped: true,
             file: idl.createFile([]),
             exports: new Map,
+            exportsAll: new Set
         }
     }
     idlVisitor.visitor(script)
@@ -190,6 +191,8 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     if (traceStatus) {
         fs.writeFileSync(traceStatus, status.Print())
     }
+    console.log('Adjusting exports...')
+    adjustExports(library, config)
     console.log('Adjusting imports...')
     const adjusted = adjustImports(library)
     const doAdjustJob = processLogger(adjusted.length)
@@ -205,6 +208,43 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
         })
     })
     return new PeerLibrary(Language.ARKTS, NativeModule.Interop)
+}
+
+function adjustExports(library: IDLSuperFile[], config: ETSVisitorConfig): void {
+    const adjustedFiles = new Set<IDLSuperFile>()
+    const adjustInProgressFiles = new Set<IDLSuperFile>()
+    const adjustFileExports = (file: IDLSuperFile) => {
+        if (adjustedFiles.has(file))
+            return
+        if (adjustInProgressFiles.has(file)) {
+            const stack = [...adjustInProgressFiles].map(it => it.file.packageClause.join("."))
+            throw new Error(`Recursive reexports detected. Stack: ${stack}`)
+        }
+        adjustInProgressFiles.add(file)
+        for (const reexportPackage of file.exportsAll) {
+            const reexportedFile = library.find(it => it.file.packageClause.join(".") === reexportPackage)
+            if (!reexportedFile) {
+                if (config.DeletedPackages.includes(reexportPackage)) {
+                    console.log(`WARNING: reexport from deleted package ${reexportPackage} found. Mistakes possible if those reexports were used.`)
+                    continue
+                } else {
+                    throw new Error(`Failed to adjust reexport for package ${reexportPackage}: file not found`)
+                }
+            }
+            adjustFileExports(reexportedFile)
+            for (const entry of reexportedFile.file.entries) {
+                if (idl.isTypedef(entry) || idl.isInterface(entry) || idl.isNamespace(entry)) {
+                    file.exports.set(entry.name, reexportedFile.file.packageClause.concat(entry.name).join("."))
+                }
+            }
+            for (const otherExport of reexportedFile.exports.entries()) {
+                file.exports.set(otherExport[0], otherExport[1])
+            }
+        }
+        adjustInProgressFiles.delete(file)
+        adjustedFiles.add(file)
+    }
+    library.forEach(adjustFileExports)
 }
 
 function adjustImports(library: IDLSuperFile[]): IDLSuperFile[] {
@@ -288,6 +328,7 @@ interface IDLSuperFile {
     file: IDLFile
     skipped: boolean
     exports: Map<string, string>
+    exportsAll: Set<string>
 }
 
 interface ExtractTypeParameterInfo {
@@ -415,6 +456,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
     private typeParamsStack: Set<string>[] = []
 
     private fileReExports: Map<string, string> = new Map()
+    private fileReExportsAll: Set<string> = new Set()
 
     private typeReplacements: Map<string, idl.IDLType>[] = []
 
@@ -505,6 +547,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 node.eTSImportDeclarations!.specifiers.forEach(spec => {
                     if (arkts.isImportSpecifier(spec)) {
                         this.fileReExports.set(spec.local!.name, [...importedPackageClause, spec.imported!.name].join('.'))
+                    }
+                    if (arkts.isImportNamespaceSpecifier(spec)) {
+                        if (spec.local?.name) {
+                            throw new Error("`import * as smth` is not supported")
+                        }
+                        this.fileReExportsAll.add(importedPackageClause.join("."))
                     }
                 })
             }
@@ -635,7 +683,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 this.entries.push(idl.createImport([...importedPackageClause, 'default'], spec.local!.name))
             }
             if (arkts.isImportNamespaceSpecifier(spec)) {
-                this.entries.push(idl.createImport([...importedPackageClause, 'default'], spec.local!.name))
+                throw new Error("`import * from` or `import * as <name> from` constructions are not supported")
             }
         })
         return node
@@ -1662,6 +1710,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             skipped: false,
             file: this.toIDLFile(),
             exports: this.fileReExports,
+            exportsAll: this.fileReExportsAll,
         }
     }
 

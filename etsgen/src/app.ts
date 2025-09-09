@@ -26,7 +26,6 @@ import { cpSync } from "node:fs"
 export function etsgen(argv:string[]) {
     const program = createCommand()
         .option('--ets2idl', 'Convert .d.ts to IDL definitions')
-        .option('--idl2ets', 'Convert IDL to .d.sts definitions')
         .option('--use-component-stubs', 'Add components stubs to produced idl files')
         .option('--input-dir <path>', 'Path to input dir(s), comma separated')
         .option('--exclude <patterns>', 'Paths to exclude from input-dir scan')
