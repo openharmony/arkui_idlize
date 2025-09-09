@@ -192,7 +192,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
         collector.addFeatures(['unsafeCast'], '@koalaui/common')
         collector.addFeatures([
             'Finalizable',
-            'runtimeType',
             'RuntimeType',
             'SerializerBase',
             'DeserializerBase',
@@ -204,7 +203,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             importTypeChecker(library, collector)
         }
         if (library.language === idl.Language.TS) {
-            collector.addFeature('isInstanceOf', '@koalaui/interop')
+            collector.addFeatures(['runtimeType', 'isInstanceOf'], '@koalaui/interop')
         }
         if (library.name === 'arkoala') {
             collector.addFeature('CallbackTransformer', './CallbackTransformer')

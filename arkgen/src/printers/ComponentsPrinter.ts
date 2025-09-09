@@ -91,7 +91,7 @@ interface ComponentFileVisitor {
     visit(): PrinterResult[]
 }
 
-class TSComponentFileVisitor implements ComponentFileVisitor {
+class TSLikeComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -122,7 +122,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
-            imports.addFeatures(["RuntimeType", "runtimeType"], "@koalaui/interop")
+            imports.addFeature("RuntimeType", "@koalaui/interop")
             imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             imports.addFeature('ComponentBase', './ComponentBase')
             if (this.library.language === Language.TS) {
@@ -283,7 +283,15 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
     }
 }
 
-class ArkTsComponentFileVisitor extends TSComponentFileVisitor {
+class TSComponentFileVisitor extends TSLikeComponentFileVisitor {
+    protected populateImports(imports: ImportsCollector): void {
+        if (this.options.isDeclared) {
+            imports.addFeature("runtimeType", "@koalaui/interop")
+        }
+    }
+}
+
+class ArkTsComponentFileVisitor extends TSLikeComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         if (!this.options.isDeclared)
             imports.addFeature('TypeChecker', '#components')

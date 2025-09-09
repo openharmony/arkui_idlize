@@ -582,7 +582,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
         // common runtime dependencies
         this.collector.addFeatures([
             'Finalizable',
-            'runtimeType',
             'RuntimeType',
             'SerializerBase',
             'DeserializerBase',
@@ -597,7 +596,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
         }
         if (this.library.language === Language.TS) {
-            this.collector.addFeature('isInstanceOf', '@koalaui/interop')
+            this.collector.addFeatures(['isInstanceOf', 'runtimeType'], '@koalaui/interop')
         }
 
         const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)

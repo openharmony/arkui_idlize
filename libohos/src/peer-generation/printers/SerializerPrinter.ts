@@ -402,7 +402,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
 export function printSerializerImports(library: PeerLibrary, language: Language, collector: ImportsCollector) {
     if (language === Language.TS || language === Language.ARKTS) {
         collector.addFeatures([
-            "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "runtimeType", "toPeerPtr", 'nullptr', 'KPointer'
+            "SerializerBase", "DeserializerBase", "CallbackResource", "InteropNativeModule", "MaterializedBase", "Tags", "RuntimeType", "toPeerPtr", 'nullptr', 'KPointer'
         ], "@koalaui/interop")
         collector.addFeatures(["int32", "int64", "float32", "unsafeCast"], "@koalaui/common")
         if (language == Language.TS && library.name === "arkoala") {
@@ -414,7 +414,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
         collector.addFeatures(["NativeBuffer", "KSerializerBuffer"], "@koalaui/interop")
         if (language === Language.TS) {
             collector.addFeature('Finalizable', '@koalaui/interop')
-            collector.addFeatures(["NativeBuffer"], "@koalaui/interop")
+            collector.addFeatures(["NativeBuffer", "runtimeType"], "@koalaui/interop")
         } else {
             collectDeclItself(library, idl.createReferenceType("TypeChecker"), collector)
             collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")

@@ -229,13 +229,13 @@ class PeerFileVisitor {
         if (lang !== Language.TS && lang !== Language.ARKTS) return
 
         imports.addFeatures(['int32', 'int64', 'float32'], "@koalaui/common")
-        imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'runtimeType', 'RuntimeType'], "@koalaui/interop")
+        imports.addFeatures(['nullptr', 'KPointer', 'KInt', 'KBoolean', 'KStringPtr', 'RuntimeType'], "@koalaui/interop")
         // TODO Remove unnecessary imports for ohos libraries
         imports.addFeatures(['ComponentBase'], "./ComponentBase")
         imports.addFeatures(['PeerNode'], "./PeerNode")
         switch (lang) {
             case Language.TS: {
-                imports.addFeature('isInstanceOf', "@koalaui/interop")
+                imports.addFeatures(['isInstanceOf', 'runtimeType'], "@koalaui/interop")
                 break
             }
             case Language.ARKTS: {
