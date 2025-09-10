@@ -27,7 +27,6 @@ import {
 } from "@idlizer/core";
 import { mergeJSONs } from "./configMerge";
 import { D } from "@idlizer/core";
-import { IDLVisitorConfiguration, IDLVisitorConfigurationSchema, expandIDLVisitorConfig } from "./IDLVisitorConfig";
 
 const T = {
     stringArray: () => D.array(D.string())
@@ -73,7 +72,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             D.map(D.string(), D.map(D.string(), D.string())),
             new Map()
         ),
-        IDLVisitor: IDLVisitorConfigurationSchema,
     })
 )
 
@@ -89,7 +87,6 @@ export interface PeerGeneratorConfigurationExtension {
     isShouldReplaceThrowingError(name: string): boolean
     noDummyGeneration(component: string, method?: string): boolean
 
-    IDLVisitor: IDLVisitorConfiguration,
     linter: IDLLinterOptions
 }
 
@@ -149,9 +146,7 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
             checkEnumsConsistency: true,
             checkReferencesResolved: false,
         },
-        IDLVisitor: expandIDLVisitorConfig(data.IDLVisitor),
     }
-    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, '..'))
     return config
 }
 
@@ -196,8 +191,4 @@ export function loadPeerConfiguration(configurationFiles?: string, ignoreDefault
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {
     return generatorConfiguration<PeerGeneratorConfiguration>()
-}
-
-export function IDLVisitorConfiguration(): IDLVisitorConfiguration {
-    return peerGeneratorConfiguration().IDLVisitor
 }

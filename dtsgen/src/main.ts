@@ -40,7 +40,8 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, peerGeneratorConfiguration, IDLVisitor, NativeModule } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, peerGeneratorConfiguration, NativeModule } from "@idlizer/libohos"
+import { IDLVisitor } from "./IDLVisitor"
 import { runPreprocessor } from "./preprocessor"
 import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
 

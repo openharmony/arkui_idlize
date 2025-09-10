@@ -17,7 +17,6 @@ import {
     ConfigTypeInfer,
     D,
     identName,
-    isDefined,
     parseIDLFile,
 } from "@idlizer/core";
 import * as idl from '@idlizer/core/idl'

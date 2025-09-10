@@ -24,13 +24,13 @@ import {
     snakeCaseToCamelCase, escapeIDLKeyword, GenerateVisitor,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
     collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
-    getOrPut, findRealDeclarations,
     filterRedundantMethodsOverloads,
     filterRedundantAttributesOverloads,
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
-import { peerGeneratorConfiguration, IDLVisitorConfiguration } from './DefaultConfiguration'
+import { peerGeneratorConfiguration } from '@idlizer/libohos'
 import { groupOverloadsTS } from "./IDLVisitorConfig"
+import { IDLVisitorConfiguration } from "./config"
 
 const MaxSyntheticTypeLength = 60
 
