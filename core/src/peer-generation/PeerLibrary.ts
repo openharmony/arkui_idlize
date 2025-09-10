@@ -557,6 +557,22 @@ export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
+
 function isCyclicTypeDef(decl: idl.IDLTypedef): boolean {
-    return idl.isReferenceType(decl.type) && idl.isNamedNode(decl.type) && decl.type.name == decl.name
+    return checkCyclicType(idl.getFQName(decl), decl.type)
+}
+
+function checkCyclicType(fqn: string, type: idl.IDLType): boolean {
+    if (idl.isReferenceType(type) && idl.isNamedNode(type) && idl.getFQName(type) == fqn) return true
+    if (idl.isOptionalType(type) && checkCyclicType(fqn, type.type)) return true
+    if (idl.isUnionType(type) && checkCyclicTypes(fqn, type.types)) return true
+    if (idl.isContainerType(type) && checkCyclicTypes(fqn, type.elementType)) return true
+    return false
+}
+
+function checkCyclicTypes(fqn: string, types: idl.IDLType[]): boolean {
+    for (const t of types) {
+        if (checkCyclicType(fqn, t)) return true
+    }
+    return false
 }
