@@ -50,6 +50,7 @@ import {
     findComponentByDeclaration,
     componentToStyleClass,
     allowNamedOverloads,
+    peerGeneratorConfiguration,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
@@ -223,6 +224,8 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
     }
 
     protected printComponentFunctions(peer: PeerClass): PrinterResult[] {
+        if (peerGeneratorConfiguration().isHandWritten(peer.componentName))
+            return []
         const component = findComponentByName(this.library, peer.componentName)!
         const generate = () => {
             const printer = this.library.createLanguageWriter()
