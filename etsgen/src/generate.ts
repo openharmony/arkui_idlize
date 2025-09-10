@@ -426,6 +426,15 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (this.importPathMap.has(fileName)) {
             return this.detectPackageNameByPath(this.importPathMap.get(fileName)!)
         }
+        if (!path.isAbsolute(fileName) && !fileName.startsWith(".")) {
+            // assume that is absolute import
+            return fileName
+                .split(path.sep)
+                .map(it => it.replaceAll('@', ''))
+                .map(it => it.split('-').map((it, i) => i === 0 ? it : capitalize(it)).join('')) // kebab-case to camelCase
+                .flatMap(it => it.split("."))
+                .filter(it => it.length && it !== '.' && it !== '..')
+        }
         return path.relative(this.basePath, fileName)
             .replaceAll('.d.ets', '')
             .replaceAll('.idl', '')
