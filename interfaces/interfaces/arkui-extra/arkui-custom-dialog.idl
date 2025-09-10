@@ -2,6 +2,9 @@ package arkui.component.idlize;
 
 import arkui.component.builder;
 import arkui.component.customDialogController;
+import arkui.component.common.PopupCommonOptions as PopupCommonOptions;
+import arkui.component.common.MenuOptions as MenuOptions;
+import ohos.arkui.UIContext;
 
 [Entity=Interface]
 interface CustomDialogBuildOptions {
@@ -13,4 +16,14 @@ interface CustomDialogBuildOptions {
 interface CustomDialogControllerBuilder {
     attribute CustomDialogBuildOptions buildOptions;
     attribute CustomBuilder build;
+};
+
+[Entity=Class]
+interface PromptActionExtender {
+  static async void openPopup(pointer content, TargetInfo target, optional PopupCommonOptions options);
+  static async void updatePopup(pointer content, PopupCommonOptions options, optional boolean partialUpdate);
+  static async void closePopup(pointer content);
+  static async void openMenu(pointer content, TargetInfo target, optional MenuOptions options);
+  static async void updateMenu(pointer content, MenuOptions options, optional boolean partialUpdate);
+  static async void closeMenu(pointer content);
 };

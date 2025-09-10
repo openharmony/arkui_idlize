@@ -397,7 +397,6 @@
         "ohos.arkui.Prefetcher.IDataSourcePrefetching",
         "ohos.arkui.Prefetcher.IPrefetcher",
         "ohos.arkui.Prefetcher.BasicPrefetcher",
-        "ohos.arkui.UIContext.TargetInfo",
         "ohos.arkui.UIContext.PageInfo",
         "ohos.arkui.UIContext.OverlayManagerOptions",
         "ohos.arkui.UIContext.GestureTriggerInfo",
