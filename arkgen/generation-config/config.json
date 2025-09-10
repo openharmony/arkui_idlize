@@ -608,7 +608,9 @@
             "WrappedBuilder",
             "ExtendableComponent",
             "LifeCycle",
-            "makeBuilderParameterProxy"
+            "makeBuilderParameterProxy",
+            "ComponentContent",
+            "ComponentContentBase"
         ],
         "ignoreEntry": [
             "Optional",

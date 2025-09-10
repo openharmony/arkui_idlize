@@ -96,9 +96,9 @@ declare class RenderingContextSettings {
 
 declare class CanvasRenderingContext2D extends CanvasRenderer {
 
-  readonly height: number;
+  readonly height: double;
 
-  readonly width: number;
+  readonly width: double;
 
   stopImageAnalyzer(): void;
 

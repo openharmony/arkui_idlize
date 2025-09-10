@@ -13,4 +13,4 @@
  * limitations under the License.
  */
 
-export declare class ComponentContent {}
+export declare class ComponentContent<T = undefined> {}

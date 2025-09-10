@@ -638,8 +638,6 @@ typedef struct Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier Ark_Union_
 typedef struct Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier;
 typedef struct Ark_Union_String_Resource Ark_Union_String_Resource;
 typedef struct Opt_Union_String_Resource Opt_Union_String_Resource;
-typedef struct Ark_Union_String_Resource_ComponentContent Ark_Union_String_Resource_ComponentContent;
-typedef struct Opt_Union_String_Resource_ComponentContent Opt_Union_String_Resource_ComponentContent;
 typedef struct Ark_Union_String_Resource_PixelMap Ark_Union_String_Resource_PixelMap;
 typedef struct Opt_Union_String_Resource_PixelMap Opt_Union_String_Resource_PixelMap;
 typedef struct Ark_Union_TextInputStyle_TextContentStyle Ark_Union_TextInputStyle_TextContentStyle;
@@ -1472,16 +1470,14 @@ typedef struct Ark_Union_ResourceColor_ColoringStrategy Ark_Union_ResourceColor_
 typedef struct Opt_Union_ResourceColor_ColoringStrategy Opt_Union_ResourceColor_ColoringStrategy;
 typedef struct Ark_Union_ResourceColor_LinearGradient Ark_Union_ResourceColor_LinearGradient;
 typedef struct Opt_Union_ResourceColor_LinearGradient Opt_Union_ResourceColor_LinearGradient;
-typedef struct Ark_Union_ResourceStr_ComponentContent Ark_Union_ResourceStr_ComponentContent;
-typedef struct Opt_Union_ResourceStr_ComponentContent Opt_Union_ResourceStr_ComponentContent;
 typedef struct Ark_Union_ResourceStr_PixelMap Ark_Union_ResourceStr_PixelMap;
 typedef struct Opt_Union_ResourceStr_PixelMap Opt_Union_ResourceStr_PixelMap;
 typedef struct Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
 typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
+typedef struct Ark_Union_ResourceStr_ResourceStr Ark_Union_ResourceStr_ResourceStr;
+typedef struct Opt_Union_ResourceStr_ResourceStr Opt_Union_ResourceStr_ResourceStr;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol Ark_Union_ResourceStr_TabBarSymbol;
 typedef struct Opt_Union_ResourceStr_TabBarSymbol Opt_Union_ResourceStr_TabBarSymbol;
-typedef struct Ark_Union_ResourceStr_Union_ResourceStr_ComponentContent Ark_Union_ResourceStr_Union_ResourceStr_ComponentContent;
-typedef struct Opt_Union_ResourceStr_Union_ResourceStr_ComponentContent Opt_Union_ResourceStr_Union_ResourceStr_ComponentContent;
 typedef struct Ark_Union_ScrollAnimationOptions_Boolean Ark_Union_ScrollAnimationOptions_Boolean;
 typedef struct Opt_Union_ScrollAnimationOptions_Boolean Opt_Union_ScrollAnimationOptions_Boolean;
 typedef struct Ark_Union_ShadowOptions_Array_ShadowOptions Ark_Union_ShadowOptions_Array_ShadowOptions;
@@ -5113,19 +5109,6 @@ typedef struct Opt_Union_String_Resource {
     Ark_Tag tag;
     Ark_Union_String_Resource value;
 } Opt_Union_String_Resource;
-typedef struct Ark_Union_String_Resource_ComponentContent {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_String value0;
-        Ark_CustomObject value1;
-        Ark_ComponentContent value2;
-    };
-} Ark_Union_String_Resource_ComponentContent;
-typedef struct Opt_Union_String_Resource_ComponentContent {
-    Ark_Tag tag;
-    Ark_Union_String_Resource_ComponentContent value;
-} Opt_Union_String_Resource_ComponentContent;
 typedef struct Ark_Union_String_Resource_PixelMap {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -8920,18 +8903,6 @@ typedef struct Opt_Union_ResourceColor_LinearGradient {
     Ark_Tag tag;
     Ark_Union_ResourceColor_LinearGradient value;
 } Opt_Union_ResourceColor_LinearGradient;
-typedef struct Ark_Union_ResourceStr_ComponentContent {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_ResourceStr value0;
-        Ark_ComponentContent value1;
-    };
-} Ark_Union_ResourceStr_ComponentContent;
-typedef struct Opt_Union_ResourceStr_ComponentContent {
-    Ark_Tag tag;
-    Ark_Union_ResourceStr_ComponentContent value;
-} Opt_Union_ResourceStr_ComponentContent;
 typedef struct Ark_Union_ResourceStr_PixelMap {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -8957,6 +8928,18 @@ typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier {
     Ark_Tag tag;
     Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier value;
 } Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
+typedef struct Ark_Union_ResourceStr_ResourceStr {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_ResourceStr value0;
+        Ark_ResourceStr value1;
+    };
+} Ark_Union_ResourceStr_ResourceStr;
+typedef struct Opt_Union_ResourceStr_ResourceStr {
+    Ark_Tag tag;
+    Ark_Union_ResourceStr_ResourceStr value;
+} Opt_Union_ResourceStr_ResourceStr;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -8969,18 +8952,6 @@ typedef struct Opt_Union_ResourceStr_TabBarSymbol {
     Ark_Tag tag;
     Ark_Union_ResourceStr_TabBarSymbol value;
 } Opt_Union_ResourceStr_TabBarSymbol;
-typedef struct Ark_Union_ResourceStr_Union_ResourceStr_ComponentContent {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_ResourceStr value0;
-        Ark_Union_ResourceStr_ComponentContent value1;
-    };
-} Ark_Union_ResourceStr_Union_ResourceStr_ComponentContent;
-typedef struct Opt_Union_ResourceStr_Union_ResourceStr_ComponentContent {
-    Ark_Tag tag;
-    Ark_Union_ResourceStr_Union_ResourceStr_ComponentContent value;
-} Opt_Union_ResourceStr_Union_ResourceStr_ComponentContent;
 typedef struct Ark_Union_ScrollAnimationOptions_Boolean {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -11324,7 +11295,7 @@ typedef struct Opt_StyleOptions {
 } Opt_StyleOptions;
 typedef struct Ark_SubTabBarStyle {
     /* kind: Interface */
-    Opt_Union_String_Resource_ComponentContent _content;
+    Opt_Union_String_Resource _content;
     Opt_arkui_component_IndicatorStyle _indicator;
     Opt_SelectedMode _selectedMode;
     Opt_BoardStyle _board;
@@ -13468,8 +13439,8 @@ typedef struct GENERATED_ArkUICanvasRenderingContext2DAccessor {
     Ark_NativePointer (*getFinalizer)();
     void (*stopImageAnalyzer)(Ark_CanvasRenderingContext2D peer);
     Ark_CanvasRenderingContext2D (*of)();
-    Ark_Number (*getHeight)(Ark_CanvasRenderingContext2D peer);
-    Ark_Number (*getWidth)(Ark_CanvasRenderingContext2D peer);
+    Ark_Float64 (*getHeight)(Ark_CanvasRenderingContext2D peer);
+    Ark_Float64 (*getWidth)(Ark_CanvasRenderingContext2D peer);
 } GENERATED_ArkUICanvasRenderingContext2DAccessor;
 
 typedef struct GENERATED_ArkUIChildrenMainSizeAccessor {

@@ -1387,6 +1387,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 })
             )
         }
+        if (arkts.isETSKeyofType(type)) {
+            return idl.IDLStringType
+        }
         throw new Error(`Failed type conversion for ${type ? this.printNode(type) : "undefined"}`)
     }
 

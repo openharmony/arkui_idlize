@@ -19027,7 +19027,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  overlay(value: string | CustomBuilder | ComponentContent, options?: OverlayOptions): T;
+  overlay(value: string | CustomBuilder | ComponentContent<undefined>, options?: OverlayOptions): T;
 
   /**
    * Linear Gradient
@@ -22137,17 +22137,6 @@ declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
  * @since 13
  */
 declare type Blender = import('../api/@ohos.graphics.uiEffect').default.Blender;
-
-/**
- * ComponentContent.
- *
- * @typedef {import('../api/arkui/ComponentContent').ComponentContent<T>} ComponentContent<T = Object>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare type ComponentContent<T = Object> = import('../api/arkui/ComponentContent').ComponentContent<T>;
 
 /**
  * Theme.
