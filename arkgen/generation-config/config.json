@@ -705,44 +705,6 @@
                 "replaceImplementation": true
             }
         },
-        "NavPathStack": {
-            "pushPath": {
-                "hookName": "hookPushPathMethod",
-                "replaceImplementation": true
-            },
-            "pushPathByName": {
-                "hookName": "hookPushPathByNameMethod",
-                "replaceImplementation": true
-            },
-            "replacePath": {
-                "hookName": "hookReplacePathMethod",
-                "replaceImplementation": true
-            },
-            "replacePathByName": {
-                "hookName": "hookReplacePathByNameMethod",
-                "replaceImplementation": true
-            },
-            "pop": {
-                "hookName": "hookPopMethod",
-                "replaceImplementation": true
-            },
-            "popToName": {
-                "hookName": "hookPopToNameMethod",
-                "replaceImplementation": true
-            },
-            "popToIndex": {
-                "hookName": "hookPopToIndexMethod",
-                "replaceImplementation": true
-            },
-            "getParamByIndex": {
-                "hookName": "hookGetParamByIndexMethod",
-                "replaceImplementation": true
-            },
-            "getParamByName": {
-                "hookName": "hookGetParamByNameMethod",
-                "replaceImplementation": true
-            }
-        },
         "ProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookProgressContentModifier",
