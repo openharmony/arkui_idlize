@@ -447,7 +447,7 @@ export class PeerLibrary implements LibraryInterface {
         if (idl.isTypedef(declaration)) {
             if (isCyclicTypeDef(declaration)) {
                 warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
-                return new CustomTypeConvertor(param, declaration.name, false, declaration.name)
+                return new CustomTypeConvertor(param, declaration.name, false, declaration.name, declaration)
             }
             return new TypeAliasConvertor(this, param, declaration)
         }
