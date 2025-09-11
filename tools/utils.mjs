@@ -1,5 +1,5 @@
 import fs from "fs"
-import path from "path"
+import path, { join } from "path"
 import { fileURLToPath } from 'url'
 import { execSync } from "child_process"
 
@@ -29,7 +29,7 @@ export class Package {
         const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
         json[key] = value
         if (updater) updater(json)
-        fs.writeFileSync(this.package(), JSON.stringify(json, null, 2), "utf-8")
+        fs.writeFileSync(this.package(), JSON.stringify(json, null, 4), "utf-8")
     }
 
     read(key) {
@@ -40,7 +40,10 @@ export class Package {
     compile() {
         process.chdir(this.path)
         try {
-            execSync(`npm run compile`)
+            const script = "compile:release" in this.read("scripts")
+                ? "compile:release"
+                : "compile"
+            execSync(`npm run ${script}`)
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
         }
@@ -48,7 +51,9 @@ export class Package {
 
     pack(destination = '.') {
         process.chdir(this.path)
-        execSync(`npm pack --pack-destination ${destination}`)
+        execSync(`npm pack --pack-destination ${destination}`, { encoding: 'utf-8' })
+        const tgzName = `${this.name()}-${this.version().toString()}.tgz`.replaceAll('/', '-').replaceAll('@', '')
+        return join(this.path, destination, tgzName)
     }
 
     publish() {
@@ -69,7 +74,8 @@ export const all_packages = [
     new Package(path.join(IDLIZE_HOME, "interfaces")),
     new Package(path.join(IDLIZE_HOME, "dtsgen")),
     new Package(path.join(IDLIZE_HOME, "etsgen")),
-    new Package(path.join(IDLIZE_HOME, "ohosgen"))
+    new Package(path.join(IDLIZE_HOME, "ohosgen")),
+    new Package(path.join(IDLIZE_HOME, "runner")),
 ]
 
 export class Version {

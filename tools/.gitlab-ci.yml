@@ -1,0 +1,18 @@
+test bundle:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+    - build idlize
+    - build external
+    - download sdk
+  script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+    - node ./tools/bundle.mjs 0.0.0-work-conf-v137 bundle
+    - cd bundle
+    - node install.js ./unpacked
+    - cd unpacked
+    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../generated
+    - cd ../..

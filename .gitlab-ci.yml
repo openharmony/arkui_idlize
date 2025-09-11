@@ -34,3 +34,4 @@ include:
     - arktscgen/.gitlab-ci.yml
     - etsgen/.gitlab-ci.yml
     - interfaces/.gitlab-ci.yml
+    - tools/.gitlab-ci.yml
