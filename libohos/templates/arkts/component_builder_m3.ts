@@ -9,8 +9,10 @@ export function %COMPONENT_NAME%Impl(
     const receiver = remember<%COMPONENT_CLASS_NAME%>((): %COMPONENT_CLASS_NAME% => {
         return new %COMPONENT_CLASS_NAME%()
     })
-    NodeAttach<%PEER_CLASS_NAME%>((): %PEER_CLASS_NAME% => %PEER_CLASS_NAME%.create(receiver), (_: %PEER_CLASS_NAME%): void => {
+    NodeAttach<%PEER_CLASS_NAME%>((): %PEER_CLASS_NAME% => %PEER_CLASS_NAME%.create(receiver), (peer: %PEER_CLASS_NAME%): void => {
+        receiver.setPeer(peer)
         style?.(receiver)
+        receiver.setPeer(undefined)
         content_?.()
     })
 }

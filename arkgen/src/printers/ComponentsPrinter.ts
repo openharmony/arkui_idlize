@@ -54,6 +54,7 @@ import {
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
 import { HandwrittenModule } from '../ArkoalaLayout'
+import { write } from 'fs'
 
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
@@ -194,15 +195,21 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 new Method('getPeer',
                     new MethodSignature(createReferenceType(peerClassName), []
                     ), [MethodModifier.PROTECTED], []),
-                writer => writer.writeStatement(
+                writer => {
+                    writer.print('if (!this.peer) {')
+                    writer.pushIndent()
+                    writer.print(`throw new Error("Attribute function should be called in memo context")`)
+                    writer.popIndent()
+                    writer.print('}')
+                    writer.writeStatement(
                     writer.makeReturn(
                         writer.makeCast(
                             writer.makeFieldAccess("this", "peer"),
                             createReferenceType(peerClassName),
                             { optional: true }
                         )
-                    )
-                )
+                    ))
+                }
             )
             for (const grouped of groupOverloads(peer.methods, this.library.language))
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
