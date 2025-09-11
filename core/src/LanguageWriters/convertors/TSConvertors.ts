@@ -218,26 +218,15 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         }
         return subst
     }
-    protected applySubstitution(subst:Map<string, idl.IDLType>, type:idl.IDLType): idl.IDLType {
-        if (idl.isContainerType(type)) {
-            return idl.createContainerType(type.containerKind, type.elementType.map(it => this.applySubstitution(subst, it)))
-        }
-        if (idl.isReferenceType(type)) {
-            return idl.createReferenceType(type.name, type.typeArguments?.map(it => this.applySubstitution(subst, it)))
-        }
-        if (idl.isTypeParameterType(type)) {
-            const record = subst.get(type.name)
-            if (record) {
-                return record
-            }
-        }
-        return type
-    }
     protected mapCallback(decl: idl.IDLCallback, args?:idl.IDLType[]): string {
         const subst = this.createTypeSubstitution(decl.typeParameters, args)
         const parameters = decl.parameters.map(it => {
+            if (subst.size == 0) return it
             const param = idl.clone(it)
-            param.type = this.applySubstitution(subst, param.type)
+            param.parent = it.parent
+            const type = applySubstitution(subst, param.type)
+            updateParent(param, type)
+            param.type = type
             return param
         })
         const params = parameters.map(it =>
@@ -250,8 +239,12 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             } ${decl.properties
                 .map(it => isTuple ? this.processTupleType(it) : it)
                 .map(it => {
+                    if (subst.size == 0) return it
                     const prop = idl.clone(it)
-                    prop.type = this.applySubstitution(subst, prop.type)
+                    prop.parent = it.parent
+                    const type = applySubstitution(subst, prop.type)
+                    updateParent(prop, type)
+                    prop.type = type
                     return prop
                 })
                 .map(it => {
@@ -317,4 +310,32 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
     convertUnion(type: idl.IDLUnionType): string {
         throw new Error("Cannot pass union types through interop")
     }
+}
+
+function applySubstitution(subst: Map<string, idl.IDLType>, type: idl.IDLType): idl.IDLType {
+    if (idl.isContainerType(type)) {
+        return idl.createContainerType(type.containerKind, type.elementType.map(it => applySubstitution(subst, it)))
+    }
+    if (idl.isReferenceType(type)) {
+        return idl.createReferenceType(type.name, type.typeArguments?.map(it => applySubstitution(subst, it)))
+    }
+    if (idl.isTypeParameterType(type)) {
+        const record = subst.get(type.name)
+        if (record) {
+            return record
+        }
+    }
+    return type
+}
+
+// Update parents to properly find a file for conflicted types
+function updateParent(parent: idl.IDLNode | undefined, type: idl.IDLType) {
+    type.parent = parent
+    if (idl.isOptionalType(type)) updateParent(type, type.type)
+    if (idl.isUnionType(type)) updateParents(type, type.types)
+    if (idl.isContainerType(type)) updateParents(type, type.elementType)
+}
+
+function updateParents(parent: idl.IDLType, types: idl.IDLType[]) {
+    for (const type of types) updateParent(parent, type)
 }
