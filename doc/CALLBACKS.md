@@ -277,7 +277,7 @@ Converting native CAPI structure to managed closure.
 Calling callback in CAPI, that was created from managed closure.
 
 1. Have CAPI structure describing callback, that came from managed side. `call` or `callSync` has beed invoked.
-2. `callManagedSmth` or `callManagedSmthSync` (that call or callSync essentially is, see [Bridges: call and callSync](#bridges-call-callSync)) is invoked. 
+2. `CallManagedSmth` or `CallManagedSmthSync` (that call or callSync essentially is, see [Bridges: call and callSync](#bridges-call-callSync)) is invoked. 
 3. Callback arguments are serialized. Depending on synchronous or asynchronous call managed function is invoked or callback is put into queue and called later (see [Bridges: general events](#bridges-general-events)).
 4. After receiving callback arguments in managed side, they are deserialized, closure instance is got from ResourceHolder and called (see [Managed: deserialize arguments and call closure](#managed-deserialize-and-call)). If there is not void return type in closure, continuation callback is called with received result (see [Continuations](#continuations)).
 
@@ -418,8 +418,8 @@ void impl_GlobalScope_foo(KSerializerBuffer thisArray, int32_t thisLength) {
     Deserializer thisDeserializer(thisArray, thisLength);
     OHOS_Foo cb_value = {
         thisDeserializer.readCallbackResource(), 
-        reinterpret_cast<void(*)(const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCaller(Kind_Foo)))), 
-        reinterpret_cast<void(*)(OH_OHOS_VMContext vmContext, const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCallerSync(Kind_Foo))))};;
+        reinterpret_cast<void(*)(const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCaller(KIND_FOO)))),
+        reinterpret_cast<void(*)(OH_OHOS_VMContext vmContext, const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCallerSync(KIND_FOO))))};;
     GetOH_OHOS_API(OHOS_API_VERSION)->GlobalScope()->foo((const OHOS_Foo*)&cb_value);
 }
 KOALA_INTEROP_DIRECT_V2(GlobalScope_foo, KSerializerBuffer, int32_t)
@@ -484,8 +484,8 @@ Managed arguments deserialization is symmetric to [Bridges: call and callSync](#
 export function deserializeAndCallCallback(thisDeserializer: Deserializer): void {
     const kind: int32 = thisDeserializer.readInt32()
     switch (kind) {
-        case -1867723152/*CallbackKind.Kind_Callback_Void*/: return deserializeAndCallCallback_Void(thisDeserializer);
-        case -1478596844/*CallbackKind.Kind_Foo*/: return deserializeAndCallFoo(thisDeserializer);
+        case -1867723152/*CallbackKind.KIND_CALLBACK_VOIDK*/: return deserializeAndCallCallback_Void(thisDeserializer);
+        case -1478596844/*CallbackKind.KIND_FOO*/: return deserializeAndCallFoo(thisDeserializer);
     }
     console.log("Unknown callback kind")
 }
@@ -565,23 +565,23 @@ void impl_GlobalScope_foo(KSerializerBuffer thisArray, int32_t thisLength) {
     // ...
     OHOS_Foo cb_value = {
         // ...
-        reinterpret_cast<void(*)(const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCaller(Kind_Foo)))),
+        reinterpret_cast<void(*)(const OH_Int32 resourceId)>(thisDeserializer.readPointerOrDefault(reinterpret_cast<OH_NativePointer>(getManagedCallbackCaller(KIND_FOO)))),
         // ...
     };
     // ...
 }
 ```
 
-From here the most important part is `getManagedCallbackCaller(Kind_Foo)`, that retrieves implementation of `call` function for callback with unique name `Foo`. For each callback signature there is `callManagedSmth` function is generated, and callManagedFoo just one of them.
+From here the most important part is `getManagedCallbackCaller(KIND_FOO)`, that retrieves implementation of `call` function for callback with unique name `Foo`. For each callback signature there is `CallManagedSmth` function is generated, and CallManagedFoo just one of them.
 
 ```c++
-void callManagedFoo(OH_Int32 resourceId)
+void CallManagedFoo(OH_Int32 resourceId)
 {
     CallbackBuffer _buffer = {{}, {}};
     const OH_OHOS_CallbackResource _callbackResourceSelf = {resourceId, holdManagedCallbackResource, releaseManagedCallbackResource};
     _buffer.resourceHolder.holdCallbackResource(&_callbackResourceSelf);
     Serializer argsSerializer = Serializer((KSerializerBuffer)&(_buffer.buffer), sizeof(_buffer.buffer), &(_buffer.resourceHolder));
-    argsSerializer.writeInt32(Kind_Foo);
+    argsSerializer.writeInt32(KIND_FOO);
     argsSerializer.writeInt32(resourceId);
     enqueueCallback(&_buffer);
 }
@@ -590,7 +590,7 @@ OH_NativePointer getManagedCallbackCaller(CallbackKind kind)
 {
     switch (kind) {
         // ...
-        case Kind_Foo: return reinterpret_cast<OH_NativePointer>(callManagedFoo);
+        case KIND_FOO: return reinterpret_cast<OH_NativePointer>(CallManagedFoo);
         // ...
     }
     return nullptr;
@@ -598,27 +598,27 @@ OH_NativePointer getManagedCallbackCaller(CallbackKind kind)
 
 ```
 
-`Kind_Foo` - is a element of enum CallbackKind, that includes all of known callbacks signatures, where value of elements are hashes from their name:
+`KIND_FOO` - is a element of enum CallbackKind, that includes all of known callbacks signatures, where value of elements are hashes from their name:
 
 ```c++
 typedef enum CallbackKind {
     // ...
-    Kind_Foo = -1478596844,
+    KIND_FOO = -1478596844,
 } CallbackKind;
 ```
 
-`callManagedFoo` is essentially a proxy that receives callback data, serializes it to CallbackBuffer buffer and pushes into queue with [enqueueCallback](#bridges-general-events) function. Data serialization has single important difference from the managed side. As you know, callbacks are resources that must be held to keep them actual. To do that, for each Resource inside callback data, including callback itself, `hold` functions are being called. The list of held resources pushed to `CallbackBuffer.resourceHolder` storage. After reading event from queue all held resources are being released.
+`CallManagedFoo` is essentially a proxy that receives callback data, serializes it to CallbackBuffer buffer and pushes into queue with [enqueueCallback](#bridges-general-events) function. Data serialization has single important difference from the managed side. As you know, callbacks are resources that must be held to keep them actual. To do that, for each Resource inside callback data, including callback itself, `hold` functions are being called. The list of held resources pushed to `CallbackBuffer.resourceHolder` storage. After reading event from queue all held resources are being released.
 
 ![Visualization of upper paragraph](./native_queue_resources.png)
 
 That was asynchronous variant, so the next is `callSync` implemenetation.
 
 ```c++
-void callManagedFooSync(OH_OHOS_VMContext vmContext, OH_Int32 resourceId)
+void CallManagedFooSync(OH_OHOS_VMContext vmContext, OH_Int32 resourceId)
 {
     uint8_t _buffer[4096];
     Serializer argsSerializer = Serializer((KSerializerBuffer)&_buffer, sizeof(_buffer), nullptr);
-    argsSerializer.writeInt32(Kind_Foo);
+    argsSerializer.writeInt32(KIND_FOO);
     argsSerializer.writeInt32(resourceId);
     KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(_buffer), _buffer);
 }
@@ -626,7 +626,7 @@ OH_NativePointer getManagedCallbackCallerSync(CallbackKind kind)
 {
     switch (kind) {
         // ...
-        case Kind_Foo: return reinterpret_cast<OH_NativePointer>(callManagedFooSync);
+        case KIND_FOO: return reinterpret_cast<OH_NativePointer>(CallManagedFooSync);
     }
     return nullptr;
 }
@@ -667,8 +667,8 @@ And there is a fucntion that selects appropriate parser, also in synchronous and
 void deserializeAndCallCallback(OH_Int32 kind, KSerializerBuffer thisArray, OH_Int32 thisLength)
 {
     switch (kind) {
-        case -1867723152/*Kind_Callback_Void*/: return deserializeAndCallCallback_Void(thisArray, thisLength);
-        case -1478596844/*Kind_Foo*/: return deserializeAndCallFoo(thisArray, thisLength);
+        case -1867723152/*KIND_CALLBACK_VOID*/: return deserializeAndCallCallback_Void(thisArray, thisLength);
+        case -1478596844/*KIND_FOO*/: return deserializeAndCallFoo(thisArray, thisLength);
     }
     printf("Unknown callback kind\n");
 }
@@ -676,8 +676,8 @@ KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback
 void deserializeAndCallCallbackSync(OH_OHOS_VMContext vmContext, OH_Int32 kind, KSerializerBuffer thisArray, OH_Int32 thisLength)
 {
     switch (kind) {
-        case -1867723152/*Kind_Callback_Void*/: return deserializeAndCallSyncCallback_Void(vmContext, thisArray, thisLength);
-        case -1478596844/*Kind_Foo*/: return deserializeAndCallSyncFoo(vmContext, thisArray, thisLength);
+        case -1867723152/*KIND_CALLBACK_VOID*/: return deserializeAndCallSyncCallback_Void(vmContext, thisArray, thisLength);
+        case -1478596844/*KIND_FOO*/: return deserializeAndCallSyncFoo(vmContext, thisArray, thisLength);
     }
     printf("Unknown callback kind\n");
 }

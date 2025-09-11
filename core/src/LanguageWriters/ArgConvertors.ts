@@ -1053,7 +1053,7 @@ export class OptionConvertor extends BaseArgConvertor {
         statements.push(writer.makeAssign(bufferName, bufferType, writer.language === Language.CPP ? undefined : writer.makeNull(this.type), true, false)) // maybe change to generic None
 
         const thenStatement = new BlockStatement([
-            this.typeConvertor.convertorDeserialize(`${bufferName}_`, deserializerName, (expr) => {
+            this.typeConvertor.convertorDeserialize(`${bufferName}Opt`, deserializerName, (expr) => {
                 const receiver = writer.language === Language.CPP
                     ? `${bufferName}.value` : bufferName
                 return writer.makeAssign(receiver, undefined, expr, false)
@@ -1466,7 +1466,7 @@ function warnCustomObject(type: string, msg?: string) {
 export const CallbackKind = "CallbackKind"
 
 export function generateCallbackKindName(callback: idl.IDLCallback) {
-    return `Kind_${callback.name}`
+    return `KIND_${callback.name.toUpperCase()}`
 }
 
 export function generateCallbackKindAccess(callback: idl.IDLCallback, language: Language) {

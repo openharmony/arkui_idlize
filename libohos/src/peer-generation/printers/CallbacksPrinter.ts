@@ -202,8 +202,8 @@ class DeserializeCallbacksVisitor {
             signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(`DeserializerBase`)], [`thisDeserializer`])
         }
         this.writer.writeFunctionImplementation(`deserializeAndCall${callback.name}`, signature, writer => {
-            const resourceIdName = `_resourceId`
-            const callName = `_call`
+            const resourceIdName = `resourceId`
+            const callName = `call`
             if (writer.language === Language.CPP) {
                 writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`DeserializerBase`),
                     writer.makeClassInit(idl.createReferenceType('DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
@@ -513,7 +513,7 @@ class ManagedCallCallbackVisitor {
             [idl.IDLI32Type, ...args],
             ["resourceId", ...argsNames],
         )
-        this.writer.writeFunctionImplementation(`callManaged${callback.name}`, signature, writer => {
+        this.writer.writeFunctionImplementation(`CallManaged${callback.name}`, signature, writer => {
             writer.writeStatement(writer.makeAssign(`callbackBuffer`, idl.createReferenceType(`CallbackBuffer`),
                 writer.makeString(`{{}, {}}`), true, false))
             writer.writeStatement(writer.makeAssign(`callbackResourceSelf`, idl.createReferenceType(`CallbackResource`),
@@ -543,7 +543,7 @@ class ManagedCallCallbackVisitor {
             [idl.createReferenceType('VMContext'), idl.IDLI32Type, ...args],
             ["vmContext", "resourceId", ...argsNames],
         )
-        this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
+        this.writer.writeFunctionImplementation(`CallManaged${callback.name}Sync`, signature, writer => {
             writer.print('uint8_t dataBuffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
                 writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
@@ -571,7 +571,7 @@ class ManagedCallCallbackVisitor {
                 writer.print(`switch (kind) {`)
                 writer.pushIndent()
                 for (const callback of callbacks) {
-                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(callManaged${callback.name});`)
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(CallManaged${callback.name});`)
                 }
                 writer.popIndent()
                 writer.print(`}`)
@@ -583,7 +583,7 @@ class ManagedCallCallbackVisitor {
                 writer.print(`switch (kind) {`)
                 writer.pushIndent()
                 for (const callback of callbacks) {
-                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(callManaged${callback.name}Sync);`)
+                    writer.print(`case ${generateCallbackKindName(callback)}: return reinterpret_cast<${PrimitiveTypesInstance.NativePointer}>(CallManaged${callback.name}Sync);`)
                 }
                 writer.popIndent()
                 writer.print(`}`)
