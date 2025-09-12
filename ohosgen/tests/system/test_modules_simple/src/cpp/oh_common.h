@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OH_TEST_PROMISE_OH_COMMON_H_
-#define OH_TEST_PROMISE_OH_COMMON_H_
+#ifndef OH_TEST_MODULES_SIMPLE_OH_COMMON_H_
+#define OH_TEST_MODULES_SIMPLE_OH_COMMON_H_
 
 #include "test_modules_simple.h"
 #include <cmath>
@@ -79,4 +79,4 @@ inline OH_Number addOHNumber(OH_Number x, OH_Number y) {
     return res;
 }
 
-#endif // OH_TEST_PROMISE_OH_COMMON_H_
+#endif // OH_TEST_MODULES_SIMPLE_OH_COMMON_H_

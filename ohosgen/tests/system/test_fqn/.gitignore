@@ -1,0 +1,5 @@
+.cache/
+
+build/
+generated/
+node_modules/

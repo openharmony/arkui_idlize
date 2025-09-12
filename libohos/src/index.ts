@@ -60,6 +60,17 @@ export * from './peer-generation/plugin-api'
 export * from './peer-generation/ImportsCollectorUtils'
 export * from './peer-generation/NativeModule'
 export * from './peer-generation/FileGenerators'
+export * from './ost/builder'
+export * from './ost/builders'
+export * from './ost/lws'
+export * from './ost'
+export * from './ost/stdlib'
+export * from './ostgen/engine/context'
+export * from './ostgen/engine/utils'
+export * from './ostgen/producers'
+export * from './ostgen/producers/common'
+export * as moduleLike from "./ostgen/postprocess/moduleLike";
+export * as lowLevelLike from "./ostgen/postprocess/lowLevelLike";
 
 export class Install {
     mkdir(path: string): string {

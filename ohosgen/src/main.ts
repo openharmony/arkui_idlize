@@ -68,6 +68,7 @@ const command = createCommand()
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--no-commented-code', 'Do not generate commented code in modifiers')
     .option('--use-new-ohos', 'Use new ohos generator')
+    .option('--use-ost', 'Generate output using syntax trees (EXPERIMENTAL)')
     .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experimental feature to store declarations in different files for ohos generator')
     .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
@@ -127,7 +128,7 @@ if (options.idl2peer) {
     idlLibrary.files.forEach(file => inplaceGenerics(file, idlLibrary))
     fillSyntheticDeclarations(idlLibrary)
     new IdlPeerProcessor(idlLibrary).process()
-    generateTarget(idlLibrary, outDir, language)
+    generateTarget(idlLibrary, outDir, options.useOst)
 
     didJob = true
 }
@@ -173,8 +174,8 @@ function initLibraryName(idlLibrary: PeerLibrary) {
     NativeModule.Generated = new NativeModuleType(idlLibrary.name + 'NativeModule')
 }
 
-function generateTarget(idlLibrary: PeerLibrary, outDir: string, lang: Language) {
-    generateOhos(outDir, idlLibrary, {
+function generateTarget(idlLibrary: PeerLibrary, outDir: string, useOst: boolean) {
+    generateOhos(outDir, idlLibrary, useOst, {
         ...peerGeneratorConfiguration(),
         LibraryPrefix: `${idlLibrary.name.toUpperCase()}_`,
         GenerateUnused: true,

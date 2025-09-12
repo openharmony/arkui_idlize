@@ -44,6 +44,8 @@ interface ExecutedPrinterResult {
 
 }
 
+export type OutputFile = { content: string[], imports: ImportsCollector, extension: string, exported: boolean }
+
 export interface PrinterClass {
     print(library: PeerLibrary): PrinterResult[]
 }
@@ -70,17 +72,20 @@ export function install(
         fileExtension?: string,
         customLayout?: LayoutManager,
         isDeclared?: boolean,
-    }): string[] {
-    const printerResults: PrinterResult[] = []
+}): string[] {
+    return installFiles(outDir, library, printFiles(library, printers, options))
+}
+
+export function printFiles(library: PeerLibrary, printers: Printer[], options?: {
+    fileExtension?: string,
+    customLayout?: LayoutManager,
+    isDeclared?: boolean,
+}): Map<string, OutputFile> {
+    const storage = new Map<string, ExecutedPrinterResult[]>()
 
     // groupBy
     const layout = options?.customLayout ?? library.layout
     printers.flatMap(it => typeof it === 'function' ? it(library) : it.print(library)).forEach(it => {
-        printerResults.push(it)
-    })
-
-    const storage = new Map<string, ExecutedPrinterResult[]>()
-    printerResults.forEach(it => {
         const resolved = layout.resolve(it.over)
         if (resolved == '') {
             throw new Error(`Cannot resolve location for ${idl.getFQName(it.over.node)}`)
@@ -101,18 +106,12 @@ export function install(
     })
 
     // print
-    const installedToExport: string[] = []
+    const result: Map<string, OutputFile> = new Map()
     Array.from(storage.entries()).forEach(([filePath, results]) => {
-        const installPath = join(outDir, filePath) + (options?.fileExtension ?? library.language.extension)
-        if (!results.every(it => !!it.private || !isEntryExported(it.over.node))) {
-            installedToExport.push(installPath)
-        }
         results.sort((a, b) => (a.weight ?? 0) - (b.weight ?? 0))
         results.sort(sortByNamespaces)
 
         const imports = new ImportsCollector()
-        let content: string[] = []
-
         results.forEach(it => {
             wrapCurrentFileDescription(it.over, () => {
                 it.content.features.forEach(feature => {
@@ -124,7 +123,19 @@ export function install(
                 imports.merge(it.imports)
             })
         })
-        content = content.concat(printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }))
+        result.set(filePath, {
+            content: printWithNamespaces(library, results, { isDeclared: !!options?.isDeclared }),
+            imports,
+            extension: options?.fileExtension ?? library.language.extension,
+            exported: !results.every(it => !!it.private || !isEntryExported(it.over.node))
+        })
+    })
+    return result
+}
+
+export function installFiles(outDir: string, library: PeerLibrary, files: Map<string, OutputFile>): string[] {
+    const installedToExport: string[] = []
+    files.forEach(({ content, imports, extension, exported }, filePath) => {
         const codePrefix: string[] = []
         if (library.language === Language.KOTLIN) {
             codePrefix.push(`package ${filePath}\n`)
@@ -142,6 +153,10 @@ export function install(
         const completeCode = codePrefix.concat(importsWriter.getOutput()).concat(content).join('\n')
         const text = tsCopyrightAndWarning(completeCode)
 
+        const installPath = join(outDir, filePath) + extension
+        if (exported) {
+            installedToExport.push(installPath)
+        }
         writeIntegratedFile(installPath, text, 'producing')
     })
 

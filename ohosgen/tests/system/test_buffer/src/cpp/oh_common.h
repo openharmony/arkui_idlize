@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OH_TEST_PROMISE_OH_COMMON_H_
-#define OH_TEST_PROMISE_OH_COMMON_H_
+#ifndef OH_TEST_BUFFER_OH_COMMON_H_
+#define OH_TEST_BUFFER_OH_COMMON_H_
 
 #include "test_buffer.h"
 #include <cmath>
@@ -133,12 +133,4 @@ inline OH_Buffer MakeOHBuffer(size_t sizeBytes)
     return res;
 }
 
-inline Opt_Buffer MakeOptBuffer(size_t sizeBytes)
-{
-    Opt_Buffer res;
-    res.tag = INTEROP_TAG_OBJECT;
-    res.value = MakeOHBuffer(sizeBytes);
-    return res;
-}
-
-#endif // OH_TEST_PROMISE_OH_COMMON_H_
+#endif // OH_TEST_BUFFER_OH_COMMON_H_

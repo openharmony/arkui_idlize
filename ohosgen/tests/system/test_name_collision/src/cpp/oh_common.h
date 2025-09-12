@@ -13,10 +13,9 @@
  * limitations under the License.
  */
 
-#ifndef OH_TEST_PROMISE_OH_COMMON_H_
-#define OH_TEST_PROMISE_OH_COMMON_H_
+#ifndef _OH_TEST_NAME_COLLISION_OH_COMMON_H_
+#define _OH_TEST_NAME_COLLISION_OH_COMMON_H_
 
-#include "test_buffer.h"
 #include <cmath>
 #include <cstring>
 #include <iomanip>
@@ -115,20 +114,4 @@ inline InteropCallbackResource MakeInteropCallbackResource(size_t sizeBytes, Int
     return res;
 }
 
-inline OH_Buffer MakeOHBuffer(size_t sizeBytes)
-{
-    OH_Buffer res;
-    res.resource = MakeInteropCallbackResource(sizeBytes, &res.data);
-    res.length = sizeBytes;
-    return res;
-}
-
-inline Opt_Buffer MakeOptBuffer(size_t sizeBytes)
-{
-    Opt_Buffer res;
-    res.tag = INTEROP_TAG_OBJECT;
-    res.value = MakeOHBuffer(sizeBytes);
-    return res;
-}
-
-#endif // OH_TEST_PROMISE_OH_COMMON_H_
+#endif // _OH_TEST_NAME_COLLISION_OH_COMMON_H_

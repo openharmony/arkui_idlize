@@ -1,0 +1,6 @@
+[loadLibraries] Registered TEST_FQNNativeModule as InteropNativeModule
+Starting demo: test_fqn
+[loadLibraries] Loading InteropNativeModule [TEST_FQNNativeModule]
+[loadLibraries] Loading TEST_FQNNativeModule [TEST_FQNNativeModule]
+resize(numSize=4 (int32)x8 (int32), intSize=14x18, floatSize=24x28)
+resize3(numSize=6 (int32)x3 (int32), intSize=16x13, floatSize=0.26x0.23)

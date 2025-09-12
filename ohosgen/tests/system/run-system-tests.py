@@ -5,11 +5,7 @@ import shutil
 
 def read_test_cases():
     with open('./test_cases.json', 'r') as file:
-        list_json = json.load(file)
-    for c in list_json:
-        if not 'ignores' in c:
-            c['ignores'] = False
-    return list_json
+        return json.load(file)
 
 
 def preprocess_output_file(output_path):
@@ -33,14 +29,15 @@ os.mkdir(TEMP_DIR)
 
 for c in test_cases:
     case_name = c['name']
-    if c['ignores']:
+    if 'ignored' in c and c['ignored']:
         print(f"{case_name}: ignored")
         ignored_list.append(case_name)
         continue
     case_temp_dir = os.path.join(TEMP_DIR, case_name)
     os.mkdir(case_temp_dir)
 
-    prefix_str = f"TEST_CASE={case_name} INPUT_TYPE={c['inputType']}"
+    useOst = '--use-ost' if 'useOst' in c and c['useOst'] else ''
+    prefix_str = f"TEST_CASE={case_name} INPUT_TYPE={c['inputType']} USE_OST={useOst}"
     pre_start_ret_code = \
         os.system(f"{prefix_str} npm run pre-start:arkts >{os.path.join(case_temp_dir, 'build.log')}")
     if pre_start_ret_code != 0:
