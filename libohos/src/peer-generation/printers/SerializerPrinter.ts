@@ -435,6 +435,7 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             "toPeerPtr",
             "nullptr",
             "KPointer",
+            "KNativePointer",
             "NativeBuffer",
             "KUint8ArrayPtr",
         ], "koalaui.interop")

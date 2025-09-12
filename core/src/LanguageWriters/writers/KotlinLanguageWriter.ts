@@ -116,7 +116,7 @@ export class KotlinEnumWithGetter implements LanguageStatement {
             const enumType = idl.createReferenceType(this.enumEntity)
             writer.makeStaticBlock(() => {
                 members.forEach(it => {
-                    writer.writeFieldDeclaration(it.name, idl.IDLAnyType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
+                    writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                         writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
                     )
                 })
@@ -270,6 +270,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return "koalaui.interop"
     }
 
+    override maybeSemicolon(): string { return "" }
+
     writeClass(
         name: string,
         op: (writer: this) => void,
@@ -342,27 +344,29 @@ export class KotlinLanguageWriter extends LanguageWriter {
         let name = method.name
         let signature = method.signature
         this.writeMethodImplementation(new Method(name, signature, [MethodModifier.STATIC]), writer => {
-            const pins = signature.args.map((type, index) => this.pinArrayArgument(signature.argName(index), type))
-            const unpins = signature.args.map((type, index) => this.unpinArrayArgument(signature.argName(index), type))
+            const pins = signature.args.flatMap((type, index) => this.pinArrayArgument(signature.argName(index), type))
+            const unpins = signature.args.flatMap((type, index) => this.unpinArrayArgument(signature.argName(index), type))
             pins.filter(it => !!it).forEach(it => this.writeStatement(it!))
             const args = signature.args.map((type, index) => this.convertInteropArgument(signature.argName(index), type))
             this.printForeignApiOptIn()
             const interopCallExpression = this.makeFunctionCall(`kotlin${name}`, args)
             if (signature.returnType === idl.IDLVoidType) {
                 this.writeExpressionStatement(interopCallExpression)
-                unpins.filter(it => !!it).forEach(it => this.writeExpressionStatement(it!))
+                unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))
                 return
             }
             const retval = "retval"
-            // this.printForeignApiOptIn()
             this.writeStatement(this.makeAssign(retval, undefined, interopCallExpression))
-            unpins.filter(it => !!it).forEach(it => this.writeExpressionStatement(it!))
+            unpins.filter(it => !!it).forEach(it => this.writeStatement(it!))
             this.printForeignApiOptIn()
             this.writeStatement(this.makeReturn(this.convertInteropReturnValue(retval, signature.returnType)))
         })
     }
     private printForeignApiOptIn() {
-        this.print("@OptIn(ExperimentalForeignApi::class)")
+        this.writeStatement(this.foreignApiOptIn)
+    }
+    private get foreignApiOptIn(): LanguageStatement {
+        return new ExpressionStatement(this.makeString("@OptIn(ExperimentalForeignApi::class)"))
     }
     private isPrimitiveArray(type: idl.IDLType): boolean {
         if (!idl.IDLContainerUtils.isSequence(type)) {
@@ -372,18 +376,20 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const allowedTypes: idl.IDLType[] = [idl.IDLU8Type, idl.IDLI32Type, idl.IDLF32Type]
         return allowedTypes.includes(elementType)
     }
-    private pinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement | undefined {
+    private pinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement[] {
         if (this.isPrimitiveArray(type)) {
-            const pinCallExpression = this.makeMethodCall(varName, "pin", [])
-            return this.makeAssign(`${varName}Pinned`, undefined, pinCallExpression, true, true)
+            const pinCall = this.makeMethodCall(varName, "pin", [])
+            const assign = this.makeAssign(`${varName}Pinned`, undefined, pinCall, true, true)
+            return [this.foreignApiOptIn, assign]
         }
-        return undefined
+        return []
     }
-    private unpinArrayArgument(varName: string, type: idl.IDLType): LanguageExpression | undefined {
+    private unpinArrayArgument(varName: string, type: idl.IDLType): LanguageStatement[] {
         if (this.isPrimitiveArray(type)) {
-            return this.makeMethodCall(`${varName}Pinned`, "unpin", [])
+            const call = new ExpressionStatement(this.makeMethodCall(`${varName}Pinned`, "unpin", []))
+            return [this.foreignApiOptIn, call]
         }
-        return undefined
+        return []
     }
     private convertInteropArgument(varName: string, type: idl.IDLType): LanguageExpression {
         const realInteropType = this.getNodeName(type)
@@ -393,6 +399,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "IntArray":
             case "FloatArray": expr = `${varName}Pinned.addressOf(0)`; break
             case "KPointer":
+            case "KNativePointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
             case "BigInteger":
             case "KInt":
@@ -402,7 +409,6 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "String":
             case "KStringPtr":
             case "KBoolean":
-            case "Float64":
             case "Float":
             case "Double":
             case "UInt":
@@ -415,10 +421,10 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
+            case "KNativePointer":
             case "KPointer": expr = `${varName}.toLong()`; break
             case "KInt":
             case "KLong":
-            case "Float64":
             case "BigInteger":
             case "Float":
             case "Double":

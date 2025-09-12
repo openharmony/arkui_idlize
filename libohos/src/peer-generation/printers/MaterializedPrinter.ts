@@ -48,6 +48,8 @@ interface MaterializedFileVisitor {
     visit(): PrinterResult
 }
 
+type MethodFilter = (method: MaterializedMethod | idl.IDLMethod) => boolean
+
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected readonly collector = new ImportsCollector()
@@ -243,8 +245,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }, { delegationType: DelegationType.THIS, delegationName: implementationClassName, delegationArgs: ctorArgs })
     }
 
-    printOverloads(clazz: MaterializedClass) {
-        for (const grouped of groupOverloads(clazz.methods, this.library.language)) {
+    printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (const grouped of groupOverloads(clazz.methods.filter(filter), this.library.language)) {
             this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped)
         }
         if (!clazz.isInterface && allowNamedOverloads(this.library.language)) {
@@ -252,10 +254,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
     }
 
-    printTaggedMethods(clazz: MaterializedClass) {
+    printTaggedMethods(clazz: MaterializedClass, filter: MethodFilter) {
         // TBD: Refactor tagged methods staff
         const seenTaggedMethods = new Set<string>()
         clazz.taggedMethods
+            .filter(filter)
             .map(it => methodFromTagged(it))
             .filter(it => {
                 if (seenTaggedMethods.has(it.name)) return false
@@ -291,18 +294,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         })
     }
 
-
-    printMethods(clazz: MaterializedClass) {
-        clazz.methods.filter(m => !m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
+    printMethods(clazz: MaterializedClass, filter: MethodFilter) {
+        clazz.methods.filter(filter).forEach(method => {
             this.printMethod(method, "_serialize")
         })
     }
 
-    printStaticMethods(clazz: MaterializedClass) {
-        clazz.methods.filter(m => m.method.modifiers?.includes(MethodModifier.STATIC)).forEach(method => {
-            this.printMethod(method, "_serialize")
-        })
-    }
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
@@ -516,6 +513,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     this.printCtor(clazz, ctor)
                 }
             }
+            const staticMethodsFilter: MethodFilter = method => {
+                if (method instanceof MaterializedMethod) {
+                    return !!method.method.modifiers && method.method.modifiers.includes(MethodModifier.STATIC)
+                }
+                return method.isStatic
+            }
+            const nonStaticMethodsFilter: MethodFilter = method => !staticMethodsFilter(method)
             writer.makeStaticBlock(() => {
                 if (allowsOverloads(this.library.language)) {
                     for (const ctor of clazz.ctors) {
@@ -529,11 +533,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 if (clazz.isInterface) {
                     this.writeFromPtrMethod(clazz, writer, this.maxCtorParams, classTypeParameters)
                 }
-                this.printStaticMethods(clazz)
+                this.printOverloads(clazz, staticMethodsFilter)
+                this.printTaggedMethods(clazz, staticMethodsFilter)
+                this.printMethods(clazz, staticMethodsFilter)
             })
-            this.printOverloads(clazz)
-            this.printTaggedMethods(clazz)
-            this.printMethods(clazz)
+            this.printOverloads(clazz, nonStaticMethodsFilter)
+            this.printTaggedMethods(clazz, nonStaticMethodsFilter)
+            this.printMethods(clazz, nonStaticMethodsFilter)
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
 
         if (idl.isClassSubkind(clazz.decl) && idl.hasExtAttribute(clazz.decl, idl.IDLExtendedAttributes.DefaultExport)) {
@@ -724,8 +730,8 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }
 
-    override printOverloads(clazz: MaterializedClass) {
-        for (let method of clazz.methods) {
+    override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (let method of clazz.methods.filter(filter)) {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
             this.printer.writeMethodImplementation(method.method, (writer) => {
@@ -789,6 +795,7 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "DeserializerBase",
             "toPeerPtr",
             "KPointer",
+            "KNativePointer",
             "MaterializedBase",
             "NativeBuffer",
         ], "koalaui.interop")
@@ -799,6 +806,9 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override mangle(className: string): string {
+        if (this.namespacePrefix.length === 0) {
+            return className
+        }
         return removePoints(this.namespacePrefix.concat('_').concat(className))
     }
 
@@ -806,8 +816,8 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return idl.getNamespaceName(this.clazz.decl)
     }
 
-    override printOverloads(clazz: MaterializedClass) {
-        for (let method of clazz.methods) {
+    override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
+        for (let method of clazz.methods.filter(filter)) {
             if (!method.method.modifiers?.includes(MethodModifier.PRIVATE)) {
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
                 if (clazz.isInterface) method.method.modifiers!.push(MethodModifier.OVERRIDE)

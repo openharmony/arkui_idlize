@@ -113,11 +113,13 @@ export function bridgeCcCustomDeclaration(customApi: string[]): string {
 }
 
 export function bridgeHeaderGeneratedDeclaration(generatedApi: string[]): string {
-    return applyBridgeTemplate(generatedApi, "bridge_generated_prologue.h")
+    const template = readTemplate("bridge_generated.h")
+    return template.replaceAll("%GENERATED_API%", generatedApi.join("\n"))
 }
 
 export function bridgeHeaderCustomDeclaration(customApi: string[]): string {
-    return applyBridgeTemplate(customApi, "bridge_custom_prologue.h")
+    const template = readTemplate("bridge_custom.h")
+    return template.replaceAll("%CUSTOM_API%", customApi.join("\n"))
 }
 
 export function appendModifiersCommonPrologue(library: LibraryInterface): LanguageWriter {

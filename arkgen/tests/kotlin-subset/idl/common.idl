@@ -1,0 +1,22 @@
+package arkui.component;
+
+[Entity=Interface]
+interface BaseEvent {
+    attribute number timestamp;
+    void test();
+};
+[Entity=Interface]
+interface ClickEvent: BaseEvent {
+    attribute number x;
+    attribute number y;
+};
+[Synthetic]
+callback Callback_ClickEvent_Void = void (ClickEvent event);
+[Entity=Class, Component="CommonMethod", TypeParameters="T"]
+interface CommonMethod {
+    constructor();
+    T width(Length value);
+    T height(Length value);
+    T onClick(optional Callback_ClickEvent_Void event);
+    T onClick(optional Callback_ClickEvent_Void event, optional f64 distanceThreshold);
+};

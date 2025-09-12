@@ -1,0 +1,27 @@
+package arkui.component;
+
+dictionary ButtonType {
+    [OriginalEnumMemberName=Capsule]
+    number CAPSULE = 0;
+    [OriginalEnumMemberName=Circle]
+    number CIRCLE = 1;
+    [OriginalEnumMemberName=Normal]
+    number NORMAL = 2;
+    number ROUNDED_RECTANGLE = 3;
+};
+[Entity=Interface]
+interface ButtonOptions {
+    [Optional]
+    attribute ButtonType type;
+};
+[Entity=Interface]
+interface ButtonInterface {
+    [CallSignature]
+    ButtonAttribute invoke();
+    [CallSignature]
+    ButtonAttribute invoke(ButtonOptions options);
+};
+[Entity=Class, Component="Button"]
+interface ButtonAttribute: [Extends, TypeArguments="ButtonAttribute"] CommonMethod {
+    ButtonAttribute type(ButtonType value);
+};

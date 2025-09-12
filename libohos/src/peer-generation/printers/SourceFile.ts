@@ -16,7 +16,7 @@
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter } from "../LanguageWriters"
-import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary } from "@idlizer/core"
+import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary, JavaLanguageWriter } from "@idlizer/core"
 
 export abstract class SourceFile {
     public readonly content: LanguageWriter
@@ -208,7 +208,9 @@ export class CJSourceFile extends SourceFile {
 }
 
 export class KotlinSourceFile extends SourceFile {
-    declare public readonly content: CJLanguageWriter
+    declare public readonly content: KotlinLanguageWriter
+
+    public readonly imports: ImportsCollector = new ImportsCollector()
 
     constructor(name: string, library: PeerLibrary) {
         super(name, Language.KOTLIN, library)
@@ -217,24 +219,28 @@ export class KotlinSourceFile extends SourceFile {
     public printToString(): string {
         let fileWriter = this.library.createLanguageWriter(this.language) as KotlinLanguageWriter
         fileWriter.print(cStyleCopyright)
+        fileWriter.print('\n')
+        fileWriter.print(`package ${this.name}\n`)
         this.printImports(fileWriter)
         fileWriter.concat(this.content)
         fileWriter.print('\n')
         return fileWriter.getOutput().join("\n")
     }
     public printImports(writer: LanguageWriter): void {
-        writer.print(`package idlize\n`)
-        writer.print(`import koalaui.interop.*\n`)
+        if (!this.supportsWriter(writer)) throw new TypeError("illegal language writer")
+        this.imports.print(writer, this.name)
     }
     protected onMerge(file: this): void {
-
+        this.imports.merge(file.imports)
+    }
+    protected supportsWriter(writer: LanguageWriter) {
+        return writer instanceof KotlinLanguageWriter
     }
 }
 
 
 export class JavaSourceFile extends SourceFile {
-    declare public readonly content: CJLanguageWriter
-    public packageName: string = "org.koalaui.arkoala";
+    declare public readonly content: JavaLanguageWriter
 
     constructor(name: string, library: PeerLibrary) {
         super(name, Language.JAVA, library)
@@ -243,7 +249,7 @@ export class JavaSourceFile extends SourceFile {
     public printToString(): string {
         let printer = this.library.createLanguageWriter(Language.JAVA)
         printer.print(cStyleCopyright)
-        printer.print(`package ${this.packageName};`)
+        printer.print(`package ${this.name};`)
         printer.print('')
         printer.concat(this.content)
 

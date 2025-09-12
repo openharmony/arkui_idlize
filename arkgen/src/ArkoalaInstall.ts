@@ -123,7 +123,7 @@ class CJArkoalaInstall extends BaseArkoalaInstall {
 
 class KotlinArkoalaInstall extends BaseArkoalaInstall {
     get managedDir(): string {
-        return path.join(this.root, "arkoala-kotlin/framework/kotlin/src")
+        return path.join(this.root, "arkoala-kotlin/framework/src")
     }
     get managedSdkDir(): string {
         throw new Error("Not implemented")

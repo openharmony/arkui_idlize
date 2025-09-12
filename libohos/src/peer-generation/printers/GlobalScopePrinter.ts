@@ -217,6 +217,7 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             "DeserializerBase",
             "MaterializedBase",
             "KPointer",
+            "KNativePointer",
             "toPeerPtr",
         ], "koalaui.interop")
     }

@@ -13,4 +13,11 @@
  * limitations under the License.
  */
 
+#ifndef BRIDGE_GENERATED_H
+#define BRIDGE_GENERATED_H
+
 #include <kotlin/kotlin-cinterop.h>
+
+%GENERATED_API%
+
+#endif /* BRIDGE_GENERATED_H */

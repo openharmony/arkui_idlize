@@ -137,9 +137,11 @@
     "exec:sdk:cj": "LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:./../external/incremental-cj/runtime/callsitekey:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy ./build/cj/release/bin/main",
     "all:sdk:cj": "npm run compile && npm run compile -C ../dtsgen && npm run compile -C ../ohosgen && npm run setup:sdk:cj && npm run gen-idl:sdk:cj && npm run gen:sdk:cj && npm run gen-modules:sdk:cj && npm run build:sdk:cj && npm run build-native:sdk:cj && npm run exec:sdk:cj",    
     "KOTLIN": "#-------------------------",
-    "compile:kt:interop": "cd ../external/interop && npm run compile:kotlin:interop",
-    "make:kt": "node . --api-version 99 --dts2peer --base-dir ./,./tests/kotlin-subset --input-dir ./tests/kotlin-subset/, --output-dir ./out/kotlin-subset/generated --language kotlin && npm run compile:kt:interop && mkdir -p ./out/kotlin-subset/bin && kotlinc ./out/kotlin-subset/generated/sig/arkoala-kotlin/framework/kotlin/src/*.kt -cp ../external/interop/build/kotlin-interop/bin/interop.jar -d ./out/kotlin-subset/bin/output.jar",
-    "compile:kt": "npm run compile && npm run make:kt",
-    "run:kt": "npm run compile:kt && kotlin -classpath ../external/interop/build/kotlin-interop/bin/interop.jar:./out/kotlin-subset/bin/output.jar MainKt"
+    "compile:kt:interop": "npm run compile:kotlin:interop -C ../external/interop",
+    "gen:kt:subset": "npm run compile && node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./tests/kotlin-subset/idl --output-dir ./out/kotlin-subset/generated --language kotlin",
+    "compile:kt:native:subset": "cd ./native && meson setup -Dsource_set=kotlin-subset build-subset-kotlin && meson compile --verbose -C build-subset-kotlin && meson install -C build-subset-kotlin",
+    "compile:kt:subset": "bash scripts/compile-kotlin.sh subset",
+    "exec:kt:subset": "LD_LIBRARY_PATH=./native ACE_LIBRARY_PATH=./native ./out/kotlin-subset/bin/idlize_test.kexe",
+    "all:kt:subset": "npm run gen:kt:subset && npm run compile:kt:interop && npm run compile:kt:native:subset && npm run compile:kt:subset && npm run exec:kt:subset"
   }
 }

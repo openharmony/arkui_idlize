@@ -30,7 +30,7 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
-import { ArkTSSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
+import { ArkTSSourceFile, KotlinSourceFile, SourceFile, TsSourceFile } from "./SourceFile";
 import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
@@ -69,6 +69,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
         [Language.CPP, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.TS, new Set()],
         [Language.ARKTS, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
+        [Language.KOTLIN, new Set(["LoadUserView", "VSyncAwait", "TestWithBuffer"])],
     ])
 
     constructor(
@@ -371,6 +372,7 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KUInt",
             "KStringPtr",
             "KPointer",
+            "KNativePointer",
             "pointer",
             "KUint8ArrayPtr",
             "KInteropReturnBuffer",
@@ -378,6 +380,20 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
         ], "koalaui.interop")
         imports.addFeature("*", "kotlinx.cinterop")
     }
+}
+
+function getModuleNameForNativeModule(library: PeerLibrary, module: NativeModuleType): string {
+    const language = library.language
+    if (language === Language.KOTLIN) {
+        if (library.name === "arkoala") {
+            return "koalaui.arkoala"
+        }
+        return module.name
+    }
+    if (language === Language.JAVA) {
+        return "org.koalaui.arkoala"
+    }
+    return `${module.name}${language.extension}`
 }
 
 function printNativeModuleRegistration(language: Language, module: NativeModuleType, content: LanguageWriter): void {
@@ -433,15 +449,18 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     const entries = collectPredefinedNativeModuleEntries(library, module)
     const visitor = createPredefinedNativeModuleVisitor(library, language, entries)
     visitor.visit()
-    const file = SourceFile.make(`${module.name}${language.extension}`, language, library)
-    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile)
+    const name = getModuleNameForNativeModule(library, module)
+    const file = SourceFile.make(name, language, library)
+    if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile || file instanceof KotlinSourceFile)
         collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(module.name, writer => {
-        printNativeModuleRegistration(language, module, file.content)
-        writer.concat(visitor.nativeModule)
-        const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
-        if (maybeTemplate)
-            writer.writeLines(maybeTemplate)
+        writer.makeStaticBlock((writer) => {
+            printNativeModuleRegistration(language, module, file.content)
+            writer.concat(visitor.nativeModule)
+            const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
+            if (maybeTemplate)
+                writer.writeLines(maybeTemplate)
+        })
     })
     return file
 }

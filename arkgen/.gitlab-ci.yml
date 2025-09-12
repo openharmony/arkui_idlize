@@ -48,6 +48,21 @@ pg cj:run:
   script:
     - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run all:subset:cj
 
+arkgen Kotlin subset:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    - npm run -C arkgen gen:kt:subset
+    - npm run -C arkgen compile:kt:interop
+    - npm run -C arkgen compile:kt:native:subset
+    - npm run -C arkgen compile:kt:subset
+    - npm run -C arkgen exec:kt:subset
+
 arkgen TS sdk:
   stage: test
   tags:

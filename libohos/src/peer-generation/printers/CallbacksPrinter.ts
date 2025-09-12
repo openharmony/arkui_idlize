@@ -181,7 +181,7 @@ class DeserializeCallbacksVisitor {
             this.imports.addFeatures([
                 "ResourceHolder", "KInt", "KStringPtr",
                 "DeserializerBase", "SerializerBase", "CallbackResource",
-                "InteropNativeModule", "KPointer", "RuntimeType",
+                "InteropNativeModule", "KPointer", "KNativePointer", "RuntimeType",
                 "KSerializerBuffer", "NativeBuffer",
             ], "koalaui.interop")
             for (const callback of collectUniqueCallbacks(this.library, { transformCallbacks: true })) {
