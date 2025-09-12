@@ -31,7 +31,6 @@ import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
 import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
-import { JavaTypeNameConvertor } from '../LanguageWriters/convertors/JavaConvertors'
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
 import { BuilderClass, isBuilderClass } from './BuilderClass'
@@ -145,7 +144,6 @@ export class PeerLibrary implements LibraryInterface {
         switch (language) {
             case Language.TS: return new TSTypeNameConvertor(this)
             case Language.ARKTS: return new ETSTypeNameConvertor(this)
-            case Language.JAVA: return new JavaTypeNameConvertor(this)
             case Language.CJ: return new CJTypeNameConvertor(this)
             case Language.CPP: return new CppConvertor(this)
             case Language.KOTLIN: return new KotlinTypeNameConvertor(this)

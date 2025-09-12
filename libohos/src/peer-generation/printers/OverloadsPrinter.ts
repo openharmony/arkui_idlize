@@ -347,8 +347,6 @@ export class OverloadsPrinter {
         if (methods.length > 1) {
             const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                 const argName = collapsedMethod.signature.argName(argIndex)
-                this.printer.language == Language.JAVA ?
-                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
                 this.printer.language == Language.CJ ? 
                     undefined :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
@@ -413,10 +411,7 @@ export class OverloadsPrinter {
                 }
             } else if (this.printer.language == Language.KOTLIN) {
                 this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
-            } else if (this.printer.language == Language.JAVA) {
-                this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
-            }
-            else {
+            } else {
                 this.printer.print(`const ${castedArgName} = ${this.printer.escapeKeyword(argName)} as (${this.printer.getNodeName(castedType)})`)
             }
             return castedArgName

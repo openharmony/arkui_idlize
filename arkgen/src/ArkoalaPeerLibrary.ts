@@ -21,7 +21,6 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     TSLanguageWriter,
     CppConvertor,
     CppLanguageWriter,
-    JavaLanguageWriter,
     ETSLanguageWriter,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor,
@@ -31,7 +30,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     findTopLevelConflicts
 } from "@idlizer/core";
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
-import { ArkoalaJavaTypeNameConvertor, ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
+import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
@@ -43,8 +42,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
                 new TSTypeNameConvertor(this))
             case Language.ARKTS: return new ETSLanguageWriter(printer, this,
                 new ETSTypeNameConvertor(this), new CppConvertor(this))
-            case Language.JAVA: return new JavaLanguageWriter(printer, this,
-                new ArkoalaJavaTypeNameConvertor(this))
             case Language.CPP: return new CppLanguageWriter(printer, this,
                 new CppConvertor(this), ArkPrimitiveTypesInstance)
             case Language.CJ: return new CJLanguageWriter(printer, this,
@@ -56,7 +53,6 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
         switch (language) {
             case Language.TS: return new TSTypeNameConvertor(this)
             case Language.ARKTS: return new ETSTypeNameConvertor(this)
-            case Language.JAVA: return new ArkoalaJavaTypeNameConvertor(this)
             case Language.CJ: return new ArkoalaCJTypeNameConvertor(this)
         }
         return super.createTypeNameConvertor(language)

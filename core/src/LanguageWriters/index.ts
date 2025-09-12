@@ -7,7 +7,6 @@ import { CJIDLTypeToForeignStringConvertor, CJInteropArgConvertor, CJTypeNameCon
 import { CppInteropArgConvertor, CppConvertor } from "./convertors/CppConvertors"
 import { ETSInteropArgConvertor, ETSTypeNameConvertor } from "./convertors/ETSConvertors"
 import { InteropArgConvertor } from "./convertors/InteropConvertors"
-import { JavaInteropArgConvertor, JavaTypeNameConvertor } from "./convertors/JavaConvertors"
 import { KotlinCInteropArgConvertor, KotlinTypeNameConvertor } from "./convertors/KotlinConvertors"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./convertors/TSConvertors"
 import { LanguageWriter } from "./LanguageWriter"
@@ -15,7 +14,6 @@ import { TypeConvertor } from "./nameConvertor"
 import { CJLanguageWriter } from "./writers/CJLanguageWriter"
 import { CppLanguageWriter } from "./writers/CppLanguageWriter"
 import { ETSLanguageWriter } from "./writers/ETSLanguageWriter"
-import { JavaLanguageWriter } from "./writers/JavaLanguageWriter"
 import { KotlinLanguageWriter } from "./writers/KotlinLanguageWriter"
 import { TSLanguageWriter } from "./writers/TsLanguageWriter"
 
@@ -28,8 +26,6 @@ export function createLanguageWriter(language: Language, library: LibraryInterfa
             new TSTypeNameConvertor(library))
         case Language.ARKTS: return new ETSLanguageWriter(printer, library,
             new ETSTypeNameConvertor(library), new CppConvertor(library))
-        case Language.JAVA: return new JavaLanguageWriter(printer, library,
-            new JavaTypeNameConvertor(library))
         case Language.CPP: return new CppLanguageWriter(printer, library,
             new CppConvertor(library), PrimitiveTypesInstance)
         case Language.CJ: return new CJLanguageWriter(printer, library,
@@ -45,7 +41,6 @@ export function createInteropArgConvertor(language: Language): TypeConvertor<str
         case Language.TS: return new TSInteropArgConvertor()
         case Language.ARKTS: return new ETSInteropArgConvertor()
         case Language.CPP: return CppInteropArgConvertor.INSTANCE
-        case Language.JAVA: return new JavaInteropArgConvertor()
         case Language.CJ: return new CJInteropArgConvertor()
         case Language.KOTLIN: return new KotlinCInteropArgConvertor()
     }

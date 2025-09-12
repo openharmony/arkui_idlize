@@ -50,7 +50,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             invalidAttributes: T.stringArray(),
             customNodeTypes: T.stringArray(),
             ignoreEntry: T.stringArray(),
-            ignoreEntryJava: T.stringArray(),
             custom: T.stringArray(),
             handWritten: T.stringArray(),
             replaceThrowErrorReturn: T.stringArray(),
@@ -99,8 +98,7 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
             return originalName
         },
         ignoreEntry(name: string, language: Language): boolean {
-            return this.components.ignoreEntry.includes(name) ||
-                language === Language.JAVA && this.components.ignoreEntryJava.concat(this.components.custom).includes(name)
+            return this.components.ignoreEntry.includes(name)
         },
         ignoreTypeParameters(name: string) {
             return this.components.ignoreTypeParameters.includes(name)

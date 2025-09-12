@@ -18,7 +18,6 @@ import * as idl from "@idlizer/core"
 import { writeIntegratedFile } from "./common"
 import { getNamespaceName, getNamespacesPathFor, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
 import { ImportsCollector } from "./ImportsCollector"
-import { ARKOALA_PACKAGE } from "./printers/lang/Java";
 import { tsCopyrightAndWarning } from "./FileGenerators"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 import { collectDeclItself } from "./ImportsCollectorUtils"
@@ -143,9 +142,6 @@ export function installFiles(outDir: string, library: PeerLibrary, files: Map<st
         if (library.language === Language.CJ) {
             imports.clear()
             codePrefix.push('package idlize', 'import std.collection.*', 'import Interop.*', 'import KoalaRuntime.*', 'import KoalaRuntime.memoize.*', 'import std.time.DateTime')
-        }
-        if (library.language === Language.JAVA) {
-            codePrefix.push(`package ${ARKOALA_PACKAGE};\n`)
         }
 
         const importsWriter = library.createLanguageWriter()

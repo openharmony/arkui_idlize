@@ -40,10 +40,7 @@ import {
 } from '@idlizer/core'
 import {
     ImportsCollector,
-    ARKOALA_PACKAGE,
     TargetFile,
-    collectJavaImports,
-    printJavaImports,
     collectDeclDependencies,
     collectDeclItself,
     findComponentByName,
@@ -246,65 +243,6 @@ class PeerFileVisitor {
     }
 }
 
-class JavaPeerFileVisitor extends PeerFileVisitor {
-    constructor(
-        protected readonly library: PeerLibrary,
-        protected readonly file: idl.IDLFile,
-        dumpSerialized: boolean,
-    ) {
-        super(library, file, dumpSerialized)
-    }
-
-    private printPackage(printer: LanguageWriter): void {
-        printer.print(`package ${ARKOALA_PACKAGE};\n`)
-    }
-
-    protected printApplyMethod(peer: PeerClass, printer: LanguageWriter) {
-        // TODO: attributes
-        // const name = peer.originalClassName!
-        // const typeParam = componentToAttributesClass(peer.componentName)
-        // if (isRoot(name)) {
-        //     printer.print(`void applyAttributes(${typeParam} attributes) {}`)
-        //     return
-        // }
-
-        // printer.print(`void applyAttributes(${typeParam} attributes) {`)
-        // printer.pushIndent()
-        // printer.print(`super.applyAttributes(attributes)`)
-        // printer.popIndent()
-        // printer.print(`}`)
-    }
-
-    printFile(): PrinterResult[] {
-        return Array.from(collectPeersForFile(this.library, this.file).values()).map(peer => {
-            const component = findComponentByName(this.library, peer.componentName)
-            return {
-                over: {
-                    node: component!.attributeDeclaration,
-                    role: LayoutNodeRole.PEER,
-                },
-                generate:() => {
-                    let content = this.library.createLanguageWriter()
-                    this.printPackage(content)
-                    const idlPeer = peer as PeerClass
-                    const imports = collectJavaImports(idlPeer.methods.flatMap(method => method.method.signature.args))
-                    printJavaImports(content, imports)
-                    this.printPeer(peer, content)
-                    return content
-                },
-            }
-
-            // TODO: attributes
-            // printer = createLanguageWriter(this.library.declarationTable.language)
-            // const attributesName = componentToAttributesClass(peer.componentName)
-            // this.printers.set(new TargetFile(attributesName, ARKOALA_PACKAGE_PATH), printer)
-
-            // this.printPackage(printer)
-            // this.printAttributes(peer, printer)
-        })
-    }
-}
-
 class CJPeerFileVisitor extends PeerFileVisitor {
     constructor(
         protected readonly library: PeerLibrary,
@@ -376,9 +314,7 @@ class PeersVisitor {
         for (const file of this.library.files.values()) {
             if (!collectPeersForFile(this.library, file).length)
                 continue
-            const visitor = this.library.language == Language.JAVA
-                ? new JavaPeerFileVisitor(this.library, file, this.dumpSerialized)
-                : this.library.language == Language.CJ
+            const visitor = this.library.language == Language.CJ
                 ? new CJPeerFileVisitor(this.library, file, this.dumpSerialized)
                 : this.library.language == Language.KOTLIN
                 ? new KotlinPeerFileVisitor(this.library, file, this.dumpSerialized)

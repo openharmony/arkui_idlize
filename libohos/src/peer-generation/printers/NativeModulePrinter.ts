@@ -65,7 +65,6 @@ class NativeModulePrinterBase {
 class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
     private static readonly excludes = new Map<Language, Set<string>>([
         [Language.CJ, new Set(["MaterializeBuffer", "GetNativeBufferPointer", "LoadUserView"])],
-        [Language.JAVA, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.CPP, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
         [Language.TS, new Set()],
         [Language.ARKTS, new Set(["MaterializeBuffer", "GetNativeBufferPointer"])],
@@ -316,7 +315,6 @@ function createPredefinedNativeModuleVisitor(library: PeerLibrary, language: Lan
             return new CJNativeModulePredefinedVisitor(library, language, entries)
         case Language.KOTLIN:
         case Language.ARKTS:
-        case Language.JAVA:
             return new NativeModulePredefinedVisitor(library, language, entries)
         default:
             throw new Error("Not supported language for NativeModule")
@@ -331,7 +329,6 @@ function createArkUIGeneratedNativeModuleVisitor(library: PeerLibrary, language:
             return new CJNativeModuleArkUIGeneratedVisitor(library, language)
         case Language.KOTLIN:
         case Language.ARKTS:
-        case Language.JAVA:
             return new NativeModuleArkUIGeneratedVisitor(library, language)
         default:
             throw new Error("Not supported language for NativeModule")
@@ -389,9 +386,6 @@ function getModuleNameForNativeModule(library: PeerLibrary, module: NativeModule
             return "koalaui.arkoala"
         }
         return module.name
-    }
-    if (language === Language.JAVA) {
-        return "org.koalaui.arkoala"
     }
     return `${module.name}${language.extension}`
 }

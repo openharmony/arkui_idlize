@@ -37,8 +37,6 @@ export function createArkoalaInstall(options: {
             return new TSArkoalaInstall(options.outDir, options.test)
         case Language.ARKTS:
             return new ArkTSArkoalaInstall(options.outDir, options.test)
-        case Language.JAVA:
-            return new JavaArkoalaInstall(options.outDir, options.test)
         case Language.CJ:
             return new CJArkoalaInstall(options.outDir, options.test)
         case Language.KOTLIN:
@@ -85,21 +83,6 @@ class ArkTSArkoalaInstall extends BaseArkoalaInstall {
     }
     get tsTypesDir(): string {
         return path.join(this.root, "arkoala-arkts/arkui/types/")
-    }
-    get tsArkoalaDir(): string {
-        throw new Error("Not implemented")
-    }
-}
-
-class JavaArkoalaInstall extends BaseArkoalaInstall {
-    get managedDir(): string {
-        return path.join(this.root, "arkoala-arkts/framework/java/src")
-    }
-    get managedSdkDir(): string {
-        throw new Error("Not implemented")
-    }
-    get tsTypesDir(): string {
-        throw new Error("Not implemented")
     }
     get tsArkoalaDir(): string {
         throw new Error("Not implemented")

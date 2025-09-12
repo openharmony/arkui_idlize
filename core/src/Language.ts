@@ -16,7 +16,6 @@
 export class Language {
     public static TS = new Language("TS", ".ts")
     public static ARKTS = new Language("ArkTS", ".ts") // using .ts for ArkTS until we get rit of tsc preprocessing
-    public static JAVA = new Language("Java", ".java")
     public static CPP = new Language("C++", ".cc")
     public static CJ = new Language("CangJie", ".cj")
     public static KOTLIN = new Language("Kotlin", ".kt")
@@ -34,7 +33,6 @@ export class Language {
     static fromString(name: string): Language {
         switch (name) {
             case "arkts": return Language.ARKTS
-            case "java": return Language.JAVA
             case "ts": return Language.TS
             case "cangjie": return Language.CJ
             case "cpp": return Language.CPP

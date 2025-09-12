@@ -15,7 +15,7 @@
 
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
-import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
+import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
@@ -158,9 +158,6 @@ class ArkoalaArkTSInterfacesVisitor extends ArkTSInterfacesVisitor {
 function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): InterfacesVisitor {
     if (peerLibrary.language == Language.TS) {
         return new ArkoalaTSInterfacesVisitor(peerLibrary, true)
-    }
-    if (peerLibrary.language == Language.JAVA) {
-        return new JavaInterfacesVisitor(peerLibrary)
     }
     if (peerLibrary.language == Language.ARKTS) {
         return new ArkoalaArkTSInterfacesVisitor(peerLibrary, isDeclarations, true)

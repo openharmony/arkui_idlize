@@ -157,11 +157,10 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     // result = makeDeserializedReturn(library, printer, returnType)
                 } else if (!isPrimitiveType(returnType)) {
                     const returnTypeConvertor = new InteropReturnTypeConvertor(library)
-                    if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType)) && writer.language != Language.JAVA) {
+                    if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType))) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else if (returnTypeConvertor.isReturnInteropBuffer(returnType)
-                        && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)
-                        && writer.language != Language.JAVA) {
+                        && !(library.typeConvertor(returnValName, returnType) instanceof CustomTypeConvertor)) {
                         result = makeDeserializedReturn(library, printer, returnType)
                     } else {
                         // todo: implement deserialization for types other than enum
@@ -175,7 +174,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                                 ]
                         }
                     }
-                } else if (returnType === idl.IDLBufferType && writer.language !== Language.JAVA) {
+                } else if (returnType === idl.IDLBufferType) {
                     const instance = makeDeserializerInstance(returnValName, writer.language)
                     result = [
                         writer.makeReturn(
@@ -223,8 +222,6 @@ function makeDeserializerInstance(returnValName: string, language: Language) {
     if (language === Language.TS) {
         return `new DeserializerBase(${returnValName}.buffer, ${returnValName}.byteLength)`
     } else if (language === Language.ARKTS) {
-        return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
-    } else if (language === Language.JAVA) {
         return `new DeserializerBase(${returnValName}, ${returnValName}.length)`
     } else if (language === Language.CJ) {
         return `DeserializerBase(${returnValName}, Int32(${returnValName}.size))`

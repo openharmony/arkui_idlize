@@ -16,7 +16,7 @@
 import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter } from "../LanguageWriters"
-import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary, JavaLanguageWriter } from "@idlizer/core"
+import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary } from "@idlizer/core"
 
 export abstract class SourceFile {
     public readonly content: LanguageWriter
@@ -30,8 +30,6 @@ export abstract class SourceFile {
             return new ArkTSSourceFile(name, resolver)
         } else if (language === Language.CJ) {
             return new CJSourceFile(name, resolver)
-        } else if (language === Language.JAVA) {
-            return new JavaSourceFile(name, resolver)
         } else if (language === Language.KOTLIN) {
             return new KotlinSourceFile(name, resolver)
         }else {
@@ -236,34 +234,6 @@ export class KotlinSourceFile extends SourceFile {
     protected supportsWriter(writer: LanguageWriter) {
         return writer instanceof KotlinLanguageWriter
     }
-}
-
-
-export class JavaSourceFile extends SourceFile {
-    declare public readonly content: JavaLanguageWriter
-
-    constructor(name: string, library: PeerLibrary) {
-        super(name, Language.JAVA, library)
-    }
-
-    public printToString(): string {
-        let printer = this.library.createLanguageWriter(Language.JAVA)
-        printer.print(cStyleCopyright)
-        printer.print(`package ${this.name};`)
-        printer.print('')
-        printer.concat(this.content)
-
-        return printer.getOutput().join('\n')
-    }
-
-    public printImports(writer: LanguageWriter): void {
-        // TODO implement
-    }
-
-    protected onMerge(file: this): void {
-        // todo implement
-    }
-
 }
 
 /** @deprecated Each destination language should have its own SourceFile implementation */

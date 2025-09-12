@@ -30,12 +30,6 @@ import {
 import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
-import {
-    ARK_MATERIALIZEDBASE,
-    ARK_MATERIALIZEDBASE_EMPTY_PARAMETER,
-    ARK_OBJECTBASE,
-} from "./lang/Java";
-import { printJavaImports } from "./lang/JavaPrinters";
 import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
@@ -308,8 +302,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
-                this.printer.language == Language.JAVA ?
-                    "this.peer.ptr" :
                 this.printer.language == Language.KOTLIN ?
                     "this.peer!!.ptr" :
                     "this.peer!.ptr", returnType)
@@ -380,19 +372,18 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
         const decl: idl.IDLInterface = clazz.decl
-        const superInterface = writer.language == Language.JAVA ? ["Ark_Object"] : undefined
         writer.writeInterface(this.mangle(decl.name), () => {
             writer.makeStaticBlock(() => {
                 for (const p of decl.properties.filter(p => p.isStatic)) {
                     const modifiers: FieldModifier[] = []
                     if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
                     modifiers.push(FieldModifier.STATIC)
-                    writer.writeProperty(p.name, writer.language == Language.JAVA ? p.type : maybeOptional(p.type, p.isOptional), modifiers)
+                    writer.writeProperty(p.name, maybeOptional(p.type, p.isOptional), modifiers)
                 }
             })
             for (const field of clazz.fields.filter(f => !f.field.modifiers.includes(FieldModifier.STATIC))) {
                 const f = field.field
-                writer.writeProperty(f.name, writer.language == Language.JAVA ? f.type : maybeOptional(f.type, field.isNullableOriginalTypeField), f.modifiers)
+                writer.writeProperty(f.name, maybeOptional(f.type, field.isNullableOriginalTypeField), f.modifiers)
             }
             for (const m of decl.methods) {
                 const overloadInfo = PeerMethodSignature.mangleOverloadedName(m)
@@ -408,7 +399,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (allowNamedOverloads(this.library.language)) {
                 this.writeNamedOverloadsGroups(decl.methods, writer)
             }
-        }, superInterface, clazz.generics?.map(sanitizeGenerics))
+        }, undefined, clazz.generics?.map(sanitizeGenerics))
         if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
             writer.writeLines([
                 `export default ${decl.name}`
@@ -444,9 +435,6 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         this.printImports()
 
         let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz, this.library))
-        if (!superClassName && printer.language == Language.JAVA) {
-            superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
-        }
         const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(
@@ -471,7 +459,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
 
         // collapse constructors for TS
-        // do not collapse constructors for ArkTS, CJ, Java, ...
+        // do not collapse constructors for ArkTS, CJ, ...
 
         if (clazz.isInterface) {
             this.writeInterface(clazz, printer)
@@ -652,66 +640,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 }
 
-class JavaMaterializedFileVisitor extends MaterializedFileVisitorBase {
-    override printImports(): void {
-        const imports = [{ feature: 'org.koalaui.interop.Finalizable', module: '' }]
-        printJavaImports(this.printer, imports)
-    }
-
-    override printCtor(clazz: MaterializedClass, ctor: MaterializedMethod): void {
-        const emptyParameterType = createReferenceType(ARK_MATERIALIZEDBASE_EMPTY_PARAMETER)
-        const ctorPostfix = `_${clazz.className.toLowerCase()}`
-        const implementationClassName = clazz.getImplementationName()
-        const pointerType = IDLPointerType
-        this.library.setCurrentContext(`${clazz.className}.constructor`)
-        writePeerMethod(this.library, this.printer, ctor, true, this.dumpSerialized, ctorPostfix, "", pointerType)
-        this.library.setCurrentContext(undefined)
-
-        const ctorSig = ctor.method.signature as NamedMethodSignature
-        // constructor with a special parameter to use in static methods
-        const emptySignature = new MethodSignature(IDLVoidType, [emptyParameterType])
-        this.printer.writeConstructorImplementation(implementationClassName, emptySignature, writer => {
-            writer.writeSuperCall([emptySignature.argName(0)]);
-        })
-
-        // generate a constructor with zero parameters for static methods
-        // in case there is no alredy defined one
-        if (ctorSig.args.length > 0) {
-            this.printer.writeConstructorImplementation(implementationClassName, new MethodSignature(IDLVoidType, []), writer => {
-                writer.writeSuperCall([`(${ARK_MATERIALIZEDBASE_EMPTY_PARAMETER})null`]);
-            })
-        }
-
-        this.printer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
-            writer.writeSuperCall([`(${forceAsNamedNode(emptyParameterType).name})null`]);
-
-            const args = ctorSig.argsNames.map(it => writer.makeString(it))
-            writer.writeStatement(
-                writer.makeAssign('ctorPtr', IDLPointerType,
-                    writer.makeMethodCall(implementationClassName, `${PeerMethodSignature.CTOR}${ctorPostfix}`, args),
-                    true))
-
-            writer.writeStatement(writer.makeAssign(
-                'this.peer',
-                FinalizableType,
-                writer.makeNewObject('Finalizable', [writer.makeString('ctorPtr'), writer.makeString(`${implementationClassName}.getFinalizer()`)]),
-                false
-            ))
-        })
-    }
-
-    visit(): PrinterResult {
-        this.printMaterializedClass(this.clazz)
-        return {
-            generate: () => this.printer,
-            over: {
-                node: this.clazz.decl,
-                role: LayoutNodeRole.INTERFACE
-            }
-        }
-    }
-}
-
 class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
     protected collectImports(imports: ImportsCollector): void {
         super.collectImports(imports)
@@ -857,9 +785,6 @@ class MaterializedVisitor implements PrinterClass {
                 this.library, clazz, this.dumpSerialized)
         } else if (Language.ARKTS == this.library.language) {
             visitor = new ArkTSMaterializedFileVisitor(
-                this.library, clazz, this.dumpSerialized)
-        } else if (this.library.language == Language.JAVA) {
-            visitor = new JavaMaterializedFileVisitor(
                 this.library, clazz, this.dumpSerialized)
         } else if (this.library.language == Language.CJ) {
             visitor = new CJMaterializedFileVisitor(

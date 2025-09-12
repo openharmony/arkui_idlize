@@ -410,7 +410,6 @@ export function createDependencyFilter(library: PeerLibrary): DependencyFilter {
                     skipCallbacks: true,
                     skipTuples: false
                 })
-        case Language.JAVA: return new EmptyDependencyFilter()
         case Language.CJ: return new EmptyDependencyFilter()
     }
     // TODO: support other languages

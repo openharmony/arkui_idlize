@@ -23,7 +23,7 @@ import {
     printRealAndDummyAccessors,
     printRealAndDummyModifiers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
-    printBuilderClasses, ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
+    printBuilderClasses,
     TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
     printBridgeHeaderCustom, printBridgeHeaderGenerated, printKotlinCInteropDefFile,
     printDeclarations, printEnumsImpl, printManagedCaller,
@@ -63,7 +63,6 @@ import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaIn
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
 import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
-import { makeJavaArkComponents } from "./printers/JavaPrinter"
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
@@ -168,10 +167,9 @@ export function generateArkoalaFromIdl(config: {
     const arkoala = config.arkoalaDestination ?
         createArkoalaInstall({ outDir: config.arkoalaDestination, lang: config.lang, test: false, useMemoM3: peerLibrary.useMemoM3 }) :
         createArkoalaInstall({ outDir: config.outDir, lang: config.lang, test: true, useMemoM3: peerLibrary.useMemoM3 })
-    // arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
 
     peerLibrary.name = 'arkoala'
-    peerLibrary.setFileLayout(arkoalaLayout(peerLibrary, 'Ark', ARKOALA_PACKAGE_PATH))
+    peerLibrary.setFileLayout(arkoalaLayout(peerLibrary, 'Ark'))
 
     const arkuiComponentsFiles: string[] = []
 
@@ -209,9 +207,7 @@ export function generateArkoalaFromIdl(config: {
             printGlobal,
             printBuilderClasses,
             createSerializerPrinter(peerLibrary.language, ""),
-            ...spreadIfNotLang([Language.JAVA],
-                createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
-            ),
+            createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             ...spreadIfNotLang([Language.ARKTS],
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
             )
@@ -351,20 +347,6 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true
             }
         )
-    } else if (peerLibrary.language == Language.JAVA) {
-        writeIntegratedFile(
-            path.join(arkoala.managedDir, ARKOALA_PACKAGE_PATH, NativeModule.ArkUI.name + peerLibrary.language.extension),
-            printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).printToString(),
-        )
-        writeIntegratedFile(
-            path.join(arkoala.managedDir, ARKOALA_PACKAGE_PATH, NativeModule.Test.name + peerLibrary.language.extension),
-            printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
-        )
-
-        const arkComponents = makeJavaArkComponents(peerLibrary)
-        arkComponents.writer.printTo(path.join(arkoala.managedDir,
-            arkComponents.targetFile.path ?? "",
-            arkComponents.targetFile.name + peerLibrary.language.extension))
     }
 
     if (peerLibrary.language == Language.CJ) {

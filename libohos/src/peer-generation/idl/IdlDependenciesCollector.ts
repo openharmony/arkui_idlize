@@ -193,12 +193,6 @@ class CJDependenciesCollector extends DependenciesCollector {
     }
 }
 
-class JavaDependenciesCollector extends DependenciesCollector {
-    override convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
-        return []
-    }
-}
-
 class KotlinDependenciesCollector extends DependenciesCollector {}
 
 export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
@@ -206,9 +200,8 @@ export function createDependenciesCollector(library: PeerLibrary): DependenciesC
         case Language.TS: return new TSDependenciesCollector(library)
         case Language.ARKTS: return new TSDependenciesCollector(library)
         case Language.CJ: return new CJDependenciesCollector(library)
-        case Language.JAVA: return new JavaDependenciesCollector(library)
         case Language.KOTLIN: return new KotlinDependenciesCollector(library)
-        // in Java and CJ there is no imports (just files in the same package)
+        // in CJ there is no imports (just files in the same package)
         default: throw new Error("Not implemented")
     }
 }

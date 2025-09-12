@@ -26,15 +26,11 @@ import {
     getSuper
 } from '@idlizer/core'
 import {
-    ARKOALA_PACKAGE,
-    ARKOALA_PACKAGE_PATH,
     allowsOverloads,
     collapseSameNamedMethods,
     collectComponents,
     collectDeclDependencies,
-    collectJavaImports,
     collectPeersForFile,
-    COMPONENT_BASE,
     componentToPeerClass,
     findComponentByName,
     findComponentByType,
@@ -43,7 +39,6 @@ import {
     ImportsCollector,
     OverloadsPrinter,
     PrinterResult,
-    printJavaImports,
     readLangTemplate,
     TargetFile,
     collectDeclItself,
@@ -305,65 +300,6 @@ class ArkTsComponentFileVisitor extends TSLikeComponentFileVisitor {
     }
 }
 
-class JavaComponentFileVisitor implements ComponentFileVisitor {
-    private readonly results: ComponentPrintResult[] = []
-
-    constructor(
-        private readonly library: PeerLibrary,
-        private readonly file: idl.IDLFile,
-    ) { }
-
-    visit(): PrinterResult[] {
-        collectPeersForFile(this.library, this.file).forEach(peer => this.printComponent(peer))
-        return []
-    }
-    getComponentResults(): ComponentPrintResult[] {
-        return []
-    }
-
-    private printComponent(peer: PeerClass) {
-        const componentClassName = generateArkComponentName(peer.componentName)
-        const componentType = createReferenceType(componentClassName)
-        const parentComponentClassName = peer.parentComponentName ? generateArkComponentName(peer.parentComponentName!) : COMPONENT_BASE
-        const peerClassName = componentToPeerClass(peer.componentName)
-
-        const result = this.library.createLanguageWriter(Language.JAVA)
-        result.print(`package ${ARKOALA_PACKAGE};\n`)
-        const imports = collectJavaImports(peer.methods.flatMap(method => method.method.signature.args))
-        printJavaImports(result, imports)
-
-        result.writeClass(componentClassName, (writer) => {
-            peer.methods.forEach(peerMethod => {
-                const originalSignature = peerMethod.method.signature as NamedMethodSignature
-                const signature = new NamedMethodSignature(componentType, originalSignature.args, originalSignature.argsNames, originalSignature.defaults)
-                const method = new Method(peerMethod.method.name, signature, [MethodModifier.PUBLIC])
-                writer.writeMethodImplementation(method, writer => {
-                    const thiz = writer.makeThis()
-                    writer.writeStatement(
-                        writer.makeStatement(writer.makeMethodCall(`((${peerClassName})peer)`, `${peerMethod.sig.name}Attribute`, signature.argsNames.map(it => writer.makeString(it))))
-                    )
-                    writer.writeStatement(writer.makeReturn(thiz))
-                })
-            })
-
-            const attributesFinishSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributesFinish = 'applyAttributesFinish'
-            writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.writeMethodCall('super', applyAttributesFinish, [])
-            })
-
-            const applyAttributesSignature = new MethodSignature(IDLVoidType, [])
-            const applyAttributes = 'applyAttributes'
-            writer.writeMethodImplementation(new Method(applyAttributes, applyAttributesSignature, [MethodModifier.PUBLIC]), (writer) => {
-                writer.writeMethodCall('super', applyAttributes, [])
-                writer.writeStatement(writer.makeStatement(writer.makeString(`throw new RuntimeException("not implemented")`)))
-            })
-        }, parentComponentClassName)
-
-        this.results.push(new ComponentPrintResult(new TargetFile(componentClassName + Language.JAVA.extension, ARKOALA_PACKAGE_PATH), result))
-    }
-}
-
 class CJComponentFileVisitor implements ComponentFileVisitor {
 
     constructor(
@@ -535,9 +471,6 @@ class ComponentsVisitor {
             else if (this.language == Language.ARKTS) {
                 visitor = new ArkTsComponentFileVisitor(this.peerLibrary, file, this.options)
             }
-            else if (this.language == Language.JAVA) {
-                visitor = new JavaComponentFileVisitor(this.peerLibrary, file)
-            }
             else if (this.language == Language.CJ) {
                 visitor = new CJComponentFileVisitor(this.peerLibrary, file, this.options)
             }
@@ -559,7 +492,7 @@ export function printComponents(peerLibrary: PeerLibrary): PrinterResult[] {
 
 export function printComponentsDeclarations(peerLibrary: PeerLibrary): PrinterResult[] {
     // TODO: support other output languages
-    if (![Language.TS, Language.ARKTS, Language.JAVA].includes(peerLibrary.language))
+    if (![Language.TS, Language.ARKTS].includes(peerLibrary.language))
         return []
 
     return new ComponentsVisitor(peerLibrary, { isDeclared: true }).printComponents()

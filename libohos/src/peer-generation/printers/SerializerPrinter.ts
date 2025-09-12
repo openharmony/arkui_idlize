@@ -122,7 +122,6 @@ class SerializerPrinter {
             case Language.CPP:
                 peerExpr = valueExpr
                 break
-            case Language.JAVA:
             case Language.CJ:
                 peerExpr = writer.makeMethodCall("MaterializedBase", "toPeerPtr", [valueExpr])
                 break
@@ -446,7 +445,6 @@ export function createSerializerDependencyFilter(library: PeerLibrary, language:
     switch (language) {
         case Language.TS: return new DefaultSerializerDependencyFilter()
         case Language.ARKTS: return new ArkTSSerializerDependencyFilter()
-        case Language.JAVA: return new DefaultSerializerDependencyFilter()
         case Language.CJ: return new DefaultSerializerDependencyFilter()
         case Language.CPP: return new CppSerializerDependencyFilter(library)
         case Language.KOTLIN: return new DefaultSerializerDependencyFilter()

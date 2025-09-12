@@ -118,7 +118,6 @@ export class KotlinFeatureNameConvertor extends DeclarationNameConvertor {
 export function createDeclarationNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSDeclarationNameConvertor.I
-        case Language.JAVA:
         case Language.CPP:
         case Language.TS: return DeclarationNameConvertor.I
         case Language.CJ: CJDeclarationNameConvertor.I
@@ -130,7 +129,6 @@ export function createDeclarationNameConvertor(language: Language): DeclarationN
 export function createFeatureNameConvertor(language: Language): DeclarationNameConvertor {
     switch (language) {
         case Language.ARKTS: return ETSFeatureNameConvertor.I
-        case Language.JAVA:
         case Language.CPP:
         case Language.TS: return TSFeatureNameConvertor.I
         case Language.CJ: return CJFeatureNameConvertor.I
