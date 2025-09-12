@@ -443,10 +443,7 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration, this.interopNativeModule)
         }
         if (idl.isTypedef(declaration)) {
-            if (isCyclicTypeDef(declaration)) {
-                warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
-                return new CustomTypeConvertor(param, declaration.name, false, declaration.name, declaration)
-            }
+            if (forceTypedefAsResource(type, declaration)) return new ObjectConvertor(param, type)
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
@@ -517,9 +514,8 @@ export class PeerLibrary implements LibraryInterface {
             if (!decl) {
                 warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
             }
-            if (decl && idl.isTypedef(decl) && isCyclicTypeDef(decl)) {
-                warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
-                return ArkCustomObject
+            if (decl && idl.isTypedef(decl) && forceTypedefAsResource(type, decl)) {
+                return idl.IDLObjectType
             }
             if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
                 const type = toIdlType("", idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)!)
@@ -555,6 +551,14 @@ export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
+function forceTypedefAsResource(type: idl.IDLType, decl: idl.IDLTypedef): boolean {
+    if (generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
+    if (isCyclicTypeDef(decl)) {
+        warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
+        return true
+    }
+    return false
+}
 
 function isCyclicTypeDef(decl: idl.IDLTypedef): boolean {
     return checkCyclicType(idl.getFQName(decl), decl.type)

@@ -969,11 +969,9 @@ export class CustomTypeConvertor extends BaseArgConvertor {
     constructor(param: string,
                 public readonly customTypeName: string,
                 private readonly isGenericType: boolean,
-                tsType: string,
-                refParent?: idl.IDLNode) {
+                tsType: string) {
         super(idl.createReferenceType(tsType ?? "Object"), [RuntimeType.OBJECT], false, true, param)
         warnCustomObject(`${customTypeName}: ${tsType}`)
-        if (refParent) this.idlType.parent = refParent
     }
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Must never be used")

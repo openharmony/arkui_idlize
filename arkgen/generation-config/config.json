@@ -461,7 +461,9 @@
         "ComponentContent",
         "ComponentContentBase",
         "ImageModifier",
-        "ExtendableComponent"
+        "ExtendableComponent",
+        "arkui.component.pluginComponent.RecordData",
+        "arkui.component.uiExtensionComponent.RecordData"
     ],
     "boundProperties": {
         "Checkbox": [
