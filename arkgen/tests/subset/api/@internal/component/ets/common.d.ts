@@ -550,7 +550,7 @@ declare class CommonMethod<T> {
 
     onChildTouchTest(event: (value: Array<TouchTestInfo>) => string): T;
 
-    attributeModifier(modifier: AttributeModifier<T>): T
+    // attributeModifier(modifier: AttributeModifier<T>): T
 
     gestureModifier(modifier: GestureModifier): T;
 

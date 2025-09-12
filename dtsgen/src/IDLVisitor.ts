@@ -741,9 +741,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
     computeComponentExtendedAttributes(node: ts.ClassDeclaration | ts.InterfaceDeclaration): idl.IDLExtendedAttribute[] | undefined {
         let result: idl.IDLExtendedAttribute[] = this.computeExtendedAttributes(node)
         let name = identName(node.name)
-        if (name && peerGeneratorConfiguration().isHandWritten(peerGeneratorConfiguration().mapComponentName(name))) {
-            result.push({ name: idl.IDLExtendedAttributes.HandWrittenImplementation })
-        }
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
             result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${peerGeneratorConfiguration().mapComponentName(name)}"` })
         }

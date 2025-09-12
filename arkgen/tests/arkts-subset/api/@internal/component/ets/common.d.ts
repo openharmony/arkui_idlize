@@ -20251,7 +20251,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  attributeModifier(modifier: AttributeModifier<T>): T;
+  // attributeModifier(modifier: AttributeModifier<T>): T;
 
   /**
    * Sets the gesture modifier.

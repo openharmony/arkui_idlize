@@ -272,6 +272,9 @@ typedef struct _Ark_Canvas* Ark_CanvasHandle;
 typedef struct Opt_Int32 Opt_Int32;
 typedef struct AccessibilityCallback AccessibilityCallback;
 typedef struct Opt_AccessibilityCallback Opt_AccessibilityCallback;
+typedef struct AttributeModifierPeer AttributeModifierPeer;
+typedef struct AttributeModifierPeer* Ark_AttributeModifier;
+typedef struct Opt_AttributeModifier Opt_AttributeModifier;
 typedef struct Ark_BlankAttribute Ark_BlankAttribute;
 typedef struct Opt_BlankAttribute Opt_BlankAttribute;
 typedef struct Opt_Boolean Opt_Boolean;
@@ -350,7 +353,8 @@ typedef struct Opt_FlexAttribute Opt_FlexAttribute;
 typedef struct Opt_Float64 Opt_Float64;
 typedef struct Ark_FormComponentAttribute Ark_FormComponentAttribute;
 typedef struct Opt_FormComponentAttribute Opt_FormComponentAttribute;
-typedef struct Ark_GestureModifier Ark_GestureModifier;
+typedef struct GestureModifierPeer GestureModifierPeer;
+typedef struct GestureModifierPeer* Ark_GestureModifier;
 typedef struct Opt_GestureModifier Opt_GestureModifier;
 typedef struct GestureRecognizerPeer GestureRecognizerPeer;
 typedef struct GestureRecognizerPeer* Ark_GestureRecognizer;
@@ -571,6 +575,8 @@ typedef struct Opt_UICommonEvent Opt_UICommonEvent;
 typedef struct UIExtensionProxyPeer UIExtensionProxyPeer;
 typedef struct UIExtensionProxyPeer* Ark_UIExtensionProxy;
 typedef struct Opt_UIExtensionProxy Opt_UIExtensionProxy;
+typedef struct Ark_UIGestureEvent Ark_UIGestureEvent;
+typedef struct Opt_UIGestureEvent Opt_UIGestureEvent;
 typedef struct Opt_Undefined Opt_Undefined;
 typedef struct Ark_Union_BlendMode_Blender Ark_Union_BlendMode_Blender;
 typedef struct Opt_Union_BlendMode_Blender Opt_Union_BlendMode_Blender;
@@ -3868,6 +3874,10 @@ typedef struct Opt_AccessibilityCallback {
     Ark_Tag tag;
     AccessibilityCallback value;
 } Opt_AccessibilityCallback;
+typedef struct Opt_AttributeModifier {
+    Ark_Tag tag;
+    Ark_AttributeModifier value;
+} Opt_AttributeModifier;
 typedef struct Ark_BlankAttribute {
     /* kind: Interface */
     void *handle;
@@ -4068,10 +4078,6 @@ typedef struct Opt_FormComponentAttribute {
     Ark_Tag tag;
     Ark_FormComponentAttribute value;
 } Opt_FormComponentAttribute;
-typedef struct Ark_GestureModifier {
-    /* kind: Interface */
-    void *handle;
-} Ark_GestureModifier;
 typedef struct Opt_GestureModifier {
     Ark_Tag tag;
     Ark_GestureModifier value;
@@ -4688,6 +4694,14 @@ typedef struct Opt_UIExtensionProxy {
     Ark_Tag tag;
     Ark_UIExtensionProxy value;
 } Opt_UIExtensionProxy;
+typedef struct Ark_UIGestureEvent {
+    /* kind: Interface */
+    void *handle;
+} Ark_UIGestureEvent;
+typedef struct Opt_UIGestureEvent {
+    Ark_Tag tag;
+    Ark_UIGestureEvent value;
+} Opt_UIGestureEvent;
 typedef struct Opt_Undefined {
     Ark_Tag tag;
     Ark_Undefined value;

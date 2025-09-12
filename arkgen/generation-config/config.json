@@ -550,7 +550,6 @@
         "ConditionScope",
         "CommonMethod",
         "SecurityComponentMethod",
-        "CommonTransition",
         "CalendarAttribute",
         "ContainerSpanAttribute",
         "CustomLayoutRoot"
