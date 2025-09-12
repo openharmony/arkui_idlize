@@ -19,24 +19,18 @@ import * as fs from "fs"
 import * as path from "path"
 import {
     fromIDL,
-    generate,
-    defaultCompilerOptions,
     idlToDtsString,
     findVersion,
     setDefaultConfiguration,
     Language,
-    isDefined,
     verifyIDLLinter,
     PeerLibrary,
     scanInputDirs,
     parseIDLFile,
-    generatorConfiguration,
     IDLLinterError,
 } from "@idlizer/core"
 import {
     IDLFile,
-    isInterface,
-    linearizeNamespaceMembers,
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
@@ -44,6 +38,8 @@ import { formatInputPaths, validatePaths, peerGeneratorConfiguration, NativeModu
 import { IDLVisitor } from "./IDLVisitor"
 import { runPreprocessor } from "./preprocessor"
 import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
+import { generate } from "./idlize"
+import { defaultCompilerOptions } from "./util"
 
 const command = createCommand()
     .option('--dts2idl', 'Convert .d.ts to IDL definitions')

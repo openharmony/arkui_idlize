@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,55 +16,8 @@
 import * as ts from "typescript"
 import * as fs from "fs"
 import * as path from "path"
-import * as idl from "./idl"
 import { GenerateOptions } from "./options"
-import { isDefined } from "./util"
-
-export function scanDirectory(dir: string, fileFilter: (file: string) => boolean, recursive = false): string[] {
-    const dirsToVisit = [path.resolve(dir)]
-    const result = []
-    while (dirsToVisit.length > 0) {
-        let dir = dirsToVisit.pop()!
-        let dirents = fs.readdirSync(dir, { withFileTypes: true })
-        for (const entry of dirents) {
-            const fullPath = path.join(dir, entry.name)
-            if (entry.isFile()) {
-                if (fileFilter(fullPath)) { result.push(fullPath) }
-            } else if (recursive && entry.isDirectory()) {
-                dirsToVisit.push(fullPath)
-            }
-        }
-    }
-
-    return result
-}
-
-export function scanInputDirs(inputDirs: string[]): string[]
-export function scanInputDirs(inputDirs: string[], fileExtension: string): string[]
-export function scanInputDirs(inputDirs: string[], fileFilter: (file: string) => boolean, recursive: boolean): string[]
-export function scanInputDirs(
-    inputDirs: string[],
-    fileFilter: undefined | string | ((file: string) => boolean) = undefined,
-    recursive = false,
-): string[] {
-    if (typeof fileFilter === 'undefined')
-        return scanInputDirs(inputDirs, (_) => true, recursive)
-    if (typeof fileFilter === 'string')
-        return scanInputDirs(inputDirs, (file: string) => file.endsWith(fileFilter), recursive)
-    const resolvedInputDirs = inputDirs.map(dir => path.resolve(dir))
-    console.log("Resolved input directories:", resolvedInputDirs)
-    return resolvedInputDirs.flatMap(dir => {
-        if (fs.existsSync(dir) && fs.statSync(dir).isDirectory()) {
-            console.log(`Processing all definitions from directory: ${dir}`)
-            return scanDirectory(dir, fileFilter, recursive)
-        } else {
-            console.warn(`Warning: Directory does not exist or is not a directory: ${dir}`)
-            return []
-        }
-    }).sort((a, b) => {
-        return path.basename(a).localeCompare(path.basename(b))
-    })
-}
+import { isDefined } from "@idlizer/core"
 
 export interface GenerateVisitor<T> {
     visitPhase1(): T
@@ -241,22 +194,4 @@ export function generate<T>(
     if (options.enableLog) {
         console.log("Generation completed.")
     }
-}
-
-export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"
-
-export function isInIdlize(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, "idlize")
-}
-
-export function isInIdlizeInterop(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, `${PACKAGE_IDLIZE_INTERNAL}.interop`)
-}
-
-export function isInIdlizeInternal(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, PACKAGE_IDLIZE_INTERNAL)
-}
-
-export function isInIdlizeStdlib(entry: idl.IDLEntry | idl.IDLFile): boolean {
-    return idl.isInPackage(entry, "idlize.stdlib")
 }

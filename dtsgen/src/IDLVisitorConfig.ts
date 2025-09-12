@@ -16,12 +16,12 @@
 import {
     ConfigTypeInfer,
     D,
-    identName,
     parseIDLFile,
 } from "@idlizer/core";
 import * as idl from '@idlizer/core/idl'
 import * as ts from "typescript"
-import * as path from "path"
+import * as path from "node:path"
+import { identName } from "./util"
 
 const T = {
     stringArray: () => D.array(D.string())

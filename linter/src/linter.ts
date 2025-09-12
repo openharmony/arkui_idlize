@@ -16,18 +16,11 @@
 import * as ts from "typescript"
 import * as path from "path"
 import {
-    GenerateVisitor, cppKeywords,
-    asString,
-    getDeclarationsByNode,
-    getLineNumberString,
-    identName,
-    isAbstract,
-    isStatic,
-    nameOrNull,
-    zip,
-    isCommonMethodOrSubclass,
-    findRealDeclarations
+    cppKeywords,
+    zip
 } from "@idlizer/core"
+import { asString, GenerateVisitor, getDeclarationsByNode, getLineNumberString, identName, isAbstract,
+    isCommonMethodOrSubclass, isStatic, nameOrNull } from "./util"
 import { LinterWhitelist } from "./LinterWhitelist"
 import { LinterError, LinterMessage } from "./LinterMessage"
 

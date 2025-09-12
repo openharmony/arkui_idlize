@@ -17,7 +17,7 @@ import {
     findVersion,
     scanInputDirs
 } from "@idlizer/core"
-import { formatInputPaths, validatePaths, loadPeerConfiguration } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths } from "@idlizer/libohos"
 import { generateFromSts } from "./generate"
 import { readConfig } from "./config"
 import { resolve } from "node:path"

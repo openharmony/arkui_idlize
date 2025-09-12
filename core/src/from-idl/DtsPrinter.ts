@@ -101,7 +101,7 @@ import {
 import { resolveSyntheticType, parseIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
-import { isInIdlize } from "../idlize"
+import { isInIdlize } from "../idl"
 import { generatorConfiguration } from "../config"
 
 export class CustomPrintVisitor {

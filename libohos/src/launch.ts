@@ -15,7 +15,7 @@
 
 import * as fs from "fs"
 import * as path from "path"
-import { parseIDLFile, PeerLibrary, scanInputDirs, IDLFile, linearizeNamespaceMembers, isInterface } from "@idlizer/core"
+import { scanInputDirs } from "@idlizer/core"
 
 function processInputOption(option: string | string[] | undefined): string[] {
     if (typeof option === 'undefined') {

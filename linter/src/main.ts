@@ -19,7 +19,8 @@ import * as ts from "typescript"
 
 import { LinterVisitor, toLinterString } from "./linter"
 import { LinterMessage } from "./LinterMessage"
-import { patchDefaultConfiguration, findVersion, generate, scanInputDirs } from "@idlizer/core"
+import { patchDefaultConfiguration, findVersion, scanInputDirs } from "@idlizer/core"
+import { generate } from "./util"
 
 const options = createCommand()
     .option('--input-dir <path>', 'Path to input dir(s), comma separated')

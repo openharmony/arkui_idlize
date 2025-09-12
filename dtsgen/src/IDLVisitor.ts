@@ -18,21 +18,42 @@ import { parse } from "comment-parser"
 import { OptionValues } from "commander"
 import * as idl from "@idlizer/core/idl"
 import {
-    asString, capitalize, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, identName,
-    isDefined, isNodePublic, isPrivate, isProtected, isReadonly, isStatic, isAsync, isExport,
-    nameEnumValues, nameOrNull, identString, getNameWithoutQualifiersLeft, stringOrNone, warn,
-    snakeCaseToCamelCase, escapeIDLKeyword, GenerateVisitor,
+    capitalize,
+    isDefined,
+    nameEnumValues, stringOrNone, warn,
+    snakeCaseToCamelCase, escapeIDLKeyword,
     generateSyntheticUnionName, generateSyntheticIdlNodeName, generateSyntheticFunctionName,
-    collapseTypes, isCommonMethodOrSubclass, generatorConfiguration,
+    collapseTypes, generatorConfiguration,
     filterRedundantMethodsOverloads,
     filterRedundantAttributesOverloads,
+    isRoot,
 } from "@idlizer/core"
 import { ReferenceResolver } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '@idlizer/libohos'
 import { groupOverloadsTS } from "./IDLVisitorConfig"
 import { IDLVisitorConfiguration } from "./config"
+import { GenerateVisitor } from "./idlize"
+import {
+    asString, getComment, getDeclarationsByNode, getExportedDeclarationNameByDecl, getNameWithoutQualifiersLeft,
+    heritageDeclarations, identName, identString, isAsync, isNodePublic, isPrivate, isProtected, isReadonly, isStatic,
+    nameOrNull
+} from "./util"
 
 const MaxSyntheticTypeLength = 60
+
+export function isCommonMethodOrSubclass(typeChecker: ts.TypeChecker, decl: ts.ClassDeclaration): boolean {
+    let name = identName(decl.name)!
+    let isSubclass = isRoot(name)
+    decl.heritageClauses?.forEach(it => {
+        heritageDeclarations(typeChecker, it).forEach(it => {
+            let name = asString(it.name)
+            isSubclass = isSubclass || isRoot(name)
+            if (!ts.isClassDeclaration(it)) return isSubclass
+            isSubclass = isSubclass || isCommonMethodOrSubclass(typeChecker, it)
+        })
+    })
+    return isSubclass
+}
 
 export class NameSuggestion {
     protected constructor(

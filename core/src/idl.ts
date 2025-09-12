@@ -2057,3 +2057,21 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): {low: number, high: numb
     })
     return {low, high}
 }
+
+export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"
+
+export function isInIdlize(entry: IDLEntry | IDLFile): boolean {
+    return isInPackage(entry, "idlize")
+}
+
+export function isInIdlizeInterop(entry: IDLEntry | IDLFile): boolean {
+    return isInPackage(entry, `${PACKAGE_IDLIZE_INTERNAL}.interop`)
+}
+
+export function isInIdlizeInternal(entry: IDLEntry | IDLFile): boolean {
+    return isInPackage(entry, PACKAGE_IDLIZE_INTERNAL)
+}
+
+export function isInIdlizeStdlib(entry: IDLEntry | IDLFile): boolean {
+    return isInPackage(entry, "idlize.stdlib")
+}
