@@ -10,19 +10,16 @@ else
 endif
 use_libace = true
 
-java_home = run_command('node', '-e', 'console.log(process.env.JAVA_HOME)').stdout().strip()
-
 is_node = true
 is_arkts = false
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin' or source_set == 'kotlin-subset')
-is_jni = false
 is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
-if ['ets-ts-peers', 'ets-arkts-peers', 'ts-peers', 'ts-subset', 'java-subset', 'arkts-subset', 'arkts-peers', 'cangjie', 'cangjie-subset', 'kotlin', 'kotlin-subset', 'ts-ohos-context'].contains(source_set)
+if ['ets-ts-peers', 'ets-arkts-peers', 'ts-peers', 'ts-subset', 'arkts-subset', 'arkts-peers', 'cangjie', 'cangjie-subset', 'kotlin', 'kotlin-subset', 'ts-ohos-context'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
 else
 endif
@@ -224,19 +221,6 @@ cj_sources = [
     external_interop_dir / 'cangjie/convertors-cj.h',
 ]
 
-if is_jni
-    jni_cflags = ['-DKOALA_USE_JAVA_VM', '-DKOALA_JNI', '-DINTEROP_LIBRARY_NAME=' + jni_library_name ]
-    jni_include_dirs = [
-        java_home / 'include',
-        java_home / 'include' / jni_os,
-        external_interop_dir / 'jni'
-    ]
-    jni_sources = [
-        external_interop_dir / 'jni' / 'convertors-jni.cc',
-        external_interop_dir / 'types' / 'signatures.cc',
-    ]
-endif
-
 if is_node
     node_ldflags = []
     # TODO: support v8 on arm32 board.
@@ -320,21 +304,6 @@ if is_ani
         install_dir: meson.current_source_dir(),
         cpp_args: cflags + ani_cflags,
         link_args: ldflags + ani_ldflags,
-        dependencies: []
-    )
-endif
-
-if is_jni
-    shared_library(jni_library_name,
-        sources + jni_sources,
-        override_options: [
-            'b_lundef=false',
-        ],
-        install: true,
-        include_directories: include_dirs + jni_include_dirs,
-        install_dir: meson.current_source_dir(),
-        cpp_args: cflags + jni_cflags,
-        link_args: ldflags,
         dependencies: []
     )
 endif
@@ -432,14 +401,10 @@ if (os != 'windows') and (is_ohos_demo == false)
 endif
 
 
-if is_jni or is_arkts
+if is_arkts
     loader_include_dirs = include_dirs
     loader_cflags = cflags + [ '-DKOALA_DYNAMIC_LOADER' ]
     loader_ldflags = []
-    if is_jni
-        loader_include_dirs += jni_include_dirs
-        loader_cflags += jni_cflags
-    endif
     if is_arkts
         loader_include_dirs += arkts_include_dirs
         loader_cflags += arkts_cflags
