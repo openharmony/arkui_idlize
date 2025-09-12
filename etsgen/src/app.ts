@@ -61,9 +61,9 @@ export function etsgen(argv:string[]) {
         validatePaths(inputDirs, 'dir')
         validatePaths(inputFiles, 'file')
         generateFromSts({
-            inputFiles: detsInputFiles,
-            baseDir: options.baseDir,
-            outDir: options.outputDir,
+            inputFiles: detsInputFiles.map(it => resolve(it)),
+            baseDir: resolve(options.baseDir),
+            outDir: resolve(options.outputDir),
             etsConfigPath: options.etsConfig,
             traceStatus: options.traceStatus,
             config: readConfig(options.optionsFile ?? resolve(__dirname, '..', 'generator-config.json'))
