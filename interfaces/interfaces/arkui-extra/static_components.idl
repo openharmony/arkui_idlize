@@ -28,3 +28,6 @@ interface CustomLayoutRoot {
     [CommonMethod]
     attribute Callback_onPlaceChildren_Void subscribeOnPlaceChildren;
 };
+
+[Component="RoutedPage"]
+interface RoutedPage {};

@@ -545,6 +545,7 @@
     "rootComponents": [
         "Root",
         "ComponentRoot",
+        "RoutedPage",
         "CustomBuilderRoot",
         "ConditionScope",
         "CommonMethod",
