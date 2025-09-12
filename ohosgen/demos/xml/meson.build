@@ -88,7 +88,7 @@ elif is_panda
     platform_build_dir = meson.current_source_dir() / 'build/panda'
 
     cflags += [
-        '-DETS_MODULE_CLASSPATH_PREFIX=@xml/generated/arkts/ohos/xml/INTERNAL/',
+        '-DETS_MODULE_CLASSPATH_PREFIX=@xml.generated.arkts.ohos.xml.INTERNAL.',
         '-DKOALA_USE_PANDA_VM',
         '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name
     ]

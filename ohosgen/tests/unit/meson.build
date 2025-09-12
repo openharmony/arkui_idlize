@@ -86,8 +86,7 @@ elif is_panda
     platform_build_dir = 'build/panda'
 
     cflags += ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + library_name]
-    # cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit/generated/arkts/UNITNativeModule/']
-    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit/generated/arkts/unit/INTERNAL/']
+    cflags += ['-DETS_MODULE_CLASSPATH_PREFIX=@unit.generated.arkts.unit.INTERNAL.']
     ldflags += external_interop_build_dir / 'libInteropNativeModule.so'
     include_dirs += [
         external_interop_dir / 'ani',
