@@ -119,7 +119,12 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
             imports.addFeature("RuntimeType", "@koalaui/interop")
-            imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
+            if (this.library.language === Language.ARKTS) {
+                imports.addFeatures(["NodeAttach"], "^arkui.stateManagement.memo.node")
+                imports.addFeatures(["remember"], "^arkui.stateManagement.memo.remember")
+            } else {
+                imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
+            }
             imports.addFeature('ComponentBase', './ComponentBase')
             if (this.library.language === Language.TS) {
                 imports.addFeature("isInstanceOf", "@koalaui/interop")

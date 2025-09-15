@@ -19,7 +19,6 @@
         "arkui.BuilderNode": "@arkui.BuilderNode",
         "arkui.ComponentContent": "@arkui.ComponentContent",
         "arkui.Content": "@arkui.Content",
-        "arkui.Graphics": "@arkui.Graphics",
         "arkui": "@ohos.arkui.component"
     }
 }

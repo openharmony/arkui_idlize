@@ -244,7 +244,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             this.overloadsPrinter.printGroupedComponentOverloads(clazz.getImplementationName(), grouped)
         }
         if (!clazz.isInterface && allowNamedOverloads(this.library.language)) {
-            this.writeNamedOverloadsGroups(clazz.decl.methods, this.printer)
+            this.writeNamedOverloadsGroups(clazz.decl.methods.filter(filter), this.printer)
         }
     }
 
