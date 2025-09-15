@@ -5,6 +5,10 @@ import arkui.component.customDialogController;
 import arkui.component.common.PopupCommonOptions as PopupCommonOptions;
 import arkui.component.common.MenuOptions as MenuOptions;
 import ohos.arkui.UIContext;
+import arkui.component.alertDialog.AlertDialogParamWithConfirm as AlertDialogParamWithConfirm;
+import arkui.component.alertDialog.AlertDialogParamWithButtons as AlertDialogParamWithButtons;
+import arkui.component.alertDialog.AlertDialogParamWithOptions as AlertDialogParamWithOptions;
+import arkui.component.actionSheet.ActionSheetOptions as ActionSheetOptions;
 
 [Entity=Interface]
 interface CustomDialogBuildOptions {
@@ -26,4 +30,14 @@ interface PromptActionExtender {
   static async void openMenu(pointer content, TargetInfo target, optional MenuOptions options);
   static async void updateMenu(pointer content, MenuOptions options, optional boolean partialUpdate);
   static async void closeMenu(pointer content);
+};
+
+[Entity=Class]
+interface AlertDialog {
+    static void show((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
+};
+
+[Entity=Class]
+interface ActionSheet {
+    static void show(ActionSheetOptions options);
 };
