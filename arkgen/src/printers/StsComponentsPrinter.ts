@@ -2,7 +2,7 @@ import * as idl from "@idlizer/core"
 import { Language, LayoutNodeRole, PeerClass, PeerLibrary } from "@idlizer/core";
 import { collapseSameNamedMethods, collectComponents, componentToPeerClass, ImportsCollector, PrinterResult, readLangTemplate, OverloadsPrinter, peerGeneratorConfiguration, groupOverloads, collectPeersForFile } from "@idlizer/libohos";
 import { ArkoalaPeerLibrary } from "../ArkoalaPeerLibrary";
-import { generateArkComponentName } from "./ComponentsPrinter";
+import { generateArkComponentName, shiftIfIsNotEmpty } from "./ComponentsPrinter";
 
 function printETSComponent(library: PeerLibrary, peer: PeerClass, isDeclaration: boolean): PrinterResult{
     const component = collectComponents(library).find(it => it.name === peer.componentName)!
@@ -16,7 +16,7 @@ function printETSComponent(library: PeerLibrary, peer: PeerClass, isDeclaration:
         const peerClassName = componentToPeerClass(peer.componentName)
         writer.writeLines(readLangTemplate(isDeclaration ? "ets_component_decl.d.ets" : "ets_component_impl.ets", Language.ARKTS)
             .replaceAll("%COMPONENT_NAME%", component.name)
-            .replaceAll("%FUNCTION_PARAMETERS%", mappedCallableParams?.map(it => `${it}, `).join("") ?? "")
+            .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(mappedCallableParams?.map(it => `${it}, `).join("") ?? ""))
             .replaceAll("%COMPONENT_CLASS_NAME%", componentClassName)
             .replaceAll("%PEER_CLASS_NAME%", peerClassName)
             .replaceAll("%PEER_CALLABLE_INVOKE%", callableMethod?.name ? `receiver.${callableMethod?.name}(${mappedCallableParamsValues})` : ""))

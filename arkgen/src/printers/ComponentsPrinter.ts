@@ -51,6 +51,13 @@ import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
 import { HandwrittenModule } from '../ArkoalaLayout'
 
+export function shiftIfIsNotEmpty(line:string): string {
+    if (line.length > 0) {
+        return '    ' + line
+    }
+    return ""
+}
+
 export function generateArkComponentName(component: string) {
     return `Ark${component}Component`
 }
@@ -263,7 +270,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
                     .replaceAll("%COMPONENT_NAME%", builderFunctionName)
                     .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-                    .replaceAll("%FUNCTION_PARAMETERS%", paramsList ?? "")
+                    .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ?? ""))
                     .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                     .replaceAll("%PEER_CLASS_NAME%", peerClassName)
                     .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))
@@ -412,7 +419,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
             printer.writeLines(readLangTemplate(`component_builder_${declaredPostrix}${stagePostfix}`, this.library.language)
                 .replaceAll("%COMPONENT_NAME%", component.name)
                 .replaceAll("%COMPONENT_ATTRIBUTE_NAME%", componentInterfaceName)
-                .replaceAll("%FUNCTION_PARAMETERS%", paramsList ? `,\n${paramsList}`: "")
+                .replaceAll("%FUNCTION_PARAMETERS%", shiftIfIsNotEmpty(paramsList ? `,\n${paramsList}`: ""))
                 .replaceAll("%COMPONENT_CLASS_NAME%", componentClassImplName)
                 .replaceAll("%PEER_CLASS_NAME%", peerClassName)
                 .replaceAll("%PEER_CALLABLE_INVOKE%", callableInvocation))

@@ -3,7 +3,7 @@
 export function %COMPONENT_NAME%(
     @memo
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
-    %FUNCTION_PARAMETERS%
+%FUNCTION_PARAMETERS%
     @memo
     content_?: () => void,
 ): void {

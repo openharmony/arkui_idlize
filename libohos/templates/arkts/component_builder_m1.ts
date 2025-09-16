@@ -4,7 +4,7 @@ export function Ark%COMPONENT_NAME%(
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
     /** @memo */
     content_: (() => void) | undefined,
-    %FUNCTION_PARAMETERS%
+%FUNCTION_PARAMETERS%
 ): void {
     const receiver = remember<%COMPONENT_CLASS_NAME%>((): %COMPONENT_CLASS_NAME% => {
         return new %COMPONENT_CLASS_NAME%()
