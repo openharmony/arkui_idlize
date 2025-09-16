@@ -38,7 +38,7 @@
     "compile:core": "npm run --prefix ../core compile",
     "compile:self": "rollup -c",
     "compile": "npm run compile:core && npm run compile:self",
-    "external:test": "npm run --prefix ../external/ui2abc/libarkts run",
+    "external:test": "npm run --prefix ../external/ui2abc/libarkts run:current",
     "external:clean": "rimraf ../external/ui2abc/libarkts/generated",
     "external:generate": "npm run compile && node . --panda-sdk-path ../external/incremental/tools/panda/node_modules/@panda/sdk/ --output-dir ../external/ui2abc/ --options-file ../external/ui2abc/libarkts/generator/options.json5 --debug --no-initialize",
     "all": "npm run compile && npm run external:clean && npm run external:generate && npm run external:test",
