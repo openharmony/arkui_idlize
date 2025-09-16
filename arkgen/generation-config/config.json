@@ -612,7 +612,8 @@
             "LifeCycle",
             "makeBuilderParameterProxy",
             "ComponentContent",
-            "ComponentContentBase"
+            "ComponentContentBase",
+            "TabContent"
         ],
         "ignoreEntry": [
             "Optional",
