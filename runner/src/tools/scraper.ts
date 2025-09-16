@@ -314,7 +314,7 @@ export function runScraper(root: string, configPath:string):ScraperResult {
 
     let additionalStartScript = `
 rule ohosgen
-    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json,${BASIC_MODULES_CONFIG_PATH},$in
+    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json ${BASIC_MODULES_CONFIG_PATH} $in
     description = "Generate $in"
 
 `

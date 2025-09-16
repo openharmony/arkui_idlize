@@ -159,21 +159,9 @@ function parseConfigFile(configurationFile: string): any {
     return JSON.parse(data)
 }
 
-export function readConfigFiles(configurationFiles?: string, ignoreDefaultConfig = false): unknown[] {
-    const files = ignoreDefaultConfig ? [] : [
-        path.join(__dirname, "..", "generation-config", "config.json"),
-        path.join(__dirname, "..", "generation-config", "idl-config.json")
-    ]
-    if (configurationFiles) {
-        files.push(...configurationFiles.split(","))
-    }
-
-    return files.map(file => parseConfigFile(file))
-}
-
-export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles?: string, ignoreDefaultConfig = false): T {
+export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles: string[]): T {
     const json = mergeJSONs(
-        readConfigFiles(configurationFiles, ignoreDefaultConfig),
+        configurationFiles.map(parseConfigFile),
         schema
     )
     const result = schema.validate(json)
@@ -183,8 +171,8 @@ export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles?
     return result.unwrap()
 }
 
-export function loadPeerConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): PeerGeneratorConfiguration {
-    return expandPeerGeneratorConfiguration(parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles, ignoreDefaultConfig))
+export function loadPeerConfiguration(configurationFiles: string[]): PeerGeneratorConfiguration {
+    return expandPeerGeneratorConfiguration(parseConfigFiles(PeerGeneratorConfigurationSchema, configurationFiles))
 }
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {

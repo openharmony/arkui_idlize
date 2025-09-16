@@ -46,6 +46,7 @@ import { loadPeerConfiguration,
 import { readLibrary } from "@idlizer/interfaces"
 import { generateOhos } from "./ohos"
 import { suggestLibraryName } from "./OhosNativeVisitor"
+import { ohosgenDefaultConfigurationPaths } from "./config"
 
 const command = createCommand()
     .option('--show-config-schema', 'Prints JSON schema for config')
@@ -71,7 +72,7 @@ const command = createCommand()
     .option('--use-ost', 'Generate output using syntax trees (EXPERIMENTAL)')
     .option('--enable-log', 'Enable logging')
     .option('--split-files', 'Experimental feature to store declarations in different files for ohos generator')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+    .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
     .option('--implicit-predefined', "Removes predefined from the generator input", false)
@@ -84,7 +85,10 @@ let apiVersion = options.apiVersion ?? 9999
 
 options.inputFiles = processInputFiles(options.inputFiles)
 
-setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
+setDefaultConfiguration(loadPeerConfiguration([
+    ...(options.ignoreDefaultConfig ? [] : ohosgenDefaultConfigurationPaths()),
+    ...(options.optionsFile ?? []),
+]))
 
 if (process.env.npm_package_version && !options.showConfigSchema) {
     console.log(`IDLize version ${findVersion()}`)

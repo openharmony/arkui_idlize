@@ -20,63 +20,55 @@ import * as fs from "fs"
 
 const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 
-/** @returns {import("rollup").RollupOptions} */
-function createTarget(sourcePath, targetPath) {
-    return {
-        input: sourcePath,
-        output: {
-            file: targetPath,
-            format: "commonjs",
-            sourcemap: ENABLE_SOURCE_MAPS,
-            sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
-                const sourcemapDir = path.dirname(sourcemapPath)
-                let absolute = path.join(sourcemapDir, relativeSourcePath);
-                if (fs.existsSync(absolute))
-                    return path.relative(sourcemapDir, absolute)
-                // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
-                absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
-                if (fs.existsSync(absolute))
-                    return path.relative(sourcemapDir, absolute)
-                console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
-                return relativeSourcePath
-            },
-            plugins: [
-                // terser()
-            ],
-            banner: [
-                "#!/usr/bin/env node",
-                APACHE_LICENSE_HEADER()
-            ].join("\n"),
-        },
-        onwarn: (message) => {
-            if (message.code === 'CIRCULAR_DEPENDENCY') {
-                console.error(message)
-                // TODO: stop build on circular dependencies.
-                // process.exit(-1);
-            }
-        },
-        external: ["commander", "typescript", "@idlizer/interfaces"],
-        plugins: [
-            typescript({
-                outputToFilesystem: false,
-                module: "esnext",
-                sourceMap: ENABLE_SOURCE_MAPS,
-                declarationMap: false,
-                declaration: false,
-                composite: false,
-            }),
-            nodeResolve({
-                extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
-            })
-        ],
-    }
-}
-
 /** @type {import("rollup").RollupOptions} */
-export default [
-    createTarget("./src/main.ts", "./lib/index.js"),
-    createTarget("./src/app.ts", "./lib/library.js"),
-]
+export default {
+    input: "./src/main.ts",
+    output: {
+        file: "./lib/cli.js",
+        format: "commonjs",
+        sourcemap: ENABLE_SOURCE_MAPS,
+        sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
+            const sourcemapDir = path.dirname(sourcemapPath)
+            let absolute = path.join(sourcemapDir, relativeSourcePath);
+            if (fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
+            absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
+            if (fs.existsSync(absolute))
+                return path.relative(sourcemapDir, absolute)
+            console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
+            return relativeSourcePath
+        },
+        plugins: [
+            // terser()
+        ],
+        banner: [
+            "#!/usr/bin/env node",
+            APACHE_LICENSE_HEADER()
+        ].join("\n"),
+    },
+    onwarn: (message) => {
+        if (message.code === 'CIRCULAR_DEPENDENCY') {
+            console.error(message)
+            // TODO: stop build on circular dependencies.
+            // process.exit(-1);
+        }
+    },
+    external: ["commander", "typescript", "@idlizer/interfaces"],
+    plugins: [
+        typescript({
+            outputToFilesystem: false,
+            module: "esnext",
+            sourceMap: ENABLE_SOURCE_MAPS,
+            declarationMap: false,
+            declaration: false,
+            composite: false,
+        }),
+        nodeResolve({
+            extensions: [".js", ".mjs", ".cjs", ".ts", ".cts", ".mts"]
+        })
+    ],
+}
 
 function APACHE_LICENSE_HEADER() {
     return `

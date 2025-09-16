@@ -67,10 +67,21 @@ import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
 import { platform } from "node:os";
+import { ARKGEN_ROOT } from "./config"
 
-const External = path.join(__dirname, "../../external")
-const ExternalStubs = path.join(External, "subset")
-const Subset = path.join(__dirname, "../external-subset")
+const resolveExternal = () => {
+    let postfix = '../external'
+    while (!fs.existsSync(path.join(ARKGEN_ROOT, postfix))) {
+        let newPostfix = `../${postfix}`
+        if (path.join(ARKGEN_ROOT, postfix) === path.join(ARKGEN_ROOT, newPostfix)) {
+            break;
+        }
+        postfix = newPostfix
+    }
+    return path.join(ARKGEN_ROOT, postfix)
+}
+const resolveExternalStubs = () => path.join(resolveExternal(), "subset")
+const Subset = path.join(ARKGEN_ROOT, "external-subset")
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
@@ -108,13 +119,13 @@ export function generateLibaceFromIdl(config: {
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
 
-    copyToLibace(fs.existsSync(Subset) ? Subset : External, libace)
+    copyToLibace(fs.existsSync(Subset) ? Subset : resolveExternal(), libace)
 }
 
 function copyArkoalaFiles(config: {
     onlyIntegrated: boolean | undefined
 }, arkoala: ArkoalaInstall) {
-    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : ExternalStubs, 'subset.json')
+    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : resolveExternalStubs(), 'subset.json')
     const subsetData = JSON.parse(fs.readFileSync(subsetJson).toString())
     if (!subsetData) throw new Error(`Cannot parse ${subsetJson}`)
     const copyFiles = (files: string, ...fromFallbacks: string[]) => {
@@ -136,14 +147,14 @@ function copyArkoalaFiles(config: {
     }
 
     if (config.onlyIntegrated) {
-        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : ExternalStubs)
+        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : resolveExternalStubs())
         return
     }
 
     if (fs.existsSync(Subset)) {
         copyFiles(subsetData.subset, Subset)
     } else {
-        copyFiles(subsetData.subset, ExternalStubs, External)
+        copyFiles(subsetData.subset, resolveExternalStubs(), resolveExternal())
     }
 }
 

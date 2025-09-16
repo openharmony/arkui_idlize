@@ -37,7 +37,7 @@ import {
 import { formatInputPaths, validatePaths, peerGeneratorConfiguration, NativeModule } from "@idlizer/libohos"
 import { IDLVisitor } from "./IDLVisitor"
 import { runPreprocessor } from "./preprocessor"
-import { dtsgenConfiguration, loadDtsgenConfiguration } from "./config"
+import { dtsgenConfiguration, loadDtsgenConfiguration, dtsgenDefaultConfigurationPaths } from "./config"
 import { generate } from "./idlize"
 import { defaultCompilerOptions } from "./util"
 
@@ -60,7 +60,7 @@ const command = createCommand()
     .option('--plugin <file>', 'File with generator\'s plugin')
     .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
     .option('--enable-log', 'Enable logging')
-    .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+    .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
     .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
     .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
 const options = command
@@ -77,7 +77,10 @@ function main() {
 
     Language.ARKTS.extension = options.arktsExtension as string
 
-    setDefaultConfiguration(loadDtsgenConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
+    setDefaultConfiguration(loadDtsgenConfiguration([
+        ...(options.ignoreDefaultConfig ? [] : dtsgenDefaultConfigurationPaths()),
+        ...(options.optionsFile ?? []),
+    ]))
 
     if (process.env.npm_package_version) {
         console.log(`IDLize version ${findVersion()}`)

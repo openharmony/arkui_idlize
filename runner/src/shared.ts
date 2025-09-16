@@ -14,7 +14,7 @@
  */
 
 import { join, resolve } from "node:path"
-import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen/app"
+import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen"
 
 /////////////////////////////////////////////////
 // CONSTANTS

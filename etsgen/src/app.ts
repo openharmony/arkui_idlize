@@ -19,9 +19,9 @@ import {
 } from "@idlizer/core"
 import { formatInputPaths, validatePaths } from "@idlizer/libohos"
 import { generateFromSts } from "./generate"
-import { readConfig } from "./config"
-import { resolve } from "node:path"
+import { join, resolve } from "node:path"
 import { cpSync } from "node:fs"
+import { ETSGEN_ROOT, etsgenDefaultConfigurationPath, loadEtsgenConfiguration } from "./config"
 
 export function etsgen(argv:string[]) {
     const program = createCommand()
@@ -35,9 +35,9 @@ export function etsgen(argv:string[]) {
         .option('--verify-idl', 'Verify produced IDL')
         .option('--docs [all|opt|none]', 'How to handle documentation: include, optimize, or skip')
         .option('--version')
-        .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+        .option('--options-file <path...>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
-        .option('--ets-config <path>', 'Path to ets config file', resolve(__dirname, "..", "config.json"))
+        .option('--ets-config <path>', 'Path to ets config file', join(ETSGEN_ROOT, "config.json"))
         .option('--trace-status <filename>', 'Add trace information to generated IDL and save status in specified file')
     const options = program
         .parse(argv, { from: 'user' })
@@ -66,11 +66,14 @@ export function etsgen(argv:string[]) {
             outDir: resolve(options.outputDir),
             etsConfigPath: options.etsConfig,
             traceStatus: options.traceStatus,
-            config: readConfig(options.optionsFile ?? resolve(__dirname, '..', 'generator-config.json'))
+            config: loadEtsgenConfiguration([
+                ...(options.ignoreDefaultConfig ? [] : [etsgenDefaultConfigurationPath()]),
+                ...(options.optionsFile ?? [])
+            ])
         })
         if (options.useComponentStubs) {
             cpSync(
-                resolve(__dirname, '..', 'components_stubs'),
+                join(ETSGEN_ROOT, 'components_stubs'),
                 options.outputDir,
                 { recursive: true }
             )

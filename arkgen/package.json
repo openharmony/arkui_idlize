@@ -2,23 +2,16 @@
   "name": "@idlizer/arkgen",
   "version": "2.1.10+devel",
   "description": "",
-  "main": "lib/index.js",
-  "bin": "lib/index.js",
-  "exports": {
-    "./app": [
-      "./lib/library.js"
-    ]
-  },
-  "typesVersions": {
-    "*": {
-      "app": [
-        "build/lib/src/app.d.ts"
-      ]
-    }
-  },
+  "main": "lib/cli.js",
+  "bin": "lib/cli.js",
+  "exports": "./build/lib/src/index.js",
+  "types": "./build/lib/src/index.d.ts",
   "files": [
-    "build/lib/src/app.d.ts",
+    "build/**/*.ts",
+    "build/**/*.js",
+    "build/**/*.map",
     "lib/*.js",
+    "lib/*.map",
     "stdlib.d.ts",
     "whitelist.json",
     "predefined/**/*",
@@ -73,7 +66,7 @@
     "build:sdk:arkts": "fast-arktsc --config ./arktsconfig-peers-ets.json --link-name ./out/ets-arkts-peers/abc/all.abc --compiler ../external/incremental/tools/panda/arkts/ui2abc --simultaneous && ninja -C ./out/ets-arkts-peers/abc -f build.ninja",
     "build-native:sdk:arkts": "cd ./native && meson setup -Dsource_set=ets-arkts-peers build-sdk-arkts && meson compile --verbose -C build-sdk-arkts && meson install -C build-sdk-arkts",
     "exec:sdk:arkts": "ACE_LIBRARY_PATH=./native/build-sdk-arkts LD_LIBRARY_PATH=./native bash ../external/incremental/tools/panda/arkts/ark --ark-entry-point arkui.framework.main.ETSGLOBAL::main --ark-boot-files ../external/interop/build/interop.abc:../external/incremental/runtime/build/incremental.abc:./out/ets-arkts-peers/abc out/ets-arkts-peers/abc/all.abc --driver-log info",
-    "all:sdk:arkts": "npm run compile && npm run compile -C ../etsgen && npm run etsgen:sdk && npm run gen:sdk:arkts && npm run gen-modules:sdk:arkts && npm run build:sdk:arkts && npm run build-native:sdk:arkts && npm run compile:arkts:libs && npm run exec:sdk:arkts",
+    "all:sdk:arkts": "npm run compile && npm run compile -C ../etsgen && npm run compile -C ../ohosgen && npm run etsgen:sdk && npm run gen:sdk:arkts && npm run gen-modules:sdk:arkts && npm run build:sdk:arkts && npm run build-native:sdk:arkts && npm run compile:arkts:libs && npm run exec:sdk:arkts",
     "ARKTS SUBSET": "#-------------------",
     "gen-idl:subset:arkts": "node ../dtsgen --dts2idl --base-dir ./,./tests/arkts-subset/api --input-dir ./tests/arkts-subset/api/@internal/component/ets/,./tests/arkts-subset/api/application,./tests/arkts-subset/api/arkui,./tests/arkts-subset/api --output-dir ./out/arkts-subset/generated/idl --options-file ./generation-config/config.json",
     "gen:subset:arkts": "node . --no-implicit-predefined --api-version 99 --idl2peer --use-memo-m3 --arkts-extension .ets --use-component-optional --input-dir ./out/arkts-subset/generated/idl,./tests/idls --input-files ./tests/arkts-subset/api/@ohos.base.idl --output-dir ./out/arkts-subset/generated --language arkts --options-file ./generation-config/subset-arkts-config.json",

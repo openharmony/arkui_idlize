@@ -49,6 +49,7 @@ import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
 import { readLibrary } from "@idlizer/interfaces"
+import { arkgenDefaultConfigurationPaths } from "./config"
 
 export function arkgen(argv:string[]) {
     const command = createCommand()
@@ -89,7 +90,7 @@ export function arkgen(argv:string[]) {
         .option('--default-idl-package <name>', 'Name of the default package for generated IDL')
         .option('--no-commented-code', 'Do not generate commented code in modifiers')
         .option('--enable-log', 'Enable logging')
-        .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+        .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
         .option('--interop-bridges <string>', "Generate interop bridges macros")
@@ -118,7 +119,10 @@ export function arkgen(argv:string[]) {
     let apiVersion = options.apiVersion ?? 9999
     Language.ARKTS.extension = options.arktsExtension as string
 
-    setDefaultConfiguration(loadPeerConfiguration(options.optionsFile, options.ignoreDefaultConfig as boolean))
+    setDefaultConfiguration(loadPeerConfiguration([
+        ...(options.ignoreDefaultConfig ? [] : arkgenDefaultConfigurationPaths()),
+        ...(options.optionsFile ?? [])
+    ]))
     loadKnownReferences(path.resolve(options.referenceNames))
 
     if (process.env.npm_package_version && !options.showConfigSchema) {
@@ -203,10 +207,6 @@ export function arkgen(argv:string[]) {
                 .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
         }
     }
-}
-
-export function defaultConfigPath(): string {
-    return path.resolve(__dirname, '..', 'generation-config')
 }
 
 function inplaceArkoalaGenerics(library: PeerLibrary): void {

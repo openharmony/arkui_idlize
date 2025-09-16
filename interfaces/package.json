@@ -1,7 +1,10 @@
 {
     "name": "@idlizer/interfaces",
     "version": "2.1.10+devel",
-    "main": "dist/index.js",
+    "type": "commonjs",
+    "main": "./dist/index.js",
+    "exports": "./dist/index.js",
+    "types": "./dist/index.d.ts",
     "files": [
         "dist/**/*",
         "interfaces/**/*"

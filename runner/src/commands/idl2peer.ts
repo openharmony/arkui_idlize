@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { arkgen } from "@idlizer/arkgen/app"
+import { arkgen } from "@idlizer/arkgen"
 import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
 import { flat, scan } from "../utils"
 

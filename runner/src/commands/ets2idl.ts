@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { etsgen } from "@idlizer/etsgen/app"
+import { etsgen } from "@idlizer/etsgen"
 import { flat, over, scan } from "../utils"
 import { join } from "node:path"
 import { ADDITIONAL_FILES, GENERATED_IDL_DIR } from "../shared"

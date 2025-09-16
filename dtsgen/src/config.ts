@@ -18,6 +18,8 @@ import { ConfigTypeInfer, D, generatorConfiguration } from "@idlizer/core";
 import { PeerGeneratorConfigurationExtension, PeerGeneratorConfigurationSchema, expandPeerGeneratorConfiguration, parseConfigFiles } from "@idlizer/libohos";
 import  { expandIDLVisitorConfig, IDLVisitorConfiguration, IDLVisitorConfigurationSchema } from "./IDLVisitorConfig"
 
+export const DTSGEN_ROOT = path.join(path.dirname(require.resolve('@idlizer/dtsgen')), '..')
+
 export const DtsgenConfigurationSchema = D.combine(
     PeerGeneratorConfigurationSchema,
     D.object({
@@ -49,15 +51,22 @@ export function expandDtsgenConfiguration(data: DtsgenConfigurationType): Dtsgen
 }
 
 
-export function loadDtsgenConfiguration(configurationFiles?: string, ignoreDefaultConfig = false): DtsgenConfiguration {
+export function loadDtsgenConfiguration(configurationFiles: string[]): DtsgenConfiguration {
     return expandPeerGeneratorConfiguration(
         expandDtsgenConfiguration(
             parseConfigFiles<DtsgenConfigurationType>(
-                DtsgenConfigurationSchema, configurationFiles, ignoreDefaultConfig)
+                DtsgenConfigurationSchema, configurationFiles)
         )
     ) as DtsgenConfiguration
 }
 
 export function IDLVisitorConfiguration(): IDLVisitorConfiguration {
     return dtsgenConfiguration().IDLVisitor
+}
+
+export function dtsgenDefaultConfigurationPaths(): string[] {
+    return [
+        path.join(DTSGEN_ROOT, 'generation-config/config.json'),
+        path.join(DTSGEN_ROOT, 'generation-config/idl-config.json')
+    ]
 }
