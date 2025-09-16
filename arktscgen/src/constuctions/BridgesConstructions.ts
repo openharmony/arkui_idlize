@@ -89,6 +89,10 @@ export class BridgesConstructions {
         return `getStringCopy`
     }
 
+    static get stringArrayCast(): string {
+        return `getStringArray`
+    }
+
     static dropConstCast(value: string): string {
         return `(void*)${value}`
     }

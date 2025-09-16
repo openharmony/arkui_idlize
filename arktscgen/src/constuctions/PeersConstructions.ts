@@ -78,6 +78,10 @@ export class PeersConstructions {
         return `passNode(${name})`
     }
 
+    static passStringArray(name: string): string {
+        return `passStringArray(${name})`
+    }
+
     static passNodeArray(name: string): string {
         return `passNodeArray(${name})`
     }

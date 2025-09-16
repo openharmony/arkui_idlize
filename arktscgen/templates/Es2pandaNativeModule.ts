@@ -20,6 +20,7 @@
 import {
     KNativePointer,
     KStringPtr,
+    KStringArrayPtr,
     KUInt,
     KInt,
     KBoolean,

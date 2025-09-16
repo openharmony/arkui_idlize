@@ -18,6 +18,7 @@ import { Typechecker } from "../../../general/Typechecker"
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
 import { PeersConstructions } from "../../../constuctions/PeersConstructions"
 import { Config } from "../../../general/Config"
+import { isString } from "../../../utils/idl"
 
 export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
     (parameter: string) => string | string[]
@@ -27,7 +28,8 @@ export class BindingParameterTypeConvertor extends TopLevelTypeConvertor<
     ) {
         super(typechecker, {
             sequence: (type: IDLContainerType) => (parameter: string) => [
-                PeersConstructions.passNodeArray(parameter),
+                isString(type.elementType[0]) ?
+                    PeersConstructions.passStringArray(parameter) : PeersConstructions.passNodeArray(parameter),
                 PeersConstructions.arrayLength(parameter)
             ],
             string: (type: IDLPrimitiveType) => (parameter: string) => parameter,

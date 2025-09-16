@@ -13,16 +13,17 @@
  * limitations under the License.
  */
 
-import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
+import { IDLContainerType, IDLContainerUtils, IDLPrimitiveType } from "@idlizer/core"
 import { InteropTypeConvertor } from "../InteropTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
+import { isString } from "../../../utils/idl"
 
 export class NativeTypeConvertor extends InteropTypeConvertor {
     constructor(
         typechecker: Typechecker,
     ) {
         super(typechecker, {
-            sequence: (type: IDLContainerType) => `KNativePointerArray`,
+            sequence: (type: IDLContainerType) => isString(type.elementType[0]) ? `KStringArray&` : `KNativePointerArray`,
             string: (type: IDLPrimitiveType) => `KStringPtr&`,
         })
     }

@@ -16,13 +16,14 @@
 import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
 import { InteropTypeConvertor } from "../InteropTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
+import { isString } from "../../../utils/idl"
 
 export class BindingsTypeConvertor extends InteropTypeConvertor {
     constructor(
         typechecker: Typechecker,
     ) {
         super(typechecker, {
-            sequence: (type: IDLContainerType) => `BigUint64Array`,
+            sequence: (type: IDLContainerType) => isString(type.elementType[0]) ? `KStringArrayPtr` : `BigUint64Array`,
             string: (type: IDLPrimitiveType) => `KStringPtr`,
         })
     }

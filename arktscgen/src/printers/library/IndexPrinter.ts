@@ -13,17 +13,21 @@
  * limitations under the License.
  */
 
-import { IDLInterface, isInterface } from "@idlizer/core"
+import { IDLFile, IDLInterface, isInterface } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
 import { createDefaultTypescriptWriter, fqName } from "../../utils/idl"
 import { dropPrefix } from "../../utils/string"
 import { Config } from "../../general/Config"
 
 export class IndexPrinter extends SingleFilePrinter {
+    constructor(private config: Config, idl: IDLFile) {
+        super(idl)
+    }
+
     protected writer = createDefaultTypescriptWriter()
 
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node) || Config.DoNotPrintPeers.includes(fqName(node))
+        return !this.typechecker.isPeer(node) || this.config.ignore.isIgnoredPeer(fqName(node))
     }
 
     printInterface(node: IDLInterface): void {

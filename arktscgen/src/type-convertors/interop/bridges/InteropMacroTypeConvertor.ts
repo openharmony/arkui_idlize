@@ -16,13 +16,14 @@
 import { IDLContainerType, IDLPrimitiveType } from "@idlizer/core"
 import { InteropTypeConvertor } from "../InteropTypeConvertor"
 import { Typechecker } from "../../../general/Typechecker"
+import { isString } from "../../../utils/idl"
 
 export class InteropMacroTypeConvertor extends InteropTypeConvertor {
     constructor(
         typechecker: Typechecker,
     ) {
         super(typechecker, {
-            sequence: (type: IDLContainerType) => `KNativePointerArray`,
+            sequence: (type: IDLContainerType) => isString(type.elementType[0]) ? `KStringArray` : `KNativePointerArray`,
             string: (type: IDLPrimitiveType) => `KStringPtr`,
         })
     }

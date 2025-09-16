@@ -19,7 +19,7 @@ import { BaseTypeConvertor } from "../../BaseTypeConvertor"
 import { BridgesConstructions } from "../../../constuctions/BridgesConstructions"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { Config } from "../../../general/Config"
-import { baseName, innerType } from "../../../utils/idl"
+import { baseName, innerType, isString } from "../../../utils/idl"
 
 export class CastTypeConvertor extends BaseTypeConvertor<string> {
     private castToTypeConvertor = new CastToTypeConvertor(this.typechecker)
@@ -33,9 +33,9 @@ export class CastTypeConvertor extends BaseTypeConvertor<string> {
                     this.castToTypeConvertor.convertType(type)
                 )
         super(typechecker, {
-            sequence: (type: IDLContainerType) => BridgesConstructions.referenceTypeCast(
-                this.castToTypeConvertor.convertType(type)
-            ),
+            sequence: (type: IDLContainerType) => isString(type.elementType[0]) ?
+                BridgesConstructions.stringArrayCast :
+                BridgesConstructions.referenceTypeCast(this.castToTypeConvertor.convertType(type)),
             enum: (type: IDLReferenceType) => BridgesConstructions.enumCast(
                 this.castToTypeConvertor.convertType(type)
             ),

@@ -25,7 +25,7 @@ export class AllPeersPrinter extends MultiFilePrinter {
         super(idl)
     }
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node) || Config.DoNotPrintPeers.includes(fqName(node))
+        return !this.typechecker.isPeer(node) || this.config.ignore.isIgnoredPeer(fqName(node))
     }
     printInterface(node: IDLInterface): MultiFileOutput {
         return {

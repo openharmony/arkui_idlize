@@ -119,7 +119,7 @@ export class DynamicEmitter {
     )
 
     private indexPrinter = new SingleFileEmitter(
-        (idl: IDLFile) => new IndexPrinter(idl).print(),
+        (idl: IDLFile) => new IndexPrinter(this.config, idl).print(),
         `libarkts/generated/index.ts`,
         `index.ts`,
         true

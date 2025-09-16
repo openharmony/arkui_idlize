@@ -21,6 +21,7 @@ import {
     global,
     passNode,
     passNodeArray,
+    passStringArray,
     unpackNonNullableNode,
     unpackNode,
     unpackNodeArray,

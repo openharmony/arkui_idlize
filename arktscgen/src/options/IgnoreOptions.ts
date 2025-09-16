@@ -25,6 +25,7 @@ export class IgnoreOptions {
         }
         const ignore = JSON5.parse(fs.readFileSync(filePath).toString()).ignore
         this.partial = ignore?.partial ?? []
+        this.peers = ignore?.peers ?? ['es2panda_Context']
 
         const full: string[] = ignore?.full ?? []
         full.forEach((fqName: string) => {
@@ -40,7 +41,12 @@ export class IgnoreOptions {
         })
     }
 
+    private readonly peers: string[] = []
     private readonly partial: Partial[] = []
+
+    isIgnoredPeer(name: string): boolean {
+        return this.peers.includes(name)
+    }
 
     isIgnoredMethod(iface: string, method: string): boolean {
         return this.partial?.some(it => it.interface === iface && it.methods?.includes(method))
