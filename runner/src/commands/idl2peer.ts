@@ -41,7 +41,7 @@ export function idl2peer({
         arkgenTarget = 'arkoala'
     }
     if (target === 'libace') {
-        arkgenTarget = 'arkoala'
+        arkgenTarget = 'libace'
     }
 
     arkgen(
