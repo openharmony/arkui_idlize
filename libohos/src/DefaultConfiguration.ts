@@ -19,8 +19,8 @@ import {
     ConfigSchema,
     ConfigTypeInfer,
     CoreConfigurationSchema,
+    DefaultIDLLinterOptions,
     generatorConfiguration,
-    IDLKind,
     IDLLinterOptions,
     isDefined,
     Language,
@@ -38,7 +38,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         GenerateUnused: D.boolean(),
         ApiVersion: D.number(),
         dumpSerialized: D.boolean(),
-        boundProperties: D.map(D.string(), T.stringArray()),
 
         currentModulePackagesPaths: D.maybe(D.array(D.object({ package: D.string(), path: D.string() }))),
         currentModuleExportedPackages: D.maybe(T.stringArray()),
@@ -46,7 +45,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         components: D.object({
             ignoreComponents: T.stringArray(),
             ignorePeerMethod: T.stringArray(),
-            ignoreTypeParameters: T.stringArray(),
             invalidAttributes: T.stringArray(),
             customNodeTypes: T.stringArray(),
             ignoreEntry: T.stringArray(),
@@ -77,11 +75,8 @@ export const PeerGeneratorConfigurationSchema = D.combine(
 export type PeerGeneratorConfigurationType = ConfigTypeInfer<typeof PeerGeneratorConfigurationSchema>
 export type PeerGeneratorConfiguration = PeerGeneratorConfigurationType & PeerGeneratorConfigurationExtension
 export interface PeerGeneratorConfigurationExtension {
-    mapComponentName(originalName: string): string
     ignoreEntry(name: string, language: Language): boolean
-    ignoreTypeParameters(name: string): boolean
     isHandWritten(component: string): boolean
-    isKnownParametrized(name: string | undefined): boolean
     isResource(name: string | undefined): boolean
     isShouldReplaceThrowingError(name: string): boolean
     noDummyGeneration(component: string, method?: string): boolean
@@ -92,22 +87,11 @@ export interface PeerGeneratorConfigurationExtension {
 export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfigurationType): PeerGeneratorConfiguration {
     const config = {
         ...data,
-        mapComponentName(originalName: string): string {
-            if (originalName.endsWith("Attribute"))
-                return originalName.substring(0, originalName.length - 9)
-            return originalName
-        },
         ignoreEntry(name: string, language: Language): boolean {
             return this.components.ignoreEntry.includes(name)
         },
-        ignoreTypeParameters(name: string) {
-            return this.components.ignoreTypeParameters.includes(name)
-        },
         isHandWritten(component: string): boolean {
             return this.components.handWritten.concat(this.components.custom).includes(component)
-        },
-        isKnownParametrized(name: string | undefined): boolean {
-            return name != undefined && this.parameterized.includes(name)
         },
         isResource(name: string | undefined): boolean {
             return name != undefined && this.forceResource.includes(name)
@@ -126,24 +110,7 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
             return false
         },
 
-        linter: {
-            validEntryAttributes: new Map([
-                [IDLKind.Import, ["Deprecated", "Documentation"]],
-                [IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
-                [IDLKind.Const, ["DefaultExport", "Deprecated", "Documentation"]],
-                [IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName", "Documentation"]],
-                [IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation", "Documentation", "TypeParameters", "ComponentInterface"]],
-                [IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic", "Documentation", "TypeParameters"]],
-                [IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected", "Documentation", "CallSignature", "TypeParameters"]],
-                [IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated", "Documentation", "CallSignature"]],
-                [IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import", "Documentation", "TypeParameters"]],
-                [IDLKind.Enum, ["DefaultExport", "Deprecated", "Documentation"]],
-                [IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
-                [IDLKind.Constructor, ["Deprecated", "Documentation"]]
-            ]),
-            checkEnumsConsistency: true,
-            checkReferencesResolved: false,
-        },
+        linter: DefaultIDLLinterOptions
     }
     return config
 }

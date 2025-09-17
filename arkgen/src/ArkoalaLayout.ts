@@ -14,7 +14,7 @@
  */
 
 import * as path from 'node:path'
-import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 

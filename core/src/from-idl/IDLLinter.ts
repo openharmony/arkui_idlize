@@ -27,6 +27,25 @@ export interface IDLLinterOptions {
     checkReferencesResolved: boolean,
 }
 
+export const DefaultIDLLinterOptions: IDLLinterOptions = {
+    validEntryAttributes: new Map([
+        [idl.IDLKind.Import, ["Deprecated", "Documentation"]],
+        [idl.IDLKind.Namespace, ["DefaultExport", "Deprecated", "Documentation", "VerbatimDts"]],
+        [idl.IDLKind.Const, ["DefaultExport", "Deprecated", "Documentation"]],
+        [idl.IDLKind.Property, ["DefaultExport", "Optional", "Accessor", "Deprecated", "CommonMethod", "Protected", "DtsName", "Documentation"]],
+        [idl.IDLKind.Interface, ["DefaultExport", "Predefined", "TSType", "CPPType", "Entity", "Interfaces", "ParentTypeArguments", "Component", "Synthetic", "Deprecated", "HandWrittenImplementation", "Documentation", "TypeParameters", "ComponentInterface"]],
+        [idl.IDLKind.Callback, ["DefaultExport", "Deprecated", "Async", "Synthetic", "Documentation", "TypeParameters"]],
+        [idl.IDLKind.Method, ["DefaultExport", "Optional", "DtsTag", "DtsName", "Throws", "Deprecated", "IndexSignature", "Protected", "Documentation", "CallSignature", "TypeParameters"]],
+        [idl.IDLKind.Callable, ["DefaultExport", "CallSignature", "Deprecated", "Documentation", "CallSignature"]],
+        [idl.IDLKind.Typedef, ["DefaultExport", "Deprecated", "Import", "Documentation", "TypeParameters"]],
+        [idl.IDLKind.Enum, ["DefaultExport", "Deprecated", "Documentation"]],
+        [idl.IDLKind.EnumMember, ["OriginalEnumMemberName", "Deprecated", "Documentation"]],
+        [idl.IDLKind.Constructor, ["Deprecated", "Documentation"]]
+    ]),
+    checkEnumsConsistency: true,
+    checkReferencesResolved: false,
+}
+
 interface IDLLinterContextRecord {
     typeParameters: Set<string>
 }

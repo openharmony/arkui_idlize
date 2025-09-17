@@ -14,54 +14,31 @@
  */
 
 import * as path from "node:path"
-import { ConfigTypeInfer, D, generatorConfiguration } from "@idlizer/core";
-import { PeerGeneratorConfigurationExtension, PeerGeneratorConfigurationSchema, expandPeerGeneratorConfiguration, parseConfigFiles } from "@idlizer/libohos";
-import  { expandIDLVisitorConfig, IDLVisitorConfiguration, IDLVisitorConfigurationSchema } from "./IDLVisitorConfig"
+import { ConfigTypeInfer, CoreConfigurationSchema, D } from "@idlizer/core";
+import { parseConfigFiles } from "@idlizer/libohos";
+import  { IDLVisitorConfigurationSchema } from "./IDLVisitorConfig"
 
 export const DTSGEN_ROOT = path.join(path.dirname(require.resolve('@idlizer/dtsgen')), '..')
 
-export const DtsgenConfigurationSchema = D.combine(
-    PeerGeneratorConfigurationSchema,
-    D.object({
-        packageTransformation: D.maybe(D.map(D.string(), D.string())),
-        IDLVisitor: IDLVisitorConfigurationSchema,
-    })
+export const DtsgenConfigurationSchema = D.combine(CoreConfigurationSchema, D.object({
+    packageTransformation: D.maybe(D.map(D.string(), D.string())),
+    IDLVisitor: IDLVisitorConfigurationSchema,
+    boundProperties: D.map(D.string(), D.array(D.string())),
+    components: D.object({
+        ignoreComponents: D.array(D.string()),
+        ignoreTypeParameters: D.array(D.string()),
+    }),
+    constants: D.default(
+        D.map(D.string(), D.string()),
+        new Map()
+    ),
+})
 )
 
-export interface DtsgenConfigurationExtension {
-    IDLVisitor: IDLVisitorConfiguration,
-}
-
-export type DtsgenConfigurationType = ConfigTypeInfer<typeof DtsgenConfigurationSchema>
-export type DtsgenConfigurationWithExtension = DtsgenConfigurationType & DtsgenConfigurationExtension
-export type DtsgenConfiguration = DtsgenConfigurationWithExtension & PeerGeneratorConfigurationExtension
-
-
-export function dtsgenConfiguration(): DtsgenConfiguration {
-    return generatorConfiguration<DtsgenConfiguration>()
-}
-
-export function expandDtsgenConfiguration(data: DtsgenConfigurationType): DtsgenConfigurationWithExtension {
-    const config = {
-        ...data,
-        IDLVisitor: expandIDLVisitorConfig(data.IDLVisitor),
-    }
-    config.IDLVisitor.parsePredefinedIDLFiles(path.join(__dirname, '..'))
-    return config
-}
-
+export type DtsgenConfiguration = ConfigTypeInfer<typeof DtsgenConfigurationSchema>
 
 export function loadDtsgenConfiguration(configurationFiles: string[]): DtsgenConfiguration {
-    return expandPeerGeneratorConfiguration(
-        expandDtsgenConfiguration(
-            parseConfigFiles<DtsgenConfigurationType>(
-                DtsgenConfigurationSchema, configurationFiles)
-        )
-    ) as DtsgenConfiguration
-}
-
-export function IDLVisitorConfiguration(): IDLVisitorConfiguration {
-    return dtsgenConfiguration().IDLVisitor
+    return parseConfigFiles<DtsgenConfiguration>(DtsgenConfigurationSchema, configurationFiles)
 }
 
 export function dtsgenDefaultConfigurationPaths(): string[] {

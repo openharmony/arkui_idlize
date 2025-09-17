@@ -139,15 +139,6 @@
                 "dumpSerialized": {
                     "type": "boolean"
                 },
-                "boundProperties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
-                },
                 "currentModulePackagesPaths": {
                     "type": "object",
                     "additionalProperties": {
@@ -173,12 +164,6 @@
                             }
                         },
                         "ignorePeerMethod": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "ignoreTypeParameters": {
                             "type": "array",
                             "items": {
                                 "type": "string"
@@ -230,7 +215,6 @@
                     "required": [
                         "ignoreComponents",
                         "ignorePeerMethod",
-                        "ignoreTypeParameters",
                         "invalidAttributes",
                         "customNodeTypes",
                         "ignoreEntry",
@@ -389,7 +373,6 @@
                 "ApiKind",
                 "ApiVersion",
                 "dumpSerialized",
-                "boundProperties",
                 "cppPrefix",
                 "components",
                 "dummy",

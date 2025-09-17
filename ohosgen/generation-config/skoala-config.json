@@ -13,7 +13,6 @@
     "dummy": {
         "ignoreMethods": {}
     },
-    "boundProperties": {},
     "standaloneComponents": [],
     "parameterized": [],
     "ignoreMaterialized": [

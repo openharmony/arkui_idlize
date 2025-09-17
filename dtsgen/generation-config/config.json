@@ -1,15 +1,10 @@
 {
-    "ApiVersion": 0,
     "ApiKind": 0,
     "TypePrefix": "",
     "LibraryPrefix": "",
     "OptionalPrefix": "Opt_",
-    "GenerateUnused": false,
-    "dumpSerialized": false,
     "ignoreMaterialized": [],
-    "forceMaterialized": [
-        "application.BaseContext.BaseContext"
-    ],
+    "forceMaterialized": [],
     "forceCallback": {
         "EditMenuOptions": [],
         "XComponentController": [
@@ -17,42 +12,126 @@
             "onSurfaceChanged",
             "onSurfaceDestroyed"
         ],
+        "DrawModifier": [
+            "drawBehind",
+            "drawContent",
+            "drawFront"
+        ],
         "CustomSpan": [
             "onMeasure",
             "onDraw"
         ]
     },
-    "boundProperties": {},
-    "rootComponents": [],
-    "standaloneComponents": [],
+    "boundProperties": {
+        "Checkbox": [
+            "select"
+        ],
+        "CheckboxGroup": [
+            "selectAll"
+        ],
+        "DatePicker": [
+            "selected"
+        ],
+        "TimePicker": [
+            "selected"
+        ],
+        "MenuItem": [
+            "selected"
+        ],
+        "Panel": [
+            "mode"
+        ],
+        "Radio": [
+            "checked"
+        ],
+        "Rating": [
+            "rating"
+        ],
+        "Search": [
+            "value"
+        ],
+        "SideBarContainer": [
+            "showSideBar"
+        ],
+        "Slider": [
+            "value"
+        ],
+        "Stepper": [
+            "index"
+        ],
+        "Swiper": [
+            "index"
+        ],
+        "Tabs": [
+            "index"
+        ],
+        "TextArea": [
+            "text"
+        ],
+        "TextInput": [
+            "text"
+        ],
+        "TextPicker": [
+            "selected",
+            "value"
+        ],
+        "Toggle": [
+            "isOn"
+        ],
+        "AlphabetIndexer": [
+            "selected"
+        ],
+        "Select": [
+            "selected",
+            "value"
+        ],
+        "BindSheet": [
+            "isShow"
+        ],
+        "BindContentCover": [
+            "isShow"
+        ],
+        "Refresh": [
+            "refreshing"
+        ],
+        "GridItem": [
+            "selected"
+        ],
+        "ListItem": [
+            "selected"
+        ]
+    },
+    "rootComponents": [
+        "Root",
+        "ComponentRoot",
+        "RoutedPage",
+        "CustomBuilderRoot",
+        "ConditionScope",
+        "CommonMethod",
+        "SecurityComponentMethod",
+        "CalendarAttribute",
+        "ContainerSpanAttribute",
+        "CustomLayoutRoot"
+    ],
+    "standaloneComponents": [
+        "TextPickerDialog",
+        "TimePickerDialog",
+        "AlertDialog",
+        "CanvasPattern",
+        "WithThemeAttribute",
+        "ToolBarItemAttribute"
+    ],
     "parameterized": [],
     "builderClasses": [],
     "components": {
-        "custom": [],
-        "customNodeTypes": [],
-        "handWritten": [],
-        "ignoreEntry": [],
-        "ignoreEntryJava": [],
-        "ignoreComponents": [],
-        "ignorePeerMethod": [],
-        "ignoreMethodArkts": [],
-        "invalidAttributes": [],
-        "replaceThrowErrorReturn": []
+        "ignoreComponents": [
+            "Particle",
+            "ForEach",
+            "LazyForEach",
+            "ContentSlot"
+        ]
     },
     "hooks": {},
-    "materialized": {
-        "ignoreReturnTypes": []
-    },
-    "cppPrefix": "GENERATED_",
-    "serializer": {
-        "ignore": []
-    },
-    "dummy": {
-        "ignoreMethods": {}
-    },
-    "linter": {
-        "checkReferencesResolved": false
-    },
     "moduleName": "arkui",
     "modules": {
         "arkui": {

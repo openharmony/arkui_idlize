@@ -18,6 +18,7 @@ import { createCommand } from "commander"
 import * as fs from "fs"
 import * as path from "path"
 import {
+    DefaultIDLLinterOptions,
     fromIDL,
     idlToDtsString,
     findVersion,
@@ -34,10 +35,10 @@ import {
     toIDLString,
     verifyIDLString
 } from "@idlizer/core/idl"
-import { formatInputPaths, validatePaths, peerGeneratorConfiguration, NativeModule } from "@idlizer/libohos"
+import { formatInputPaths, validatePaths, NativeModule } from "@idlizer/libohos"
 import { IDLVisitor } from "./IDLVisitor"
 import { runPreprocessor } from "./preprocessor"
-import { dtsgenConfiguration, loadDtsgenConfiguration, dtsgenDefaultConfigurationPaths } from "./config"
+import { DtsgenConfiguration, dtsgenDefaultConfigurationPaths, loadDtsgenConfiguration } from "./config"
 import { generate } from "./idlize"
 import { defaultCompilerOptions } from "./util"
 
@@ -77,10 +78,12 @@ function main() {
 
     Language.ARKTS.extension = options.arktsExtension as string
 
-    setDefaultConfiguration(loadDtsgenConfiguration([
+    const dtsConf: DtsgenConfiguration = loadDtsgenConfiguration([
         ...(options.ignoreDefaultConfig ? [] : dtsgenDefaultConfigurationPaths()),
         ...(options.optionsFile ?? []),
-    ]))
+    ])
+
+    setDefaultConfiguration(dtsConf)
 
     if (process.env.npm_package_version) {
         console.log(`IDLize version ${findVersion()}`)
@@ -111,7 +114,7 @@ function main() {
                 verifyIDLLinter(file, resolver, {
                     checkEnumsConsistency: true,
                     checkReferencesResolved: true,
-                    validEntryAttributes: peerGeneratorConfiguration().linter.validEntryAttributes
+                    validEntryAttributes: DefaultIDLLinterOptions.validEntryAttributes
                 })
             } catch (error) {
                 if (error instanceof IDLLinterError) {
@@ -148,7 +151,8 @@ function main() {
             dtsAuxInputFiles,
             options.outputDir ?? "./idl",
             path.resolve(__dirname, "..", "stdlib.d.ts"),
-            (sourceFile, program, compilerHost) => new IDLVisitor(baseDirs, sourceFile, program, compilerHost, options, undefined, dtsgenConfiguration().packageTransformation).goNewMode(),
+            (sourceFile, program, compilerHost) => new IDLVisitor(
+                baseDirs, sourceFile, program, compilerHost, options, dtsConf).goNewMode(),
             {
                 compilerOptions: defaultCompilerOptions,
                 onSingleFile: (file: IDLFile, outputDir, sourceFile, isAux) => {
@@ -197,7 +201,7 @@ function main() {
                 onEnd(outDir: string) {
                     if (options.verifyIdl) {
                         idlLibrary.files.forEach(file => {
-                            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+                            verifyIDLLinter(file, idlLibrary, DefaultIDLLinterOptions)
                         })
                     }
                 },
