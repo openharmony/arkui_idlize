@@ -10,3 +10,7 @@ declare class SymbolGlyphAttribute extends CommonMethod<SymbolGlyphAttribute> {
 }
 
 declare const SymbolGlyph: SymbolGlyphInterface;
+
+declare class SymbolGlyphModifier {
+    constructor(src?: Resource);
+}

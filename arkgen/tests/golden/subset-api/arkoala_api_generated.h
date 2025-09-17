@@ -623,8 +623,6 @@ typedef struct Opt_UnionInterfaceDTS Opt_UnionInterfaceDTS;
 typedef struct UrlStylePeer UrlStylePeer;
 typedef struct UrlStylePeer* Ark_UrlStyle;
 typedef struct Opt_UrlStyle Opt_UrlStyle;
-typedef struct Ark_UserDataSpan Ark_UserDataSpan;
-typedef struct Opt_UserDataSpan Opt_UserDataSpan;
 typedef struct Ark_Vector1 Ark_Vector1;
 typedef struct Opt_Vector1 Opt_Vector1;
 typedef struct Ark_Vector2 Ark_Vector2;
@@ -1947,6 +1945,8 @@ typedef Ark_Object Ark_ComponentContent;
 typedef Opt_Object Opt_ComponentContent;
 typedef Ark_Object Ark_ContentModifier;
 typedef Opt_Object Opt_ContentModifier;
+typedef Ark_Object Ark_UserDataSpan;
+typedef Opt_Object Opt_UserDataSpan;
 typedef enum Ark_AccessibilityHoverType {
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_ENTER = 0,
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_MOVE = 1,
@@ -4976,14 +4976,6 @@ typedef struct Opt_UrlStyle {
     Ark_Tag tag;
     Ark_UrlStyle value;
 } Opt_UrlStyle;
-typedef struct Ark_UserDataSpan {
-    /* kind: Interface */
-    void *handle;
-} Ark_UserDataSpan;
-typedef struct Opt_UserDataSpan {
-    Ark_Tag tag;
-    Ark_UserDataSpan value;
-} Opt_UserDataSpan;
 typedef struct Ark_Vector1 {
     /* kind: Interface */
     Ark_Number x0;
@@ -13691,9 +13683,6 @@ typedef struct GENERATED_ArkUIContextAccessor {
                         const Callback_Opt_String_Opt_Array_String_Void* outputArgumentForReturningPromise);
     Ark_Context (*createDisplayContext)(Ark_Context peer,
                                         const Ark_Number* displayId);
-    Ark_Boolean (*getStageMode)(Ark_Context peer);
-    void (*setStageMode)(Ark_Context peer,
-                         Ark_Boolean stageMode);
     Ark_String (*getCacheDir)(Ark_Context peer);
     void (*setCacheDir)(Ark_Context peer,
                         const Ark_String* cacheDir);

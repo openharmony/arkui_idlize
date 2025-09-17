@@ -196,7 +196,7 @@ export class IdlPeerProcessor {
             superType = getSuperType(decl, this.library)
             if (isRefCountedClass || isFinalizableClass) {
                 superType = undefined
-            } else if (!resolvedDecl || !idl.isInterface(resolvedDecl) || !isMaterialized(resolvedDecl, this.library)) {
+            } else if (idl.isInterfaceSubkind(resolvedDecl) && !isMaterialized(resolvedDecl, this.library)) {
                 const [superProperties, superMethods] = getUniquePropertiesFromSuperTypes(decl, this.library)
                 propertiesFromInterface.push(...superProperties)
                 methodsFromInterface.push(...superMethods)

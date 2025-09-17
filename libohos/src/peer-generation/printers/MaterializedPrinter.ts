@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, PACKAGE_IDLIZE_INTERNAL } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, PACKAGE_IDLIZE_INTERNAL, isMaterialized } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -129,7 +129,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const types = [...Array(this.maxCtorParams).fill(idl.IDLBooleanType), idl.IDLPointerType]
         const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
-            if (!hasSuperClass) {
+            if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {
                 this.assignFinalizable(className, peerPtr, clazz.isRefCounted, writer)
             }
             this.printReadonlyFieldsInitialization(clazz)
@@ -163,7 +163,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const dimensions = [...superDecl.constructors.map(it => it.parameters.length)]
         const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
-        const args = [
+        const args = !isSuperClassMaterialized(this.library, clazz.superClass) ? [] :
+            [
             ...Array(argsCount)
                 .fill(allowsOverloads(this.library.language) ? "false" : "undefined")
                 .map(it => writer.makeString(it)),
@@ -483,7 +484,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const implementationClassName = this.getImplementationName(clazz)
 
         printer.writeClass(implementationClassName, writer => {
-            if (!superClassName && !clazz.isStaticMaterialized) {
+            if (!isSuperClassMaterialized(this.library, this.clazz.superClass) && !clazz.isStaticMaterialized) {
                 const peerType = clazz.isRefCounted ? RefCountedType : FinalizableType
                 writer.writeFieldDeclaration("peer", idl.maybeOptional(peerType, true), undefined, true, writer.makeNull())
                 // write getPeer() method
@@ -828,6 +829,12 @@ class MaterializedVisitor implements PrinterClass {
 export function createMaterializedPrinter(dumpSerialized: boolean) {
     return (peerLibrary: PeerLibrary) => LanguageWriter.relativeReferences(true, () =>
         new MaterializedVisitor(peerLibrary, dumpSerialized).print())
+}
+
+function isSuperClassMaterialized(library: PeerLibrary, superClass?: idl.IDLReferenceType): boolean {
+    if (!superClass) return false
+    const superClassDecl = library.resolveTypeReference(superClass)
+    return superClassDecl ? idl.isInterface(superClassDecl) && isMaterialized(superClassDecl, library) : false
 }
 
 function getSuperName(clazz: MaterializedClass, resolver:ReferenceResolver): string | undefined {
