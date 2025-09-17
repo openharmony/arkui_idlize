@@ -446,7 +446,13 @@
     },
     "forceResource": [
         "ContentModifier",
-        "ComponentContent"
+        "ComponentContent",
+        "ComponentContentBase",
+        "ImageModifier",
+        "ExtendableComponent",
+        "UserDataSpan",
+        "arkui.component.pluginComponent.RecordData",
+        "arkui.component.uiExtensionComponent.RecordData"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -941,6 +947,11 @@
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory"
     ],
+    "constants": {
+        "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
+        "TouchResult.strategy": "TouchTestStrategy.DEFAULT",
+        "TabBarSymbol.normal": "new SymbolGlyphModifier()"
+    },
     "moduleName": "arkui",
     "modules": {
         "arkui": {

@@ -139,14 +139,15 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         //TODO: CommonMethod has a method onClick and a property onClick
         const seenFields = new Set<string>()
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
-        const kindPrefix = isBuilderClass(idlInterface) ? "class " : "interface "
+        const kindPrefix = idl.isClassSubkind(idlInterface) || isBuilderClass(idlInterface) ? "class " : "interface "
+        const isDefault = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.DefaultExport)
         return ([`export ${declaredPrefix}${kindPrefix}${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
                 .map(it => this.printIfNotSeen(it, it => this.printConstant(it), seenFields)).flat())
             .concat(idlInterface.properties
                 // TODO ArkTS does not support static fields in interfaces
                 .filter(it => !it.isStatic)
-                .map(it => this.printIfNotSeen(it, it => this.printProperty(it), seenFields)).flat())
+                .map(it => this.printIfNotSeen(it, it => this.printProperty(idlInterface, it), seenFields)).flat())
             // TODO enable when materialized will print methods from parent interface, now do not have time to implement this
             // .concat(idlInterface.methods
             //     .map(it => this.printIfNotSeen(it, it => this.printMethod(it), seenFields)).flat())
@@ -168,7 +169,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             .concat(idlInterface.constants
                 .map(it => this.printConstant(it)).flat())
             .concat(idlInterface.properties
-                .map(it => this.printProperty(it, true)).flat())
+                .map(it => this.printProperty(idlInterface, it, true)).flat())
             .concat(this.collapseAmbiguousMethods(idlInterface.methods)
                 .filter(it => !idl.isInterfaceSubkind(idlInterface) || !it.isStatic)
                 .map(it => this.printMethod(it)).flat())
@@ -350,10 +351,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             const clause = nameConvertor.convert(it)
 
             const shouldPrintAsImplements = superDecl
-                && isMaterialized(idlInterface, this.peerLibrary)
                 && idl.isClassSubkind(idlInterface)
                 && idl.isInterface(superDecl)
-                && (idl.isInterfaceSubkind(superDecl) || idl.isClassSubkind(superDecl) && !isMaterialized(superDecl, this.peerLibrary))
+                && idl.isInterfaceSubkind(superDecl)
 
             if (shouldPrintAsImplements) {
                 implementsItems.push(clause)
@@ -375,7 +375,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         ]
     }
 
-    protected printProperty(prop: idl.IDLProperty, allowAccessor = false): stringOrNone[] {
+    protected printProperty(decl: idl.IDLInterface, prop: idl.IDLProperty, allowAccessor = false): stringOrNone[] {
         const staticMod = prop.isStatic ? "static " : ""
         const readonlyMod = prop.isReadonly ? "readonly " : ""
         const extraMethod = idl.getExtAttribute(prop, idl.IDLExtendedAttributes.ExtraMethod)
@@ -388,7 +388,9 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         } else if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Setter) {
             result.push(indentedBy(`set ${prop.name}(val:${this.convertType(prop.type)});`, 1))
         } else {
-            result.push(indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)};`, 1))
+            const defaultValue = getDefaultValue(decl, prop)
+            const initExpr = defaultValue ? ` = ${defaultValue}` : ""
+            result.push(indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)}${initExpr};`, 1))
         }
         if (extraMethod && extraMethod.length > 0) {
             if (idl.isReferenceType(prop.type)) {
@@ -1955,4 +1957,20 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         }
     }
     return imports
+}
+
+// TBD: Update the code to use initiliazers from handwritten
+function getDefaultValue(decl: idl.IDLInterface, prop: idl.IDLProperty): string | undefined {
+    if (!idl.isClassSubkind(decl)) return undefined
+    if (prop.isOptional || idl.isOptionalType(prop.type)) return undefined
+    const defaultValue = peerGeneratorConfiguration().constants.get(`${decl.name}.${prop.name}`)
+    if (defaultValue) return defaultValue
+    if (idl.isPrimitiveType(prop.type)) {
+        switch (prop.type) {
+            case idl.IDLBooleanType: return 'false'
+            case idl.IDLNumberType: return '0'
+            case idl.IDLStringType: return '""'
+        }
+    }
+    return undefined
 }

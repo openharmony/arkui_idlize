@@ -672,8 +672,6 @@ typedef struct Opt_UnionInterfaceDTS Opt_UnionInterfaceDTS;
 typedef struct UrlStylePeer UrlStylePeer;
 typedef struct UrlStylePeer* Ark_UrlStyle;
 typedef struct Opt_UrlStyle Opt_UrlStyle;
-typedef struct Ark_UserDataSpan Ark_UserDataSpan;
-typedef struct Opt_UserDataSpan Opt_UserDataSpan;
 typedef struct Ark_Vector1 Ark_Vector1;
 typedef struct Opt_Vector1 Opt_Vector1;
 typedef struct Ark_Vector2 Ark_Vector2;
@@ -1970,6 +1968,8 @@ typedef struct Ark_Union_RichEditorTextSpanResult_RichEditorImageSpanResult Ark_
 typedef struct Opt_Union_RichEditorTextSpanResult_RichEditorImageSpanResult Opt_Union_RichEditorTextSpanResult_RichEditorImageSpanResult;
 typedef Ark_Object Ark_ContentModifier;
 typedef Opt_Object Opt_ContentModifier;
+typedef Ark_Object Ark_UserDataSpan;
+typedef Opt_Object Opt_UserDataSpan;
 typedef enum Ark_AccessibilityHoverType {
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_ENTER = 0,
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_MOVE = 1,
@@ -5221,14 +5221,6 @@ typedef struct Opt_UrlStyle {
     Ark_Tag tag;
     Ark_UrlStyle value;
 } Opt_UrlStyle;
-typedef struct Ark_UserDataSpan {
-    /* kind: Interface */
-    void *handle;
-} Ark_UserDataSpan;
-typedef struct Opt_UserDataSpan {
-    Ark_Tag tag;
-    Ark_UserDataSpan value;
-} Opt_UserDataSpan;
 typedef struct Ark_Vector1 {
     /* kind: Interface */
     Ark_Number x0;
