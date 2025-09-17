@@ -21,6 +21,8 @@ interface DoubleAnimationParam {
     attribute Callback_Extender_OnFinish onFinish;
 };
 
+[Synthetic]
+callback Callback_Void = void ();
 [Entity=Class]
 interface AnimationExtender {
   static void SetClipRect(pointer node, f32 x, f32 y, f32 width, f32 height);
@@ -28,4 +30,6 @@ interface AnimationExtender {
   static void CloseImplicitAnimation();
   static void StartDoubleAnimation(pointer node, DoubleAnimationParam param);
   static void AnimationTranslate(pointer node, TranslateOptions options);
+  static void AnimateToImmediatelyImpl(AnimateParam param, Callback_Void event);
+  static void KeyframeAnimationImpl(KeyframeAnimateParam param, sequence<KeyframeState> keyfames);
 };
