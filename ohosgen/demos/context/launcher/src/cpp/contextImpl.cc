@@ -128,8 +128,6 @@ void ApplicationContext_killAllProcesses0Impl(OH_APPLICATION_VMContext vmContext
 }
 void ApplicationContext_killAllProcesses1Impl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, OH_Boolean clearPageStack, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
 }
-void ApplicationContext_killAllProcesses2Impl(OH_NativePointer thisPtr, const APPLICATION_AsyncCallback_Void* callback_) {
-}
 void ApplicationContext_setLanguageImpl(OH_NativePointer thisPtr, const OH_String* language) {
 }
 void ApplicationContext_clearUpApplicationDataImpl(OH_APPLICATION_VMContext vmContext, OH_APPLICATION_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const APPLICATION_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {

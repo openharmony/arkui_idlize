@@ -32,7 +32,10 @@
  * @atomicservice
  * @since 11
  */
-declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
+// declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor').DrawableDescriptor;
+interface DrawableDescriptor {
+  value: string
+}
 
 /**
  * Import the DrawingColorFilter type object for image color filter setting.
@@ -44,6 +47,9 @@ declare type DrawableDescriptor = import ('../api/@ohos.arkui.drawableDescriptor
  * @since 12
  */
 // declare type DrawingColorFilter = import('../api/@ohos.graphics.drawing').default.ColorFilter;
+interface DrawingColorFilter {
+  value: string
+}
 
 /**
  * Enumerates all the levels available for the image resolution quality.

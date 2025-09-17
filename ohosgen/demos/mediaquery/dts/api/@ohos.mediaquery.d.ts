@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { Callback } from './@ohos.base';
+declare type Callback<T> = (data: T) => void
 
 declare namespace mediaquery {
 

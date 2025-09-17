@@ -275,12 +275,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             type.typeArguments!.map((it, index) => this.serializeType(it, nameSuggestion?.extend(`p${index}`))))
     }
 
-    private makeCallbackType(name: string, type: ts.TypeReferenceNode, _?: NameSuggestion): idl.IDLReferenceType {
-        const funcType = this.serializeCallback(name, type, NameSuggestion.make("Callback"))
-        this.addSyntheticType(funcType)
-        return idl.createReferenceType(funcType.name)
-    }
-
     private makeOptionalType(type: ts.TypeReferenceNode, nameSuggestion?: NameSuggestion): idl.IDLType {
         const types = [
             type.typeArguments![0],
@@ -320,8 +314,6 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             ["Map", (type, name) => this.makeContainerType("record", type, name)],
             ["Promise", (type, name) => this.makeContainerType("Promise", type, name)],
             ["Record", (type, name) => this.makeContainerType("record", type, name)],
-            ["Callback", (type, name) => this.makeCallbackType("Callback", type, name)],
-            ["AsyncCallback", (type, name) => this.makeCallbackType("AsyncCallback", type, name)],
             ["Optional", (type, name) => this.makeOptionalType(type, name)],
             ["Function", () => idl.IDLFunctionType],
             // TODO: rethink that
@@ -1180,7 +1172,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             } as idl.IDLParameter]
         }
         let extendedAttributes = isAsync ? [{ name: idl.IDLExtendedAttributes.Async }] : []
-        let name = generateSyntheticFunctionName(parameters, returnType, isAsync)
+        let name = generateSyntheticFunctionName(parameters, returnType, { isAsync })
         return idl.createCallback(name, parameters, returnType, { fileName, extendedAttributes })
     }
 
@@ -1477,7 +1469,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         if (this.isMethodUsedAsCallback(property)) {
             const parameters = property.parameters.map(it => this.serializeParameter(it))
             const retType = this.serializeType(property.type)
-            let name = generateSyntheticFunctionName(parameters, retType, retType !== idl.IDLVoidType)
+            let name = generateSyntheticFunctionName(parameters, retType, { isAsync: retType !== idl.IDLVoidType })
             const fileName = property.getSourceFile().fileName
             const extendedAttributes: idl.IDLExtendedAttribute[] = []
             const funcType = idl.createCallback(name, parameters, retType, { fileName, extendedAttributes })

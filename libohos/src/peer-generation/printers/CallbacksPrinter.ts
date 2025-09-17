@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
+import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface, CallbackConvertor } from  '@idlizer/core'
@@ -25,31 +25,6 @@ import { CppSourceFile, SourceFile } from "./SourceFile";
 import { collectDeclItself, collectDeclDependencies } from "../ImportsCollectorUtils";
 import { collectDeclarationTargets } from '../DeclarationTargetCollector';
 import { PrinterFunction, PrinterResult } from '../LayoutManager';
-
-function collectEntryCallbacks(library: LibraryInterface, entry: idl.IDLEntry): idl.IDLCallback[] {
-    let res: idl.IDLCallback[] = []
-    if (idl.isCallback(entry)) {
-        res.push(entry)
-    }
-    // TODO support methods in interfaces (should be processed as properties with function type)
-    // if ([idl.IDLKind.Interface, idl.IDLKind.AnonymousInterface].includes(entry.kind!)) {
-    //     const decl = entry as idl.IDLInterface
-    //     decl.methods.forEach(method => {
-    //         const syntheticName = generateSyntheticFunctionName(
-    //             (type) => cleanPrefix(library.getTypeName(type), PrimitiveType.Prefix),
-    //             method.parameters, method.returnType)
-    //         const selectedName = decl.kind === idl.IDLKind.AnonymousInterface
-    //             ? syntheticName
-    //             : selectName(NameSuggestion.make(`Type_${decl.name}_${method.name}`), syntheticName)
-    //         res.push(idl.createCallback(
-    //             selectedName,
-    //             method.parameters,
-    //             method.returnType,
-    //         ))
-    //     })
-    // }
-    return res
-}
 
 export function collectUniqueCallbacks(library: LibraryInterface, options?: { transformCallbacks?: boolean }) {
     const uniqueCallbacks: idl.IDLCallback[] = []
@@ -191,6 +166,17 @@ class DeserializeCallbacksVisitor {
         }
     }
 
+    private generateMeaninglessCallArguments(callback: idl.IDLCallback): string[] {
+        if (this.library.language === Language.ARKTS) {
+            const originalReference = maybeRestoreGenerics(callback, this.library)
+            if (originalReference) {
+                const original = this.library.resolveTypeReference(originalReference) as idl.IDLCallback
+                return original.parameters.slice(callback.parameters.length).map(it => 'undefined')
+            }
+        }
+        return []
+    }
+
     private writeCallbackDeserializeAndCall(callback: idl.IDLCallback): void {
 
         const vmContext = 'vmContext'
@@ -262,7 +248,12 @@ class DeserializeCallbacksVisitor {
                     cppArgsNames.push(`continuationResult`)
                 writer.writeExpressionStatement(writer.makeFunctionCall(callName, cppArgsNames.map(it => writer.makeString(it))))
             } else {
-                let callExpression = writer.makeFunctionCall(callName, argsNames.map(it => writer.makeString(writer.escapeKeyword(it))))
+                let callExpression = writer.makeFunctionCall(
+                    callName,
+                    argsNames
+                        .concat(this.generateMeaninglessCallArguments(callback))
+                        .map(it => writer.makeString(writer.escapeKeyword(it))),
+                )
                 if (hasContinuation) {
                     // TODO: Uses temporary variable `callResultRef` to fix ArkTS error: 'TypeError: Member type must be the same for all union objects.'
                     // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21332

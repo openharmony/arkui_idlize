@@ -29,6 +29,8 @@ import {
     inplaceGenerics,
     inplaceNullsAsUndefined,
     inplaceTransformOnSerializeFromConfig,
+    StructureNameConvertor,
+    convertNode,
 } from "@idlizer/core"
 import {
     linearizeNamespaceMembers,
@@ -129,7 +131,7 @@ if (options.idl2peer) {
     initLibraryName(idlLibrary)
     idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
     idlLibrary.files.forEach(inplaceNullsAsUndefined)
-    idlLibrary.files.forEach(file => inplaceGenerics(file, idlLibrary))
+    inplaceOhosgenGenerics(idlLibrary)
     fillSyntheticDeclarations(idlLibrary)
     new IdlPeerProcessor(idlLibrary).process()
     generateTarget(idlLibrary, outDir, options.useOst)
@@ -199,4 +201,11 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, useOst: boolean
 function skoalaPredefinedFiles(): string[] {
     const PREDEFINED_PATH = path.resolve('tests', 'skoala', 'predefined')
     return scanInputDirs([PREDEFINED_PATH])
+}
+
+function inplaceOhosgenGenerics(library: PeerLibrary) {
+    const nameConvertor = new StructureNameConvertor(library)
+    library.files.forEach(file => inplaceGenerics(file, library, {
+        nameConvertor: (node) => convertNode(nameConvertor, node).text,
+    }))
 }

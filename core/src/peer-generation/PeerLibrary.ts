@@ -27,7 +27,7 @@ import {
     ObjectConvertor,
     TransformOnSerializeConvertor,
 } from "../LanguageWriters/ArgConvertors"
-import { CppNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
+import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
 import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
@@ -174,6 +174,7 @@ export class PeerLibrary implements LibraryInterface {
         const syntheticName = generateSyntheticFunctionName(
             continuationParameters,
             idl.IDLVoidType,
+            { nameConvertor: new StructureNameConvertor(this) }
         )
         return idl.createReferenceType(syntheticName)
     }

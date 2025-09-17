@@ -102,25 +102,42 @@ export class Parser {
         this.lines = lines.map((s) => s.replace(/(\n|\r\n)$/, ""))
     }
 
-    parseIDL(): idl.IDLFile {
-        trac("parseIDL")
+    parseIDL<T>(parser: () => T): T {
         const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
         try {
             this._lexerNext()
             this._prevToken = this._curToken
-            let file = this.parseFile()
-            file.text = this.content
+            let result = parser()
             if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
                 // Empty for now, messages will be added in following `catch`.
                 throw new FatalParserException()
             }
-            return file
+            return result
         } catch (e) {
             if (!(e instanceof DiagnosticException) && !(e instanceof FatalParserException)) {
                 InternalFatal.reportDiagnosticMessage([{documentPath: this.fileName}], (e as any).message ?? "")
             }
             throw new FatalParserException(DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount))
         }
+    }
+
+    parseIDLFile(): idl.IDLFile {
+        trac("parseIDLFile")
+        return this.parseIDL(() => {
+            const file = this.parseFile()
+            file.text = this.content
+            return file
+        })
+    }
+
+    parseIDLType(): idl.IDLType {
+        trac("parseIDLType")
+        return this.parseIDL(() => this.parseType())
+    }
+
+    parseIDLTypeList(): idl.IDLType[] {
+        trac("parseIDLTypeList")
+        return this.parseIDL(() => this.parseTypeList())
     }
 
     _curOffset: number = 0

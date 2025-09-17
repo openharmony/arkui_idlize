@@ -1539,7 +1539,7 @@ export function printType(type: IDLType | IDLInterface | undefined, options?:Pri
         if (hasExtAttribute(type, IDLExtendedAttributes.UnionOnlyNull))
             return `(${printType(type.type)} or ${IDLNullTypeName})`
         else if (hasExtAttribute(type, IDLExtendedAttributes.UnionWithNull))
-            return `(${printType(type.type)} or ${IDLUndefinedType.name} or${IDLNullTypeName})`
+            return `(${printType(type.type)} or ${IDLUndefinedType.name} or ${IDLNullTypeName})`
         else
             return `(${printType(type.type)} or ${IDLUndefinedType.name})`
     }
@@ -1888,6 +1888,10 @@ export function removeExtAttribute(node: IDLNode, name: IDLExtendedAttributes): 
     if (node.extendedAttributes) {
         node.extendedAttributes = node.extendedAttributes.filter(it => it.name !== name)
     }
+}
+
+export function getExtAttributeTypesValue(node: IDLNode, name: IDLExtendedAttributes): IDLType[] | undefined {
+    return node.extendedAttributes?.find(it => it.name === name)?.typesValue
 }
 
 export function updateExtAttribute(node: IDLNode, name: IDLExtendedAttributes, value: string | undefined) {

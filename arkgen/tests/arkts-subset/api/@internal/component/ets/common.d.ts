@@ -14915,7 +14915,10 @@ declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
  * @atomicservice
  * @since 12
  */
-declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
+// declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
+interface SymbolGlyphModifier {
+  value: string
+}
 
 /**
  * Defines the preview options.
@@ -15084,7 +15087,10 @@ declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
  * @atomicservice
  * @since 12
  */
-declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
+// declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
+interface EllipseShape {
+  value: string
+}
 
 /**
  * Import the PathShape type object for common method.
@@ -15096,7 +15102,10 @@ declare type EllipseShape = import('../api/@ohos.arkui.shape').EllipseShape;
  * @atomicservice
  * @since 12
  */
-declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
+// declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
+interface PathShape {
+  value: string
+}
 
 /**
  * Import the RectShape type object for common method.
@@ -15108,7 +15117,10 @@ declare type PathShape = import('../api/@ohos.arkui.shape').PathShape;
  * @atomicservice
  * @since 12
  */
-declare type RectShape = import('../api/@ohos.arkui.shape').RectShape;
+// declare type RectShape = import('../api/@ohos.arkui.shape').RectShape;
+interface RectShape {
+  value: string
+}
 
 /**
  * Defines the type that can be undefined.
@@ -22136,7 +22148,10 @@ declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
  * @form
  * @since 13
  */
-declare type Blender = import('../api/@ohos.graphics.uiEffect').default.Blender;
+// declare type Blender = import('../api/@ohos.graphics.uiEffect').default.Blender;
+interface Blender {
+  value: string
+}
 
 /**
  * Theme.
@@ -23263,30 +23278,6 @@ declare interface KeyframeState {
    * @since 12
    */
   event: () => void;
-}
-
-
-/**
- * Defines the basic callback.
- *
- * @typedef Callback
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare interface Callback<T, V = void> {
-  /**
-   * Defines the callback info.
-   *
-   * @param { T } data - the data will be used in the callback.
-   * @returns { V } - Returns result of the callback.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  (data: T): V;
 }
 
 /**

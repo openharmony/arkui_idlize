@@ -41,7 +41,8 @@
     "mocha": "^9.2.2",
     "rollup": "^4.24.4",
     "minimist": "^1.2.8",
-    "typescript": "4.9.5"
+    "typescript": "4.9.5",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
     "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
@@ -58,7 +59,7 @@
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "compile:arkts:libs": "npm run build -C ../external/incremental/runtime && npm run build -C ../external/interop",
     "etsgen:sdk": "rimraf ../etsgen/out/idl && node ../etsgen --ets2idl --use-component-stubs --output-dir ../etsgen/out/idl --base-dir ../sdk-patched-arkts/api --input-dir  ../sdk-patched-arkts/api/arkui/component --input-files ../sdk-patched-arkts/api/global/resource.d.ets",
-    "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out external-subset",
+    "clean": "rimraf build dist lib generated native/build* native/lib* native/cross* native/NativeBridge* native/ace* out external-subset .rollup.cache",
     "ARKTS SDK": "#----------------------",
     "gen-idl:sdk:arkts": "npm run etsgen:sdk",
     "gen:sdk:arkts": "node . --use-memo-m3 --arkts-extension .ets --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --no-type-checker --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/ets-arkts-peers/generated --language arkts --options-file ./generation-config/config-arkui.json",
@@ -86,7 +87,7 @@
     "TS SUBSET": "#----------------------",
     "setup:subset:ts": "npm run setup-out -C .. -- --out arkgen/out/ts-subset --template ts_subset",
     "gen-idl:subset:ts": "node ../dtsgen --dts2idl --base-dir ./tests/subset/api --input-dir ./tests/subset/api/@internal/component/ets,./tests/subset/api,./tests/subset/api/arkui,./tests/subset/api/global --output-dir ./out/ts-subset/generated/idl",
-    "gen:subset:ts": "node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./out/ts-subset/generated/idl,./tests/idls --output-dir ./out/ts-subset/generated && cp -r tests/subset out/ts-subset/generated/tests",
+    "gen:subset:ts": "node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./out/ts-subset/generated/idl,./tests/idls --input-files ./tests/subset/api/@ohos.base.idl --output-dir ./out/ts-subset/generated && cp -r tests/subset out/ts-subset/generated/tests",
     "build:subset:ts": "cd out/ts-subset && tsc -p . && rollup -c",
     "build-native:subset:ts": "cd ./native && meson setup -Dsource_set=ts-subset build-subset-ts && meson compile --verbose -C build-subset-ts && meson install -C build-subset-ts",
     "exec:subset:ts": "node out/ts-subset/lib/main.js",

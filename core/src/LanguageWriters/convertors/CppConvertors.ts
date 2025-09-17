@@ -51,7 +51,7 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         protected library: LibraryInterface,
     ) {}
 
-    private make(text: string, resolvedType: idl.IDLType, noPrefix = false): ConvertResult {
+    protected make(text: string, resolvedType: idl.IDLType, noPrefix = false): ConvertResult {
         return { text, noPrefix, resolvedType }
     }
 
@@ -108,28 +108,29 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         return this.make(prefix + converted.text, type, true)
     }
     convertUnion(type: idl.IDLUnionType): ConvertResult {
-        if (isSubtypeTopLevelConflicted(this.library, type)) {
+        return this.insideStructure(() => {
             if (type.parent && idl.isTypedef(type.parent)) {
                 return this.make(type.parent.name, type, false)
             }
             return this.make('Union_' + type.types.map(it => convertType(this, it).text).join("_"), type, false)
-        }
-        return this.make(type.name, type, false)
+        })
     }
     convertContainer(type: idl.IDLContainerType): ConvertResult {
-        if (idl.IDLContainerUtils.isPromise(type)) {
-            return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`, type)
-        }
-        if (idl.IDLContainerUtils.isSequence(type)) {
-            if (type.elementType[0] === idl.IDLU8Type) {
-                return this.make(`uint8_t*`, type, true)
+        return this.insideStructure(() => {
+            if (idl.IDLContainerUtils.isPromise(type)) {
+                return this.make(`Promise_${this.convertNode(type.elementType[0]).text}`, type)
             }
-            return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, type, true)
-        }
-        if (idl.IDLContainerUtils.isRecord(type)) {
-            return this.make(`Map_${this.convertNode(type.elementType[0]).text}_${this.convertNode(type.elementType[1]).text}`, type, true)
-        }
-        throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
+            if (idl.IDLContainerUtils.isSequence(type)) {
+                if (type.elementType[0] === idl.IDLU8Type) {
+                    return this.make(`uint8_t*`, type, true)
+                }
+                return this.make(`Array_${this.convertNode(type.elementType[0]).text}`, type, true)
+            }
+            if (idl.IDLContainerUtils.isRecord(type)) {
+                return this.make(`Map_${this.convertNode(type.elementType[0]).text}_${this.convertNode(type.elementType[1]).text}`, type, true)
+            }
+            throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
+        })
     }
     convertImport(type: idl.IDLImport): ConvertResult {
         console.warn("Imports are not implemented yet")
@@ -159,6 +160,26 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         return this.make('CustomObject', idl.IDLCustomObjectType)
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): ConvertResult {
+        if (this.isInsideStructure) {
+            switch (type) {
+                case idl.IDLVoidType:
+                    return this.make(`Void`, type)
+                case idl.IDLI32Type:
+                    return this.make('I32', type)
+                case idl.IDLU32Type:
+                    return this.make('U32', type)
+                case idl.IDLF32Type:
+                    return this.make('F32', type)
+                case idl.IDLI64Type:
+                    return this.make('I64', type)
+                case idl.IDLU64Type:
+                    return this.make('U64', type)
+                case idl.IDLF64Type:
+                    return this.make('F64', type)
+                case idl.IDLPointerType:
+                    return this.make('Pointer', type)
+            }
+        }
         switch (type) {
             case idl.IDLThisType: // maybe fix it in another level?
             case idl.IDLVoidType: return this.make('void', type, true)
@@ -209,6 +230,15 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
         const names = Array.from(map.keys()).map(key => `${key}_${map.get(key)!.join('_')}`)
         return `Literal_${names.join('_')}`
     }
+
+    protected isInsideStructure: boolean = false
+    protected insideStructure<T>(cb: () => T) {
+        const prevIsInsideScructure = this.isInsideStructure
+        this.isInsideStructure = true
+        const result = cb()
+        this.isInsideStructure = prevIsInsideScructure
+        return result
+    }
 }
 
 export class CppConvertor extends GenericCppConvertor implements IdlNameConvertor {
@@ -254,6 +284,17 @@ export class CppNameConvertor implements IdlNameConvertor {
     }
     convert(node: idl.IDLNode): string {
         return this.cppConvertor.convertNode(node).text
+    }
+}
+
+export class StructureNameConvertor extends CppConvertor {
+    constructor(library: LibraryInterface) {
+        super(library)
+        this.isInsideStructure = true
+    }
+
+    convert(node: idl.IDLNode): string {
+        return this.convertNode(node).text
     }
 }
 

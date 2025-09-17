@@ -36,7 +36,7 @@ export default class ApplicationContext extends Context {
   // getRunningProcessInformation(callback: AsyncCallback<Array<ProcessInformation>>): void;
   killAllProcesses(): Promise<void>;
   killAllProcesses(clearPageStack: boolean): Promise<void>;
-  killAllProcesses(callback: AsyncCallback<void>);
+  // killAllProcesses(callback: AsyncCallback<void>);
   // setColorMode(colorMode: ConfigurationConstant.ColorMode): void;
   setLanguage(language: string): void;
   clearUpApplicationData(): Promise<void>;

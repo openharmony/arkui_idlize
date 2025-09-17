@@ -12,7 +12,7 @@ OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle mediaquery_MediaQueryList
 }
 void mediaquery_MediaQueryListener_destructImpl(OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryListenerHandle thisPtr) {
 }
-void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const OHOS_MEDIAQUERY_mediaquery_Callback_MediaQueryResult_Void* callback_) {
+void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_) {
     OH_OHOS_MEDIAQUERY_mediaquery_MediaQueryResult result = {
         .matches=true,
         .media=(OH_String) {
@@ -22,7 +22,7 @@ void mediaquery_MediaQueryListener_onChangeImpl(OH_NativePointer thisPtr, const 
     };
     callback_->call(callback_->resource.resourceId, result);
 }
-void mediaquery_MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_OHOS_MEDIAQUERY_mediaquery_Callback_MediaQueryResult_Void* callback_) {
+void mediaquery_MediaQueryListener_offChangeImpl(OH_NativePointer thisPtr, const Opt_OHOS_MEDIAQUERY_Callback_mediaquery_MediaQueryResult* callback_) {
 }
 OH_Boolean mediaquery_MediaQueryListener_getMatchesImpl(OH_NativePointer thisPtr) {
     return true;

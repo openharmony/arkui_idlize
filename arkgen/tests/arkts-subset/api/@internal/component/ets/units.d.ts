@@ -55,6 +55,9 @@
 //  * @since 11
 //  */
 // declare type Resource = import('../api/global/resource').Resource;
+interface Resource {
+  id: string
+}
 
 /**
  * Defines the length property with string, number and resource unit.

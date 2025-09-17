@@ -65,7 +65,7 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
             }
             else if (idl.isEnum(entry)) {
                 orderer.addDep(library.toDeclaration(entry))
-            } else if (idl.isMethod(entry)) {
+            } else if (idl.isMethod(entry) && !idl.hasTypeParameters(entry)) {
                 for (const parameter of entry.parameters)
                     orderer.addDep(library.toDeclaration(idl.maybeOptional(parameter.type!, parameter.isOptional)))
                 orderer.addDep(library.toDeclaration(entry.returnType))

@@ -912,7 +912,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     const syntheticName = generateSyntheticFunctionName(
                         serializedMethod.parameters,
                         serializedMethod.returnType,
-                        serializedMethod.isAsync
+                        { isAsync: serializedMethod.isAsync }
                     )
                     const syntheticCallback = idl.createCallback(
                         syntheticName,
@@ -1227,7 +1227,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
     private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]*$/g)
     private static isFunctionTypeReference(name: string) {
         return IDLVisitor.etsFunctionTypeReferencePattern.test(name)
-            || name === 'Callback'
     }
 
     maybeSerializeETSFunctionReference(type: arkts.ETSTypeReference): [idl.IDLCallback, string[]] | undefined {
@@ -1238,14 +1237,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
             return typeArgs
         })
         const orderedTrappedParams = Array.from(trappedParams)
-        const returnType = name === 'Callback' ? typeArgs?.at(1) ?? idl.IDLVoidType : typeArgs?.at(0) ?? idl.IDLVoidType
-        let paramsTypes = name === 'Callback' ? [typeArgs!.at(0)!] : typeArgs?.slice(0, -1)
+        const returnType = typeArgs?.at(0) ?? idl.IDLVoidType
+        let paramsTypes = typeArgs?.slice(0, -1)
         if (paramsTypes?.length === 1 && paramsTypes[0] === idl.IDLVoidType) {
             paramsTypes = []
         }
         const parameters = paramsTypes?.map((it, index) => idl.createParameter(`value${index}`, it)) ?? []
         const callback = idl.createCallback(
-            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC))),
+            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, { isAsync: arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC) })),
             parameters,
             returnType,
             { fileName: this.fileName, extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }] },
@@ -1426,7 +1425,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         })
         const orderedTypeParameters = (parentTypeParams?.parameters ?? []).concat(Array.from(typeParams))
         const result = idl.createCallback(
-            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC))),
+            this.contextualSelectName(generateSyntheticFunctionName(parameters, returnType, { isAsync: arkts.hasModifierFlag(type, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_ASYNC) })),
             parameters,
             returnType,
             { fileName: this.fileName },

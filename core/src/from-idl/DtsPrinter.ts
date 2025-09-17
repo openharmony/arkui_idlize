@@ -402,8 +402,14 @@ export class CustomPrintVisitor {
                     }
                 }
                 let typeSpec = getQualifiedName(decl, "namespace.name")
-                if (node.typeArguments)
-                    typeSpec = `${typeSpec}<${node.typeArguments.map(it => this.printTypeForTS(it))}>`
+                if (node.typeArguments) {
+                    let typeArguments = node.typeArguments
+                    if (node.name === "Callback" && typeArguments.length > 1) {
+                        console.log("Removing second type arguments for Callback type. Reason: in .d.ts declarations will be only callback with one type argument from ohos.base")
+                        typeArguments = [typeArguments[0]]
+                    }
+                    typeSpec = `${typeSpec}<${typeArguments.map(it => this.printTypeForTS(it))}>`
+                }
                 return typeSpec
             }
         }

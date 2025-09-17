@@ -8,7 +8,7 @@ export interface CustomComponentConfiguration extends CommonConfiguration {
 
   name: string;
   selected: boolean;
-  triggerChange: Callback<boolean>;
+  triggerChange: (data: boolean) => void;
 }
 
 export class CustomComponentSample {

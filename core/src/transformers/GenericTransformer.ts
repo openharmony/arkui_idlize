@@ -1,5 +1,5 @@
 import { generatorConfiguration } from "../config"
-import { toIdlType } from "../from-idl/deserialize"
+import { toIdlType, toIdlTypeList } from "../from-idl/deserialize"
 import * as idl from "../idl"
 import { isBuilderClass } from "../peer-generation/BuilderClass"
 import { generateSyntheticIdlNodeName } from "../peer-generation/idl/common"
@@ -11,7 +11,8 @@ export function inplaceGenerics(
     node: idl.IDLNode,
     resolver: ReferenceResolver,
     options?: {
-        ignore?: ((node: idl.IDLNode) => boolean)[]
+        ignore?: ((node: idl.IDLNode) => boolean)[],
+        nameConvertor?: (type: idl.IDLType) => string,
     }
 ): void {
     const candidates: idl.IDLReferenceType[] = []
@@ -22,7 +23,11 @@ export function inplaceGenerics(
     options ??= {}
     options.ignore ??= []
     options.ignore.push(ignoreConfigRule, ignoreBuilderClassRule, createIgnoreMaterializedRule(resolver), createIgnoreResourceRule(resolver))
-    candidates.forEach(it => inplaceReferenceGenerics(it, resolver, options))
+    options.nameConvertor ??= generateSyntheticIdlNodeName
+    candidates.forEach(it => inplaceReferenceGenerics(it, resolver, {
+        ignore: options!.ignore!,
+        nameConvertor: options!.nameConvertor!,
+    }))
 }
 
 export function isInplacedGeneric(entry: idl.IDLEntry) {
@@ -40,9 +45,9 @@ export function maybeRestoreGenerics(
     if (maybeTransformedGeneric && idl.hasExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)) {
         const originalName = idl.getExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)!
         const typeArgumentsAttribute = idl.getExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.TypeArguments)
-        if (!typeArgumentsAttribute)
+        const typeArguments = idl.getExtAttributeTypesValue(maybeTransformedGeneric, idl.IDLExtendedAttributes.TypeArguments)
+        if (!typeArgumentsAttribute || !typeArguments)
             throw new Error(`Can not restore original generic type arguments for ${originalName}: no type arguments`)
-        const typeArguments = typeArgumentsAttribute.split(',').map(it => toIdlType(maybeTransformedGeneric.fileName ?? "", it))
         return idl.createReferenceType(
             originalName,
             typeArguments,
@@ -84,17 +89,17 @@ function createIgnoreResourceRule(resolver: ReferenceResolver): (node: idl.IDLNo
     }
 }
 
-function monomorphisedEntryName(typedEntry: idl.IDLEntry, typeArguments: idl.IDLType[]): string {
-    return typedEntry.name + "_" + typeArguments.map(generateSyntheticIdlNodeName).join("_")
+function monomorphisedEntryName(typedEntry: idl.IDLEntry, typeArguments: idl.IDLType[], options: { nameConvertor: (node: idl.IDLType) => string }): string {
+    return typedEntry.name + "_" + typeArguments.map(options.nameConvertor).join("_")
 }
 
-function monomorphizeEntry<T extends idl.IDLEntry>(typedEntry: T, typeArguments: idl.IDLType[]): T {
+function monomorphizeEntry<T extends idl.IDLEntry>(typedEntry: T, typeArguments: idl.IDLType[], options: { nameConvertor: (node: idl.IDLType) => string }): T {
     if (!idl.isTypedef(typedEntry) && !idl.isInterface(typedEntry) && !idl.isCallback(typedEntry))
         throw new Error(`Can not monomorphize ${typedEntry.kind}`)
     if (typedEntry.typeParameters?.length != typeArguments.length)
         throw new Error(`Trying to monomorphize entry ${typedEntry.name} that accepts ${typedEntry.typeParameters?.length} type parameters with ${typeArguments.length} type arguments`)
     const monomorphizedEntry = idl.clone(typedEntry)
-    monomorphizedEntry.name = monomorphisedEntryName(typedEntry, typeArguments)
+    monomorphizedEntry.name = monomorphisedEntryName(typedEntry, typeArguments, options)
     monomorphizedEntry.typeParameters = undefined
     const nameToType = new Map(typedEntry.typeParameters.map((name, index) => [name, typeArguments[index]]))
     idl.updateEachChild(monomorphizedEntry, (node) => {
@@ -113,7 +118,8 @@ function monomorphizeEntry<T extends idl.IDLEntry>(typedEntry: T, typeArguments:
         value: idl.getFQName(typedEntry),
     }, {
         name: idl.IDLExtendedAttributes.TypeArguments,
-        value: typeArguments.map(type => idl.printType(type)).join("|"),
+        value: typeArguments.map(type => idl.printType(type)).join(","),
+        typesValue: typeArguments,
     })
     inplaceRemoveMeaninglessFields(monomorphizedEntry)
     return monomorphizedEntry;
@@ -131,8 +137,9 @@ function hasTypeParameterTypeChild(node: idl.IDLNode): boolean {
 function inplaceReferenceGenerics(
     ref: idl.IDLReferenceType,
     resolver: ReferenceResolver,
-    options?: {
-        ignore?: ((node: idl.IDLNode) => boolean)[]
+    options: {
+        ignore: ((node: idl.IDLNode) => boolean)[],
+        nameConvertor: (type: idl.IDLType) => string,
     }
 ): void {
     inplaceDefaultReferenceGenerics(ref, resolver)
@@ -150,11 +157,11 @@ function inplaceReferenceGenerics(
     if (!idl.isTypedef(resolved) && !idl.isInterface(resolved) && !idl.isCallback(resolved)) {
         throw new Error(`Unsupported generics target ${resolved.kind}`)
     }
-    const inplacedRef = idl.createReferenceType(monomorphisedEntryName(resolved, ref.typeArguments))
+    const inplacedRef = idl.createReferenceType(monomorphisedEntryName(resolved, ref.typeArguments, options))
     if (!resolver.resolveTypeReference(inplacedRef)) {
-        const monomorphizedEntry = monomorphizeEntry(resolved, ref.typeArguments)
+        const monomorphizedEntry = monomorphizeEntry(resolved, ref.typeArguments, options)
         insertEntryNearTo(monomorphizedEntry, resolved)
-        inplaceGenerics(monomorphizedEntry, resolver)
+        inplaceGenerics(monomorphizedEntry, resolver, options)
         correctTransformOnSerialize(resolver, monomorphizedEntry, ref.typeArguments, options)
     }
     ref.name = inplacedRef.name
@@ -183,8 +190,9 @@ function correctTransformOnSerialize(
     resolver: ReferenceResolver,
     monomorphizedEntry: idl.IDLEntry,
     typeArguments: idl.IDLType[],
-    options?: {
-        ignore?: ((node: idl.IDLNode) => boolean)[]
+    options: {
+        ignore: ((node: idl.IDLNode) => boolean)[],
+        nameConvertor: (type: idl.IDLType) => string,
     },
 ) {
     const targetName = idl.getExtAttribute(monomorphizedEntry, idl.IDLExtendedAttributes.TransformOnSerialize)
@@ -221,7 +229,11 @@ function inplaceDefaultReferenceGenerics(
         node.typeArguments ??= []
         while (decl.typeParameters!.length > node.typeArguments.length) {
             if (defaults[node.typeArguments.length] === undefined) {
-                throw new Error(`Can not validate reference to ${idl.getFQName(decl)} declaration: reference has not enough generic arguments or declaration does not have enough default generic values`)
+                const declarationDetails = `${idl.getFQName(decl)}<${(decl.typeParameters ?? [])
+                    .map((it, index) => `${it}${defaults[index] ? '='+defaults[index] : ''}`)
+                    .join(', ')}>`
+                const referenceDetails = `${node.name}<${node.typeArguments.map(it => idl.printType(it)).join(", ")}>`
+                throw new Error(`Can not validate reference to ${declarationDetails} declaration: reference ${referenceDetails} has not enough generic arguments or declaration does not have enough default generic values. Reference defined at: ${node.fileName}`)
             }
             node.typeArguments.push(defaults[node.typeArguments.length]!)
         }
@@ -241,6 +253,9 @@ function inplaceRemoveMeaninglessFields(node: idl.IDLNode, options: { recursive:
         node.properties = node.properties.filter(it => !isMeaninglessFieldType(it.type))
     }
     if (idl.isMethod(node)) {
+        node.parameters = node.parameters.filter(it => !isMeaninglessFieldType(it.type))
+    }
+    if (idl.isCallback(node)) {
         node.parameters = node.parameters.filter(it => !isMeaninglessFieldType(it.type))
     }
 }

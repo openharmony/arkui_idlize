@@ -1,5 +1,5 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule, generatorConfiguration } from "@idlizer/core";
+import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule, generatorConfiguration, Language, StructureNameConvertor } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 import { componentToPeerClass, componentToStyleClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
@@ -11,6 +11,7 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
     const syntheticName = generateSyntheticFunctionName(
         continuationParameters,
         idl.IDLVoidType,
+        { nameConvertor: new StructureNameConvertor(library) }
     )
     const continuationReference = idl.createReferenceType(syntheticName)
 
@@ -18,7 +19,8 @@ function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationTy
         const callback = idl.createCallback(
             generateSyntheticFunctionName(
                 continuationParameters,
-                idl.IDLVoidType
+                idl.IDLVoidType,
+                { nameConvertor: new StructureNameConvertor(library) }
             ),
             continuationParameters,
             idl.IDLVoidType,

@@ -623,9 +623,27 @@ class IDLDeserializer {
 }
 
 export function toIdlType(fileName: string, content: string): idl.IDLType {
-    const lexicalInfo: IDLTokenInfoMap = new Map()
-    const deserializer = new IDLDeserializer(lexicalInfo)
-    return deserializer.toIDLType(fileName, webidl2.parseType(content, fileName))
+    const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
+    try {
+        const idlType = new Parser(fileName, content).parseIDLType()
+        idlType.fileName = fileName
+        return idlType
+    } finally {
+        if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
+            DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).map(it => outputDiagnosticMessageFormatted(it))
+        }
+    }
+}
+
+export function toIdlTypeList(fileName: string, content: string): idl.IDLType[] {
+    const previousDiagnosticsCount = DiagnosticMessageGroup.allGroupsEntries.length
+    try {
+        return new Parser(fileName, content).parseIDLTypeList()
+    } finally {
+        if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
+            DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).map(it => outputDiagnosticMessageFormatted(it))
+        }
+    }
 }
 
 interface ParsedFileInfo {
@@ -755,7 +773,7 @@ export function parseIDLFile(fileName: string, content?: string, quiet?: boolean
 }
 
 export function parseIDLFileNew(fileName: string, content?: string, registerSynthetics?: boolean) {
-    let file = new Parser(fileName, content).parseIDL()
+    let file = new Parser(fileName, content).parseIDLFile()
     const ancestors: idl.IDLNode[] = []
     const namespaces: string[] = []
     // Mimic old parser and deserialize.ts behavior:

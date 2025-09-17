@@ -44,9 +44,14 @@ OH_Number Foo_getXImpl(OH_NativePointer thisPtr) {
 }
 
 void Foo_callCBImpl(OH_NativePointer thisPtr, const OH_Number* y,
-                    const TEST_GENERIC_CALLBACK_Callback_Number_Void* cb) {
+                    const TEST_GENERIC_CALLBACK_Callback_Number* cb) {
     std::cout << "Foo_callCBImpl(thisPtr, y, cb)"
               << "\n  y = " << DumpOHNumber(*y) << std::endl;
     OH_Number sum = addOHNumber(reinterpret_cast<FooObject*>(thisPtr)->value, *y);
     cb->call(cb->resource.resourceId, sum);
+}
+
+void Foo_callCBVoidImpl(OH_NativePointer thisPtr, const TEST_GENERIC_CALLBACK_Callback_Void* cb) {
+    std::cout << "Foo_callCBVoidImpl(thisPtr, cb)" << std::endl;
+    cb->call(cb->resource.resourceId);
 }

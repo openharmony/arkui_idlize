@@ -27,6 +27,8 @@ import {
     PeerLibrary,
     inplaceNullsAsUndefined,
     inplaceTransformOnSerializeFromConfig,
+    convertNode,
+    StructureNameConvertor,
 } from "@idlizer/core"
 import {
     transformMethodsAsync2ReturnPromise,
@@ -210,9 +212,11 @@ export function arkgen(argv:string[]) {
 }
 
 function inplaceArkoalaGenerics(library: PeerLibrary): void {
-    library.files.forEach(file => inplaceGenerics(file, library, { ignore: [
-        ignoreComponentRule,
-    ]}))
+    const nameConvertor = new StructureNameConvertor(library)
+    library.files.forEach(file => inplaceGenerics(file, library, {
+        ignore: [ignoreComponentRule],
+        nameConvertor: (node) => convertNode(nameConvertor, node).text,
+    }))
 }
 
 function ignoreComponentRule(node: IDLNode): boolean {

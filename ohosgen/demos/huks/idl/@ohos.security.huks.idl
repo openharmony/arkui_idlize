@@ -1,0 +1,640 @@
+package ohos.security.huks;
+[Entity=Interface, TypeParameters="T", TypeParametersDefaults="void"]
+interface BusinessError {
+    attribute number code;
+    [Optional]
+    attribute T data;
+};
+[TypeParameters="T,E", TypeParametersDefaults="void"]
+callback AsyncCallback = void ([TypeArguments="E"] BusinessError err, T data);
+[DefaultExport]
+namespace huks {
+    [Deprecated]
+    void generateKey(String keyAlias, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult generateKey(String keyAlias, HuksOptions options);
+    [Throws]
+    void generateKeyItem(String keyAlias, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    [Throws]
+    async void generateKeyItem(String keyAlias, HuksOptions options);
+    [Throws]
+    async void generateKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Deprecated]
+    void deleteKey(String keyAlias, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult deleteKey(String keyAlias, HuksOptions options);
+    [Throws]
+    void deleteKeyItem(String keyAlias, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    [Throws]
+    async void deleteKeyItem(String keyAlias, HuksOptions options);
+    [Throws]
+    async void deleteKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Deprecated]
+    void importKey(String keyAlias, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult importKey(String keyAlias, HuksOptions options);
+    [Throws]
+    void importKeyItem(String keyAlias, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    [Throws]
+    async void importKeyItem(String keyAlias, HuksOptions options);
+    [Throws]
+    async void importKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    void importWrappedKeyItem(String keyAlias, String wrappingKeyAlias, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    [Throws]
+    async void importWrappedKeyItemAsUser(i32 userId, String keyAlias, String wrappingKeyAlias, HuksOptions huksOptions);
+    [Throws]
+    async void importWrappedKeyItem(String keyAlias, String wrappingKeyAlias, HuksOptions options);
+    [Deprecated]
+    void exportKey(String keyAlias, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult exportKey(String keyAlias, HuksOptions options);
+    [Throws]
+    void exportKeyItem(String keyAlias, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult exportKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    async HuksReturnResult exportKeyItem(String keyAlias, HuksOptions options);
+    [Deprecated]
+    void getKeyProperties(String keyAlias, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult getKeyProperties(String keyAlias, HuksOptions options);
+    [Throws]
+    void getKeyItemProperties(String keyAlias, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult getKeyItemPropertiesAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    async HuksReturnResult getKeyItemProperties(String keyAlias, HuksOptions options);
+    [Deprecated]
+    void isKeyExist(String keyAlias, HuksOptions options, [TypeArguments="boolean"] AsyncCallback callback_);
+    [Deprecated]
+    async boolean isKeyExist(String keyAlias, HuksOptions options);
+    [Throws]
+    void isKeyItemExist(String keyAlias, HuksOptions options, [TypeArguments="boolean"] AsyncCallback callback_);
+    [Throws]
+    async boolean isKeyItemExist(String keyAlias, HuksOptions options);
+    [Throws]
+    void hasKeyItem(String keyAlias, HuksOptions options, [TypeArguments="boolean"] AsyncCallback callback_);
+    [Throws]
+    async boolean hasKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    async boolean hasKeyItem(String keyAlias, HuksOptions options);
+    [Deprecated]
+    void init(String keyAlias, HuksOptions options, [TypeArguments="HuksHandle"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksHandle init(String keyAlias, HuksOptions options);
+    [Throws]
+    void initSession(String keyAlias, HuksOptions options, [TypeArguments="HuksSessionHandle"] AsyncCallback callback_);
+    [Throws]
+    async HuksSessionHandle initSession(String keyAlias, HuksOptions options);
+    [Throws]
+    async HuksSessionHandle initSessionAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Deprecated]
+    void update(long handle, optional buffer token, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult update(long handle, optional buffer token, HuksOptions options);
+    [Throws]
+    void updateSession(long handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    void updateSession(long handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult updateSession(long handle, HuksOptions options, optional buffer token);
+    [Deprecated]
+    void finish(long handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult finish(long handle, HuksOptions options);
+    [Throws]
+    void finishSession(long handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    void finishSession(long handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult finishSession(long handle, HuksOptions options, optional buffer token);
+    [Deprecated]
+    void abort(long handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    [Deprecated]
+    async HuksResult abort(long handle, HuksOptions options);
+    [Throws]
+    void abortSession(long handle, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    [Throws]
+    async void abortSession(long handle, HuksOptions options);
+    [Throws]
+    void attestKeyItem(String keyAlias, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult attestKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    async HuksReturnResult attestKeyItem(String keyAlias, HuksOptions options);
+    [Throws]
+    void anonAttestKeyItem(String keyAlias, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    [Throws]
+    async HuksReturnResult anonAttestKeyItemAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
+    [Throws]
+    async HuksReturnResult anonAttestKeyItem(String keyAlias, HuksOptions options);
+    [Deprecated]
+    String getSdkVersion(HuksOptions options);
+    [Throws]
+    async HuksListAliasesReturnResult listAliases(HuksOptions options);
+    [Throws]
+    async HuksReturnResult wrapKeyItem(String keyAlias, HuksOptions params);
+    [Throws]
+    async HuksReturnResult unwrapKeyItem(String keyAlias, HuksOptions params, buffer wrappedKey);
+    [Entity=Interface]
+    interface HuksParam {
+        attribute HuksTag tag;
+        attribute (boolean or i32 or bigint or buffer) value;
+    };
+    [Entity=Interface, Deprecated]
+    interface HuksHandle {
+        [Deprecated]
+        attribute i32 errorCode;
+        [Deprecated]
+        attribute long handle;
+        [Optional, Deprecated]
+        attribute buffer token;
+    };
+    [Entity=Interface]
+    interface HuksSessionHandle {
+        attribute long handle;
+        [Optional]
+        attribute buffer challenge;
+    };
+    [Entity=Interface]
+    interface HuksOptions {
+        [Optional]
+        attribute sequence<HuksParam> properties;
+        [Optional]
+        attribute buffer inData;
+    };
+    [Entity=Interface, Deprecated]
+    interface HuksResult {
+        [Deprecated]
+        attribute i32 errorCode;
+        [Optional, Deprecated]
+        attribute buffer outData;
+        [Optional, Deprecated]
+        attribute sequence<HuksParam> properties;
+        [Optional, Deprecated]
+        attribute sequence<String> certChains;
+    };
+    [Entity=Interface]
+    interface HuksReturnResult {
+        [Optional]
+        attribute buffer outData;
+        [Optional]
+        attribute sequence<HuksParam> properties;
+        [Optional]
+        attribute sequence<String> certChains;
+    };
+    [Entity=Interface]
+    interface HuksListAliasesReturnResult {
+        attribute sequence<String> keyAliases;
+    };
+    [Deprecated]
+    dictionary HuksErrorCode {
+        [Deprecated]
+        number HUKS_SUCCESS = 0;
+        [Deprecated]
+        number HUKS_FAILURE = -1;
+        [Deprecated]
+        number HUKS_ERROR_BAD_STATE = -2;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_ARGUMENT = -3;
+        [Deprecated]
+        number HUKS_ERROR_NOT_SUPPORTED = -4;
+        [Deprecated]
+        number HUKS_ERROR_NO_PERMISSION = -5;
+        [Deprecated]
+        number HUKS_ERROR_INSUFFICIENT_DATA = -6;
+        [Deprecated]
+        number HUKS_ERROR_BUFFER_TOO_SMALL = -7;
+        [Deprecated]
+        number HUKS_ERROR_INSUFFICIENT_MEMORY = -8;
+        [Deprecated]
+        number HUKS_ERROR_COMMUNICATION_FAILURE = -9;
+        [Deprecated]
+        number HUKS_ERROR_STORAGE_FAILURE = -10;
+        [Deprecated]
+        number HUKS_ERROR_HARDWARE_FAILURE = -11;
+        [Deprecated]
+        number HUKS_ERROR_ALREADY_EXISTS = -12;
+        [Deprecated]
+        number HUKS_ERROR_NOT_EXIST = -13;
+        [Deprecated]
+        number HUKS_ERROR_NULL_POINTER = -14;
+        [Deprecated]
+        number HUKS_ERROR_FILE_SIZE_FAIL = -15;
+        [Deprecated]
+        number HUKS_ERROR_READ_FILE_FAIL = -16;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_PUBLIC_KEY = -17;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_PRIVATE_KEY = -18;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_KEY_INFO = -19;
+        [Deprecated]
+        number HUKS_ERROR_HASH_NOT_EQUAL = -20;
+        [Deprecated]
+        number HUKS_ERROR_MALLOC_FAIL = -21;
+        [Deprecated]
+        number HUKS_ERROR_WRITE_FILE_FAIL = -22;
+        [Deprecated]
+        number HUKS_ERROR_REMOVE_FILE_FAIL = -23;
+        [Deprecated]
+        number HUKS_ERROR_OPEN_FILE_FAIL = -24;
+        [Deprecated]
+        number HUKS_ERROR_CLOSE_FILE_FAIL = -25;
+        [Deprecated]
+        number HUKS_ERROR_MAKE_DIR_FAIL = -26;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_KEY_FILE = -27;
+        [Deprecated]
+        number HUKS_ERROR_IPC_MSG_FAIL = -28;
+        [Deprecated]
+        number HUKS_ERROR_REQUEST_OVERFLOWS = -29;
+        [Deprecated]
+        number HUKS_ERROR_PARAM_NOT_EXIST = -30;
+        [Deprecated]
+        number HUKS_ERROR_CRYPTO_ENGINE_ERROR = -31;
+        [Deprecated]
+        number HUKS_ERROR_COMMUNICATION_TIMEOUT = -32;
+        [Deprecated]
+        number HUKS_ERROR_IPC_INIT_FAIL = -33;
+        [Deprecated]
+        number HUKS_ERROR_IPC_DLOPEN_FAIL = -34;
+        [Deprecated]
+        number HUKS_ERROR_EFUSE_READ_FAIL = -35;
+        [Deprecated]
+        number HUKS_ERROR_NEW_ROOT_KEY_MATERIAL_EXIST = -36;
+        [Deprecated]
+        number HUKS_ERROR_UPDATE_ROOT_KEY_MATERIAL_FAIL = -37;
+        [Deprecated]
+        number HUKS_ERROR_VERIFICATION_FAILED = -38;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_ALG_FAIL = -100;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_KEY_SIZE_FAIL = -101;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_PADDING_FAIL = -102;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_PURPOSE_FAIL = -103;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_DIGEST_FAIL = -104;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_MODE_FAIL = -105;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_NONCE_FAIL = -106;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_AAD_FAIL = -107;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_IV_FAIL = -108;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_AE_TAG_FAIL = -109;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_SALT_FAIL = -110;
+        [Deprecated]
+        number HUKS_ERROR_CHECK_GET_ITERATION_FAIL = -111;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_ALGORITHM = -112;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_KEY_SIZE = -113;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_PADDING = -114;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_PURPOSE = -115;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_MODE = -116;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_DIGEST = -117;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_SIGNATURE_SIZE = -118;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_IV = -119;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_AAD = -120;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_NONCE = -121;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_AE_TAG = -122;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_SALT = -123;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_ITERATION = -124;
+        [Deprecated]
+        number HUKS_ERROR_INVALID_OPERATION = -125;
+        [Deprecated]
+        number HUKS_ERROR_INTERNAL_ERROR = -999;
+        [Deprecated]
+        number HUKS_ERROR_UNKNOWN_ERROR = -1000;
+    };
+    dictionary HuksExceptionErrCode {
+        number HUKS_ERR_CODE_PERMISSION_FAIL = 201;
+        number HUKS_ERR_CODE_NOT_SYSTEM_APP = 202;
+        number HUKS_ERR_CODE_ILLEGAL_ARGUMENT = 401;
+        number HUKS_ERR_CODE_NOT_SUPPORTED_API = 801;
+        number HUKS_ERR_CODE_FEATURE_NOT_SUPPORTED = 12000001;
+        number HUKS_ERR_CODE_MISSING_CRYPTO_ALG_ARGUMENT = 12000002;
+        number HUKS_ERR_CODE_INVALID_CRYPTO_ALG_ARGUMENT = 12000003;
+        number HUKS_ERR_CODE_FILE_OPERATION_FAIL = 12000004;
+        number HUKS_ERR_CODE_COMMUNICATION_FAIL = 12000005;
+        number HUKS_ERR_CODE_CRYPTO_FAIL = 12000006;
+        number HUKS_ERR_CODE_KEY_AUTH_PERMANENTLY_INVALIDATED = 12000007;
+        number HUKS_ERR_CODE_KEY_AUTH_VERIFY_FAILED = 12000008;
+        number HUKS_ERR_CODE_KEY_AUTH_TIME_OUT = 12000009;
+        number HUKS_ERR_CODE_SESSION_LIMIT = 12000010;
+        number HUKS_ERR_CODE_ITEM_NOT_EXIST = 12000011;
+        number HUKS_ERR_CODE_EXTERNAL_ERROR = 12000012;
+        number HUKS_ERR_CODE_CREDENTIAL_NOT_EXIST = 12000013;
+        number HUKS_ERR_CODE_INSUFFICIENT_MEMORY = 12000014;
+        number HUKS_ERR_CODE_CALL_SERVICE_FAILED = 12000015;
+        number HUKS_ERR_CODE_DEVICE_PASSWORD_UNSET = 12000016;
+        number HUKS_ERR_CODE_KEY_ALREADY_EXIST = 12000017;
+        number HUKS_ERR_CODE_INVALID_ARGUMENT = 12000018;
+    };
+    dictionary HuksKeyPurpose {
+        number HUKS_KEY_PURPOSE_ENCRYPT = 1;
+        number HUKS_KEY_PURPOSE_DECRYPT = 2;
+        number HUKS_KEY_PURPOSE_SIGN = 4;
+        number HUKS_KEY_PURPOSE_VERIFY = 8;
+        number HUKS_KEY_PURPOSE_DERIVE = 16;
+        number HUKS_KEY_PURPOSE_WRAP = 32;
+        number HUKS_KEY_PURPOSE_UNWRAP = 64;
+        number HUKS_KEY_PURPOSE_MAC = 128;
+        number HUKS_KEY_PURPOSE_AGREE = 256;
+    };
+    dictionary HuksKeyDigest {
+        number HUKS_DIGEST_NONE = 0;
+        number HUKS_DIGEST_MD5 = 1;
+        number HUKS_DIGEST_SM3 = 2;
+        number HUKS_DIGEST_SHA1 = 10;
+        number HUKS_DIGEST_SHA224 = 11;
+        number HUKS_DIGEST_SHA256 = 12;
+        number HUKS_DIGEST_SHA384 = 13;
+        number HUKS_DIGEST_SHA512 = 14;
+    };
+    dictionary HuksKeyPadding {
+        number HUKS_PADDING_NONE = 0;
+        number HUKS_PADDING_OAEP = 1;
+        number HUKS_PADDING_PSS = 2;
+        number HUKS_PADDING_PKCS1_V1_5 = 3;
+        number HUKS_PADDING_PKCS5 = 4;
+        number HUKS_PADDING_PKCS7 = 5;
+        number HUKS_PADDING_ISO_IEC_9796_2 = 6;
+        number HUKS_PADDING_ISO_IEC_9797_1 = 7;
+    };
+    dictionary HuksCipherMode {
+        number HUKS_MODE_ECB = 1;
+        number HUKS_MODE_CBC = 2;
+        number HUKS_MODE_CTR = 3;
+        number HUKS_MODE_OFB = 4;
+        number HUKS_MODE_CFB = 5;
+        number HUKS_MODE_CCM = 31;
+        number HUKS_MODE_GCM = 32;
+    };
+    dictionary HuksKeySize {
+        number HUKS_RSA_KEY_SIZE_512 = 512;
+        number HUKS_RSA_KEY_SIZE_768 = 768;
+        number HUKS_RSA_KEY_SIZE_1024 = 1024;
+        number HUKS_RSA_KEY_SIZE_2048 = 2048;
+        number HUKS_RSA_KEY_SIZE_3072 = 3072;
+        number HUKS_RSA_KEY_SIZE_4096 = 4096;
+        number HUKS_ECC_KEY_SIZE_224 = 224;
+        number HUKS_ECC_KEY_SIZE_256 = 256;
+        number HUKS_ECC_KEY_SIZE_384 = 384;
+        number HUKS_ECC_KEY_SIZE_521 = 521;
+        number HUKS_AES_KEY_SIZE_128 = 128;
+        number HUKS_AES_KEY_SIZE_192 = 192;
+        number HUKS_AES_KEY_SIZE_256 = 256;
+        [Deprecated]
+        number HUKS_AES_KEY_SIZE_512 = 512;
+        number HUKS_CURVE25519_KEY_SIZE_256 = 256;
+        number HUKS_DH_KEY_SIZE_2048 = 2048;
+        number HUKS_DH_KEY_SIZE_3072 = 3072;
+        number HUKS_DH_KEY_SIZE_4096 = 4096;
+        number HUKS_SM2_KEY_SIZE_256 = 256;
+        number HUKS_SM4_KEY_SIZE_128 = 128;
+        number HUKS_DES_KEY_SIZE_64 = 64;
+        number HUKS_3DES_KEY_SIZE_128 = 128;
+        number HUKS_3DES_KEY_SIZE_192 = 192;
+    };
+    dictionary HuksKeyAlg {
+        number HUKS_ALG_RSA = 1;
+        number HUKS_ALG_ECC = 2;
+        number HUKS_ALG_DSA = 3;
+        number HUKS_ALG_AES = 20;
+        number HUKS_ALG_HMAC = 50;
+        number HUKS_ALG_HKDF = 51;
+        number HUKS_ALG_PBKDF2 = 52;
+        number HUKS_ALG_ECDH = 100;
+        number HUKS_ALG_X25519 = 101;
+        number HUKS_ALG_ED25519 = 102;
+        number HUKS_ALG_DH = 103;
+        number HUKS_ALG_SM2 = 150;
+        number HUKS_ALG_SM3 = 151;
+        number HUKS_ALG_SM4 = 152;
+        number HUKS_ALG_DES = 160;
+        number HUKS_ALG_3DES = 161;
+        number HUKS_ALG_CMAC = 162;
+    };
+    dictionary HuksUnwrapSuite {
+        number HUKS_UNWRAP_SUITE_X25519_AES_256_GCM_NOPADDING = 1;
+        number HUKS_UNWRAP_SUITE_ECDH_AES_256_GCM_NOPADDING = 2;
+    };
+    dictionary HuksKeyGenerateType {
+        number HUKS_KEY_GENERATE_TYPE_DEFAULT = 0;
+        number HUKS_KEY_GENERATE_TYPE_DERIVE = 1;
+        number HUKS_KEY_GENERATE_TYPE_AGREE = 2;
+    };
+    dictionary HuksKeyFlag {
+        number HUKS_KEY_FLAG_IMPORT_KEY = 1;
+        number HUKS_KEY_FLAG_GENERATE_KEY = 2;
+        number HUKS_KEY_FLAG_AGREE_KEY = 3;
+        number HUKS_KEY_FLAG_DERIVE_KEY = 4;
+    };
+    dictionary HuksKeyStorageType {
+        [Deprecated]
+        number HUKS_STORAGE_TEMP = 0;
+        [Deprecated]
+        number HUKS_STORAGE_PERSISTENT = 1;
+        number HUKS_STORAGE_ONLY_USED_IN_HUKS = 2;
+        number HUKS_STORAGE_KEY_EXPORT_ALLOWED = 3;
+    };
+    dictionary HuksImportKeyType {
+        number HUKS_KEY_TYPE_PUBLIC_KEY = 0;
+        number HUKS_KEY_TYPE_PRIVATE_KEY = 1;
+        number HUKS_KEY_TYPE_KEY_PAIR = 2;
+    };
+    dictionary HuksRsaPssSaltLenType {
+        number HUKS_RSA_PSS_SALT_LEN_DIGEST = 0;
+        number HUKS_RSA_PSS_SALT_LEN_MAX = 1;
+    };
+    dictionary HuksUserAuthType {
+        number HUKS_USER_AUTH_TYPE_FINGERPRINT = 1;
+        number HUKS_USER_AUTH_TYPE_FACE = 2;
+        number HUKS_USER_AUTH_TYPE_PIN = 4;
+        number HUKS_USER_AUTH_TYPE_TUI_PIN = 32;
+    };
+    dictionary HuksAuthAccessType {
+        number HUKS_AUTH_ACCESS_INVALID_CLEAR_PASSWORD = 1;
+        number HUKS_AUTH_ACCESS_INVALID_NEW_BIO_ENROLL = 2;
+        number HUKS_AUTH_ACCESS_ALWAYS_VALID = 4;
+    };
+    dictionary HuksUserAuthMode {
+        number HUKS_USER_AUTH_MODE_LOCAL = 0;
+        number HUKS_USER_AUTH_MODE_COAUTH = 1;
+    };
+    dictionary HuksAuthStorageLevel {
+        number HUKS_AUTH_STORAGE_LEVEL_DE = 0;
+        number HUKS_AUTH_STORAGE_LEVEL_CE = 1;
+        number HUKS_AUTH_STORAGE_LEVEL_ECE = 2;
+    };
+    dictionary HuksChallengeType {
+        number HUKS_CHALLENGE_TYPE_NORMAL = 0;
+        number HUKS_CHALLENGE_TYPE_CUSTOM = 1;
+        number HUKS_CHALLENGE_TYPE_NONE = 2;
+    };
+    dictionary HuksChallengePosition {
+        number HUKS_CHALLENGE_POS_0 = 0;
+        number HUKS_CHALLENGE_POS_1 = 1;
+        number HUKS_CHALLENGE_POS_2 = 2;
+        number HUKS_CHALLENGE_POS_3 = 3;
+    };
+    dictionary HuksSecureSignType {
+        number HUKS_SECURE_SIGN_WITH_AUTHINFO = 1;
+    };
+    dictionary HuksSendType {
+        number HUKS_SEND_TYPE_ASYNC = 0;
+        number HUKS_SEND_TYPE_SYNC = 1;
+    };
+    dictionary HuksKeyWrapType {
+        number HUKS_KEY_WRAP_TYPE_HUK_BASED = 2;
+    };
+    dictionary HuksTagType {
+        number HUKS_TAG_TYPE_INVALID = 0;
+        number HUKS_TAG_TYPE_INT = 268435456;
+        number HUKS_TAG_TYPE_UINT = 536870912;
+        number HUKS_TAG_TYPE_ULONG = 805306368;
+        number HUKS_TAG_TYPE_BOOL = 1073741824;
+        number HUKS_TAG_TYPE_BYTES = 1342177280;
+    };
+    dictionary HuksTag {
+        [Deprecated]
+        number HUKS_TAG_INVALID = 0;
+        number HUKS_TAG_ALGORITHM = 536870913;
+        number HUKS_TAG_PURPOSE = 536870914;
+        number HUKS_TAG_KEY_SIZE = 536870915;
+        number HUKS_TAG_DIGEST = 536870916;
+        number HUKS_TAG_PADDING = 536870917;
+        number HUKS_TAG_BLOCK_MODE = 536870918;
+        number HUKS_TAG_KEY_TYPE = 536870919;
+        number HUKS_TAG_ASSOCIATED_DATA = 1342177288;
+        number HUKS_TAG_NONCE = 1342177289;
+        number HUKS_TAG_IV = 1342177290;
+        number HUKS_TAG_INFO = 1342177291;
+        number HUKS_TAG_SALT = 1342177292;
+        [Deprecated]
+        number HUKS_TAG_PWD = 1342177293;
+        number HUKS_TAG_ITERATION = 536870926;
+        number HUKS_TAG_KEY_GENERATE_TYPE = 536870927;
+        [Deprecated]
+        number HUKS_TAG_DERIVE_MAIN_KEY = 1342177296;
+        [Deprecated]
+        number HUKS_TAG_DERIVE_FACTOR = 1342177297;
+        [Deprecated]
+        number HUKS_TAG_DERIVE_ALG = 536870930;
+        number HUKS_TAG_AGREE_ALG = 536870931;
+        number HUKS_TAG_AGREE_PUBLIC_KEY_IS_KEY_ALIAS = 1073741844;
+        number HUKS_TAG_AGREE_PRIVATE_KEY_ALIAS = 1342177301;
+        number HUKS_TAG_AGREE_PUBLIC_KEY = 1342177302;
+        number HUKS_TAG_KEY_ALIAS = 1342177303;
+        number HUKS_TAG_DERIVE_KEY_SIZE = 536870936;
+        number HUKS_TAG_IMPORT_KEY_TYPE = 536870937;
+        number HUKS_TAG_UNWRAP_ALGORITHM_SUITE = 536870938;
+        number HUKS_TAG_DERIVED_AGREED_KEY_STORAGE_FLAG = 536870941;
+        number HUKS_TAG_RSA_PSS_SALT_LEN_TYPE = 536870942;
+        [Deprecated]
+        number HUKS_TAG_ACTIVE_DATETIME = 805306569;
+        [Deprecated]
+        number HUKS_TAG_ORIGINATION_EXPIRE_DATETIME = 805306570;
+        [Deprecated]
+        number HUKS_TAG_USAGE_EXPIRE_DATETIME = 805306571;
+        [Deprecated]
+        number HUKS_TAG_CREATION_DATETIME = 805306572;
+        number HUKS_TAG_ALL_USERS = 1073742125;
+        number HUKS_TAG_USER_ID = 536871214;
+        number HUKS_TAG_NO_AUTH_REQUIRED = 1073742127;
+        number HUKS_TAG_USER_AUTH_TYPE = 536871216;
+        number HUKS_TAG_AUTH_TIMEOUT = 536871217;
+        number HUKS_TAG_AUTH_TOKEN = 1342177586;
+        number HUKS_TAG_KEY_AUTH_ACCESS_TYPE = 536871219;
+        number HUKS_TAG_KEY_SECURE_SIGN_TYPE = 536871220;
+        number HUKS_TAG_CHALLENGE_TYPE = 536871221;
+        number HUKS_TAG_CHALLENGE_POS = 536871222;
+        number HUKS_TAG_KEY_AUTH_PURPOSE = 536871223;
+        number HUKS_TAG_AUTH_STORAGE_LEVEL = 536871228;
+        number HUKS_TAG_USER_AUTH_MODE = 536871231;
+        number HUKS_TAG_ATTESTATION_CHALLENGE = 1342177781;
+        number HUKS_TAG_ATTESTATION_APPLICATION_ID = 1342177782;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_BRAND = 1342177783;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_DEVICE = 1342177784;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_PRODUCT = 1342177785;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_SERIAL = 1342177786;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_IMEI = 1342177787;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_MEID = 1342177788;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_MANUFACTURER = 1342177789;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_MODEL = 1342177790;
+        number HUKS_TAG_ATTESTATION_ID_ALIAS = 1342177791;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_SOCID = 1342177792;
+        [Deprecated]
+        number HUKS_TAG_ATTESTATION_ID_UDID = 1342177793;
+        number HUKS_TAG_ATTESTATION_ID_SEC_LEVEL_INFO = 1342177794;
+        number HUKS_TAG_ATTESTATION_ID_VERSION_INFO = 1342177795;
+        number HUKS_TAG_KEY_OVERRIDE = 1073742344;
+        number HUKS_TAG_IS_KEY_ALIAS = 1073742825;
+        number HUKS_TAG_KEY_STORAGE_FLAG = 536871914;
+        number HUKS_TAG_IS_ALLOWED_WRAP = 1073742827;
+        number HUKS_TAG_KEY_WRAP_TYPE = 536871916;
+        number HUKS_TAG_KEY_AUTH_ID = 1342178285;
+        number HUKS_TAG_KEY_ROLE = 536871918;
+        number HUKS_TAG_KEY_FLAG = 536871919;
+        number HUKS_TAG_IS_ASYNCHRONIZED = 536871920;
+        [Deprecated]
+        number HUKS_TAG_SECURE_KEY_ALIAS = 1073742833;
+        [Deprecated]
+        number HUKS_TAG_SECURE_KEY_UUID = 1342178290;
+        number HUKS_TAG_KEY_DOMAIN = 536871923;
+        number HUKS_TAG_IS_DEVICE_PASSWORD_SET = 1073742836;
+        [Deprecated]
+        number HUKS_TAG_PROCESS_NAME = 1342187281;
+        [Deprecated]
+        number HUKS_TAG_PACKAGE_NAME = 1342187282;
+        [Deprecated]
+        number HUKS_TAG_ACCESS_TIME = 536880915;
+        [Deprecated]
+        number HUKS_TAG_USES_TIME = 536880916;
+        [Deprecated]
+        number HUKS_TAG_CRYPTO_CTX = 805316373;
+        number HUKS_TAG_KEY = 1342187286;
+        [Deprecated]
+        number HUKS_TAG_KEY_VERSION = 536880919;
+        [Deprecated]
+        number HUKS_TAG_PAYLOAD_LEN = 536880920;
+        number HUKS_TAG_AE_TAG = 1342187289;
+        [Deprecated]
+        number HUKS_TAG_IS_KEY_HANDLE = 805316378;
+        [Deprecated]
+        number HUKS_TAG_OS_VERSION = 536881013;
+        [Deprecated]
+        number HUKS_TAG_OS_PATCHLEVEL = 536881014;
+        number HUKS_TAG_SYMMETRIC_KEY_DATA = 1342197281;
+        number HUKS_TAG_ASYMMETRIC_PUBLIC_KEY_DATA = 1342197282;
+        number HUKS_TAG_ASYMMETRIC_PRIVATE_KEY_DATA = 1342197283;
+    };
+};
