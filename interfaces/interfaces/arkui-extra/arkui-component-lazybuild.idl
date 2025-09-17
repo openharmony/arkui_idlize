@@ -1,0 +1,6 @@
+package arkui.component.idlize;
+
+[Entity=Class]
+interface LazyBuild {
+    static void SetTabContentLazyBuilder(pointer node, CustomBuilder builder);
+};
