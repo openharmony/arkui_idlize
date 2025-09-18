@@ -38,6 +38,8 @@ import { PrinterClass, PrinterResult } from '../LayoutManager';
 import { injectPatch } from '../common';
 import { FinalizableType, RefCountedType } from '../idl/IdlPeerGeneratorVisitor';
 
+const MATERIALIZED_TAG = "MaterializedBaseTag.NOP"
+
 interface MaterializedFileVisitor {
     visit(): PrinterResult
 }
@@ -125,8 +127,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         }
         const peerPtr = "peerPtr"
         const peerPtrExpr = this.printer.makeString(peerPtr)
-        const params = [...Array(this.maxCtorParams).fill(0).map((_, i) => `_${i}`), peerPtr]
-        const types = [...Array(this.maxCtorParams).fill(idl.IDLBooleanType), idl.IDLPointerType]
+        const params = ["tag", peerPtr]
+        const types = [idl.createReferenceType("MaterializedBaseTag"), idl.IDLPointerType]
         const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
             if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {
@@ -163,13 +165,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         const dimensions = [...superDecl.constructors.map(it => it.parameters.length)]
         const argsCount = dimensions.length == 0 ? 0 : Math.max(...dimensions)
-        const args = !isSuperClassMaterialized(this.library, clazz.superClass) ? [] :
-            [
-            ...Array(argsCount)
-                .fill(allowsOverloads(this.library.language) ? "false" : "undefined")
-                .map(it => writer.makeString(it)),
-            peerPtrExpr
-        ]
+        const tagArgs: LanguageExpression[] = allowsOverloads(this.library.language)
+            ? [writer.makeString("tag")]
+            : Array(argsCount).fill(writer.makeUndefined())
+        const args = isSuperClassMaterialized(this.library, clazz.superClass) ? [...tagArgs, peerPtrExpr] : []
         return { delegationArgs: args, delegationName: superClassName }
     }
 
@@ -225,7 +224,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             ctorSig.args.map((_, index) => writer.makeString(ctorSig.argsNames[index]))
         )
 
-        const ctorArgs = [...Array(this.maxCtorParams).fill(writer.makeString("false")), ctorCall]
+        const ctorArgs = [writer.makeString(MATERIALIZED_TAG), ctorCall]
         writer.writeConstructorImplementation(implementationClassName, ctorSig, writer => {
             const key = nsPath.map(it => it.name).concat([implementationClassName, 'constructor']).join('.')
             injectPatch(writer, key, config.patchMaterialized)
@@ -283,8 +282,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-            const defaultArg = allowsOverloads(this.library.language) ? writer.makeString("false") : writer.makeUndefined()
-            const args = [...Array(maxCtorParams).fill(defaultArg), writer.makeString("ptr")]
+            const defaultArgs = allowsOverloads(this.library.language)
+                ? [writer.makeString(MATERIALIZED_TAG)]
+                : Array(maxCtorParams).fill(writer.makeUndefined())
+            const args = [...defaultArgs, writer.makeString("ptr")]
             writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args)))
         })
     }
@@ -592,6 +593,9 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             'KPointer',
         ], '@koalaui/interop')
         this.collector.addFeatures(['MaterializedBase'], '@koalaui/interop')
+        if (allowsOverloads(this.library.language)) {
+            this.collector.addFeatures(['MaterializedBaseTag'], '@koalaui/interop')
+        }
         this.collector.addFeatures(['unsafeCast'], '@koalaui/common')
         this.collector.addFeatures(['int32', 'int64', 'float32'], '@koalaui/common')
         this.collector.addFeatures(['NativeBuffer'], '@koalaui/interop')
@@ -734,6 +738,7 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
             "KPointer",
             "KNativePointer",
             "MaterializedBase",
+            "MaterializedBaseTag",
             "NativeBuffer",
         ], "koalaui.interop")
     }
