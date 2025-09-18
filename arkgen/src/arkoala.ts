@@ -62,7 +62,7 @@ import { createPeersPrinter } from "./printers/PeersPrinter"
 import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
-import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
+import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { printETSDeclaration } from "./printers/StsComponentsPrinter"
@@ -173,6 +173,7 @@ export function generateArkoalaFromIdl(config: {
     callLog: boolean,
     verbose: boolean,
     useTypeChecker: boolean,
+    attributeModifierHooks: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
@@ -211,7 +212,7 @@ export function generateArkoalaFromIdl(config: {
             createMaterializedPrinter(config.dumpSerialized),
             createPeersPrinter(config.dumpSerialized),
             createInterfacePrinter(false),
-            printComponents,
+            createComponentsPrinter({attributeModifierHooks: config.attributeModifierHooks}),
             ...spreadIfNotLang([Language.KOTLIN],
                 printModifiers,
             ),

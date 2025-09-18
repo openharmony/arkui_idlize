@@ -46,6 +46,7 @@ import {
     componentToStyleClass,
     allowNamedOverloads,
     peerGeneratorConfiguration,
+    PrinterFunction,
 } from '@idlizer/libohos'
 import { getReferenceTo } from '../knownReferences'
 import { componentToAttributesInterface } from './PeersPrinter'
@@ -75,7 +76,7 @@ export function expandComponentWithSupers(library: PeerLibrary, decl: idl.IDLInt
 export function generateAttributeModifierSignature(library: PeerLibrary, component: IdlComponentDeclaration): MethodSignature {
     const modifiers = expandComponentWithSupers(library, component.attributeDeclaration).map(it =>
         idl.createReferenceType(getReferenceTo('AttributeModifier'),
-            [idl.createReferenceType(component.attributeDeclaration)],
+            [idl.createReferenceType(it)],
         )
     )
     return new NamedMethodSignature(
@@ -101,6 +102,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         protected readonly file: idl.IDLFile,
         protected readonly options: {
             isDeclared: boolean,
+            attributeModifierHooks: boolean,
         }
     ) { }
 
@@ -122,6 +124,8 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         const imports = new ImportsCollector()
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
+        if (this.options.attributeModifierHooks)
+            imports.addFeature(`hook${component.name}AttributeModifier`, HandwrittenModule(this.library.language))
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {
@@ -204,6 +208,8 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
                 // todo stub until we can process AttributeModifier
                 writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
+                    if (this.options.attributeModifierHooks)
+                        writer.writeExpressionStatement(writer.makeFunctionCall(`hook${component.name}AttributeModifier`, [writer.makeThis(), writer.makeString(`value`)]))
                     writer.writeStatement(writer.makeReturn(writer.makeThis()))
                 })
 
@@ -467,7 +473,8 @@ class ComponentsVisitor {
     constructor(
         private readonly peerLibrary: PeerLibrary,
         private options: {
-            isDeclared: boolean
+            isDeclared: boolean,
+            attributeModifierHooks: boolean,
         }
     ) { }
 
@@ -498,8 +505,11 @@ class ComponentsVisitor {
     }
 }
 
-export function printComponents(peerLibrary: PeerLibrary): PrinterResult[] {
-    return new ComponentsVisitor(peerLibrary, { isDeclared: false }).printComponents()
+export function createComponentsPrinter(options: { attributeModifierHooks: boolean }): PrinterFunction {
+    return (peerLibrary) => {
+        const visitor = new ComponentsVisitor(peerLibrary, { isDeclared: false, attributeModifierHooks: options.attributeModifierHooks })
+        return visitor.printComponents()
+    }
 }
 
 export function printComponentsDeclarations(peerLibrary: PeerLibrary): PrinterResult[] {
@@ -507,5 +517,5 @@ export function printComponentsDeclarations(peerLibrary: PeerLibrary): PrinterRe
     if (![Language.TS, Language.ARKTS].includes(peerLibrary.language))
         return []
 
-    return new ComponentsVisitor(peerLibrary, { isDeclared: true }).printComponents()
+    return new ComponentsVisitor(peerLibrary, { isDeclared: true, attributeModifierHooks: false }).printComponents()
 }

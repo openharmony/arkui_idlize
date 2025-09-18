@@ -18,7 +18,7 @@ import { IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, L
 import { collapseIdlPeerMethods, collectComponents, collectDeclDependencies, collectDeclItself, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
-import { HandwrittenModule } from '../ArkoalaLayout';
+import { getReferenceTo } from '../knownReferences';
 
 function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -144,8 +144,8 @@ class ModifiersFileVisitor {
                 }
             }
         }
-        importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
-        importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdaterFlag")
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), importsCollector)
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdaterFlag')), importsCollector)
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
             role: LayoutNodeRole.COMPONENT,

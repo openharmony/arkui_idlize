@@ -101,10 +101,11 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
         .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
+        .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
+
     const options = command
         .parse(argv, { from: 'user' })
         .opts()
-
 
     let didJob = false
 
@@ -186,6 +187,7 @@ export function arkgen(argv:string[]) {
                 callLog: options.callLog ?? false,
                 lang: lang,
                 useTypeChecker: options.typeChecker ?? true,
+                attributeModifierHooks: options.attributeModifierHooks ?? false
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
