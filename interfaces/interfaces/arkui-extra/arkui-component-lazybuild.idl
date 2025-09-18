@@ -2,9 +2,7 @@ package arkui.component.idlize;
 
 [Entity=Class]
 interface LazyBuild {
+    static void ApplyLazyBuilder();
     static void SetListItemLazyBuilder(pointer node, CustomBuilder builder);
-    static void SetListItemGroupLazyBuilder(pointer node, CustomBuilder builder);
-    static void SetGridItemLazyBuilder(pointer node, CustomBuilder builder);
-    static void SetNavDestinationLazyBuilder(pointer node, CustomBuilder builder);
     static void SetTabContentLazyBuilder(pointer node, CustomBuilder builder);
 };
