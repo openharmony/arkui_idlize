@@ -10,6 +10,7 @@
         "interfaces/**/*"
     ],
     "scripts": {
+        "clean": "rimraf dist",
         "compile:self": "tsc",
         "compile": "npm run compile:self",
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,6 +21,7 @@
     "description": "",
     "devDependencies": {
         "@types/node": "^24.0.7",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "rimraf": "^6.0.1"
     }
 }

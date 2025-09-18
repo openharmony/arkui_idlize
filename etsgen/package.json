@@ -29,10 +29,11 @@
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6"
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
-    "clean": "rimraf -g build",
+    "clean": "rimraf -g build .rollup.cache lib out",
     "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile:self": "tsc -b . && rollup -c",
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && npm run compile:self",

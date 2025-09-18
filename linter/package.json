@@ -24,9 +24,11 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/chai": "^4.3.1",
     "@types/node": "^18.0.0",
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
+    "clean": "rimraf lib build",
     "compile:self": "rollup -c",
     "compile": "npm run compile -C ../core && npm run compile:self",
     "run": "npm run compile && node . --base-dir ../sdk-patched --input-dir ../sdk-patched/api/@internal/component/ets/,../interface_sdk-js/api/global,../interface_sdk-js/api --output-dir out/linter --whitelist ./whitelist.json || true"

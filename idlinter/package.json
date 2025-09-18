@@ -25,9 +25,11 @@
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
-    "tslib": "*"
+    "tslib": "*",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
+    "clean": "rimraf dist build",
     "compile:self": "tsc --build --force && rollup -c",
     "compile": "npm run compile -C ../core && npm run compile:self"
   }

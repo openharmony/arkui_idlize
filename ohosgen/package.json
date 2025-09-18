@@ -28,9 +28,11 @@
     "@types/chai": "^4.3.1",
     "@types/node": "^18.0.0",
     "source-map-support": "^0.5.21",
-    "@koalaui/interop": "1.7.9"
+    "@koalaui/interop": "1.7.9",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
+    "clean": "rimraf lib .rollup.cache build",
     "compile:self": "rollup -c",
     "compile": "npm run --prefix ../dtsgen compile && npm run compile -C ../interfaces && npm run --prefix ../libohos compile && npm run compile:self",
     "panda:sdk:install": "npm run panda:sdk:install --prefix ../external/incremental/tools/panda",

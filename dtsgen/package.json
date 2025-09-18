@@ -23,7 +23,7 @@
     "@rollup/plugin-typescript": "^11.1.6"
   },
   "scripts": {
-    "clean": "rimraf -g build",
+    "clean": "rimraf -g build lib .rollup.cache",
     "compile:self": "tsc -b . && rollup -c",
     "compile": "npm run -C ../core compile && npm run -C ../libohos compile && tsc -b . && npm run compile:self",
     "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --base-dir ../sdk-patched/api --input-dir  ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --verify-idl --docs=none",

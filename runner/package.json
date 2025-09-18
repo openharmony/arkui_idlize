@@ -27,9 +27,11 @@
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/chai": "^4.3.1",
-    "source-map-support": "^0.5.21"
+    "source-map-support": "^0.5.21",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
+    "clean": "rimraf .rollup.cache lib out",
     "compile:self": "rollup -c",
     "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && npm run compile:self",
     "prepare:sdk": "rimraf ../sdk-patched-arkts ../sdk-patched ../absolute-sdk-patched-arkts && npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched",

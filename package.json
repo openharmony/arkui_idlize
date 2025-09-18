@@ -23,6 +23,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "scripts": {
+    "clean": "npm run clean --ws --if-present -s",
     "prepare:sdk": "npm run prepare:sdk -C runner",
     "absolute:sdk": "npm run absolute:sdk -C runner",
     "bundle": "read -p 'Enter bundle version, e.g. 22.22.22-work-conf-999: ' BUNDLE_VERSION && read -p 'Enter bundle out directory: ' BUNDLE_OUT && node ./tools/bundle.mjs $BUNDLE_VERSION $BUNDLE_OUT",
