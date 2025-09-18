@@ -88,7 +88,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             )
         }
         const annotationsString = this.peerLibrary.language === Language.ARKTS
-            ? annotations.map(a => `@${a} `).join('')
+            ? annotations.map(a => peerGeneratorConfiguration().transformAnnotations.get(a) ?? a).map(a => { throw new Error("AAA")/*`@${a} `*/ }).join('')
             : ''
         const type = this.writer.getNodeName(node.type)
         const typeParams = this.printTypeParameters(node.typeParameters)
@@ -504,7 +504,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             )
         }
         return this.peerLibrary.language === Language.ARKTS
-            ? annotations.map(a => `@${a} `).join('')
+            ? annotations.map(a => peerGeneratorConfiguration().transformAnnotations.get(a) ?? a).map(a => `@${a} `).join('')
             : ''
     }
 

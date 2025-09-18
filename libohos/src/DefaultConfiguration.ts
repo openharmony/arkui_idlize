@@ -69,6 +69,10 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             D.map(D.string(), D.map(D.string(), D.string())),
             new Map()
         ),
+        transformAnnotations: D.default(
+            D.map(D.string(), D.string()),
+            new Map<string, string>()
+        )
     })
 )
 
