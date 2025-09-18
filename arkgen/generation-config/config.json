@@ -588,7 +588,9 @@
             "GestureModifier",
             "ItemGeneratorFunc",
             "KeyGeneratorFunc",
-            "WrappedBuilder"
+            "WrappedBuilder",
+            "TabContent",
+            "ListItem"
         ],
         "ignoreEntry": [
             "Optional",
