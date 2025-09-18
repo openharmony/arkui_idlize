@@ -373,6 +373,14 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     writeInterface(clazz: MaterializedClass, writer: LanguageWriter) {
         const decl: idl.IDLInterface = clazz.decl
+        const superClass = clazz.superClass
+        var superInterfaces: string[] | undefined = undefined
+        if (superClass) {
+            // TBD: properly substitute type arguments
+            const generics = superClass.typeArguments ? superClass.typeArguments.map(it => idl.isNamedNode(it) ? it.name : "Unknown") : undefined
+            const superClassName = superClass.name + (generics ? `<${generics.join(", ")}>` : "")
+            superInterfaces = [superClassName]
+        }
         writer.writeInterface(this.mangle(decl.name), () => {
             writer.makeStaticBlock(() => {
                 for (const p of decl.properties.filter(p => p.isStatic)) {
@@ -400,7 +408,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (allowNamedOverloads(this.library.language)) {
                 this.writeNamedOverloadsGroups(decl.methods, writer)
             }
-        }, undefined, clazz.generics?.map(sanitizeGenerics))
+        }, superInterfaces, clazz.generics?.map(sanitizeGenerics))
         if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
             writer.writeLines([
                 `export default ${decl.name}`
