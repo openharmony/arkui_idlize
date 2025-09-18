@@ -80,7 +80,7 @@ interface GlobalScope_ohos_font {
 
 [Entity=Class]
 interface GlobalScope_ohos_measure_utils {
-    static number measureText(MeasureOptions options);
+    static f64 measureText(MeasureOptions options);
     static SizeOptions measureTextSize(MeasureOptions options);
 };
 
