@@ -146,6 +146,7 @@ class ModifiersFileVisitor {
         }
         importsCollector.addFeature("AttributeModifier", HandwrittenModule(this.library.language))
         importsCollector.addFeature("AttributeUpdaterFlag", "./AttributeUpdaterFlag")
+        importsCollector.addFeature("PeerNode", "./PeerNode")
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
             role: LayoutNodeRole.COMPONENT,
@@ -234,11 +235,11 @@ class ModifiersFileVisitor {
             )
 
             writer.print(`isUpdater: () => boolean = () => false`)
-            writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
-            writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
+            writer.print(`applyNormalAttribute(instance: Object): void { }`)
+            writer.print(`applyPressedAttribute(instance: Object): void { }`)
+            writer.print(`applyFocusedAttribute(instance: Object): void { }`)
+            writer.print(`applyDisabledAttribute(instance: Object): void { }`)
+            writer.print(`applySelectedAttribute(instance: Object): void { }`)
 
             attributeTypes.forEach(attribute => {
                 writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
@@ -248,9 +249,10 @@ class ModifiersFileVisitor {
             })
 
             writer.writeMethodImplementation(new Method('applyModifierPatch',
-                new MethodSignature(idl.IDLVoidType, [idl.createReferenceType(componentToPeerClass(peer.componentName))], [], [], [], ['peer'])),
+                new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("PeerNode")], [], [], [], ['node'])),
                 writer => {
-                    if (parentSet) writer.print('super.applyModifierPatch(peer)');
+                    if (parentSet) writer.print('super.applyModifierPatch(node)');
+                    writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
                     const statements: IfStatement[] = []
                     attributeTypes.forEach((attribute) => {
                         // TODO: handle overload condition 
