@@ -25,12 +25,14 @@ import {
     parseIDLFile,
     scanInputDirs,
     D,
+    formatInputPaths,
     NativeModuleType,
     inplaceGenerics,
     inplaceNullsAsUndefined,
     inplaceTransformOnSerializeFromConfig,
     StructureNameConvertor,
     convertNode,
+    validatePaths,
 } from "@idlizer/core"
 import {
     linearizeNamespaceMembers,
@@ -39,8 +41,6 @@ import {
 import { loadPeerConfiguration,
     IdlPeerProcessor,
     loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
-    formatInputPaths,
-    validatePaths,
     libohosPredefinedFiles,
     PeerGeneratorConfigurationSchema,
     NativeModule,

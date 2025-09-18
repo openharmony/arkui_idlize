@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@idlizer/core": "2.1.10+devel",
-    "@idlizer/libohos": "2.1.10+devel",
     "@types/node": "^18.0.0",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
@@ -36,7 +35,7 @@
     "clean": "rimraf -g build .rollup.cache lib out",
     "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile:self": "tsc -b . && rollup -c",
-    "compile": "npm run -C ../core compile && npm run -C ../libohos compile && npm run compile:self",
+    "compile": "npm run -C ../core compile && npm run compile:self",
     "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
     "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
     "test": "npm run compile && npm run test:golden:features",

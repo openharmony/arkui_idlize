@@ -14,7 +14,11 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier, generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression, DelegationCall, qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics, PACKAGE_IDLIZE_INTERNAL, isMaterialized } from '@idlizer/core'
+import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier,
+    generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
+    DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
+    qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
+    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary } from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -23,14 +27,10 @@ import {
     MethodSignature,
     NamedMethodSignature
 } from "../LanguageWriters";
-import {
-    LanguageWriter, getInternalClassName,
-    MaterializedClass, MaterializedField, PeerLibrary, LayoutNodeRole
-} from "@idlizer/core"
 import { allowNamedOverloads, allowsOverloads, collapseSameNamedMethods, groupOverloads, OverloadsPrinter } from "./OverloadsPrinter";
 import { ImportsCollector } from "../ImportsCollector"
 import { TargetFile } from "./TargetFile"
-import { createReferenceType, forceAsNamedNode, IDLPointerType, IDLType, IDLVoidType, maybeOptional } from '@idlizer/core/idl'
+import { IDLPointerType, IDLType, maybeOptional } from '@idlizer/core/idl'
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils";
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { NativeModule } from '../NativeModule';

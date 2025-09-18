@@ -14,7 +14,8 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor, PeerMethod, MethodModifier, NativeModuleType, LayoutManager, ETSLanguageWriter, wrapCurrentFileDescription } from '@idlizer/core'
+import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter,
+    PrinterLike, CppConvertor, LayoutManager, ETSLanguageWriter, wrapCurrentFileDescription } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
     makeArkuiModule, makeCallbacksKinds,
@@ -24,14 +25,13 @@ import {
     printRealAndDummyModifiers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
     printBuilderClasses,
-    TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
+    printBridgeCcCustom, printBridgeCcGenerated,
     printBridgeHeaderCustom, printBridgeHeaderGenerated, printKotlinCInteropDefFile,
     printDeclarations, printEnumsImpl, printManagedCaller,
     NativeModule, printArkUILibrariesLoader,
-    printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions,
+    printCJPredefinedNativeFunctions,
     printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule,
     printTSPredefinedEmptyNativeModule, printGlobal, writeFile, writeIntegratedFile, install,
-    copyDir,
     ModifierFileOptions,
     MultiFileModifiersVisitor,
     MultiFileModifiersVisitorState,
@@ -52,10 +52,7 @@ import {
     createSerializerPrinter,
     makeCSerializers,
     createDeserializeAndCallPrinter,
-    Printer,
-    printTSTypeChecker,
     printArkTSTypeChecker,
-    ScopeLibrarayLayout,
     copyFile
 } from "@idlizer/libohos"
 import { createPeersPrinter } from "./printers/PeersPrinter"
@@ -65,8 +62,6 @@ import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
 import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
-import { printETSDeclaration } from "./printers/StsComponentsPrinter"
-import { platform } from "node:os";
 import { ARKGEN_ROOT } from "./config"
 
 const resolveExternal = () => {

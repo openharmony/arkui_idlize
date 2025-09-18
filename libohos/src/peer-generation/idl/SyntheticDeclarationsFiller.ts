@@ -1,5 +1,6 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized, PeerLibrary, PACKAGE_IDLIZE_INTERNAL, currentModule, isInCurrentModule, generatorConfiguration, Language, StructureNameConvertor } from "@idlizer/core";
+import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized,
+    PeerLibrary, PACKAGE_IDLIZE_INTERNAL, isInCurrentModule, StructureNameConvertor } from "@idlizer/core";
 import { DependenciesCollector } from "./IdlDependenciesCollector";
 import { componentToPeerClass, componentToStyleClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';

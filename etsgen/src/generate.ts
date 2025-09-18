@@ -19,10 +19,10 @@ import {
     collapseTypes,
     filterRedundantAttributesOverloads,
     filterRedundantMethodsOverloads,
-    flattenUnionType,
     generateSyntheticFunctionName,
     generateSyntheticIdlNodeName,
     IDLFile,
+    InteropModuleType,
     Language,
     nameEnumValues,
     PeerLibrary,
@@ -34,7 +34,6 @@ import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { ETSVisitorConfig } from "./config"
-import { NativeModule } from "@idlizer/libohos"
 
 const MaxSyntheticTypeLength = 60
 
@@ -207,7 +206,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
             return file
         })
     })
-    return new PeerLibrary(Language.ARKTS, NativeModule.Interop)
+    return new PeerLibrary(Language.ARKTS, InteropModuleType)
 }
 
 function adjustExports(library: IDLSuperFile[], config: ETSVisitorConfig): void {

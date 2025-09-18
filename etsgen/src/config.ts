@@ -16,8 +16,8 @@
 import {
     ConfigTypeInfer,
     D,
+    parseConfigFiles,
 } from "@idlizer/core";
-import { parseConfigFiles } from "@idlizer/libohos";
 import { dirname, join } from "node:path";
 
 const T = {

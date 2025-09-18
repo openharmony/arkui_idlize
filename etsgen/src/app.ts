@@ -15,9 +15,10 @@
 import { createCommand } from "commander"
 import {
     findVersion,
-    scanInputDirs
+    formatInputPaths,
+    scanInputDirs,
+    validatePaths
 } from "@idlizer/core"
-import { formatInputPaths, validatePaths } from "@idlizer/libohos"
 import { generateFromSts } from "./generate"
 import { join, resolve } from "node:path"
 import { cpSync } from "node:fs"

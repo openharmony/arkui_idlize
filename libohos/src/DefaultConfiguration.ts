@@ -13,10 +13,7 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
 import {
-    ConfigSchema,
     ConfigTypeInfer,
     CoreConfigurationSchema,
     DefaultIDLLinterOptions,
@@ -24,8 +21,8 @@ import {
     IDLLinterOptions,
     isDefined,
     Language,
+    parseConfigFiles,
 } from "@idlizer/core";
-import { mergeJSONs } from "./configMerge";
 import { D } from "@idlizer/core";
 
 const T = {
@@ -121,25 +118,6 @@ export function expandPeerGeneratorConfiguration(data: PeerGeneratorConfiguratio
 
 function isWhole(methods: string[]): boolean {
     return methods.includes("*")
-}
-
-function parseConfigFile(configurationFile: string): any {
-    if (!fs.existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
-
-    const data = fs.readFileSync(path.resolve(configurationFile)).toString()
-    return JSON.parse(data)
-}
-
-export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles: string[]): T {
-    const json = mergeJSONs(
-        configurationFiles.map(parseConfigFile),
-        schema
-    )
-    const result = schema.validate(json)
-    if (!result.success()) {
-        throw new Error("Configuration is not valid!\n" + result.error() + '\n')
-    }
-    return result.unwrap()
 }
 
 export function loadPeerConfiguration(configurationFiles: string[]): PeerGeneratorConfiguration {

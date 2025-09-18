@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ConfigSchema, inspectSchema } from "@idlizer/core"
+import { ConfigSchema, inspectSchema } from "./configDescriber"
 
 function mergeJSON(a: unknown, b: unknown, path: string[], schema: ConfigSchema<any>): unknown {
     if (a === undefined && b !== undefined) {

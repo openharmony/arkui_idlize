@@ -14,8 +14,7 @@
  */
 
 import * as path from "node:path"
-import { ConfigTypeInfer, CoreConfigurationSchema, D } from "@idlizer/core";
-import { parseConfigFiles } from "@idlizer/libohos";
+import { ConfigTypeInfer, CoreConfigurationSchema, D, parseConfigFiles } from "@idlizer/core";
 import  { IDLVisitorConfigurationSchema } from "./IDLVisitorConfig"
 
 export const DTSGEN_ROOT = path.join(path.dirname(require.resolve('@idlizer/dtsgen')), '..')

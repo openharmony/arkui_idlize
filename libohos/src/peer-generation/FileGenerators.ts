@@ -14,16 +14,13 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { IndentedPrinter, camelCaseToUpperSnakeCase, Language, PeerLibrary, createLanguageWriter, CppConvertor, PrimitiveTypesInstance, LibraryInterface } from "@idlizer/core"
-import { Method, MethodSignature, NamedMethodSignature, PrinterLike } from "./LanguageWriters"
-import { CppLanguageWriter, LanguageWriter } from "@idlizer/core";
+import { IndentedPrinter, Language, PeerLibrary, createLanguageWriter, LibraryInterface } from "@idlizer/core"
+import { PrinterLike } from "./LanguageWriters"
+import { LanguageWriter } from "@idlizer/core";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
-import { ImportsCollector } from "./ImportsCollector"
 import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/CallbacksPrinter"
-import { SourceFile } from "./printers/SourceFile"
-import { NativeModule } from "./NativeModule"
 import { generateStructs } from "./printers/StructPrinter"
-import { createCSerializerPrinter, createSerializerPrinter } from "./printers/SerializerPrinter";
+import { createCSerializerPrinter } from "./printers/SerializerPrinter";
 import { collectPeersForFile } from "./PeersCollector";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"

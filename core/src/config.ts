@@ -13,7 +13,11 @@
  * limitations under the License.
  */
 
-import { D, ConfigTypeInfer } from "./configDescriber"
+import * as fs from "fs"
+import * as path from "path"
+
+import { ConfigSchema, D, ConfigTypeInfer } from "./configDescriber"
+import { mergeJSONs } from "./configMerge";
 import { capitalize } from "./util"
 
 const T = {
@@ -126,4 +130,23 @@ export function getHookMethod(className: string, methodName: string): HookMethod
         replaceImplementation: hook.replaceImplementation ?? true
     }
     return method
+}
+
+function parseConfigFile(configurationFile: string): any {
+    if (!fs.existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
+
+    const data = fs.readFileSync(path.resolve(configurationFile)).toString()
+    return JSON.parse(data)
+}
+
+export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles: string[]): T {
+    const json = mergeJSONs(
+        configurationFiles.map(parseConfigFile),
+        schema
+    )
+    const result = schema.validate(json)
+    if (!result.success()) {
+        throw new Error("Configuration is not valid!\n" + result.error() + '\n')
+    }
+    return result.unwrap()
 }
