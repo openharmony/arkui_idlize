@@ -14916,8 +14916,8 @@ declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
  * @since 12
  */
 // declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
-interface SymbolGlyphModifier {
-  value: string
+class SymbolGlyphModifier {
+  constructor(src?: Resource);
 }
 
 /**
