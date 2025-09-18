@@ -689,10 +689,23 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return node
     }
 
+    private isBuilderFuncImpl(decl:arkts.FunctionDeclaration): boolean {
+        if (this.mode !== 'arkoala') {
+            return false
+        }
+        const func = decl.function!
+        return !!func.id?.name.endsWith('Impl')
+            && decl.annotations.some(a => arkts.isIdentifier(a.expr) && a.expr.name === 'memo')
+            && func.params.length === 2
+    }
+
     visitFunctionDeclaration(node: arkts.FunctionDeclaration): arkts.FunctionDeclaration {
         const func = node.function!
         if (func.id?.name && this.config.DeletedDeclarations.includes(func.id.name)) {
             this.traceDeleted('DeletedDeclarations')
+            return node
+        }
+        if (this.isBuilderFuncImpl(node)) {
             return node
         }
         const { set: paramsSet, attrs: typeParametersAttrs, parameters } = this.extractTypeParameters(func.typeParams)
@@ -848,6 +861,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
         return `${" ".repeat(4 * this.indentation) + node.constructor.name} ${name}`
     }
 
+    private isNewShapeBuilderMethod(decl:arkts.MethodDefinition | arkts.ClassProperty, parentName:string) {
+        if (!parentName.endsWith('Attribute')) {
+            return false
+        }
+        parentName = parentName.substring(0, parentName.length - 'Attribute'.length)
+        return this.mode === 'arkoala' && decl.id?.name === `set${parentName}Options`
+    }
+
     private processBody(scopeName: string, members: readonly arkts.AstNode[] | undefined): {
         properties: idl.IDLProperty[],
         methods: idl.IDLMethod[],
@@ -865,6 +886,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     this.traceDeleted('DeletedMembers')
                     return
                 }
+                if (this.isNewShapeBuilderMethod(member, scopeName)) {
+                    return
+                }
                 properties.push(this.serializeClassProperty(member))
                 const found = member.annotations.find(ann => arkts.isIdentifier(ann.expr) && ann.expr.name === 'memo')
                 if (found) {
@@ -875,6 +899,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.isMethodDefinition(member)) {
                 if (this.shouldNotProcessMember(scopeName, member.id!.name)) {
                     this.traceDeleted('DeletedMembers')
+                    return
+                }
+                if (this.isNewShapeBuilderMethod(member, scopeName)) {
                     return
                 }
                 if (member.isGetter) {

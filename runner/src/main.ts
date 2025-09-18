@@ -18,6 +18,7 @@ import { Command } from "commander"
 import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CONFIG, SCRAPER_CWD, WORKING_DIR } from "./shared"
 import { commands } from "./commands"
 import { join } from "node:path"
+import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
 
 /////////////////////////////////////////////////
 
@@ -99,6 +100,12 @@ function sdkM3(preparedSdk12: string, absolutePreparedSdk12: string, options: Ab
     commands.install({ sourceDir: absoluteSdk, installPath: absolutePreparedSdk12 })
 }
 
+///
+
+function sdkNewShape(path:string) {
+    transformBuilderFunctions(path)
+}
+
 /////////////////////////////////////////////////
 
 function main(argv: string[]) {
@@ -121,6 +128,10 @@ function main(argv: string[]) {
     program.command('sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>')
         .description('prepares sdk')
         .action(sdk)
+
+    program.command('sdk-new-shape <path>')
+        .description('creates new sdk')
+        .action(sdkNewShape)
 
     program.parse(argv, { from: 'user' })
 }

@@ -1,6 +1,7 @@
 import * as fs from "fs"
 import * as path from "path"
 import { ABSOLUTE_SDK_DIR } from "../shared"
+import { transformBuilderFunctions } from "../tools/builderFuncsTransformer"
 
 export interface AbsoluteSdkConfig {
     preparedSdk12: string
