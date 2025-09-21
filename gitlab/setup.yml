@@ -104,3 +104,16 @@ download sdk:
         - sdk-patched
         - sdk-patched-arkts
         expire_in: 1 day
+
+# download external sdk:
+#     stage: build
+#     tags:
+#     - idlize-ci
+#     - koala-ci
+#     script:
+#     - !reference [.npm, script]
+#     - npm run -C external download:sdk
+#     artifacts:
+#         paths:
+#         - external/sdk-patched
+#         expire_in: 1 day
