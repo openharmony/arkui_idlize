@@ -8,10 +8,10 @@ test arktscgen:
   script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    # TBD: use needs: download absolute sdk
-    - npm run -C external download:sdk
     - npm run -C external absolute:sdk
     - npm run all --prefix arktscgen
+    - npm run compile --prefix external/ui2abc/fast-arktsc
+    - npm run compile --prefix external/ui2abc/memo-plugin-ng
     - npm run build --prefix external/arkoala-arkts
     - npm run compile --prefix external/incremental/compat
     - npm run compile --prefix external/incremental/common
@@ -19,8 +19,8 @@ test arktscgen:
     - npm run build --prefix external/incremental/harness
     - npm run test --prefix external/ui2abc/libarkts
     - npm run test:all --prefix external/ui2abc/memo-plugin-ng
-  # needs:
-  #   - download external sdk
+  needs:
+    - download external sdk
 
 pack idlize-arktscgen:
   extends:
