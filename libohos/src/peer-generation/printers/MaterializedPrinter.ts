@@ -335,8 +335,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                             names.push(parameter.name)
                         })
                         this.printer.writeMethodImplementation(
-                            new Method(name,new NamedMethodSignature(idl.IDLVoidType, types, names)),
-                            () => {}
+                            new Method(name,new NamedMethodSignature(decl.returnType, types, names)),
+                            w => {
+                                w.writeStatement(w.makeThrowError("Not implemented!"))
+                            }
                         )
                     }
                 }

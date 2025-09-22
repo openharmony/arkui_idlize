@@ -114,8 +114,8 @@
         "DrawModifier.drawBehind": "ExtraMethod",
         "DrawModifier.drawContent": "ExtraMethod",
         "DrawModifier.drawFront": "ExtraMethod",
-        "CustomSpan.onMeasure": "",
-        "CustomSpan.onDraw": ""
+        "CustomSpan.onMeasure": "ExtraMethod",
+        "CustomSpan.onDraw": "ExtraMethod"
     },
     "NameReplacements": {
         "common.d.ts": [
