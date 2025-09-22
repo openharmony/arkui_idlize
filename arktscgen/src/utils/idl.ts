@@ -38,6 +38,7 @@ import {
     IndentedPrinter,
     isContainerType,
     isInterface,
+    isOptionalType,
     isPrimitiveType,
     isReferenceType,
     LanguageExpression,
@@ -213,6 +214,19 @@ export function innerTypeIfContainer(node: IDLType): IDLType {
         return innerType(node)
     }
     return node
+}
+
+export function innerTypeCommon(type: IDLType): IDLType {
+    if (isContainerType(type)) {
+        if (IDLContainerUtils.isSequence(type)) {
+            return type.elementType[0]
+        }
+
+    } else if (isOptionalType(type)) {
+        return type.type
+    }
+
+    return type
 }
 
 export function makeMethod(
