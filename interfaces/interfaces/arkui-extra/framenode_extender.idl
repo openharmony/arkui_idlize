@@ -36,7 +36,7 @@ interface FrameNodeExtender {
   static String getInspectorInfo(FrameNode peer);
   static void invalidate(FrameNode peer);
   static void disposeTree(FrameNode peer);
-  static void setCrossLanguageOptions(FrameNode peer, boolean options);
+  static boolean setCrossLanguageOptions(FrameNode peer, boolean options);
   static boolean getCrossLanguageOptions(FrameNode peer);
   static void setMeasuredSize(FrameNode peer, Size size);
   static void setLayoutPosition(FrameNode peer, Position position);
