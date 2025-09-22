@@ -52,7 +52,6 @@ import {
     createSerializerPrinter,
     makeCSerializers,
     createDeserializeAndCallPrinter,
-    printArkTSTypeChecker,
     copyFile
 } from "@idlizer/libohos"
 import { createPeersPrinter } from "./printers/PeersPrinter"
@@ -167,7 +166,6 @@ export function generateArkoalaFromIdl(config: {
     dumpSerialized: boolean,
     callLog: boolean,
     verbose: boolean,
-    useTypeChecker: boolean,
     attributeModifierHooks: boolean,
 },
     peerLibrary: PeerLibrary) {
@@ -200,7 +198,7 @@ export function generateArkoalaFromIdl(config: {
             return data
         return []
     }
-    const installedFiles = ETSLanguageWriter.useTypeChecker(config.useTypeChecker, () => install(
+    const installedFiles = install(
         arkoala.managedDir,
         peerLibrary,
         [
@@ -219,7 +217,7 @@ export function generateArkoalaFromIdl(config: {
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
             )
         ]
-    ))
+    )
 
     if (peerLibrary.language === Language.ARKTS) {
         install(
@@ -227,7 +225,6 @@ export function generateArkoalaFromIdl(config: {
             peerLibrary,
             [
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
-                printArkTSTypeChecker,
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )

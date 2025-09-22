@@ -154,7 +154,6 @@ with open(f"./{cur_test_case}/src/panda/compat.ts", 'w') as file:
 components_ts_contents = '''
 export { ##__INSERT_UPPER_CASE_NAME_HERE__##NativeModule }
     from '../../generated/arkts/##__INSERT_UPPER_CASE_NAME_HERE__##NativeModule';
-export { TypeChecker } from '../../generated/arkts/peers/type_check';
 '''.strip().replace('##__INSERT_UPPER_CASE_NAME_HERE__##', cur_test_case.upper())
 with open(f"./{cur_test_case}/src/panda/components.ts", 'w') as file:
     file.write(components_ts_contents)

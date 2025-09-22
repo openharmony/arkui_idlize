@@ -260,7 +260,6 @@ export function solve(root: string, options:AppConfig) {
     startScript += '  --arkts-extension .ets \\\n'
     startScript += '  --use-memo-m3 \\\n'
     startScript += '  --language arkts \\\n'
-    startScript += '  --no-type-checker \\\n'
     startScript += '  --reference-names ../../arkgen/generation-config/references/ets-sdk.refs.json \\\n'
     startScript += '  --options-file main-config.json \\\n'
     startScript += '  --only-integrated \\\n'

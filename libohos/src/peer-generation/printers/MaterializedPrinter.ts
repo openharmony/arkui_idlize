@@ -654,11 +654,6 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
 }
 
 class ArkTSMaterializedFileVisitor extends TSMaterializedFileVisitor {
-    protected collectImports(imports: ImportsCollector): void {
-        super.collectImports(imports)
-        collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.collector)
-    }
-
     convertToPropertyType(field: MaterializedField): IDLType {
         return maybeOptional(field.field.type, field.isNullableOriginalTypeField)
     }

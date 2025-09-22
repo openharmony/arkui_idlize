@@ -415,7 +415,6 @@ export function printSerializerImports(library: PeerLibrary, language: Language,
             collector.addFeature('Finalizable', '@koalaui/interop')
             collector.addFeatures(["NativeBuffer", "runtimeType"], "@koalaui/interop")
         } else {
-            collectDeclItself(library, idl.createReferenceType("TypeChecker"), collector)
             collector.addFeatures(["KUint8ArrayPtr", "NativeBuffer", "InteropNativeModule"], "@koalaui/interop")
         }
         if (library.name === 'arkoala') {

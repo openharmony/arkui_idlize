@@ -189,13 +189,6 @@ export class ETSLambdaExpression extends LambdaExpression {
 //                           UTILS                            //
 ////////////////////////////////////////////////////////////////
 
-export function generateTypeCheckerName(typeName: string): string {
-    return "is" + typeName
-        .replaceAll('[]', 'BracketsArray')
-        .replaceAll(/<.*$/g, '') // delete type arguments
-        .replaceAll('.', '_')
-}
-
 export function generateEnumToNumericName(entry: idl.IDLEntry): string {
     const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_ToNumeric`
@@ -204,17 +197,6 @@ export function generateEnumToNumericName(entry: idl.IDLEntry): string {
 export function generateEnumFromNumericName(entry: idl.IDLEntry): string {
     const typeName = idl.getQualifiedName(entry, "namespace.name").split('.').join('_')
     return `${typeName}_FromNumeric`
-}
-
-export function makeArrayTypeCheckCall(
-    valueAccessor: string,
-    typeName: string,
-    writer: LanguageWriter) {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(typeName),
-        [writer.makeString(valueAccessor)
-    ])
 }
 
 ////////////////////////////////////////////////////////////////
@@ -257,18 +239,12 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} as ${type}`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        if (ETSLanguageWriter.isUseTypeChecker) {
-            return this.makeMethodCall('TypeChecker', generateEnumToNumericName(enumEntry), [value])
-        }
         return idl.isStringEnum(enumEntry)
             ? this.makeMethodCall(value.asString(), 'getOrdinal', [])
             : this.makeMethodCall(value.asString(), 'valueOf', [])
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)
-        if (ETSLanguageWriter.isUseTypeChecker) {
-            return this.makeMethodCall('TypeChecker', generateEnumFromNumericName(enumEntry), [value])
-        }
         return idl.isStringEnum(enumEntry)
             ? this.makeString(`${enumName}.values()[${value.asString()}]`)
             : this.makeMethodCall(enumName, 'fromValue', [value])
@@ -323,14 +299,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeNaryOp('==', args)
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
-        // work around ArkTS compiler bugs
-        if (idl.IDLContainerUtils.isSequence(type)) {
-            const arrayTypeName = this.arrayConvertor.convert(type)
-            return `TypeChecker.${generateTypeCheckerName(arrayTypeName)}(${value})`
-        }
-        if (this.getNodeName(type) === "DragPreviewMode") {
-            return `TypeChecker.isDragPreviewMode(${value})`
-        }
         return `${value} instanceof ${this.getNodeName(type)}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {
@@ -343,18 +311,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
     }
     override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
 
-    override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
-        if (!members || members.length === 0) {
-            throw new Error("At least one member needs to provided to pass it to TypeChecker!")
-        }
-        const prop = members[0]
-        // Use the same typeInstanceOf<T>(...) method to compile the ETS code by two compilers ArkTS and TS
-        return this.makeString(`TypeChecker.typeInstanceOf<${this.getNodeName(type)}>(value, "${prop}")`)
-    }
-
-    makeTypeCast(value: LanguageExpression, type: idl.IDLType, options?: MakeCastOptions): LanguageExpression {
-        return this.makeString(`TypeChecker.typeCast<${this.getNodeName(type)}>(value)`)
-    }
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         if (node === idl.IDLI64Type)
             return this.makeMethodCall(value.asString(), `toLong`, [])
@@ -368,38 +324,4 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return this.makeMethodCall(value.asString(), `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
-
-    public static _isUseTypeChecker: boolean = true
-    public static get isUseTypeChecker(): boolean { return this._isUseTypeChecker }
-    public static useTypeChecker<T>(isUseTypeChecker: boolean, op: () => T): T {
-        const prevIsUse = this.isReferenceRelativeToNamespaces
-        this._isUseTypeChecker = isUseTypeChecker
-        const result = op()
-        this._isUseTypeChecker = prevIsUse
-        return result
-    }
-}
-
-function makeInterfaceTypeCheckerCall(
-    valueAccessor: string,
-    interfaceName: string,
-    allFields: string[],
-    duplicates: Set<string>,
-    writer: LanguageWriter,
-): LanguageExpression {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(interfaceName), [writer.makeString(valueAccessor),
-        ...allFields.map(it => {
-            return writer.makeString(duplicates.has(it) ? "true" : "false")
-        })
-    ])
-}
-
-export function makeEnumTypeCheckerCall(valueAccessor: string, enumName: string, writer: LanguageWriter): LanguageExpression {
-    return writer.makeMethodCall(
-        "TypeChecker",
-        generateTypeCheckerName(enumName),
-        [writer.makeString(valueAccessor)]
-    )
 }

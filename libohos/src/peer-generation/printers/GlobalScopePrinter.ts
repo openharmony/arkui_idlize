@@ -22,7 +22,6 @@ import { PrinterResult } from "../LayoutManager"
 import { writePeerMethod } from "./PeersPrinter"
 import { NativeModule } from "../NativeModule"
 import { GlobalScopePeerName, idlFreeMethodToLegacy, mangledGlobalScopeName } from "../GlobalScopeUtils"
-import { importTypeChecker } from "./TypeCheckPrinter"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration"
 
 export function printGlobal(library: PeerLibrary): PrinterResult[] {
@@ -199,9 +198,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             'KPointer',
             'toPeerPtr',
         ], '@koalaui/interop')
-        if (library.language === idl.Language.ARKTS) {
-            importTypeChecker(library, collector)
-        }
         if (library.language === idl.Language.TS) {
             collector.addFeatures(['runtimeType', 'isInstanceOf'], '@koalaui/interop')
         }

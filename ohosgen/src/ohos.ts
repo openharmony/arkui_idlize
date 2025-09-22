@@ -35,7 +35,6 @@ import {
     createCallbackKindPrinter,
     createDeserializeAndCallPrinter,
     createGeneratedNativeModulePrinter,
-    printArkTSTypeChecker,
     createInterfacePrinter,
     TargetFile,
 } from '@idlizer/libohos'
@@ -76,7 +75,6 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: b
                 createSerializerPrinter(peerLibrary.language, ""),
                 createGeneratedNativeModulePrinter(NativeModule.Generated)),
             createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
-            ...spread(!useOst && peerLibrary.language === Language.ARKTS, printArkTSTypeChecker),
         ]
     )
     let nativeFiles: Map<TargetFile, string> | undefined

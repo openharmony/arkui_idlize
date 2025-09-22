@@ -134,7 +134,6 @@ export class TsLayout extends CommonLayoutBase {
 
 export class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
@@ -191,10 +190,6 @@ export class ArkTsLayout extends CommonLayoutBase {
 }
 
 export class ArkTSComponentsLayout extends ArkTsLayout {
-    protected arkTSInternalPaths = new Map<string, string>([
-        ["TSTypeChecker", getGeneratedFilePath("ts/type_check")],
-        ["ArkTSTypeChecker", getGeneratedFilePath("arkts/type_check")],
-    ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (target.node.name === NativeModule.Generated.name)
             return getGeneratedFilePath(`arkts/${NativeModule.Generated.name}`)
@@ -204,7 +199,6 @@ export class ArkTSComponentsLayout extends ArkTsLayout {
 
 export class CJLayout extends CommonLayoutBase {
     protected CJInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
         ["Serializer", "Serializer"],
         ["Deserializer", "Deserializer"],
         ["CallbackKind", "CallbackKind"],

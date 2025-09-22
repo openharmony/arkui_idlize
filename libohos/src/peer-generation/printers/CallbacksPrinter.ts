@@ -148,9 +148,6 @@ class DeserializeCallbacksVisitor {
             }
         }
 
-        if (this.writer.language === Language.ARKTS) {
-            collectDeclItself(this.library, idl.createReferenceType("TypeChecker"), this.imports)
-        }
 
         if (this.writer.language === Language.KOTLIN) {
             this.imports.addFeatures([

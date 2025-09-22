@@ -1,1 +1,1 @@
-export { APPLICATIONNativeModule, TypeChecker } from "@application.application.INTERNAL";
+export { APPLICATIONNativeModule } from "@application.application.INTERNAL";

@@ -53,7 +53,6 @@ export function idl2peer({
             ['--generator-target', arkgenTarget],
             ['--language', language],
             '--only-integrated',
-            '--no-type-checker',
             '--use-memo-m3',
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],

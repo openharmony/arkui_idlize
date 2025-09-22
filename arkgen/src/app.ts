@@ -100,7 +100,6 @@ export function arkgen(argv:string[]) {
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--use-component-optional', 'Make all component\'s properties nullable')
         .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
-        .option('--no-type-checker', "Use TypeChecker or generate ArkTS specific syntax")
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
 
@@ -193,7 +192,6 @@ export function arkgen(argv:string[]) {
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
-                useTypeChecker: options.typeChecker ?? true,
                 attributeModifierHooks: options.attributeModifierHooks ?? false
             }, idlLibrary)
         }

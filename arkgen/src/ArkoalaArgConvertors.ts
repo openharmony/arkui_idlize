@@ -24,7 +24,6 @@ export class ArkoalaInterfaceConvertor extends InterfaceConvertor {
             return writer.instanceOf(value, this.idlType)
         if (this.declaration.name === "CancelButtonSymbolOptions") {
             if (writer.language === Language.ARKTS) {
-                //TODO: Need to check this in TypeChecker
                 return this.discriminatorFromFields(value, writer, this.declaration.properties, it => it.name, it => it.isOptional)
             } else {
                 return writer.makeHasOwnProperty(value, "icon", "SymbolGlyphModifier")
