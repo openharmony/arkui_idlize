@@ -23,9 +23,7 @@
   },
   "files": [
     "build/lib/**/*.js",
-    "build/lib/**/*.d.ts",
-    "webidl2.js/dist/**/*.js",
-    "webidl2.js/package.json"
+    "build/lib/**/*.d.ts"
   ],
   "engines": {
     "npm": ">= 8",

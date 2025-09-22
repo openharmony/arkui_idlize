@@ -1,7 +1,6 @@
 import { EOL } from "node:os";
 import * as idl from "../idl"
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
-import { IDLTokenInfoMap } from "./deserialize";
 
 export enum IDLValidationDiagnosticsCode {
     INVALID_EXTENDED_ATTRIBUTE = 1000,
@@ -94,8 +93,7 @@ export class IDLLinter {
     constructor(
         protected file: idl.IDLFile,
         protected resolver: ReferenceResolver,
-        protected options: IDLLinterOptions,
-        protected info?: IDLTokenInfoMap
+        protected options: IDLLinterOptions
     ) {}
 
     ///
@@ -134,14 +132,12 @@ export class IDLLinter {
             return
         for (const attr of entry.extendedAttributes) {
             if (!validAttributes.includes(attr.name)) {
-                const tokens = this.info?.get(attr)
-                const ident = tokens?.name
                 const file = idl.getFileFor(entry)
                 this.diagnostics.push({
                     code: IDLValidationDiagnosticsCode.INVALID_EXTENDED_ATTRIBUTE,
                     file: file?.fileName ?? '',
                     message: `Invalid attribute '${attr.name}'`,
-                    position: [ident?.position ?? 0, attr.name.length]
+                    position: [0, attr.name.length]
                 })
             }
         }
@@ -158,16 +154,11 @@ export class IDLLinter {
                 hasNumber = true
         }
         if (hasNumber && hasString) {
-            const tokens = this.info?.get(entry)
-            const ident = tokens?.name
             this.diagnostics.push({
                 code: IDLValidationDiagnosticsCode.ENUM_IS_NOT_CONSISTENT,
                 file: fileName ?? '',
                 message: "Enum includes both string and number values",
-                position: [
-                    ident?.position ?? 0,
-                    ident?.value.length ?? 0
-                ]
+                position: [0, 0]
             })
         }
     }
@@ -181,19 +172,11 @@ export class IDLLinter {
             const parentFile = idl.getFileFor(reference)!
             const parentNamespace = idl.fetchNamespaceFrom(reference)
             const scopeName = parentNamespace ? idl.getFQName(parentNamespace) : idl.getPackageName(parentFile)
-            let current: idl.IDLNode | undefined = reference
-            let tokens = this.info?.get(current)
-            let location = tokens?.base
-            while (current !== undefined && tokens === undefined) {
-                current = current.parent
-                tokens = this.info?.get(current)
-                location = tokens?.name
-            }
             this.diagnostics.push({
                 code: IDLValidationDiagnosticsCode.REFERENCE_IS_NOT_RESOLVED,
                 file: parentFile.fileName ?? '',
                 message: `Can not resolve reference '${reference.name}' defined in scope '${scopeName}'`,
-                position: [location?.position ?? 0, location?.value?.length ?? 0]
+                position: [0, 0]
             })
         }
     }
@@ -311,13 +294,10 @@ function prettyPrintErrors(errors:IDLLinterDiagnosticsSummary[], text:string) {
     }).join(EOL)
 }
 
-export function verifyIDLLinter(file: idl.IDLFile, resolver: ReferenceResolver, options: IDLLinterOptions, info?:IDLTokenInfoMap): true {
-    const result = new IDLLinter(file, resolver, options, info).visit()
+export function verifyIDLLinter(file: idl.IDLFile, resolver: ReferenceResolver, options: IDLLinterOptions): true {
+    const result = new IDLLinter(file, resolver, options).visit()
     if (result.length) {
-        const isTTY = Boolean(process.stdout.isTTY)
-        const errorMessage = info
-            ? isTTY ? prettyPrintErrors(result, file.text ?? '') : printErrors(result, file.text ?? '')
-            : printErrorWithoutLocation(result)
+        const errorMessage = printErrorWithoutLocation(result)
         throw new IDLLinterError(errorMessage, result.length)
     }
     return true

@@ -106,12 +106,6 @@ export interface Range {
     end: Position
 }
 
-export function commonRange(range1: Range, range2: Range): Range {
-    let start = minPosition(range1.start, range2.start)
-    let end = maxPosition(range1.end, range2.end)
-    return {start, end}
-}
-
 /**
  * Position in a document.
  * LSP note: In LSP positions are zero-based (that needs conversion) and UTF-16 by default.
@@ -126,30 +120,6 @@ export interface Position {
 	 * Character offset on a line in a document (one-based) in UTF-16 code points.
 	 */
 	character: number;
-}
-
-export function comparePositions(a: Position, b: Position): number {
-    if (a.line < b.line) {
-        return -1
-    }
-    if (a.line > b.line) {
-        return 1
-    }
-    if (a.character < b.character) {
-        return -1
-    }
-    if (a.character > b.character) {
-        return 1
-    }
-    return 0
-}
-
-export function minPosition(a: Position, b: Position): Position {
-    return comparePositions(a, b) == -1 ? a : b
-}
-
-export function maxPosition(a: Position, b: Position): Position {
-    return comparePositions(a, b) == 1 ? a : b
 }
 
 /**

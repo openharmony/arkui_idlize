@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import * as webidl2 from "webidl2"
-import { indentedBy, isDefined, stringOrNone, throwException } from "./util";
+import { indentedBy, isDefined, stringOrNone } from "./util";
 import { generateSyntheticIdlNodeName } from "./peer-generation/idl/common";
 import { IDLKeywords } from "./languageSpecificKeywords";
 import { Location } from "./diagnostictypes";
@@ -1868,12 +1867,6 @@ export function toIDLString(file: IDLFile, options: Partial<IDLPrintOptions>): s
         })
         .filter(isDefined)
     ).join("\n")
-}
-
-// throws validation error
-export function verifyIDLString(source: string): true {
-    webidl2.validate(webidl2.parse(source))
-    return true
 }
 
 export function hasExtAttribute(node: IDLNode, attribute: IDLExtendedAttributes): boolean {

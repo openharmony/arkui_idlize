@@ -35,8 +35,7 @@ import {
 } from "@idlizer/core"
 import {
     IDLFile,
-    toIDLString,
-    verifyIDLString
+    toIDLString
 } from "@idlizer/core/idl"
 import { IDLVisitor } from "./IDLVisitor"
 import { runPreprocessor } from "./preprocessor"
@@ -192,7 +191,7 @@ function main() {
                     }
                     fs.writeFileSync(outFile, generated)
                     if (options.verifyIdl) {
-                        verifyIDLString(generated)
+                        verifyIDLLinter(parseIDLFile(generated), idlLibrary, DefaultIDLLinterOptions)
                     }
 
                     if (isAux)

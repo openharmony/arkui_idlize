@@ -50,7 +50,7 @@
     "prepack": "node tools/external-subset.mjs",
     "switch:develop": "node tools/devenv.mjs on",
     "switch:release": "node tools/devenv.mjs off",
-    "upload": "npm run compile && npm run webidl2 && node tools/publish.mjs --tag next",
+    "upload": "npm run compile && node tools/publish.mjs --tag next",
     "release": "npm run compile && npm run compile --prefix ../core && npm run compile --prefix linter && node tools/release.mjs",
     "GENERAL": "#------------------------",
     "compile:self": "tsc && rollup -c",

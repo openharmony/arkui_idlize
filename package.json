@@ -4,7 +4,6 @@
   "version": "2.1.7",
   "description": "idlize hash of head: acf352e",
   "workspaces": [
-    "core/webidl2.js",
     "arkgen",
     "ohosgen/demos/*",
     "ohosgen/tests/*",

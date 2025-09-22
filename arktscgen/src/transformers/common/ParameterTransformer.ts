@@ -14,7 +14,7 @@
  */
 
 import { createUpdatedInterface, createUpdatedMethod, isSequence } from "../../utils/idl"
-import { createFile, IDLEntity, IDLEntry, IDLFile, IDLInterface, IDLMethod, isInterface } from "@idlizer/core"
+import { IDLEntry, IDLFile, IDLInterface, IDLMethod } from "@idlizer/core"
 import { Transformer } from "../Transformer";
 
 export class ParameterTransformer extends Transformer {
