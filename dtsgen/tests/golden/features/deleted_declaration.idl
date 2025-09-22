@@ -1,0 +1,12 @@
+package deleted_declaration;
+[Entity=Interface]
+interface MyInterfaceToDelete {
+};
+[Entity=Class]
+interface MyClassToDelete {
+};
+typedef number MyTypedefToDelete;
+void MyFunctionToDelete();
+dictionary MyEnumToDelete {
+    number VALUE = 0;
+};

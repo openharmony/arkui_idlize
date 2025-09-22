@@ -1,0 +1,20 @@
+package method_literals;
+[Entity=Interface]
+interface Iface {
+    [DtsName="foo", DtsTag="0|value|'my_literal'"]
+    void fooMy_literal();
+    [DtsName="boo", DtsTag="0|value1|'my_literal_1'"]
+    void booMy_literal_1My_literal_2();
+    [DtsName="goo", DtsTag="0|value1|'my_literal'"]
+    void gooMy_literal(String value3);
+    [DtsName="zoo", DtsTag="1|value1|'my_literal'"]
+    void zooMy_literal(String value0, String value3);
+};
+[DtsName="foo", DtsTag="0|value|'my_literal'"]
+void fooMy_literal();
+[DtsName="boo", DtsTag="0|value1|'my_literal_1'"]
+void booMy_literal_1My_literal_2();
+[DtsName="goo", DtsTag="0|value1|'my_literal'"]
+void gooMy_literal(String value3);
+[DtsName="zoo", DtsTag="1|value2|'my_literal'"]
+void zooMy_literal(String value1, String value3);

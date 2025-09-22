@@ -1,0 +1,22 @@
+package classes;
+[Entity=Class]
+interface ClassWithConstructor {
+    constructor();
+};
+[Entity=Class]
+interface ClassWithoutConstructor {
+};
+[Entity=Class]
+interface ClassWithMethods {
+    attribute number field1;
+    attribute number field2;
+    attribute number field3;
+    [Accessor=Getter]
+    attribute number field4;
+    [Accessor=Setter]
+    attribute number field5;
+    number boo();
+    number boo(number value);
+    static void foo();
+    static void foo(number value);
+};

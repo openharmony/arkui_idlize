@@ -1,0 +1,19 @@
+package primitives;
+[Entity=Interface]
+interface Iface {
+    void foo(any value);
+    this foo();
+    void foo(Object value);
+    void foo(number value);
+    void foo(i32 value);
+    void foo(f32 value);
+    void foo(f64 value);
+    void foo(boolean value);
+    void foo(sequence<String> value);
+    void foo(undefined value);
+    void foo(record<String, number> value);
+    void foo(date value);
+    void foo(buffer value);
+    void foo([TypeArguments="String"] Readonly value);
+    void foo((String or undefined) value);
+};

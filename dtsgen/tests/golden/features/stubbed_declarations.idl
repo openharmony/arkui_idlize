@@ -1,0 +1,6 @@
+package stubbed_declarations;
+[Entity=Interface]
+interface MyStubbedDeclaration {
+    attribute number field1;
+    attribute String field2;
+};

@@ -1,0 +1,4 @@
+package default_export_interface;
+[Entity=Interface, DefaultExport]
+interface DefalutExportInterface {
+};

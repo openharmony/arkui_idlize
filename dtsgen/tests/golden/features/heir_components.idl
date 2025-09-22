@@ -1,0 +1,10 @@
+package heir_components;
+import root_components.CommonMethod as CommonMethod;
+[Entity=Interface]
+interface ButtonAttribute: CommonMethod {
+    this label((String or undefined) value);
+};
+[Synthetic]
+callback Callback_Void = void ();
+ButtonAttribute Button(optional Callback_Void content_);
+ButtonAttribute Button(String label, optional Callback_Void content_);

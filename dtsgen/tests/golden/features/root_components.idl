@@ -1,0 +1,17 @@
+package root_components;
+[Entity=Interface]
+interface BaseSpan {
+    this width((number or undefined) value);
+};
+[Entity=Interface]
+interface CommonMethod {
+    this width((number or undefined) value);
+};
+[Entity=Interface]
+interface CommonShapeMethod {
+    this width((number or undefined) value);
+};
+[Entity=Interface]
+interface ScrollableCommonMethod {
+    this width((number or undefined) value);
+};

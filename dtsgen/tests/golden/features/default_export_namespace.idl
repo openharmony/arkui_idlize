@@ -1,0 +1,7 @@
+package default_export_namespace;
+[DefaultExport]
+namespace Namespace {
+    [Entity=Interface]
+    interface InterfaceInsideNamespace {
+    };
+};

@@ -1,0 +1,4 @@
+package package_to_delete;
+[Entity=Interface]
+interface InterfaceInDeletedPackage {
+};

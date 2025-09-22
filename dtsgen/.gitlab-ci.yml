@@ -1,0 +1,14 @@
+dtsgen golden:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs:
+  - build idlize
+  - build external
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+    - cd $CI_PROJECT_DIR/dtsgen
+  script:
+    - npm test
