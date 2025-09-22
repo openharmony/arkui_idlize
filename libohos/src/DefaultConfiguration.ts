@@ -14,6 +14,7 @@
  */
 
 import {
+    capitalize,
     ConfigTypeInfer,
     CoreConfigurationSchema,
     DefaultIDLLinterOptions,
@@ -28,6 +29,16 @@ import { D } from "@idlizer/core";
 const T = {
     stringArray: () => D.array(D.string())
 }
+
+export const TransformOnSerializeSchema = D.object({
+    from: D.string(),
+    to: D.string(),
+})
+
+export const HookMethodSchema = D.object({
+    hookName: D.string(),
+    replaceImplementation: D.boolean()
+})
 
 export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
@@ -69,7 +80,12 @@ export const PeerGeneratorConfigurationSchema = D.combine(
         transformAnnotations: D.default(
             D.map(D.string(), D.string()),
             new Map<string, string>()
-        )
+        ),
+        transformOnSerialize: D.array(TransformOnSerializeSchema),
+        ignoreGenerics: T.stringArray(),
+        forceContext: T.stringArray(),
+        hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
+        libraryNameMapping: D.maybe(D.map(D.string(), D.map(D.string(), D.string())).onMerge('replace')),
     })
 )
 
@@ -126,4 +142,21 @@ export function loadPeerConfiguration(configurationFiles: string[]): PeerGenerat
 
 export function peerGeneratorConfiguration(): PeerGeneratorConfiguration {
     return generatorConfiguration<PeerGeneratorConfiguration>()
+}
+
+interface HookMethod {
+    hookName: string,
+    replaceImplementation: boolean
+}
+
+export function getHookMethod(className: string, methodName: string): HookMethod | undefined {
+    const hookMethods = peerGeneratorConfiguration().hooks.get(className)
+    if (!hookMethods) return undefined
+    const hook = hookMethods.get(methodName)
+    if (!hook) return undefined
+    const method: HookMethod = {
+        hookName: hook.hookName ?? `hook${className}${capitalize(methodName)}`,
+        replaceImplementation: hook.replaceImplementation ?? true
+    }
+    return method
 }

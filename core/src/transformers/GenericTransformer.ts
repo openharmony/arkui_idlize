@@ -13,6 +13,7 @@ export function inplaceGenerics(
     options?: {
         ignore?: ((node: idl.IDLNode) => boolean)[],
         nameConvertor?: (type: idl.IDLType) => string,
+        ignoreGenerics?: string[],
     }
 ): void {
     const candidates: idl.IDLReferenceType[] = []
@@ -22,11 +23,14 @@ export function inplaceGenerics(
     })
     options ??= {}
     options.ignore ??= []
-    options.ignore.push(ignoreConfigRule, ignoreBuilderClassRule, createIgnoreMaterializedRule(resolver), createIgnoreResourceRule(resolver))
+    options.ignoreGenerics ??= []
+    options.ignore.push(ignoreConfigRule(options!.ignoreGenerics!), ignoreBuilderClassRule,
+        createIgnoreMaterializedRule(resolver), createIgnoreResourceRule(resolver))
     options.nameConvertor ??= generateSyntheticIdlNodeName
     candidates.forEach(it => inplaceReferenceGenerics(it, resolver, {
         ignore: options!.ignore!,
         nameConvertor: options!.nameConvertor!,
+        ignoreGenerics: options!.ignoreGenerics!,
     }))
 }
 
@@ -62,10 +66,10 @@ export function maybeRestoreGenerics(
     return undefined
 }
 
-function ignoreConfigRule(node: idl.IDLNode): boolean {
-    if (idl.isEntry(node))
-        return generatorConfiguration().ignoreGenerics.includes(idl.getFQName(node))
-    return false
+function ignoreConfigRule(ignoreGenerics: string[]) {
+    return (node: idl.IDLNode) => {
+        return idl.isEntry(node) && ignoreGenerics.includes(idl.getFQName(node))
+    }
 }
 
 function ignoreBuilderClassRule(node: idl.IDLNode): boolean {
@@ -140,6 +144,7 @@ function inplaceReferenceGenerics(
     options: {
         ignore: ((node: idl.IDLNode) => boolean)[],
         nameConvertor: (type: idl.IDLType) => string,
+        ignoreGenerics: string[],
     }
 ): void {
     inplaceDefaultReferenceGenerics(ref, resolver)
@@ -151,7 +156,9 @@ function inplaceReferenceGenerics(
     if (!resolved) {
         throw new Error(`Can not resolve ${ref.name}`)
     }
-    if (options?.ignore?.some(it => it(ref) || it(resolved)) || generatorConfiguration().ignoreGenerics.includes(idl.getFQName(resolved))) {
+    if (options.ignore.some(it =>
+        it(ref) || it(resolved)) ||
+        options.ignoreGenerics.includes(idl.getFQName(resolved))) {
         return
     }
     if (!idl.isTypedef(resolved) && !idl.isInterface(resolved) && !idl.isCallback(resolved)) {
@@ -193,6 +200,7 @@ function correctTransformOnSerialize(
     options: {
         ignore: ((node: idl.IDLNode) => boolean)[],
         nameConvertor: (type: idl.IDLType) => string,
+        ignoreGenerics: string[],
     },
 ) {
     const targetName = idl.getExtAttribute(monomorphizedEntry, idl.IDLExtendedAttributes.TransformOnSerialize)

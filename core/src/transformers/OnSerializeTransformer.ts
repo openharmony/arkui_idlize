@@ -1,22 +1,25 @@
 import { generatorConfiguration } from "../config"
 import * as idl from "../idl"
 
-export function inplaceTransformOnSerializeFromConfig(
+export function inplaceTransformOnSerialize(
     node: idl.IDLNode,
+    destinationGetter: (node: idl.IDLNode) => string | undefined
 ): void {
-    inplaceTransformOnSerializeSelf(node)
+    inplaceTransformOnSerializeSelf(node, destinationGetter)
     idl.updateEachChild(node, child => {
-        inplaceTransformOnSerializeSelf(child)
+        inplaceTransformOnSerializeSelf(child, destinationGetter)
         return child
     })
 }
 
-function inplaceTransformOnSerializeSelf(node: idl.IDLNode): void {
+function inplaceTransformOnSerializeSelf(
+    node: idl.IDLNode,
+    destinationGetter: (node: idl.IDLNode) => string | undefined): void {
     if (!idl.isEntry(node)) {
         return
     }
-    const transformation = generatorConfiguration().transformOnSerialize.find(it => it.from === idl.getFQName(node))
-    if (transformation !== undefined) {
-        idl.updateExtAttribute(node, idl.IDLExtendedAttributes.TransformOnSerialize, transformation.to)
+    const destination = destinationGetter(node)
+    if (destination !== undefined) {
+        idl.updateExtAttribute(node, idl.IDLExtendedAttributes.TransformOnSerialize, destination)
     }
 }

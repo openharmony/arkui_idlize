@@ -131,7 +131,6 @@
             "ContentSlot"
         ]
     },
-    "hooks": {},
     "moduleName": "arkui",
     "modules": {
         "arkui": {
@@ -139,7 +138,6 @@
             "packages": [""]
         }
     },
-    "libraryNameMapping": { },
     "packageTransformation": {
         "internal.component.ets": "arkui.component"
     },

@@ -6,7 +6,8 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize, isInplacedGeneric, isStringEnumType, maybeRestoreGenerics } from "@idlizer/core"
+import { LanguageWriter, LayoutNodeRole, PeerLibrary, createDeclarationNameConvertor, isInCurrentModule, isInIdlize,
+    isInplacedGeneric, isStringEnumType, maybeRestoreGenerics } from "@idlizer/core"
 import { Language } from "@idlizer/core"
 import { getExtAttribute, IDLBooleanType, isReferenceType } from "@idlizer/core/idl"
 import { convertDeclaration, generateEnumToNumericName, generateEnumFromNumericName } from '@idlizer/core';

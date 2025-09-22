@@ -20,7 +20,6 @@ import {
     InheritanceRole,
     determineParentRole,
     isHeir,
-    generatorConfiguration,
     LayoutNodeRole,
     ArgumentModifier,
     capitalize,
@@ -49,6 +48,7 @@ import {
     PrinterFunction,
     PrinterResult,
     collectPeersForFile,
+    peerGeneratorConfiguration,
     writePeerMethod
 } from "@idlizer/libohos";
 import { HandwrittenModule } from '../ArkoalaLayout';
@@ -116,7 +116,7 @@ class PeerFileVisitor {
             const hookClassName = peer.componentName == "CommonMethod"
                 ? peer.componentName
                 : `${peer.componentName}Attribute`
-            const hookMethods = generatorConfiguration().hooks.get(hookClassName)
+            const hookMethods = peerGeneratorConfiguration().hooks.get(hookClassName)
             if (hookMethods) {
                 for (const [methodName, hook] of hookMethods.entries()) {
                     const hookName = hook ? hook.hookName : `hook${peer.componentName}${capitalize(methodName)}`

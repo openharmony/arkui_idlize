@@ -27,11 +27,12 @@ import {
     inplaceGenerics,
     PeerLibrary,
     inplaceNullsAsUndefined,
-    inplaceTransformOnSerializeFromConfig,
+    inplaceTransformOnSerialize,
     convertNode,
     StructureNameConvertor,
 } from "@idlizer/core"
 import {
+    getFQName,
     transformMethodsAsync2ReturnPromise,
     linearizeNamespaceMembers,
     IDLNode,
@@ -154,7 +155,13 @@ export function arkgen(argv:string[]) {
                 verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
             })
         }
-        idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
+        idlLibrary.files.forEach(file => {
+            inplaceTransformOnSerialize(file, (node: IDLNode) => {
+                const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
+                    it => it.from === getFQName(node))
+                return transformation?.to
+            })
+        })
         idlLibrary.files.forEach(inplaceNullsAsUndefined)
         inplaceArkoalaGenerics(idlLibrary)
         fillSyntheticDeclarations(idlLibrary)
@@ -218,6 +225,7 @@ function inplaceArkoalaGenerics(library: PeerLibrary): void {
     library.files.forEach(file => inplaceGenerics(file, library, {
         ignore: [ignoreComponentRule],
         nameConvertor: (node) => convertNode(nameConvertor, node).text,
+        ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
     }))
 }
 

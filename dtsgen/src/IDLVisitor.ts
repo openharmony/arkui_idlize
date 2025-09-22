@@ -19,6 +19,7 @@ import { OptionValues } from "commander"
 import * as idl from "@idlizer/core/idl"
 import {
     capitalize,
+    dropSuffix,
     isDefined,
     nameEnumValues, stringOrNone, warn,
     snakeCaseToCamelCase, escapeIDLKeyword,
@@ -137,12 +138,6 @@ function mergeSetGetProperties(properties: idl.IDLProperty[]): idl.IDLProperty[]
         }
         return members
     }, new Array<idl.IDLProperty>)
-}
-
-function removeAttributeSuffix(originalName: string): string {
-    if (originalName.endsWith("Attribute"))
-        return originalName.substring(0, originalName.length - 9)
-    return originalName
 }
 
 interface Sibling {
@@ -763,7 +758,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
         let result: idl.IDLExtendedAttribute[] = this.computeExtendedAttributes(node)
         let name = identName(node.name)
         if (name && ts.isClassDeclaration(node) && isCommonMethodOrSubclass(this.typeChecker, node)) {
-            result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${removeAttributeSuffix(name)}"` })
+            result.push({ name: idl.IDLExtendedAttributes.Component, value: `"${dropSuffix(name, "Attribute")}"` })
         }
         return this.computeDeprecatedExtendAttributes(node, result)
     }
@@ -900,7 +895,7 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
      * List of such properties is taken from the GeneratorConfiguration.boundProperties parameter
      */
     pickPropertyBindings(className: string, props: idl.IDLProperty[], fileName: string): idl.IDLMethod[] {
-        const componentName = removeAttributeSuffix(className)
+        const componentName = dropSuffix(className, "Attribute")
         const boundProps = this.dtsConfig.boundProperties.get(componentName)
         return !boundProps ? []
             : boundProps.map(propName => {

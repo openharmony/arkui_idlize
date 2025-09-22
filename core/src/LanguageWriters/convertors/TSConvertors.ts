@@ -18,7 +18,6 @@ import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 

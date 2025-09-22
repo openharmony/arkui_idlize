@@ -15,18 +15,16 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    ExpressionStatement,
     LanguageExpression,
     Method,
     MethodModifier,
-    NamedMethodSignature,
-    StringExpression
+    NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, getHookMethod, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
-import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
-import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration';
+import { UndefinedConvertor } from "@idlizer/core"
+import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
+import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration';
 import { injectPatch } from '../common';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {

@@ -18,27 +18,28 @@ import {
     makeFileNameFromClassName,
     modifierStructList,
 } from "../FileGenerators";
-import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod, IndentedPrinter,
+import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     groupBy, Language, createConstructPeerMethod, PeerClass, PeerMethod, PeerLibrary,
-    createLanguageWriter, createEmptyReferenceResolver, LanguageWriter, CppConvertor,
+    createLanguageWriter, LanguageWriter,
     CppReturnTypeConvertor,
     TypeConvertor,
     convertType,
-    ReferenceResolver,
     isMaterialized,
     PrimitiveTypesInstance,
     throwException,
-    getHookMethod,
     PeerMethodSignature,
     capitalize,
     qualifiedName,
     LibraryInterface,
 } from '@idlizer/core'
-import { CppLanguageWriter, LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
-import { DebugUtils, IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils, IDLCustomObjectType, IDLFunctionType, IDLI32Type, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType, IDLReferenceType, IDLStringType, IDLThisType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType, isInterface, isOptionalType, isReferenceType, isTypeParameterType, isUnionType, getFQName, IDLObjectType } from '@idlizer/core/idl'
+import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
+import { IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils,
+    IDLCustomObjectType, IDLFunctionType, IDLNumberType, IDLOptionalType, IDLPointerType, IDLPrimitiveType,
+    IDLReferenceType, IDLStringType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, IDLUnknownType,
+    isInterface, isOptionalType, IDLObjectType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
-import { collectOrderedPeers, collectPeers, collectPeersForFile } from "../PeersCollector";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { collectOrderedPeers } from "../PeersCollector";
 import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";

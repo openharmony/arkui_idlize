@@ -22,8 +22,6 @@ import {
     LanguageWriter,
     MaterializedMethod,
     PeerLibrary,
-    getInternalClassName,
-    getHookMethod,
     isNamedNode,
     isMaterializedType,
     isPrimitiveType,
@@ -31,6 +29,7 @@ import {
     PeerMethodSignature,
     getExtractor
 } from '@idlizer/core'
+import { getHookMethod } from '../../DefaultConfiguration'
 import {
     ExpressionStatement,
     LanguageExpression,

@@ -15,7 +15,6 @@
 
 import {
     capitalize,
-    dropSuffix,
     generatorTypePrefix,
     isDefined,
     Language,
@@ -30,10 +29,10 @@ import {
     KotlinCInteropReturnTypeConvertor,
     KotlinCInteropArgConvertor,
     PrimitiveTypesInstance,
-    isDirectConvertedType,
     sorted,
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
+import { getHookMethod } from '../../DefaultConfiguration';
 import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
@@ -41,6 +40,7 @@ import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
 import { makeInteropMethod } from "./NativeModulePrinter";
 import { collectPeersForFile } from "../PeersCollector";
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
+import { isDirectMethod, isVMContextMethod } from './MethodUtils';
 import { getDeclarationUniqueName } from "./NativeUtils";
 
 export function peerApiCall(library: PeerLibrary, context: idl.IDLEntry): [string, string] {
@@ -111,7 +111,7 @@ export class BridgeCcVisitor {
             args.unshift(this.getReceiverArgName())
         if (!!idl.asPromise(method.returnType))
             args.unshift(`GetAsyncWorker()`)
-        if (idl.isVMContextMethod(method.method))
+        if (isVMContextMethod(method.method))
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(context)
         const field = this.getApiCallResultField(method)
@@ -247,8 +247,8 @@ export class BridgeCcVisitor {
         })
         const cName = `${method.originalParentName}_${method.sig.name}`
         const interopMethod = makeInteropMethod(this.library, cName, method)
-        const needsContext = idl.isVMContextMethod(interopMethod)
-        const ctxSuffix = needsContext ? 'CTX_' : idl.isDirectMethod(interopMethod, this.library) ? 'DIRECT_' : ''
+        const needsContext = isVMContextMethod(interopMethod)
+        const ctxSuffix = needsContext ? 'CTX_' : isDirectMethod(interopMethod, this.library) ? 'DIRECT_' : ''
         const voidSuffix = this.returnTypeConvertor.isVoid(method) ? 'V' : ''
         return `${ctxSuffix}${voidSuffix}${argumentsCount}`
     }
@@ -281,7 +281,7 @@ export class BridgeCcVisitor {
     }
 
     protected printMethod(context: idl.IDLInterface, method: PeerMethod) {
-        const hookMethod = idl.getHookMethod(method.originalParentName, method.method.name)
+        const hookMethod = getHookMethod(method.originalParentName, method.method.name)
         if (hookMethod && hookMethod.replaceImplementation) return
         const cName = `${method.originalParentName}_${method.sig.name}`
         const retType = this.returnTypeConvertor.convert(method.returnType)
@@ -289,7 +289,7 @@ export class BridgeCcVisitor {
         if (this.printImplementation) {
             const argDecls = argTypesAndNames.map(([type, name]) =>
                 type === "KStringPtr" || type === "KLength" ? `const ${type}& ${name}` : `${type} ${name}`)
-            if (idl.isVMContextMethod(makeInteropMethod(this.library, cName, method)))
+            if (isVMContextMethod(makeInteropMethod(this.library, cName, method)))
                 argDecls.unshift("KVMContext vmContext")
             this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
             this.generatedApi.pushIndent()

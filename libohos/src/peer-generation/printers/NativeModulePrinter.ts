@@ -20,10 +20,6 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     isInIdlizeInterop,
     TypeConvertor,
     convertType,
-    getHookMethod,
-    generatorConfiguration,
-    isDirectMethod,
-    isVMContextMethod,
     LayoutNodeRole,
     createOutArgConvertor,
     isInCurrentModule,
@@ -35,7 +31,8 @@ import { idlFreeMethodsGroupToLegacy } from "../GlobalScopeUtils";
 import { PrinterFunction } from "../LayoutManager";
 import { ImportsCollector } from "../ImportsCollector";
 import { collectPeersForFile } from "../PeersCollector";
-import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfiguration";
+import { isDirectMethod, isVMContextMethod } from './MethodUtils'
 
 class NativeModulePrinterBase {
     readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
@@ -99,7 +96,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
             const patchedReturnType = patchType(signature.returnType)
             signature = new NamedMethodSignature(patchedReturnType, patchedSignatureArgs, signature.argsNames, signature.defaults)
         }
-        let modifiers = generatorConfiguration().forceContext.includes(inputMethod.name) ?
+        let modifiers = peerGeneratorConfiguration().forceContext.includes(inputMethod.name) ?
             [ MethodModifier.FORCE_CONTEXT ] : undefined
         return new Method('_' + inputMethod.name, signature, modifiers)
     }

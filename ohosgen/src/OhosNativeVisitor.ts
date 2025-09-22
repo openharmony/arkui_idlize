@@ -21,7 +21,6 @@ import {
     createConstructor,
     createMethod,
     createParameter,
-    forceAsNamedNode,
     getFQName,
     hasExtAttribute,
     IDLCallback,
@@ -37,12 +36,8 @@ import {
     IDLType,
     IDLVoidType,
     isConstructor,
-    isContainerType,
     isEnum,
     isInterface,
-    isOptionalType,
-    isReferenceType,
-    isUnionType,
     linearizeNamespaceMembers
 } from '@idlizer/core/idl'
 import {
@@ -62,9 +57,7 @@ import {
     PrimitiveTypesInstance,
     CppConvertor,
     CppReturnTypeConvertor,
-    isStructureType,
     PeerMethod,
-    dropSuffix,
     MaterializedClass,
     isInIdlize,
     isStaticMaterialized,
@@ -92,7 +85,6 @@ import {
     BridgeHeaderVisitor,
     createSyntheticGlobalScope,
     isGlobalScope,
-    createSerializerPrinter,
     createDeserializeAndCallPrinter,
     readTemplate,
     peerGeneratorConfiguration,
@@ -101,7 +93,6 @@ import {
     getDeclarationUniqueName,
     printKotlinCInteropDefFile
 } from '@idlizer/libohos'
-import { OhosInstall } from './OhosInstall'
 
 class NameType {
     constructor(public name: string, public type: string) { }

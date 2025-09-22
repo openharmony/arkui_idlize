@@ -29,12 +29,14 @@ import {
     NativeModuleType,
     inplaceGenerics,
     inplaceNullsAsUndefined,
-    inplaceTransformOnSerializeFromConfig,
+    inplaceTransformOnSerialize,
     StructureNameConvertor,
     convertNode,
     validatePaths,
 } from "@idlizer/core"
 import {
+    getFQName,
+    IDLNode,
     linearizeNamespaceMembers,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
@@ -129,7 +131,13 @@ if (options.idl2peer) {
     }
 
     initLibraryName(idlLibrary)
-    idlLibrary.files.forEach(inplaceTransformOnSerializeFromConfig)
+    idlLibrary.files.forEach(file => {
+        inplaceTransformOnSerialize(file, (node: IDLNode) => {
+            const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
+                it => it.from === getFQName(node))
+            return transformation?.to
+        })
+    })
     idlLibrary.files.forEach(inplaceNullsAsUndefined)
     inplaceOhosgenGenerics(idlLibrary)
     fillSyntheticDeclarations(idlLibrary)
@@ -207,5 +215,6 @@ function inplaceOhosgenGenerics(library: PeerLibrary) {
     const nameConvertor = new StructureNameConvertor(library)
     library.files.forEach(file => inplaceGenerics(file, library, {
         nameConvertor: (node) => convertNode(nameConvertor, node).text,
+        ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
     }))
 }

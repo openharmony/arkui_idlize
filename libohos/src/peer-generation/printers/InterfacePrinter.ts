@@ -15,9 +15,9 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    createLanguageWriter, LanguageWriter,
+    LanguageWriter,
     indentedBy, isBuilderClass, isMaterialized, stringOrNone, throwException, Language, PeerLibrary,
-    convertDeclaration, DeclarationConvertor, maybeTransformManagedCallback,
+    convertDeclaration, DeclarationConvertor,
     MethodModifier,
     FieldModifier,
     Method,
@@ -31,7 +31,6 @@ import {
     getOrPut,
     zipStrip,
     collapseTypes,
-    getSuper,
     isInplacedGeneric,
     maybeRestoreGenerics
 } from '@idlizer/core'
@@ -42,7 +41,6 @@ import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { ImportsCollector, ImportFeature } from '../ImportsCollector'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { collectAllProperties } from './StructPrinter'
-import { TargetFile } from './TargetFile'
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }

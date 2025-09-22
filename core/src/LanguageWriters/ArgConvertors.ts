@@ -24,8 +24,6 @@ import {
     LanguageWriter,
     PrintHint,
     StringExpression,
-    Method,
-    MethodModifier,
     NamedMethodSignature,
     ProxyStatement,
     ExpressionStatement
@@ -36,15 +34,12 @@ import { LibraryInterface } from "../LibraryInterface";
 import { capitalize, getExtractor, getTransformer, hashCodeFromString, throwException, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
-import { createEmptyReferenceResolver, ReferenceResolver } from "../peer-generation/ReferenceResolver";
+import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
 import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
-import { qualifiedName } from "../peer-generation/idl/common";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
-import { PeerMethodSignature } from "../peer-generation/PeerMethod";
 import { isInExternalModule } from "../peer-generation/modules";
-import { findTopLevelConflicts, isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations";
-import { InteropArgConvertor } from "./convertors/InteropConvertors";
+import { isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations";
 
 export function getSerializerName(library: LibraryInterface, language: Language, declaration:idl.IDLEntry) {
     const qualifier = isTopLevelConflicted(library, language, declaration)
@@ -70,65 +65,6 @@ export interface ArgConvertor {
     unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression|undefined
     getMembers(): string[]
     getObjectAccessor(languge: Language, value: string, args?: Record<string, string>, writer?: LanguageWriter): string
-}
-
-export function isDirectConvertedType(originalType: idl.IDLType|undefined, library: PeerLibrary): boolean {
-    const debug = false
-    if (originalType == undefined) return true // TODO: is it correct?
-    if (debug) console.log(`IDL type ${idl.DebugUtils.debugPrintType(originalType)}`)
-    if (originalType == idl.IDLInteropReturnBufferType) return false
-    if (originalType == idl.IDLThisType) return true /* Because this type for native is pointer, right? */
-    if (originalType == idl.IDLSerializerBuffer) return true
-    let convertor = library.typeConvertor("x", originalType, false)
-    // Resolve aliases.
-    while (convertor instanceof TypeAliasConvertor) {
-        convertor = convertor.convertor
-    }
-    if (convertor instanceof ArrayConvertor ||
-        convertor instanceof CustomTypeConvertor ||
-        convertor instanceof UnionConvertor ||
-        convertor instanceof CallbackConvertor ||
-        convertor instanceof MapConvertor ||
-        convertor instanceof TupleConvertor ||
-        convertor instanceof AggregateConvertor ||
-        convertor instanceof OptionConvertor ||
-        convertor instanceof ImportTypeConvertor) {
-        // try { console.log(`convertor is ${convertor.constructor.name} for ${JSON.stringify(originalType)}`) } catch (e) {}
-        return false
-    }
-    let type = convertor.interopType()
-    if (debug) console.log(`converted type ${idl.DebugUtils.debugPrintType(originalType)}`)
-    let result = type == idl.IDLI8Type || type == idl.IDLU8Type
-            || type == idl.IDLI16Type || type == idl.IDLU16Type
-            || type == idl.IDLI32Type || type == idl.IDLU32Type
-            || type == idl.IDLF32Type
-            || type == idl.IDLI64Type || type == idl.IDLU64Type
-            || type == idl.IDLPointerType
-            || type == idl.IDLBooleanType
-            || type == idl.IDLVoidType
-            || type == idl.IDLUndefinedType
-            || type == idl.IDLSerializerBuffer
-            || type == idl.IDLNumberType
-    if (!result && debug) console.log(`type ${idl.DebugUtils.debugPrintType(type)} is not direct`)
-    return result
-}
-
-export function isVMContextMethod(method: Method | PeerMethodSignature): boolean {
-    const isPromise = !!idl.asPromise(method instanceof PeerMethodSignature ? method.returnType : method.signature.returnType)
-    return isPromise ||
-        !!method.modifiers?.includes(MethodModifier.THROWS) ||
-        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT) ||
-        generatorConfiguration().forceContext.includes(method.name)
-}
-
-export function isDirectMethod(method: Method, library: PeerLibrary): boolean {
-    if (isVMContextMethod(method)) {
-        return false
-    }
-    let result = isDirectConvertedType(method.signature.returnType, library) &&
-            method.signature.args.every((arg) => isDirectConvertedType(arg, library))
-    // if (!result) console.log(`method ${method.name} is not direct`)
-    return result
 }
 
 export abstract class BaseArgConvertor implements ArgConvertor {

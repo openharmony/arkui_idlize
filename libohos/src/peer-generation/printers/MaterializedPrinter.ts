@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGenerics, ArgumentModifier,
-    generatorConfiguration, getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
+    getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
     DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
     qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
     PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary } from '@idlizer/core'
@@ -606,7 +606,7 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
             this.collector.addFeatures(['isInstanceOf', 'runtimeType'], '@koalaui/interop')
         }
 
-        const hookMethods = generatorConfiguration().hooks.get(this.clazz.className)
+        const hookMethods = peerGeneratorConfiguration().hooks.get(this.clazz.className)
         const handwrittenPackage = this.library.layout.handwrittenPackage()
         if (hookMethods) {
             for (const [methodName, hook] of hookMethods.entries()) {
