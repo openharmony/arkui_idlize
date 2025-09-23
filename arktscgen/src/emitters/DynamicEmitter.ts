@@ -17,7 +17,7 @@ import * as path from "node:path"
 import * as fs from "node:fs"
 import * as ps from "node:child_process"
 import JSON5 from "json5"
-import { forceWriteFile, getFQName, IDLFile, linkParentBack, toIDLString } from "@idlizer/core"
+import { forceWriteFile, IDLFile, toIDLString } from "@idlizer/core"
 import { MultiFileOutput } from "../printers/MultiFilePrinter"
 import { Config } from "../general/Config"
 import { BridgesPrinter } from "../printers/interop/BridgesPrinter"
@@ -27,14 +27,9 @@ import { BindingsPrinter } from "../printers/interop/BindingsPrinter"
 import { AllPeersPrinter } from "../printers/library/AllPeersPrinter"
 import { FactoryPrinter } from "../printers/library/FactoryPrinter"
 import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
-import { AddContextDeclarationTransformer } from "../transformers/common/AddContextDeclarationTransformer"
-import { MultipleDeclarationFilterTransformer } from "../transformers/common/filter/MultipleDeclarationFilterTransformer"
 import { ParameterTransformer } from "../transformers/common/ParameterTransformer"
-import { TwinMergeTransformer } from "../transformers/common/TwinMergeTransformer"
-import { AstNodeFilterTransformer } from "../transformers/common/filter/AstNodeFilterTransformer"
 import { NullabilityTransformer } from "../transformers/peers/NullabilityTransformer"
 import { AttributeTransformer } from "../transformers/peers/factory/AttributeTransformer"
-import { InteropTransformer } from "../transformers/interop/InteropTransformer"
 import { ConstMergeTransformer } from "../transformers/peers/ConstMergeTransformer"
 import { Transformer } from "../transformers/Transformer"
 import { UniversalCreateTransformer } from "../transformers/peers/UniversalCreateTransformer"
@@ -119,7 +114,7 @@ export class DynamicEmitter {
     )
 
     private indexPrinter = new SingleFileEmitter(
-        (idl: IDLFile) => new IndexPrinter(this.config, idl).print(),
+        (idl: IDLFile) => new IndexPrinter(this.config, idl).print(), // overriden below
         `libarkts/generated/index.ts`,
         `index.ts`,
         true
@@ -144,10 +139,7 @@ export class DynamicEmitter {
         let idl = this.file
         this.printFile(this.enumsPrinter, idl)
         idl = this.withLog(new OptionsFilterTransformer(this.config, idl))
-        //idl = this.withLog(new AddContextDeclarationTransformer(idl))
-        //idl = this.withLog(new TwinMergeTransformer(idl))
-        //idl = this.withLog(new MultipleDeclarationFilterTransformer(idl))
-        //idl = this.withLog(new AstNodeFilterTransformer(idl))
+
         this.printPeers(idl)
         this.printInterop(idl)
     }
@@ -157,8 +149,11 @@ export class DynamicEmitter {
         idl = this.withLog(new ConstMergeTransformer(idl))
         idl = this.withLog(new UniversalCreateTransformer(idl))
         idl = this.withLog(new NullabilityTransformer(idl, this.config))
+
+        const out = this.printFiles(this.peersPrinter, idl)
+        // override index printer
+        this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined, out)
         this.printFile(this.indexPrinter, idl)
-        this.printFiles(this.peersPrinter, idl)
         this.printFactory(idl)
     }
 
@@ -197,23 +192,26 @@ export class DynamicEmitter {
         )
     }
 
-    private printFiles(multiFilePrinter: MultiFileEmitter, idl: IDLFile): void {
+    private printFiles(multiFilePrinter: MultiFileEmitter, idl: IDLFile): MultiFileOutput[] {
         if (!multiFilePrinter.enabled) {
-            return
+            return []
         }
+
         console.log(`emit to ${multiFilePrinter.dir}`)
-        multiFilePrinter
-            .print(idl)
-            .forEach(({fileName, output}) => {
-                forceWriteFile(
-                    path.join(this.outDir, multiFilePrinter.dir, fileName),
-                    this.readTemplate(multiFilePrinter.template)
-                        .replaceAll(
-                            `%GENERATED_PART%`,
-                            output
-                        )
-                )
-            })
+        const output = multiFilePrinter.print(idl)
+
+        output.forEach(({fileName, output}) => {
+            forceWriteFile(
+                path.join(this.outDir, multiFilePrinter.dir, fileName),
+                this.readTemplate(multiFilePrinter.template)
+                    .replaceAll(
+                        `%GENERATED_PART%`,
+                        output
+                    )
+            )
+        })
+
+        return output
     }
 
     private readTemplate(name: string): string {

@@ -80,6 +80,13 @@ export class Typechecker {
         return entry
     }
 
+    flatParents(ref: IDLReferenceType | IDLInterface): IDLInterface[] {
+        const resolveReference = (ref: IDLReferenceType, pov?: IDLNode) =>
+            // TODO: idlize/core version, change to ours after testing
+            resolveNamedNode(ref.name.split('.'), pov, [this.file])
+        return flatParentsImpl(ref, resolveReference)
+    }
+
     // All classes are consideres heirs of ArktsObject now
     isHeir(ref: IDLReferenceType|IDLInterface, ancestor: string): boolean {
         const resolveReference =

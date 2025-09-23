@@ -15,12 +15,10 @@
 
 import {
     capitalize,
-    createEmptyReferenceResolver,
     createParameter,
     createProperty,
     createReferenceType,
     FieldModifier,
-    IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
@@ -30,7 +28,6 @@ import {
     IDLType,
     IDLUndefinedType,
     IDLVoidType,
-    IndentedPrinter,
     isOptionalType,
     isProperty,
     isReferenceType,
@@ -43,16 +40,12 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import {
-    parent,
-    flattenType,
     makeMethod,
     nodeNamespace,
-    flatParents,
-    baseNameString,
-    nativeType, baseName,
-    innerTypeCommon
+    nativeType,
+    innerTypeCommon,
+    makeEnoughQualifiedName
 } from "../../utils/idl"
-import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import {
     isAbstract,
     isCreateOrUpdate,
@@ -64,64 +57,43 @@ import {
     peerMethod
 } from "../../general/common"
 import { Importer } from "./Importer"
+import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { Typechecker } from "../../general/Typechecker"
-import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
-import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
-import { SingleFilePrinter } from "../SingleFilePrinter"
 import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
 import { unpackWrapper, hasTypeHintArgument, typeHintArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
 import { Config } from "../../general/Config"
 import { ExtraParameter } from "../../options/ExtraParameters"
 import assert from "node:assert"
-import { dropPrefix } from "../../utils/string"
 
-export class PeerPrinter extends SingleFilePrinter {
-    protected printInterface(iface: IDLInterface): void {
-        if (iface != this.node) throw new Error("Must match")
-        this.printPeer(iface, this.writer)
-        if (!isDataClass(iface)) {
-            this.printTypeGuard(iface, this.writer)
-        }
-        if (isReal(iface)) {
-            this.printAddToNodeMap(iface, this.writer)
-        }
-    }
-    protected filterInterface(node: IDLInterface): boolean {
-        return node != this.node
-    }
+export class PeerPrinter {
+    private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
+
     constructor(
         private config: Config,
-        idl: IDLFile,
-        private node: IDLInterface
+        private typechecker: Typechecker, // = new Typechecker(this.idl)
+        private importer: Importer // = new Importer(this.typechecker, `.`, this.node.name)
+
     ) {
-        super(idl)
     }
 
-    protected typechecker = new Typechecker(this.idl)
-    protected importer = new Importer(this.typechecker, `.`, this.node.name)
-    private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
-    private parent = parent(this.node) ?? Config.defaultAncestor
-
-    protected writer = new TSLanguageWriter(
-        new IndentedPrinter(),
-        createEmptyReferenceResolver(),
-        { convert: (node: IDLType) => convertAndImport(
-            this.importer,
-            new class extends LibraryTypeConvertor {
-                convertTypeReference(type: IDLReferenceType): string {
-                    return dropPrefix(super.convertTypeReference(type), Config.dataClassPrefix)
-                }
-            } (this.typechecker),
-            node
-        )}
-    )
+    public printInterface(iface: IDLInterface, writer: TSLanguageWriter): void {
+        this.printPeer(iface, writer)
+        if (!isDataClass(iface)) {
+            this.printTypeGuard(iface, writer)
+        }
+        if (isReal(iface)) {
+            this.printAddToNodeMap(iface, writer)
+        }
+    }
 
     private printPeer(iface: IDLInterface, writer: TSLanguageWriter): void {
+        const _parent = iface.inheritance[0] ?? createReferenceType(Config.defaultAncestor)
+        this.importer.addSeen(PeersConstructions.peerName(iface.name))
         writer.writeClass(
-            PeersConstructions.peerName(iface.name), // XXX: Change peer name
+            PeersConstructions.peerName(iface.name), // XXX: Change peer name to iface.name
             (writer: TSLanguageWriter) => this.printBody(iface, writer),
-            this.parent ? this.importer.withPeerImport(baseNameString(this.parent)) : undefined
+            this.importer.withPeerImport(_parent)
         )
     }
 
@@ -226,7 +198,7 @@ export class PeerPrinter extends SingleFilePrinter {
             new Method(
                 peerMethod(node.name),
                 new MethodSignature(
-                    flattenType(node.returnType),
+                    node.returnType,
                     []
                 ),
                 [MethodModifier.GETTER]
@@ -248,8 +220,8 @@ export class PeerPrinter extends SingleFilePrinter {
         writer.writeMethodImplementation(
             makeMethod(
                 peerMethod(node.name),
-                node.parameters.map(it => createParameter(it.name, flattenType(it.type))),
-                flattenType(PeersConstructions.this.type)
+                node.parameters.map(it => createParameter(it.name, it.type)),
+                PeersConstructions.this.type
             ),
             () => {
                 writer.writeExpressionStatement(
@@ -295,7 +267,9 @@ export class PeerPrinter extends SingleFilePrinter {
             return writer.makeFunctionCall(wrapper, args)
         }
 
-        const convertName = (ref: IDLReferenceType): string => PeersConstructions.peerName(baseName(ref))
+        const convertName = (ref: IDLReferenceType): string =>
+            makeEnoughQualifiedName(ref, this.typechecker.resolveReference.bind(this.typechecker))
+
         return isOptionalType(node.returnType) && isReferenceType(innerType) ?
             writer.makeNewObject(convertName(innerType), [nativeCall]) : nativeCall
     }
@@ -303,9 +277,9 @@ export class PeerPrinter extends SingleFilePrinter {
     public static resolveProperty(
         property: ExtraParameter,
         iface: IDLInterface,
-        idl: IDLFile
+        typechecker: Typechecker
     ): [IDLMethod | IDLProperty, IDLMethod | IDLProperty] {
-        const parents = flatParents(iface, idl)
+        const parents = typechecker.flatParents(iface)
         const methods = parents.flatMap(p => p.methods)
         const props = parents.flatMap(p => p.properties)
         const getters = methods.filter(isGetter)
@@ -346,17 +320,21 @@ export class PeerPrinter extends SingleFilePrinter {
     public static makeExtraParameter(
         param: ExtraParameter,
         iface: IDLInterface,
-        idl: IDLFile
+        typechecker: Typechecker
     ): IDLParameter {
         const type = (m: IDLMethod | IDLProperty) => 'type' in m ? m.type : m.returnType
-        const [getter, setter] = this.resolveProperty(param, iface, idl)
+        const [getter, setter] = this.resolveProperty(param, iface, typechecker)
 
-        return createParameter(param.name, flattenType(type(getter)), param.optional)
+        return createParameter(param.name, type(getter), param.optional)
     }
 
-    public static makeExtraParameters(iface: IDLInterface, config: Config, idl: IDLFile): IDLParameter[] {
+    public static makeExtraParameters(
+        iface: IDLInterface,
+        config: Config,
+        typechecker: Typechecker
+    ): IDLParameter[] {
         return config.parameters.getParameters(iface.name)
-            .map(param => this.makeExtraParameter(param, iface, idl))
+            .map(param => this.makeExtraParameter(param, iface, typechecker))
     }
 
     public static makeExtraStatement(
@@ -388,7 +366,7 @@ export class PeerPrinter extends SingleFilePrinter {
     }
 
     private printCreateOrUpdate(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
-        const extraParameters = PeerPrinter.makeExtraParameters(iface, this.config, this.idl)
+        const extraParameters = PeerPrinter.makeExtraParameters(iface, this.config, this.typechecker)
         writer.writeMethodImplementation(
             makeMethod(
                 PeersConstructions.createOrUpdate(
@@ -396,9 +374,9 @@ export class PeerPrinter extends SingleFilePrinter {
                     node.name
                 ),
                 node.parameters
-                    .map(it => createParameter(it.name, flattenType(it.type)))
+                    .map(it => createParameter(it.name, it.type))
                     .concat(extraParameters),
-                flattenType(node.returnType),
+                node.returnType,
                 [MethodModifier.STATIC]
             ),
             (writer: TSLanguageWriter) => {
@@ -417,7 +395,7 @@ export class PeerPrinter extends SingleFilePrinter {
                 const makeStmt = (property: ExtraParameter) =>
                     PeerPrinter.makeExtraStatement(
                         property,
-                        PeerPrinter.resolveProperty(property, iface, this.idl),
+                        PeerPrinter.resolveProperty(property, iface, this.typechecker),
                         ['should_not_be_here', varName],
                         writer
                     )

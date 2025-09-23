@@ -18,17 +18,14 @@ import {
     createEmptyReferenceResolver,
     createInterface,
     createMethod,
-    getFQName,
     getNamespacesPathFor,
     getQualifiedName,
     IDLContainerType,
     IDLContainerUtils,
     IDLExtendedAttribute,
-    IDLFile,
     IDLInterface,
     IDLMethod,
     IDLNamedNode,
-    IDLNamespace,
     IDLNode,
     IDLParameter,
     IDLPrimitiveType,
@@ -47,15 +44,13 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
-    ReferenceResolver,
-    resolveNamedNode,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import * as idl from "@idlizer/core"
 import { Config } from "../general/Config"
 import { mangleIfKeyword } from "../general/common"
-import { isUndefined } from "util"
+import { dropPrefix } from "./string"
 
 export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
@@ -101,24 +96,6 @@ export function baseNameString(name: string): string {
     } else {
         return name
     }
-}
-
-// A bit of a hack, use namespaces for real later.
-export function flattenType(type: IDLType): IDLType {
-    if (idl.isUnionType(type))
-        return idl.createUnionType(type.types.map(flattenType), type.name)
-    if (idl.isOptionalType(type))
-        return idl.createOptionalType(flattenType(type.type))
-    if (isContainerType(type))
-        return createContainerType(type.containerKind, type.elementType.map(flattenType))
-    if (idl.isReferenceType(type)) {
-        if (type.name.indexOf(".") > 0) {
-            let result = idl.createReferenceType(baseName(type))
-            //console.log(`flatten ${type.name} to ${result.name}`)
-            return result
-        }
-    }
-    return type
 }
 
 export function createUpdatedMethod(
@@ -271,9 +248,11 @@ export function makeStatement(writer: LanguageWriter, arg: string | LanguageExpr
     return typeof arg !== 'string' && 'write' in arg ? arg : writer.makeStatement(makeExpression(writer, arg))
 }
 
+export type ReferenceResolver = (ref: IDLReferenceType, pov?: IDLNode) => IDLNamedNode|undefined
+
 export function flatParentsImpl(
     ref: IDLReferenceType|IDLInterface,
-    resolveReference: (ref: IDLReferenceType, pov?: IDLNode) => IDLNamedNode|undefined
+    resolveReference: ReferenceResolver
 ): IDLInterface[] {
     if (isReferenceType(ref)) {
         const type = resolveReference(ref)
@@ -303,8 +282,30 @@ export function flatParentsImpl(
     return result // with self
 }
 
-export function flatParents(ref: IDLReferenceType | IDLInterface, idl: IDLFile): IDLInterface[] {
-    const resolveReference = (ref: IDLReferenceType, pov?: IDLNode) =>
-        resolveNamedNode(ref.name.split('.'), pov, [idl])
-    return flatParentsImpl(ref, resolveReference)
+export function makePrettyName(name: string): string {
+    // ir namespace is a global namespace
+    return dropPrefix(dropPrefix(name, Config.dataClassPrefix), `${Config.irNamespace}.`)
+}
+
+export function makeEnoughQualifiedName(
+    ref: IDLReferenceType,
+    resolveReference: ReferenceResolver,
+): string {
+    const decl = resolveReference(ref)
+    if (!decl) {
+        return ref.name
+    }
+
+    const declNs = getNamespacesPathFor(decl).map(n => n.name).join('.')
+    const contextNs = getNamespacesPathFor(ref).map(n => n.name).join('.')
+
+    // ir namespace is a global namespace
+    if (declNs === contextNs || declNs === '' || declNs === Config.irNamespace) {
+        const name = declNs != '' && ref.name.startsWith(declNs)
+            ? ref.name.slice(declNs.length + 1)
+            : dropPrefix(ref.name, Config.dataClassPrefix)
+        return name
+    }
+
+    return fqName(decl)
 }

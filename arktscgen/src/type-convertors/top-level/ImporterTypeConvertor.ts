@@ -32,7 +32,7 @@ export function convertAndImport(importer: Importer, converter: BaseTypeConverto
             importer.withEnumImport(result)
 
         } else if (node && isInterface(node) && converter.typechecker.isPeer(node)){
-            importer.withPeerImport(result)
+            importer.withPeerImport(type)
         }
     }
 

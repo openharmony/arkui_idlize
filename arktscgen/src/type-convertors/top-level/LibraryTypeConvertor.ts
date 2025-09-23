@@ -15,11 +15,10 @@
 
 import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
-import { Importer } from "../../printers/library/Importer"
 import { Typechecker } from "../../general/Typechecker"
-import { innerType } from "../../utils/idl"
+import { innerType, makeEnoughQualifiedName } from "../../utils/idl"
 
-export class LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
+class _LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
     constructor(
         typechecker: Typechecker,
     ) {
@@ -35,5 +34,11 @@ export class LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
             pointer: (type: IDLPrimitiveType) => `KNativePointer`,
             undefined: (type: IDLPrimitiveType) => `undefined`
         })
+    }
+}
+
+export class LibraryTypeConvertor extends _LibraryTypeConvertor {
+    override convertTypeReference(type: IDLReferenceType): string {
+        return makeEnoughQualifiedName(type, this.typechecker.resolveReference.bind(this.typechecker))
     }
 }

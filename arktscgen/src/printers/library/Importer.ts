@@ -13,11 +13,20 @@
  * limitations under the License.
  */
 
-import { createDefaultTypescriptWriter } from "../../utils/idl"
+import {
+    getFQName,
+    getNamespacesPathFor,
+    IDLNamedNode,
+    IDLNode,
+    IDLReferenceType,
+    throwException
+} from "@idlizer/core"
+import { createDefaultTypescriptWriter, makeEnoughQualifiedName } from "../../utils/idl"
 import { Config } from "../../general/Config"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import * as path from "node:path"
 import { Typechecker } from "../../general/Typechecker"
+import { dropPrefix } from "../../utils/string"
+import * as path from "node:path"
 
 export class Importer {
     constructor(
@@ -37,7 +46,14 @@ export class Importer {
         Config.defaultAncestor, // TODO: handwritten
     ])
 
-    withPeerImport(it: string): string {
+    withPeerImport(ref: IDLReferenceType, context?: IDLNode): string {
+        const name = makeEnoughQualifiedName(ref, this.typechecker.resolveReference.bind(this.typechecker))
+        const fq = name.split('.')
+        // import namespace name for fq names
+        return this.withPeerImport2(fq.length > 1 ? fq.slice(0, -1).join('.') : name)
+    }
+
+    withPeerImport2(it: string): string {
         if (this.seen.has(it)) {
             return it
         }
@@ -64,6 +80,10 @@ export class Importer {
         this.seen.add(it)
         this.import(it, "../../src/reexport-for-generated")
         return it
+    }
+
+    addSeen(it: string): void {
+        this.seen.add(it)
     }
 
     private import(name: string, from: string): void {
