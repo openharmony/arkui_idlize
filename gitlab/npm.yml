@@ -8,7 +8,7 @@
   - npm config set @idlizer:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
   - npm config set @panda:registry https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
   - npm config set //nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth $NEXUS_NPM_PASS
-  - echo ". external/ui2abc" | xargs -n 1 -- npm i --prefer-offline --no-audit --no-fund -C
+  - echo ". external" | xargs -n 1 -- npm i --prefer-offline --no-audit --no-fund -C
 
 .npm-pack:
   stage: pre-deploy

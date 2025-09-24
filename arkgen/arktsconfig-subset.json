@@ -17,10 +17,10 @@
                 "../../../../../../../../external/interop/src/arkts"
             ],
             "@koalaui/common": [
-                "../../../../../../../../external/incremental/common/src"
+                "../../../../../../../../external/common/src"
             ],
             "@koalaui/compat": [
-                "../../../../../../../../external/incremental/compat/src/arkts"
+                "../../../../../../../../external/compat/src/arkts"
             ],
             "@ohos.multimedia.image": [
                 "../../../../../generated/sig/arkoala-arkts/external/src"

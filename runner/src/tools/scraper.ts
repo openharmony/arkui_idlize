@@ -337,8 +337,8 @@ rule ohosgen
             "outDir": "build/panda/out",
             "paths": {
                 "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
-                "@koalaui/common": ["../../../../../../external/incremental/common/src"],
-                "@koalaui/compat": ["../../../../../../external/incremental/compat/src/arkts"],
+                "@koalaui/common": ["../../../../../../external/common/src"],
+                "@koalaui/compat": ["../../../../../../external/compat/src/arkts"],
                 "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
             }
         },

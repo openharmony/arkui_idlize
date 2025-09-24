@@ -24,19 +24,17 @@ export function copySubset() {
     copyDir(ExternalStubs, Subset)
 }
 
-function copyDir(from, to, filters = undefined) {
-    fs.readdirSync(from).forEach(it => {
-        const sourcePath = path.join(from, it)
-        const targetPath = path.join(to, it)
-        const statInfo = fs.statSync(sourcePath)
-        if (statInfo.isFile()) {
-            if (!filters || filters.includes(sourcePath)) {
-                fs.mkdirSync(path.dirname(targetPath), {recursive: true})
-                fs.copyFileSync(sourcePath, targetPath)
-            }
+function copyDir(from, to, filters) {
+    fs.readdirSync(from, { recursive: true, withFileTypes: true }).forEach(it => {
+        if (!it.isFile()) {
+            return
         }
-        else if (statInfo.isDirectory()) {
-            copyDir(sourcePath, targetPath, filters)
+        const relativePath = path.relative(from, path.join(it.parentPath, it.name))
+        const sourcePath = path.join(from, relativePath)
+        const targetPath = path.join(to, relativePath)
+        if (!filters || filters.includes(sourcePath)) {
+            fs.mkdirSync(path.dirname(targetPath), {recursive: true})
+            fs.copyFileSync(sourcePath, targetPath)
         }
     })
 }

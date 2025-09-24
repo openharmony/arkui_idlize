@@ -19,7 +19,7 @@
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@koalaui/libarkts": "file:../external/ui2abc/libarkts",
+    "@koalaui/libarkts": "file:../external/libarkts",
     "commander": "^10.0.0"
   },
   "devDependencies": {
@@ -33,7 +33,7 @@
   },
   "scripts": {
     "clean": "rimraf -g build .rollup.cache lib out",
-    "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
+    "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile:self": "tsc -b . && rollup -c",
     "compile": "npm run -C ../core compile && npm run compile:self",
     "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",

@@ -7,8 +7,8 @@
             "@bundleManager.ApplicationInfo": ["../../../bundleManager/generated/arkts/ApplicationInfo"],
             "@bundleManager.bundleManager.INTERNAL": ["../../../bundleManager/generated/arkts/bundleManager.INTERNAL"],
             "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
-            "@koalaui/common": ["../../../../../../external/incremental/common/src"],
-            "@koalaui/compat": ["../../../../../../external/incremental/compat/src/arkts"],
+            "@koalaui/common": ["../../../../../../external/common/src"],
+            "@koalaui/compat": ["../../../../../../external/compat/src/arkts"],
             "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
         }
     },

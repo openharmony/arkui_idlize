@@ -33,8 +33,5 @@
         "pre-start:arkts": "TARGET=arkts npm run pre-start",
         "check": "npm run clean && npm run pre-start:${TARGET} && npm run start:${TARGET}",
         "check:arkts": "TARGET=arkts npm run check"
-    },
-    "dependencies": {
-        "@koalaui/runtime": "latest"
     }
 }

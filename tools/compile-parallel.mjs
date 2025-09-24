@@ -7,7 +7,7 @@ import { all_packages, Package, IDLIZE_HOME } from "./utils.mjs";
 const execAsync = util.promisify(exec)
 
 const packagesToCompile = all_packages.concat(
-    new Package(path.join(IDLIZE_HOME, "external/ui2abc/libarkts"))
+    new Package(path.join(IDLIZE_HOME, "external/libarkts"))
 )
 const preCompileScripts = {
     // "@koalaui/libarkts": "npm run reinstall:regenerate"
