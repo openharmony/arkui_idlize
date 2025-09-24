@@ -6,10 +6,15 @@ import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 const collectPeers_cache = new Map<LibraryInterface, PeerClass[]>()
+const componentPeers_cache = new Map<LibraryInterface, Map<IdlComponentDeclaration, PeerClass>>()
 export function collectPeers(library: PeerLibrary): PeerClass[] {
     if (!collectPeers_cache.has(library))
         collectPeers_cache.set(library, collectComponents(library).map(it => generatePeer(library, it)))
     return collectPeers_cache.get(library)!
+}
+
+export function findPeerByComponentDeclaration(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass | undefined {
+    return componentPeers_cache.get(library)?.get(component)
 }
 
 export function collectOrderedPeers(library: PeerLibrary): PeerClass[] {
@@ -137,6 +142,13 @@ function fillClass(library: PeerLibrary, peer: PeerClass, clazz: idl.IDLInterfac
     createComponentAttributesDeclaration(clazz, peer)
 }
 
+function fillComponentPeersCache(library: PeerLibrary, component: IdlComponentDeclaration, peer: PeerClass) {
+    if (!componentPeers_cache.has(library)) {
+        componentPeers_cache.set(library, new Map<IdlComponentDeclaration, PeerClass>())
+    }
+    componentPeers_cache.get(library)!.set(component, peer)
+}
+
 function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass {
     if (!component.attributeDeclaration.fileName) {
         throw new Error("Expected parent of attributes to be a SourceFile, but fileName is undefined")
@@ -155,6 +167,7 @@ function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration):
     }
 
     const peer = new PeerClass(component.attributeDeclaration, file, component.name, baseName)
+    fillComponentPeersCache(library, component, peer)
 
     if (component.interfaceDeclaration) {
         fillInterface(library, peer, component.interfaceDeclaration)
