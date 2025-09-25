@@ -142,7 +142,9 @@ class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
             })
             if (clazz.finalizer) this.printPeerMethod(clazz.finalizer, idl.IDLPointerType)
             clazz.methods.forEach(method => {
-                this.printPeerMethod(method, method.tsReturnType())
+                var retType = method.tsReturnType()
+                retType = retType && idl.isTypeParameterType(retType) ? idl.IDLVoidType : retType
+                this.printPeerMethod(method, retType)
             })
         })
     }
@@ -679,7 +681,7 @@ function getReturnValue(type: idl.IDLType): string {
 function toNativeReturnType(returnType: idl.IDLType | undefined, library: PeerLibrary): idl.IDLType {
 
     if (!returnType) return idl.IDLVoidType
-    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType)) {
+    if (returnType === idl.IDLThisType || idl.IDLContainerUtils.isPromise(returnType) || idl.isTypeParameterType(returnType)) {
         return idl.IDLVoidType
     }
 

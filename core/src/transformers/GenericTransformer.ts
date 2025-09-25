@@ -1,7 +1,6 @@
 import { generatorConfiguration } from "../config"
 import { toIdlType } from "../from-idl/deserialize"
 import * as idl from "../idl"
-import { isBuilderClass } from "../peer-generation/BuilderClass"
 import { generateSyntheticIdlNodeName } from "../peer-generation/idl/common"
 import { isMaterialized } from "../peer-generation/isMaterialized"
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
@@ -24,7 +23,7 @@ export function inplaceGenerics(
     }
     options ??= {}
     options.ignore ??= []
-    options.ignore.push(ignoreConfigRule, ignoreBuilderClassRule, createIgnoreMaterializedRule(resolver))
+    options.ignore.push(ignoreConfigRule, createIgnoreMaterializedRule(resolver))
     candidates.forEach(it => inplaceReferenceGenerics(it, resolver, options))
 }
 
@@ -64,10 +63,6 @@ function ignoreConfigRule(node: idl.IDLNode): boolean {
     if (idl.isEntry(node))
         return generatorConfiguration().ignoreGenerics.includes(idl.getFQName(node))
     return false
-}
-
-function ignoreBuilderClassRule(node: idl.IDLNode): boolean {
-    return idl.isInterface(node) && isBuilderClass(node)
 }
 
 function createIgnoreMaterializedRule(resolver: ReferenceResolver): (node: idl.IDLNode) => boolean {

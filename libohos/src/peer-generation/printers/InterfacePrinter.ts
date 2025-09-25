@@ -15,9 +15,9 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    createLanguageWriter, LanguageWriter,
-    indentedBy, isBuilderClass, isMaterialized, stringOrNone, throwException, Language, PeerLibrary,
-    convertDeclaration, DeclarationConvertor, maybeTransformManagedCallback,
+    LanguageWriter,
+    indentedBy, isMaterialized, stringOrNone, throwException, Language, PeerLibrary,
+    convertDeclaration, DeclarationConvertor,
     MethodModifier,
     FieldModifier,
     Method,
@@ -33,7 +33,8 @@ import {
     collapseTypes,
     getSuper,
     isInplacedGeneric,
-    maybeRestoreGenerics
+    maybeRestoreGenerics,
+    createLanguageWriter
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -139,7 +140,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         //TODO: CommonMethod has a method onClick and a property onClick
         const seenFields = new Set<string>()
         const declaredPrefix = this.needDeclaredPrefix(idlInterface) ? "declare " : ""
-        const kindPrefix = idl.isClassSubkind(idlInterface) || isBuilderClass(idlInterface) ? "class " : "interface "
+        const kindPrefix = idl.isClassSubkind(idlInterface) ? "class " : "interface "
         const isDefault = idl.hasExtAttribute(idlInterface, idl.IDLExtendedAttributes.DefaultExport)
         return ([`export ${declaredPrefix}${kindPrefix}${this.printInterfaceName(idlInterface)} {`] as stringOrNone[])
             .concat(idlInterface.constants
@@ -598,7 +599,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
     }
@@ -995,7 +996,6 @@ export class JavaInterfacesVisitor implements InterfacesVisitor {
                 if (peerGeneratorConfiguration().ignoreEntry(entry.name, Language.JAVA))
                     continue
                 if (idl.isInterface(entry) && (
-                    isBuilderClass(entry) ||
                     isMaterialized(entry, this.peerLibrary)))
                     continue
                 convertDeclaration(declarationConverter, entry)
@@ -1080,7 +1080,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && !this.isDeclarationFile && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && !this.isDeclarationFile && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
     }
@@ -1164,7 +1164,7 @@ export class CJInterfacesVisitor implements InterfacesVisitor {
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
     }
 
@@ -1486,7 +1486,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
     ) { }
 
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
-        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary) || isBuilderClass(entry))
+        return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
     }
 
@@ -1823,7 +1823,7 @@ export function createInterfacePrinter(isDeclarations: boolean, printClasses: bo
 //                     peerGeneratorConfiguration().ignoreEntry(entry.name, library.language))
 //                     continue
 //                 syntheticGenerator.convert(entry)
-//                 if (idl.isInterface(entry) && (isMaterialized(entry, library) || isBuilderClass(entry)))
+//                 if (idl.isInterface(entry) && (isMaterialized(entry, library)))
 //                     continue
 //                 registerEntry(entry)
 //             }

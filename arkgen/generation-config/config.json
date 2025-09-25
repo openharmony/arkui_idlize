@@ -558,11 +558,6 @@
         "Record"
     ],
     "builderClasses": [
-        "Indicator",
-        "SubTabBarStyle",
-        "BottomTabBarStyle",
-        "DotIndicator",
-        "DigitIndicator"
     ],
     "components": {
         "customNodeTypes": [

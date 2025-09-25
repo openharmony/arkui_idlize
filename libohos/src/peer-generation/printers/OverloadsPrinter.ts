@@ -461,11 +461,17 @@ export class OverloadsPrinter {
             this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeUndefined()))
         } else {
-            this.printer.writeStatement(
-                this.printer.makeReturn(
-                    this.printer.makeMethodCall(receiver, methodName,
-                        argsNames.map(it => this.printer.makeString(it)))
-                ))
+            const methodCall = this.printer.makeMethodCall(receiver, methodName, argsNames.map(it => this.printer.makeString(it)))
+            const retType = peerMethod.returnType
+            if (idl.isTypeParameterType(retType)) {
+                console.log(`Class: ${peer}, method: ${peerMethod.method.name} has type parameter return value: ${retType.name}`)
+                this.printer.writeExpressionStatement(methodCall)
+                const retExpr = this.printer.makeCast(this.printer.makeThis(), retType, { unsafe: this.language == Language.TS })
+                this.printer.writeStatement(this.printer.makeReturn(retExpr ))
+            } else {
+                this.printer.writeStatement(
+                    this.printer.makeReturn(methodCall))
+            }
         }
     }
 }
