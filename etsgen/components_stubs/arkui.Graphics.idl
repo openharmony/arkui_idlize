@@ -73,7 +73,7 @@ dictionary LengthUnit {
     number PERCENT = 3;
     number LPX = 4;
 };
-[TypeParameters="T = void"]
+[TypeParameters="T", TypeParametersDefaults="void"]
 interface SizeT {
     attribute number width;
     attribute number height;

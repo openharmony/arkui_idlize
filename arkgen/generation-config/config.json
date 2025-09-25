@@ -490,7 +490,6 @@
         "Indicator",
         "AttributeModifier",
         "AnimationRange",
-        "SizeT",
         "PositionT",
         "Record"
     ],
@@ -546,7 +545,6 @@
             "LocalStorage",
             "PersistentStorage",
             "PositionT",
-            "SizeT",
             "Storage",
             "SubscribedAbstractProperty",
             "SyncedPropertyOneWay",

@@ -88,15 +88,7 @@
             "shape"
         ]
     },
-    "StubbedDeclarations": [
-        "OnWillScrollCallback",
-        "LayoutChild",
-        "EmitterProperty",
-        "GestureGroupGestureHandlerOptions",
-        "ColumnOptionsV2",
-        "RowOptionsV2",
-        "AlignRuleOption"
-    ],
+    "StubbedDeclarations": [],
     "Components": [
         "BaseSpan",
         "CommonMethod",
