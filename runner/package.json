@@ -17,6 +17,7 @@
     "@idlizer/etsgen": "2.1.10+devel",
     "@idlizer/core": "2.1.10+devel",
     "@idlizer/libohos": "2.1.10+devel",
+    "@idlizer/interfaces": "2.1.10+devel",
     "commander": "^10.0.0"
   },
   "devDependencies": {

@@ -43,7 +43,7 @@
                 "../../../../../../../../external/incremental/runtime/src/memo/remember"
             ],
             "arkui.stateManagement.runtime": [
-                "../../../../../../../../external/incremental/runtime/src/runtime"
+                "../../../../../../../../external/incremental/runtime/annotations"
             ],
             "arkui.stateManagement": [
                 "../../../../../../../../external/incremental/runtime/src"

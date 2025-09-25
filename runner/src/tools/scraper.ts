@@ -18,6 +18,7 @@ import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEn
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
 import { scan } from "../utils";
+import { readLibrary } from "@idlizer/interfaces"
 
 export const ScraperConfigSchema = D.object({
     target: D.default(D.array(D.string()), []),
@@ -79,6 +80,15 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     /////////////////////////////////////////////////////////////
     // scan and startup
 
+    const interfacesLibrary = readLibrary("arkuiExtra").flatMap(source => {
+        try {
+            return [parseIDLFile(source)]
+        } catch (e) {
+            console.error('skipped', source)
+            return []
+        }
+    })
+
     const input = scan(resolve(root))
     const library = input.flatMap(source => {
         try {
@@ -93,9 +103,9 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     // the algorithm
 
     const resolver = new PeerLibrary(Language.ARKTS, new NativeModuleType("___"), false)
-    resolver.files.push(...library)
+    resolver.files.push(...library, ...interfacesLibrary)
 
-    const roots = findRootFiles(library, options.target, options)
+    const roots = findRootFiles(library, options.target, options).concat(interfacesLibrary)
     const marked = new Set<string>()
     const fileNames = new Set<string>()
 
@@ -111,7 +121,8 @@ export function runScraper(root: string, configPath:string):ScraperResult {
             queue.push(...entry.members)
             continue
         }
-        fileNames.add(getFileFor(entry)?.fileName ?? '<...>')
+        if (library.includes(getFileFor(entry)!))
+            fileNames.add(getFileFor(entry)?.fileName ?? '<...>')
         forEachChild(entry, (node) => {
             if (isReferenceType(node)) {
                 const resolved = resolver.resolveTypeReference(node, true)
