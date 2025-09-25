@@ -280,6 +280,9 @@ typedef struct Opt_BlankAttribute Opt_BlankAttribute;
 typedef struct Opt_Boolean Opt_Boolean;
 typedef struct Ark_BooleanInterfaceDTS Ark_BooleanInterfaceDTS;
 typedef struct Opt_BooleanInterfaceDTS Opt_BooleanInterfaceDTS;
+typedef struct BottomTabBarStylePeer BottomTabBarStylePeer;
+typedef struct BottomTabBarStylePeer* Ark_BottomTabBarStyle;
+typedef struct Opt_BottomTabBarStyle Opt_BottomTabBarStyle;
 typedef struct Opt_Buffer Opt_Buffer;
 typedef struct Ark_ButtonAttribute Ark_ButtonAttribute;
 typedef struct Opt_ButtonAttribute Opt_ButtonAttribute;
@@ -332,8 +335,14 @@ typedef struct CustomDialogControllerPeer CustomDialogControllerPeer;
 typedef struct CustomDialogControllerPeer* Ark_CustomDialogController;
 typedef struct Opt_CustomDialogController Opt_CustomDialogController;
 typedef struct Opt_CustomObject Opt_CustomObject;
+typedef struct DigitIndicatorPeer DigitIndicatorPeer;
+typedef struct DigitIndicatorPeer* Ark_DigitIndicator;
+typedef struct Opt_DigitIndicator Opt_DigitIndicator;
 typedef struct Ark_DividerAttribute Ark_DividerAttribute;
 typedef struct Opt_DividerAttribute Opt_DividerAttribute;
+typedef struct DotIndicatorPeer DotIndicatorPeer;
+typedef struct DotIndicatorPeer* Ark_DotIndicator;
+typedef struct Opt_DotIndicator Opt_DotIndicator;
 typedef struct DragEventPeer DragEventPeer;
 typedef struct DragEventPeer* Ark_DragEvent;
 typedef struct Opt_DragEvent Opt_DragEvent;
@@ -377,6 +386,9 @@ typedef struct Opt_ImageAttribute Opt_ImageAttribute;
 typedef struct ImageBitmapPeer ImageBitmapPeer;
 typedef struct ImageBitmapPeer* Ark_ImageBitmap;
 typedef struct Opt_ImageBitmap Opt_ImageBitmap;
+typedef struct IndicatorPeer IndicatorPeer;
+typedef struct IndicatorPeer* Ark_Indicator;
+typedef struct Opt_Indicator Opt_Indicator;
 typedef struct Ark_IndicatorComponentAttribute Ark_IndicatorComponentAttribute;
 typedef struct Opt_IndicatorComponentAttribute Opt_IndicatorComponentAttribute;
 typedef struct IndicatorComponentControllerPeer IndicatorComponentControllerPeer;
@@ -501,6 +513,9 @@ typedef struct Opt_StyledStringController Opt_StyledStringController;
 typedef struct SubmitEventPeer SubmitEventPeer;
 typedef struct SubmitEventPeer* Ark_SubmitEvent;
 typedef struct Opt_SubmitEvent Opt_SubmitEvent;
+typedef struct SubTabBarStylePeer SubTabBarStylePeer;
+typedef struct SubTabBarStylePeer* Ark_SubTabBarStyle;
+typedef struct Opt_SubTabBarStyle Opt_SubTabBarStyle;
 typedef struct Ark_SwiperAnimationEvent Ark_SwiperAnimationEvent;
 typedef struct Opt_SwiperAnimationEvent Opt_SwiperAnimationEvent;
 typedef struct Ark_SwiperAttribute Ark_SwiperAttribute;
@@ -597,6 +612,10 @@ typedef struct Ark_Union_Curve_ICurve Ark_Union_Curve_ICurve;
 typedef struct Opt_Union_Curve_ICurve Opt_Union_Curve_ICurve;
 typedef struct Ark_Union_Curve_String_ICurve Ark_Union_Curve_String_ICurve;
 typedef struct Opt_Union_Curve_String_ICurve Opt_Union_Curve_String_ICurve;
+typedef struct Ark_Union_DotIndicator_DigitIndicator Ark_Union_DotIndicator_DigitIndicator;
+typedef struct Opt_Union_DotIndicator_DigitIndicator Opt_Union_DotIndicator_DigitIndicator;
+typedef struct Ark_Union_DotIndicator_DigitIndicator_Boolean Ark_Union_DotIndicator_DigitIndicator_Boolean;
+typedef struct Opt_Union_DotIndicator_DigitIndicator_Boolean Opt_Union_DotIndicator_DigitIndicator_Boolean;
 typedef struct Ark_Union_FontWeight_Number_String Ark_Union_FontWeight_Number_String;
 typedef struct Opt_Union_FontWeight_Number_String Opt_Union_FontWeight_Number_String;
 typedef struct Ark_Union_Number_Boolean Ark_Union_Number_Boolean;
@@ -617,6 +636,8 @@ typedef struct Ark_Union_String_Number Ark_Union_String_Number;
 typedef struct Opt_Union_String_Number Opt_Union_String_Number;
 typedef struct Ark_Union_String_Number_CanvasGradient_CanvasPattern Ark_Union_String_Number_CanvasGradient_CanvasPattern;
 typedef struct Opt_Union_String_Number_CanvasGradient_CanvasPattern Opt_Union_String_Number_CanvasGradient_CanvasPattern;
+typedef struct Ark_Union_SubTabBarStyle_BottomTabBarStyle Ark_Union_SubTabBarStyle_BottomTabBarStyle;
+typedef struct Opt_Union_SubTabBarStyle_BottomTabBarStyle Opt_Union_SubTabBarStyle_BottomTabBarStyle;
 typedef struct Ark_Union_TextInputStyle_TextContentStyle Ark_Union_TextInputStyle_TextContentStyle;
 typedef struct Opt_Union_TextInputStyle_TextContentStyle Opt_Union_TextInputStyle_TextContentStyle;
 typedef struct Ark_UnionInterfaceDTS Ark_UnionInterfaceDTS;
@@ -1451,8 +1472,6 @@ typedef struct Ark_Union_ResourceStr_PixelMap Ark_Union_ResourceStr_PixelMap;
 typedef struct Opt_Union_ResourceStr_PixelMap Opt_Union_ResourceStr_PixelMap;
 typedef struct Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
 typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
-typedef struct Ark_Union_ResourceStr_ResourceStr Ark_Union_ResourceStr_ResourceStr;
-typedef struct Opt_Union_ResourceStr_ResourceStr Opt_Union_ResourceStr_ResourceStr;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol Ark_Union_ResourceStr_TabBarSymbol;
 typedef struct Opt_Union_ResourceStr_TabBarSymbol Opt_Union_ResourceStr_TabBarSymbol;
 typedef struct Ark_Union_ScrollAnimationOptions_Boolean Ark_Union_ScrollAnimationOptions_Boolean;
@@ -1665,8 +1684,6 @@ typedef struct Ark_ConstraintSizeOptions Ark_ConstraintSizeOptions;
 typedef struct Opt_ConstraintSizeOptions Opt_ConstraintSizeOptions;
 typedef struct Ark_DividerOptions Ark_DividerOptions;
 typedef struct Opt_DividerOptions Opt_DividerOptions;
-typedef struct Ark_DotIndicator Ark_DotIndicator;
-typedef struct Opt_DotIndicator Opt_DotIndicator;
 typedef struct Ark_EdgeOutlineWidths Ark_EdgeOutlineWidths;
 typedef struct Opt_EdgeOutlineWidths Opt_EdgeOutlineWidths;
 typedef struct Ark_EdgeWidths Ark_EdgeWidths;
@@ -1781,8 +1798,6 @@ typedef struct Ark_Union_SizeOptions_ImageSize Ark_Union_SizeOptions_ImageSize;
 typedef struct Opt_Union_SizeOptions_ImageSize Opt_Union_SizeOptions_ImageSize;
 typedef struct Ark_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle Ark_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle;
 typedef struct Opt_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle Opt_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle;
-typedef struct Ark_Union_Union_Padding_Dimension_LocalizedPadding Ark_Union_Union_Padding_Dimension_LocalizedPadding;
-typedef struct Opt_Union_Union_Padding_Dimension_LocalizedPadding Opt_Union_Union_Padding_Dimension_LocalizedPadding;
 typedef struct Ark_AlertDialogParamWithButtons Ark_AlertDialogParamWithButtons;
 typedef struct Opt_AlertDialogParamWithButtons Opt_AlertDialogParamWithButtons;
 typedef struct Ark_AlertDialogParamWithConfirm Ark_AlertDialogParamWithConfirm;
@@ -1803,8 +1818,6 @@ typedef struct Ark_ContextMenuOptions Ark_ContextMenuOptions;
 typedef struct Opt_ContextMenuOptions Opt_ContextMenuOptions;
 typedef struct Ark_CustomPopupOptions Ark_CustomPopupOptions;
 typedef struct Opt_CustomPopupOptions Opt_CustomPopupOptions;
-typedef struct Ark_DigitIndicator Ark_DigitIndicator;
-typedef struct Opt_DigitIndicator Opt_DigitIndicator;
 typedef struct Ark_EventTarget Ark_EventTarget;
 typedef struct Opt_EventTarget Opt_EventTarget;
 typedef struct Ark_GeometryInfo Ark_GeometryInfo;
@@ -1876,10 +1889,6 @@ typedef struct Ark_Union_AlertDialogParamWithConfirm_AlertDialogParamWithButtons
 typedef struct Opt_Union_AlertDialogParamWithConfirm_AlertDialogParamWithButtons_AlertDialogParamWithOptions Opt_Union_AlertDialogParamWithConfirm_AlertDialogParamWithButtons_AlertDialogParamWithOptions;
 typedef struct Ark_Union_CancelButtonOptions_CancelButtonSymbolOptions Ark_Union_CancelButtonOptions_CancelButtonSymbolOptions;
 typedef struct Opt_Union_CancelButtonOptions_CancelButtonSymbolOptions Opt_Union_CancelButtonOptions_CancelButtonSymbolOptions;
-typedef struct Ark_Union_DotIndicator_DigitIndicator Ark_Union_DotIndicator_DigitIndicator;
-typedef struct Opt_Union_DotIndicator_DigitIndicator Opt_Union_DotIndicator_DigitIndicator;
-typedef struct Ark_Union_DotIndicator_DigitIndicator_Boolean Ark_Union_DotIndicator_DigitIndicator_Boolean;
-typedef struct Opt_Union_DotIndicator_DigitIndicator_Boolean Opt_Union_DotIndicator_DigitIndicator_Boolean;
 typedef struct AccessibilityHoverEventPeer AccessibilityHoverEventPeer;
 typedef struct AccessibilityHoverEventPeer* Ark_AccessibilityHoverEvent;
 typedef struct Opt_AccessibilityHoverEvent Opt_AccessibilityHoverEvent;
@@ -1892,8 +1901,6 @@ typedef struct Opt_BaseEvent Opt_BaseEvent;
 typedef struct BaseGestureEventPeer BaseGestureEventPeer;
 typedef struct BaseGestureEventPeer* Ark_BaseGestureEvent;
 typedef struct Opt_BaseGestureEvent Opt_BaseGestureEvent;
-typedef struct Ark_BottomTabBarStyle Ark_BottomTabBarStyle;
-typedef struct Opt_BottomTabBarStyle Opt_BottomTabBarStyle;
 typedef struct ClickEventPeer ClickEventPeer;
 typedef struct ClickEventPeer* Ark_ClickEvent;
 typedef struct Opt_ClickEvent Opt_ClickEvent;
@@ -1920,8 +1927,6 @@ typedef struct Ark_StyledStringValue Ark_StyledStringValue;
 typedef struct Opt_StyledStringValue Opt_StyledStringValue;
 typedef struct Ark_StyleOptions Ark_StyleOptions;
 typedef struct Opt_StyleOptions Opt_StyleOptions;
-typedef struct Ark_SubTabBarStyle Ark_SubTabBarStyle;
-typedef struct Opt_SubTabBarStyle Opt_SubTabBarStyle;
 typedef struct Ark_TextPickerDialogOptions Ark_TextPickerDialogOptions;
 typedef struct Opt_TextPickerDialogOptions Opt_TextPickerDialogOptions;
 typedef struct Ark_Union_PopupOptions_CustomPopupOptions Ark_Union_PopupOptions_CustomPopupOptions;
@@ -1930,8 +1935,6 @@ typedef struct Ark_Union_RichEditorUpdateTextSpanStyleOptions_RichEditorUpdateIm
 typedef struct Opt_Union_RichEditorUpdateTextSpanStyleOptions_RichEditorUpdateImageSpanStyleOptions_RichEditorUpdateSymbolSpanStyleOptions Opt_Union_RichEditorUpdateTextSpanStyleOptions_RichEditorUpdateImageSpanStyleOptions_RichEditorUpdateSymbolSpanStyleOptions;
 typedef struct Ark_Union_String_ImageAttachment_CustomSpan Ark_Union_String_ImageAttachment_CustomSpan;
 typedef struct Opt_Union_String_ImageAttachment_CustomSpan Opt_Union_String_ImageAttachment_CustomSpan;
-typedef struct Ark_Union_SubTabBarStyle_BottomTabBarStyle Ark_Union_SubTabBarStyle_BottomTabBarStyle;
-typedef struct Opt_Union_SubTabBarStyle_BottomTabBarStyle Opt_Union_SubTabBarStyle_BottomTabBarStyle;
 typedef struct Ark_RichEditorImageSpanOptions Ark_RichEditorImageSpanOptions;
 typedef struct Opt_RichEditorImageSpanOptions Opt_RichEditorImageSpanOptions;
 typedef struct Ark_RichEditorImageSpanResult Ark_RichEditorImageSpanResult;
@@ -3913,6 +3916,10 @@ typedef struct Opt_BooleanInterfaceDTS {
     Ark_Tag tag;
     Ark_BooleanInterfaceDTS value;
 } Opt_BooleanInterfaceDTS;
+typedef struct Opt_BottomTabBarStyle {
+    Ark_Tag tag;
+    Ark_BottomTabBarStyle value;
+} Opt_BottomTabBarStyle;
 typedef struct Opt_Buffer {
     Ark_Tag tag;
     Ark_Buffer value;
@@ -4025,6 +4032,10 @@ typedef struct Opt_CustomObject {
     Ark_Tag tag;
     Ark_CustomObject value;
 } Opt_CustomObject;
+typedef struct Opt_DigitIndicator {
+    Ark_Tag tag;
+    Ark_DigitIndicator value;
+} Opt_DigitIndicator;
 typedef struct Ark_DividerAttribute {
     /* kind: Interface */
     void *handle;
@@ -4033,6 +4044,10 @@ typedef struct Opt_DividerAttribute {
     Ark_Tag tag;
     Ark_DividerAttribute value;
 } Opt_DividerAttribute;
+typedef struct Opt_DotIndicator {
+    Ark_Tag tag;
+    Ark_DotIndicator value;
+} Opt_DotIndicator;
 typedef struct Opt_DragEvent {
     Ark_Tag tag;
     Ark_DragEvent value;
@@ -4141,6 +4156,10 @@ typedef struct Opt_ImageBitmap {
     Ark_Tag tag;
     Ark_ImageBitmap value;
 } Opt_ImageBitmap;
+typedef struct Opt_Indicator {
+    Ark_Tag tag;
+    Ark_Indicator value;
+} Opt_Indicator;
 typedef struct Ark_IndicatorComponentAttribute {
     /* kind: Interface */
     void *handle;
@@ -4485,6 +4504,10 @@ typedef struct Opt_SubmitEvent {
     Ark_Tag tag;
     Ark_SubmitEvent value;
 } Opt_SubmitEvent;
+typedef struct Opt_SubTabBarStyle {
+    Ark_Tag tag;
+    Ark_SubTabBarStyle value;
+} Opt_SubTabBarStyle;
 typedef struct Ark_SwiperAnimationEvent {
     /* kind: Interface */
     Ark_Number currentOffset;
@@ -4824,6 +4847,31 @@ typedef struct Opt_Union_Curve_String_ICurve {
     Ark_Tag tag;
     Ark_Union_Curve_String_ICurve value;
 } Opt_Union_Curve_String_ICurve;
+typedef struct Ark_Union_DotIndicator_DigitIndicator {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_DotIndicator value0;
+        Ark_DigitIndicator value1;
+    };
+} Ark_Union_DotIndicator_DigitIndicator;
+typedef struct Opt_Union_DotIndicator_DigitIndicator {
+    Ark_Tag tag;
+    Ark_Union_DotIndicator_DigitIndicator value;
+} Opt_Union_DotIndicator_DigitIndicator;
+typedef struct Ark_Union_DotIndicator_DigitIndicator_Boolean {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_DotIndicator value0;
+        Ark_DigitIndicator value1;
+        Ark_Boolean value2;
+    };
+} Ark_Union_DotIndicator_DigitIndicator_Boolean;
+typedef struct Opt_Union_DotIndicator_DigitIndicator_Boolean {
+    Ark_Tag tag;
+    Ark_Union_DotIndicator_DigitIndicator_Boolean value;
+} Opt_Union_DotIndicator_DigitIndicator_Boolean;
 typedef struct Ark_Union_FontWeight_Number_String {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -4949,6 +4997,18 @@ typedef struct Opt_Union_String_Number_CanvasGradient_CanvasPattern {
     Ark_Tag tag;
     Ark_Union_String_Number_CanvasGradient_CanvasPattern value;
 } Opt_Union_String_Number_CanvasGradient_CanvasPattern;
+typedef struct Ark_Union_SubTabBarStyle_BottomTabBarStyle {
+    /* kind: UnionType */
+    Ark_Int32 selector;
+    union {
+        Ark_SubTabBarStyle value0;
+        Ark_BottomTabBarStyle value1;
+    };
+} Ark_Union_SubTabBarStyle_BottomTabBarStyle;
+typedef struct Opt_Union_SubTabBarStyle_BottomTabBarStyle {
+    Ark_Tag tag;
+    Ark_Union_SubTabBarStyle_BottomTabBarStyle value;
+} Opt_Union_SubTabBarStyle_BottomTabBarStyle;
 typedef struct Ark_Union_TextInputStyle_TextContentStyle {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -8757,18 +8817,6 @@ typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier {
     Ark_Tag tag;
     Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier value;
 } Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
-typedef struct Ark_Union_ResourceStr_ResourceStr {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_ResourceStr value0;
-        Ark_ResourceStr value1;
-    };
-} Ark_Union_ResourceStr_ResourceStr;
-typedef struct Opt_Union_ResourceStr_ResourceStr {
-    Ark_Tag tag;
-    Ark_Union_ResourceStr_ResourceStr value;
-} Opt_Union_ResourceStr_ResourceStr;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -9921,27 +9969,6 @@ typedef struct Opt_DividerOptions {
     Ark_Tag tag;
     Ark_DividerOptions value;
 } Opt_DividerOptions;
-typedef struct Ark_DotIndicator {
-    /* kind: Interface */
-    Opt_Length _left;
-    Opt_Length _top;
-    Opt_Length _right;
-    Opt_Length _bottom;
-    Opt_LengthMetrics _start;
-    Opt_LengthMetrics _end;
-    Opt_Length _itemWidth;
-    Opt_Length _itemHeight;
-    Opt_Length _selectedItemWidth;
-    Opt_Length _selectedItemHeight;
-    Opt_Boolean _mask;
-    Opt_ResourceColor _color;
-    Opt_ResourceColor _selectedColor;
-    Opt_Number _maxDisplayCount;
-} Ark_DotIndicator;
-typedef struct Opt_DotIndicator {
-    Ark_Tag tag;
-    Ark_DotIndicator value;
-} Opt_DotIndicator;
 typedef struct Ark_EdgeOutlineWidths {
     /* kind: Interface */
     Opt_Dimension top;
@@ -10606,18 +10633,6 @@ typedef struct Opt_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDesti
     Ark_Tag tag;
     Ark_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle value;
 } Opt_Union_String_CustomBuilder_NavDestinationCommonTitle_NavDestinationCustomTitle;
-typedef struct Ark_Union_Union_Padding_Dimension_LocalizedPadding {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_Union_Padding_Dimension value0;
-        Ark_LocalizedPadding value1;
-    };
-} Ark_Union_Union_Padding_Dimension_LocalizedPadding;
-typedef struct Opt_Union_Union_Padding_Dimension_LocalizedPadding {
-    Ark_Tag tag;
-    Ark_Union_Union_Padding_Dimension_LocalizedPadding value;
-} Opt_Union_Union_Padding_Dimension_LocalizedPadding;
 typedef struct Ark_AlertDialogParamWithButtons {
     /* kind: Interface */
     Opt_ResourceStr title;
@@ -10832,23 +10847,6 @@ typedef struct Opt_CustomPopupOptions {
     Ark_Tag tag;
     Ark_CustomPopupOptions value;
 } Opt_CustomPopupOptions;
-typedef struct Ark_DigitIndicator {
-    /* kind: Interface */
-    Opt_Length _left;
-    Opt_Length _top;
-    Opt_Length _right;
-    Opt_Length _bottom;
-    Opt_LengthMetrics _start;
-    Opt_LengthMetrics _end;
-    Opt_ResourceColor _fontColor;
-    Opt_ResourceColor _selectedFontColor;
-    Opt_Font _digitFont;
-    Opt_Font _selectedDigitFont;
-} Ark_DigitIndicator;
-typedef struct Opt_DigitIndicator {
-    Ark_Tag tag;
-    Ark_DigitIndicator value;
-} Opt_DigitIndicator;
 typedef struct Ark_EventTarget {
     /* kind: Interface */
     Ark_Area area;
@@ -11141,31 +11139,6 @@ typedef struct Opt_Union_CancelButtonOptions_CancelButtonSymbolOptions {
     Ark_Tag tag;
     Ark_Union_CancelButtonOptions_CancelButtonSymbolOptions value;
 } Opt_Union_CancelButtonOptions_CancelButtonSymbolOptions;
-typedef struct Ark_Union_DotIndicator_DigitIndicator {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_DotIndicator value0;
-        Ark_DigitIndicator value1;
-    };
-} Ark_Union_DotIndicator_DigitIndicator;
-typedef struct Opt_Union_DotIndicator_DigitIndicator {
-    Ark_Tag tag;
-    Ark_Union_DotIndicator_DigitIndicator value;
-} Opt_Union_DotIndicator_DigitIndicator;
-typedef struct Ark_Union_DotIndicator_DigitIndicator_Boolean {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_DotIndicator value0;
-        Ark_DigitIndicator value1;
-        Ark_Boolean value2;
-    };
-} Ark_Union_DotIndicator_DigitIndicator_Boolean;
-typedef struct Opt_Union_DotIndicator_DigitIndicator_Boolean {
-    Ark_Tag tag;
-    Ark_Union_DotIndicator_DigitIndicator_Boolean value;
-} Opt_Union_DotIndicator_DigitIndicator_Boolean;
 typedef struct Opt_AccessibilityHoverEvent {
     Ark_Tag tag;
     Ark_AccessibilityHoverEvent value;
@@ -11182,22 +11155,6 @@ typedef struct Opt_BaseGestureEvent {
     Ark_Tag tag;
     Ark_BaseGestureEvent value;
 } Opt_BaseGestureEvent;
-typedef struct Ark_BottomTabBarStyle {
-    /* kind: Interface */
-    Opt_Union_ResourceStr_TabBarSymbol _icon;
-    Opt_ResourceStr _text;
-    Opt_ButtonLabelStyle _labelStyle;
-    Opt_Union_Padding_Dimension_LocalizedPadding _padding;
-    Opt_LayoutMode _layoutMode;
-    Opt_VerticalAlign _verticalAlign;
-    Opt_Boolean _symmetricExtensible;
-    Opt_String _id;
-    Opt_TabBarIconStyle _iconStyle;
-} Ark_BottomTabBarStyle;
-typedef struct Opt_BottomTabBarStyle {
-    Ark_Tag tag;
-    Ark_BottomTabBarStyle value;
-} Opt_BottomTabBarStyle;
 typedef struct Opt_ClickEvent {
     Ark_Tag tag;
     Ark_ClickEvent value;
@@ -11352,20 +11309,6 @@ typedef struct Opt_StyleOptions {
     Ark_Tag tag;
     Ark_StyleOptions value;
 } Opt_StyleOptions;
-typedef struct Ark_SubTabBarStyle {
-    /* kind: Interface */
-    Opt_Union_String_Resource _content;
-    Opt_arkui_component_IndicatorStyle _indicator;
-    Opt_SelectedMode _selectedMode;
-    Opt_BoardStyle _board;
-    Opt_ButtonLabelStyle _labelStyle;
-    Opt_Union_Union_Padding_Dimension_LocalizedPadding _padding;
-    Opt_String _id;
-} Ark_SubTabBarStyle;
-typedef struct Opt_SubTabBarStyle {
-    Ark_Tag tag;
-    Ark_SubTabBarStyle value;
-} Opt_SubTabBarStyle;
 typedef struct Ark_TextPickerDialogOptions {
     /* kind: Interface */
     Ark_Union_Array_String_Array_Array_String_Resource_Array_TextPickerRangeContent_Array_TextCascadePickerRangeContent range;
@@ -11437,18 +11380,6 @@ typedef struct Opt_Union_String_ImageAttachment_CustomSpan {
     Ark_Tag tag;
     Ark_Union_String_ImageAttachment_CustomSpan value;
 } Opt_Union_String_ImageAttachment_CustomSpan;
-typedef struct Ark_Union_SubTabBarStyle_BottomTabBarStyle {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_SubTabBarStyle value0;
-        Ark_BottomTabBarStyle value1;
-    };
-} Ark_Union_SubTabBarStyle_BottomTabBarStyle;
-typedef struct Opt_Union_SubTabBarStyle_BottomTabBarStyle {
-    Ark_Tag tag;
-    Ark_Union_SubTabBarStyle_BottomTabBarStyle value;
-} Opt_Union_SubTabBarStyle_BottomTabBarStyle;
 typedef struct Ark_RichEditorImageSpanOptions {
     /* kind: Interface */
     Opt_Number offset;
@@ -13412,6 +13343,29 @@ typedef struct GENERATED_ArkUIBaselineOffsetStyleAccessor {
     Ark_Number (*getBaselineOffset)(Ark_BaselineOffsetStyle peer);
 } GENERATED_ArkUIBaselineOffsetStyleAccessor;
 
+typedef struct GENERATED_ArkUIBottomTabBarStyleAccessor {
+    void (*destroyPeer)(Ark_BottomTabBarStyle peer);
+    Ark_BottomTabBarStyle (*construct)(const Ark_Union_ResourceStr_TabBarSymbol* icon,
+                                       const Ark_ResourceStr* text);
+    Ark_NativePointer (*getFinalizer)();
+    Ark_BottomTabBarStyle (*of)(const Ark_Union_ResourceStr_TabBarSymbol* icon,
+                                const Ark_ResourceStr* text);
+    Ark_BottomTabBarStyle (*labelStyle)(Ark_BottomTabBarStyle peer,
+                                        const Ark_ButtonLabelStyle* value);
+    Ark_BottomTabBarStyle (*padding)(Ark_BottomTabBarStyle peer,
+                                     const Ark_Union_Padding_Dimension_LocalizedPadding* value);
+    Ark_BottomTabBarStyle (*layoutMode)(Ark_BottomTabBarStyle peer,
+                                        Ark_LayoutMode value);
+    Ark_BottomTabBarStyle (*verticalAlign)(Ark_BottomTabBarStyle peer,
+                                           Ark_VerticalAlign value);
+    Ark_BottomTabBarStyle (*symmetricExtensible)(Ark_BottomTabBarStyle peer,
+                                                 Ark_Boolean value);
+    Ark_BottomTabBarStyle (*id)(Ark_BottomTabBarStyle peer,
+                                const Ark_String* value);
+    Ark_BottomTabBarStyle (*iconStyle)(Ark_BottomTabBarStyle peer,
+                                       const Ark_TabBarIconStyle* style);
+} GENERATED_ArkUIBottomTabBarStyleAccessor;
+
 typedef struct GENERATED_ArkUIBounceSymbolEffectAccessor {
     void (*destroyPeer)(Ark_BounceSymbolEffect peer);
     Ark_BounceSymbolEffect (*construct)(const Opt_EffectScope* scope,
@@ -13742,6 +13696,20 @@ typedef struct GENERATED_ArkUIDecorationStyleAccessor {
     Opt_TextDecorationStyle (*getStyle)(Ark_DecorationStyle peer);
 } GENERATED_ArkUIDecorationStyleAccessor;
 
+typedef struct GENERATED_ArkUIDigitIndicatorAccessor {
+    void (*destroyPeer)(Ark_DigitIndicator peer);
+    Ark_DigitIndicator (*construct)();
+    Ark_NativePointer (*getFinalizer)();
+    Ark_DigitIndicator (*fontColor)(Ark_DigitIndicator peer,
+                                    const Ark_ResourceColor* value);
+    Ark_DigitIndicator (*selectedFontColor)(Ark_DigitIndicator peer,
+                                            const Ark_ResourceColor* value);
+    Ark_DigitIndicator (*digitFont)(Ark_DigitIndicator peer,
+                                    const Ark_Font* value);
+    Ark_DigitIndicator (*selectedDigitFont)(Ark_DigitIndicator peer,
+                                            const Ark_Font* value);
+} GENERATED_ArkUIDigitIndicatorAccessor;
+
 typedef struct GENERATED_ArkUIDisappearSymbolEffectAccessor {
     void (*destroyPeer)(Ark_DisappearSymbolEffect peer);
     Ark_DisappearSymbolEffect (*construct)(const Opt_EffectScope* scope);
@@ -13750,6 +13718,28 @@ typedef struct GENERATED_ArkUIDisappearSymbolEffectAccessor {
     void (*setScope)(Ark_DisappearSymbolEffect peer,
                      const Opt_EffectScope* scope);
 } GENERATED_ArkUIDisappearSymbolEffectAccessor;
+
+typedef struct GENERATED_ArkUIDotIndicatorAccessor {
+    void (*destroyPeer)(Ark_DotIndicator peer);
+    Ark_DotIndicator (*construct)();
+    Ark_NativePointer (*getFinalizer)();
+    Ark_DotIndicator (*itemWidth)(Ark_DotIndicator peer,
+                                  const Ark_Length* value);
+    Ark_DotIndicator (*itemHeight)(Ark_DotIndicator peer,
+                                   const Ark_Length* value);
+    Ark_DotIndicator (*selectedItemWidth)(Ark_DotIndicator peer,
+                                          const Ark_Length* value);
+    Ark_DotIndicator (*selectedItemHeight)(Ark_DotIndicator peer,
+                                           const Ark_Length* value);
+    Ark_DotIndicator (*mask)(Ark_DotIndicator peer,
+                             Ark_Boolean value);
+    Ark_DotIndicator (*color)(Ark_DotIndicator peer,
+                              const Ark_ResourceColor* value);
+    Ark_DotIndicator (*selectedColor)(Ark_DotIndicator peer,
+                                      const Ark_ResourceColor* value);
+    Ark_DotIndicator (*maxDisplayCount)(Ark_DotIndicator peer,
+                                        const Ark_Number* maxDisplayCount);
+} GENERATED_ArkUIDotIndicatorAccessor;
 
 typedef struct GENERATED_ArkUIDragEventAccessor {
     void (*destroyPeer)(Ark_DragEvent peer);
@@ -13953,6 +13943,26 @@ typedef struct GENERATED_ArkUIImageDataAccessor {
     Ark_Number (*getHeight)(Ark_ImageData peer);
     Ark_Number (*getWidth)(Ark_ImageData peer);
 } GENERATED_ArkUIImageDataAccessor;
+
+typedef struct GENERATED_ArkUIIndicatorAccessor {
+    void (*destroyPeer)(Ark_Indicator peer);
+    Ark_Indicator (*construct)();
+    Ark_NativePointer (*getFinalizer)();
+    void (*left)(Ark_Indicator peer,
+                 const Ark_Length* value);
+    void (*top)(Ark_Indicator peer,
+                const Ark_Length* value);
+    void (*right)(Ark_Indicator peer,
+                  const Ark_Length* value);
+    void (*bottom)(Ark_Indicator peer,
+                   const Ark_Length* value);
+    void (*start)(Ark_Indicator peer,
+                  const Ark_LengthMetrics* value);
+    void (*end)(Ark_Indicator peer,
+                const Ark_LengthMetrics* value);
+    Ark_DotIndicator (*dot)();
+    Ark_DigitIndicator (*digit)();
+} GENERATED_ArkUIIndicatorAccessor;
 
 typedef struct GENERATED_ArkUIIndicatorComponentControllerAccessor {
     void (*destroyPeer)(Ark_IndicatorComponentController peer);
@@ -14701,6 +14711,27 @@ typedef struct GENERATED_ArkUISubmitEventAccessor {
                     const Ark_String* text);
 } GENERATED_ArkUISubmitEventAccessor;
 
+typedef struct GENERATED_ArkUISubTabBarStyleAccessor {
+    void (*destroyPeer)(Ark_SubTabBarStyle peer);
+    Ark_SubTabBarStyle (*construct)(const Ark_ResourceStr* content);
+    Ark_NativePointer (*getFinalizer)();
+    Ark_SubTabBarStyle (*of)(const Ark_ResourceStr* content);
+    Ark_SubTabBarStyle (*indicator)(Ark_SubTabBarStyle peer,
+                                    const Ark_arkui_component_IndicatorStyle* value);
+    Ark_SubTabBarStyle (*selectedMode)(Ark_SubTabBarStyle peer,
+                                       Ark_SelectedMode value);
+    Ark_SubTabBarStyle (*board)(Ark_SubTabBarStyle peer,
+                                const Ark_BoardStyle* value);
+    Ark_SubTabBarStyle (*labelStyle)(Ark_SubTabBarStyle peer,
+                                     const Ark_ButtonLabelStyle* value);
+    Ark_SubTabBarStyle (*padding0)(Ark_SubTabBarStyle peer,
+                                   const Ark_Union_Padding_Dimension* value);
+    Ark_SubTabBarStyle (*padding1)(Ark_SubTabBarStyle peer,
+                                   const Ark_LocalizedPadding* padding);
+    Ark_SubTabBarStyle (*id)(Ark_SubTabBarStyle peer,
+                             const Ark_String* value);
+} GENERATED_ArkUISubTabBarStyleAccessor;
+
 typedef struct GENERATED_ArkUISwipeGestureEventAccessor {
     void (*destroyPeer)(Ark_SwipeGestureEvent peer);
     Ark_SwipeGestureEvent (*construct)();
@@ -15077,6 +15108,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIBaseEventAccessor* (*getBaseEventAccessor)();
     const GENERATED_ArkUIBaseGestureEventAccessor* (*getBaseGestureEventAccessor)();
     const GENERATED_ArkUIBaselineOffsetStyleAccessor* (*getBaselineOffsetStyleAccessor)();
+    const GENERATED_ArkUIBottomTabBarStyleAccessor* (*getBottomTabBarStyleAccessor)();
     const GENERATED_ArkUIBounceSymbolEffectAccessor* (*getBounceSymbolEffectAccessor)();
     const GENERATED_ArkUICanvasGradientAccessor* (*getCanvasGradientAccessor)();
     const GENERATED_ArkUICanvasPathAccessor* (*getCanvasPathAccessor)();
@@ -15100,7 +15132,9 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUICustomDialogControllerAccessor* (*getCustomDialogControllerAccessor)();
     const GENERATED_ArkUICustomSpanAccessor* (*getCustomSpanAccessor)();
     const GENERATED_ArkUIDecorationStyleAccessor* (*getDecorationStyleAccessor)();
+    const GENERATED_ArkUIDigitIndicatorAccessor* (*getDigitIndicatorAccessor)();
     const GENERATED_ArkUIDisappearSymbolEffectAccessor* (*getDisappearSymbolEffectAccessor)();
+    const GENERATED_ArkUIDotIndicatorAccessor* (*getDotIndicatorAccessor)();
     const GENERATED_ArkUIDragEventAccessor* (*getDragEventAccessor)();
     const GENERATED_ArkUIDrawingRenderingContextAccessor* (*getDrawingRenderingContextAccessor)();
     const GENERATED_ArkUIDrawModifierAccessor* (*getDrawModifierAccessor)();
@@ -15116,6 +15150,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIImageAttachmentAccessor* (*getImageAttachmentAccessor)();
     const GENERATED_ArkUIImageBitmapAccessor* (*getImageBitmapAccessor)();
     const GENERATED_ArkUIImageDataAccessor* (*getImageDataAccessor)();
+    const GENERATED_ArkUIIndicatorAccessor* (*getIndicatorAccessor)();
     const GENERATED_ArkUIIndicatorComponentControllerAccessor* (*getIndicatorComponentControllerAccessor)();
     const GENERATED_ArkUIKeyEventAccessor* (*getKeyEventAccessor)();
     const GENERATED_ArkUILayoutableAccessor* (*getLayoutableAccessor)();
@@ -15156,6 +15191,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIStyledStringAccessor* (*getStyledStringAccessor)();
     const GENERATED_ArkUIStyledStringControllerAccessor* (*getStyledStringControllerAccessor)();
     const GENERATED_ArkUISubmitEventAccessor* (*getSubmitEventAccessor)();
+    const GENERATED_ArkUISubTabBarStyleAccessor* (*getSubTabBarStyleAccessor)();
     const GENERATED_ArkUISwipeGestureEventAccessor* (*getSwipeGestureEventAccessor)();
     const GENERATED_ArkUISwiperContentTransitionProxyAccessor* (*getSwiperContentTransitionProxyAccessor)();
     const GENERATED_ArkUISwiperControllerAccessor* (*getSwiperControllerAccessor)();

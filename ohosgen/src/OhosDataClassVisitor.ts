@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { FieldModifier, getSuper, getSuperType, IDLInterface, IDLMethod, IDLProperty, IDLReferenceType, isBuilderClass, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
+import { FieldModifier, getSuper, getSuperType, IDLInterface, IDLMethod, IDLProperty, IDLReferenceType, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
 import { allowsOverloads, collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 
 export function printDataClasses(library: PeerLibrary): PrinterResult[] {
@@ -27,7 +27,7 @@ export function printDataClasses(library: PeerLibrary): PrinterResult[] {
             if (!isClassSubkind(entry)) {
                 return []
             }
-            if (isMaterialized(entry, library) || isBuilderClass(entry)) {
+            if (isMaterialized(entry, library)) {
                 return []
             }
 

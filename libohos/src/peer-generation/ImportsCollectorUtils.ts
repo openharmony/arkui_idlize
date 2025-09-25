@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl"
 import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
-import { getInternalClassName, isBuilderClass, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
+import { getInternalClassName, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
     const featureNameConvertor = library.createTypeNameConvertor(library.language)
@@ -104,7 +104,7 @@ export function collectDeclItself(
         }
         emitter.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
         if (options?.includeMaterializedInternals) {
-            if (idl.isInterface(node) && isMaterialized(node, library) && !isBuilderClass(node) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
+            if (idl.isInterface(node) && isMaterialized(node, library) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)
                 if (ns !== '') {
                     emitter.addFeature(ns.split('.')[0], feature.module)

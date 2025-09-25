@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import * as idl from '@idlizer/core/idl'
 import { IndentedPrinter, camelCaseToUpperSnakeCase, Language,
     createConstructPeerMethod, createDestroyPeerMethod, PeerClass, PeerMethod, PeerLibrary, CppReturnTypeConvertor,
     MaterializedClass,
@@ -82,7 +82,8 @@ export class HeaderVisitor {
         const hookMethod = getHookMethod(method.originalParentName, method.method.name)
         if (hookMethod && hookMethod.replaceImplementation) return
         const apiParameters = generateCapiParameters(this.library, method, this.library.createTypeNameConvertor(Language.CPP))
-        printMethodDeclaration(this.api, this.returnTypeConvertor.convert(method.sig.returnType), `(*${method.sig.name})`, apiParameters, `;`)
+        var retType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : method.sig.returnType
+        printMethodDeclaration(this.api, this.returnTypeConvertor.convert(retType), `(*${method.sig.name})`, apiParameters, `;`)
     }
 
     private printClassEpilog(clazz: PeerClass) {

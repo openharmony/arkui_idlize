@@ -300,6 +300,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
         returnType = returnType ?? privateMethod.tsReturnType()
+        returnType = returnType && idl.isTypeParameterType(returnType) ? idl.IDLVoidType : returnType
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
@@ -444,7 +445,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printImports()
 
-        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz, this.library))
+        var superClassName: string | undefined = undefined
+        if (clazz.superClass) {
+            const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
+            superClassName = generifiedTypeName(clazz.superClass, nameConvertor, getSuperName(clazz, this.library))
+        }
+
         const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(

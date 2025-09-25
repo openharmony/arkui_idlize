@@ -58,9 +58,8 @@ export function collapseTypes(types: idl.IDLType[], name?: string): idl.IDLType 
     return uniqueTypes.length === 1 ? uniqueTypes[0] : idl.createUnionType(uniqueTypes, name)
 }
 
-export function generifiedTypeName(refType: idl.IDLReferenceType | undefined, refName?: string): string | undefined {
-    if (!refType) return undefined
-    const typeArgs = refType.typeArguments?.map(it => idl.printType(it) /* FIXME: BUG! */).join(",")
+export function generifiedTypeName(refType: idl.IDLReferenceType, nameConvertor: IdlNameConvertor, refName?: string): string {
+    const typeArgs = refType.typeArguments?.map(it => nameConvertor.convert(it)).join(",")
     return `${refName ? refName : refType.name}${typeArgs ? `<${typeArgs}>` : ``}`
 }
 

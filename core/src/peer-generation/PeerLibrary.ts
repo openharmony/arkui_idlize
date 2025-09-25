@@ -33,7 +33,6 @@ import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
-import { BuilderClass, isBuilderClass } from './BuilderClass'
 import { generateSyntheticFunctionName, isImportAttr, qualifiedName } from './idl/common'
 import { MaterializedClass } from './Materialized'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
@@ -112,10 +111,6 @@ export class PeerLibrary implements LibraryInterface {
     }
     public readonly files: idl.IDLFile[] = []
     public readonly auxFiles: idl.IDLFile[] = []
-    public readonly builderClasses: Map<string, BuilderClass> = new Map()
-    public get buildersToGenerate(): BuilderClass[] {
-        return Array.from(this.builderClasses.values()).filter(it => it.needBeGenerated)
-    }
 
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
     public get orderedMaterialized(): MaterializedClass[] {
@@ -453,9 +448,6 @@ export class PeerLibrary implements LibraryInterface {
             }
             if (isMaterialized(declaration, this)) {
                 return new MaterializedClassConvertor(this, param, declaration)
-            }
-            if (isBuilderClass(declaration)) {
-                return new ClassConvertor(this, declarationName, param, declaration)
             }
             switch (declaration.subkind) {
                 case idl.IDLInterfaceSubkind.Interface:

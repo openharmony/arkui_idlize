@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { Language, isMaterialized, isBuilderClass, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
+import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
 import { Method, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -161,8 +161,6 @@ class SerializerPrinter {
         writer.writeMethodImplementation(signature, writer => {
             if (isMaterialized(target, this.library)) {
                 this.generateMaterializedBodyDeserializer(writer, target)
-            } else if (isBuilderClass(target)) {
-                this.generateBuilderClassDeserializer(writer, imports, target, type)
             } else {
                 this.generateInterfaceBodyDeserializer(writer, imports, target, type)
             }
@@ -179,11 +177,6 @@ class SerializerPrinter {
                 { assignRef: true }
             )
         )
-    }
-    private generateBuilderClassDeserializer(writer:LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface, type: idl.IDLType) {
-        if (writer.language === Language.CPP)
-            return this.generateInterfaceBodyDeserializer(writer, imports, target, type)
-        writer.writeStatement(writer.makeThrowError("Can not deserialize builder class"))
     }
     private generateInterfaceBodyDeserializer(writer:LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface, type: idl.IDLType) {
         const properties = collectProperties(target, this.library)

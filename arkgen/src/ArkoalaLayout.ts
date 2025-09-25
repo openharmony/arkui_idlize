@@ -112,14 +112,6 @@ export class TsLayout extends CommonLayoutBase {
         const moduleImport = getModuleImport(target.node, target.role, Language.TS)
         if (moduleImport) return moduleImport
 
-        if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
-            // TODO currently rollup can wrongly order some declarations if all of them will be placed in common
-            // files (button.ts, text_input.ts). So, materialized/builders were moved to ArkSmthMaterialized to resolve
-            // that problem. That is just a hack and ideal solution will be to fix dependencies graph cycles
-            if (idl.isBuilderClass(target.node)) {
-                return `${this.prefix}${toFileName(target.node.name)}Builder`
-            }
-        }
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')
             ?.replaceAll('.idl', '')
@@ -217,11 +209,6 @@ export class CJLayout extends CommonLayoutBase {
         }
         if (idl.isTypedef(target.node)) {
             return SyntheticModule
-        }
-        if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
-            if (idl.isBuilderClass(target.node)) {
-                return `${this.prefix}${toFileName(target.node.name)}Builder`
-            }
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')

@@ -52,10 +52,6 @@ declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);
 
-    constructor(content: ResourceStr);
-
-    static of(content: ResourceStr): SubTabBarStyle;
-
     static of(content: ResourceStr): SubTabBarStyle;
 
     indicator(value: IndicatorStyle): SubTabBarStyle;
