@@ -531,7 +531,6 @@
         "Root",
         "ComponentRoot",
         "CustomBuilderRoot",
-        "ConditionScope",
         "CommonMethod",
         "SecurityComponentMethod",
         "CommonTransition",
