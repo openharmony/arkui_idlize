@@ -22,6 +22,7 @@ import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
+import { withInsideInstanceof } from "./nameConvertor";
 
 ////////////////////////////////////////////////////////////////
 //                        EXPRESSIONS                         //
@@ -807,11 +808,11 @@ export abstract class LanguageWriter {
         op(this)
     }
     instanceOf(value: string, type: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
     }
     // The version of instanceOf() which does not use ArgConvertors
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
-        return this.makeString(`${value} instanceof ${this.getNodeName(type)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
     }
 
 

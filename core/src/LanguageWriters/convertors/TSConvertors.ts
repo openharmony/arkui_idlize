@@ -19,7 +19,7 @@ import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
-import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
+import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -89,14 +89,14 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 case idl.IDLU8Type: return 'Uint8Array' // should be changed to Array
                 case idl.IDLI32Type: return 'Int32Array' // should be changed to Array
                 case idl.IDLF32Type: return 'KFloat32ArrayPtr' // should be changed to Array
-                default: return `Array<${this.convert(type.elementType[0])}>`
+                default: return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
             }
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
-            return `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
+            return isInsideInstanceof() ? `Map` : `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
         }
         if (idl.IDLContainerUtils.isPromise(type)) {
-            return `Promise<${this.convert(type.elementType[0])}>`
+            return isInsideInstanceof() ? `Promise` : `Promise<${this.convert(type.elementType[0])}>`
         }
         throw new Error(`Unmapped container type ${idl.DebugUtils.debugPrintType(type)}`)
     }
@@ -105,7 +105,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return type.name
     }
     convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): string {
-        const maybeTypeArguments = type.typeArguments?.length ? `<${type.typeArguments.join(', ')}>` : ""
+        const maybeTypeArguments = type.typeArguments?.length && !isInsideInstanceof() ? `<${type.typeArguments.join(', ')}>` : ""
         let decl = this.library.resolveTypeReference(type)
         if (decl)
             return `${decl.name}${maybeTypeArguments}`
@@ -139,7 +139,9 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                 decl = this.library.resolveTypeReference(maybeRestoredGeneric)
             }
             let typeSpec = type.name
-            let typeArgs = type.typeArguments?.map(it => this.convert(it)) ?? []
+            let typeArgs = !isInsideInstanceof() || decl && idl.isCallback(decl)
+                ? type.typeArguments?.map(it => this.convert(it)) ?? []
+                : []
             if (typeSpec === `Optional`)
                 return `${typeArgs} | undefined`
             if (typeSpec === `Function`)
@@ -258,7 +260,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return name
     }
     protected mapFunctionType(typeArgs: string[]): string {
-        return `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
+        return isInsideInstanceof() ? `Function` : `Function${typeArgs.length ? `<${typeArgs.join(",")}>` : ''}`
     }
 }
 

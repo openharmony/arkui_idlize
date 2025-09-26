@@ -14,10 +14,8 @@
  */
 
 import * as idl from "../../idl"
-import { Language } from "../../Language"
-import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { LanguageWriter } from "../LanguageWriter"
-import { convertDeclaration, convertType, TypeConvertor } from "../nameConvertor"
+import { isInsideInstanceof } from "../nameConvertor"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
@@ -30,7 +28,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         }
         // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
-            return "Function<void>"
+            return isInsideInstanceof() ? "Function" : "Function<void>"
         }
         return typeName
     }
@@ -41,7 +39,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
                 case idl.IDLI32Type: return 'KInt32ArrayPtr'
                 case idl.IDLF32Type: return 'KFloat32ArrayPtr'
             }
-            return `Array<${this.convert(type.elementType[0])}>`
+            return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
         return super.convertContainer(type)
     }
@@ -113,7 +111,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         if (typeArgs.length === 0) {
             typeArgs = [this.convert(idl.IDLVoidType)]
         }
-        return `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
+        return isInsideInstanceof() ? `Function${typeArgs.length - 1}` : `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
     }
 }
 

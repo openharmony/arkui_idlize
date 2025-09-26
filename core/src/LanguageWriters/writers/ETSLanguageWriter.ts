@@ -43,7 +43,7 @@ import {
     BufferConvertor
 } from "../ArgConvertors"
 import * as idl from '../../idl'
-import { convertDeclaration, IdlNameConvertor } from "../nameConvertor"
+import { convertDeclaration, IdlNameConvertor, withInsideInstanceof } from "../nameConvertor"
 import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor";
 import { Language } from "../../Language";
 import { RuntimeType } from "../common";
@@ -259,7 +259,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             || convertor instanceof CustomTypeConvertor) {
             return this.instanceOf(value, convertor.idlType)
         }
-        return this.makeString(`${value} instanceof ${convertor.targetType(this)}`)
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => convertor.targetType(this))}`)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         if (idl.isEnum(this.resolver.toDeclaration(destinationConvertor.nativeType()))) {
@@ -299,7 +299,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeNaryOp('==', args)
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
-        return `${value} instanceof ${this.getNodeName(type)}`
+        return `${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32

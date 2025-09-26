@@ -80,3 +80,15 @@ export function convertNode<T>(convertor: NodeConvertor<T>, node: idl.IDLNode): 
         return convertType(convertor, node)
     throw new Error(`Unknown node type ${idl.IDLKind[node.kind]}`)
 }
+
+let _isInsideInstanceof = false
+export function isInsideInstanceof(): boolean {
+    return _isInsideInstanceof
+}
+export function withInsideInstanceof<T>(isInsideInstanceof: boolean, op: () => T): T {
+    const prevIsInsideInstanceof = _isInsideInstanceof
+    _isInsideInstanceof = isInsideInstanceof
+    const result = op()
+    _isInsideInstanceof = prevIsInsideInstanceof
+    return result
+}
