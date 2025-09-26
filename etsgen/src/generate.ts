@@ -17,8 +17,6 @@ import {
     camelCaseToUpperSnakeCase,
     capitalize,
     collapseTypes,
-    filterRedundantAttributesOverloads,
-    filterRedundantMethodsOverloads,
     generateSyntheticFunctionName,
     generateSyntheticIdlNodeName,
     IDLFile,
@@ -1674,12 +1672,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
         const mappers = [
             (node: idl.IDLNode) => {
                 if (idl.isInterface(node)) this.escapeSameNamedMethods(node)
-            },
-            (node: idl.IDLNode) => {
-                if (idl.isInterface(node)) {
-                    node.properties = filterRedundantAttributesOverloads(node.properties)
-                    node.methods = filterRedundantMethodsOverloads(node.methods)
-                }
             }
         ]
         for (const entry of this.entries) {
