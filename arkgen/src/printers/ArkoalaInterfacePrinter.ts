@@ -51,9 +51,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         printer.pushIndent()
-        const filteredMethods = peer!.methods
-            .filter(it => !it.isCallSignature)
-        const collapsedMethods = groupOverloads(filteredMethods, this.peerLibrary.language)
+        const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
             .map(group => collapseIdlPeerMethods(this.peerLibrary, group))
         const parentMethods = collectParentsPropertiesNames(idlInterface, this.peerLibrary)
         collapsedMethods.forEach(method => {
@@ -111,7 +109,6 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
         for (const method of peer.methods) {
-            if (method.isCallSignature) continue
             if (method.uniqueOverloadName != method.method.name) {
                 if (!overloads.has(method.method.name))
                     overloads.set(method.method.name, [])

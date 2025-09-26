@@ -245,11 +245,13 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
             const componentInterfaceName = componentToAttributesInterface(peer.originalClassName!)
             const componentClassImplName = generateArkComponentName(peer.componentName)
             const callableMethods = peer.methods.filter(it => it.isCallSignature)
-            const collapsedCallables = allowsOverloads(this.library.language)
+            let collapsedCallables = allowsOverloads(this.library.language)
                 ? callableMethods.map(it => it.method)
                 : callableMethods.length > 0
                     ? [collapseSameNamedMethods(callableMethods.map(it => it.method))]
                     : []
+            if (collapsedCallables.length > 1 && [Language.TS, Language.ARKTS].includes(this.library.language))
+                collapsedCallables = [collapsedCallables[0]]
             collapsedCallables.forEach((callableMethod, callableIndex) => {
                 const mappedCallableParams = callableMethod?.signature.args.map((it, index) => `${callableMethod.signature.argName(index)}${callableMethod.signature.isArgOptional(index) ? "?" : ""}: ${printer.getNodeName(it)}`)
                 const mappedCallableParamsValues = callableMethod?.signature.args.map((_, index) => callableMethod.signature.argName(index))
