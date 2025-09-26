@@ -34,7 +34,8 @@ interface SystemOps {
     static void resourceManagerReset();
     static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
-    static LengthMetricsCustom resoureToLengthMetrics(Resource res);
+    static LengthMetricsCustom resourceToLengthMetrics(Resource res);
+    static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
 };
 
 [Entity=Class]
