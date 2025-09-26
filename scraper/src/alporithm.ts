@@ -249,12 +249,15 @@ export function solve(root: string, library: IDLFile[], targets: string[], optio
     startScript += '  --idl2peer \\\n'
     startScript += '  --arkts-extension .ets \\\n'
     startScript += '  --use-memo-m3 \\\n'
+    startScript += '  --api-version 137 \\\n'
     startScript += '  --language arkts \\\n'
     startScript += '  --no-type-checker \\\n'
     startScript += '  --reference-names ../../arkgen/generation-config/references/ets-sdk.refs.json \\\n'
     startScript += '  --options-file main-config.json \\\n'
     startScript += `  --output-dir ${join(OUT_DIR, 'generated')} \\\n`
     startScript += `  --input-files $(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ')\n`
+
+    startScript += `node ../tools/aftergen.js ${join(OUT_DIR, 'generated')}\n`
 
     writeFileSync(join(OUT_DIR, 'go-main.sh'), startScript, 'utf-8')
 

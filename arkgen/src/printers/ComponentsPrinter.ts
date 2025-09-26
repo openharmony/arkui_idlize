@@ -275,14 +275,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 role: LayoutNodeRole.COMPONENT,
                 hint: 'component.implementation'
             }
-        }, {
-            collector: hookImports,
-            content: hookPrinter,
-            over: {
-                node: component.attributeDeclaration,
-                role: LayoutNodeRole.COMPONENT,
-                hint: 'component.handwritten'
-            }
         }]
     }
 

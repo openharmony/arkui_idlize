@@ -92,8 +92,7 @@
         "EmitterProperty",
         "GestureGroupGestureHandlerOptions",
         "ColumnOptionsV2",
-        "RowOptionsV2",
-        "AlignRuleOption"
+        "RowOptionsV2"
     ],
     "Components": [
         "BaseSpan",

@@ -1,0 +1,9 @@
+{
+    "removehandwritten": [
+        "AttributeUpdater.ets",
+        "PeerNode.ets",
+        "component/customDialogController.ets",
+        "component/extendableComponent.ets",
+        "component/nodeContainer.ets"
+    ]
+}

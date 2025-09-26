@@ -311,7 +311,9 @@ export class ModifierVisitor {
         const component = findComponentByName(this.library, clazz.componentName)!
         const context = method.sig.context as idl.IDLInterface ?? component.attributeDeclaration
         const hookMethod = getHookMethod(method.originalParentName, method.method.name)
-        if (hookMethod && hookMethod.replaceImplementation) return
+        if (hookMethod && hookMethod.replaceImplementation) {
+            return
+        }
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
         this.printMethodProlog(this.real, method)
         this.printModifierImplFunctionBody(method, clazz)
@@ -422,6 +424,10 @@ class AccessorVisitor extends ModifierVisitor {
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
+            const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+            if (hookMethod && hookMethod.replaceImplementation) {
+                return;
+            }
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
             if (!peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) {
