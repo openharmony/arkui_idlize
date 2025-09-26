@@ -21,6 +21,7 @@ node_modules
 /arktscgen/lib/
 /arktscgen/out/
 /arktscgen/build/
+/bundle/
 *.tgz
 *.rej
 *.orig

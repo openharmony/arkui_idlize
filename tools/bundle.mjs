@@ -23,11 +23,13 @@ const all_packages = [
     ...idlize_packages,
     ...external_packages.map(it => new Package(it.path)),
 ]
-const all_dependencies = [
+const koalaui_dependencies = [
     "@koalaui/compat",
     "@koalaui/common",
     "@koalaui/interop",
-    "@koalaui/libarkts",
+    "@koalaui/libarkts"
+]
+const idlizer_dependencies = [
     "@idlizer/core",
     "@idlizer/interfaces",
     "@idlizer/libohos",
@@ -101,21 +103,34 @@ function applyVersions(dependencies, versions) {
 
 function bundle(bundleVersion, bundleOut, options) {
     bundleOut = bundleOut ? resolve(bundleOut) : join(IDLIZE_HOME, "bundle")
+
+    if (options.idlizerOnly && !options.koalauiVersion) {
+        console.log('Error: koalaui packages were not selected and their version is not specified')
+        return
+    }
+
     const newVersion = mangleVersion(bundleVersion, options.pandaVersion)
-    const oldVersions = all_dependencies.reduce((versions, dep) => {
+    const allDependencies = [
+        ...koalaui_dependencies,
+        ...idlizer_dependencies,
+    ]
+    const bundlableDependencies = options.idlizerOnly ? idlizer_dependencies : allDependencies
+    const oldVersions = allDependencies.reduce((versions, dep) => {
         const pkg = findPackage(dep)
         versions[pkg.name()] = pkg.version().toString()
         return versions
     }, {})
-    const newVersions = all_dependencies.reduce((versions, dep) => {
+    const newVersions = allDependencies.reduce((versions, dep) => {
         const pkg = findPackage(dep)
-        versions[pkg.name()] = newVersion
+        versions[pkg.name()] = (options.idlizerOnly && koalaui_dependencies.indexOf(dep) >= 0) ?
+            options.koalauiVersion :
+            newVersion
         return versions
     }, {})
     try {
-        applyVersions(all_dependencies, newVersions)
+        applyVersions(bundlableDependencies, newVersions)
         console.log("Compiling dependencies..")
-        all_dependencies.forEach(dep => {
+        bundlableDependencies.forEach(dep => {
             const pkg = findPackage(dep)
             console.log(`compiling ${pkg.name()}..`)
             pkg.compile()
@@ -123,11 +138,13 @@ function bundle(bundleVersion, bundleOut, options) {
 
         console.log("Packing..")
         mkdirSync(bundleOut, { recursive: true })
-        all_dependencies.forEach(dep => {
+        bundlableDependencies.forEach(dep => {
             const pkg = findPackage(dep)
             console.log(`packing ${pkg.name()}..`)
             const packPath = pkg.pack()
-            const packName = basename(packPath)
+            const packName = options.simpleNames ?
+                `${pkg.name()}.tgz`.replaceAll('/', '-').replaceAll('@', '') :
+                basename(packPath)
             copyFileSync(packPath, join(bundleOut, packName))
         })
         console.log(`Creating install.js..`)
@@ -135,7 +152,7 @@ function bundle(bundleVersion, bundleOut, options) {
 
         console.log(`All done! Bundle saved to ${bundleOut}`)
     } finally {
-        applyVersions(all_dependencies, oldVersions)
+        applyVersions(bundlableDependencies, oldVersions)
     }
 }
 
@@ -143,6 +160,10 @@ function main() {
     createCommand()
         .arguments('<bundle-version> [bundle-out]')
         .option('--no-panda-version', 'Mangle bundle version with Panda version')
+        .option('--idlizer-only', 'Do not pack koalaui dependencies', false)
+        .option('--koalaui-version <version>',
+            'Use with --idlizer-only. Indicates the version of koalaui that idlizer packages will depend on')
+        .option('--simple-names', 'Do not include verison info in package name', false)
         .action(bundle)
         .parse()
 }
