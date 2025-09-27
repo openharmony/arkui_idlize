@@ -674,6 +674,18 @@
                 "hookName": "hookStateStyleImpl",
                 "replaceImplementation": true
             },
+            "gesture": {
+                "hookName": "hookGesture",
+                "replaceImplementation": true
+            },
+            "priorityGesture": {
+                "hookName": "hookPriorityGesture",
+                "replaceImplementation": true
+            },
+            "parallelGesture": {
+                "hookName": "hookParallelGesture",
+                "replaceImplementation": true
+            },
             "gestureModifier": {
                 "hookName": "hookGestureModifier",
                 "replaceImplementation": true

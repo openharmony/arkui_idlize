@@ -39,6 +39,30 @@ interface SystemOps {
 };
 
 [Entity=Class]
+interface GestureOps {
+    static pointer createTapGesture(number fingers, number count, number distanceThreshold, boolean isFingerCountLimited);
+    static pointer createLongPressGesture(number fingers, boolean repeat, number duration, boolean isFingerCountLimited);
+    static pointer createPanGesture(number fingers, PanDirection direction, number distance, boolean isFingerCountLimited);
+    static pointer createPanGestureWithPanGestureOptions(pointer panGestureOptions);
+    static pointer createPinchGesture(number fingers, number distance, boolean isFingerCountLimited);
+    static pointer createRotationGesture(number fingers, number angle, boolean isFingerCountLimited);
+    static pointer createSwipeGesture(number fingers, SwipeDirection direction, number speed, boolean isFingerCountLimited);
+    static pointer createGestureGroup(GestureMode mode);
+    static void setOnAction(pointer gesture, Callback_GestureEvent_Void  onAction);
+    static void setOnActionStart(pointer gesture, Callback_GestureEvent_Void  onActionStart);
+    static void setOnActionUpdate(pointer gesture, Callback_GestureEvent_Void  onActionUpdate);
+    static void setOnActionEnd(pointer gesture, Callback_GestureEvent_Void  onActionEnd);
+    static void setOnActionCancel(pointer gesture, Callback_GestureEvent_Void  onActionCancel);
+    static void setOnCancel(pointer gesture, Callback_Void onCancel);
+    static void setGestureTag(pointer gesture, String tag);
+    static void setAllowedTypes(pointer gesture, sequence<SourceTool> types);
+    static void addGestureToNode(pointer node, number priority, GestureMask mask, pointer gesture, boolean isModifier);
+    static void addGestureToGroup(pointer group, pointer gesture);
+    static void removeGestureByTag(pointer node, String tag);
+    static void clearGestures(pointer node);
+};
+
+[Entity=Class]
 interface FocusController {
     static void requestFocus(String key);
 };
