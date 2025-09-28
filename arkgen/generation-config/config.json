@@ -590,7 +590,8 @@
             "KeyGeneratorFunc",
             "WrappedBuilder",
             "TabContent",
-            "ListItem"
+            "ListItem",
+            "ImageData"
         ],
         "ignoreEntry": [
             "Optional",
@@ -819,6 +820,36 @@
             "setWaterFlowOptionsAttribute": {
                 "hookName": "hookWaterFlowOptionsImpl",
                 "replaceImplementation": true
+            }
+        },
+        "CanvasRenderer": {
+            "createImageData": {
+                "hookName": "hookCreateImageData",
+                "replaceImplementation": true
+            },
+            "getImageData": {
+                "hookName": "hookGetImageData",
+                "replaceImplementation": true
+            },
+            "putImageData": {
+                "hookName": "hookPutImageData",
+                "replaceImplementation": true
+            }
+        },
+        "OffscreenCanvas": {
+            "getContext": {
+                "hookName": "hookGetContext",
+                "replaceImplementation": false
+            }
+        },
+        "CanvasRenderingContext2D": {
+            "on": {
+                "hookName": "hookOn",
+                "replaceImplementation": false
+            },
+            "off": {
+                "hookName": "hookOff",
+                "replaceImplementation": false
             }
         }
     },
