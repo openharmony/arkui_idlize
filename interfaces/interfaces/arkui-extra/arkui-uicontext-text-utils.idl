@@ -1,0 +1,14 @@
+package arkui.component.idlize;
+import arkui.component.textCommon.TextMenuOptions as TextMenuOptions;
+
+[Entity=Class]
+interface GlobalScopeUicontextFontScale {
+    static boolean isFollowingSystemFontScale();
+    static f64 getMaxFontScale();
+};
+
+[Entity=Class]
+interface GlobalScopeUicontextTextMenu {
+    static void setMenuOptions(TextMenuOptions options);
+};
+

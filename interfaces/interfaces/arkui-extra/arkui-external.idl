@@ -4,6 +4,7 @@ import arkui.component.units;
 import ohos.graphics.text.text;
 import arkui.component.enums;
 import ohos.multimedia.image.image;
+import ohos.font;
 
 [Entity=Interface]
 interface WebHeader {
@@ -76,6 +77,7 @@ interface GlobalScope_ohos_font {
     static void registerFont(FontOptions options);
     static sequence<String> getSystemFontList();
     static FontInfo getFontByName(String fontName);
+    static font.UIFontConfig getUIFontConfig();
 };
 
 [Entity=Class]
