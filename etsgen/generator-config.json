@@ -82,7 +82,8 @@
         "_rawfile",
         "LazyGridLayoutAttribute",
         "LazyVGridLayoutAttribute",
-        "LazyVGridLayoutInterface"
+        "LazyVGridLayoutInterface",
+        "DynamicNode"
     ],
     "DeletedMembers": {
         "CommonMethod": [
