@@ -269,7 +269,7 @@ export class IdlPeerProcessor {
 
     private makeMaterializedMethod(
         decl: idl.IDLInterface,
-        method: idl.IDLConstructor | idl.IDLMethod | undefined,
+        method: idl.IDLConstructor | idl.IDLMethod,
         originalParentName: string,
         implemenationParentName: string,
     ) {
@@ -287,6 +287,8 @@ export class IdlPeerProcessor {
                 idl.getFQName(decl).split('.').concat(PeerMethodSignature.CTOR).join('_'),
                 [],
                 returnType,
+                undefined,
+                peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
             ), originalParentName, implemenationParentName, returnType, false, "", ctor)
         }
 
@@ -301,6 +303,7 @@ export class IdlPeerProcessor {
                 signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), it)),
                 signature.returnType,
                 idl.isMethod(method) && !method.isStatic ? decl : undefined,
+                peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
             ),
             originalParentName, implemenationParentName, returnType, false,
             overloadInfo.alias ?? methodName,

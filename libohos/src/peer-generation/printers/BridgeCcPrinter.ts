@@ -111,7 +111,7 @@ export class BridgeCcVisitor {
             args.unshift(this.getReceiverArgName())
         if (!!idl.asPromise(method.returnType))
             args.unshift(`GetAsyncWorker()`)
-        if (isVMContextMethod(method.method))
+        if (isVMContextMethod(method.sig))
             args.unshift(`reinterpret_cast<${generatorTypePrefix()}VMContext>(vmContext)`)
         const apiCall = this.getApiCall(context)
         const field = this.getApiCallResultField(method)

@@ -231,6 +231,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
 
         this.file = idl.linkParentBack(this.file!)
         idl.linearizeNamespaceMembers(this.file.entries).forEach(it => {
+            if (idl.isImport(it))
+                return
             idl.transformMethodsReturnPromise2Async(it)
             //idl.transformMethodsAsync2ReturnPromise(it)
             if (

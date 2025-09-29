@@ -128,6 +128,21 @@ void MyPersonHandler_MyFunc22Impl(OH_NativePointer thisPtr, const OH_Number *b, 
 {
 }
 
+OH_UNIT_NS_ForceContextNSHandle NS_ForceContextNS_constructImpl() {
+    return {};
+}
+void NS_ForceContextNS_destructImpl(OH_UNIT_NS_ForceContextNSHandle thisPtr) {
+}
+OH_String NS_ForceContextNS_getProp_Impl(OH_NativePointer thisPtr) {
+    return {};
+}
+void NS_ForceContextNS_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
+}
+void NS_ForceContextNS_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value) {
+}
+void NS_ForceContextNS_static_methodImpl(OH_UNIT_VMContext vmContext) {
+}
+
 /// BufferGenerator
 
 OH_UNIT_TestBuffer_BufferGeneratorHandle TestBuffer_BufferGenerator_constructImpl()
@@ -199,6 +214,21 @@ void ForceCallbackClass_registerListenerImpl(OH_NativePointer thisPtr, const OH_
     CALLBACK_HOLD(forceCallbackListener, onChange)
 }
 
+OH_UNIT_ForceContextHandle ForceContext_constructImpl() {
+    return {};
+}
+void ForceContext_destructImpl(OH_UNIT_ForceContextHandle thisPtr) {
+}
+OH_String ForceContext_getProp_Impl(OH_NativePointer thisPtr) {
+    return {};
+}
+void ForceContext_method_Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
+}
+void ForceContext_setProp_Impl(OH_NativePointer thisPtr, const OH_String* value) {
+}
+void ForceContext_static_methodImpl(OH_UNIT_VMContext vmContext) {
+}
+
 void forceCallbackOnChangeCallContinuation(const OH_Int32 resourceId, const OH_String value)
 {
     printf("forceCallbackOnChangeContinuation is called!\n");
@@ -251,7 +281,6 @@ void GenericInterface_setDataImpl(OH_NativePointer thisPtr, const OH_CustomObjec
 void GenericInterface_callHandlerImpl(OH_NativePointer thisPtr)
 {
 }
-
 void GlobalScope_registerForceCallbackListenerImpl(const OH_UNIT_ForceCallbackListener *listener)
 {
 }

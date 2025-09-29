@@ -14,7 +14,7 @@
  */
 
 import { ConfigTypeInfer, D, Language, NativeModuleType, PeerLibrary, throwException, parseIDLFile } from "@idlizer/core";
-import { createFile, createNamespace, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
+import { createFile, createNamespace, DebugUtils, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
 import { scan } from "../utils";
@@ -112,6 +112,9 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     const queue: IDLEntry[] = [...roots.flatMap(file => file.entries)]
     while (queue.length) {
         const entry = queue.shift()!
+        if (isImport(entry)) {
+            continue
+        }
         const entryFQ = getFQName(entry)
         if (marked.has(entryFQ)) {
             continue
@@ -129,7 +132,7 @@ export function runScraper(root: string, configPath:string):ScraperResult {
                 if (resolved) {
                     queue.push(resolved)
                 } else {
-                    console.error('DEAD REFERENCE', getFQName(node))
+                    console.error('DEAD REFERENCE', DebugUtils.debugPrintType(node))
                 }
             }
         })

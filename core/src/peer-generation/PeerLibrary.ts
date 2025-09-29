@@ -15,7 +15,7 @@
 
 import { warn } from 'console'
 import * as idl from '../idl'
-import { resolveNamedNode } from '../resolveNamedNode'
+import { getPov, resolveNamedNode } from '../resolveNamedNode'
 import { Language } from '../Language'
 import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
 import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
@@ -44,6 +44,7 @@ import { generatorConfiguration } from '../config'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
+import { ReferenceResolver } from './ReferenceResolver'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -207,7 +208,7 @@ export class PeerLibrary implements LibraryInterface {
     private resolveTypeReferenceUncached(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
         if (this.referenceCache?.has(type))
             return this.referenceCache.get(type)
-        let result = this.resolveNamedNode(type.name.split("."), type.parent)
+        let result = this.resolveNamedNode(type.name.split("."), getPov(type))
         if (!singleStep) {
             const seen = new Set<idl.IDLEntry>
             while (result) {
@@ -439,7 +440,7 @@ export class PeerLibrary implements LibraryInterface {
             return new CallbackConvertor(this, param, declaration, this.interopNativeModule)
         }
         if (idl.isTypedef(declaration)) {
-            if (forceTypedefAsResource(type, declaration)) return new ObjectConvertor(param, type)
+            if (forceTypedefAsResource(this, type, declaration)) return new ObjectConvertor(param, type)
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
@@ -510,7 +511,7 @@ export class PeerLibrary implements LibraryInterface {
             if (!decl) {
                 warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
             }
-            if (decl && idl.isTypedef(decl) && forceTypedefAsResource(type, decl)) {
+            if (decl && idl.isTypedef(decl) && forceTypedefAsResource(this, type, decl)) {
                 return idl.IDLObjectType
             }
             if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
@@ -547,30 +548,20 @@ export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
-function forceTypedefAsResource(type: idl.IDLType, decl: idl.IDLTypedef): boolean {
+function forceTypedefAsResource(resolver: ReferenceResolver, type: idl.IDLType, decl: idl.IDLTypedef): boolean {
     if (generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
-    if (isCyclicTypeDef(decl)) {
+    if (isCyclicTypeDef(resolver, decl)) {
         warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)
         return true
     }
     return false
 }
 
-function isCyclicTypeDef(decl: idl.IDLTypedef): boolean {
-    return checkCyclicType(idl.getFQName(decl), decl.type)
-}
-
-function checkCyclicType(fqn: string, type: idl.IDLType): boolean {
-    if (idl.isReferenceType(type) && idl.isNamedNode(type) && idl.getFQName(type) == fqn) return true
-    if (idl.isOptionalType(type) && checkCyclicType(fqn, type.type)) return true
-    if (idl.isUnionType(type) && checkCyclicTypes(fqn, type.types)) return true
-    if (idl.isContainerType(type) && checkCyclicTypes(fqn, type.elementType)) return true
-    return false
-}
-
-function checkCyclicTypes(fqn: string, types: idl.IDLType[]): boolean {
-    for (const t of types) {
-        if (checkCyclicType(fqn, t)) return true
-    }
-    return false
+function isCyclicTypeDef(resolver: ReferenceResolver, decl: idl.IDLTypedef): boolean {
+    let foundCycle = false
+    idl.forEachChild(decl, (node) => {
+        if (idl.isReferenceType(node) && resolver.resolveTypeReference(node) === decl)
+            foundCycle = true
+    })
+    return foundCycle
 }

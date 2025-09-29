@@ -96,7 +96,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
             const patchedReturnType = patchType(signature.returnType)
             signature = new NamedMethodSignature(patchedReturnType, patchedSignatureArgs, signature.argsNames, signature.defaults)
         }
-        let modifiers = peerGeneratorConfiguration().forceContext.includes(inputMethod.name) ?
+        let modifiers = peerGeneratorConfiguration().forceContext.includes(idl.getFQName(inputMethod)) ?
             [ MethodModifier.FORCE_CONTEXT ] : undefined
         return new Method('_' + inputMethod.name, signature, modifiers)
     }
@@ -595,8 +595,8 @@ export function makeInteropMethod(
             method.returnType,
             {
                 hasReceiver: !!method.sig.context,
-                throws: !!method.method.modifiers?.includes(MethodModifier.THROWS),
-                forceContext: !!method.method.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
+                throws: !!method.sig.modifiers?.includes(MethodModifier.THROWS),
+                forceContext: !!method.sig.modifiers?.includes(MethodModifier.FORCE_CONTEXT),
             }
         )
     }

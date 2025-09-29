@@ -295,7 +295,7 @@ class OHOSNativeVisitor {
             args.unshift(`${PrimitiveTypesInstance.NativePointer} thisPtr`)
         if (!!asPromise(method.returnType))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_AsyncWorkerPtr asyncWorker`)
-        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType))
+        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType) || peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_VMContext vmContext`)
         return args.join(", ")
     }

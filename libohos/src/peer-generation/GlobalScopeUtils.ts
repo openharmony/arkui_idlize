@@ -40,6 +40,8 @@ function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
             getFQName(method).split('.').join('_'),
             method.parameters.map(it => new PeerMethodArg(it.name, maybeOptional(it.type, it.isOptional))),
             method.returnType,
+            undefined,
+            peerGeneratorConfiguration().forceContext.includes(getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         GlobalScopePeerName,
         GlobalScopePeerName,

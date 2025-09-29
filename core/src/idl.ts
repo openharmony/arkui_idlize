@@ -792,8 +792,22 @@ export function getQualifiedName(a:IDLNode, pattern: QNPattern): string {
     else if ("namespace.name" === pattern)
         result.push(...getNamespacesPathFor(a).map(it => it.name))
 
-    if (isNamedNode(a) && a.name)
-        result.push(a.name)
+    const ownName = (node: IDLNode | undefined): string[] => {
+        if (!node || isFile(node))
+            return []
+        if (isNamespace(node))
+            return node === a ? [node.name] : []
+        if (isInterface(node) || isTypedef(node) || isCallback(node) || isEnum(node))
+            return [node.name]
+        if (isProperty(node) || isMethod(node) || isConstant(node))
+            return [...ownName(node.parent), node.name]
+        if (isCallable(node))
+            return [...ownName(node.parent), "invoke"]
+        if (isConstructor(node))
+            return [...ownName(node.parent), "constructor"]
+        throw new Error(`Can not calculate own name for node ${node.kind}`)
+    }
+    result.push(...ownName(a))
 
     return result.join(".")
 }

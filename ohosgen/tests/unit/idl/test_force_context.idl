@@ -1,0 +1,17 @@
+package test_force_context;
+
+[Entity=Class]
+interface ForceContext {
+    attribute String prop_;
+    void method_();
+    static void static_method();
+};
+
+namespace NS {
+    [Entity=Class]
+    interface ForceContextNS {
+        attribute String prop_;
+        void method_();
+        static void static_method();
+    };
+};

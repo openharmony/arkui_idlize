@@ -750,15 +750,15 @@
     },
     "patchMaterialized": {},
     "forceContext": [
-        "LoadUserView",
-        "MeasureLayoutAndDraw",
-        "MeasureNode",
-        "DrawNode",
-        "TestCallIntNoArgs",
-        "TestCallIntIntArraySum",
-        "TestCallVoidIntArrayPrefixSum",
-        "TestCallIntRecursiveCallback",
-        "TestCallIntMemory"
+        "idlize.internal.interop.NativeModuleNode.LoadUserView",
+        "idlize.internal.interop.NativeModuleNode.MeasureLayoutAndDraw",
+        "idlize.internal.interop.NativeModuleNode.MeasureNode",
+        "idlize.internal.interop.NativeModuleNode.DrawNode",
+        "idlize.internal.interop.Test.TestCallIntNoArgs",
+        "idlize.internal.interop.Test.TestCallIntIntArraySum",
+        "idlize.internal.interop.Test.TestCallVoidIntArrayPrefixSum",
+        "idlize.internal.interop.Test.TestCallIntRecursiveCallback",
+        "idlize.internal.interop.Test.TestCallIntMemory"
     ],
     "constants": {
         "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",

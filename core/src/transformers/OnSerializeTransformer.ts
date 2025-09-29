@@ -15,7 +15,7 @@ export function inplaceTransformOnSerialize(
 function inplaceTransformOnSerializeSelf(
     node: idl.IDLNode,
     destinationGetter: (node: idl.IDLNode) => string | undefined): void {
-    if (!idl.isEntry(node)) {
+    if (!(idl.isInterface(node) || idl.isEnum(node) || idl.isTypedef(node) || idl.isCallback(node))) {
         return
     }
     const destination = destinationGetter(node)

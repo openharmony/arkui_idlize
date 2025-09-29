@@ -14,7 +14,7 @@
  */
 
 import { AggregateConvertor, ArrayConvertor, CallbackConvertor, CustomTypeConvertor, ImportTypeConvertor, MapConvertor,
-    Method, MethodModifier, OptionConvertor, PeerLibrary, PeerMethodSignature, TupleConvertor, TypeAliasConvertor,
+    Method, MethodModifier, OptionConvertor, PeerLibrary, PeerMethod, PeerMethodSignature, TupleConvertor, TypeAliasConvertor,
     UnionConvertor } from '@idlizer/core'
 import * as idl from '@idlizer/core/idl'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -64,8 +64,7 @@ export function isVMContextMethod(method: Method | PeerMethodSignature): boolean
     const isPromise = !!idl.asPromise(method instanceof PeerMethodSignature ? method.returnType : method.signature.returnType)
     return isPromise ||
         !!method.modifiers?.includes(MethodModifier.THROWS) ||
-        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT) ||
-        peerGeneratorConfiguration().forceContext.includes(method.name)
+        !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT)
 }
 
 export function isDirectMethod(method: Method, library: PeerLibrary): boolean {
