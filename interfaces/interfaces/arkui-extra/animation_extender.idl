@@ -28,6 +28,8 @@ interface AnimationExtender {
   static void SetClipRect(pointer node, f32 x, f32 y, f32 width, f32 height);
   static void OpenImplicitAnimation(AnimateParam param);
   static void CloseImplicitAnimation();
+  static void OpenImplicitAnimationForAnimation(pointer node, (AnimateParam or undefined) param);
+  static void CloseImplicitAnimationForAnimation(pointer node);
   static void StartDoubleAnimation(pointer node, DoubleAnimationParam param);
   static void AnimationTranslate(pointer node, TranslateOptions options);
   static void AnimateToImmediatelyImpl(AnimateParam param, Callback_Void event);
