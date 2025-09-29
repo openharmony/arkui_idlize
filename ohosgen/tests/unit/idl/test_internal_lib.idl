@@ -1,0 +1,9 @@
+package test_internal_lib;
+import internal.lib.InternalModuleDataInterface as InternalModuleDataInterface;
+import renamed.lib.RenamedModuleDataInterface as RenamedModuleDataInterface;
+[Entity=Class]
+interface DTSCheckInternalLib {
+    constructor();
+    number checkInternalDataInterface(InternalModuleDataInterface internalType);
+    number checkRenamedModuleDataInterface(RenamedModuleDataInterface renamedModuleType);
+};

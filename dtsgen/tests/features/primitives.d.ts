@@ -18,4 +18,24 @@ export interface Iface {
     foo(value: Required<string>): void
     foo(value: Readonly<string>): void
     foo(value: Optional<string>): void
+    bar01(): any
+    bar02(): object
+    bar03(): Object
+    bar04(): string | undefined
+    bar05(): string
+    bar06(): number
+    bar07(): int
+    bar08(): float
+    bar00(): long
+    bar10(): short
+    bar11(): void
+    bar12(): boolean
+    bar13(): char
+    bar14(): Array<string>
+    bar15(): void
+    bar16(): Date
+    bar17(): ArrayBuffer
+    bar18(): Required<string>
+    bar19(): Readonly<string>
+    bar20(): Optional<string>
 }

@@ -1,0 +1,12 @@
+package test_class_props_initial_values;
+[Entity=Class]
+interface ClassWithPrimitivePropertyType {
+    constructor(boolean f, number c);
+    attribute boolean flag;
+    attribute number counter;
+};
+[Entity=Class]
+interface ClassWithComplexPropertyType {
+    constructor();
+    attribute ClassWithPrimitivePropertyType prop;
+};

@@ -1,0 +1,43 @@
+package test_materialized_classes;
+interface UtilityInterface {
+    attribute String fieldString;
+    attribute boolean fieldBoolean;
+    attribute sequence<number> fieldArrayNumber;
+};
+namespace test_materialized_classes {
+    [Entity=Class]
+    interface StaticMaterialized {
+        constructor();
+        static void method(number valNumber, String valString);
+    };
+    [Entity=Class]
+    interface MaterializedOverloadedMethods {
+        constructor();
+        void method1(optional boolean valBoolean, optional String valString);
+    };
+    [Entity=Class]
+    interface MaterializedMoreOverloadedMethods: [Extends] MaterializedOverloadedMethods {
+        constructor();
+        void method2();
+        void method2(number valNumber);
+        void method2(number valNumber, String valString);
+    };
+    [Entity=Class]
+    interface MaterializedWithConstructorAndFields: [Extends] MaterializedMoreOverloadedMethods {
+        constructor(number valNumber, boolean valBoolean);
+        attribute number valNumber;
+        attribute boolean valBoolean;
+    };
+    [Entity=Class]
+    interface MaterializedWithCreateMethod: [Extends] MaterializedWithConstructorAndFields {
+        constructor();
+        static MaterializedWithCreateMethod create(number valNumber, boolean valBoolean);
+    };
+    [Entity=Class]
+    interface MaterializedComplexArguments: [Extends] MaterializedWithCreateMethod {
+        constructor();
+        UtilityInterface method3(UtilityInterface utilityInterface);
+        sequence<String> method4(sequence<number> array);
+        sequence<UtilityInterface> method5(sequence<UtilityInterface> arrayInterfaces);
+    };
+};

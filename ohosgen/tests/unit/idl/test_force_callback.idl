@@ -1,0 +1,17 @@
+package test_force_callback;
+[Synthetic]
+callback Callback_Boolean_Number_String = String (boolean flag, number count);
+[Synthetic]
+callback Callback_Number_Void = void (number status);
+interface ForceCallbackListener {
+    attribute Callback_Boolean_Number_String onChange;
+    attribute Callback_Number_Void onStatus;
+};
+[Entity=Class]
+interface ForceCallbackClass {
+    constructor();
+    void registerListener(ForceCallbackListener listener);
+    number callListener();
+};
+void registerForceCallbackListener(ForceCallbackListener listener);
+number callForceCallbackListener();

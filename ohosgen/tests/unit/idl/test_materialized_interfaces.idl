@@ -1,0 +1,6 @@
+package test_materialized_interfaces;
+interface InterfaceWithMethods {
+    attribute boolean propBoolean;
+    attribute number propNumber;
+    boolean isUsed(number value);
+};

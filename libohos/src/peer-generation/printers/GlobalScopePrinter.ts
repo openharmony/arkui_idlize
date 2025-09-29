@@ -121,7 +121,8 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
                     const imports = new ImportsCollector()
                     collectDeclDependencies(library, it.type, imports)
-                    content.writeConstant(it.name, it.type, it.value)
+                    const value = it.value ?? peerGeneratorConfiguration().constants.get(idl.getFQName(it))
+                    content.writeConstant(it.name, it.type, value)
                     return { content, imports}
                 },
                 over: {

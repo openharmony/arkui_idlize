@@ -769,11 +769,13 @@ export class Parser {
         this.skip("const")
         const type = this.parseType()
         const name = this.parseSingleIdentifier()
-        this.skip("=")
-        const value = this.parseLiteral()
+        let value: Token | undefined;
+        if (this.seeAndSkip("=")) {
+            value = this.parseLiteral()
+        }
         this.skip(";")
         // Note that raw value (with quoted strings) is used here, that provides compatibility with older code (while being different from `dictionary` processing)
-        return idl.createConstant(name.value, type, value.value, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value.location})
+        return idl.createConstant(name.value, type, value?.value, {extendedAttributes: ext, nodeLocation: sloc(), nameLocation: name.location, valueLocation: value?.location})
     }
 
     parseAttribute(): idl.IDLProperty {

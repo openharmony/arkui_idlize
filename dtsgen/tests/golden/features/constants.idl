@@ -1,0 +1,13 @@
+package constants;
+const boolean CONST_BOOLEAN_FALSE = false;
+const boolean CONST_BOOLEAN_TRUE = true;
+const number CONST_NUMBER_INT = 312;
+const number CONST_NUMBER_FLOAT = 312.415;
+const String CONST_STRING = "hello_string";
+namespace const_ns {
+    const boolean CONST_BOOLEAN_FALSE = false;
+    const boolean CONST_BOOLEAN_TRUE = true;
+    const number CONST_NUMBER_INT = 312;
+    const number CONST_NUMBER_FLOAT = 312.415;
+    const String CONST_STRING = "hello_string";
+};

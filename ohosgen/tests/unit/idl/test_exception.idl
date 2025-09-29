@@ -1,0 +1,15 @@
+package test_exception;
+[Entity=Class]
+interface CheckExceptionInterface {
+    constructor();
+    [Throws]
+    void checkException();
+};
+[Entity=Class]
+interface CheckExceptionClass {
+    constructor();
+    [Throws]
+    void checkException();
+    [Throws]
+    CheckExceptionInterface getInterface();
+};

@@ -220,7 +220,7 @@ export interface IDLEnumMember extends IDLEntry {
 export interface IDLConstant extends IDLTypedEntry {
     kind: IDLKind.Const
     type: IDLType
-    value: string
+    value?: string
 }
 
 export interface IDLProperty extends IDLTypedEntry, IDLNamedNode {
@@ -1138,7 +1138,7 @@ export function createTypedef(name: string, type: IDLType, typeParameters: strin
 }
 
 
-export function createConstant(name: string, type: IDLType, value: string, nodeInitializer: IDLNodeInitializer = {}): IDLConstant {
+export function createConstant(name: string, type: IDLType, value?: string, nodeInitializer: IDLNodeInitializer = {}): IDLConstant {
     return {
         kind: IDLKind.Const,
         name,
@@ -1593,7 +1593,7 @@ export function nameWithType(
 export function printConstant(idl: IDLConstant): PrintedLine[] {
     return [
         ...printExtendedAttributes(idl, 1),
-        `const ${nameWithType(idl)} = ${idl.value};`
+        `const ${nameWithType(idl)}${idl.value ? ` = ${idl.value}` : ``};`
     ]
 }
 

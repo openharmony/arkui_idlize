@@ -1,0 +1,10 @@
+package test_bigint;
+namespace test_bigint {
+    interface BigIntParams {
+        attribute bigint prime;
+    };
+    bigint test(bigint num);
+    bigint test_negative(bigint num);
+    BigIntParams test_params(BigIntParams params);
+    BigIntParams test_params_negative(BigIntParams params);
+};

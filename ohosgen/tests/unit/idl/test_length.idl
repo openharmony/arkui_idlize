@@ -1,0 +1,8 @@
+package test_length;
+interface Resource {
+    attribute number id;
+    [Optional]
+    attribute number type;
+};
+typedef (String or number or Resource) Length;
+boolean testLength(number step, Length value);

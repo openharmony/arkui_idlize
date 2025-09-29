@@ -1,19 +1,31 @@
 package test_enum;
-dictionary IDLOrdinaryEnum {
+dictionary OrdinaryEnum {
     number E1;
     number E2;
     number E3;
 };
-dictionary IDLIntEnum {
-    number E1 = 111;
-    number E3 = 333;
-    number E5 = 555;
+dictionary IntEnum {
+    number E1 = 11;
+    number E3 = 33;
+    number E5 = 55;
 };
-dictionary IDLStringEnum {
-    String E1 = "e111";
-    String E2 = "e222";
-    String E3 = "e333";
+dictionary DuplicateIntEnum {
+    number FIRST = 0;
+    [OriginalEnumMemberName=first]
+    number LEGACY_FIRST = 0;
+    number SECOND = 1;
+    [OriginalEnumMemberName=second]
+    number LEGACY_SECOND = 1;
+    number THIRD = 2;
+    [OriginalEnumMemberName=third]
+    number LEGACY_THIRD = 2;
 };
-IDLOrdinaryEnum idlCheckOrdinaryEnums(IDLOrdinaryEnum value1, IDLOrdinaryEnum value2);
-IDLIntEnum idlCheckIntEnums(IDLIntEnum value1, IDLIntEnum value2);
-IDLStringEnum idlCheckStringEnums(IDLStringEnum value1, IDLStringEnum value2);
+dictionary StringEnum {
+    String E1 = "e11";
+    String E2 = "e22";
+    String E3 = "e33";
+};
+OrdinaryEnum checkOrdinaryEnums(OrdinaryEnum value1, OrdinaryEnum value2);
+IntEnum checkIntEnums(IntEnum value1, IntEnum value2);
+DuplicateIntEnum checkDuplicateIntEnums(DuplicateIntEnum value1, DuplicateIntEnum value2);
+StringEnum checkStringEnums(StringEnum value1, StringEnum value2);

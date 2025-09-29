@@ -1,7 +1,6 @@
-package test_idl_constants;
-
-const boolean IDL_CONST_BOOLEAN_FALSE = false;
-const boolean IDL_CONST_BOOLEAN_TRUE = true;
-const number IDL_CONST_NUMBER_INT = 312;
-const number IDL_CONST_NUMBER_FLOAT = 312.415;
-const String IDL_CONST_STRING = "hello_string";
+package test_const;
+const boolean CONST_BOOLEAN_FALSE = false;
+const boolean CONST_BOOLEAN_TRUE = true;
+const number CONST_NUMBER_INT = 312;
+const number CONST_NUMBER_FLOAT = 312.415;
+const String CONST_STRING = "hello_string";

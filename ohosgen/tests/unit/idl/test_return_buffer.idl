@@ -1,0 +1,6 @@
+package test_return_buffer;
+namespace TestBuffer {
+    interface BufferGenerator {
+        buffer giveMeBuffer();
+    };
+};

@@ -23,6 +23,13 @@
 #define CALLBACK_HOLD(instance, callback) instance.callback.resource.hold(instance.callback.resource.resourceId);
 #define CALLBACK_RELEASE(instance, callback) instance.callback.resource.release(instance.callback.resource.resourceId);
 
+OH_String copy_string(OH_String str)
+{
+    char* chars = reinterpret_cast<char*>(calloc(str.length, sizeof(char)));
+    memcpy(chars, str.chars, str.length);
+    return OH_String { .chars = chars, .length = str.length };
+}
+
 OH_UNIT_HelloHandle Hello_constructImpl()
 {
     return {};
@@ -323,6 +330,29 @@ void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, con
     reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c = *value;
 }
 
+/// ClassWithComplexPropertyType real implementations
+
+class ClassWithComplexPropertyTypePeer {
+public:
+    UNIT_ClassWithPrimitivePropertyTypePeer* prop;
+    ClassWithComplexPropertyTypePeer() {
+    }
+};
+
+OH_UNIT_ClassWithComplexPropertyTypeHandle ClassWithComplexPropertyType_constructImpl() {
+    ClassWithComplexPropertyTypePeer* peer = new ClassWithComplexPropertyTypePeer();
+    peer->prop = new UNIT_ClassWithPrimitivePropertyTypePeer({ false, { .tag = INTEROP_TAG_INT32, .i32 = 0 } });
+    return reinterpret_cast<OH_UNIT_ClassWithComplexPropertyTypeHandle>(peer);
+}
+void ClassWithComplexPropertyType_destructImpl(OH_UNIT_ClassWithComplexPropertyTypeHandle thisPtr) {
+}
+OH_UNIT_ClassWithPrimitivePropertyType ClassWithComplexPropertyType_getPropImpl(OH_NativePointer thisPtr) {
+    ClassWithComplexPropertyTypePeer* peer = reinterpret_cast<ClassWithComplexPropertyTypePeer*>(thisPtr);
+    return reinterpret_cast<OH_UNIT_ClassWithPrimitivePropertyType>(peer->prop);
+}
+void ClassWithComplexPropertyType_setPropImpl(OH_NativePointer thisPtr, OH_UNIT_ClassWithPrimitivePropertyType value) {
+}
+
 // Enums
 OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum value1, OH_UNIT_OrdinaryEnum value2) {
     // printf("value1: %d, expected: %d\n", value1, OH_UNIT_ORDINARY_ENUM_E1);
@@ -359,27 +389,6 @@ OH_UNIT_StringEnum GlobalScope_checkStringEnumsImpl(OH_UNIT_StringEnum value1, O
         INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
     }
     return OH_UNIT_STRING_ENUM_E3;
-}
-
-OH_UNIT_IDLOrdinaryEnum GlobalScope_idlCheckOrdinaryEnumsImpl(OH_UNIT_IDLOrdinaryEnum value1, OH_UNIT_IDLOrdinaryEnum value2) {
-    if (value1 != OH_UNIT_IDLORDINARY_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_IDLORDINARY_ENUM_E1: %d", value1, OH_UNIT_IDLORDINARY_ENUM_E1);
-    }
-    return OH_UNIT_IDLORDINARY_ENUM_E3;
-}
-
-OH_UNIT_IDLIntEnum GlobalScope_idlCheckIntEnumsImpl(OH_UNIT_IDLIntEnum value1, OH_UNIT_IDLIntEnum value2) {
-    if (value2 != OH_UNIT_IDLINT_ENUM_E3) {
-        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_IDLINT_ENUM_E3: %d", value1, OH_UNIT_IDLINT_ENUM_E3);
-    }
-    return OH_UNIT_IDLINT_ENUM_E5;
-}
-
-OH_UNIT_IDLStringEnum GlobalScope_idlCheckStringEnumsImpl(OH_UNIT_IDLStringEnum value1, OH_UNIT_IDLStringEnum value2) {
-    if (value1 != OH_UNIT_IDLSTRING_ENUM_E1) {
-        INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_IDLSTRING_ENUM_E1: %d", value1, OH_UNIT_IDLSTRING_ENUM_E1);
-    }
-    return OH_UNIT_IDLSTRING_ENUM_E3;
 }
 
 // Constructors
@@ -428,7 +437,7 @@ void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value)
         result.propNumber.i32 += 1; \
     else \
         result.propNumber.f32 += 1; \
-    result.propString = arg->propString; \
+    result.propString = copy_string(arg->propString); \
     result.propString.chars++; \
     result.propString.length--; \
     result.propObject = arg->propObject; \
@@ -441,20 +450,86 @@ void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value)
     result.propObject.value2.length = arg->propObject.value2.length - 6; \
     return result;
 
+
+// TBD: Unify with the DATA_OBJECT_TEST
+#define DATA_CLASS_OBJECT_TEST(entityName, returnName) \
+    entityName* arg = reinterpret_cast<entityName*>(value); \
+    entityName* result = new entityName(); \
+    result->propBoolean = !arg->propBoolean; \
+    result->propNumber = arg->propNumber; \
+    if (arg->propNumber.tag == InteropTag::INTEROP_TAG_INT32) \
+        result->propNumber.i32 += 1; \
+    else \
+        result->propNumber.f32 += 1; \
+    result->propString = copy_string(arg->propString); \
+    result->propString.chars++; \
+    result->propString.length--; \
+    result->propObject = arg->propObject; \
+    result->propObject.value0 = !arg->propObject.value0; \
+    if (arg->propObject.value1.tag == InteropTag::INTEROP_TAG_INT32) \
+        result->propObject.value1.i32 = -arg->propObject.value1.i32; \
+    else \
+        result->propObject.value1.f32 = -arg->propObject.value1.f32; \
+    result->propObject.value2.chars = arg->propObject.value2.chars + 6; \
+    result->propObject.value2.length = arg->propObject.value2.length - 6; \
+    return reinterpret_cast<OH_UNIT_##returnName>(result);
+
+class DataClassPeer
+{
+  public:
+  OH_Boolean propBoolean;
+  OH_Number propNumber;
+  OH_String propString;
+  OH_UNIT_Tuple_Boolean_Number_String propObject;
+};
+
+OH_UNIT_DataClassHandle DataClass_constructImpl() {
+    return reinterpret_cast<OH_UNIT_DataClassHandle>(new DataClassPeer());
+}
+void DataClass_destructImpl(OH_UNIT_DataClassHandle thisPtr) {
+}
+// TBD: Provide DataClass type instead of OH_NativePointer
+OH_Boolean DataClass_getPropBooleanImpl(OH_NativePointer thisPtr)
+{
+    return reinterpret_cast<DataClassPeer*>(thisPtr)->propBoolean;
+}
+OH_Number DataClass_getPropNumberImpl(OH_NativePointer thisPtr)
+{
+    return reinterpret_cast<DataClassPeer*>(thisPtr)->propNumber;
+}
+OH_UNIT_Tuple_Boolean_Number_String DataClass_getPropObjectImpl(OH_NativePointer thisPtr) {
+    return reinterpret_cast<DataClassPeer*>(thisPtr)->propObject;
+}
+OH_String DataClass_getPropStringImpl(OH_NativePointer thisPtr) {
+    return copy_string(reinterpret_cast<DataClassPeer*>(thisPtr)->propString);
+}
+void DataClass_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+    reinterpret_cast<DataClassPeer*>(thisPtr)->propBoolean = value;
+}
+void DataClass_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+    reinterpret_cast<DataClassPeer*>(thisPtr)->propNumber = *value;
+}
+void DataClass_setPropObjectImpl(OH_NativePointer thisPtr, const OH_UNIT_Tuple_Boolean_Number_String* value) {
+    reinterpret_cast<DataClassPeer*>(thisPtr)->propObject = *value;
+}
+void DataClass_setPropStringImpl(OH_NativePointer thisPtr, const OH_String* value) {
+    reinterpret_cast<DataClassPeer*>(thisPtr)->propString = copy_string(*value);
+}
 OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg) {
     DATA_OBJECT_TEST(DataInterface)
 }
-OH_UNIT_DataClass GlobalScope_testDataClassImpl(const OH_UNIT_DataClass* arg) {
-    DATA_OBJECT_TEST(DataClass)
-}
-OH_UNIT_IDLDataInterface GlobalScope_testIDLDataInterfaceImpl(const OH_UNIT_IDLDataInterface* arg) {
-    DATA_OBJECT_TEST(IDLDataInterface)
-}
-OH_UNIT_IDLDataClass GlobalScope_testIDLDataClassImpl(const OH_UNIT_IDLDataClass* arg) {
-    DATA_OBJECT_TEST(IDLDataClass)
+OH_UNIT_DataClass GlobalScope_testDataClassImpl(OH_UNIT_DataClass value) {
+    DATA_CLASS_OBJECT_TEST(DataClassPeer, DataClass)
 }
 
 // "StaticMaterialized" class implementation
+// TBD: do not generate construct and destruct methods for static materialized
+OH_UNIT_test_materialized_classes_StaticMaterializedHandle test_materialized_classes_StaticMaterialized_constructImpl() {
+    return {};
+}
+void test_materialized_classes_StaticMaterialized_destructImpl(OH_UNIT_test_materialized_classes_StaticMaterializedHandle thisPtr) {
+}
+
 void test_materialized_classes_StaticMaterialized_methodImpl(const OH_Number *valNumber, const OH_String *valString) {
     printf("static method of static materialized class usage!! Got: %d, %s\n", valNumber->i32, valString->chars);
 }
@@ -856,38 +931,6 @@ void CheckExceptionClass_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_Nati
 OH_UNIT_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
     printf("OH_UNIT_CheckExceptionClass getInterface vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
     return (OH_UNIT_CheckExceptionInterface) new OH_UNIT_CheckExceptionInterfacePeer();
-}
-
-// WrappedBuilder
-
-OH_UNIT_WrappedBuilder GlobalScope_wrapBuilderImpl(const UNIT_Callback_WrappedBuilder_Args_Void* builder) {
-    return {};
-}
-
-class CustomComponentSamplePeer
-{
-};
-
-OH_UNIT_CustomComponentSampleHandle CustomComponentSample_constructImpl() {
-    return (OH_UNIT_CustomComponentSampleHandle) new CustomComponentSamplePeer();
-}
-void CustomComponentSample_destructImpl(OH_UNIT_CustomComponentSampleHandle thisPtr) {
-}
-OH_UNIT_CustomComponentSample CustomComponentSample_contentModifierImpl(OH_NativePointer thisPtr, const OH_Object* modifier) {
-    printf("native CustomComponentSample.contentModifierImpl: %d\n", modifier->resource.resourceId);
-    return (OH_UNIT_CustomComponentSample) thisPtr;
-}
-
-OH_Object CustomComponentSample_getContentModifierImpl(OH_NativePointer thisPtr) {
-    printf("CustomComponentSample_contentModifierImpl!!!\n");
-    // printf("native CustomComponentSample.contentModifierImpl: %d\n", modifier->resource.resourceId);
-    // return (OH_UNIT_CustomComponentSample) thisPtr;
-    return {};
-}
-
-OH_Object CustomComponentSample_getSampleImpl(OH_NativePointer thisPtr, const OH_Object* val) {
-    printf("getSample id: %d\n", val->resource.resourceId);
-    return *val;
 }
 
 OH_UNIT_generics_XHandle generics_X_constructImpl() {

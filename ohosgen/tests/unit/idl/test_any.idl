@@ -1,0 +1,10 @@
+package test_any;
+namespace test_any {
+    interface WithAny {
+        attribute any field;
+        attribute number normal;
+    };
+    [Synthetic]
+    callback Callback_Any_Void = void (any x);
+    void test(WithAny x, Callback_Any_Void f);
+};

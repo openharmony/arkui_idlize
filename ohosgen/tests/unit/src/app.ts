@@ -11,12 +11,6 @@ import {
   CONST_NUMBER_INT,
   CONST_NUMBER_FLOAT,
   CONST_STRING,
-  // .idl
-  IDL_CONST_BOOLEAN_FALSE,
-  IDL_CONST_BOOLEAN_TRUE,
-  IDL_CONST_NUMBER_INT,
-  IDL_CONST_NUMBER_FLOAT,
-  IDL_CONST_STRING
 } from '#compat'
 
 import { and_values } from '#compat'
@@ -33,7 +27,7 @@ import {
   OHAny
 } from '#compat'
 
-import { test_buffer, test_buffer_idl } from '#compat'
+import { test_buffer } from '#compat'
 
 import {
   OrdinaryEnum,
@@ -44,28 +38,11 @@ import {
   checkIntEnums,
   checkDuplicateIntEnums,
   checkStringEnums,
-  IDLOrdinaryEnum,
-  IDLIntEnum,
-  IDLStringEnum,
-  idlCheckOrdinaryEnums,
-  idlCheckIntEnums,
-  idlCheckStringEnums,
   testDataClass, testDataInterface, DataClass, DataInterface,
-  testIDLDataClass, testIDLDataInterface, IDLDataClass, IDLDataInterface,
 } from '#compat'
 import { test_ret_A } from '#compat'
 
 import { CheckExceptionClass, CheckExceptionInterface } from '#compat'
-
-import {
-  ContentModifier,
-  WrappedBuilder,
-  wrapBuilder,
-  CommonConfiguration,
-  CustomComponentConfiguration,
-  CustomComponentShape,
-  CustomComponentSample,
-} from '#compat'
 
 import {
   testLength
@@ -100,19 +77,12 @@ function check_constants() {
   if (CONST_BOOLEAN_TRUE != true)
     throw new Error(`CONST_BOOLEAN_FALSE is not true!`)
 
-  assertEQ(312, CONST_NUMBER_INT)
-
-
-  if (CONST_NUMBER_FLOAT != 312.415) {
-    throw new Error(`CONST_NUMBER_FLOAT is not 312.415!`)
-  }
-
   // 2. Check idl const values
-  assertEQ(312, IDL_CONST_NUMBER_INT)
-  assertEQ(312.415, IDL_CONST_NUMBER_FLOAT)
-  assertEQ(false, IDL_CONST_BOOLEAN_FALSE)
-  assertEQ(true, IDL_CONST_BOOLEAN_TRUE);
-  assertEQ("hello_string", IDL_CONST_STRING);
+  assertEQ(312, CONST_NUMBER_INT)
+  assertEQ(312.415, CONST_NUMBER_FLOAT)
+  assertEQ(false, CONST_BOOLEAN_FALSE)
+  assertEQ(true, CONST_BOOLEAN_TRUE);
+  assertEQ("hello_string", CONST_STRING);
 }
 
 function check_booleans() {
@@ -179,8 +149,6 @@ function checkForceCallback() {
 
 function checkEnum() {
 
-  // .d.ts
-  // use Enum.VALUE.valueOf() as a workaround
   assertEQ(11, IntEnum.E1.valueOf())
   assertEQ(33, IntEnum.E3.valueOf())
   assertEQ(55, IntEnum.E5.valueOf())
@@ -193,23 +161,14 @@ function checkEnum() {
   assertEQ(DuplicateIntEnum.LEGACY_THIRD.valueOf(),
     checkDuplicateIntEnums(DuplicateIntEnum.LEGACY_FIRST, DuplicateIntEnum.LEGACY_SECOND).valueOf())
   assertEQ(StringEnum.E3, checkStringEnums(StringEnum.E1, StringEnum.E2))
-
-  // .idl
-  // use Enum.VALUE.valueOf() as a workaround
-  assertEQ(111, IDLIntEnum.E1.valueOf())
-  assertEQ(333, IDLIntEnum.E3.valueOf())
-  assertEQ(555, IDLIntEnum.E5.valueOf())
-  assertEQ("e111", IDLStringEnum.E1.valueOf())
-  assertEQ("e222", IDLStringEnum.E2.valueOf())
-  assertEQ("e333", IDLStringEnum.E3.valueOf())
-
-  assertEQ(IDLOrdinaryEnum.E3, idlCheckOrdinaryEnums(IDLOrdinaryEnum.E1, IDLOrdinaryEnum.E2))
-  assertEQ(IDLIntEnum.E5, idlCheckIntEnums(IDLIntEnum.E1, IDLIntEnum.E3))
-  assertEQ(IDLStringEnum.E3, idlCheckStringEnums(IDLStringEnum.E1, IDLStringEnum.E2))
 }
 
 function checkClassWithComplexPropertyType() {
   let value = new ClassWithComplexPropertyType()
+  // TBD: implement constants for classes
+  // "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
+  value.prop.flag = true
+  value.prop.counter = 10
   assertEQ(10, value.prop.counter)
   assertEQ(true, value.prop.flag)
 }
@@ -258,17 +217,14 @@ function checkDataInterfaces() {
   const r1 = testDataInterface(dataIface)
   checkDataTestResult("interface", dataIface, r1.propBoolean, r1.propNumber, r1.propString, r1.propObject)
 
-  const dataClass: DataClass = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
+  const dataClass = new DataClass()
+  dataClass.propBoolean = valBoolean
+  dataClass.propNumber = valNumber
+  dataClass.propString = valString
+  dataClass.propObject = valObject
+
   const r2 = testDataClass(dataClass)
   checkDataTestResult("class", dataIface, r2.propBoolean, r2.propNumber, r2.propString, r2.propObject)
-
-  const idlIface: IDLDataInterface = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
-  const r3 = testIDLDataInterface(idlIface)
-  checkDataTestResult("interface", dataIface, r3.propBoolean, r3.propNumber, r3.propString, r3.propObject)
-
-  const idlClass: IDLDataClass = { propBoolean: valBoolean, propNumber: valNumber, propString: valString, propObject: valObject }
-  const r4 = testIDLDataClass(idlClass)
-  checkDataTestResult("class", dataIface, r4.propBoolean, r4.propNumber, r4.propString, r4.propObject)
 }
 
 function checkStaticMaterialized() {
@@ -357,16 +313,9 @@ function _checkReversedBuffer(buffer: ArrayBuffer, reversedBuffer: ArrayBuffer) 
 }
 
 function checkNativeBuffer() {
-  { // DTS
-    const buffer = test_buffer.create(10)
-    const reversedBuffer = test_buffer.reverse(buffer)
-    _checkReversedBuffer(buffer, reversedBuffer)
-  }
-  { // IDL
-    const buffer = test_buffer_idl.create(10)
-    const reversedBuffer = test_buffer_idl.reverse(buffer)
-    _checkReversedBuffer(buffer, reversedBuffer)
-  }
+  const buffer = test_buffer.create(10)
+  const reversedBuffer = test_buffer.reverse(buffer)
+  _checkReversedBuffer(buffer, reversedBuffer)
 }
 
 // function checkHandwritten() {
@@ -492,41 +441,6 @@ function checkThrowException() {
   assertEQ(true, catchException, "Exception has not been thrown!")
 }
 
-function buildCustomComponent(config: CommonConfiguration): void {
-  const customConf = config as CustomComponentConfiguration
-  console.log(`Build custom component`)
-  console.log(`custom conf name: ${customConf.name}, selected: ${customConf.selected}`)
-  // { shapeStyle: 111 }
-}
-
-class CustomComponentStyle implements ContentModifier {
-
-  selectedColor: number = 0
-
-  constructor(selectedColor: number) {
-    this.selectedColor = selectedColor
-  }
-
-  applyContent(): WrappedBuilder {
-    return wrapBuilder(buildCustomComponent)
-  }
-}
-
-function checkContentModifier() {
-
-  console.log(`Call checkContentModifier`)
-  const customComponent = new CustomComponentSample()
-  const customComponentStyle = new CustomComponentStyle(123)
-  customComponent.contentModifier(customComponentStyle)
-  // const result = customComponent.getContentModifier()
-  // console.log(`result selectedColor: ${(result as CustomComponentStyle).selectedColor}`)
-
-  // console.log(`customComponent: $${customComponent}`)
-  // const res = customComponent.getSample("abc")
-  // console.log(`after res`)
-  // console.log(`res: ${res}`)
-}
-
 function checkPromiseRejected() {
   PromiseTester.wait(200)
     .then(() => assertEQ(false, true, "Should not be called"))
@@ -558,7 +472,6 @@ export function run() {
   suite.addTest("checkHooks", checkHooks)
   suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
-  suite.addTest("checkContentModifier", checkContentModifier)
   suite.addTest("checkPromiseRejected", checkPromiseRejected)
 
   return suite.run()

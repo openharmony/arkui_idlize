@@ -1,0 +1,2 @@
+package test_boolean;
+boolean and_values(boolean v1, boolean v2);

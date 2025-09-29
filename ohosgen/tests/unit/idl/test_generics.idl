@@ -1,0 +1,11 @@
+package test_generics;
+namespace generics {
+    [TypeParameters="A,B"]
+    interface Y {
+        A bar(B y);
+    };
+    [TypeParameters="A,B,C", TypeParametersDefaults="number,void"]
+    interface X: [TypeArguments="A,B"] Y {
+        C foo(A x, B y);
+    };
+};

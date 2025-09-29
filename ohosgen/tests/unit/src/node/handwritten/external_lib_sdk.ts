@@ -1,4 +1,5 @@
+import { KPointer } from "@koalaui/interop"
 
 export interface SDKExternalType {
-	sdkNativePointer: bigint
+	sdkNativePointer: KPointer
 }

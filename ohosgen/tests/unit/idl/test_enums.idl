@@ -1,0 +1,16 @@
+package test_enums;
+namespace test_enums {
+    dictionary MyEnum {
+        number A = 0;
+        number B = 1;
+        number C = 2;
+        number D = 3;
+    };
+    [Entity=Class]
+    interface Test {
+        constructor();
+        attribute number a;
+    };
+    number MyFunc(number a);
+    number MyFunc2(MyEnum a);
+};

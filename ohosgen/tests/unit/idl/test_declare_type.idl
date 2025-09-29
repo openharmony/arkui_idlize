@@ -1,0 +1,5 @@
+package test_declare_type;
+typedef (number or boolean) HelloType;
+interface Hello {
+    void hello(HelloType value);
+};

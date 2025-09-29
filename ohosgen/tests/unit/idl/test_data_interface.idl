@@ -1,27 +1,23 @@
 package test_data_interface;
-
-[Synthetic, Entity=Tuple]
-interface IDLDataTuple {
+[Entity=Tuple, Synthetic]
+interface Tuple_Boolean_Number_String {
     attribute boolean value0;
     attribute number value1;
     attribute String value2;
 };
-
-[Entity=Interface]
-interface IDLDataInterface {
+interface DataInterface {
     attribute boolean propBoolean;
     attribute number propNumber;
     attribute String propString;
-    attribute IDLDataTuple propObject;
+    attribute Tuple_Boolean_Number_String propObject;
 };
-
 [Entity=Class]
-interface IDLDataClass {
+interface DataClass: DataInterface {
+    constructor();
     attribute boolean propBoolean;
     attribute number propNumber;
     attribute String propString;
-    attribute IDLDataTuple propObject;
+    attribute Tuple_Boolean_Number_String propObject;
 };
-
-IDLDataInterface testIDLDataInterface(IDLDataInterface arg);
-IDLDataClass testIDLDataClass(IDLDataClass arg);
+DataInterface testDataInterface(DataInterface arg);
+DataClass testDataClass(DataClass arg);

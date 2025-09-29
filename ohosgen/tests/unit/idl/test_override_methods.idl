@@ -1,0 +1,16 @@
+package test_override_methods;
+[Entity=Class]
+interface PersonInfo {
+    constructor();
+    attribute String name;
+    attribute number age;
+    number Myfunc(number a);
+};
+interface MyPersonHandler {
+    number Myfunc1(number a, optional PersonInfo b);
+    number Myfunc1(number a, sequence<PersonInfo> b);
+    number Myfunc1(PersonInfo a);
+    void MyFunc2(number b, optional boolean c);
+    void MyFunc2(number b, optional String c);
+    void MyFunc2(number b, optional number c);
+};

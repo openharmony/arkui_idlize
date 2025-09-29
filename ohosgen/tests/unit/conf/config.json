@@ -85,10 +85,6 @@
         "test_generic_interface.GenericInterface",
         "test_materialized_classes.test_materialized_classes.MaterializedWithCreateMethod"
     ],
-    "forceCallback": {
-        "ForceCallbackListener":  [],
-        "GenericInterfaceDataHandler": []
-    },
     "forceResource": [
        "ContentModifier"
     ],
@@ -152,6 +148,8 @@
         "DataClass.propString": "''",
         "DataClass.propObject": "[false, 0, '']",
         "IDLDataClass.propString": "''",
-        "IDLDataClass.propObject": "[false, 0, '']"
+        "IDLDataClass.propObject": "[false, 0, '']",
+        "test_constants.test_constants.att1" : "123",
+        "test_constants.test_constants.att2" : "\"abc\""
     }
 }

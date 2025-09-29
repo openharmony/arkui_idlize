@@ -1,0 +1,14 @@
+package test_hooks;
+import external.lib.ImportedHookValue as ImportedHookValue;
+interface DTSHookValue {
+    attribute number count;
+};
+[Entity=Class]
+interface DTSHookClass {
+    constructor();
+    void method(DTSHookValue value);
+    void methodArg(DTSHookValue value);
+    DTSHookValue methodReturn();
+    void methodImportedArg(ImportedHookValue hookedValue);
+    ImportedHookValue methodImportedReturn();
+};

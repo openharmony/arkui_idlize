@@ -1,0 +1,12 @@
+package test_generic_interface;
+[TypeParameters="T"]
+interface GenericInterface {
+    void setData(T data);
+    void callHandler();
+};
+[Synthetic]
+callback Callback_T_Void = void (T data);
+[TypeParameters="T"]
+interface GenericInterfaceDataHandler {
+    attribute Callback_T_Void onData;
+};

@@ -1,0 +1,20 @@
+package test_hilog;
+interface ArgType {
+    attribute number field;
+};
+namespace hilog {
+    void debug(number domain, String tag, String format, sequence<ArgType> args);
+    void info(number domain, String tag, String format, sequence<ArgType> args);
+    void warn(number domain, String tag, String format, sequence<ArgType> args);
+    void error(number domain, String tag, String format, sequence<ArgType> args);
+    void fatal(number domain, String tag, String format, sequence<ArgType> args);
+    boolean isLoggable(number domain, String tag, LogLevel level);
+    void setMinLogLevel(LogLevel level);
+    dictionary LogLevel {
+        number DEBUG = 3;
+        number INFO = 4;
+        number WARN = 5;
+        number ERROR = 6;
+        number FATAL = 7;
+    };
+};

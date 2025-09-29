@@ -1,0 +1,6 @@
+package test_constants;
+namespace test_constants {
+    const number att1;
+    const String att2;
+};
+const number glob = 3;
