@@ -327,7 +327,7 @@ export function runScraper(root: string, configPath:string):ScraperResult {
 
     let additionalStartScript = `
 rule ohosgen
-    command = node ../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ') --output-dir $out --options-file ../../arkgen/generation-config/config.json ${BASIC_MODULES_CONFIG_PATH} $in
+    command = node ../../../../ohosgen --idl2peer --language arkts --input-files $$(find ${join(OUT_DIR, 'idl')} ../../../../interfaces/interfaces/arkui-extra -type f | tr '\\n' ' ') --output-dir $out --options-file ../../../../arkgen/generation-config/config.json ${BASIC_MODULES_CONFIG_PATH} $in
     description = "Generate $in"
 
 `
@@ -350,10 +350,10 @@ rule ohosgen
             "baseUrl": "./generated/arkts",
             "outDir": "build/panda/out",
             "paths": {
-                "@koalaui/interop": ["../../../../../../external/interop/src/arkts"],
-                "@koalaui/common": ["../../../../../../external/common/src"],
-                "@koalaui/compat": ["../../../../../../external/compat/src/arkts"],
-                "@koalaui/runtime": ["../../../../../../external/incremental/runtime/src"]
+                "@koalaui/interop": ["../../../../../../../../external/interop/src/arkts"],
+                "@koalaui/common": ["../../../../../../../../external/common/src"],
+                "@koalaui/compat": ["../../../../../../../../external/compat/src/arkts"],
+                "@koalaui/runtime": ["../../../../../../../../external/incremental/runtime/src"]
             }
         },
         "include": ["generated/arkts/**/*.ts"]
