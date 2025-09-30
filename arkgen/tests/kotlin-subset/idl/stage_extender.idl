@@ -1,0 +1,45 @@
+package arkui.stage_extender;
+
+dictionary PageTransitionType {
+    number ENTER = 0;
+    number EXIT = 1;
+};
+
+dictionary RouteType {
+    [OriginalEnumMemberName=None]
+    number NONE = 0;
+    [OriginalEnumMemberName=Push]
+    number PUSH = 1;
+    [OriginalEnumMemberName=Pop]
+    number POP = 2;
+};
+interface PageTransitionOptions {
+    [Optional]
+    attribute RouteType type;
+    [Optional]
+    attribute number duration;
+    [Optional]
+    attribute number delay;
+};
+callback PageTransitionCallback = void (RouteType type, number progress);
+
+[Entity=Interface]
+interface TransitionParam {
+    attribute PageTransitionOptions pageTransitionOptions;
+    attribute PageTransitionType pageTransitionType;
+
+    [Optional]
+    attribute RouteType routeType;
+
+    [Optional]
+    attribute PageTransitionCallback onProgress;
+};
+
+[Entity=Class]
+interface StageExtender {
+  static void SetSrcPage(pointer node);
+  static void PushPage(pointer node);
+  static void PopPageAndSwitchTo(pointer node);
+  static void ResetTransitions(pointer node);
+  static void SetPageTransition(pointer node, TransitionParam param);
+};

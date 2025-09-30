@@ -996,6 +996,8 @@ typedef struct OnSwiperGestureSwipeCallback OnSwiperGestureSwipeCallback;
 typedef struct Opt_OnSwiperGestureSwipeCallback Opt_OnSwiperGestureSwipeCallback;
 typedef struct OnTextSelectionChangeCallback OnTextSelectionChangeCallback;
 typedef struct Opt_OnTextSelectionChangeCallback Opt_OnTextSelectionChangeCallback;
+typedef struct PageTransitionCallback PageTransitionCallback;
+typedef struct Opt_PageTransitionCallback Opt_PageTransitionCallback;
 typedef struct PasteEventCallback PasteEventCallback;
 typedef struct Opt_PasteEventCallback Opt_PasteEventCallback;
 typedef struct ScrollOnScrollCallback ScrollOnScrollCallback;
@@ -1284,6 +1286,8 @@ typedef struct Ark_OnRenderExitedEvent Ark_OnRenderExitedEvent;
 typedef struct Opt_OnRenderExitedEvent Opt_OnRenderExitedEvent;
 typedef struct Ark_OverlayOffset Ark_OverlayOffset;
 typedef struct Opt_OverlayOffset Opt_OverlayOffset;
+typedef struct Ark_PageTransitionOptions Ark_PageTransitionOptions;
+typedef struct Opt_PageTransitionOptions Opt_PageTransitionOptions;
 typedef struct Ark_PasteEvent Ark_PasteEvent;
 typedef struct Opt_PasteEvent Opt_PasteEvent;
 typedef struct Ark_PathOptions Ark_PathOptions;
@@ -1624,6 +1628,8 @@ typedef struct Ark_ToolbarItem Ark_ToolbarItem;
 typedef struct Opt_ToolbarItem Opt_ToolbarItem;
 typedef struct Ark_TransitionOptions Ark_TransitionOptions;
 typedef struct Opt_TransitionOptions Opt_TransitionOptions;
+typedef struct Ark_TransitionParam Ark_TransitionParam;
+typedef struct Opt_TransitionParam Opt_TransitionParam;
 typedef struct Ark_Tuple_Dimension_Dimension Ark_Tuple_Dimension_Dimension;
 typedef struct Opt_Tuple_Dimension_Dimension Opt_Tuple_Dimension_Dimension;
 typedef struct Ark_Tuple_Length_Length Ark_Tuple_Length_Length;
@@ -3187,6 +3193,14 @@ typedef struct Opt_OutlineStyle {
     Ark_Tag tag;
     Ark_OutlineStyle value;
 } Opt_OutlineStyle;
+typedef enum Ark_PageTransitionType {
+    ARK_PAGE_TRANSITION_TYPE_ENTER = 0,
+    ARK_PAGE_TRANSITION_TYPE_EXIT = 1,
+} Ark_PageTransitionType;
+typedef struct Opt_PageTransitionType {
+    Ark_Tag tag;
+    Ark_PageTransitionType value;
+} Opt_PageTransitionType;
 typedef enum Ark_PanDirection {
     ARK_PAN_DIRECTION_NONE = 0,
     ARK_PAN_DIRECTION_HORIZONTAL = 1,
@@ -3337,6 +3351,15 @@ typedef struct Opt_RichEditorSpanType {
     Ark_Tag tag;
     Ark_RichEditorSpanType value;
 } Opt_RichEditorSpanType;
+typedef enum Ark_RouteType {
+    ARK_ROUTE_TYPE_NONE = 0,
+    ARK_ROUTE_TYPE_PUSH = 1,
+    ARK_ROUTE_TYPE_POP = 2,
+} Ark_RouteType;
+typedef struct Opt_RouteType {
+    Ark_Tag tag;
+    Ark_RouteType value;
+} Opt_RouteType;
 typedef enum Ark_SafeAreaEdge {
     ARK_SAFE_AREA_EDGE_TOP = 0,
     ARK_SAFE_AREA_EDGE_BOTTOM = 1,
@@ -6707,6 +6730,16 @@ typedef struct Opt_OnTextSelectionChangeCallback {
     Ark_Tag tag;
     OnTextSelectionChangeCallback value;
 } Opt_OnTextSelectionChangeCallback;
+typedef struct PageTransitionCallback {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Number progress);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Number progress);
+} PageTransitionCallback;
+typedef struct Opt_PageTransitionCallback {
+    Ark_Tag tag;
+    PageTransitionCallback value;
+} Opt_PageTransitionCallback;
 typedef struct PasteEventCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -7836,6 +7869,16 @@ typedef struct Opt_OverlayOffset {
     Ark_Tag tag;
     Ark_OverlayOffset value;
 } Opt_OverlayOffset;
+typedef struct Ark_PageTransitionOptions {
+    /* kind: Interface */
+    Opt_RouteType type;
+    Opt_Number duration;
+    Opt_Number delay;
+} Ark_PageTransitionOptions;
+typedef struct Opt_PageTransitionOptions {
+    Ark_Tag tag;
+    Ark_PageTransitionOptions value;
+} Opt_PageTransitionOptions;
 typedef struct Ark_PasteEvent {
     /* kind: Interface */
     Opt_Callback_Void_Void preventDefault;
@@ -9625,6 +9668,17 @@ typedef struct Opt_TransitionOptions {
     Ark_Tag tag;
     Ark_TransitionOptions value;
 } Opt_TransitionOptions;
+typedef struct Ark_TransitionParam {
+    /* kind: Interface */
+    Ark_PageTransitionOptions pageTransitionOptions;
+    Ark_PageTransitionType pageTransitionType;
+    Opt_RouteType routeType;
+    Opt_PageTransitionCallback onProgress;
+} Ark_TransitionParam;
+typedef struct Opt_TransitionParam {
+    Ark_Tag tag;
+    Ark_TransitionParam value;
+} Opt_TransitionParam;
 typedef struct Ark_Tuple_Dimension_Dimension {
     /* kind: Interface */
     Ark_Dimension value0;
@@ -14661,6 +14715,15 @@ typedef struct GENERATED_ArkUISearchControllerAccessor {
                              const Opt_SelectionOptions* options);
 } GENERATED_ArkUISearchControllerAccessor;
 
+typedef struct GENERATED_ArkUIStageExtenderAccessor {
+    void (*SetSrcPage)(Ark_NativePointer node);
+    void (*PushPage)(Ark_NativePointer node);
+    void (*PopPageAndSwitchTo)(Ark_NativePointer node);
+    void (*ResetTransitions)(Ark_NativePointer node);
+    void (*SetPageTransition)(Ark_NativePointer node,
+                              const Ark_TransitionParam* param);
+} GENERATED_ArkUIStageExtenderAccessor;
+
 typedef struct GENERATED_ArkUIStyledStringAccessor {
     void (*destroyPeer)(Ark_StyledString peer);
     Ark_StyledString (*construct)(const Ark_Union_String_ImageAttachment_CustomSpan* value,
@@ -15188,6 +15251,7 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIScrollableTargetInfoAccessor* (*getScrollableTargetInfoAccessor)();
     const GENERATED_ArkUIScrollerAccessor* (*getScrollerAccessor)();
     const GENERATED_ArkUISearchControllerAccessor* (*getSearchControllerAccessor)();
+    const GENERATED_ArkUIStageExtenderAccessor* (*getStageExtenderAccessor)();
     const GENERATED_ArkUIStyledStringAccessor* (*getStyledStringAccessor)();
     const GENERATED_ArkUIStyledStringControllerAccessor* (*getStyledStringControllerAccessor)();
     const GENERATED_ArkUISubmitEventAccessor* (*getSubmitEventAccessor)();

@@ -745,6 +745,13 @@
                 "setDrawBehind_callback",
                 "setDrawContent_callback",
                 "setDrawFront_callback"
+            ],
+            "StageExtender" : [
+                "SetSrcPage",
+                "PushPage",
+                "PopPageAndSwitchTo",
+                "ResetTransitions",
+                "SetPageTransition"
             ]
         }
     },

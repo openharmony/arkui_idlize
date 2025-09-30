@@ -19,6 +19,7 @@
 #include <chrono>
 #include <future>
 #include <thread>
+#include <map>
 
 #include "Serializers.h"
 #include "interop-logging.h"
@@ -1051,6 +1052,144 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
         }
     } // DrawModifierAccessor
+
+    namespace StageExtenderAccessor {
+        std::map<Ark_NativePointer, std::function<void()>> enterAnimations;
+        std::map<Ark_NativePointer, std::function<void()>> exitAnimations;
+        Ark_NativePointer srcNode = nullptr;
+
+        void RunFor(std::function<void(double)> func, unsigned int delay, unsigned int duration, unsigned int granularity) {
+            std::thread([func, delay, duration, granularity]()
+            {
+                if (delay > 0) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(delay));
+                }
+
+                auto step = std::chrono::milliseconds(duration / granularity);
+                int counter = 0;
+                double fractionalStep = 1.0/granularity;
+                double lastValue = 0.0;
+                auto startTime = std::chrono::steady_clock::now(), x = startTime;
+
+                while (x - startTime < std::chrono::milliseconds(duration))
+                {
+                    lastValue = (counter++) * fractionalStep;
+                    func(lastValue);
+                    std::this_thread::sleep_until(x);
+                    x = std::chrono::steady_clock::now() + step;
+                }
+
+                std::this_thread::sleep_until(startTime + std::chrono::milliseconds(duration));
+
+                if (lastValue < 1.0) {
+                    func(1.0);
+                }
+            }).detach();
+        }
+
+        void SetSrcPageImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1))
+            {
+                return;
+            }
+            string out("SetSrcPage(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+            srcNode = node;
+        }
+        void PushPageImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1))
+            {
+                return;
+            }
+            string out("PushPage(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            auto enterAnimation = enterAnimations.find(node);
+            if (enterAnimation != enterAnimations.end()) {
+                enterAnimation->second();
+            }
+
+            auto exitAnimation = exitAnimations.find(srcNode);
+            if (exitAnimation != exitAnimations.end()) {
+                exitAnimation->second();
+            }
+        }
+        void PopPageAndSwitchToImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1))
+            {
+                return;
+            }
+            string out("PopPageAndSwitchTo(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            auto enterAnimation = enterAnimations.find(node);
+            if (enterAnimation != enterAnimations.end()) {
+                enterAnimation->second();
+            }
+            auto exitAnimation = exitAnimations.find(srcNode);
+            if (exitAnimation != exitAnimations.end()) {
+                exitAnimation->second();
+            }
+        }
+        void ResetTransitionsImpl(Ark_NativePointer node)
+        {
+            if (!needGroupedLog(1))
+            {
+                return;
+            }
+            string out("ResetTransitions(");
+            WriteToString(&out, node);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+            enterAnimations.erase(node);
+            exitAnimations.erase(node);
+        }
+        void SetPageTransitionImpl(Ark_NativePointer node,
+                                const Ark_TransitionParam* param)
+        {
+            if (!needGroupedLog(1))
+            {
+                return;
+            }
+            string out("SetPageTransition(");
+            WriteToString(&out, node);
+            out.append(", ");
+            WriteToString(&out, param);
+            out.append(") \n");
+            appendGroupedLog(1, out);
+
+            if (param->onProgress.tag != INTEROP_TAG_UNDEFINED) {
+                auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.delay.value.i32 : 0;
+                auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.duration.value.i32 : 0;
+                if (duration > 0) {
+                    auto callback = param->onProgress.value;
+                    auto routeType = param->routeType.tag != INTEROP_TAG_UNDEFINED ? param->routeType.value : ARK_ROUTE_TYPE_NONE;
+                    callback.resource.hold(callback.resource.resourceId);
+                    auto onProgress = [callback, routeType](double progress) {
+                        if (callback.call) {
+                            Ark_Number ark_progress = { .tag = INTEROP_TAG_FLOAT32, .f32 = (InteropFloat32)progress };
+                            callback.call(callback.resource.resourceId, routeType, ark_progress);
+                        }
+                    };
+
+                    if (param->pageTransitionType == ARK_PAGE_TRANSITION_TYPE_ENTER) {
+                        enterAnimations[node] = std::bind(RunFor, onProgress, delay, duration, 10);
+                    } else {
+                        exitAnimations[node] = std::bind(RunFor, onProgress, delay, duration, 10);
+                    }
+                }
+            }
+        }
+    } // StageExtenderAccessor
 }
 
 // end of handWritten implementations
