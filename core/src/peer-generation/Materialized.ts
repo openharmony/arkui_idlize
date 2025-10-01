@@ -32,21 +32,39 @@ export class MaterializedField {
         public outArgConvertor?: ArgConvertor,
         public isNullableOriginalTypeField?: boolean,
         public extraMethodName: string | undefined = undefined
-    ) { }
-
-    hasGetter(): boolean {
-        const isGetter = this.field.modifiers.includes(FieldModifier.GET)
-        const isSetter = this.field.modifiers.includes(FieldModifier.SET)
-        const isAccessor = isGetter || isSetter
-        return !isAccessor || isGetter
+    ) {
+        const isReadonly = field.modifiers.includes(FieldModifier.READONLY)
+        const isGetter = field.modifiers.includes(FieldModifier.GET)
+        const isSetter = field.modifiers.includes(FieldModifier.SET)
+        if (isReadonly && (isGetter || isSetter))
+            throw new Error(`Unsupported modifiers combination: field can be either readonly or getter/setter or mutable for field ${field.name}`)
+        if (isSetter && !isGetter)
+            throw new Error(`Unsupported modifiers combination: if setter is defined getter must be defined too for field ${field.name}`)
     }
 
-    hasSetter(): boolean {
-        const isReadonly = this.field.modifiers.includes(FieldModifier.READONLY)
-        const isGetter = this.field.modifiers.includes(FieldModifier.GET)
-        const isSetter = this.field.modifiers.includes(FieldModifier.SET)
-        const isAccessor = isGetter || isSetter
-        return (!isAccessor && !isReadonly) || isSetter
+    get state(): {
+        isAccessor: true,
+        hasGetter: boolean,
+        hasSetter: boolean
+    } | {
+        isAccessor: false,
+        isReadonly: boolean
+    } {
+        const hasGetter = this.field.modifiers.includes(FieldModifier.GET)
+        const hasSetter = this.field.modifiers.includes(FieldModifier.SET)
+        if (hasGetter || hasSetter) {
+            return {
+                isAccessor: true,
+                hasGetter,
+                hasSetter
+            }
+        } else {
+            const isReadonly = this.field.modifiers.includes(FieldModifier.READONLY)
+            return {
+                isAccessor: false,
+                isReadonly
+            }
+        }
     }
 }
 

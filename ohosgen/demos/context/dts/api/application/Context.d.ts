@@ -32,7 +32,7 @@ type ApplicationContextAlias = typeof ApplicationContext
 export default class Context extends BaseContext {
 
   // resourceManager: resmgr.ResourceManager;
-  applicationInfo: ApplicationInfo;
+  applicationInfo: ApplicationInfo | undefined;
   cacheDir: string;
   tempDir: string;
   filesDir: string;

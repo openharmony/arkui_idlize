@@ -10,9 +10,6 @@ interface IDLCheckProps {
     [Accessor=Getter]
     attribute number propWithGetter;
 
-    [Accessor=Setter]
-    attribute number propWithSetter;
-
     [Accessor=Getter]
     attribute number propWithGetterAndSetter;
 

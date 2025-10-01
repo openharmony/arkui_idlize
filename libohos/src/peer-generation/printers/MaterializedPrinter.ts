@@ -101,14 +101,13 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     // print non-static readonly fields initialization
-    printReadonlyFieldsInitialization(clazz: MaterializedClass) {
+    printFieldsInitialization(clazz: MaterializedClass) {
         const writer = this.printer
         const receiver = writer.makeThis()
         for (const mField of clazz.fields) {
             const f = mField.field
-            const isReadonly = f.modifiers.includes(FieldModifier.READONLY)
             const isStatic = f.modifiers.includes(FieldModifier.STATIC)
-            if (isReadonly && !isStatic) {
+            if (!mField.state.isAccessor && !isStatic) {
                 const initializer = this.printer.makeMethodCall(receiver.asString(), `get${capitalize(f.name)}`, [])
                 writer.writeStatement(
                     writer.makeAssign(f.name, f.type, initializer, false, false, { receiver: receiver.asString() })
@@ -134,7 +133,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {
                 this.assignFinalizable(className, peerPtr, clazz.isRefCounted, writer)
             }
-            this.printReadonlyFieldsInitialization(clazz)
+            this.printFieldsInitialization(clazz)
         }, this.getSuperDelegationCall(this.printer, clazz, peerPtrExpr, superClassName))
     }
 
@@ -236,6 +235,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     )
                 })
             }
+            this.printFieldsInitialization(clazz)
         }, { delegationType: DelegationType.THIS, delegationName: implementationClassName, delegationArgs: ctorArgs })
     }
 
@@ -338,22 +338,25 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             const mField = field.field
             // TBD: use deserializer to get complex type from native
             const isStatic = mField.modifiers.includes(FieldModifier.STATIC)
-            const isReadonly = mField.modifiers.includes(FieldModifier.READONLY)
             const receiver = isStatic ? implementationClassName : 'this'
             const type = this.convertToPropertyType(field)
-            if (isReadonly && (this.printer.language != Language.TS && this.printer.language != Language.CJ)) {
+            if (!field.state.isAccessor && (this.printer.language === Language.ARKTS)) {
+                // arkts can not have property and getter at the same time
                 const initializer = this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, [])
                 this.printer.writeProperty(mField.name, type, mField.modifiers, undefined, undefined, isStatic ? initializer : undefined)
             } else {
+                const hasGetter = !field.state.isAccessor || field.state.hasGetter
+                const hasSetter = !field.state.isAccessor && !field.state.isReadonly
+                    || field.state.isAccessor && field.state.hasSetter
                 this.printer.writeProperty(mField.name, type, (clazz.isInterface ? [FieldModifier.OVERRIDE] : []).concat(mField.modifiers),
-                    field.hasGetter() ? {
+                    hasGetter ? {
                         method: new Method('get', new MethodSignature(type, [])), op: () => {
                             this.printer.writeStatement(
                                 this.printer.makeReturn(this.printer.makeMethodCall(receiver, `get${capitalize(mField.name)}`, []))
                             )
                         }
                     } : undefined,
-                    field.hasSetter() ? {
+                    hasSetter ? {
                         method: new Method('set', new NamedMethodSignature(idl.IDLVoidType, [mField.type], [mField.name])), op: () => {
                             let castedNonNullArg
                             if (field.isNullableOriginalTypeField) {
@@ -689,7 +692,7 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
         return idl.getNamespaceName(this.clazz.decl)
     }
     // we cant use open methods inside class constructor
-    override printReadonlyFieldsInitialization(clazz: MaterializedClass) { }
+    override printFieldsInitialization(clazz: MaterializedClass) { }
 
     visit(): PrinterResult {
         return {

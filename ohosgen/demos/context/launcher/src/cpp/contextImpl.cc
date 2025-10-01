@@ -58,59 +58,61 @@ OH_APPLICATION_Context Context_createDisplayContextImpl(OH_NativePointer thisPtr
     return {};
 }
 OH_String Context_getCacheDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setCacheDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getTempDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setTempDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getFilesDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getDatabaseDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setDatabaseDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getPreferencesDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setPreferencesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getBundleCodeDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setBundleCodeDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getDistributedFilesDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setDistributedFilesDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getResourceDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setResourceDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getCloudFileDirImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setCloudFileDirImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
 OH_String Context_getProcessNameImpl(OH_NativePointer thisPtr) {
-    return {};
+    return {"", 0};
 }
 void Context_setProcessNameImpl(OH_NativePointer thisPtr, const OH_String* value) {
 }
-OH_APPLICATION_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr) {
-    return {};
+Opt_ApplicationInfo Context_getApplicationInfoImpl(OH_NativePointer thisPtr) {
+    return {
+        .tag=INTEROP_TAG_UNDEFINED
+    };
 }
-void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const OH_APPLICATION_ApplicationInfo* value) {
+void Context_setApplicationInfoImpl(OH_NativePointer thisPtr, const Opt_ApplicationInfo* value) {
 }
 
 // ApplicationContext

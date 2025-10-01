@@ -202,7 +202,7 @@ export class IdlPeerProcessor {
             const isStatic = field.modifiers.includes(FieldModifier.STATIC)
             const getSignature = new NamedMethodSignature(idl.maybeOptional(field.type, f.isNullableOriginalTypeField), [], [])
             const overloadPostfix = ``
-            if (f.hasGetter()) {
+            if (!f.state.isAccessor || f.state.hasGetter) {
                 const getAccessor = new MaterializedMethod(
                     undefined,
                     new PeerMethodSignature(
@@ -218,7 +218,7 @@ export class IdlPeerProcessor {
                 mMethods.push(getAccessor)
             }
 
-            if (f.hasSetter()) {
+            if (!f.state.isAccessor && !f.state.isReadonly || f.state.isAccessor && f.state.hasSetter) {
                 const setSignature = new NamedMethodSignature(idl.IDLVoidType, [idl.maybeOptional(idlType, f.isNullableOriginalTypeField)], [field.name])
                 const setAccessor = new MaterializedMethod(
                     undefined,
