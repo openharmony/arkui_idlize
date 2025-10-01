@@ -14,9 +14,21 @@ interface DataInterface {
 [Entity=Class]
 interface DataClass: DataInterface {
     constructor();
+    [Accessor=Getter]
     attribute boolean propBoolean;
+    [Accessor=Setter]
+    attribute boolean propBoolean;
+    [Accessor=Getter]
     attribute number propNumber;
+    [Accessor=Setter]
+    attribute number propNumber;
+    [Accessor=Getter]
     attribute String propString;
+    [Accessor=Setter]
+    attribute String propString;
+    [Accessor=Getter]
+    attribute Tuple_Boolean_Number_String propObject;
+    [Accessor=Setter]
     attribute Tuple_Boolean_Number_String propObject;
 };
 DataInterface testDataInterface(DataInterface arg);

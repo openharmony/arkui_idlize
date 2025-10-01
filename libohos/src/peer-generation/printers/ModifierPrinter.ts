@@ -44,6 +44,7 @@ import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
 import { generateCapiParameters } from "./HeaderPrinter";
+import { collectProperties } from "./StructPrinter";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))
@@ -94,10 +95,10 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return '{}'
     }
     convertOptional(_: IDLOptionalType): string | undefined {
-        return this.mkObject()
+        return '{ .tag=INTEROP_TAG_UNDEFINED }'
     }
-    convertUnion(_: IDLUnionType): string | undefined {
-        return this.mkObject()
+    convertUnion(type: IDLUnionType): string | undefined {
+        return `{ .selector=0, .value0=${this.convert(type.types[0])} }`
     }
     convertContainer(type: IDLContainerType): string | undefined {
         if (IDLContainerUtils.isPromise(type)) {
@@ -112,9 +113,19 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return this.convertTypeReference(type)
     }
     convertTypeReference(type: IDLReferenceType): string | undefined {
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl && isInterface(decl) && isMaterialized(decl, this.resolver)) {
-            return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
+        if (type.name.endsWith("EventTarget"))
+            console.log("AAA")
+        const decl = this.resolver.toDeclaration(type)
+        if (idl.isType(decl)) {
+            return convertType(this, decl)
+        }
+        if (decl && isInterface(decl)) {
+            if (isMaterialized(decl, this.resolver)) {
+                return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
+            }
+            const properties = collectProperties(decl, this.resolver)
+            const mappedProperties = properties.map(p => `.${p.name}=${convertType(this, idl.maybeOptional(p.type, p.isOptional))}`)
+            return `{${mappedProperties.join(", ")}}`
         }
         return this.mkObject()
     }
@@ -126,8 +137,8 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         switch (type) {
             case IDLUndefinedType: return undefined
             case IDLBufferType: return this.mkObject()
-            case IDLStringType: return this.mkObject()
-            case IDLNumberType: return "{42}"
+            case IDLStringType: return '{ .chars="", .length=0 }'
+            case IDLNumberType: return "{ .tag=INTEROP_TAG_INT32, .i32=0 }"
             case IDLPointerType: return 'nullptr'
             case IDLBooleanType: return '0'
             case IDLAnyType: return "{}"

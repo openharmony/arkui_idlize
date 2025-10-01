@@ -90,7 +90,7 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
         if (decl) {
             // Callbacks and array types return by value
             if (idl.isCallback(this.resolver.toDeclaration(type))) {
-                return type.name
+                return KInteropReturnBuffer
             }
             if (idl.isInterface(decl)) {
                 if (isMaterialized(decl, this.resolver)) {

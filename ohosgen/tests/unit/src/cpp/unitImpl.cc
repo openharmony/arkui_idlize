@@ -25,6 +25,9 @@
 
 OH_String copy_string(OH_String str)
 {
+    if (str.length == 0) {
+        return { .chars="", .length=0 };
+    }
     char* chars = reinterpret_cast<char*>(calloc(str.length, sizeof(char)));
     memcpy(chars, str.chars, str.length);
     return OH_String { .chars = chars, .length = str.length };
@@ -56,14 +59,14 @@ OH_Boolean InterfaceWithMethods_isUsedImpl(OH_NativePointer thisPtr, const OH_Nu
 }
 OH_Boolean InterfaceWithMethods_getPropBooleanImpl(OH_NativePointer thisPtr)
 {
-    return {};
+    return 0;
 }
 void InterfaceWithMethods_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value)
 {
 }
 OH_Number InterfaceWithMethods_getPropNumberImpl(OH_NativePointer thisPtr)
 {
-    return {};
+    return { .tag=INTEROP_TAG_INT32, .i32=0 };
 }
 void InterfaceWithMethods_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number *value)
 {
@@ -506,10 +509,14 @@ void IDLCheckConstructor_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value)
 class DataClassPeer
 {
   public:
-  OH_Boolean propBoolean;
-  OH_Number propNumber;
-  OH_String propString;
-  OH_UNIT_Tuple_Boolean_Number_String propObject;
+  OH_Boolean propBoolean = 0;
+  OH_Number propNumber = { .tag=INTEROP_TAG_INT32, .i32=0  };
+  OH_String propString = { .chars="", .length=0 };
+  OH_UNIT_Tuple_Boolean_Number_String propObject = {
+    .value0=0,
+    .value1={ .tag=INTEROP_TAG_INT32, .i32=0 },
+    .value2={ .chars="", .length=0 }
+  };
 };
 
 OH_UNIT_DataClassHandle DataClass_constructImpl() {
@@ -1115,7 +1122,7 @@ OH_UNIT_IDLCheckPropsHandle IDLCheckProps_constructImpl() {
 void IDLCheckProps_destructImpl(OH_UNIT_IDLCheckPropsHandle thisPtr) {
 }
 OH_Number IDLCheckProps_getPropImpl(OH_NativePointer thisPtr) {
-    return {};
+    return { .tag=INTEROP_TAG_INT32, .i32=0 };
 }
 OH_Number IDLCheckProps_getPropReadonlyImpl(OH_NativePointer thisPtr) {
     return {};

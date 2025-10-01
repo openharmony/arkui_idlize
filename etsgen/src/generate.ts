@@ -983,7 +983,19 @@ class IDLVisitor extends arkts.AbstractVisitor {
                         serializedMethod.isStatic,
                         serializedMethod.isOptional,
                         {
-                            extendedAttributes: extendedAttributes
+                            extendedAttributes: extendedAttributes.concat({
+                                name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Getter })
+                        }
+                    ))
+                    properties.push(idl.createProperty(
+                        serializedMethod.name + propertyPostfix,
+                        idl.createReferenceType(syntheticName),
+                        false,
+                        serializedMethod.isStatic,
+                        serializedMethod.isOptional,
+                        {
+                            extendedAttributes: extendedAttributes.concat({
+                                name: idl.IDLExtendedAttributes.Accessor, value: idl.IDLAccessorAttribute.Setter })
                         }
                     ))
                 } else if (idl.isConstructor(serializedMethod)) {

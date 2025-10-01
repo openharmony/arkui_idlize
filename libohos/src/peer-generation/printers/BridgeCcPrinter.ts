@@ -117,30 +117,21 @@ export class BridgeCcVisitor {
         const field = this.getApiCallResultField(method)
         // TODO: It is necessary to implement value passing to vm
         const peerMethodCall = `${apiCall}->${modifier}->${peerMethod}(${args.join(", ")})${field}`
-        if (idl.isCallback(this.library.toDeclaration(method.returnType))) {
-            const statements = [
-                `[[maybe_unused]] const auto &_api_call_result = ${peerMethodCall};`,
-                `// TODO: Value serialization needs to be implemented`,
-                `return {};`
-            ]
-            statements.forEach(it => this.generatedApi.print(it))
-        } else {
-            if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
-                this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)
-                this.generatedApi.print(`SerializerBase _retSerializer {};`)
-                const convertor = this.library.typeConvertor('retValue', method.returnType, false)
-                this.generatedApi.writeStatement(convertor.convertorSerialize('_ret', 'retValue', this.generatedApi))
-                this.generatedApi.writeStatement(
-                    this.generatedApi.makeReturn(
-                        this.generatedApi.makeMethodCall('_retSerializer', 'toReturnBuffer', [])
-                    )
+        if (this.returnTypeConvertor.isReturnInteropBuffer(method.returnType)) {
+            this.generatedApi.print(`const auto &retValue = ${peerMethodCall};`)
+            this.generatedApi.print(`SerializerBase _retSerializer {};`)
+            const convertor = this.library.typeConvertor('retValue', method.returnType, false)
+            this.generatedApi.writeStatement(convertor.convertorSerialize('_ret', 'retValue', this.generatedApi))
+            this.generatedApi.writeStatement(
+                this.generatedApi.makeReturn(
+                    this.generatedApi.makeMethodCall('_retSerializer', 'toReturnBuffer', [])
                 )
+            )
+        } else {
+            if (isVoid) {
+                this.generatedApi.print(`${peerMethodCall};`)
             } else {
-                if (isVoid) {
-                    this.generatedApi.print(`${peerMethodCall};`)
-                } else {
-                    this.generatedApi.print(`return ${peerMethodCall};`)
-                }
+                this.generatedApi.print(`return ${peerMethodCall};`)
             }
         }
         if (this.callLog) this.printCallLog(method, apiCall, modifier)
@@ -426,12 +417,6 @@ export function printBridgeHeaderCustom(peerLibrary: PeerLibrary): string {
 }
 
 class BridgeReturnTypeConvertor extends InteropReturnTypeConvertor {
-    convertTypeReference(type: idl.IDLReferenceType): string {
-        if (this.resolver != undefined && idl.isCallback(this.resolver.toDeclaration(type))) {
-            return PrimitiveTypesInstance.NativePointer.getText()
-        }
-        return super.convertTypeReference(type)
-    }
 }
 
 export function printKotlinCInteropDefFile(headers: string[]): string {
