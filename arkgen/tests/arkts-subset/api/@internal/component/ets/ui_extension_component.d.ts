@@ -67,6 +67,6 @@ declare interface UIExtensionProxy {
 //    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
 // }
 //
-// declare const UIExtensionComponent: UIExtensionComponentInterface;
+// //declare constUIExtensionComponent: UIExtensionComponentInterface;
 //
-// declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;
+// //declare constUIExtensionComponentInstance: UIExtensionComponentAttribute;

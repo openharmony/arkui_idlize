@@ -24,6 +24,6 @@ interface CounterInterface {
     enableDec(value: boolean): CounterAttribute;
     enableInc(value: boolean): CounterAttribute;
   }
-  declare const CounterInstance: CounterAttribute;
-  declare const Counter: CounterInterface;
+  //declare constCounterInstance: CounterAttribute;
+  //declare constCounter: CounterInterface;
   

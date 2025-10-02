@@ -1598,7 +1598,7 @@ declare class SearchAttribute extends CommonMethod<SearchAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Search: SearchInterface;
+//declare constSearch: SearchInterface;
 
 /**
  * Defines Search Component instance.
@@ -1621,4 +1621,4 @@ declare const Search: SearchInterface;
  * @atomicservice
  * @since 11
  */
-declare const SearchInstance: SearchAttribute;
+//declare constSearchInstance: SearchAttribute;

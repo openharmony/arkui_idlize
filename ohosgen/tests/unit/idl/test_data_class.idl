@@ -1,4 +1,4 @@
-package test_data_interface;
+package test_data_class;
 [Entity=Tuple, Synthetic]
 interface Tuple_Boolean_Number_String {
     attribute boolean value0;
@@ -13,6 +13,14 @@ interface DataInterface {
 };
 [Entity=Class]
 interface DataClass: DataInterface {
+    constructor();
+    attribute boolean propBoolean;
+    attribute number propNumber;
+    attribute String propString;
+    attribute Tuple_Boolean_Number_String propObject;
+};
+[Entity=Class]
+interface MaterializedDataClass: DataInterface {
     constructor();
     [Accessor=Getter]
     attribute boolean propBoolean;
@@ -33,3 +41,4 @@ interface DataClass: DataInterface {
 };
 DataInterface testDataInterface(DataInterface arg);
 DataClass testDataClass(DataClass arg);
+MaterializedDataClass testMaterializedDataClass(MaterializedDataClass arg);

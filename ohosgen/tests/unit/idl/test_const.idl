@@ -4,3 +4,5 @@ const boolean CONST_BOOLEAN_TRUE = true;
 const number CONST_NUMBER_INT = 312;
 const number CONST_NUMBER_FLOAT = 312.415;
 const String CONST_STRING = "hello_string";
+
+const number CONST_TYPE_NUMBER;

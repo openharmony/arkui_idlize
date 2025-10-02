@@ -69,7 +69,7 @@ function compareNumbers(v1: number, v2: number): boolean {
   return Math.abs(v2 - v1) < 0.1
 }
 
-function check_constants() {
+function checkConstant() {
   // 1. Check dts const value
   // Fix boolean const type generation
   if (CONST_BOOLEAN_FALSE != false)
@@ -85,7 +85,7 @@ function check_constants() {
   assertEQ("hello_string", CONST_STRING);
 }
 
-function check_booleans() {
+function checkBoolean() {
   assertEQ(false, and_values(false, false))
   assertEQ(false, and_values(false, true))
   assertEQ(false, and_values(true, false))
@@ -167,6 +167,8 @@ function checkClassWithComplexPropertyType() {
   let value = new ClassWithComplexPropertyType()
   // TBD: implement constants for classes
   // "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
+  assertEQ(9, value.prop.counter)
+  assertEQ(true, value.prop.flag)
   value.prop.flag = true
   value.prop.counter = 10
   assertEQ(10, value.prop.counter)
@@ -452,8 +454,8 @@ export function run() {
 
   const suite = new UnitTestsuite("idlize ut")
 
-  suite.addTest("check_constants", check_constants)
-  suite.addTest("check_booleans", check_booleans)
+  suite.addTest("checkConstant", checkConstant)
+  suite.addTest("checkBoolean", checkBoolean)
   suite.addTest("checkNumber", checkNumber)
   suite.addTest("checkBigInt", checkBigInt)
   suite.addTest("checkForceCallback", checkForceCallback)

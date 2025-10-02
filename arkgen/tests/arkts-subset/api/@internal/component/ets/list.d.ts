@@ -2293,7 +2293,7 @@ declare class ListAttribute extends ScrollableCommonMethod<ListAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const List: ListInterface;
+//declare constList: ListInterface;
 
 /**
  * Defines List Component instance.
@@ -2325,4 +2325,4 @@ declare const List: ListInterface;
  * @atomicservice
  * @since 11
  */
-declare const ListInstance: ListAttribute;
+//declare constListInstance: ListAttribute;

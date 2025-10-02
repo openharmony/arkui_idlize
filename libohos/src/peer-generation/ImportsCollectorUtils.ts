@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted } from "@idlizer/core"
+import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted, getInitializerFeature, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
@@ -154,6 +154,18 @@ export function collectDeclDependencies(
             includeTransformedCallbacks: options?.includeTransformedCallbacks,
         })
     }
+
+    if (emitter instanceof ImportsCollector) {
+        const needsConstInitializer = idl.isConstant(node) && !node.value
+        const needsPropInitializer = idl.isInterface(node)
+            && idl.isClassSubkind(node)
+            && !isMaterialized(node, library)
+            && node.properties.length > 0
+        if (needsConstInitializer || needsPropInitializer) {
+            emitter.addFeature(getInitializerFeature(library.language), library.layout.handwrittenPackage())
+        }
+    }
+
 }
 
 

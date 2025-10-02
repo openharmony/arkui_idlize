@@ -1235,7 +1235,7 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Button: ButtonInterface;
+//declare constButton: ButtonInterface;
 
 /**
  * Defines Button Component instance.
@@ -1267,4 +1267,4 @@ declare const Button: ButtonInterface;
  * @atomicservice
  * @since 11
  */
-declare const ButtonInstance: ButtonAttribute;
+//declare constButtonInstance: ButtonAttribute;

@@ -30,5 +30,5 @@ declare class NavigatorAttribute extends CommonMethod<NavigatorAttribute> {
     // target(value: string): NavigatorAttribute;
     // params(value: object): NavigatorAttribute;
 }
-declare const Navigator: NavigatorInterface;
-declare const NavigatorInstance: NavigatorAttribute;
+//declare constNavigator: NavigatorInterface;
+//declare constNavigatorInstance: NavigatorAttribute;

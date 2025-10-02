@@ -89,6 +89,6 @@ declare class SwiperAttribute extends CommonMethod<SwiperAttribute> {
 
 }
 
-declare const Swiper: SwiperInterface;
+//declare constSwiper: SwiperInterface;
 
-declare const SwiperInstance: SwiperAttribute;
+//declare constSwiperInstance: SwiperAttribute;

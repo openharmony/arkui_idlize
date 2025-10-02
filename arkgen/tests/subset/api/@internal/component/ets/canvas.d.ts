@@ -143,8 +143,8 @@ declare class CanvasAttribute extends CommonMethod<CanvasAttribute> {
   enableAnalyzer(enable: boolean): CanvasAttribute;
 }
 
-declare const Canvas: CanvasInterface;
+//declare constCanvas: CanvasInterface;
 
-declare const CanvasInstance: CanvasAttribute;
+//declare constCanvasInstance: CanvasAttribute;
 
 

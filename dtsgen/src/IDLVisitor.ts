@@ -1808,17 +1808,11 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             })
     }
 
-    private guessTypeAndValue(declaration: ts.VariableDeclaration): [idl.IDLType, string] | undefined {
-        if (declaration.type && declaration.initializer) return [this.serializeType(declaration.type), declaration.initializer.getText()]
-        if (declaration.type) {
-            const value = this.dtsConfig.constants.get(declaration.name.getText())
-            if (value) {
-                return [this.serializeType(declaration.type), value]
-            }
-            return undefined
-        }
-        if (declaration.initializer) {
-            let value = declaration.initializer.getText()
+    private guessTypeAndValue(declaration: ts.VariableDeclaration): [idl.IDLType, string | undefined] | undefined {
+        const value = declaration.initializer ? declaration.initializer.getText() : undefined
+        // TBD: parse value if it is defined
+        if (declaration.type) return [this.serializeType(declaration.type), value]
+        if (value) {
             if (value.startsWith('"') || value.startsWith("'")) {
                 return [idl.IDLStringType, value.replaceAll("'", '"')]
             }
@@ -1837,8 +1831,8 @@ export class IDLVisitor implements GenerateVisitor<idl.IDLFile> {
             if (value === "true" || value === "false") {
                 return [idl.IDLBooleanType, value]
             }
-            throw new Error(`Cannot infer type of ${value}`)
         }
+        throw new Error(`Cannot infer constant type from value: ${value}`)
     }
 
     private collectTypeParameters(typeParameters: ts.NodeArray<ts.Node> | undefined): string[] | undefined {

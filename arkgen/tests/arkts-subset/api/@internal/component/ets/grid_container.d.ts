@@ -166,7 +166,7 @@ declare class GridContainerAttribute extends ColumnAttribute {}
  * @deprecated since 9
  * @useinstead grid_col/GridColColumnOption and grid_row/GridRowColumnOption
  */
-declare const GridContainer: GridContainerInterface
+//declare constGridContainer: GridContainerInterface
 
 /**
  * Defines GridContainer Component instance.
@@ -176,4 +176,4 @@ declare const GridContainer: GridContainerInterface
  * @deprecated since 9
  * @useinstead grid_col/GridColAttribute and grid_row/GridRowAttribute
  */
-declare const GridContainerInstance: GridContainerAttribute;
+//declare constGridContainerInstance: GridContainerAttribute;

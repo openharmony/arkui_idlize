@@ -329,62 +329,6 @@ OH_Number GlobalScope_sum_numbersImpl(const OH_Number *v1, const OH_Number *v2)
     INTEROP_FATAL("Unknown args tags v1: %d, v2: %d\n", v1->tag, v2->tag);
 }
 
-/// ClassWithPrimitivePropertyType real implementations
-
-struct UNIT_ClassWithPrimitivePropertyTypePeer {
-    OH_Boolean f;
-    OH_Number c;
-};
-
-OH_UNIT_ClassWithPrimitivePropertyTypeHandle ClassWithPrimitivePropertyType_constructImpl(OH_Boolean f, const OH_Number* c) {
-    return reinterpret_cast<OH_UNIT_ClassWithPrimitivePropertyTypeHandle>(
-        new UNIT_ClassWithPrimitivePropertyTypePeer({f, *c})
-    );
-}
-
-void ClassWithPrimitivePropertyType_destructImpl(OH_UNIT_ClassWithPrimitivePropertyTypeHandle thisPtr) {
-    delete reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr);
-}
-
-OH_Boolean ClassWithPrimitivePropertyType_getFlagImpl(OH_NativePointer thisPtr) {
-    return reinterpret_cast<const UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->f;
-}
-
-void ClassWithPrimitivePropertyType_setFlagImpl(OH_NativePointer thisPtr, OH_Boolean value) {
-    reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->f = value;
-}
-
-OH_Number ClassWithPrimitivePropertyType_getCounterImpl(OH_NativePointer thisPtr) {
-    return reinterpret_cast<const UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c;
-}
-
-void ClassWithPrimitivePropertyType_setCounterImpl(OH_NativePointer thisPtr, const OH_Number* value) {
-    reinterpret_cast<UNIT_ClassWithPrimitivePropertyTypePeer *>(thisPtr)->c = *value;
-}
-
-/// ClassWithComplexPropertyType real implementations
-
-class ClassWithComplexPropertyTypePeer {
-public:
-    UNIT_ClassWithPrimitivePropertyTypePeer* prop;
-    ClassWithComplexPropertyTypePeer() {
-    }
-};
-
-OH_UNIT_ClassWithComplexPropertyTypeHandle ClassWithComplexPropertyType_constructImpl() {
-    ClassWithComplexPropertyTypePeer* peer = new ClassWithComplexPropertyTypePeer();
-    peer->prop = new UNIT_ClassWithPrimitivePropertyTypePeer({ false, { .tag = INTEROP_TAG_INT32, .i32 = 0 } });
-    return reinterpret_cast<OH_UNIT_ClassWithComplexPropertyTypeHandle>(peer);
-}
-void ClassWithComplexPropertyType_destructImpl(OH_UNIT_ClassWithComplexPropertyTypeHandle thisPtr) {
-}
-OH_UNIT_ClassWithPrimitivePropertyType ClassWithComplexPropertyType_getPropImpl(OH_NativePointer thisPtr) {
-    ClassWithComplexPropertyTypePeer* peer = reinterpret_cast<ClassWithComplexPropertyTypePeer*>(thisPtr);
-    return reinterpret_cast<OH_UNIT_ClassWithPrimitivePropertyType>(peer->prop);
-}
-void ClassWithComplexPropertyType_setPropImpl(OH_NativePointer thisPtr, OH_UNIT_ClassWithPrimitivePropertyType value) {
-}
-
 // Enums
 OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum value1, OH_UNIT_OrdinaryEnum value2) {
     // printf("value1: %d, expected: %d\n", value1, OH_UNIT_ORDINARY_ENUM_E1);
@@ -519,43 +463,45 @@ class DataClassPeer
   };
 };
 
-OH_UNIT_DataClassHandle DataClass_constructImpl() {
-    return reinterpret_cast<OH_UNIT_DataClassHandle>(new DataClassPeer());
+OH_UNIT_MaterializedDataClassHandle MaterializedDataClass_constructImpl() {
+    return reinterpret_cast<OH_UNIT_MaterializedDataClassHandle>(new DataClassPeer());
 }
-void DataClass_destructImpl(OH_UNIT_DataClassHandle thisPtr) {
+void MaterializedDataClass_destructImpl(OH_UNIT_MaterializedDataClassHandle thisPtr) {
 }
 // TBD: Provide DataClass type instead of OH_NativePointer
-OH_Boolean DataClass_getPropBooleanImpl(OH_NativePointer thisPtr)
-{
+OH_Boolean MaterializedDataClass_getPropBooleanImpl(OH_NativePointer thisPtr) {
     return reinterpret_cast<DataClassPeer*>(thisPtr)->propBoolean;
 }
-OH_Number DataClass_getPropNumberImpl(OH_NativePointer thisPtr)
-{
+OH_Number MaterializedDataClass_getPropNumberImpl(OH_NativePointer thisPtr) {
     return reinterpret_cast<DataClassPeer*>(thisPtr)->propNumber;
 }
-OH_UNIT_Tuple_Boolean_Number_String DataClass_getPropObjectImpl(OH_NativePointer thisPtr) {
+OH_UNIT_Tuple_Boolean_Number_String MaterializedDataClass_getPropObjectImpl(OH_NativePointer thisPtr) {
     return reinterpret_cast<DataClassPeer*>(thisPtr)->propObject;
 }
-OH_String DataClass_getPropStringImpl(OH_NativePointer thisPtr) {
+OH_String MaterializedDataClass_getPropStringImpl(OH_NativePointer thisPtr) {
     return copy_string(reinterpret_cast<DataClassPeer*>(thisPtr)->propString);
 }
-void DataClass_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {
+void MaterializedDataClass_setPropBooleanImpl(OH_NativePointer thisPtr, OH_Boolean value) {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propBoolean = value;
 }
-void DataClass_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {
+void MaterializedDataClass_setPropNumberImpl(OH_NativePointer thisPtr, const OH_Number* value) {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propNumber = *value;
 }
-void DataClass_setPropObjectImpl(OH_NativePointer thisPtr, const OH_UNIT_Tuple_Boolean_Number_String* value) {
+void MaterializedDataClass_setPropObjectImpl(OH_NativePointer thisPtr, const OH_UNIT_Tuple_Boolean_Number_String* value) {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propObject = *value;
 }
-void DataClass_setPropStringImpl(OH_NativePointer thisPtr, const OH_String* value) {
+void MaterializedDataClass_setPropStringImpl(OH_NativePointer thisPtr, const OH_String* value) {
     reinterpret_cast<DataClassPeer*>(thisPtr)->propString = copy_string(*value);
 }
+
 OH_UNIT_DataInterface GlobalScope_testDataInterfaceImpl(const OH_UNIT_DataInterface* arg) {
     DATA_OBJECT_TEST(DataInterface)
 }
-OH_UNIT_DataClass GlobalScope_testDataClassImpl(OH_UNIT_DataClass value) {
-    DATA_CLASS_OBJECT_TEST(DataClassPeer, DataClass)
+OH_UNIT_DataClass GlobalScope_testDataClassImpl(const OH_UNIT_DataClass* arg) {
+    DATA_OBJECT_TEST(DataClass)
+}
+OH_UNIT_MaterializedDataClass GlobalScope_testMaterializedDataClassImpl(OH_UNIT_MaterializedDataClass value) {
+    DATA_CLASS_OBJECT_TEST(DataClassPeer, MaterializedDataClass)
 }
 
 // "StaticMaterialized" class implementation

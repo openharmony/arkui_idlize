@@ -202,7 +202,7 @@ declare class IndicatorComponentAttribute extends CommonMethod<IndicatorComponen
  * @atomicservice
  * @since 16
  */
-declare const IndicatorComponent: IndicatorComponentInterface;
+//declare constIndicatorComponent: IndicatorComponentInterface;
 
 /**
  * Defines IndicatorComponent instance.
@@ -214,4 +214,4 @@ declare const IndicatorComponent: IndicatorComponentInterface;
  * @atomicservice
  * @since 16
  */
-declare const IndicatorComponentInstance: IndicatorComponentAttribute;
+//declare constIndicatorComponentInstance: IndicatorComponentAttribute;

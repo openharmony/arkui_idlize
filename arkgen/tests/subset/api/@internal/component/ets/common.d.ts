@@ -599,7 +599,7 @@ declare interface CommonInterface {
 declare class CommonAttribute extends CommonMethod<CommonAttribute> {
 }
 
-declare const Common: CommonInterface
+//declare constCommon: CommonInterface
 
 declare type Theme = import('../api/@ohos.arkui.theme').Theme;
 

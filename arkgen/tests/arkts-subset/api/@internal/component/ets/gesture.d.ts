@@ -2944,7 +2944,7 @@ interface GestureGroupInterface {
  * @atomicservice
  * @since 11
  */
-declare const TapGesture: TapGestureInterface;
+//declare constTapGesture: TapGestureInterface;
 
 /**
  * Defines LongPressGesture Component.
@@ -2967,7 +2967,7 @@ declare const TapGesture: TapGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const LongPressGesture: LongPressGestureInterface;
+//declare constLongPressGesture: LongPressGestureInterface;
 
 /**
  * Defines PanGesture Component.
@@ -2990,7 +2990,7 @@ declare const LongPressGesture: LongPressGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const PanGesture: PanGestureInterface;
+//declare constPanGesture: PanGestureInterface;
 
 /**
  * Defines SwipeGesture Component.
@@ -3013,7 +3013,7 @@ declare const PanGesture: PanGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const SwipeGesture: SwipeGestureInterface;
+//declare constSwipeGesture: SwipeGestureInterface;
 
 /**
  * Defines PinchGesture Component.
@@ -3036,7 +3036,7 @@ declare const SwipeGesture: SwipeGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const PinchGesture: PinchGestureInterface;
+//declare constPinchGesture: PinchGestureInterface;
 
 /**
  * Defines RotationGesture Component.
@@ -3059,7 +3059,7 @@ declare const PinchGesture: PinchGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const RotationGesture: RotationGestureInterface;
+//declare constRotationGesture: RotationGestureInterface;
 
 /**
  * Defines GestureGroup Component.
@@ -3082,7 +3082,7 @@ declare const RotationGesture: RotationGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const GestureGroup: GestureGroupInterface;
+//declare constGestureGroup: GestureGroupInterface;
 
 /**
  * Defines the TapGestureHandler options.

@@ -65,6 +65,6 @@ declare class UIExtensionComponentAttribute extends CommonMethod<UIExtensionComp
    onTerminated(callback: Callback<TerminationInfo>): UIExtensionComponentAttribute;
 }
 
-declare const UIExtensionComponent: UIExtensionComponentInterface;
+//declare constUIExtensionComponent: UIExtensionComponentInterface;
 
-declare const UIExtensionComponentInstance: UIExtensionComponentAttribute;
+//declare constUIExtensionComponentInstance: UIExtensionComponentAttribute;

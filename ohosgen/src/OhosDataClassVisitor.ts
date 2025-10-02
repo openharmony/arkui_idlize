@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { FieldModifier, getSuper, getSuperType, IDLInterface, IDLMethod, IDLProperty, IDLReferenceType, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
+import { FieldModifier, getInitializerDefaultValue, getSuper, getSuperType, IDLInterface, IDLMethod, IDLProperty, IDLReferenceType, isClassSubkind, isInCurrentModule, isInterface, isMaterialized, Language, LanguageWriter, LayoutNodeRole, lib, linearizeNamespaceMembers, maybeOptional, MethodModifier, NamedMethodSignature, PeerLibrary } from "@idlizer/core";
 import { allowsOverloads, collapseSameMethodsIDL, collectDeclDependencies, groupOverloadsIDL, groupSameSignatureMethodsIDL, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 
 export function printDataClasses(library: PeerLibrary): PrinterResult[] {
@@ -66,7 +66,7 @@ export function printDataClasses(library: PeerLibrary): PrinterResult[] {
 
 function printInterfaceBody(library: PeerLibrary, entry: IDLInterface, printer: LanguageWriter): void {
     entry.properties.forEach(prop => {
-        const defValue = peerGeneratorConfiguration().constants.get(`${entry.name}.${prop.name}`)
+        const defValue = isClassSubkind(entry) ? getInitializerDefaultValue(prop, library.language) : undefined
         const initExpr = defValue != undefined ? printer.makeString(defValue) : undefined
         printer.writeFieldDeclaration(prop.name, prop.type, toFieldModifiers(prop), prop.isOptional, initExpr)
     })

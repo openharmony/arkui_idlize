@@ -32,7 +32,8 @@ import {
     zipStrip,
     collapseTypes,
     isInplacedGeneric,
-    maybeRestoreGenerics
+    maybeRestoreGenerics,
+    getInitializerDefaultValue,
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -386,7 +387,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         } else if (allowAccessor && accessor && accessor === idl.IDLAccessorAttribute.Setter) {
             result.push(indentedBy(`set ${prop.name}(val:${this.convertType(prop.type)});`, 1))
         } else {
-            const defaultValue = getDefaultValue(decl, prop)
+            const defaultValue = getDefaultValue(decl, prop, this.peerLibrary.language)
             const initExpr = defaultValue ? ` = ${defaultValue}` : ""
             result.push(indentedBy(`${staticMod}${readonlyMod}${this.printPropNameWithType(prop)}${initExpr};`, 1))
         }
@@ -1642,18 +1643,8 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
     return imports
 }
 
-// TBD: Update the code to use initiliazers from handwritten
-function getDefaultValue(decl: idl.IDLInterface, prop: idl.IDLProperty): string | undefined {
+function getDefaultValue(decl: idl.IDLInterface, prop: idl.IDLProperty, lang: Language): string | undefined {
     if (!idl.isClassSubkind(decl)) return undefined
     if (prop.isOptional || idl.isOptionalType(prop.type)) return undefined
-    const defaultValue = peerGeneratorConfiguration().constants.get(`${decl.name}.${prop.name}`)
-    if (defaultValue) return defaultValue
-    if (idl.isPrimitiveType(prop.type)) {
-        switch (prop.type) {
-            case idl.IDLBooleanType: return 'false'
-            case idl.IDLNumberType: return '0'
-            case idl.IDLStringType: return '""'
-        }
-    }
-    return undefined
+    return getInitializerDefaultValue(prop, lang);
 }

@@ -196,7 +196,7 @@ declare interface TextDecorationOptions {
  * @atomicservice
  * @since 11
  */
-declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
+//declare constComponent: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 /**
  * Defining ComponentV2 ClassDecorator
@@ -207,7 +207,7 @@ declare const Component: ClassDecorator & ((options: ComponentOptions) => ClassD
  * @atomicservice
  * @since 12
  */
-declare const ComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
+//declare constComponentV2: ClassDecorator & ((options: ComponentOptions) => ClassDecorator);
 
 /**
  * Defines the options of Entry ClassDecorator.
@@ -311,7 +311,7 @@ declare interface EntryOptions {
  * @atomicservice
  * @since 11
  */
-declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
+//declare constEntry: ClassDecorator & ((options?: LocalStorage | EntryOptions) => ClassDecorator);
 
 /**
  * Defining Observed ClassDecorator.
@@ -343,7 +343,7 @@ declare const Entry: ClassDecorator & ((options?: LocalStorage | EntryOptions) =
  * @atomicservice
  * @since 11
  */
-declare const Observed: ClassDecorator;
+//declare constObserved: ClassDecorator;
 
 /**
  * Defining ObservedV2 ClassDecorator.
@@ -354,7 +354,7 @@ declare const Observed: ClassDecorator;
  * @atomicservice
  * @since 12
  */
-declare const ObservedV2: ClassDecorator;
+//declare constObservedV2: ClassDecorator;
 
 /**
  * Defining Preview ClassDecorator.
@@ -386,7 +386,7 @@ declare const ObservedV2: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Preview: ClassDecorator & ((value: PreviewParams) => ClassDecorator);
+//declare constPreview: ClassDecorator & ((value: PreviewParams) => ClassDecorator);
 
 /**
  * Defining Require PropertyDecorator.
@@ -397,7 +397,7 @@ declare const Preview: ClassDecorator & ((value: PreviewParams) => ClassDecorato
  * @atomicservice
  * @since 11
  */
-declare const Require: PropertyDecorator;
+//declare constRequire: PropertyDecorator;
 
 /**
  * Defining BuilderParam PropertyDecorator
@@ -429,7 +429,7 @@ declare const Require: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const BuilderParam: PropertyDecorator;
+//declare constBuilderParam: PropertyDecorator;
 
 /**
  * Defining Local PropertyDecorator.
@@ -439,7 +439,7 @@ declare const BuilderParam: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Local: PropertyDecorator;
+//declare constLocal: PropertyDecorator;
 
 /**
  * Defining Param PropertyDecorator.
@@ -449,7 +449,7 @@ declare const Local: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Param: PropertyDecorator;
+//declare constParam: PropertyDecorator;
 
 /**
  * Defining Once PropertyDecorator.
@@ -459,7 +459,7 @@ declare const Param: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Once: PropertyDecorator;
+//declare constOnce: PropertyDecorator;
 
 /**
  * Defining Event PropertyDecorator.
@@ -469,7 +469,7 @@ declare const Once: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Event: PropertyDecorator;
+//declare constEvent: PropertyDecorator;
 
 /**
  * Defining State PropertyDecorator.
@@ -501,7 +501,7 @@ declare const Event: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const State: PropertyDecorator;
+//declare constState: PropertyDecorator;
 
 /**
  * Defining Track PropertyDecorator.
@@ -520,7 +520,7 @@ declare const State: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Track: PropertyDecorator;
+//declare constTrack: PropertyDecorator;
 
 /**
  * Defining Trace PropertyDecorator.
@@ -531,7 +531,7 @@ declare const Track: PropertyDecorator;
  * @atomicservice
  * @since 12
  */
-declare const Trace: PropertyDecorator;
+//declare constTrace: PropertyDecorator;
 
 /**
  * Defining Prop PropertyDecorator.
@@ -563,7 +563,7 @@ declare const Trace: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Prop: PropertyDecorator;
+//declare constProp: PropertyDecorator;
 
 /**
  * Defining Link PropertyDecorator.
@@ -595,7 +595,7 @@ declare const Prop: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Link: PropertyDecorator;
+//declare constLink: PropertyDecorator;
 
 /**
  * Defining ObjectLink PropertyDecorator.
@@ -627,7 +627,7 @@ declare const Link: PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const ObjectLink: PropertyDecorator;
+//declare constObjectLink: PropertyDecorator;
 
 /**
  * Defines the options of Provide PropertyDecorator.
@@ -684,7 +684,7 @@ declare interface ProvideOptions {
  * @atomicservice
  * @since 11
  */
-declare const Provide: PropertyDecorator & ((value: string | ProvideOptions) => PropertyDecorator);
+//declare constProvide: PropertyDecorator & ((value: string | ProvideOptions) => PropertyDecorator);
 
 /**
  * Defining Provider PropertyDecorator, aliasName is the only matching key and if aliasName is the default, the default attribute name is regarded as aliasName.
@@ -693,7 +693,7 @@ declare const Provide: PropertyDecorator & ((value: string | ProvideOptions) => 
  * @atomicservice
  * @since 12
  */
-declare const Provider: (aliasName?: string) => PropertyDecorator;
+//declare constProvider: (aliasName?: string) => PropertyDecorator;
 
 /**
  * Defining Consume PropertyDecorator.
@@ -725,7 +725,7 @@ declare const Provider: (aliasName?: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Consume: PropertyDecorator & ((value: string) => PropertyDecorator);
+//declare constConsume: PropertyDecorator & ((value: string) => PropertyDecorator);
 
 /**
 * Defining Consumer PropertyDecorator, aliasName is the only matching key and if aliasName is the default, the default attribute name is regarded as aliasName.
@@ -735,7 +735,7 @@ declare const Consume: PropertyDecorator & ((value: string) => PropertyDecorator
 * @atomicservice
 * @since 12
 */
-declare const Consumer: (aliasName?: string) => PropertyDecorator;
+//declare constConsumer: (aliasName?: string) => PropertyDecorator;
 
 /**
 * Defining Computed MethodDecorator.
@@ -745,7 +745,7 @@ declare const Consumer: (aliasName?: string) => PropertyDecorator;
 * @atomicservice
 * @since 12
 */
-declare const Computed: MethodDecorator;
+//declare constComputed: MethodDecorator;
 
 /**
  * Defining StorageProp PropertyDecorator.
@@ -768,7 +768,7 @@ declare const Computed: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const StorageProp: (value: string) => PropertyDecorator;
+//declare constStorageProp: (value: string) => PropertyDecorator;
 
 /**
  * Defining StorageLink PropertyDecorator.
@@ -791,7 +791,7 @@ declare const StorageProp: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const StorageLink: (value: string) => PropertyDecorator;
+//declare constStorageLink: (value: string) => PropertyDecorator;
 
 /**
  * Defining Watch PropertyDecorator.
@@ -823,7 +823,7 @@ declare const StorageLink: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Watch: (value: string) => PropertyDecorator;
+//declare constWatch: (value: string) => PropertyDecorator;
 
 /**
  * Defining Builder MethodDecorator
@@ -855,7 +855,7 @@ declare const Watch: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Builder: MethodDecorator;
+//declare constBuilder: MethodDecorator;
 
 /**
  * Defining LocalBuilder MethodDecorator
@@ -866,7 +866,7 @@ declare const Builder: MethodDecorator;
  * @atomicservice
  * @since 12
  */
-declare const LocalBuilder: MethodDecorator;
+//declare constLocalBuilder: MethodDecorator;
 
 /**
  * Defining Styles MethodDecorator
@@ -898,7 +898,7 @@ declare const LocalBuilder: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Styles: MethodDecorator;
+//declare constStyles: MethodDecorator;
 
 /**
  * Defining Extend MethodDecorator
@@ -930,7 +930,7 @@ declare const Styles: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
+//declare constExtend: MethodDecorator & ((value: any) => MethodDecorator);
 
 /**
  * Define AnimatableExtend MethodDecorator
@@ -947,7 +947,7 @@ declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
  * @atomicservice
  * @since 11
  */
- declare const AnimatableExtend: MethodDecorator & ((value: Object) => MethodDecorator);
+ //declare constAnimatableExtend: MethodDecorator & ((value: Object) => MethodDecorator);
 
 /**
  * Define Monitor MethodDecorator
@@ -957,7 +957,7 @@ declare const Extend: MethodDecorator & ((value: any) => MethodDecorator);
  * @atomicservice
  * @since 12
  */
-declare const Monitor: MonitorDecorator;
+//declare constMonitor: MonitorDecorator;
 
 /**
  * Define Monitor Decorator type
@@ -1176,7 +1176,7 @@ declare interface IMonitorValue<T> {
  * @atomicservice
  * @since 11
  */
-declare const Concurrent: MethodDecorator;
+//declare constConcurrent: MethodDecorator;
 
 /**
  * Defining Sendable ClassDecorator
@@ -1191,7 +1191,7 @@ declare const Concurrent: MethodDecorator;
  * @atomicservice
  * @since 11
  */
-declare const Sendable: ClassDecorator;
+//declare constSendable: ClassDecorator;
 
 /**
  * Defining  CustomDialog ClassDecorator
@@ -1214,7 +1214,7 @@ declare const Sendable: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const CustomDialog: ClassDecorator;
+//declare constCustomDialog: ClassDecorator;
 
 /**
  * Defining LocalStorageLink PropertyDecorator.
@@ -1237,7 +1237,7 @@ declare const CustomDialog: ClassDecorator;
  * @atomicservice
  * @since 11
  */
-declare const LocalStorageLink: (value: string) => PropertyDecorator;
+//declare constLocalStorageLink: (value: string) => PropertyDecorator;
 
 /**
  * Defining LocalStorageProp PropertyDecorator
@@ -1263,7 +1263,7 @@ declare const LocalStorageLink: (value: string) => PropertyDecorator;
  * @atomicservice
  * @since 11
  */
-declare const LocalStorageProp: (value: string) => PropertyDecorator;
+//declare constLocalStorageProp: (value: string) => PropertyDecorator;
 
 /**
  * Obtains the Context object associated with a component on the page.
@@ -1312,7 +1312,7 @@ declare function getContext(component?: Object): Context;
  * @atomicservice
  * @since 11
  */
-declare const Reusable: ClassDecorator;
+//declare constReusable: ClassDecorator;
 
 /**
  * Get context.
@@ -20532,7 +20532,7 @@ interface CommonInterface {
  * @atomicservice
  * @since 11
  */
-declare const CommonInstance: CommonAttribute;
+//declare constCommonInstance: CommonAttribute;
 
 /**
  * Common for ide.
@@ -20564,7 +20564,7 @@ declare const CommonInstance: CommonAttribute;
  * @atomicservice
  * @since 11
  */
-declare const Common: CommonInterface;
+//declare constCommon: CommonInterface;
 
 /**
  * Defines the CustomBuilder Type.

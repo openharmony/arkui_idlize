@@ -1596,7 +1596,7 @@ declare type ScrollOnWillScrollCallback =
  * @atomicservice
  * @since 11
  */
-declare const Scroll: ScrollInterface;
+//declare constScroll: ScrollInterface;
 
 /**
  * Defines Scroll Component instance.
@@ -1619,4 +1619,4 @@ declare const Scroll: ScrollInterface;
  * @atomicservice
  * @since 11
  */
-declare const ScrollInstance: ScrollAttribute;
+//declare constScrollInstance: ScrollAttribute;

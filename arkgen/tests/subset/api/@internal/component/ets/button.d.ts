@@ -47,6 +47,6 @@ declare class ButtonAttribute extends CommonMethod<ButtonAttribute> {
 }
 
 
-declare const Button: ButtonInterface;
+//declare constButton: ButtonInterface;
 
-declare const ButtonInstance: ButtonAttribute;
+//declare constButtonInstance: ButtonAttribute;

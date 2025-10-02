@@ -768,9 +768,6 @@
         "idlize.internal.interop.Test.TestCallIntMemory"
     ],
     "constants": {
-        "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
-        "TouchResult.strategy": "TouchTestStrategy.DEFAULT",
-        "TabBarSymbol.normal": "new SymbolGlyphModifier()"
     },
     "moduleName": "arkui",
     "modules": {

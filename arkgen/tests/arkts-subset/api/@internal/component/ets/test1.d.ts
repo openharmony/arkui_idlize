@@ -143,7 +143,7 @@ declare class ClassWithConstructorAndAllOptionalParamsDTS {
 declare interface Test1Interface { 
     (): Test1Attribute
 }
-declare const Test1: Test1Interface
+//declare constTest1: Test1Interface
 
 // basic types:
 // - boolean

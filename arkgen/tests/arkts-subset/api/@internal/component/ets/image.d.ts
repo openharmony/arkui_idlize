@@ -1757,7 +1757,7 @@ declare class ImageAttribute extends CommonMethod<ImageAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Image: ImageInterface;
+//declare constImage: ImageInterface;
 
 /**
  * Defines Image Component instance.
@@ -1789,7 +1789,7 @@ declare const Image: ImageInterface;
  * @atomicservice
  * @since 11
  */
-declare const ImageInstance: ImageAttribute;
+//declare constImageInstance: ImageAttribute;
 
 /**
  * @type ImageErrorCallback

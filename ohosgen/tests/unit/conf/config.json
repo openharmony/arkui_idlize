@@ -46,7 +46,7 @@
                 "test_const",
                 "test_idl_constants",
                 "test_constants",
-                "test_data_interface",
+                "test_data_class",
                 "test_enum",
                 "test_enums",
                 "test_generic_interface",
@@ -79,7 +79,11 @@
     "OptionalPrefix": "Opt_",
     "GenerateUnused": false,
     "dumpSerialized": false,
-    "ignoreMaterialized": [],
+    "ignoreMaterialized": [
+        "DataClass",
+        "ClassWithPrimitivePropertyType",
+        "ClassWithComplexPropertyType"
+    ],
     "forceMaterialized": [
         "application.BaseContext.BaseContext",
         "test_exception.CheckExceptionInterface",
@@ -150,13 +154,5 @@
         "ignoreMethods": {}
     },
     "constants": {
-        "att1": "0",
-        "ClassWithComplexPropertyType.prop": "new ClassWithPrimitivePropertyType(true, 10)",
-        "DataClass.propString": "''",
-        "DataClass.propObject": "[false, 0, '']",
-        "IDLDataClass.propString": "''",
-        "IDLDataClass.propObject": "[false, 0, '']",
-        "test_constants.test_constants.att1" : "123",
-        "test_constants.test_constants.att2" : "\"abc\""
     }
 }

@@ -2964,7 +2964,7 @@ declare interface NavContentInfo {
  * @atomicservice
  * @since 11
  */
-declare const Navigation: NavigationInterface;
+//declare constNavigation: NavigationInterface;
 
 /**
  * Defines Navigation Component instance.
@@ -2987,4 +2987,4 @@ declare const Navigation: NavigationInterface;
  * @atomicservice
  * @since 11
  */
-declare const NavigationInstance: NavigationAttribute;
+//declare constNavigationInstance: NavigationAttribute;

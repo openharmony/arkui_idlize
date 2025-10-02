@@ -5,4 +5,4 @@ declare interface ImageInterface {
 declare class ImageAttribute extends CommonMethod<ImageAttribute> {
 }
 
-declare const Image: ImageInterface
+//declare constImage: ImageInterface

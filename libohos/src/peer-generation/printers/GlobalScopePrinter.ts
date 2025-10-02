@@ -15,7 +15,7 @@
 
 import { ImportsCollector } from "../ImportsCollector"
 import { collectDeclDependencies, collectDeclItself } from "../ImportsCollectorUtils"
-import { NamedMethodSignature, PeerLibrary, LanguageWriter } from "@idlizer/core"
+import { NamedMethodSignature, PeerLibrary, LanguageWriter, getInitializerDefaultValue } from "@idlizer/core"
 import * as idl from '@idlizer/core'
 import { collapseSameMethodsIDL, groupOverloadsIDL, OverloadsPrinter } from "./OverloadsPrinter"
 import { PrinterResult } from "../LayoutManager"
@@ -121,7 +121,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
 
                     const imports = new ImportsCollector()
                     collectDeclDependencies(library, it.type, imports)
-                    const value = it.value ?? peerGeneratorConfiguration().constants.get(idl.getFQName(it))
+                    const value = it.value ?? getInitializerDefaultValue(it, library.language)
                     content.writeConstant(it.name, it.type, value)
                     return { content, imports}
                 },

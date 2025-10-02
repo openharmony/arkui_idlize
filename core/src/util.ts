@@ -408,6 +408,20 @@ export function getExtractor(target: idl.IDLInterface, lang: Language, toPtr: bo
     return { receiver, method }
 }
 
+export function getInitializerFeature(lang: Language): string {
+    // TBD: update code for KT and CJ
+    return "initializers"
+}
+
+export function getInitializerDefaultValue(decl: idl.IDLEntry, lang: Language): string {
+    const parent = decl.parent
+    const fqn = parent && idl.isProperty(decl)
+        ? `${idl.getFQName(parent)}NS.${decl.name}`
+        : idl.getFQName(decl)
+    // TBD: update code for KT and CJ
+    return `${getInitializerFeature(lang)}.${fqn}`
+}
+
 export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
     const convertor = library.createTypeNameConvertor(Language.CPP)
     return {

@@ -8,5 +8,5 @@ declare class SideBarContainerAttribute extends CommonMethod<SideBarContainerAtt
     minSideBarWidth(value: Length): SideBarContainerAttribute;
 }
 
-declare const SideBarContainer: SideBarContainerInterface;
-declare const SideBarContainerInstance: SideBarContainerAttribute;
+//declare constSideBarContainer: SideBarContainerInterface;
+//declare constSideBarContainerInstance: SideBarContainerAttribute;

@@ -4,10 +4,18 @@ const boolean CONST_BOOLEAN_TRUE = true;
 const number CONST_NUMBER_INT = 312;
 const number CONST_NUMBER_FLOAT = 312.415;
 const String CONST_STRING = "hello_string";
+const boolean CONST_TYPE_BOOLEAN;
+const number CONST_TYPE_NUMBER;
+const f32 CONST_TYPE_FLOAT;
+const String CONST_TYPE_STRING;
 namespace const_ns {
     const boolean CONST_BOOLEAN_FALSE = false;
     const boolean CONST_BOOLEAN_TRUE = true;
     const number CONST_NUMBER_INT = 312;
     const number CONST_NUMBER_FLOAT = 312.415;
     const String CONST_STRING = "hello_string";
+    const boolean CONST_TYPE_BOOLEAN;
+    const number CONST_TYPE_NUMBER;
+    const f32 CONST_TYPE_FLOAT;
+    const String CONST_TYPE_STRING;
 };
