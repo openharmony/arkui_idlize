@@ -87,7 +87,7 @@
     "TS SUBSET": "#----------------------",
     "setup:subset:ts": "npm run setup-out -C .. -- --out arkgen/out/ts-subset --template ts_subset",
     "gen-idl:subset:ts": "node ../dtsgen --dts2idl --base-dir ./tests/subset/api --input-dir ./tests/subset/api/@internal/component/ets,./tests/subset/api,./tests/subset/api/arkui,./tests/subset/api/global --output-dir ./out/ts-subset/generated/idl",
-    "gen:subset:ts": "node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./out/ts-subset/generated/idl,./tests/idls --input-files ./tests/subset/api/@ohos.base.idl --output-dir ./out/ts-subset/generated && cp -r tests/subset out/ts-subset/generated/tests",
+    "gen:subset:ts": "node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./out/ts-subset/generated/idl,./tests/idls --input-files ./tests/subset/api/@ohos.base.idl --output-dir ./out/ts-subset/generated --options-file ./generation-config/subset-arkts-config.json && cp -r tests/subset out/ts-subset/generated/tests",
     "build:subset:ts": "cd out/ts-subset && tsc -p . && rollup -c",
     "build-native:subset:ts": "cd ./native && meson setup -Dsource_set=ts-subset build-subset-ts && meson compile --verbose -C build-subset-ts && meson install -C build-subset-ts",
     "exec:subset:ts": "node out/ts-subset/lib/main.js",

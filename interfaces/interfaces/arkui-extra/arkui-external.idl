@@ -69,14 +69,15 @@ interface CommonShape {
 
 [Entity=Class]
 interface GlobalScope_ohos_font {
-    static void registerFont(FontOptions options);
+    static void registerFont(font.FontOptions options);
     static sequence<String> getSystemFontList();
-    static FontInfo getFontByName(String fontName);
+    static font.FontInfo getFontByName(String fontName);
+    static font.UIFontConfig getUIFontConfig();
 };
 
 [Entity=Class]
 interface GlobalScope_ohos_measure_utils {
-    static number measureText(MeasureOptions options);
+    static f64 measureText(MeasureOptions options);
     static SizeOptions measureTextSize(MeasureOptions options);
 };
 

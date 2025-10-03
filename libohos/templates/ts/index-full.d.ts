@@ -90,6 +90,14 @@ declare const LocalStorageProp: (value: string) => PropertyDecorator;
 
 declare const Reusable: ClassDecorator;
 
+declare class DynamicNode {}
+
+declare class GestureHandler {}
+
+declare class Gesture {}
+
+declare class GestureGroup {}
+
 declare class ForEachAttribute implements DynamicNode {
     onMove(handler: OnMoveHandler | undefined, eventHandler?: ItemDragEventHandler): DynamicNode;
 }

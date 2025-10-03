@@ -455,9 +455,6 @@ typedef struct Opt_ImageAttribute Opt_ImageAttribute;
 typedef struct ImageBitmapPeer ImageBitmapPeer;
 typedef struct ImageBitmapPeer* Ark_ImageBitmap;
 typedef struct Opt_ImageBitmap Opt_ImageBitmap;
-typedef struct ImageDataPeer ImageDataPeer;
-typedef struct ImageDataPeer* Ark_ImageData;
-typedef struct Opt_ImageData Opt_ImageData;
 typedef struct IndicatorPeer IndicatorPeer;
 typedef struct IndicatorPeer* Ark_Indicator;
 typedef struct Opt_Indicator Opt_Indicator;
@@ -1957,6 +1954,8 @@ typedef Ark_Object Ark_ContentModifier;
 typedef Opt_Object Opt_ContentModifier;
 typedef Ark_Object Ark_UserDataSpan;
 typedef Opt_Object Opt_UserDataSpan;
+typedef Ark_Object Ark_ImageData;
+typedef Opt_Object Opt_ImageData;
 typedef enum Ark_AccessibilityHoverType {
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_ENTER = 0,
     ARK_ACCESSIBILITY_HOVER_TYPE_HOVER_MOVE = 1,
@@ -4271,10 +4270,6 @@ typedef struct Opt_ImageBitmap {
     Ark_Tag tag;
     Ark_ImageBitmap value;
 } Opt_ImageBitmap;
-typedef struct Opt_ImageData {
-    Ark_Tag tag;
-    Ark_ImageData value;
-} Opt_ImageData;
 typedef struct Opt_Indicator {
     Ark_Tag tag;
     Ark_Indicator value;
@@ -13478,11 +13473,11 @@ typedef struct GENERATED_ArkUICanvasRendererAccessor {
                  const Opt_String* fillRule);
     void (*reset)(Ark_CanvasRenderer peer);
     void (*putImageData0)(Ark_CanvasRenderer peer,
-                          Ark_ImageData imagedata,
+                          const Ark_Object* imagedata,
                           const Ark_Union_Number_String* dx,
                           const Ark_Union_Number_String* dy);
     void (*putImageData1)(Ark_CanvasRenderer peer,
-                          Ark_ImageData imagedata,
+                          const Ark_Object* imagedata,
                           const Ark_Union_Number_String* dx,
                           const Ark_Union_Number_String* dy,
                           const Ark_Union_Number_String* dirtyX,
@@ -13985,18 +13980,6 @@ typedef struct GENERATED_ArkUIImageBitmapAccessor {
     Ark_NativePointer (*getFinalizer)();
     void (*close)(Ark_ImageBitmap peer);
 } GENERATED_ArkUIImageBitmapAccessor;
-
-typedef struct GENERATED_ArkUIImageDataAccessor {
-    void (*destroyPeer)(Ark_ImageData peer);
-    Ark_ImageData (*construct)(const Ark_Number* width,
-                               const Ark_Number* height,
-                               const Opt_Buffer* data,
-                               const Opt_LengthMetricsUnit* unit);
-    Ark_NativePointer (*getFinalizer)();
-    Ark_Buffer (*getData)(Ark_ImageData peer);
-    Ark_Number (*getHeight)(Ark_ImageData peer);
-    Ark_Number (*getWidth)(Ark_ImageData peer);
-} GENERATED_ArkUIImageDataAccessor;
 
 typedef struct GENERATED_ArkUIIndicatorAccessor {
     void (*destroyPeer)(Ark_Indicator peer);
@@ -15212,7 +15195,6 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUIImageAnalyzerControllerAccessor* (*getImageAnalyzerControllerAccessor)();
     const GENERATED_ArkUIImageAttachmentAccessor* (*getImageAttachmentAccessor)();
     const GENERATED_ArkUIImageBitmapAccessor* (*getImageBitmapAccessor)();
-    const GENERATED_ArkUIImageDataAccessor* (*getImageDataAccessor)();
     const GENERATED_ArkUIIndicatorAccessor* (*getIndicatorAccessor)();
     const GENERATED_ArkUIIndicatorComponentControllerAccessor* (*getIndicatorComponentControllerAccessor)();
     const GENERATED_ArkUIKeyEventAccessor* (*getKeyEventAccessor)();

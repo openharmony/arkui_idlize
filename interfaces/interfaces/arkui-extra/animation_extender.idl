@@ -2,8 +2,15 @@ package arkui.component.idlize;
 
 import arkui.component.common;
 
+[Synthetic]
+callback AnimationExtender_Callback_Void = void ();
+
 [Entity=Class]
 interface AnimationExtender {
   static void OpenImplicitAnimation(AnimateParam param);
   static void CloseImplicitAnimation();
+  static void OpenImplicitAnimationForAnimation(pointer node, (AnimateParam or undefined) param);
+  static void CloseImplicitAnimationForAnimation(pointer node);
+  static void AnimateToImmediatelyImpl(AnimateParam param, AnimationExtender_Callback_Void event);
+  static void KeyframeAnimationImpl(KeyframeAnimateParam param, sequence<KeyframeState> keyfames);
 };

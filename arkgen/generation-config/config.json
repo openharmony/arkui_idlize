@@ -398,7 +398,6 @@
         "ohos.arkui.Prefetcher.IDataSourcePrefetching",
         "ohos.arkui.Prefetcher.IPrefetcher",
         "ohos.arkui.Prefetcher.BasicPrefetcher",
-        "ohos.arkui.UIContext.TargetInfo",
         "ohos.arkui.UIContext.PageInfo",
         "ohos.arkui.UIContext.OverlayManagerOptions",
         "ohos.arkui.UIContext.GestureTriggerInfo",
@@ -464,19 +463,20 @@
         "ExtendableComponent",
         "UserDataSpan",
         "arkui.component.pluginComponent.RecordData",
-        "arkui.component.uiExtensionComponent.RecordData"
+        "arkui.component.uiExtensionComponent.RecordData",
+        "ImageData"
     ],
     "rootComponents": [
         "Root",
         "ComponentRoot",
         "RoutedPage",
         "CustomBuilderRoot",
-        "ConditionScope",
         "CommonMethod",
         "SecurityComponentMethod",
         "CalendarAttribute",
         "ContainerSpanAttribute",
-        "CustomLayoutRoot"
+        "CustomLayoutRoot",
+        "ConditionScope"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
@@ -530,7 +530,9 @@
             "ComponentContent",
             "ComponentContentBase",
             "TabContent",
-            "ListItem"
+            "ListItem",
+            "ImageData",
+            "PeerNode"
         ],
         "ignoreEntry": [
             "Optional",
@@ -611,8 +613,24 @@
                 "hookName": "hookStateStyleImpl",
                 "replaceImplementation": true
             },
+            "gesture": {
+                "hookName": "hookGesture",
+                "replaceImplementation": true
+            },
+            "priorityGesture": {
+                "hookName": "hookPriorityGesture",
+                "replaceImplementation": true
+            },
+            "parallelGesture": {
+                "hookName": "hookParallelGesture",
+                "replaceImplementation": true
+            },
             "gestureModifier": {
                 "hookName": "hookGestureModifier",
+                "replaceImplementation": true
+            },
+            "customProperty": {
+                "hookName": "hookCustomPropertyImpl",
                 "replaceImplementation": true
             }
         },
@@ -637,6 +655,44 @@
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "NavPathStack": {
+            "pushPath": {
+                "hookName": "hookPushPathMethod",
+                "replaceImplementation": true
+            },
+            "pushPathByName": {
+                "hookName": "hookPushPathByNameMethod",
+                "replaceImplementation": true
+            },
+            "replacePath": {
+                "hookName": "hookReplacePathMethod",
+                "replaceImplementation": true
+            },
+            "replacePathByName": {
+                "hookName": "hookReplacePathByNameMethod",
+                "replaceImplementation": true
+            },
+            "pop": {
+                "hookName": "hookPopMethod",
+                "replaceImplementation": true
+            },
+            "popToName": {
+                "hookName": "hookPopToNameMethod",
+                "replaceImplementation": true
+            },
+            "popToIndex": {
+                "hookName": "hookPopToIndexMethod",
+                "replaceImplementation": true
+            },
+            "getParamByIndex": {
+                "hookName": "hookGetParamByIndexMethod",
+                "replaceImplementation": true
+            },
+            "getParamByName": {
+                "hookName": "hookGetParamByNameMethod",
                 "replaceImplementation": true
             }
         },
@@ -688,10 +744,34 @@
                 "replaceImplementation": true
             }
         },
-        "waterFlowAttribute": {
-            "setWaterFlowOptionsAttribute": {
-                "hookName": "hookWaterFlowOptionsImpl",
+        "CanvasRenderer": {
+            "createImageData": {
+                "hookName": "hookCreateImageData",
                 "replaceImplementation": true
+            },
+            "getImageData": {
+                "hookName": "hookGetImageData",
+                "replaceImplementation": true
+            },
+            "putImageData": {
+                "hookName": "hookPutImageData",
+                "replaceImplementation": true
+            }
+        },
+        "OffscreenCanvas": {
+            "getContext": {
+                "hookName": "hookGetContext",
+                "replaceImplementation": false
+            }
+        },
+        "CanvasRenderingContext2D": {
+            "on": {
+                "hookName": "hookOn",
+                "replaceImplementation": false
+            },
+            "off": {
+                "hookName": "hookOff",
+                "replaceImplementation": false
             }
         }
     },

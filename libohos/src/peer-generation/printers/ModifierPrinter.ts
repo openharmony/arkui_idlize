@@ -113,8 +113,6 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         return this.convertTypeReference(type)
     }
     convertTypeReference(type: IDLReferenceType): string | undefined {
-        if (type.name.endsWith("EventTarget"))
-            console.log("AAA")
         const decl = this.resolver.toDeclaration(type)
         if (idl.isType(decl)) {
             return convertType(this, decl)
@@ -122,6 +120,9 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         if (decl && isInterface(decl)) {
             if (isMaterialized(decl, this.resolver)) {
                 return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
+            }
+            if (peerGeneratorConfiguration().isResource(decl.name)) {
+                return this.mkObject()
             }
             const properties = collectProperties(decl, this.resolver)
             const mappedProperties = properties.map(p => `.${p.name}=${convertType(this, idl.maybeOptional(p.type, p.isOptional))}`)
@@ -325,7 +326,9 @@ export class ModifierVisitor {
         const component = findComponentByName(this.library, clazz.componentName)!
         const context = method.sig.context as idl.IDLInterface ?? component.attributeDeclaration
         const hookMethod = getHookMethod(method.originalParentName, method.method.name)
-        if (hookMethod && hookMethod.replaceImplementation) return
+        if (hookMethod && hookMethod.replaceImplementation) {
+            return
+        }
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
         this.printMethodProlog(this.real, method)
         this.printModifierImplFunctionBody(method, method.returnType, clazz)
@@ -436,6 +439,8 @@ class AccessorVisitor extends ModifierVisitor {
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {
             if (!method) return
+            const hookMethod = getHookMethod(method.originalParentName, method.method.name)
+            if (hookMethod && hookMethod.replaceImplementation) return
             const returnType = idl.isTypeParameterType(method.returnType) ? idl.IDLVoidType : method.returnType
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
             this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m, returnType), returnType)

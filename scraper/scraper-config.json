@@ -9,7 +9,8 @@
             "arkui.component.navigator",
             "api.internal.component.ets",
             "arkui.stateManagement.internal",
-            "arkui.AttributeUpdaterFlag"
+            "arkui.AttributeUpdaterFlag",
+            "arkui.PeerNode"
         ]
     },
     "tsLikePackages": {

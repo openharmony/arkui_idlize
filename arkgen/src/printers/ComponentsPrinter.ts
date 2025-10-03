@@ -87,10 +87,6 @@ export function generateAttributeModifierSignature(library: PeerLibrary, compone
     )
 }
 
-class ComponentPrintResult {
-    constructor(public targetFile: TargetFile, public writer: LanguageWriter) { }
-}
-
 interface ComponentFileVisitor {
     visit(): PrinterResult[]
 }

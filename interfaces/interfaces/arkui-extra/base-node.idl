@@ -1,0 +1,6 @@
+package arkui.PeerNode;
+
+[Entity=Class]
+interface PeerNode {
+
+};

@@ -15,10 +15,15 @@
 
 import * as idl from '@idlizer/core/idl'
 import { IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
-import { collapseIdlPeerMethods, collectComponents, collectDeclDependencies, collectDeclItself, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
+import { collectDeclDependencies, collectDeclItself, collectPeers, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
 import { getReferenceTo } from '../knownReferences';
+
+
+function findPeerByComponentDeclaration(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass | undefined {
+    return collectPeers(library).find(it => it.componentName === component.name)
+}
 
 function capitalizeFirstLetter(str: string): string {
     return str.charAt(0).toUpperCase() + str.slice(1);
@@ -88,6 +93,29 @@ class ModifiersFileVisitor {
         return this.generateAttributeSetName(peer.parentComponentName!);
     }
 
+    generateTopLevelAttributeSetParentName(peer: PeerClass): string | undefined {
+        const component = findComponentByName(this.library, peer.componentName)!
+        const parent = this.generateAttributeSetParentName(peer)
+        let result: string | undefined = parent
+        let counter = 0
+        if (parent) {
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            while (parentDecl) {
+                counter++;
+                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+                result = this.generateAttributeSetName(parentComponent.name)
+                if (parentComponent.attributeDeclaration.inheritance.length) {
+                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
+                    parentDecl = this.library.resolveTypeReference(parentRef)
+                } else {
+                    parentDecl = undefined
+                }
+            }
+        }
+        return result;
+    }
+
     generateAttributeSetName(name: string): string {
         if (name.endsWith("Attribute"))
             name = name.substring(0, name.length - 9)
@@ -121,9 +149,37 @@ class ModifiersFileVisitor {
         return writer.makeCast(writer.makeString(`undefined`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
     }
 
+    castSetType(attribute: AttributeType, writer: LanguageWriter, sig: MethodSignature, index: number): LanguageExpression {
+        const hasUndefinedType = (type: idl.IDLType) => {
+            if (idl.isUnionType(type)) {
+                return type.types.includes(idl.IDLUndefinedType)
+            }
+            return false;
+        }
+        if (sig.isArgOptional(index) && !hasUndefinedType(sig.args[index])) {
+            return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), idl.createUnionType([sig.args[index], idl.IDLUndefinedType]))
+        }
+        return writer.makeCast(writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), sig.args[index])
+    }
+
+    recursiveCollect(component: IdlComponentDeclaration, importsCollector: ImportsCollector) {
+        let [parentRef] = component.attributeDeclaration.inheritance
+        let parentDecl = this.library.resolveTypeReference(parentRef)
+        const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+        console.log("recursiveCollect", parentComponent.attributeDeclaration.name, parentComponent.name)
+        collectDeclDependencies(this.library, parentComponent.attributeDeclaration, importsCollector)
+        expandComponentWithSupers(this.library, parentComponent.attributeDeclaration).forEach(decl => {
+            collectDeclItself(this.library, decl, importsCollector)
+        })
+        collectDeclItself(this.library, parentComponent.attributeDeclaration, importsCollector)
+    }
+
     printImports(peer: PeerClass): ImportsCollector {
         const component = findComponentByName(this.library, peer.componentName)!
         const importsCollector = new ImportsCollector
+        if (this.needCollectParentMethods(peer)) {
+            this.recursiveCollect(component, importsCollector)
+        }
         const parent = this.generateAttributeSetParentName(peer)
         if (parent) {
             let [parentRef] = component.attributeDeclaration.inheritance
@@ -146,6 +202,7 @@ class ModifiersFileVisitor {
         }
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), importsCollector)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdaterFlag')), importsCollector)
+        importsCollector.addFeature("PeerNode", "./PeerNode")
         const peerLocation = this.library.layout.resolve({
             node: component.attributeDeclaration,
             role: LayoutNodeRole.COMPONENT,
@@ -183,28 +240,40 @@ class ModifiersFileVisitor {
         writer.writeExpressionStatement(call)
     }
 
-    printModifiers(peer: PeerClass): PrinterResult[] {
+    needCollectParentMethods(peer: PeerClass): boolean {
         const component = findComponentByName(this.library, peer.componentName)!
-        const generate = () => {
-            const printer = this.library.createLanguageWriter();
-            const nameConvertor = this.library.createTypeNameConvertor(Language.ARKTS)
-            const componentAttribute = component.attributeDeclaration;
-            const parentSet = this.generateAttributeSetParentName(peer)
+        const parent = this.generateAttributeSetParentName(peer)
+        let counter = 0
+        if (parent) {
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            while (parentDecl) {
+                counter++;
+                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+                if (parentComponent.attributeDeclaration.inheritance.length) {
+                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
+                    parentDecl = this.library.resolveTypeReference(parentRef)
+                } else {
+                    parentDecl = undefined
+                }
+            }
+        }
+        return counter > 1;
+    }
 
-            const attributeTypes: Array<AttributeType> = new Array
-            const overloadCounter: Map<string, number> = new Map()
 
+    collectAttributes(peer: PeerClass, attributeTypes: Array<AttributeType>, overloadCounter: Map<string, number>) {
+        const needCollect = this.needCollectParentMethods(peer)
+        let currentPeer: PeerClass | undefined = peer;
+        let collectDepth = 0;
+        while (currentPeer) {
+            collectDepth++;
             const attributeFilter = (name: string) => {
-                const hookRecord = peerGeneratorConfiguration().hooks.get(peer.originalClassName ?? '')?.get(name)
+                const hookRecord = peerGeneratorConfiguration().hooks.get(currentPeer!.originalClassName ?? '')?.get(name)
                 return name.startsWith('set') && name.endsWith('Options')
                     || (hookRecord && hookRecord.replaceImplementation)
             }
-
-            const noNeedPrintModifier = (attribute: AttributeType) => {
-                return attribute.method.method.signature.returnType !== idl.IDLThisType || !attribute.isOptional
-            }
-
-            groupOverloads(peer.methods, this.library.language).forEach(m => {
+            groupOverloads(currentPeer.methods, this.library.language).forEach(m => {
                 const method = m[0]
                 if (attributeFilter(method.method.name)) {
                     return
@@ -219,18 +288,49 @@ class ModifiersFileVisitor {
                 })
                 const functionName = method.method.name
                 let v = 0
+                if (overloadCounter.has(functionName) && collectDepth > 1) return;
                 if (overloadCounter.has(functionName)) v++
                 overloadCounter.set(functionName, v)
                 attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
             })
+            if (!needCollect) {
+                break;
+            }
+            if (collectDepth >= 2) {
+                break;
+            }
+            const component = findComponentByName(this.library, currentPeer.componentName)!
+            const parent = this.generateAttributeSetParentName(currentPeer)
+            if (!parent) break;
+            let [parentRef] = component.attributeDeclaration.inheritance
+            let parentDecl = this.library.resolveTypeReference(parentRef)
+            const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
+            currentPeer = findPeerByComponentDeclaration(this.library, parentComponent)
+        }
+    }
 
-            const topmostParent = expandComponentWithSupers(this.library, component.attributeDeclaration).at(-1)!
-            const isTopmost = topmostParent === componentAttribute
-            const implementsClauses = [nameConvertor.convert(componentAttribute)]
-            if (isTopmost) {
-                implementsClauses.push(`AttributeModifier<${nameConvertor.convert(componentAttribute)}>`)
+    printModifiers(peer: PeerClass): PrinterResult[] {
+        const component = findComponentByName(this.library, peer.componentName)!
+        const generate = () => {
+            const printer = this.library.createLanguageWriter();
+            const nameConvertor = this.library.createTypeNameConvertor(Language.ARKTS)
+            const componentAttribute = component.attributeDeclaration;
+            const parentSet = this.generateTopLevelAttributeSetParentName(peer)
+
+            const attributeTypes: Array<AttributeType> = new Array
+            const overloadCounter: Map<string, number> = new Map()
+
+            const noNeedPrintModifier = (attribute: AttributeType) => {
+                return attribute.method.method.signature.returnType !== idl.IDLThisType || !attribute.isOptional
+            }
+
+            this.collectAttributes(peer, attributeTypes, overloadCounter)
+
+            let extendsInterface: string[] = []
+            if (componentAttribute.name !== 'CommonMethod') {
+                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`, `AttributeModifier<${nameConvertor.convert(componentAttribute)}>`]
             } else {
-                printer.print(`// panda bug #29363: must implement AttributeModifier<${componentAttribute.name}>, but crashes in AOT or in runtime`)
+                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`]
             }
 
             printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
@@ -245,16 +345,13 @@ class ModifiersFileVisitor {
                 )
 
                 writer.print(`isUpdater: () => boolean = () => false`)
-                let manglePostfix = ""
-                if (!isTopmost) {
-                    writer.print("// mangled because of panda bug #29363")
-                    manglePostfix = `_${componentAttribute.name}`
+                if (componentAttribute.name !== 'CommonMethod') {
+                    writer.print(`applyNormalAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyPressedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyFocusedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyDisabledAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applySelectedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
                 }
-                writer.print(`applyNormalAttribute${manglePostfix}(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                writer.print(`applyPressedAttribute${manglePostfix}(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                writer.print(`applyFocusedAttribute${manglePostfix}(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                writer.print(`applyDisabledAttribute${manglePostfix}(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
-                writer.print(`applySelectedAttribute${manglePostfix}(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
 
                 attributeTypes.forEach(attribute => {
                     writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
@@ -264,9 +361,10 @@ class ModifiersFileVisitor {
                 })
 
                 writer.writeMethodImplementation(new Method('applyModifierPatch',
-                    new MethodSignature(idl.IDLVoidType, [idl.createReferenceType(componentToPeerClass(peer.componentName))], [], [], [], ['peer'])),
+                    new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("arkui.PeerNode.PeerNode")], [], [], [], ['node'])),
                     writer => {
-                        if (parentSet) writer.print('super.applyModifierPatch(peer)');
+                        if (parentSet) writer.print('super.applyModifierPatch(node)');
+                        writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
                         const statements: IfStatement[] = []
                         attributeTypes.forEach((attribute) => {
                             // TODO: handle overload condition 
@@ -331,7 +429,7 @@ class ModifiersFileVisitor {
                         }
                         const expr = `modifier.${this.generateFiledFlag(attribute)} != AttributeUpdaterFlag.INITIAL`
                         const params: LanguageExpression[] = attribute.args.map((_, index) => {
-                            return writer.makeString(`modifier.${this.generateFiledName(attribute, index.toString())}`)
+                            return this.castSetType(attribute, writer, attribute.method.method.signature, index)
                         })
                         const resetParams: LanguageExpression[] = attribute.args.map((_, index) => {
                             return this.castResetType(writer, attribute.method.method.signature, index)
@@ -403,7 +501,7 @@ class ModifiersFileVisitor {
                 writer.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
                     writer.writeStatement(writer.makeThrowError("Not implemented"))
                 })
-            }, parentSet, implementsClauses)
+            }, parentSet, extendsInterface)
             return { content: printer, imports: this.printImports(peer)}
         }
 

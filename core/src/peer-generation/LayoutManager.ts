@@ -28,6 +28,7 @@ export type LayoutTargetDescriptionHint =
     | 'component.interface'
     | 'component.function'
     | 'component.modifier'
+    | 'component.handwritten'
 
 export interface LayoutTargetDescription {
     node: IDLEntry
