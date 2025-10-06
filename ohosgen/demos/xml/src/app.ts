@@ -8,7 +8,7 @@ export function run() {
     console.log(`PARSING ${sampleXml}`)
     const buffer = encodeText(sampleXml)
     const parser = new xml.XmlPullParser(buffer, 'utf8')
-    parser.parse({
+    parser.parseXml({
         ignoreNameSpace: true,
         supportDoctype: false,
         tagValueCallbackFunction: (name: string, value: string) => {

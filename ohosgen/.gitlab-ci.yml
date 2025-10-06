@@ -25,6 +25,7 @@ check generated XML demo for Kotlin:
       - build external
     before_script:
       - !reference [.npm, script]
+      - !reference [.panda, script]
     script:
       - cd $CI_PROJECT_DIR/external/arkoala-arkts
       - npm i

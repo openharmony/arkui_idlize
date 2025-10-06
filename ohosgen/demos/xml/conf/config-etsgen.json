@@ -1,0 +1,23 @@
+{
+    "Throws": [
+        "XmlDynamicSerializer.setAttributes",
+        "XmlDynamicSerializer.addEmptyElement",
+        "XmlDynamicSerializer.setDeclaration",
+        "XmlDynamicSerializer.startElement",
+        "XmlDynamicSerializer.endElement",
+        "XmlDynamicSerializer.setNamespace",
+        "XmlDynamicSerializer.setComment",
+        "XmlDynamicSerializer.setCdata",
+        "XmlDynamicSerializer.setText",
+        "XmlDynamicSerializer.setDocType",
+        "XmlSerializer.setAttributes",
+        "XmlSerializer.addEmptyElement",
+        "XmlSerializer.startElement",
+        "XmlSerializer.setNamespace",
+        "XmlSerializer.setComment",
+        "XmlSerializer.setCDATA",
+        "XmlSerializer.setText",
+        "XmlSerializer.setDocType",
+        "XmlPullParser.parseXml"
+    ]
+}

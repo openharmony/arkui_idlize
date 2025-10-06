@@ -5,7 +5,7 @@
     "modules": {
         "ohos.xml": {
             "name": "ohos.xml",
-            "packages": ["ohos.xml", "ohos.base"]
+            "packages": ["ohos.xml", "ohos.base", "synthetic_types"]
         }
     },
     "packageTransformation": {

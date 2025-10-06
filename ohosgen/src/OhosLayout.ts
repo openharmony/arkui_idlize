@@ -1,5 +1,5 @@
 import * as idl from "@idlizer/core/idl"
-import { currentModule, mapLibraryName, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary } from "@idlizer/core"
+import { currentModule, mapLibraryName, isInCurrentModule, isInExternalModule, isInIdlize, Language, LayoutManagerStrategy, LayoutNodeRole, LayoutTargetDescription, PeerLibrary, getSyntheticTypesFileName } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "@idlizer/libohos"
 
 function selectInternalsPath(): string {
@@ -142,6 +142,10 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
                 : idl.getPackageName(node)
         }
 
+        if (this.isSyntheticType(node)) {
+            return getSyntheticTypesFileName()
+        }
+
         const conf = peerGeneratorConfiguration()
         return mapLibraryName(node, this.library.language, conf?.libraryNameMapping)
     }
@@ -173,6 +177,12 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
             case LayoutNodeRole.GLOBAL: return this.selectGlobal(node)
             case LayoutNodeRole.COMPONENT: return ''
         }
+    }
+
+    private isSyntheticType(node: idl.IDLEntry): boolean {
+        // Unions are synthesized typed in Kotlin
+        if (idl.isTypedef(node) && idl.isUnionType(node.type)) return true
+        return false
     }
 }
 

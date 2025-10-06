@@ -1,0 +1,15 @@
+package ohos.xml;
+interface Point {
+    attribute number x;
+    attribute number y;
+};
+[DefaultExport]
+namespace xml {
+    Promise<number> returnPromise();
+    Point getPoint();
+    [Entity=Class]
+    interface MapTest {
+        constructor();
+        number testSerialize(record<String, number> options);
+    };
+};

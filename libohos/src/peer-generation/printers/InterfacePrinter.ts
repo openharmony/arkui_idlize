@@ -1232,14 +1232,15 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             for (const entry of entries) {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
-
                 collectDeclDependencies(this.peerLibrary, entry, imports)
+                // TBD: add primitives like Buffer to the with the dependecy collector
+                imports.addFeature({ feature: "NativeBuffer", module: "koalaui.interop" })
 
                 const printVisitor = new KotlinDeclarationConvertor(writer, seenNames, this.peerLibrary)
                 printVisitor.makeUnion(writer, entry)
 
                 result.push({
-                    generate: () => writer,
+                    generate: () => { return { content: writer, imports } },
                     over: {
                         node: idl.createTypedef(nameConvertor.convert(entry), entry),
                         role: LayoutNodeRole.INTERFACE

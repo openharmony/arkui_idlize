@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { NodeConvertor, convertNode, convertType, maybeRestoreGenerics } from "@idlizer/core"
+import { NodeConvertor, convertNode, convertType, getSyntheticTypesFileName, maybeRestoreGenerics } from "@idlizer/core"
 import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language } from '@idlizer/core'
 
@@ -185,7 +185,20 @@ class CJDependenciesCollector extends DependenciesCollector {
     }
 }
 
-class KotlinDependenciesCollector extends DependenciesCollector {}
+class KotlinDependenciesCollector extends DependenciesCollector {
+    convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
+        const unionEntry = this.synthesizeUnionEntry(type)
+        return [unionEntry]
+    }
+    private synthesizeUnionEntry(type: idl.IDLUnionType): idl.IDLEntry {
+        // TBD: Synthesize unions for Kotlin in a unified way in one place
+        const entry = idl.createInterface(type.name, idl.IDLInterfaceSubkind.Interface)
+        const packageName = getSyntheticTypesFileName();
+        const file = idl.createFile([entry], packageName, [packageName])
+        idl.linkParentBack(file)
+        return entry
+    }
+}
 
 export function createDependenciesCollector(library: PeerLibrary): DependenciesCollector {
     switch (library.language) {

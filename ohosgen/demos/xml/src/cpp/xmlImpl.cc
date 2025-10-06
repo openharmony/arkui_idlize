@@ -20,7 +20,7 @@
 
 #include "interop-logging.h"
 
-OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
+OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHOS_XML_Union_Buffer_CustomObject* buffer, const Opt_String* encoding) {
     return {};
 }
 void xml_XmlSerializer_destructImpl(OH_OHOS_XML_xml_XmlSerializerHandle thiz) {
@@ -109,10 +109,12 @@ OH_Number xml_ParseInfo_getAttributeCountImpl(OH_NativePointer thisPtr) {
     return {};
 }
 
-OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
-    const ExpatParser* parser = new ExpatParser(*buffer);
-    return (OH_OHOS_XML_xml_XmlPullParserHandle) parser;
+OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_OHOS_XML_Union_Buffer_CustomObject* bufferOrView, const Opt_String* encoding) {
+    OH_Buffer buffer = bufferOrView->value0;
+    const ExpatParser* parser = new ExpatParser(buffer);
+    return (OH_OHOS_XML_xml_XmlPullParserHandle)parser;
 }
+
 void xml_XmlPullParser_destructImpl(OH_OHOS_XML_xml_XmlPullParserHandle thiz) {
     const ExpatParser* parser = (ExpatParser*) thiz;
     delete parser;
@@ -123,7 +125,7 @@ void temp_release(int resId) {}
 void temp_call(const OH_Int32 resourceId, const OH_Boolean value) {}
 void temp_call_sync(const OH_OHOS_XML_VMContext vmContext, const OH_Int32 resourceId, const OH_Boolean value) {}
 
-void xml_XmlPullParser_parseImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option) {
+void xml_XmlPullParser_parseXmlImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option) {
     ExpatParser* parser = (ExpatParser*) thisPtr;
     if (option->tagValueCallbackFunction.tag != INTEROP_TAG_UNDEFINED) {
         parser->setTagValueCallback([&](const char* name, const char* value) {
@@ -160,8 +162,6 @@ void xml_XmlPullParser_parseImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePoint
     // TODO handle other properties from ParseOptions
     parser->parse();
     parser->reset();
-}
-void xml_XmlPullParser_parseXmlImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_OHOS_XML_xml_ParseOptions* option) {
 }
 class TestPromiseHandler {
 private:

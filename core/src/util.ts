@@ -422,6 +422,10 @@ export function getInitializerDefaultValue(decl: idl.IDLEntry, lang: Language): 
     return `${getInitializerFeature(lang)}.${fqn}`
 }
 
+export function getSyntheticTypesFileName(): string {
+    return "synthetic_types"
+}
+
 export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
     const convertor = library.createTypeNameConvertor(Language.CPP)
     return {
