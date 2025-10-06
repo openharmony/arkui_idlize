@@ -1,0 +1,22 @@
+{
+    "DeletedPackages": [
+        "ohos.buffer",
+        "ohos.util.ArrayList",
+        "ohos.util.Deque",
+        "ohos.util.List"
+    ],
+    "DeletedDeclarations": [
+    ],
+    "DeletedMembers": {
+    },
+    "StubbedDeclarations": [
+    ],
+    "Components": [
+    ],
+    "Throws": [
+    ],
+    "ForceCallback": {
+    },
+    "NameReplacements": {
+    }
+}

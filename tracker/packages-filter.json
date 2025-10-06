@@ -1,0 +1,27 @@
+{
+    "managed": [
+        "api.internal.component.ets",
+        "arkui.AttributeUpdater",
+        "arkui.AttributeUpdaterFlag",
+        "arkui.component",
+        "arkui.stateManagement.internal"
+    ],
+    "include": [
+        "arkui",
+        "ohos.animator",
+        "ohos.arkui",
+        "ohos.curves",
+        "ohos.font",
+        "ohos.matrix4",
+        "ohos.measure",
+        "ohos.mediaquery",
+        "ohos.pluginComponent",
+        "ohos.promptAction",
+        "ohos.router",
+        "ohos.uiAppearance",
+        "system.mediaquery"
+    ],
+    "exclude": [
+        "arkui.runtimeApi"
+    ]
+}

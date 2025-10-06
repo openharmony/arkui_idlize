@@ -20,14 +20,16 @@ import { ADDITIONAL_FILES, GENERATED_IDL_DIR } from "../shared"
 
 export interface Ets2IdlConfig {
     sdkPath: string
-    configPath: string | undefined
+    configPath?: string
+    traceStatus?: string
 }
 export interface Ets2IdlResult {
     idlPaths:string
 }
 export function ets2idl({
     sdkPath,
-    configPath
+    configPath,
+    traceStatus,
 }: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
     const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
@@ -37,7 +39,8 @@ export function ets2idl({
             ['--output-dir', GENERATED_IDL_DIR],
             ['--base-dir', sdkApiPath],
             ['--input-files', files],
-            over(configPath, path => ['--ets-config', path])
+            over(configPath, path => ['--ets-config', path]),
+            over(traceStatus, st => ['--trace-status', st]),
         ])
     )
     return {

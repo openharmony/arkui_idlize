@@ -802,6 +802,7 @@ export class Parser {
         const name = this.parseSingleIdentifier()
         if (idl.isUnionType(type)) {
             type.name = name.value
+            type.extendedAttributes = ext
         }
         this.skip(";")
         return idl.createTypedef(name.value, type, typeParameters, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})

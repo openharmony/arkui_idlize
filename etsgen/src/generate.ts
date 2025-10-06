@@ -48,7 +48,7 @@ class StatusRecord {
     ) {}
 
     ToString(): string {
-        let statusStr = this.status ? `Deleted because of ${this.status}` : ''
+        let statusStr = this.status ?? ''
         return `| ${this.fullPackage} | ${this.pkg} | ${this.parent} | ${this.name} | ${this.override} | ${this.type} | ${statusStr} | \`${this.src}\` |`
     }
 
@@ -588,6 +588,12 @@ class IDLVisitor extends arkts.AbstractVisitor {
             if (arkts.isVariableDeclaration(node)) {
                 return this.processNode(this.visitVariableDeclaration, node)
             }
+            if (arkts.isAnnotationDeclaration(node)) {
+                return this.processNode((node: arkts.AstNode) => {
+                    this.traceDeleted('')
+                    return node
+                }, node)
+            }
 
             //////////////////
 
@@ -651,10 +657,13 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 id.typeAnnotation
                 if (node.kind == arkts.Es2pandaVariableDeclarationKind.VARIABLE_DECLARATION_KIND_CONST) {
                     const [type, value] = this.guessTypeAndValue(name, id.typeAnnotation, decl.init)
-                    const result = idl.createConstant(name, type, value)
+                    let extendedAttributes = this.traceAttrs()
+                    const result = idl.createConstant(name, type, value, {extendedAttributes})
                     this.entries.push(result)
+                    continue
                 }
             }
+            this.traceDeleted('variable')
         }
         return node
     }
@@ -1010,6 +1019,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 return
             }
             if (arkts.isOverloadDeclaration(member)) {
+                this.traceDeleted('overload')
                 return
             }
             console.error(member)
@@ -1770,11 +1780,14 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isTSInterfaceDeclaration(node)) return 'interface'
         if (arkts.isTSEnumDeclaration(node)) return 'enum_class'
         if (arkts.isTSEnumMember(node)) return 'enum_instance'
-        if (arkts.isFunctionDeclaration(node)) return 'function'
+        if (arkts.isFunctionDeclaration(node)) return 'method'
         if (arkts.isETSModule(node)) return 'namespace'
         if (arkts.isClassProperty(node)) return 'field'
         if (arkts.isMethodDefinition(node)) return 'method'
+        if (arkts.isOverloadDeclaration(node)) return 'method'
         if (arkts.isTSTypeAliasDeclaration(node)) return 'field' // !!!
+        if (arkts.isAnnotationDeclaration(node)) return 'annotation'
+        if (arkts.isVariableDeclaration(node)) return 'field'
         throw new Error("Unknown node type!")
     }
 
@@ -1788,6 +1801,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isClassProperty(node)) return node.id!.name
         if (arkts.isMethodDefinition(node)) return node.id!.name
         if (arkts.isTSTypeAliasDeclaration(node)) return node.id!.name
+        if (arkts.isOverloadDeclaration(node)) return node.id!.name
+        if (arkts.isAnnotationDeclaration(node)) return node.baseName!.name
+        if (arkts.isVariableDeclaration(node)) return node.declarators[0]!.id!.toString
         throw new Error("Unknown node type!")
     }
 

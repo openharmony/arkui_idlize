@@ -15,13 +15,14 @@
 
 import { arkgen } from "@idlizer/arkgen"
 import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
-import { flat, scan } from "../utils"
+import { flat, scan, over } from "../utils"
 
 export interface Idl2PeerConfig {
     target: string
     language: string
     idlPath: string
     optionsFile?: string
+    trackerStatus?: string
 }
 
 export interface Idl2PeerResult {
@@ -33,6 +34,7 @@ export function idl2peer({
     language,
     idlPath,
     optionsFile,
+    trackerStatus,
 }: Idl2PeerConfig): Idl2PeerResult {
     const idlFiles = scan(idlPath)
 
@@ -42,6 +44,9 @@ export function idl2peer({
     }
     if (target === 'libace') {
         arkgenTarget = 'libace'
+    }
+    if (target === 'tracker') {
+        arkgenTarget = 'tracker'
     }
 
     arkgen(
@@ -56,6 +61,7 @@ export function idl2peer({
             '--use-memo-m3',
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],
+            over(trackerStatus, st => ['--tracker-status', st]),
         ])
     )
     return {

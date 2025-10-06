@@ -85,6 +85,28 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
     commands.install({ sourceDir: installSourceDir, installPath })
 }
 
+function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string, installPath: string) {
+    setup()
+
+    const { idlPaths } = commands.ets2idl({
+        sdkPath: sdkPathInput,
+        configPath:  undefined,
+        traceStatus: sdkStatus,
+    })
+    const { scrapedIDLs, arkuiConfig } = commands.scrape({
+        idlDirectory: idlPaths,
+        configPath: SCRAPER_CONFIG,
+    })
+    const { peersPath } = commands.idl2peer({
+        target: 'tracker',
+        language: 'arkts',
+        optionsFile: arkuiConfig,
+        idlPath: scrapedIDLs,
+        trackerStatus: trackerStatus
+    })
+    commands.install({sourceDir: peersPath, installPath})
+}
+
 ///
 
 function sdk(sdkPathInput: string, installPath12: string, installPath11: string) {
@@ -132,6 +154,10 @@ function main(argv: string[]) {
         .option('--original-sdk')
         .option('--format-arkts')
         .action(m3)
+
+    program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
+        .description('generate tracker report')
+        .action(tracker)
 
     program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')
         .description('prepare sdk to link peers against')
