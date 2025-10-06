@@ -1403,6 +1403,9 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 case 'Readonly': return typeArgs![0]
                 case 'Optional': return idl.createOptionalType(typeArgs![0])
                 case 'ESValue': return idl.IDLObjectType
+                case 'Intl.Locale': return idl.createReferenceType('idlize.stdlib.Intl.Locale')
+                case 'Error': return idl.createReferenceType('idlize.stdlib.Error')
+                case 'Type': return idl.createReferenceType('idlize.stdlib.Type')
                 case 'ParticleTuple': {
                     const typeParameters = new Set<string>()
                     typeArgs?.forEach(arg => {
@@ -1840,6 +1843,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         if (arkts.isBooleanLiteral(initExpr)) return [idl.IDLBooleanType, value]
         if (arkts.isNumberLiteral(initExpr)) return [idl.IDLNumberType, value]
         if (arkts.isStringLiteral(initExpr)) return [idl.IDLStringType, `"${value}"`]
-        throw new Error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
+        if (arkts.isBigIntLiteral(initExpr)) return [idl.IDLNumberType, value]
+        console.error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
+        return [idl.IDLAnyType, undefined]
     }
 }

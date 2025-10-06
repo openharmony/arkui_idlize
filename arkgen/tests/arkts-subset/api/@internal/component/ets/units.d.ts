@@ -1850,7 +1850,8 @@ declare type VoidCallback  = () => void;
  * @atomicservice
  * @since 12
  */
-declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+// declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+// declare interface LengthMetricsUnit {}
 
 /**
  * Defines LengthMetrics.
@@ -1861,7 +1862,8 @@ declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUn
  * @atomicservice
  * @since 12
  */
-declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+// declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+// declare interface LengthMetrics {}
 
 /**
  * Defines ColorMetrics.
@@ -1872,7 +1874,8 @@ declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
  * @atomicservice
  * @since 12
  */
-declare type ColorMetrics = import('../api/arkui/Graphics').ColorMetrics;
+// declare type ColorMetrics = import('../api/arkui/Graphics').ColorMetrics;
+declare interface ColorMetrics {}
 
 /**
  * Defines the font used for text.

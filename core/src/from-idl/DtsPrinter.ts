@@ -83,7 +83,6 @@ import {
     IDLF32Type,
     IDLF64Type,
     IDLBufferType,
-    isUnspecifiedGenericType,
     IDLUnknownType,
     IDLBooleanType,
     IDLNumberType,
@@ -383,8 +382,6 @@ export class CustomPrintVisitor {
                 return `${type.elementType.map(it => this.printTypeForTS(it)).join(",")}[]`
             return `${mapContainerType(type)}<${type.elementType.map(it => this.printTypeForTS(it)).join(",")}>`
         }
-        if (isUnspecifiedGenericType(type))
-            return `${type.name}<${type.typeArguments.map(it => this.printTypeForTS(it)).join(",")}>`
         if (isReferenceType(type)) return this.toTypeName(type)
         if (isUnionType(type)) return `(${type.types.map(it => this.printTypeForTS(it)).join("|")})`
         if (isTypeParameterType(type)) return type.name
@@ -407,7 +404,7 @@ export class CustomPrintVisitor {
                 let typeSpec = getQualifiedName(decl, "namespace.name")
                 if (node.typeArguments) {
                     let typeArguments = node.typeArguments
-                    if (node.name === "Callback" && typeArguments.length > 1) {
+                    if (node.name.endsWith(".Callback")) {
                         console.log("Removing second type arguments for Callback type. Reason: in .d.ts declarations will be only callback with one type argument from ohos.base")
                         typeArguments = [typeArguments[0]]
                     }

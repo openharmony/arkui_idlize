@@ -55,6 +55,7 @@
 //  * @since 11
 //  */
 // declare type Resource = import('../api/global/resource').Resource;
+declare interface Resource {}
 
 /**
  * Defines the length property with string, number and resource unit.
@@ -1847,7 +1848,8 @@ declare type VoidCallback  = () => void;
  * @atomicservice
  * @since 12
  */
-declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+// declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUnit;
+declare interface LengthMetricsUnit {}
 
 /**
  * Defines LengthMetrics.
@@ -1858,7 +1860,8 @@ declare type LengthMetricsUnit = import('../api/arkui/Graphics').LengthMetricsUn
  * @atomicservice
  * @since 12
  */
-declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+// declare type LengthMetrics = import('../api/arkui/Graphics').LengthMetrics;
+declare interface LengthMetrics {}
 
 /**
  * Defines ColorMetrics.

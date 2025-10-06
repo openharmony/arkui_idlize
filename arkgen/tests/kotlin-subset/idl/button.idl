@@ -23,5 +23,5 @@ interface ButtonInterface {
 };
 [Entity=Class, Component="Button"]
 interface ButtonAttribute: [Extends, TypeArguments="ButtonAttribute"] CommonMethod {
-    ButtonAttribute type(ButtonType value);
+    this type(ButtonType value);
 };

@@ -43,6 +43,7 @@ declare interface TabBarIconStyle {
   unselectedColor?: ResourceColor;
 }
 
+declare interface IndicatorStyle {}
 declare class SubTabBarStyle {
 
     constructor(content: ResourceStr);

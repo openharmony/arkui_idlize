@@ -4,9 +4,9 @@ interface GenericInterface {
     void setData(T data);
     void callHandler();
 };
-[Synthetic]
+[TypeParameters="T"]
 callback Callback_T_Void = void (T data);
 [TypeParameters="T"]
 interface GenericInterfaceDataHandler {
-    attribute Callback_T_Void onData;
+    attribute ([TypeArguments="void"] Callback_T_Void) onData;
 };

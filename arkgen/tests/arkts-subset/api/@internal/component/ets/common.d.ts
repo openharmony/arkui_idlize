@@ -1341,7 +1341,8 @@ declare function getContext(component?: Object): Context;
  * @atomicservice
  * @since 11
  */
-declare type Context = import('../api/application/Context').default;
+// declare type Context = import('../api/application/Context').default;
+// declare interface Context {}
 
 /**
  * Post Card Action.
@@ -5332,7 +5333,7 @@ declare namespace focusControl {
  * @atomicservice
  * @since 12
  */
-declare type PointerStyle = import('../api/@ohos.multimodalInput.pointer').default.PointerStyle;
+declare interface PointerStyle {}
 
 /**
  * CursorControl
@@ -9348,7 +9349,8 @@ declare enum DragBehavior {
  * @atomicservice
  * @since 11
  */
-declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').default.UnifiedData;
+// declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').default.UnifiedData;
+declare interface UnifiedData {}
 
 /**
  * Import the Summary type object for ui component.
@@ -9365,7 +9367,8 @@ declare type UnifiedData = import('../api/@ohos.data.unifiedDataChannel').defaul
  * @atomicservice
  * @since 11
  */
-declare type Summary = import('../api/@ohos.data.unifiedDataChannel').default.Summary;
+// declare type Summary = import('../api/@ohos.data.unifiedDataChannel').default.Summary;
+declare interface Summary {}
 
 /**
  * Enum for Drag Result.
@@ -10533,7 +10536,8 @@ declare interface DragEvent {
  * @atomicservice
  * @since 11
  */
-declare type IntentionCode = import('../api/@ohos.multimodalInput.intentionCode').IntentionCode;
+// declare type IntentionCode = import('../api/@ohos.multimodalInput.intentionCode').IntentionCode;
+declare interface IntentionCode {}
 
 /**
  * KeyEvent object description:
@@ -14904,7 +14908,8 @@ declare enum MenuPolicy {
  * @atomicservice
  * @since 12
  */
-declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
+// declare type ImageModifier = import('../api/arkui/ImageModifier').ImageModifier;
+declare interface ImageModifier {}
 
 /**
  * SymbolGlyphModifier
@@ -14935,6 +14940,7 @@ class SymbolGlyphModifier {
  * @atomicservice
  * @since 12
  */
+declare interface DraggingSizeChangeEffect {}
 declare interface DragPreviewOptions {
     mode?: DragPreviewMode | Array<DragPreviewMode>;
     numberBadge?: boolean | number;
@@ -15075,7 +15081,8 @@ declare interface InvertOptions {
  * @atomicservice
  * @since 12
  */
-declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
+// declare type CircleShape = import('../api/@ohos.arkui.shape').CircleShape;
+declare interface CircleShape {}
 
 /**
  * Import the EllipseShape type object for common method.
@@ -15166,6 +15173,7 @@ interface LayoutPolicy {}
  * @atomicservice
  * @since 11
  */
+declare interface UniformDataType {}
 declare class CommonMethod<T> {
   /**
    * constructor.
@@ -22063,7 +22071,8 @@ declare interface MeasureResult extends SizeResult {
  * @atomicservice
  * @since 12
  */
-declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+// declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+declare interface NavDestinationInfo {}
 
 /**
  * The navigation information.
@@ -22074,7 +22083,8 @@ declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDesti
  * @atomicservice
  * @since 12
  */
-declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+// declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.NavigationInfo;
+declare interface NavigationInfo {}
 
 /**
  * The router page information.
@@ -22085,7 +22095,8 @@ declare type NavigationInfo = import('../api/@ohos.arkui.observer').default.Navi
  * @atomicservice
  * @since 12
  */
-declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+// declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.RouterPageInfo;
+declare interface RouterPageInfo {}
 
 /**
  * UIContext
@@ -22103,7 +22114,8 @@ declare type RouterPageInfo = import('../api/@ohos.arkui.observer').default.Rout
  * @atomicservice
  * @since 12
  */
-declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
+// declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
+declare interface UIContext {}
 
 /**
  * DrawContext
@@ -22114,7 +22126,7 @@ declare type UIContext = import('../api/@ohos.arkui.UIContext').UIContext;
  * @atomicservice
  * @since 12
  */
-declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
+// declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
 
 /**
  * VisualEffect
@@ -22125,7 +22137,8 @@ declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
  * @atomicservice
  * @since 12
  */
-declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.VisualEffect;
+// declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.VisualEffect;
+declare interface VisualEffect {}
 
 
 /**
@@ -22137,7 +22150,8 @@ declare type VisualEffect = import('../api/@ohos.graphics.uiEffect').default.Vis
  * @atomicservice
  * @since 12
  */
-declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
+// declare type Filter = import('../api/@ohos.graphics.uiEffect').default.Filter;
+declare interface Filter {}
 
 /**
  * Blender
@@ -22162,9 +22176,11 @@ interface Blender {
  * @atomicservice
  * @since 12
  */
-declare type Theme = import('../api/@ohos.arkui.theme').Theme;
+// declare type Theme = import('../api/@ohos.arkui.theme').Theme;
+declare interface Theme {}
 
-declare type PromptActionDialogController = import('../api/@ohos.promptActionDialogController').PromptActionDialogController;
+// declare type PromptActionDialogController = import('../api/@ohos.promptActionDialogController').PromptActionDialogController;
+declare interface PromptActionDialogController {}
 
 /**
  * View
@@ -23515,30 +23531,6 @@ declare interface UICommonEvent {
  * @since 12
  */
 declare interface UIGestureEvent {
-  /**
-   * Add a gesture bound to the component.
-   *
-   * @param { GestureHandler<T> } gesture - gesture indicates the gesture bound to a component.
-   * @param { GesturePriority } priority - priority indicates the gesture's priority.
-   * @param { GestureMask } mask - mask indicates the gesture's GestureMask value.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  addGesture<T>(gesture: GestureHandler<T>, priority?: GesturePriority, mask?: GestureMask): void;
-
-  /**
-   * Add a parallel gesture bound to the component.
-   *
-   * @param { GestureHandler<T> } gesture - gesture indicates the gesture bound to a component.
-   * @param { GestureMask } mask - mask indicates the gesture's GestureMask value.
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  addParallelGesture<T>(gesture: GestureHandler<T>, mask?: GestureMask): void;
 
   /**
    * Remove the gesture that is bound to the component and marked as tag.

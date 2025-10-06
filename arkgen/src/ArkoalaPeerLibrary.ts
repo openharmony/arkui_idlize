@@ -31,6 +31,7 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
 import { ArkoalaImportTypeConvertor, ArkoalaInterfaceConvertor, ArkoalaMaterializedClassConvertor } from './ArkoalaArgConvertors';
 import { ArkoalaCJTypeNameConvertor } from './ArkoalaTypeNameConvertors';
 import { ArkPrimitiveTypesInstance } from './ArkPrimitiveType';
+import { peerGeneratorConfiguration } from '@idlizer/libohos';
 
 export class ArkoalaPeerLibrary extends PeerLibrary {
     override createLanguageWriter(language?: Language): LanguageWriter {
@@ -68,7 +69,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
             if (isImportAttr(declaration))
                 return new ArkoalaImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
 
-            if (idl.isInterface(declaration) && !idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
+            if (idl.isInterface(declaration) && !idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize) && !peerGeneratorConfiguration().forceResource.includes(declaration.name)) {
                 if (isMaterialized(declaration, this)) {
                     return new ArkoalaMaterializedClassConvertor(this, param, declaration)
                 }

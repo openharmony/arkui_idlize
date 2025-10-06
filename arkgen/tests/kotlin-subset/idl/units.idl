@@ -1,5 +1,8 @@
 package arkui.component;
 
+interface Resource {
+};
+
 typedef (String or number or Resource) Length;
 [Entity=Interface]
 interface Position {

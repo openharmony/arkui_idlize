@@ -12,3 +12,9 @@ interface CallbackResource {};
 interface VMContext {};
 [TSType=Null]
 interface Null {};
+
+namespace Intl {
+    interface Locale {};
+};
+interface Error {};
+interface Type {};

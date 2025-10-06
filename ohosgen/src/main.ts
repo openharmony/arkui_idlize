@@ -33,6 +33,7 @@ import {
     StructureNameConvertor,
     convertNode,
     validatePaths,
+    inplaceFQN,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -138,6 +139,7 @@ if (options.idl2peer) {
             return transformation?.to
         })
     })
+    idlLibrary.files.forEach(file => inplaceFQN(file, idlLibrary))
     idlLibrary.files.forEach(inplaceNullsAsUndefined)
     inplaceOhosgenGenerics(idlLibrary)
     fillSyntheticDeclarations(idlLibrary)

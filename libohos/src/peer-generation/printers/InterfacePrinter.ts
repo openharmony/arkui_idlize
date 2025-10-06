@@ -58,27 +58,12 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return this.isDeclared && idl.getNamespacesPathFor(decl).length === 0
     }
 
-    protected maybeConvertReexportTypedef(node: idl.IDLTypedef): string | undefined {
-        if (!idl.isReferenceType(node.type)) return undefined
-        const target = this.peerLibrary.resolveTypeReference(node.type)
-        if (target?.name != node.name || idl.getNamespaceName(target)) return undefined
-        const currentModule = this.peerLibrary.layout.resolve({ node: node, role: LayoutNodeRole.INTERFACE })
-        const targetModule = this.peerLibrary.layout.resolve({ node: target, role: LayoutNodeRole.INTERFACE })
-        const relative = ImportsCollector.resolveRelative(currentModule, targetModule)!
-        return `export { ${node.name} } from "${relative}"`
-    }
-
     convertTypedef(node: idl.IDLTypedef) {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Synthetic)) {
             return
         }
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
-        let reexportTypedef: string | undefined
-        if (reexportTypedef = this.maybeConvertReexportTypedef(node)) {
-            this.writer.print(reexportTypedef)
-            return
-        }
         const annotations: string[] = []
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)) {
             const declaredAnnotations = idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeAnnotations)?.split(';') ?? []
@@ -1440,6 +1425,7 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
 
     private makeInterface(writer: LanguageWriter, type: idl.IDLInterface): void {
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
         const superNames = type.inheritance
         let mangledName = removePoints(idl.getQualifiedName(type, 'namespace.name'))
         writer.writeInterface(mangledName, (writer) => {
@@ -1449,7 +1435,7 @@ class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
                 if (p.isStatic) modifiers.push(FieldModifier.STATIC)
                 writer.writeProperty(p.name, idl.maybeOptional(p.type, p.isOptional), modifiers)
             }
-        }, superNames ? superNames.map(it => it.name) : undefined)
+        }, superNames ? superNames.map(it => nameConvertor.convert(it)) : undefined)
     }
 }
 

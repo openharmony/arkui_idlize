@@ -90,33 +90,33 @@ namespace huks {
     [Throws]
     async HuksSessionHandle initSessionAsUser(i32 userId, String keyAlias, HuksOptions huksOptions);
     [Deprecated]
-    void update(long handle, optional buffer token, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    void update(i64 handle, optional buffer token, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
     [Deprecated]
-    async HuksResult update(long handle, optional buffer token, HuksOptions options);
+    async HuksResult update(i64 handle, optional buffer token, HuksOptions options);
     [Throws]
-    void updateSession(long handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    void updateSession(i64 handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
     [Throws]
-    void updateSession(long handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    void updateSession(i64 handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
     [Throws]
-    async HuksReturnResult updateSession(long handle, HuksOptions options, optional buffer token);
+    async HuksReturnResult updateSession(i64 handle, HuksOptions options, optional buffer token);
     [Deprecated]
-    void finish(long handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    void finish(i64 handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
     [Deprecated]
-    async HuksResult finish(long handle, HuksOptions options);
+    async HuksResult finish(i64 handle, HuksOptions options);
     [Throws]
-    void finishSession(long handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    void finishSession(i64 handle, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
     [Throws]
-    void finishSession(long handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
+    void finishSession(i64 handle, HuksOptions options, buffer token, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
     [Throws]
-    async HuksReturnResult finishSession(long handle, HuksOptions options, optional buffer token);
+    async HuksReturnResult finishSession(i64 handle, HuksOptions options, optional buffer token);
     [Deprecated]
-    void abort(long handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
+    void abort(i64 handle, HuksOptions options, [TypeArguments="HuksResult"] AsyncCallback callback_);
     [Deprecated]
-    async HuksResult abort(long handle, HuksOptions options);
+    async HuksResult abort(i64 handle, HuksOptions options);
     [Throws]
-    void abortSession(long handle, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
+    void abortSession(i64 handle, HuksOptions options, [TypeArguments="void"] AsyncCallback callback_);
     [Throws]
-    async void abortSession(long handle, HuksOptions options);
+    async void abortSession(i64 handle, HuksOptions options);
     [Throws]
     void attestKeyItem(String keyAlias, HuksOptions options, [TypeArguments="HuksReturnResult"] AsyncCallback callback_);
     [Throws]
@@ -147,13 +147,13 @@ namespace huks {
         [Deprecated]
         attribute i32 errorCode;
         [Deprecated]
-        attribute long handle;
+        attribute i64 handle;
         [Optional, Deprecated]
         attribute buffer token;
     };
     [Entity=Interface]
     interface HuksSessionHandle {
-        attribute long handle;
+        attribute i64 handle;
         [Optional]
         attribute buffer challenge;
     };

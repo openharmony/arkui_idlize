@@ -31,14 +31,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         idl.IDLInterfaceSubkind.Interface
     )
 
-    const peerMethodWriter = library.createLanguageWriter()
-    const staticWriter = library.createLanguageWriter()
-
     const printed = library.globals.flatMap(scope => {
-
-        scope.methods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
-
-        const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
+        const filteredScopeMethods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+        const groupedMethods = groupOverloadsIDL(filteredScopeMethods, library.language)
         const methodPrinterResults = groupedMethods.filter(it => it.length).flatMap((methods): PrinterResult[] => {
             const generate = () => {
                 // imports
@@ -68,7 +63,6 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                 )
 
                 // entities
-                const peerMethods = idlFreeMethodToLegacy(methods)
                 const method = collapseSameMethodsIDL(methods)
                 const signature = NamedMethodSignature.make(method.returnType, method.parameters.map(it => ({ name: it.name, type: idl.maybeOptional(it.type, it.isOptional), })))
 
@@ -86,22 +80,6 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                     }, method.methods[0].typeParameters)
                 })
 
-                /* global scope peer serialize function */
-                new OverloadsPrinter(library, peerMethodWriter, library.language, false, library.useMemoM3)
-                    .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
-
-                peerMethods.forEach(peerMethod => {
-                    writePeerMethod(
-                        library,
-                        peerMethodWriter,
-                        peerMethod,
-                        true,
-                        false,
-                        '_serialize',
-                        '',
-                        peerMethod.returnType,
-                    )
-                })
                 return { content: writer, imports }
             }
 
@@ -156,10 +134,28 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
             const realizationWriter = library.createLanguageWriter()
             realizationWriter.writeClass(realizationHolder.name, w => {
                 w.makeStaticBlock(() => {
-                    peerMethodWriter.getOutput().forEach(it => w.print(it))
-                    peerMethodWriter.features.forEach(item => item.type === "idl"
-                        ? realizationWriter.addFeature(item.node)
-                        : realizationWriter.addFeature(item.feature, item.module))
+                    const allGroupedMethods = library.globals.flatMap(scope => {
+                    const filteredScopeMethods = scope.methods.filter(it => !peerGeneratorConfiguration().isHandWritten(it.name))
+                        return groupOverloadsIDL(filteredScopeMethods, library.language)
+                    })
+                    allGroupedMethods.forEach(methods => {
+                        const peerMethods = idlFreeMethodToLegacy(methods)
+                        new OverloadsPrinter(library, realizationWriter, library.language, false, library.useMemoM3)
+                            .printGroupedComponentOverloads(realizationHolder.name, peerMethods)
+
+                        peerMethods.forEach(peerMethod => {
+                            writePeerMethod(
+                                library,
+                                realizationWriter,
+                                peerMethod,
+                                true,
+                                false,
+                                '_serialize',
+                                '',
+                                peerMethod.returnType,
+                            )
+                        })
+                    })
                 })
             })
             return { content: realizationWriter, imports }

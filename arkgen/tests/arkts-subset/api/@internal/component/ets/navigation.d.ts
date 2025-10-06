@@ -26,7 +26,8 @@
  * @atomicservice
  * @since 12
  */
-declare type SystemBarStyle = import('../api/@ohos.window').default.SystemBarStyle;
+// declare type SystemBarStyle = import('../api/@ohos.window').default.SystemBarStyle;
+declare interface SystemBarStyle {}
 
 /**
  * Defines the navigation common title.

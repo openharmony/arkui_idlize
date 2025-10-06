@@ -30,6 +30,7 @@ import {
     inplaceTransformOnSerialize,
     convertNode,
     StructureNameConvertor,
+    inplaceFQN,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -161,6 +162,7 @@ export function arkgen(argv:string[]) {
                 return transformation?.to
             })
         })
+        idlLibrary.files.forEach(file => inplaceFQN(file, idlLibrary))
         idlLibrary.files.forEach(inplaceNullsAsUndefined)
         inplaceArkoalaGenerics(idlLibrary)
         fillSyntheticDeclarations(idlLibrary)

@@ -217,8 +217,6 @@ export class PeerLibrary implements LibraryInterface {
                     nextResult = this.resolveImport(result)
                 else if (idl.isReferenceType(result))
                     nextResult = this.resolveNamedNode(result.name.split("."))
-                else if (idl.isTypedef(result) && idl.isReferenceType(result.type))
-                    nextResult = this.resolveNamedNode(result.type.name.split("."))
 
                 if (!nextResult)
                     break;

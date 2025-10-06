@@ -54,7 +54,7 @@ interface Matrix4 {
 };
 typedef Vector2 Offset;
 typedef Vector2 Position;
-[TypeParameters="T = void"]
+[TypeParameters="T", TypeParametersDefaults="void"]
 typedef [TypeArguments="T"] Vector2T PositionT;
 typedef Vector2 Pivot;
 typedef Vector2 Scale;

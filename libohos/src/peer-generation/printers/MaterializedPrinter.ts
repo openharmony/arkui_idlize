@@ -381,9 +381,8 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const superClass = clazz.superClass
         var superInterfaces: string[] | undefined = undefined
         if (superClass) {
-            // TBD: properly substitute type arguments
-            const generics = superClass.typeArguments ? superClass.typeArguments.map(it => idl.isNamedNode(it) ? it.name : "Unknown") : undefined
-            const superClassName = superClass.name + (generics ? `<${generics.join(", ")}>` : "")
+            const nameConvertor = this.library.createTypeNameConvertor(writer.language)
+            const superClassName = nameConvertor.convert(superClass)
             superInterfaces = [superClassName]
         }
         writer.writeInterface(this.mangle(decl.name), () => {

@@ -15,7 +15,7 @@
  */
 
 import { indentedBy, isDefined, stringOrNone } from "./util";
-import { generateSyntheticIdlNodeName } from "./peer-generation/idl/common";
+import { generateSyntheticIdlNodeName, generateSyntheticUnionName } from "./peer-generation/idl/common";
 import { IDLKeywords } from "./languageSpecificKeywords";
 import { Location } from "./diagnostictypes";
 
@@ -34,7 +34,6 @@ export enum IDLKind {
     Typedef = "Typedef",
     PrimitiveType = "PrimitiveType",
     ContainerType = "ContainerType",
-    UnspecifiedGenericType = "UnspecifiedGenericType",
     ReferenceType = "ReferenceType",
     UnionType = "UnionType",
     TypeParameterType = "TypeParameterType",
@@ -175,11 +174,6 @@ export interface IDLContainerType extends IDLType {
 export interface IDLReferenceType extends IDLType, IDLNamedNode {
     kind: IDLKind.ReferenceType
     typeArguments?: IDLType[]
-}
-
-export interface IDLUnspecifiedGenericType extends IDLType, IDLNamedNode {
-    kind: IDLKind.UnspecifiedGenericType
-    typeArguments: IDLType[]
 }
 
 export interface IDLUnionType extends IDLType, IDLNamedNode {
@@ -371,10 +365,6 @@ export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (
             (node as IDLContainerType).elementType.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             break
         }
-        case IDLKind.UnspecifiedGenericType: {
-            (node as IDLUnspecifiedGenericType).typeArguments.forEach((value) => forEachChild(value, cbEnter, cbLeave))
-            break
-        }
         case IDLKind.ReferenceType: {
             (node as IDLReferenceType).typeArguments?.forEach((value) => forEachChild(value, cbEnter, cbLeave))
             break
@@ -473,11 +463,6 @@ export function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cb
             concrete.elementType = concrete.elementType.map(it => updateEachChild(it, op, cbLeave) as IDLType)
             break
         }
-        case IDLKind.UnspecifiedGenericType: {
-            const concrete = node as IDLUnspecifiedGenericType
-            concrete.typeArguments = concrete.typeArguments.map(it => updateEachChild(it, op, cbLeave) as IDLType)
-            break
-        }
         case IDLKind.ReferenceType: {
             const concrete = node as IDLReferenceType
             concrete.typeArguments = concrete.typeArguments?.map(it => updateEachChild(it, op, cbLeave) as IDLType)
@@ -496,6 +481,258 @@ export function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cb
     if (cbLeave) {
         cbLeave?.(node)
     }
+    return node
+}
+
+
+export function visitChildren(node: IDLNode, mutator: (node:IDLNode) => IDLNode): IDLNode {
+    function track(visitor: (op: (node: IDLNode) => IDLNode) => () => IDLNode) {
+        let changed = false
+        let factory: () => IDLNode = visitor(
+            (node) => {
+                const newNode = mutator(node)
+                changed ||= node !== newNode
+                return newNode
+            },
+        )
+        return changed ? factory!() : node
+    }
+    function assert<T extends IDLNode, S extends T>(predicate: (value: T) => value is S): (node: T) => S {
+        return (node: T) => {
+            if (predicate(node))
+                return node
+            throw new Error(`Unexpected node kind ${node.kind}`)
+        }
+    }
+    function isNamespaceMember(node: IDLNode): node is IDLNamespace | IDLInterface | IDLMethod | IDLCallback | IDLTypedef {
+        return isNamespace(node)
+            || isInterface(node)
+            || isMethod(node) && node.isFree
+            || isCallback(node)
+            || isTypedef(node)
+    }
+    function isInterfaceMember(node: IDLNode): node is IDLConstructor | IDLMethod | IDLConstant | IDLProperty | IDLCallable {
+        return isConstructor(node)
+            || isMethod(node)
+            || isConstant(node)
+            || isProperty(node)
+            || isCallable(node)
+    }
+    function cloneNodeInitializer(other: IDLNodeInitializer): IDLNodeInitializer {
+        return {
+            documentation: other.documentation,
+            extendedAttributes: other.extendedAttributes,
+            fileName: other.fileName,
+            nameLocation: other.nameLocation,
+            nodeLocation: other.nodeLocation,
+            valueLocation: other.valueLocation,
+        }
+    }
+
+    if (isFile(node)) {
+        return track((op) => {
+            const entries = node.entries.map(op).map(assert(isNamespaceMember))
+            return () => createFile(
+                entries,
+                node.fileName,
+                node.packageClause,
+                cloneNodeInitializer(node)
+            )
+        })
+    }
+    if (isInterface(node)) {
+        return track((op) => {
+            const inheritance = node.inheritance.map(op).map(assert(isReferenceType))
+            const members = [
+                ...node.constructors,
+                ...node.callables,
+                ...node.properties,
+                ...node.methods,
+                ...node.constants,
+            ].map(op).map(assert(isInterfaceMember))
+            return () => createInterface(
+                node.name,
+                node.subkind,
+                inheritance,
+                members.filter(isConstructor),
+                members.filter(isConstant),
+                members.filter(isProperty),
+                members.filter(isMethod),
+                members.filter(isCallable),
+                node.typeParameters,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isMethod(node)) {
+        return track(op => {
+            const parameters = node.parameters.map(op).map(assert(isParameter))
+            const returnType = assert(isType)(op(node.returnType))
+            return () => createMethod(
+                node.name,
+                parameters,
+                returnType,
+                { isAsync: node.isAsync, isFree: node.isFree, isOptional: node.isOptional, isStatic: node.isStatic },
+                cloneNodeInitializer(node),
+                node.typeParameters,
+            )
+        })
+    }
+    if (isCallable(node)) {
+        return track(op => {
+            const parameters = node.parameters.map(op).map(assert(isParameter))
+            const returnType = assert(isType)(op(node.returnType))
+            return () => createCallable(
+                node.name,
+                parameters,
+                returnType,
+                { isAsync: node.isAsync, isStatic: node.isStatic },
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isCallback(node)) {
+        return track(op => {
+            const parameters = node.parameters.map(op).map(assert(isParameter))
+            const returnType = assert(isType)(op(node.returnType))
+            return () => createCallback(
+                node.name,
+                parameters,
+                returnType,
+                cloneNodeInitializer(node),
+                node.typeParameters,
+            )
+        })
+    }
+    if (isConstructor(node)) {
+        return track(op => {
+            const parameters = node.parameters.map(op).map(assert(isParameter))
+            const returnType = node.returnType ? assert(isType)(op(node.returnType)) : undefined
+            return () => createConstructor(
+                parameters,
+                returnType,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isUnionType(node)) {
+        return track(op => {
+            const types = node.types.map(op).map(assert(isType))
+            const name = types.some((it, index) => it !== node.types[index])
+                ? generateSyntheticUnionName(types)
+                : node.name
+            return () => createUnionType(
+                types,
+                name,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isOptionalType(node)) {
+        return track(op => {
+            const t = assert(isType)(op(node.type))
+            return () => createOptionalType(
+                t,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isConstant(node)) {
+        return track(op => {
+            const t = assert(isType)(op(node.type))
+            return () => createConstant(
+                node.name,
+                t,
+                node.value,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isEnum(node)) {
+        return track(op => {
+            const elements = node.elements.map(op).map(assert(isEnumMember))
+            return () => createEnum(
+                node.name,
+                elements,
+                cloneNodeInitializer(node)
+            )
+        })
+    }
+    if (isEnumMember(node)) {
+        return track(op => {
+            const t = assert(isPrimitiveType)(op(node.type))
+            return () => createEnumMember(
+                node.name,
+                node.parent /* TODO seems strange in that context */,
+                t,
+                node.initializer,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isProperty(node)) {
+        return track(op => {
+            const t = assert(isType)(op(node.type))
+            return () => createProperty(
+                node.name,
+                t,
+                node.isReadonly,
+                node.isStatic,
+                node.isOptional,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isParameter(node)) {
+        return track(op => {
+            const t = assert(isType)(op(node.type))
+            return () => createParameter(
+                node.name,
+                t,
+                node.isOptional,
+                node.isVariadic,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isTypedef(node)) {
+        return track(op => {
+            const t = assert(isType)(op(node.type))
+            return () => createTypedef(
+                node.name,
+                t,
+                node.typeParameters,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isContainerType(node)) {
+        return track(op => {
+            const elementType = node.elementType.map(op).map(assert(isType))
+            return () => createContainerType(
+                node.containerKind,
+                elementType,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isReferenceType(node)) {
+        return track(op => {
+            const typeArguments = node.typeArguments?.map(op).map(assert(isType))
+            return () => createReferenceType(
+                node.name,
+                typeArguments,
+                cloneNodeInitializer(node),
+            )
+        })
+    }
+    if (isTypeParameterType(node)
+        || isImport(node)
+        || isPrimitiveType(node)
+        || isVersion(node)) {
+        return node
+    }
+
     return node
 }
 
@@ -528,9 +765,6 @@ export function isContainerType(type: IDLNode): type is IDLContainerType {
 }
 export function isReferenceType(type: IDLNode): type is IDLReferenceType {
     return type.kind == IDLKind.ReferenceType
-}
-export function isUnspecifiedGenericType(type: IDLNode): type is IDLUnspecifiedGenericType {
-    return type.kind == IDLKind.UnspecifiedGenericType
 }
 export function isEnum(type: IDLNode): type is IDLEnum {
     return type.kind == IDLKind.Enum
@@ -862,18 +1096,6 @@ export function createReferenceType(
     }
 }
 
-export function createUnspecifiedGenericType(name: string, typeArguments: IDLType[], nodeInitializer?:IDLNodeInitializer): IDLUnspecifiedGenericType {
-    return {
-        kind: IDLKind.UnspecifiedGenericType,
-        name,
-        typeArguments,
-        ...nodeInitializer,
-        _idlNodeBrand: innerIdlSymbol,
-        _idlTypeBrand: innerIdlSymbol,
-        _idlNamedNodeBrand: innerIdlSymbol,
-    }
-}
-
 export function entityToType(entity:IDLNode): IDLType {
     if (isType(entity)) {
         return entity
@@ -937,7 +1159,7 @@ export function createEnum(
     elements: IDLEnumMember[],
     nodeInitializer: IDLNodeInitializer,
 ): IDLEnum {
-    return {
+    const result: IDLEnum = {
         kind: IDLKind.Enum,
         name: name,
         elements: elements,
@@ -946,6 +1168,8 @@ export function createEnum(
         _idlEntryBrand: innerIdlSymbol,
         _idlNamedNodeBrand: innerIdlSymbol,
     }
+    elements.forEach(it => it.parent = result)
+    return result
 }
 
 export function createEnumMember(
@@ -1400,20 +1624,6 @@ export function clone<T extends IDLNode>(node:T): T {
                 )
             )
         }
-        case IDLKind.UnspecifiedGenericType: {
-            const type = get<IDLUnspecifiedGenericType>(node)
-            return make(
-                createUnspecifiedGenericType(
-                    type.name,
-                    type.typeArguments.map(clone),
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
-                )
-            )
-        }
         case IDLKind.ReferenceType: {
             const type = get<IDLReferenceType>(node)
             return make(
@@ -1568,7 +1778,6 @@ export function printType(type: IDLType | IDLInterface | undefined, options?:Pri
             return `(${res})`;
         return res;
     }
-    if (isUnspecifiedGenericType(type)) return `${type.name}<${type.typeArguments.map(it => printType(it)).join(", ")}>`
     if (isUnionType(type)) return `(${type.types.map(it => printType(it)).join(" or ")})`
     if (isTypeParameterType(type)) return type.name
     throw new Error(`Cannot map type: ${IDLKind[type.kind]}`)
@@ -1625,24 +1834,21 @@ export function printExtendedAttributes(idl: IDLNode, indentLevel: number): Prin
     let typeParameters: string[]|undefined
     let typeArguments: IDLType[]|undefined
     switch(idl.kind) {
-    case IDLKind.Interface:
-        typeParameters = (idl as IDLInterface).typeParameters
-        break
-    case IDLKind.Callback:
-    case IDLKind.Method:
-    case IDLKind.Callable:
-    case IDLKind.Constructor:
-        typeParameters = (idl as IDLSignature).typeParameters
-        break
-    case IDLKind.Typedef:
-        typeParameters = (idl as IDLTypedef).typeParameters
-        break
-    case IDLKind.ReferenceType:
-        typeArguments = (idl as IDLReferenceType).typeArguments
-        break
-    case IDLKind.UnspecifiedGenericType:
-        typeArguments = (idl as IDLUnspecifiedGenericType).typeArguments
-        break
+        case IDLKind.Interface:
+            typeParameters = (idl as IDLInterface).typeParameters
+            break
+        case IDLKind.Callback:
+        case IDLKind.Method:
+        case IDLKind.Callable:
+        case IDLKind.Constructor:
+            typeParameters = (idl as IDLSignature).typeParameters
+            break
+        case IDLKind.Typedef:
+            typeParameters = (idl as IDLTypedef).typeParameters
+            break
+        case IDLKind.ReferenceType:
+            typeArguments = (idl as IDLReferenceType).typeArguments
+            break
     }
     const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
     if (typeParameters?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeParameters))
