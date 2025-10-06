@@ -15,7 +15,7 @@
         "clean:kt": "rm -rf generated/kotlin",
         "clean:native": "rm -rf generated/native",
 
-        "prepare" : "mkdir -p generated/idl && cp ./idl/@ohos.xml.test.idl ./generated/idl",
+        "prepare" : "mkdir -p generated/idl && cp ./idl/*.idl ./generated/idl",
         "generate": "npm run prepare && npm run run:xml:${TARGET} -C ../.. -- --output-dir demos/xml",
         "generate:ts": "TARGET=ts npm run generate",
         "generate:arkts": "TARGET=arkts npm run generate",
