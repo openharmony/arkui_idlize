@@ -1,11 +1,17 @@
-| Status           | interface | method | field | annotation | class |
-| ---------------- | --------- | ------ | ----- | ---------- | ----- |
-| backlog          |        18 |    625 |    62 |         11 |    54 |
-| blocked          |        10 |     56 |     1 |          0 |     7 |
-| done             |       108 |   1553 |   114 |          0 |    72 |
-| in progress      |         3 |     20 |     1 |          0 |     6 |
-| ---------------- | --------- | ------ | ----- | ---------- | ----- |
-| Total            |       139 |   2254 |   178 |         11 |   139 |
+| Status               | interface | method | field | annotation | class |
+| -------------------- | --------- | ------ | ----- | ---------- | ----- |
+| backlog              |        20 |    643 |    55 |         11 |    53 |
+| backlog/done         |         0 |      0 |     1 |          0 |     0 |
+| blocked              |         2 |      7 |     0 |          0 |     1 |
+| blocked AceEngine    |         2 |      6 |     0 |          0 |     1 |
+| blocked IDL          |         6 |     43 |     0 |          0 |     5 |
+| deleted out of scope |         3 |    134 |     0 |          0 |     0 |
+| done                 |       108 |   1528 |   114 |          0 |    72 |
+| done/backlog         |         0 |      0 |     1 |          0 |     0 |
+| done/blocked IDL     |         0 |      0 |     1 |          0 |     0 |
+| in progress          |         3 |     18 |     1 |          0 |     5 |
+| -------------------- | --------- | ------ | ----- | ---------- | ----- |
+| Total                |       144 |   2379 |   173 |         11 |   137 |
 
 | Item Status | Owner | Last test status | Last test version | Comments | Package | SDK Parent | SDK Name | Override | Type | C API Parent | C API Name |
 | ----------- | ----- | ---------------- | ----------------- | -------- | ------- | ---------- | -------- | -------- | ---- | ------------ | ---------- |
@@ -42,31 +48,6 @@
 | backlog |  |  |  |  | arkui.component.alphabetIndexer | AlphabetIndexerAttribute | attributeModifier | 0 | method |  |
 | done | Ekaterina Stepanova |  |  | deprecated | arkui.component.alphabetIndexer | unnamed | AlphabetIndexer | 0 | method | AlphabetIndexer | `setAlphabetIndexerOptions`
 | backlog |  |  |  |  | arkui.component.animation | unnamed | AnimatableExtend | 0 | annotation |  |
-| backlog |  |  |  |  | arkui.component.animator | unnamed | SpringProp | 0 | class | unnamed | *SpringProp*
-| backlog |  |  |  |  | arkui.component.animator | SpringProp | constructor | 0 | method | SpringProp | `construct`
-| backlog |  |  |  |  | arkui.component.animator | unnamed | SpringMotion | 0 | class | unnamed | *SpringMotion*
-| backlog |  |  |  |  | arkui.component.animator | SpringMotion | constructor | 0 | method | SpringMotion | `construct`
-| backlog |  |  |  |  | arkui.component.animator | unnamed | FrictionMotion | 0 | class | unnamed | *FrictionMotion*
-| backlog |  |  |  |  | arkui.component.animator | FrictionMotion | constructor | 0 | method | FrictionMotion | `construct`
-| backlog |  |  |  |  | arkui.component.animator | unnamed | ScrollMotion | 0 | class | unnamed | *ScrollMotion*
-| backlog |  |  |  |  | arkui.component.animator | ScrollMotion | constructor | 0 | method | ScrollMotion | `construct`
-| backlog |  |  |  |  | arkui.component.animator | unnamed | AnimatorAttribute | 0 | interface | unnamed | *Animator*
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | state | 0 | method | Animator | `setState`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | duration | 0 | method | Animator | `setDuration`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | curve | 0 | method | Animator | `setCurve`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | delay | 0 | method | Animator | `setDelay`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | fillMode | 0 | method | Animator | `setFillMode`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | iterations | 0 | method | Animator | `setIterations`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | playMode | 0 | method | Animator | `setPlayMode`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | motion | 0 | method | Animator | `setMotion`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | onStart | 0 | method | Animator | `setOnStart`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | onPause | 0 | method | Animator | `setOnPause`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | onRepeat | 0 | method | Animator | `setOnRepeat`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | onCancel | 0 | method | Animator | `setOnCancel`
-| backlog |  |  |  | deprecated since 12 | arkui.component.animator | AnimatorAttribute | onFinish | 0 | method | Animator | `setOnFinish`
-| backlog |  |  |  | deprecated since 12 | arkui.component.animator | AnimatorAttribute | onFrame | 0 | method | Animator | `setOnFrame`
-| backlog |  |  |  |  | arkui.component.animator | AnimatorAttribute | attributeModifier | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.animator | unnamed | Animator | 0 | method | Animator | `setAnimatorOptions`
 | backlog |  |  |  |  | arkui.AttributeUpdater | unnamed | AttributeUpdater | 0 | class |  |
 | backlog |  |  |  |  | arkui.AttributeUpdater | AttributeUpdater | attribute | 0 | method |  |
 | backlog |  |  |  |  | arkui.AttributeUpdater | AttributeUpdater | initializeModifier | 0 | method |  |
@@ -143,11 +124,11 @@
 | done | Vadim Voronov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.canvas | ImageBitmap | width | 0 | method | ImageBitmap | `getWidth`
 | done | Vadim Voronov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.canvas | ImageBitmap | close | 0 | method | ImageBitmap | `close`
 | done | Vadim Voronov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.canvas | ImageBitmap | constructor | 0 | method | ImageBitmap | `construct`
-| in progress | Morozov Sergey |  |  |  | arkui.component.canvas | unnamed | ImageData | 0 | class | unnamed | *ImageData*
-| in progress | Dudkin Sergey |  |  |  | arkui.component.canvas | ImageData | data | 0 | method | ImageData | `getData`
-| done | Morozov Sergey |  |  |  | arkui.component.canvas | ImageData | height | 0 | method | ImageData | `getHeight`
-| done | Morozov Sergey |  |  |  | arkui.component.canvas | ImageData | width | 0 | method | ImageData | `getWidth`
-| done | Morozov Sergey |  |  |  | arkui.component.canvas | ImageData | constructor | 0 | method | ImageData | `construct`
+| backlog |  |  |  |  | arkui.component.canvas | unnamed | ImageData | 0 | class |  |
+| backlog |  |  |  |  | arkui.component.canvas | ImageData | data | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | ImageData | height | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | ImageData | width | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | ImageData | constructor | 0 | method |  |
 | done | Vadim Voronov |  |  |  | arkui.component.canvas | unnamed | RenderingContextSettings | 0 | class | unnamed | *RenderingContextSettings*
 | backlog |  |  |  |  | arkui.component.canvas | RenderingContextSettings | antialias | 0 | method | RenderingContextSettings | `getAntialias`
 | backlog |  |  |  |  | arkui.component.canvas | RenderingContextSettings | antialias | 1 | method | RenderingContextSettings | `setAntialias`
@@ -178,12 +159,12 @@
 | done | Vadim Voronov |  |  |  | arkui.component.canvas | CanvasRenderer | createConicGradient | 0 | method | CanvasRenderer | `createConicGradient`
 | blocked IDL | Vadim Voronov |  |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 | arkui.component.canvas | CanvasRenderer | filter | 0 | method | CanvasRenderer | `getFilter`
 | done | Vadim Voronov |  |  |  | arkui.component.canvas | CanvasRenderer | filter | 1 | method | CanvasRenderer | `setFilter`
-| done | Vadim Voronov |  |  | bug hos2422 | arkui.component.canvas | CanvasRenderer | createImageData | 0 | method | CanvasRenderer | `createImageData0`
-| done | Vadim Voronov |  |  | bug hos2422 | arkui.component.canvas | CanvasRenderer | createImageData | 1 | method | CanvasRenderer | `createImageData1`
-| done | Vadim Voronov |  |  |  | arkui.component.canvas | CanvasRenderer | getImageData | 0 | method | CanvasRenderer | `getImageData`
+| backlog |  |  |  |  | arkui.component.canvas | CanvasRenderer | createImageData | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | CanvasRenderer | createImageData | 1 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | CanvasRenderer | getImageData | 0 | method |  |
 | done | Vadim Voronov |  |  | bug hos2423 | arkui.component.canvas | CanvasRenderer | getPixelMap | 0 | method | CanvasRenderer | `getPixelMap`
-| done | Vadim Voronov |  |  | bug hos2422 | arkui.component.canvas | CanvasRenderer | putImageData | 0 | method | CanvasRenderer | `putImageData0`
-| done | Vadim Voronov |  |  |  | arkui.component.canvas | CanvasRenderer | putImageData | 1 | method | CanvasRenderer | `putImageData1`
+| backlog |  |  |  |  | arkui.component.canvas | CanvasRenderer | putImageData | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.canvas | CanvasRenderer | putImageData | 1 | method |  |
 | done | Vadim Voronov |  |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 | arkui.component.canvas | CanvasRenderer | imageSmoothingEnabled | 0 | method | CanvasRenderer | `getImageSmoothingEnabled`
 | done | Vadim Voronov |  |  |  | arkui.component.canvas | CanvasRenderer | imageSmoothingEnabled | 1 | method | CanvasRenderer | `setImageSmoothingEnabled`
 | blocked IDL | Vadim Voronov |  |  | to be removed from generation, https://gitee.com/nikolay-igotti/idlize/issues/IBP7O2 | arkui.component.canvas | CanvasRenderer | imageSmoothingQuality | 0 | method | CanvasRenderer | `getImageSmoothingQuality`
@@ -355,7 +336,7 @@
 | done | Politov Mikhail |  |  |  | arkui.component.common | BaseEvent | tiltY | 0 | field | BaseEvent | `getTiltY`/`setTiltY`
 | done | Pavelyev Ivan |  |  |  | arkui.component.common | BaseEvent | rollAngle | 0 | field | BaseEvent | `getRollAngle`/`setRollAngle`
 | done | Tuzhilkin Ivan/Politov Mikhail |  |  |  | arkui.component.common | BaseEvent | sourceTool | 0 | field | BaseEvent | `getSourceTool`/`setSourceTool`
-| backlog | Politov Mikhail |  |  |  | arkui.component.common | BaseEvent | getModifierKeyState | 0 | field | BaseEvent | `getGetModifierKeyState`/`setGetModifierKeyState`
+| backlog/done | /Politov Mikhail |  |  |  | arkui.component.common | BaseEvent | getModifierKeyState | 0 | field | BaseEvent | `getGetModifierKeyState`/`setGetModifierKeyState`
 | done | Politov Mikhail |  |  |  | arkui.component.common | BaseEvent | deviceId | 0 | field | BaseEvent | `getDeviceId`/`setDeviceId`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | BaseEvent | targetDisplayId | 0 | field | BaseEvent | `getTargetDisplayId`/`setTargetDisplayId`
 | backlog |  |  |  |  | arkui.component.common | unnamed | LayoutPolicy | 0 | class | unnamed | *LayoutPolicy*
@@ -368,7 +349,7 @@
 | done | Tuzhilkin Ivan/Maksimov Nikita |  |  |  | arkui.component.common | ClickEvent | windowY | 0 | field | ClickEvent | `getWindowY`/`setWindowY`
 | done | Tuzhilkin Ivan/Maksimov Nikita |  |  |  | arkui.component.common | ClickEvent | x | 0 | field | ClickEvent | `getX`/`setX`
 | done | Tuzhilkin Ivan/Maksimov Nikita |  |  |  | arkui.component.common | ClickEvent | y | 0 | field | ClickEvent | `getY`/`setY`
-| done | Samarin Sergey |  |  | request to delete `setHand` interface from CAPI: https://gitee.com/nikolay-igotti/idlize/issues/IC5IO9 | arkui.component.common | ClickEvent | hand | 0 | field | ClickEvent | `getHand`/`setHand`
+| done/blocked IDL | Samarin Sergey |  |  | /request to delete the interface from CAPI: https://gitee.com/nikolay-igotti/idlize/issues/IC5IO9 | arkui.component.common | ClickEvent | hand | 0 | field | ClickEvent | `getHand`/`setHand`
 | done | Samarin Sergey/Maksimov Nikita |  |  |  | arkui.component.common | ClickEvent | preventDefault | 0 | field | ClickEvent | `getPreventDefault`/`setPreventDefault`
 | done | Tuzhilkin Ivan |  |  |  | arkui.component.common | unnamed | HoverEvent | 0 | interface | unnamed | *HoverEvent*
 | done | Tuzhilkin Ivan |  |  | need cherry-pick to FB | arkui.component.common | HoverEvent | x | 0 | field | HoverEvent | `getX`/`setX`
@@ -436,7 +417,7 @@
 | done | Tuzhilkin Ivan |  |  |  | arkui.component.common | DragEvent | getVelocityX | 0 | method | DragEvent | `getVelocityX`
 | done | Tuzhilkin Ivan |  |  |  | arkui.component.common | DragEvent | getVelocityY | 0 | method | DragEvent | `getVelocityY`
 | done | Tuzhilkin Ivan |  |  |  | arkui.component.common | DragEvent | getVelocity | 0 | method | DragEvent | `getVelocity`
-| backlog | Tuzhilkin Ivan |  |  |  | arkui.component.common | DragEvent | getModifierKeyState | 0 | field | DragEvent | `getGetModifierKeyState`/`setGetModifierKeyState`
+| done/backlog | Tuzhilkin Ivan/ |  |  |  | arkui.component.common | DragEvent | getModifierKeyState | 0 | field | DragEvent | `getGetModifierKeyState`/`setGetModifierKeyState`
 | done | wangtao |  |  | can be implemented on 125 generation | arkui.component.common | DragEvent | executeDropAnimation | 0 | method | DragEvent | `executeDropAnimation`
 | backlog |  |  |  |  | arkui.component.common | DragEvent | enableInternalDropAnimation | 0 | method | DragEvent | `enableInternalDropAnimation`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | unnamed | KeyEvent | 0 | interface | unnamed | *KeyEvent*
@@ -447,8 +428,8 @@
 | done | Maksimov Nikita |  |  |  | arkui.component.common | KeyEvent | deviceId | 0 | field | KeyEvent | `getDeviceId`/`setDeviceId`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | KeyEvent | metaKey | 0 | field | KeyEvent | `getMetaKey`/`setMetaKey`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | KeyEvent | timestamp | 0 | field | KeyEvent | `getTimestamp`/`setTimestamp`
-| done | Samarin Sergey/Maksimov Nikita |  |  | empty implementation for `setStopPropagation` | arkui.component.common | KeyEvent | stopPropagation | 0 | field | KeyEvent | `getStopPropagation`/`setStopPropagation`
-| done | Maksimov Nikita |  |  | KeyEventAccessor::SetIntentionCodeImpl doesn't have sense. | arkui.component.common | KeyEvent | intentionCode | 0 | field | KeyEvent | `getIntentionCode`/`setIntentionCode`
+| done | Samarin Sergey/Maksimov Nikita |  |  | /empty implementation | arkui.component.common | KeyEvent | stopPropagation | 0 | field | KeyEvent | `getStopPropagation`/`setStopPropagation`
+| done | Maksimov Nikita |  |  | /KeyEventAccessor::SetIntentionCodeImpl doesn't have sense. | arkui.component.common | KeyEvent | intentionCode | 0 | field | KeyEvent | `getIntentionCode`/`setIntentionCode`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | KeyEvent | getModifierKeyState | 0 | field | KeyEvent | `getGetModifierKeyState`/`setGetModifierKeyState`
 | done | Maksimov Nikita |  |  |  | arkui.component.common | KeyEvent | unicode | 0 | field | KeyEvent | `getUnicode`/`setUnicode`
 | done | Evstigneev Roman |  |  | feature: API not present | arkui.component.common | unnamed | FocusAxisEvent | 0 | interface | unnamed | *FocusAxisEvent*
@@ -474,7 +455,7 @@
 | done | Roman Sedaikin |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | width | 0 | method | CommonMethod | `setWidth`
 | done | Roman Sedaikin |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | height | 0 | method | CommonMethod | `setHeight`
 | done | Erokhin Ilya |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | drawModifier | 0 | method | CommonMethod | `setDrawModifier`
-| in progress | Dmitry A Smirnov |  |  | need clarify bridge implementation, test blocked by FrameNode.getCustomProperty, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | customProperty | 0 | method | CommonMethod | `setCustomProperty`
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | customProperty | 0 | method |  |
 | done | Dmitry A Smirnov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.common | CommonMethod | expandSafeArea | 0 | method | CommonMethod | `setExpandSafeArea`
 | done | Skroba Gleb |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | responseRegion | 0 | method | CommonMethod | `setResponseRegion`
 | done | Skroba Gleb |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | mouseResponseRegion | 0 | method | CommonMethod | `setMouseResponseRegion`
@@ -528,7 +509,6 @@
 | done | Roman Sedaikin |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | hoverEffect | 0 | method | CommonMethod | `setHoverEffect`
 | done | Kovalev Sergey |  |  | EVENT | arkui.component.common | CommonMethod | onMouse | 0 | method | CommonMethod | `setOnMouse`
 | done | Roman Sedaikin |  |  | EVENT | arkui.component.common | CommonMethod | onTouch | 0 | method | CommonMethod | `setOnTouch`
-| done | Pavelyev Ivan |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | onKeyEvent | 0 | method | CommonMethod | `setOnKeyEvent`
 | done | Evstigneev Roman |  |  | feature: API not present, test blocked since wearable, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | onDigitalCrown | 0 | method | CommonMethod | `setOnDigitalCrown`
 | done | Pavelyev Ivan |  |  | unit tests failed, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | onKeyPreIme | 0 | method | CommonMethod | `setOnKeyPreIme`
 | done | Lobah Mikhail |  |  |  | arkui.component.common | CommonMethod | onKeyEventDispatch | 0 | method | CommonMethod | `setOnKeyEventDispatch`
@@ -544,15 +524,14 @@
 | done | Dmitry A Smirnov |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | groupDefaultFocus | 0 | method | CommonMethod | `setGroupDefaultFocus`
 | done | Dmitry A Smirnov |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | focusOnTouch | 0 | method | CommonMethod | `setFocusOnTouch`
 | done | Dudkin Sergey |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA info: LinkerUnresolvedClassError arkui.Graphics.ColorMetrics | arkui.component.common | CommonMethod | focusBox | 0 | method | CommonMethod | `setFocusBox`
-| done | Dmitry A Smirnov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | focusScopeId | 0 | method | CommonMethod | `setFocusScopeId0`
-| backlog |  |  |  |  | arkui.component.common | CommonMethod | focusScopeId | 1 | method | CommonMethod | `setFocusScopeId1`
+| done | Dmitry A Smirnov |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | focusScopeId | 0 | method | CommonMethod | `setFocusScopeId`
 | done | Dmitry A Smirnov |  |  |  | arkui.component.common | CommonMethod | focusScopePriority | 0 | method | CommonMethod | `setFocusScopePriority`
 | backlog |  |  |  | test blocked by ICurve | arkui.component.common | CommonMethod | animation | 0 | method | CommonMethod | `setAnimation`
 | done | Dmitry A Smirnov |  |  | test is blocked due to ArkTS 1.2 Compilation Issue, transition(Ark_TransitionOptions) - deprecated, this case tesskipped | arkui.component.common | CommonMethod | transition | 0 | method | CommonMethod | `setTransition0`
 | done | Dmitry A Smirnov |  |  | test is blocked due to ArkTS 1.2 Compilation Issue, transition(Ark_TransitionOptions) - deprecated, this case tesskipped, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | transition | 1 | method | CommonMethod | `setTransition1`
-| done | Erokhin Ilya |  |  |  | arkui.component.common | CommonMethod | gesture | 0 | method | CommonMethod | `setGesture`
-| done | Erokhin Ilya |  |  |  | arkui.component.common | CommonMethod | priorityGesture | 0 | method | CommonMethod | `setPriorityGesture`
-| done | Erokhin Ilya |  |  | test blocked by `id` interface | arkui.component.common | CommonMethod | parallelGesture | 0 | method | CommonMethod | `setParallelGesture`
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | gesture | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | priorityGesture | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | parallelGesture | 0 | method |  |
 | done | Erokhin Ilya |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.common | CommonMethod | blur | 0 | method | CommonMethod | `setBlur0`
 | backlog |  |  |  |  | arkui.component.common | CommonMethod | blur | 1 | method | CommonMethod | `setBlur1`
 | done | Lobah Mikhail |  |  | linearGradientBlur1 not implemented | arkui.component.common | CommonMethod | linearGradientBlur | 0 | method | CommonMethod | `setLinearGradientBlur`
@@ -611,8 +590,7 @@
 | done | Lobah Mikhail |  |  | won't work because of guozejun changes, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | onDragEnd | 0 | method | CommonMethod | `setOnDragEnd`
 | done | Lobah Mikhail |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | allowDrop | 0 | method | CommonMethod | `setAllowDrop`
 | done | Lobah Mikhail |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | draggable | 0 | method | CommonMethod | `setDraggable`
-| done | Lobah Mikhail |  |  | UT done Lobah Mikhail CustomBuilder, test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | dragPreview | 0 | method | CommonMethod | `setDragPreview0`
-| done | Lobah Mikhail |  |  | UT done Lobah Mikhail CustomBuilder, test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, not implemented | arkui.component.common | CommonMethod | dragPreview | 1 | method | CommonMethod | `setDragPreview1`
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | dragPreview | 0 | method | CommonMethod | `setDragPreview`
 | blocked IDL | Erokhin Ilya |  |  | https://gitee.com/nikolay-igotti/idlize/issues/IBC7UD, test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | dragPreviewOptions | 0 | method | CommonMethod | `setDragPreviewOptions`
 | done | Lobah Mikhail |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | onPreDrag | 0 | method | CommonMethod | `setOnPreDrag`
 | blocked IDL | Lobah Mikhail |  |  | https://gitee.com/nikolay-igotti/idlize/issues/IBUXWQ Correct generation of the 'Ark_ComponentContent' class without stubs is required, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | overlay | 0 | method | CommonMethod | `setOverlay`
@@ -648,22 +626,16 @@
 | done | Lobah Mikhail |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | lightUpEffect | 0 | method | CommonMethod | `setLightUpEffect`
 | done | Lobah Mikhail |  |  | commented ViewAbstract static methods code | arkui.component.common | CommonMethod | pixelStretchEffect | 0 | method | CommonMethod | `setPixelStretchEffect`
 | done | Erokhin Ilya |  |  | UT by Vadim Voronov, test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstract static methods code | arkui.component.common | CommonMethod | keyboardShortcut | 0 | method | CommonMethod | `setKeyboardShortcut`
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityGroupWithValue | 0 | method | CommonMethod | `setAccessibilityGroupWithValue`
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityGroupWithConfig | 0 | method | CommonMethod | `setAccessibilityGroupWithConfig`
-| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityGroup | 0 | method |  |
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityTextOfStringType | 0 | method | CommonMethod | `setAccessibilityTextOfStringType`
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityGroup | 0 | method | CommonMethod | `setAccessibilityGroup`
 | done | Lobah Mikhail |  |  | Not exists on FB, no accessibility srvice on FB, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityNextFocusId | 0 | method | CommonMethod | `setAccessibilityNextFocusId`
 | backlog |  |  |  | managed side https://gitee.com/openharmony/arkui_ace_engine/issues/IBYL00, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityDefaultFocus | 0 | method | CommonMethod | `setAccessibilityDefaultFocus`
 | done | Lobah Mikhail |  |  | Not exists on FB, no accessibility srvice on FB, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityUseSamePage | 0 | method | CommonMethod | `setAccessibilityUseSamePage`
 | done | Tuzhilkin Ivan |  |  | WRONG_GENERATION: parameter should be Opt, need cherry-pick to feature_branch, no accessibility srvice on FB, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityScrollTriggerable | 0 | method | CommonMethod | `setAccessibilityScrollTriggerable`
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityTextOfResourceType | 0 | method | CommonMethod | `setAccessibilityTextOfResourceType`
-| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityText | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityText | 0 | method | CommonMethod | `setAccessibilityText`
 | done | Lobah Mikhail |  |  | Not exists on FB, no accessibility srvice on FB, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityRole | 0 | method | CommonMethod | `setAccessibilityRole`
 | done | Evstigneev Roman |  |  | feature: API not present, no accessibility srvice on FB, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | onAccessibilityFocus | 0 | method | CommonMethod | `setOnAccessibilityFocus`
 | done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityTextHint | 0 | method | CommonMethod | `setAccessibilityTextHint`
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityDescriptionOfStringType | 0 | method | CommonMethod | `setAccessibilityDescriptionOfStringType`
-| done | Lobah Mikhail |  |  | test blocked by by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityDescriptionOfResourceType | 0 | method | CommonMethod | `setAccessibilityDescriptionOfResourceType`
-| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityDescription | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.common | CommonMethod | accessibilityDescription | 0 | method | CommonMethod | `setAccessibilityDescription`
 | done | Lobah Mikhail |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityLevel | 0 | method | CommonMethod | `setAccessibilityLevel`
 | done | Lobah Mikhail |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityVirtualNode | 0 | method | CommonMethod | `setAccessibilityVirtualNode`
 | done | Lobah Mikhail |  |  | test blocked by https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA, commented ViewAbstractModelNG static methods code | arkui.component.common | CommonMethod | accessibilityChecked | 0 | method | CommonMethod | `setAccessibilityChecked`
@@ -786,12 +758,21 @@
 | done | Erokhin Ilya |  |  |  | arkui.component.counter | CounterAttribute | enableInc | 0 | method | Counter | `setEnableInc`
 | backlog |  |  |  |  | arkui.component.counter | CounterAttribute | attributeModifier | 0 | method |  |
 | done | Erokhin Ilya |  |  |  | arkui.component.counter | unnamed | Counter | 0 | method | Counter | `setCounterOptions`
+| backlog |  |  |  |  | arkui.component.customComponent | unnamed | ReuseObject | 0 | class |  |
+| backlog |  |  |  |  | arkui.component.customComponent | ReuseObject | raw | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | ReuseObject | $_get | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | ReuseObject | has | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | ReuseObject | keys | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | ReuseObject | constructor | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | Entry | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | Component | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | ComponentV2 | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | Reusable | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | ReusableV2 | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | CustomLayout | 0 | annotation |  |
+| backlog |  |  |  |  | arkui.component.customComponent | unnamed | EntryPoint | 0 | class |  |
+| backlog |  |  |  |  | arkui.component.customComponent | EntryPoint | entry | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | EntryPoint | constructor | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | CustomDialog | 0 | annotation |  |
 | backlog |  |  |  |  | arkui.component.customComponent | unnamed | BaseCustomDialog | 0 | class |  |
 | backlog |  |  |  |  | arkui.component.customComponent | BaseCustomDialog | constructor | 0 | method |  |
@@ -812,8 +793,8 @@
 | backlog |  |  |  |  | arkui.component.customComponent | PageLifeCycle | onBackPress | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.customComponent | PageLifeCycle | pageTransition | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.customComponent | PageLifeCycle | onNewParam | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.customComponent | LayoutCallback | onPlaceChildren | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.customComponent | LayoutCallback | onMeasureSize | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | LayoutCallbacks | onPlaceChildren | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.customComponent | LayoutCallbacks | onMeasureSize | 0 | method |  |
 | done | Maksimov Nikita |  |  |  | arkui.component.customDialogController | unnamed | CustomDialogController | 0 | class | unnamed | *CustomDialogController*
 | done | Maksimov Nikita |  |  | finished by HQ | arkui.component.customDialogController | CustomDialogController | constructor | 0 | method | CustomDialogController | `construct`
 | done | Maksimov Nikita |  |  |  | arkui.component.customDialogController | CustomDialogController | open | 0 | method | CustomDialogController | `open`
@@ -866,6 +847,7 @@
 | backlog |  |  |  |  | arkui.component.extendableComponent | LifeCycle | onDidBuild | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.extendableComponent | LifeCycle | build | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.extendableComponent | unnamed | ExtendableComponent | 0 | class |  |
+| backlog |  |  |  |  | arkui.component.extendableComponent | ExtendableComponent | onWillApplyTheme | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.extendableComponent | ExtendableComponent | getUIContext | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.extendableComponent | ExtendableComponent | getUniqueId | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.extendableComponent | ExtendableComponent | queryNavDestinationInfo | 0 | method |  |
@@ -891,8 +873,23 @@
 | backlog |  |  |  |  | arkui.component.folderStack | FolderStackAttribute | attributeModifier | 0 | method |  |
 | done | Politov Mikhail |  |  |  | arkui.component.folderStack | unnamed | FolderStack | 0 | method | FolderStack | `setFolderStackOptions`
 | backlog |  |  |  |  | arkui.component.forEach | unnamed | ForEach | 0 | method |  |
+| deleted out of scope | Vadim Voronov |  |  | out of scope | arkui.component.formComponent | unnamed | FormComponentAttribute | 0 | interface | unnamed | *FormComponent*
+| deleted out of scope | Vadim Voronov |  |  | out of scope, empty method https://gitee.com/openharmony/arkui_ace_engine/issues/IB78HF | arkui.component.formComponent | FormComponentAttribute | size | 0 | method | FormComponent | `setSize`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | moduleName | 0 | method | FormComponent | `setModuleName`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | dimension | 0 | method | FormComponent | `setDimension`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | allowUpdate | 0 | method | FormComponent | `setAllowUpdate`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | visibility | 0 | method | FormComponent | `setVisibility`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | onAcquired | 0 | method | FormComponent | `setOnAcquired`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, on FB testskipped, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | onError | 0 | method | FormComponent | `setOnError`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, https://gitee.com/nikolay-igotti/idlize/issues/ICAZXO | arkui.component.formComponent | FormComponentAttribute | onRouter | 0 | method | FormComponent | `setOnRouter`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | onUninstall | 0 | method | FormComponent | `setOnUninstall`
+| deleted out of scope | Vadim Voronov |  |  | out of scope, test blocked https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.formComponent | FormComponentAttribute | onLoad | 0 | method | FormComponent | `setOnLoad`
+| deleted out of scope | Vadim Voronov |  |  | out of scope | arkui.component.formComponent | FormComponentAttribute | onUpdate | 0 | method | FormComponent | `setOnUpdate`
 | backlog |  |  |  |  | arkui.component.formComponent | FormComponentAttribute | attributeModifier | 0 | method |  |
+| deleted out of scope | Vadim Voronov |  |  | out of scope | arkui.component.formComponent | unnamed | FormComponent | 0 | method | FormComponent | `setFormComponentOptions`
+| deleted out of scope | Dmitry A Smirnov |  |  | out of scope | arkui.component.formLink | unnamed | FormLinkAttribute | 0 | interface | unnamed | *FormLink*
 | backlog |  |  |  |  | arkui.component.formLink | FormLinkAttribute | attributeModifier | 0 | method |  |
+| deleted out of scope | Dmitry A Smirnov |  |  | out of scope | arkui.component.formLink | unnamed | FormLink | 0 | method | FormLink | `setFormLinkOptions`
 | done | Maksimov Nikita |  |  |  | arkui.component.gauge | unnamed | GaugeAttribute | 0 | interface | unnamed | *Gauge*
 | done | Maksimov Nikita |  |  |  | arkui.component.gauge | GaugeAttribute | value | 0 | method | Gauge | `setValue`
 | done | Maksimov Nikita |  |  |  | arkui.component.gauge | GaugeAttribute | startAngle | 0 | method | Gauge | `setStartAngle`
@@ -943,16 +940,16 @@
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | Gesture | tag | 0 | method | Gesture | `tag`
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | Gesture | allowedTypes | 0 | method | Gesture | `allowedTypes`
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | Gesture | constructor | 0 | method | Gesture | `construct`
-| backlog |  |  |  |  | arkui.component.gesture | unnamed | TapGesture | 0 | class |  |
-| backlog |  |  |  |  | arkui.component.gesture | TapGesture | $_instantiate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | TapGesture | onAction | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | TapGesture | constructor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | unnamed | LongPressGesture | 0 | class |  |
-| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | $_instantiate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onAction | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onActionEnd | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onActionCancel | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | constructor | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.gesture | unnamed | TapGesture | 0 | class | unnamed | *TapGesture*
+| backlog |  |  |  |  | arkui.component.gesture | TapGesture | $_instantiate | 0 | method | TapGesture | `$_instantiate`
+| backlog |  |  |  |  | arkui.component.gesture | TapGesture | onAction | 0 | method | TapGesture | `onAction`
+| backlog |  |  |  |  | arkui.component.gesture | TapGesture | constructor | 0 | method | TapGesture | `construct`
+| backlog |  |  |  |  | arkui.component.gesture | unnamed | LongPressGesture | 0 | class | unnamed | *LongPressGesture*
+| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | $_instantiate | 0 | method | LongPressGesture | `$_instantiate`
+| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onAction | 0 | method | LongPressGesture | `onAction`
+| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onActionEnd | 0 | method | LongPressGesture | `onActionEnd`
+| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | onActionCancel | 0 | method | LongPressGesture | `onActionCancel`
+| backlog |  |  |  |  | arkui.component.gesture | LongPressGesture | constructor | 0 | method | LongPressGesture | `construct`
 | done | Politov Mikhail |  |  | wait new generation for feature_branch, to merge CTOR impl | arkui.component.gesture | unnamed | PanGestureOptions | 0 | class | unnamed | *PanGestureOptions*
 | done | Politov Mikhail |  |  |  | arkui.component.gesture | PanGestureOptions | constructor | 0 | method | PanGestureOptions | `construct`
 | done | Politov Mikhail |  |  |  | arkui.component.gesture | PanGestureOptions | setDirection | 0 | method | PanGestureOptions | `setDirection`
@@ -960,24 +957,24 @@
 | done | Politov Mikhail |  |  |  | arkui.component.gesture | PanGestureOptions | setFingers | 0 | method | PanGestureOptions | `setFingers`
 | done | Dudkin Sergey |  |  |  | arkui.component.gesture | PanGestureOptions | getDirection | 0 | method | PanGestureOptions | `getDirection`
 | done | Erokhin Ilya |  |  |  | arkui.component.gesture | PanGestureOptions | getDistance | 0 | method | PanGestureOptions | `getDistance`
-| backlog |  |  |  |  | arkui.component.gesture | unnamed | PanGesture | 0 | class |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | $_instantiate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionStart | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionUpdate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionEnd | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionCancel | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PanGesture | constructor | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.gesture | unnamed | PanGesture | 0 | class | unnamed | *PanGesture*
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | $_instantiate | 0 | method | PanGesture | `$_instantiate`
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionStart | 0 | method | PanGesture | `onActionStart`
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionUpdate | 0 | method | PanGesture | `onActionUpdate`
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionEnd | 0 | method | PanGesture | `onActionEnd`
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | onActionCancel | 0 | method | PanGesture | `onActionCancel`
+| backlog |  |  |  |  | arkui.component.gesture | PanGesture | constructor | 0 | method | PanGesture | `construct`
 | done | Tuzhilkin Ivan, Samarin Sergey |  |  |  | arkui.component.gesture | unnamed | SwipeGesture | 0 | class | unnamed | *SwipeGesture*
 | done | Samarin Sergey |  |  |  | arkui.component.gesture | SwipeGesture | $_instantiate | 0 | method | SwipeGesture | `$_instantiate`
 | done | Tuzhilkin Ivan, Samarin Sergey |  |  |  | arkui.component.gesture | SwipeGesture | onAction | 0 | method | SwipeGesture | `onAction`
 | done | Tuzhilkin Ivan, Samarin Sergey |  |  |  | arkui.component.gesture | SwipeGesture | constructor | 0 | method | SwipeGesture | `construct`
-| backlog |  |  |  |  | arkui.component.gesture | unnamed | PinchGesture | 0 | class |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | $_instantiate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionStart | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionUpdate | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionEnd | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionCancel | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | constructor | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.gesture | unnamed | PinchGesture | 0 | class | unnamed | *PinchGesture*
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | $_instantiate | 0 | method | PinchGesture | `$_instantiate`
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionStart | 0 | method | PinchGesture | `onActionStart`
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionUpdate | 0 | method | PinchGesture | `onActionUpdate`
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionEnd | 0 | method | PinchGesture | `onActionEnd`
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | onActionCancel | 0 | method | PinchGesture | `onActionCancel`
+| backlog |  |  |  |  | arkui.component.gesture | PinchGesture | constructor | 0 | method | PinchGesture | `construct`
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | unnamed | RotationGesture | 0 | class | unnamed | *RotationGesture*
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | RotationGesture | $_instantiate | 0 | method | RotationGesture | `$_instantiate`
 | in progress | Samarin Sergey |  |  |  | arkui.component.gesture | RotationGesture | onActionStart | 0 | method | RotationGesture | `onActionStart`
@@ -1205,6 +1202,8 @@
 | backlog |  |  |  |  | arkui.component.interop | unnamed | compatibleWrappedBuilder | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.interop | unnamed | transferCompatibleBuilder | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.interop | unnamed | transferCompatibleUpdatableBuilder | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.interop | unnamed | enableCompatibleObservedV2ForDynamic | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.interop | unnamed | enableCompatibleObservedV2ForStatic | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.lazyForEach | DataChangeListener | onDataReloaded | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.lazyForEach | DataChangeListener | onDataAdd | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.lazyForEach | DataChangeListener | onDataMove | 0 | method |  |
@@ -1352,10 +1351,8 @@
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | onBackPressed | 0 | method | NavDestination | `setOnBackPressed`
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | onResult | 0 | method | NavDestination | `setOnResult`
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | mode | 0 | method | NavDestination | `setMode`
-| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | backButtonIcon | 0 | method | NavDestination | `setBackButtonIcon0`
-| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | backButtonIcon | 1 | method | NavDestination | `setBackButtonIcon1`
-| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | menus | 0 | method | NavDestination | `setMenus0`
-| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | menus | 1 | method | NavDestination | `setMenus1`
+| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | backButtonIcon | 0 | method | NavDestination | `setBackButtonIcon`
+| backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | menus | 0 | method | NavDestination | `setMenus`
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | toolbarConfiguration | 0 | method | NavDestination | `setToolbarConfiguration`
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | hideToolBar | 0 | method | NavDestination | `setHideToolBar`
 | backlog |  |  |  |  | arkui.component.navDestination | NavDestinationAttribute | onReady | 0 | method | NavDestination | `setOnReady`
@@ -1380,40 +1377,44 @@
 | backlog |  |  |  |  | arkui.component.navDestination | unnamed | NavDestination | 0 | method | NavDestination | `setNavDestinationOptions`
 | backlog |  |  |  | done in C-API as workarond, the managed side support is planned | arkui.component.navigation | unnamed | NavPathInfo | 0 | class | unnamed | *NavPathInfo*
 | backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | constructor | 0 | method | NavPathInfo | `construct`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | name | 0 | field | NavPathInfo | `getName`/`setName`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | param | 0 | field | NavPathInfo | `getParam`/`setParam`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | onPop | 0 | field | NavPathInfo | `getOnPop`/`setOnPop`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | isEntry | 0 | field | NavPathInfo | `getIsEntry`/`setIsEntry`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | navDestinationId | 0 | field | NavPathInfo | `getNavDestinationId`/`setNavDestinationId`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | name | 0 | method | NavPathInfo | `getName`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | name | 1 | method | NavPathInfo | `setName`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | param | 0 | method | NavPathInfo | `getParam`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | param | 1 | method | NavPathInfo | `setParam`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | onPop | 0 | method | NavPathInfo | `getOnPop`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | onPop | 1 | method | NavPathInfo | `setOnPop`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | isEntry | 0 | method | NavPathInfo | `getIsEntry`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | isEntry | 1 | method | NavPathInfo | `setIsEntry`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathInfo | navDestinationId | 0 | method | NavPathInfo | `getNavDestinationId`
 | backlog |  |  |  |  | arkui.component.navigation | unnamed | NavPathStack | 0 | class | unnamed | *NavPathStack*
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | constructor | 0 | method | NavPathStack | `construct`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPath | 0 | method | NavPathStack | `pushPath0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPath | 1 | method | NavPathStack | `pushPath1`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPath | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPath | 1 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushDestination | 0 | method | NavPathStack | `pushDestination0`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushDestination | 1 | method | NavPathStack | `pushDestination1`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPathByName | 0 | method | NavPathStack | `pushPathByName0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPathByName | 1 | method | NavPathStack | `pushPathByName1`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPathByName | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushPathByName | 1 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushDestinationByName | 0 | method | NavPathStack | `pushDestinationByName0`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pushDestinationByName | 1 | method | NavPathStack | `pushDestinationByName1`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePath | 0 | method | NavPathStack | `replacePath0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePath | 1 | method | NavPathStack | `replacePath1`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePath | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePath | 1 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replaceDestination | 0 | method | NavPathStack | `replaceDestination`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePathByName | 0 | method | NavPathStack | `replacePathByName`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | replacePathByName | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | removeByIndexes | 0 | method | NavPathStack | `removeByIndexes`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | removeByName | 0 | method | NavPathStack | `removeByName`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | removeByNavDestinationId | 0 | method | NavPathStack | `removeByNavDestinationId`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pop | 0 | method | NavPathStack | `pop0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pop | 1 | method | NavPathStack | `pop1`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToName | 0 | method | NavPathStack | `popToName0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToName | 1 | method | NavPathStack | `popToName1`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToIndex | 0 | method | NavPathStack | `popToIndex0`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToIndex | 1 | method | NavPathStack | `popToIndex1`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pop | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | pop | 1 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToName | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToName | 1 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToIndex | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | popToIndex | 1 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | moveToTop | 0 | method | NavPathStack | `moveToTop`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | moveIndexToTop | 0 | method | NavPathStack | `moveIndexToTop`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | clear | 0 | method | NavPathStack | `clear`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getAllPathName | 0 | method | NavPathStack | `getAllPathName`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getParamByIndex | 0 | method | NavPathStack | `getParamByIndex`
-| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getParamByName | 0 | method | NavPathStack | `getParamByName`
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getParamByIndex | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getParamByName | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getIndexByName | 0 | method | NavPathStack | `getIndexByName`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | getParent | 0 | method | NavPathStack | `getParent`
 | backlog |  |  |  |  | arkui.component.navigation | NavPathStack | size | 0 | method | NavPathStack | `size`
@@ -1427,16 +1428,14 @@
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | navBarWidthRange | 0 | method | Navigation | `setNavBarWidthRange`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | minContentWidth | 0 | method | Navigation | `setMinContentWidth`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | mode | 0 | method | Navigation | `setMode`
-| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | backButtonIcon | 0 | method | Navigation | `setBackButtonIcon0`
-| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | backButtonIcon | 1 | method | Navigation | `setBackButtonIcon1`
+| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | backButtonIcon | 0 | method | Navigation | `setBackButtonIcon`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideNavBar | 0 | method | Navigation | `setHideNavBar`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | title | 0 | method | Navigation | `setTitle`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideTitleBar | 0 | method | Navigation | `setHideTitleBar0`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideTitleBar | 1 | method | Navigation | `setHideTitleBar1`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideBackButton | 0 | method | Navigation | `setHideBackButton`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | titleMode | 0 | method | Navigation | `setTitleMode`
-| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | menus | 0 | method | Navigation | `setMenus0`
-| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | menus | 1 | method | Navigation | `setMenus1`
+| backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | menus | 0 | method | Navigation | `setMenus`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | toolbarConfiguration | 0 | method | Navigation | `setToolbarConfiguration`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideToolBar | 0 | method | Navigation | `setHideToolBar0`
 | backlog |  |  |  |  | arkui.component.navigation | NavigationAttribute | hideToolBar | 1 | method | Navigation | `setHideToolBar1`
@@ -1481,9 +1480,9 @@
 | backlog |  |  |  |  | arkui.component.particle | ParticleAttribute | emitter | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.particle | ParticleAttribute | attributeModifier | 0 | method |  |
 | backlog |  |  |  |  | arkui.component.particle | unnamed | Particle | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.pasteButton | PasteButtonInterface | invoke | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.pasteButton | PasteButtonAttribute | onClick | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.pasteButton | unnamed | PasteButton | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.pasteButton | unnamed | PasteButtonAttribute | 0 | interface | unnamed | *PasteButton*
+| backlog |  |  |  |  | arkui.component.pasteButton | PasteButtonAttribute | onClick | 0 | method | PasteButton | `setOnClick`
+| backlog |  |  |  |  | arkui.component.pasteButton | unnamed | PasteButton | 0 | method | PasteButton | `setPasteButtonOptions`
 | done | Skroba Gleb |  |  |  | arkui.component.path | unnamed | PathAttribute | 0 | interface | unnamed | *Path*
 | done | Skroba Gleb |  |  |  | arkui.component.path | PathAttribute | commands | 0 | method | Path | `setCommands`
 | backlog |  |  |  |  | arkui.component.path | PathAttribute | attributeModifier | 0 | method |  |
@@ -1675,9 +1674,9 @@
 | done | Dmitry A Smirnov |  |  | OHOSUI-2202 resizeable does not work | arkui.component.rowSplit | RowSplitAttribute | resizeable | 0 | method | RowSplit | `setResizeable`
 | backlog |  |  |  |  | arkui.component.rowSplit | RowSplitAttribute | attributeModifier | 0 | method |  |
 | done | Dmitry A Smirnov |  |  | OHOSUI-2201 Text in rowSplit does not appear | arkui.component.rowSplit | unnamed | RowSplit | 0 | method | RowSplit | `setRowSplitOptions`
-| backlog |  |  |  |  | arkui.component.saveButton | SaveButtonInterface | invoke | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.saveButton | SaveButtonAttribute | onClick | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.saveButton | unnamed | SaveButton | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.saveButton | unnamed | SaveButtonAttribute | 0 | interface | unnamed | *SaveButton*
+| backlog |  |  |  |  | arkui.component.saveButton | SaveButtonAttribute | onClick | 0 | method | SaveButton | `setOnClick`
+| backlog |  |  |  |  | arkui.component.saveButton | unnamed | SaveButton | 0 | method | SaveButton | `setSaveButtonOptions`
 | done | Dudkin Sergey |  |  |  | arkui.component.screen | unnamed | ScreenAttribute | 0 | interface | unnamed | *Screen*
 | backlog |  |  |  |  | arkui.component.screen | ScreenAttribute | attributeModifier | 0 | method |  |
 | done | Dudkin Sergey |  |  |  | arkui.component.screen | unnamed | Screen | 0 | method | Screen | `setScreenOptions`
@@ -1772,29 +1771,39 @@
 | done | Kovalev Sergey |  |  |  | arkui.component.search | SearchAttribute | keyboardAppearance | 0 | method | Search | `setKeyboardAppearance`
 | backlog |  |  |  |  | arkui.component.search | SearchAttribute | attributeModifier | 0 | method |  |
 | done | Evstigneev Roman |  |  |  | arkui.component.search | unnamed | Search | 0 | method | Search | `setSearchOptions`
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | iconSize | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | layoutDirection | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | position | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | markAnchor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | offset | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontSize | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontStyle | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontWeight | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontFamily | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontColor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | iconColor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | backgroundColor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderStyle | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderWidth | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderColor | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderRadius | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | padding | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | textIconSpace | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | key | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | width | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | height | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | size | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | constraintSize | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.securityComponent | unnamed | SecurityComponentMethod | 0 | interface | unnamed | *SecurityComponentMethod*
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | iconSize | 0 | method | SecurityComponentMethod | `setIconSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | layoutDirection | 0 | method | SecurityComponentMethod | `setLayoutDirection`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | position | 0 | method | SecurityComponentMethod | `setPosition`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | markAnchor | 0 | method | SecurityComponentMethod | `setMarkAnchor`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | offset | 0 | method | SecurityComponentMethod | `setOffset`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontSize | 0 | method | SecurityComponentMethod | `setFontSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontStyle | 0 | method | SecurityComponentMethod | `setFontStyle`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontFamily | 0 | method | SecurityComponentMethod | `setFontFamily`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | fontColor | 0 | method | SecurityComponentMethod | `setFontColor`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | iconColor | 0 | method | SecurityComponentMethod | `setIconColor`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | backgroundColor | 0 | method | SecurityComponentMethod | `setBackgroundColor`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderStyle | 0 | method | SecurityComponentMethod | `setBorderStyle`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderWidth | 0 | method | SecurityComponentMethod | `setBorderWidth`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderColor | 0 | method | SecurityComponentMethod | `setBorderColor`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | borderRadius | 0 | method | SecurityComponentMethod | `setBorderRadius`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | padding | 0 | method | SecurityComponentMethod | `setPadding`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | textIconSpace | 0 | method | SecurityComponentMethod | `setTextIconSpace`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | key | 0 | method | SecurityComponentMethod | `setKey`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | width | 0 | method | SecurityComponentMethod | `setWidth`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | height | 0 | method | SecurityComponentMethod | `setHeight`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | size | 0 | method | SecurityComponentMethod | `setSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | constraintSize | 0 | method | SecurityComponentMethod | `setConstraintSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | align | 0 | method | SecurityComponentMethod | `setAlign`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | alignRules | 0 | method | SecurityComponentMethod | `setAlignRules`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | id | 0 | method | SecurityComponentMethod | `setId`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | chainMode | 0 | method | SecurityComponentMethod | `setChainMode`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | minFontScale | 0 | method | SecurityComponentMethod | `setMinFontScale`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | maxFontScale | 0 | method | SecurityComponentMethod | `setMaxFontScale`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | minFontSize | 0 | method | SecurityComponentMethod | `setMinFontSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | maxFontSize | 0 | method | SecurityComponentMethod | `setMaxFontSize`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | heightAdaptivePolicy | 0 | method | SecurityComponentMethod | `setHeightAdaptivePolicy`
+| backlog |  |  |  |  | arkui.component.securityComponent | SecurityComponentMethod | enabled | 0 | method | SecurityComponentMethod | `setEnabled`
 | blocked IDL | Samarin Sergey |  |  | https://gitee.com/nikolay-igotti/idlize/issues/IBC7UD +; runtime error in Arkoala part, issue https://gitee.com/nikolay-igotti/idlize/issues/IC4WKA | arkui.component.select | unnamed | SelectAttribute | 0 | interface | unnamed | *Select*
 | done | Samarin Sergey |  |  |  | arkui.component.select | SelectAttribute | selected | 0 | method | Select | `setSelected`
 | done | Samarin Sergey |  |  |  | arkui.component.select | SelectAttribute | value | 0 | method | Select | `setValue`
@@ -2315,8 +2324,7 @@
 | done | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockController | start | 0 | method | TextClockController | `start`
 | done | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockController | stop | 0 | method | TextClockController | `stop`
 | done | Pavelyev Ivan |  |  |  | arkui.component.textClock | unnamed | TextClockAttribute | 0 | interface | unnamed | *TextClock*
-| done | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockAttribute | format | 0 | method | TextClock | `setFormat0`
-| backlog | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockAttribute | format | 1 | method | TextClock | `setFormat1`
+| backlog |  |  |  |  | arkui.component.textClock | TextClockAttribute | format | 0 | method | TextClock | `setFormat`
 | done | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockAttribute | onDateChange | 0 | method | TextClock | `setOnDateChange`
 | done | Pavelyev Ivan |  |  |  | arkui.component.textClock | TextClockAttribute | fontColor | 0 | method | TextClock | `setFontColor`
 | done | Pavelyev Ivan |  |  | https://gitee.com/openharmony/arkui_ace_engine/issues/IBT6PK | arkui.component.textClock | TextClockAttribute | fontSize | 0 | method | TextClock | `setFontSize`
@@ -2508,12 +2516,10 @@
 | blocked IDL | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | unnamed | UIExtensionProxy | 0 | interface | unnamed | *UIExtensionProxy*
 | blocked | Tuzhilkin Ivan |  |  | blocked Arkoala. Want processing | arkui.component.uiExtensionComponent | UIExtensionProxy | send | 0 | method | UIExtensionProxy | `send`
 | blocked | Tuzhilkin Ivan |  |  | blocked Arkoala. Want processing | arkui.component.uiExtensionComponent | UIExtensionProxy | sendSync | 0 | method | UIExtensionProxy | `sendSync`
-| done | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | onAsyncReceiverRegister | 0 | method | UIExtensionProxy | `onAsyncReceiverRegisterAsyncReceiverRegister`
-| done | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | onSyncReceiverRegister | 0 | method | UIExtensionProxy | `onSyncReceiverRegisterSyncReceiverRegister`
-| done | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | offAsyncReceiverRegister | 0 | method | UIExtensionProxy | `offAsyncReceiverRegisterAsyncReceiverRegister`
-| done | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | offSyncReceiverRegister | 0 | method | UIExtensionProxy | `offSyncReceiverRegisterSyncReceiverRegister`
-| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | on | 0 | method |  |
-| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | off | 0 | method |  |
+| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | onAsyncReceiverRegister | 0 | method | UIExtensionProxy | `onAsyncReceiverRegister`
+| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | onSyncReceiverRegister | 0 | method | UIExtensionProxy | `onSyncReceiverRegister`
+| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | offAsyncReceiverRegister | 0 | method | UIExtensionProxy | `offAsyncReceiverRegister`
+| backlog |  |  |  |  | arkui.component.uiExtensionComponent | UIExtensionProxy | offSyncReceiverRegister | 0 | method | UIExtensionProxy | `offSyncReceiverRegister`
 | backlog | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | unnamed | UIExtensionComponentAttribute | 0 | interface | unnamed | *UIExtensionComponent*
 | done | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionComponentAttribute | onRemoteReady | 0 | method | UIExtensionComponent | `setOnRemoteReady`
 | backlog | Tuzhilkin Ivan |  |  |  | arkui.component.uiExtensionComponent | UIExtensionComponentAttribute | onReceive | 0 | method | UIExtensionComponent | `setOnReceive`
@@ -2611,7 +2617,8 @@
 | backlog |  |  |  |  | arkui.component.web | unnamed | SslErrorHandler | 0 | class | unnamed | *SslErrorHandler*
 | backlog |  |  |  |  | arkui.component.web | SslErrorHandler | constructor | 0 | method | SslErrorHandler | `construct`
 | backlog |  |  |  |  | arkui.component.web | SslErrorHandler | handleConfirm | 0 | method | SslErrorHandler | `handleConfirm`
-| backlog |  |  |  |  | arkui.component.web | SslErrorHandler | handleCancel | 0 | method | SslErrorHandler | `handleCancel`
+| backlog |  |  |  |  | arkui.component.web | SslErrorHandler | handleCancel | 0 | method | SslErrorHandler | `handleCancel0`
+| backlog |  |  |  |  | arkui.component.web | SslErrorHandler | handleCancel | 1 | method | SslErrorHandler | `handleCancel1`
 | backlog |  |  |  |  | arkui.component.web | unnamed | ClientAuthenticationHandler | 0 | class | unnamed | *ClientAuthenticationHandler*
 | backlog |  |  |  |  | arkui.component.web | ClientAuthenticationHandler | constructor | 0 | method | ClientAuthenticationHandler | `construct`
 | backlog |  |  |  |  | arkui.component.web | ClientAuthenticationHandler | confirm | 0 | method | ClientAuthenticationHandler | `confirm0`
@@ -2702,7 +2709,129 @@
 | backlog |  |  |  |  | arkui.component.web | EventResult | constructor | 0 | method | EventResult | `construct`
 | backlog |  |  |  |  | arkui.component.web | EventResult | setGestureEventResult | 0 | method | EventResult | `setGestureEventResult0`
 | backlog |  |  |  |  | arkui.component.web | EventResult | setGestureEventResult | 1 | method | EventResult | `setGestureEventResult1`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | unnamed | WebAttribute | 0 | interface | unnamed | *Web*
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | javaScriptAccess | 0 | method | Web | `setJavaScriptAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | fileAccess | 0 | method | Web | `setFileAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | onlineImageAccess | 0 | method | Web | `setOnlineImageAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | domStorageAccess | 0 | method | Web | `setDomStorageAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | imageAccess | 0 | method | Web | `setImageAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | mixedMode | 0 | method | Web | `setMixedMode`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | zoomAccess | 0 | method | Web | `setZoomAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | geolocationAccess | 0 | method | Web | `setGeolocationAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | javaScriptProxy | 0 | method | Web | `setJavaScriptProxy`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | cacheMode | 0 | method | Web | `setCacheMode`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | darkMode | 0 | method | Web | `setDarkMode`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | forceDarkAccess | 0 | method | Web | `setForceDarkAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | mediaOptions | 0 | method | Web | `setMediaOptions`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | overviewModeAccess | 0 | method | Web | `setOverviewModeAccess`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | overScrollMode | 0 | method | Web | `setOverScrollMode`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | blurOnKeyboardHideMode | 0 | method | Web | `setBlurOnKeyboardHideMode`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | textZoomRatio | 0 | method | Web | `setTextZoomRatio`
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | WebAttribute | databaseAccess | 0 | method | Web | `setDatabaseAccess`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | initialScale | 0 | method | Web | `setInitialScale`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | metaViewport | 0 | method | Web | `setMetaViewport`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onPageEnd | 0 | method | Web | `setOnPageEnd`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onPageBegin | 0 | method | Web | `setOnPageBegin`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onLoadStarted | 0 | method | Web | `setOnLoadStarted`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onLoadFinished | 0 | method | Web | `setOnLoadFinished`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onProgressChange | 0 | method | Web | `setOnProgressChange`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onTitleReceive | 0 | method | Web | `setOnTitleReceive`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onGeolocationHide | 0 | method | Web | `setOnGeolocationHide`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onGeolocationShow | 0 | method | Web | `setOnGeolocationShow`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onRequestSelected | 0 | method | Web | `setOnRequestSelected`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onAlert | 0 | method | Web | `setOnAlert`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onBeforeUnload | 0 | method | Web | `setOnBeforeUnload`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onConfirm | 0 | method | Web | `setOnConfirm`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onPrompt | 0 | method | Web | `setOnPrompt`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onConsole | 0 | method | Web | `setOnConsole`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onErrorReceive | 0 | method | Web | `setOnErrorReceive`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onHttpErrorReceive | 0 | method | Web | `setOnHttpErrorReceive`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onDownloadStart | 0 | method | Web | `setOnDownloadStart`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onRefreshAccessedHistory | 0 | method | Web | `setOnRefreshAccessedHistory`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onRenderExited | 0 | method | Web | `setOnRenderExited`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onShowFileSelector | 0 | method | Web | `setOnShowFileSelector`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onResourceLoad | 0 | method | Web | `setOnResourceLoad`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onFullScreenExit | 0 | method | Web | `setOnFullScreenExit`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onFullScreenEnter | 0 | method | Web | `setOnFullScreenEnter`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onScaleChange | 0 | method | Web | `setOnScaleChange`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onHttpAuthRequest | 0 | method | Web | `setOnHttpAuthRequest`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onInterceptRequest | 0 | method | Web | `setOnInterceptRequest`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onPermissionRequest | 0 | method | Web | `setOnPermissionRequest`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onScreenCaptureRequest | 0 | method | Web | `setOnScreenCaptureRequest`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onContextMenuShow | 0 | method | Web | `setOnContextMenuShow`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onContextMenuHide | 0 | method | Web | `setOnContextMenuHide`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | mediaPlayGestureAccess | 0 | method | Web | `setMediaPlayGestureAccess`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onSearchResultReceive | 0 | method | Web | `setOnSearchResultReceive`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onScroll | 0 | method | Web | `setOnScroll`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onSslErrorEventReceive | 0 | method | Web | `setOnSslErrorEventReceive`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onSslErrorEvent | 0 | method | Web | `setOnSslErrorEvent`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onClientAuthenticationRequest | 0 | method | Web | `setOnClientAuthenticationRequest`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onWindowNew | 0 | method | Web | `setOnWindowNew`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onWindowExit | 0 | method | Web | `setOnWindowExit`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | multiWindowAccess | 0 | method | Web | `setMultiWindowAccess`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onInterceptKeyEvent | 0 | method | Web | `setOnInterceptKeyEvent`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webStandardFont | 0 | method | Web | `setWebStandardFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webSerifFont | 0 | method | Web | `setWebSerifFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webSansSerifFont | 0 | method | Web | `setWebSansSerifFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webFixedFont | 0 | method | Web | `setWebFixedFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webFantasyFont | 0 | method | Web | `setWebFantasyFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | webCursiveFont | 0 | method | Web | `setWebCursiveFont`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | defaultFixedFontSize | 0 | method | Web | `setDefaultFixedFontSize`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | defaultFontSize | 0 | method | Web | `setDefaultFontSize`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | minFontSize | 0 | method | Web | `setMinFontSize`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | minLogicalFontSize | 0 | method | Web | `setMinLogicalFontSize`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | defaultTextEncodingFormat | 0 | method | Web | `setDefaultTextEncodingFormat`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | forceDisplayScrollBar | 0 | method | Web | `setForceDisplayScrollBar`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | blockNetwork | 0 | method | Web | `setBlockNetwork`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | horizontalScrollBarAccess | 0 | method | Web | `setHorizontalScrollBarAccess`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | verticalScrollBarAccess | 0 | method | Web | `setVerticalScrollBarAccess`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onTouchIconUrlReceived | 0 | method | Web | `setOnTouchIconUrlReceived`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onFaviconReceived | 0 | method | Web | `setOnFaviconReceived`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onPageVisible | 0 | method | Web | `setOnPageVisible`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onDataResubmitted | 0 | method | Web | `setOnDataResubmitted`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | pinchSmooth | 0 | method | Web | `setPinchSmooth`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | allowWindowOpenMethod | 0 | method | Web | `setAllowWindowOpenMethod`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onAudioStateChanged | 0 | method | Web | `setOnAudioStateChanged`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onFirstContentfulPaint | 0 | method | Web | `setOnFirstContentfulPaint`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onFirstMeaningfulPaint | 0 | method | Web | `setOnFirstMeaningfulPaint`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onLargestContentfulPaint | 0 | method | Web | `setOnLargestContentfulPaint`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onLoadIntercept | 0 | method | Web | `setOnLoadIntercept`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onControllerAttached | 0 | method | Web | `setOnControllerAttached`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onOverScroll | 0 | method | Web | `setOnOverScroll`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onSafeBrowsingCheckResult | 0 | method | Web | `setOnSafeBrowsingCheckResult`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onNavigationEntryCommitted | 0 | method | Web | `setOnNavigationEntryCommitted`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onIntelligentTrackingPreventionResult | 0 | method | Web | `setOnIntelligentTrackingPreventionResult`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | javaScriptOnDocumentStart | 0 | method | Web | `setJavaScriptOnDocumentStart`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | javaScriptOnDocumentEnd | 0 | method | Web | `setJavaScriptOnDocumentEnd`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | layoutMode | 0 | method | Web | `setLayoutMode`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | nestedScroll | 0 | method | Web | `setNestedScroll`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | enableNativeEmbedMode | 0 | method | Web | `setEnableNativeEmbedMode`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | registerNativeEmbedRule | 0 | method | Web | `setRegisterNativeEmbedRule`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onNativeEmbedLifecycleChange | 0 | method | Web | `setOnNativeEmbedLifecycleChange`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onNativeEmbedVisibilityChange | 0 | method | Web | `setOnNativeEmbedVisibilityChange`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onNativeEmbedGestureEvent | 0 | method | Web | `setOnNativeEmbedGestureEvent`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | copyOptions | 0 | method | Web | `setCopyOptions`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onOverrideUrlLoading | 0 | method | Web | `setOnOverrideUrlLoading`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | textAutosizing | 0 | method | Web | `setTextAutosizing`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | enableNativeMediaPlayer | 0 | method | Web | `setEnableNativeMediaPlayer`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onRenderProcessNotResponding | 0 | method | Web | `setOnRenderProcessNotResponding`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onRenderProcessResponding | 0 | method | Web | `setOnRenderProcessResponding`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onViewportFitChanged | 0 | method | Web | `setOnViewportFitChanged`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onInterceptKeyboardAttach | 0 | method | Web | `setOnInterceptKeyboardAttach`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | onAdsBlocked | 0 | method | Web | `setOnAdsBlocked`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | keyboardAvoidMode | 0 | method | Web | `setKeyboardAvoidMode`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | editMenuOptions | 0 | method | Web | `setEditMenuOptions`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | enableHapticFeedback | 0 | method | Web | `setEnableHapticFeedback`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | bindSelectionMenu | 0 | method | Web | `setBindSelectionMenu`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | optimizeParserBudget | 0 | method | Web | `setOptimizeParserBudget`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | enableFollowSystemFontWeight | 0 | method | Web | `setEnableFollowSystemFontWeight`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | enableWebAVSession | 0 | method | Web | `setEnableWebAVSession`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | runJavaScriptOnDocumentStart | 0 | method | Web | `setRunJavaScriptOnDocumentStart`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | runJavaScriptOnDocumentEnd | 0 | method | Web | `setRunJavaScriptOnDocumentEnd`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | runJavaScriptOnHeadEnd | 0 | method | Web | `setRunJavaScriptOnHeadEnd`
+| deleted out of scope | deleted |  |  | out of scope | arkui.component.web | WebAttribute | nativeEmbedOptions | 0 | method | Web | `setNativeEmbedOptions`
 | backlog |  |  |  |  | arkui.component.web | WebAttribute | attributeModifier | 0 | method |  |
+| deleted out of scope | deleted out of scope |  |  | out of scope | arkui.component.web | unnamed | Web | 0 | method | Web | `setWebOptions`
 | done | Dudkin Sergey |  |  |  | arkui.component.windowScene | unnamed | WindowSceneAttribute | 0 | interface | unnamed | *WindowScene*
 | done | Dudkin Sergey |  |  |  | arkui.component.windowScene | WindowSceneAttribute | attractionEffect | 0 | method | WindowScene | `setAttractionEffect`
 | backlog |  |  |  |  | arkui.component.windowScene | WindowSceneAttribute | attributeModifier | 0 | method |  |
