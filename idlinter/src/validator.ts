@@ -81,7 +81,7 @@ resolvePass.on({kind: idl.IDLKind.ReferenceType}).before = (node, st) => {
     if (!node.name || node.name == "Object" || node.name == "__TOP__" || st.typeParameters.has(node.name)) {
         return
     }
-    const resolved = idlManager.peerlibrary.resolveTypeReference(node as idl.IDLReferenceType)
+    const resolved = idlManager.library.resolveTypeReference(node as idl.IDLReferenceType)
     if (resolved) {
         st.resolvedNodes.set(node, resolved)
     } else {

@@ -16,18 +16,18 @@
 
 declare type AnimationRange<T> = [from: T, to: T];
 
-declare type PromptActionDialogController = import('../api/@ohos.PromptActionDialogController').PromptActionDialogController;
+// declare type PromptActionDialogController = import('../api/@ohos.PromptActionDialogController').PromptActionDialogController;
 
 
-declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
+// declare type NavDestinationInfo = import('../api/@ohos.arkui.observer').NavDestinationInfo;
 
-declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationInfo;
+// declare type NavigationInfo = import('../api/@ohos.arkui.observer').NavigationInfo;
 
-declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
+// declare type RouterPageInfo = import('../api/@ohos.arkui.observer').RouterPageInfo;
 
-declare type PixelMap = import('../api/@ohos.multimedia.image').default.PixelMap;
+// declare type PixelMap = import('../api/@ohos.multimedia.image').default.PixelMap;
 
-declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
+// declare type DrawContext = import('../api/arkui/Graphics').DrawContext;
 
 declare interface AnimateParam {
     duration?: number;

@@ -101,13 +101,11 @@ function main() {
     const dtsAuxInputFiles = auxInputFiles
 
     if (options.lint) {
-        const resolver = new PeerLibrary(Language.TS, InteropModuleType)
         const files = dtsInputFiles.map((filePath) => {
-            const result = parseIDLFile(filePath)
-            resolver.files.push(result)
-            return result
+            return parseIDLFile(filePath)
         })
-        resolver.disableFallback()
+        const resolver = new PeerLibrary(Language.TS, InteropModuleType)
+        resolver.files = files
         let totalErrors = 0
         const errorRecords: [string, number][] = []
         files.forEach((file) => {

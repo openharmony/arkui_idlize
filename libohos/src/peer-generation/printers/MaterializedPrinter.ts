@@ -86,6 +86,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     }
 
     assignFinalizable(className: string, peerPtr: string, isRefCounted: boolean, /*peerType: idl.IDLReferenceType, createFinalizer: boolean,*/ writer: LanguageWriter) {
+        const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
         const params = isRefCounted ? [writer.makeString(peerPtr)] : [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]
         const peerType = isRefCounted ? RefCountedType : FinalizableType
         writer.writeStatement(
@@ -93,7 +94,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 "this.peer",
                 idl.maybeOptional(peerType, true),
                 writer.makeNewObject(
-                    peerType.name,
+                    nameConvertor.convert(peerType),
                     params
                 ), false
             )
@@ -127,7 +128,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
         const peerPtr = "peerPtr"
         const peerPtrExpr = this.printer.makeString(peerPtr)
         const params = ["tag", peerPtr]
-        const types = [idl.createReferenceType("MaterializedBaseTag"), idl.IDLPointerType]
+        const types = [idl.createReferenceType("idlize.stdlib.MaterializedBaseTag"), idl.IDLPointerType]
         const sig = new NamedMethodSignature(idl.IDLVoidType, types, params)
         this.printer.writeConstructorImplementation(className, sig, writer => {
             if (!hasSuperClass || !isSuperClassMaterialized(this.library, clazz.superClass)) {

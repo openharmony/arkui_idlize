@@ -10,24 +10,16 @@ import arkui.Graphics.Translation as Translation;
 import arkui.Graphics.Matrix4 as Matrix4;
 import arkui.Graphics.Rotation as Rotation;
 import arkui.Graphics.Frame as Frame;
-import arkui.Graphics.BorderRadiuses as BorderRadiuses;
+import arkui.Graphics.NodeBorderRadiuses as NodeBorderRadiuses;
 import arkui.Graphics.ShapeMask as ShapeMask;
 import arkui.Graphics.ShapeClip as ShapeClip;
-import arkui.Graphics.Edges as Edges;
+import arkui.component.units.Edges as Edges;
 import arkui.Graphics.LengthMetricsUnit as LengthMetricsUnit;
 import arkui.Graphics.Vector2 as Vector2;
 
 import arkui.component.units.EdgeStyles as EdgeStyles;
 
 typedef Vector2 Offset_graphics;  // TODO must be removed when names collision problem is resolved
-
-[Entity=Interface]
-interface BorderRadiuses_graphics { // TODO must be removed when names collision problem is resolved
-    attribute number topLeft;
-    attribute number topRight;
-    attribute number bottomLeft;
-    attribute number bottomRight;
-};
 
 [Entity=Interface]
 interface RenderNode {
@@ -52,7 +44,7 @@ interface RenderNode {
     attribute EdgeStyles borderStyle;
     attribute Edges borderWidth;
     attribute Edges borderColor;
-    attribute BorderRadiuses_graphics borderRadius;
+    attribute NodeBorderRadiuses borderRadius;
     attribute ShapeMask shapeMask;
     attribute ShapeClip shapeClip;
     attribute boolean markNodeGroup;

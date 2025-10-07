@@ -1,5 +1,3 @@
-import { Callback } from "./interfaces/callback";
-
 export type Callback<T> = (value: T) => void
 
 export class Foo {

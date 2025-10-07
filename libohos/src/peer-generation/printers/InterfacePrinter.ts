@@ -585,6 +585,7 @@ export class TSInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
+            || (idl.isTypedef(entry) || idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
     protected getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
@@ -727,6 +728,7 @@ export class ArkTSInterfacesVisitor implements InterfacesVisitor {
         return idl.isInterface(entry) && !this.isDeclarationFile && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
             || isInplacedGeneric(entry)
+            || (idl.isTypedef(entry) || idl.isCallback(entry) || idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
     protected getDeclConvertor(writer: LanguageWriter, library: PeerLibrary, isDeclared: boolean): DeclarationConvertor<void> {
@@ -1162,6 +1164,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
     private shouldNotPrint(entry: idl.IDLEntry): boolean {
         return idl.isInterface(entry) && (isMaterialized(entry, this.peerLibrary))
             || idl.isMethod(entry)
+            || (idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
     printInterfaces(): PrinterResult[] {

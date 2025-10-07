@@ -1,146 +1,256 @@
 import * as idl from '@idlizer/core/idl'
-import { generateSyntheticFunctionName, maybeTransformManagedCallback, getInternalClassName, isMaterialized,
-    PeerLibrary, PACKAGE_IDLIZE_INTERNAL, isInCurrentModule, StructureNameConvertor } from "@idlizer/core";
-import { DependenciesCollector } from "./IdlDependenciesCollector";
+import { generateSyntheticFunctionName, getInternalClassName, isMaterialized,
+    PACKAGE_IDLIZE_INTERNAL, StructureNameConvertor, 
+    createCachedReferenceResolver,
+    LibraryInterface,
+    IdlNameConvertor,
+    ArgConvertor,
+    Language,
+    LayoutManager,
+    toDeclaration} from "@idlizer/core";
 import { componentToPeerClass, componentToStyleClass } from '../printers/PeersPrinter';
 import { isComponentDeclaration } from '../ComponentsCollector';
-import { collectDeclarationTargetsUncached } from '../DeclarationTargetCollector';
 import { NativeModule } from '../NativeModule';
+import { compareNodes } from '@idlizer/core';
 
-function createContinuationCallbackIfNeeded(library: PeerLibrary, continuationType: idl.IDLType, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    const continuationParameters = library.createContinuationParameters(continuationType)
-    const syntheticName = generateSyntheticFunctionName(
-        continuationParameters,
-        idl.IDLVoidType,
-        { nameConvertor: new StructureNameConvertor(library) }
-    )
-    const continuationReference = idl.createReferenceType(syntheticName)
+// TODO I think must be package specific
+const SyntheticsPackageClause = ['synthetic']
 
-    if (!library.resolveTypeReference(continuationReference) && !synthesizedEntries.has(continuationReference.name)) {
-        const callback = idl.createCallback(
-            generateSyntheticFunctionName(
-                continuationParameters,
-                idl.IDLVoidType,
-                { nameConvertor: new StructureNameConvertor(library) }
-            ),
+export function syntheticTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    files = groupSyntheticsTransformer(files)
+    files = continuationCallbacksTransformer(files)
+    files = materializedInternalTransformer(files)
+    files = componentsPeersTransformer(files)
+    files = generatedNativeModuleTransformer(files)
+    return files
+}
+
+function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    const declarationsToDelete = new Array<idl.IDLEntry>()
+    const referencesToReplace = new Map<string, string>()
+    const syntheticDeclarations = new Array<idl.IDLEntry>()
+    const hackedSynthetics = new Map<string, string>()
+    for (const file of files) {
+        idl.forEachChild(file, node => {
+            if (idl.isSyntheticEntry(node)) {
+                if (!(idl.isEnum(node) || idl.isInterface(node) || idl.isTypedef(node) || idl.isCallback(node)))
+                    throw new Error(`Expected all synthetics to be entries, got ${node.kind}`)
+                declarationsToDelete.push(node)
+                referencesToReplace.set(idl.getFQName(node), `${SyntheticsPackageClause.join('.')}.${node.name}`)
+                let sameNamed: idl.IDLEntry | undefined
+                if (sameNamed = syntheticDeclarations.find(it => it.name === node.name)) {
+                    if (!compareNodes(node, sameNamed)) {
+                        console.error(`Found two synthetics with same name ${node.name} and different content`)
+                    }
+                } else {
+                    syntheticDeclarations.push(idl.clone(node))
+                }
+            } else {
+                if (idl.isEnum(node) || idl.isInterface(node) || idl.isTypedef(node) || idl.isCallback(node)) {
+                    hackedSynthetics.set(`${SyntheticsPackageClause.join('.')}.${node.name}`, idl.getFQName(node))
+                }
+            }
+        })
+    }
+
+    const transformer = (node: idl.IDLNode): idl.IDLNode => {
+        if (idl.isFile(node)) {
+            return idl.createFile(
+                node.entries
+                    .filter(it => !declarationsToDelete.includes(it))
+                    .map(it => transformer(it) as idl.IDLEntry),
+                node.fileName,
+                node.packageClause,
+                idl.cloneNodeInitializer(node),
+            )
+        }
+        if (idl.isNamespace(node)) {
+            return idl.createNamespace(
+                node.name,
+                node.members
+                    .filter(it => !declarationsToDelete.includes(it))
+                    .map(it => transformer(it) as idl.IDLEntry),
+                idl.cloneNodeInitializer(node),
+            )
+        }
+        if (idl.isNamedNode(node) && node.name === "arkui.component.Literal_Number_offset_span")
+            console.log("AAA")
+        if (idl.isReferenceType(node) && referencesToReplace.has(node.name)) {
+            let syntheticFQN = referencesToReplace.get(node.name)!
+            if (hackedSynthetics.has(syntheticFQN)) {
+                console.warn(`WARNING: can not use synthetic with name ${syntheticFQN}, name is already taken. Instead using ${hackedSynthetics.get(syntheticFQN)}`)
+                syntheticFQN = hackedSynthetics.get(syntheticFQN)!
+            }
+
+            return idl.createReferenceType(
+                syntheticFQN,
+                node.typeArguments?.map(it => transformer(it) as idl.IDLType),
+                idl.cloneNodeInitializer(node),
+            )
+        }
+        return idl.visitChildren(node, transformer)
+    }
+    return files.concat(idl.createFile(
+        syntheticDeclarations,
+        undefined,
+        SyntheticsPackageClause
+    )).map(it => transformer(it) as idl.IDLFile).map(idl.linkParentBack)
+}
+
+function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    const library = createLibraryFromFiles(files)
+    const structureNameConvertor = new StructureNameConvertor(library)
+    const allContinuationTypes = new Array<idl.IDLType>()
+    const allCallbacksNames = new Map<string, string>()
+    for (const file of files) {
+        idl.forEachChild(file, node => {
+            if (idl.isCallback(node) && !node.typeParameters?.length) {
+                allContinuationTypes.push(node.returnType)
+                allCallbacksNames.set(node.name, idl.getFQName(node))
+            }
+            if (idl.isMethod(node)) {
+                const promise = idl.asPromise(node.returnType)
+                if (promise)
+                    allContinuationTypes.push(promise)
+            }
+        })
+    }
+
+    const syntheticEntries = new Array<idl.IDLEntry>()
+    const syntheticNames = new Set<string>()
+    for (const continuationType of allContinuationTypes) {
+        const continuationParameters = createContinuationParameters(continuationType)
+        const syntheticName = generateSyntheticFunctionName(
             continuationParameters,
             idl.IDLVoidType,
-            {
-                fileName: 'generator_synthetic.d.ts',
-                extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }],
-            }
+            { nameConvertor: structureNameConvertor }
         )
-        synthesizedEntries.set(callback.name, callback)
-    }
-}
-function createContinuationCallbacks(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    targets.forEach(entry => {
-        if (idl.isCallback(entry)) {
-            const transformedCallback = maybeTransformManagedCallback(entry, library) ?? entry
-            createContinuationCallbackIfNeeded(library, transformedCallback.returnType, synthesizedEntries)
-        }
-    })
-    for (const file of library.files) {
-        if (!isInCurrentModule(file))
-            continue
-        for (const entry of file.entries) {
-            idl.forEachFunction(entry, function_ => {
-                const promise = idl.asPromise(function_.returnType)
-                if (promise) {
-                    createContinuationCallbackIfNeeded(library, promise, synthesizedEntries)
-                }
-            })
-        }
-    }
-}
-
-class ImportsStubsGenerator extends DependenciesCollector {
-    constructor(library: PeerLibrary, private readonly synthesizedEntries: Map<string, idl.IDLEntry>) {
-        super(library)
-    }
-
-    convertTypeReferenceAsImport(type: idl.IDLReferenceType, importClause: string): idl.IDLEntry[] {
-        const decl = this.library.resolveTypeReference(type) ?? this.synthesizedEntries.get(type.name)
-        if (!decl || idl.isTypedef(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Import)) {
-            const syntheticName = type.name.replaceAll(".", "_")
-            this.synthesizedEntries.set(syntheticName, idl.createInterface(
+        if (!allCallbacksNames.has(syntheticName) && !syntheticNames.has(syntheticName)) {
+            syntheticNames.add(syntheticName)
+            syntheticEntries.push(idl.createCallback(
                 syntheticName,
-                idl.IDLInterfaceSubkind.Interface,
-                undefined,
-                undefined,
-                undefined,
-                [idl.createProperty(`_${syntheticName}Stub`, idl.IDLStringType)],
-                undefined,
-                undefined,
-                undefined,
-                {
-                    fileName: decl?.fileName ?? 'generator_synthetic.d.ts',
-                    // extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]
-                },
+                continuationParameters,
+                idl.IDLVoidType,
+                { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]},
             ))
-        }
-        return super.convertTypeReferenceAsImport(type, importClause)
-    }
-}
+        } else if (allCallbacksNames.has(syntheticName) && !syntheticNames.has(syntheticName)) {
+            if (allCallbacksNames.get(syntheticName) !== `${SyntheticsPackageClause.join('.')}.${syntheticName}`) {
+                syntheticEntries.push(idl.createTypedef(
+                    syntheticName,
+                    idl.createReferenceType(allCallbacksNames.get(syntheticName)!),
+                    undefined,
+                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic 
 
-function createImportsStubs(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    const generator = new ImportsStubsGenerator(library, synthesizedEntries)
-    for (const file of library.files) {
-        for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-            generator.convert(entry)
+                    }] }
+                ))
+            }
         }
     }
+    return files.concat(idl.createFile(
+        syntheticEntries,
+        undefined,
+        SyntheticsPackageClause
+    )).map(idl.linkParentBack)
 }
 
-function createMaterializedInternal(library: PeerLibrary, targets: idl.IDLNode[], synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    targets.forEach(entry => {
-        if (idl.isInterface(entry) && isMaterialized(entry, library)) {
-            const name = getInternalClassName(entry.name)
-            synthesizedEntries.set(name, idl.createInterface(
-                name,
-                idl.IDLInterfaceSubkind.Interface,
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                [idl.createMethod("__stub", [], idl.IDLVoidType)],
-                undefined,
-                undefined,
-                { fileName: entry?.fileName ?? 'generator_synthetic.d.ts', },
-            ))
+function createContinuationParameters(continuationType: idl.IDLType): idl.IDLParameter[] {
+    const continuationParameters: idl.IDLParameter[] = []
+    if (idl.isContainerType(continuationType) && idl.IDLContainerUtils.isPromise(continuationType)) {
+        const errorType = idl.createOptionalType(idl.createContainerType("sequence", [idl.IDLStringType]))
+        continuationParameters.push(idl.createParameter("error", errorType, true))
+        const promise = continuationType as idl.IDLContainerType
+        if (!idl.isVoidType(promise.elementType[0])) {
+            const valueType = idl.createOptionalType(promise.elementType[0])
+            continuationParameters.unshift(idl.createParameter("value", valueType, true))
         }
-    })
+    } else if (!idl.isVoidType(continuationType))
+        continuationParameters.push(idl.createParameter('value', continuationType))
+    return continuationParameters
 }
 
-function fillGeneratedNativeModuleDeclaration(library: PeerLibrary): void {
+function materializedInternalTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    const resolver = createCachedReferenceResolver(files)
+    const syntheticDeclarations = new Array<idl.IDLInterface>()
+    for (const file of files) {
+        idl.forEachChild(file, node => {
+            if (idl.isInterface(node) && !idl.isInIdlize(node) && isMaterialized(node, resolver)) {
+                const name = getInternalClassName(node.name)
+                syntheticDeclarations.push(idl.createInterface(
+                    name,
+                    idl.IDLInterfaceSubkind.Interface,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}
+                ))
+            }
+        })
+    }
+    return files.concat(idl.linkParentBack(idl.createFile(syntheticDeclarations)))
+}
+
+function generatedNativeModuleTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     const declaration = idl.createInterface(NativeModule.Generated.name, idl.IDLInterfaceSubkind.Interface)
-    const file = idl.linkParentBack(
+    return files.concat(idl.linkParentBack(
         idl.createFile([declaration], undefined, PACKAGE_IDLIZE_INTERNAL.split("."))
-    )
-    library.files.push(file)
+    ))
 }
 
-function createComponentPeers(library: PeerLibrary, synthesizedEntries: Map<string, idl.IDLEntry>): void {
-    library.files.forEach(file => {
+function createLibraryFromFiles(files: idl.IDLFile[]): LibraryInterface {
+    const resolver = createCachedReferenceResolver(files)
+    return {
+        language: Language.CPP,
+        files: files,
+        typeConvertor: function (param: string, type: idl.IDLType, isOptionalParam?: boolean): ArgConvertor {
+            throw new Error('Function not implemented.');
+        },
+        declarationConvertor: function (param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor {
+            throw new Error('Function not implemented.');
+        },
+        createTypeNameConvertor: function (language: Language): IdlNameConvertor {
+            throw new Error('Function not implemented.');
+        },
+        createContinuationCallbackReference: function (continuationType: idl.IDLType): idl.IDLReferenceType {
+            throw new Error('Function not implemented.');
+        },
+        getCurrentContext: function (): string | undefined {
+            throw new Error('Function not implemented.');
+        },
+        layout: LayoutManager.Empty(),
+        libraryPrefix: '',
+        resolveTypeReference: function (type: idl.IDLReferenceType, terminalImports?: boolean): idl.IDLEntry | undefined {
+            return resolver.resolveTypeReference(type, terminalImports)
+        },
+        toDeclaration: function (type: idl.IDLNode): idl.IDLNode {
+            if (!idl.isType(type) && !idl.isEntry(type))
+                throw new Error("toDeclaration can be performed only on types or entries!")
+            return toDeclaration(type, this)
+        }
+    }
+}
+
+function componentsPeersTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
+    const library = createLibraryFromFiles(files)
+    const syntheticDeclarations = new Array<idl.IDLEntry>()
+    files.forEach(file => {
         file.entries.forEach(it => {
             if (isComponentDeclaration(library, it)) {
                 const peerName = componentToPeerClass(it.name.replace('Attribute', ''))
-                synthesizedEntries.set(peerName, idl.createInterface(peerName, idl.IDLInterfaceSubkind.Class))
+                syntheticDeclarations.push(idl.createInterface(peerName, idl.IDLInterfaceSubkind.Interface,
+                    undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}
+                ))
                 const styleComponentName = componentToStyleClass(it.name)
-                synthesizedEntries.set(styleComponentName, idl.createInterface(styleComponentName, idl.IDLInterfaceSubkind.Interface))
+                syntheticDeclarations.push(idl.createInterface(styleComponentName, idl.IDLInterfaceSubkind.Interface,
+                    undefined, undefined, undefined, undefined, undefined, undefined, undefined,
+                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]}
+                ))
             }
         })
     })
-}
-
-/** @deprecated please do not extend this file. Storing synthetic declarations globally seems a bad pattern */
-export function fillSyntheticDeclarations(library: PeerLibrary) {
-    const targets = collectDeclarationTargetsUncached(library, { synthesizeCallbacks: false, unionFlatteningMode: false })
-    const synthesizedEntries = new Map<string, idl.IDLEntry>()
-    createContinuationCallbacks(library, targets, synthesizedEntries)
-    createImportsStubs(library, synthesizedEntries)
-    createMaterializedInternal(library, targets, synthesizedEntries)
-    createComponentPeers(library, synthesizedEntries)
-    fillGeneratedNativeModuleDeclaration(library)
-    library.initSyntheticEntries(idl.linkParentBack(idl.createFile([...synthesizedEntries.values()])))
+    return files.concat(idl.linkParentBack(idl.createFile(syntheticDeclarations)))
 }

@@ -149,30 +149,38 @@ export class IdlProcessingManager {
     activePasses: Set<IdlProcessingPass<any>> = new Set()
     orderedPasses: IdlProcessingPass<any>[][] = []
 
-    peerlibrary: idl.PeerLibrary
+    library: idl.ReferenceResolver = idl.createAlgotithmicReferenceResolver([])
 
-    constructor() {
-        // Only resolution is used for now, so choosing idl.Language.TS does not have language-specific effects
-        this.peerlibrary = new idl.PeerLibrary(idl.Language.TS, new idl.NativeModuleType("_UNUSED__"))
-        this.peerlibrary.disableFallback()
-    }
+    constructor() {}
 
-    addFile(fileName: string, parseOnly?: boolean): void {
-        try {
-            const loaded = idl.parseIDLFile(fileName, undefined, true)
-            this.entries.push(loaded)
-            this.entriesByPath.set(fileName, loaded)
-            if (parseOnly) {
-                this.peerlibrary.auxFiles.push(loaded)
-            } else {
-                this.entriesToValidate.push(loaded)
-                this.peerlibrary.files.push(loaded)
-            }
-        } catch (e: any) {
-            if (!(e instanceof idl.FatalParserException)) {
-                idl.InternalFatal.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+    setFiles(checkFiles: string[], parseOnlyFiles: string[]) {
+        this.entries = []
+        this.entriesByPath = new Map()
+        this.entriesToValidate = []
+
+        const files = new Array<idl.IDLFile>()
+        const addFile = (fileName: string, parseOnly: boolean): void => {
+            try {
+                const loaded = idl.parseIDLFile(fileName, undefined, true)
+                this.entries.push(loaded)
+                this.entriesByPath.set(fileName, loaded)
+                files.push(loaded)
+                if (!parseOnly) {
+                    this.entriesToValidate.push(loaded)
+                }
+            } catch (e: any) {
+                if (!(e instanceof idl.FatalParserException)) {
+                    idl.InternalFatal.reportDiagnosticMessage([{documentPath: fileName}], e.message ?? "")
+                }
             }
         }
+        for (const file of checkFiles) {
+            addFile(file, false)
+        }
+        for (const file of parseOnlyFiles) {
+            addFile(file, true)
+        }
+        this.library = idl.createAlgotithmicReferenceResolver(files)
     }
 
     _markActive(pass: IdlProcessingPass<any>) {

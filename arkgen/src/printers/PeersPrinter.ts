@@ -109,9 +109,9 @@ class PeerFileVisitor {
         }
 
         if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
-            collectDeclItself(this.library, idl.createReferenceType("CallbackKind"), imports)
+            collectDeclItself(this.library, idl.createReferenceType("idlize.internal.CallbackKind"), imports)
             imports.addFeature('CallbackTransformer', './CallbackTransformer')
-            collectDeclItself(this.library, idl.createReferenceType(NativeModule.Generated.name), imports)
+            collectDeclItself(this.library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
 
             const hookClassName = peer.componentName == "CommonMethod"
                 ? peer.componentName
@@ -149,7 +149,7 @@ class PeerFileVisitor {
         const peerClass = componentToPeerClass(peer.componentName)
         const signature = new NamedMethodSignature(
             createReferenceType(peerClass),
-            [createReferenceType('ComponentBase'), IDLI32Type],
+            [createReferenceType('idlize.internal.ComponentBase'), IDLI32Type],
             ['component', 'flags'],
             [undefined, '0'],
             [[ArgumentModifier.OPTIONAL], undefined]

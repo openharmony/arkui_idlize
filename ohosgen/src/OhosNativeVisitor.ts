@@ -295,7 +295,7 @@ class OHOSNativeVisitor {
             args.unshift(`${PrimitiveTypesInstance.NativePointer} thisPtr`)
         if (!!asPromise(method.returnType))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_AsyncWorkerPtr asyncWorker`)
-        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType) || peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)))
+        if (hasExtAttribute(method, IDLExtendedAttributes.Throws) || !!asPromise(method.returnType) || peerGeneratorConfiguration().forceContext.includes(idl.getFQNameSafe(method) ?? ""))
             args.unshift(`${generatorConfiguration().TypePrefix}${this.libraryName}_VMContext vmContext`)
         return args.join(", ")
     }
@@ -530,7 +530,7 @@ export function printBridgeHeader(peerLibrary: PeerLibrary): BridgeApi {
 export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, string> {
     if (peerLibrary.orderedMaterialized.length == 0 && createSyntheticGlobalScope(peerLibrary).methods.length == 0)
         return new Map
-    const libraryName = suggestLibraryName(peerLibrary)
+    const libraryName = suggestLibraryName()
     const visitor = new OHOSNativeVisitor(peerLibrary, libraryName)
     visitor.prepare()
     visitor.printC()
@@ -600,6 +600,6 @@ function generatePostfixForOverloads(methods: IDLMethod[]): MethodWithPostfix[] 
     })
 }
 
-export function suggestLibraryName(library: PeerLibrary) {
+export function suggestLibraryName() {
     return currentModule().name.replaceAll(".", "_").toUpperCase()
 }

@@ -354,7 +354,7 @@ class ModifiersFileVisitor {
                 }
 
                 attributeTypes.forEach(attribute => {
-                    writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType("AttributeUpdaterFlag"), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
+                    writer.writeFieldDeclaration(this.generateFiledFlag(attribute), idl.createReferenceType(getReferenceTo("AttributeUpdaterFlag")), [], false, writer.makeString('AttributeUpdaterFlag.INITIAL'))
                     attribute.argTypes.forEach((t, index) => {
                         writer.writeFieldDeclaration(this.generateFiledName(attribute, index.toString()), t, [], true)
                     })
@@ -476,7 +476,6 @@ class ModifiersFileVisitor {
                         equalStatements.push(writer.makeEquals([writer.makeString(`this.${this.generateFiledFlag(attribute)}`), writer.makeString(`AttributeUpdaterFlag.INITIAL`)]))
                         attribute.argTypes.forEach((t, index) => {
                             if (isPrimitiveType(t)) {
-                                console.log("isPrimitiveType", `this.${this.generateFiledName(attribute, index.toString())}`)
                                 equalStatements.push(writer.makeNaryOp("!==", [writer.makeString(`this.${this.generateFiledName(attribute, index.toString())}`), writer.makeString(attribute.args[index])]))
                             } else {
                                 equalStatements.push(writer.makeString('true'))

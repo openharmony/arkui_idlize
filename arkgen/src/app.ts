@@ -24,29 +24,29 @@ import {
     setDefaultConfiguration,
     D,
     formatInputPaths,
-    inplaceGenerics,
-    PeerLibrary,
-    inplaceNullsAsUndefined,
-    inplaceTransformOnSerialize,
-    convertNode,
-    StructureNameConvertor,
-    inplaceFQN,
+    fqnTransformer,
+    createAlgotithmicReferenceResolver,
+    nullsTransformer,
+    transformOnSerializeTransformer,
+    genericsTransformer,
 } from "@idlizer/core"
 import {
     getFQName,
     transformMethodsAsync2ReturnPromise,
     linearizeNamespaceMembers,
     IDLNode,
+    IDLFile,
     hasExtAttribute,
     IDLExtendedAttributes,
+    linkParentBack,
 } from "@idlizer/core/idl"
 import { loadPeerConfiguration,
     generateTracker, IdlPeerProcessor, loadPlugin,
-    fillSyntheticDeclarations,
     libohosPredefinedFiles,
     PeerGeneratorConfigurationSchema,
     peerGeneratorConfiguration,
     NativeModule,
+    syntheticTransformer,
 } from "@idlizer/libohos"
 import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
@@ -138,7 +138,7 @@ export function arkgen(argv:string[]) {
         const language = Language.fromString(options.language ?? "ts")
         const { inputFiles, inputDirs } = formatInputPaths(options)
 
-        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS)
+        let files: IDLFile[] = []
         const allInputFiles = scanInputDirs(inputDirs)
             .concat(inputFiles)
             .concat(libohosPredefinedFiles())
@@ -148,25 +148,29 @@ export function arkgen(argv:string[]) {
             idlFilename = path.resolve(idlFilename)
             const file = parseIDLFile(idlFilename)
             linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
-            idlLibrary.files.push(file)
+            files.push(file)
         })
         if (options.verifyIdl) {
-            idlLibrary.files.forEach(file => {
-                verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+            files.forEach(file => {
+                verifyIDLLinter(file, createAlgotithmicReferenceResolver(files), peerGeneratorConfiguration().linter)
             })
         }
-        idlLibrary.files.forEach(file => {
-            inplaceTransformOnSerialize(file, (node: IDLNode) => {
-                const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
-                    it => it.from === getFQName(node))
-                return transformation?.to
-            })
+
+        files = fqnTransformer(files.map(linkParentBack), createAlgotithmicReferenceResolver(files, true))
+        files = transformOnSerializeTransformer(files, (node: IDLNode) => {
+            const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
+                it => it.from === getFQName(node))
+            return transformation?.to
         })
-        idlLibrary.files.forEach(file => inplaceFQN(file, idlLibrary))
-        idlLibrary.files.forEach(inplaceNullsAsUndefined)
-        inplaceArkoalaGenerics(idlLibrary)
-        fillSyntheticDeclarations(idlLibrary)
-        idlLibrary.enableCache()
+        files = nullsTransformer(files)
+        files = genericsTransformer(files, {
+            ignore: [ignoreComponentRule],
+            ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
+        })
+        files = syntheticTransformer(files)
+
+        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS)
+        idlLibrary.files = files
         new IdlPeerProcessor(idlLibrary).process()
 
         generateTarget(idlLibrary, outDir, language)
@@ -218,15 +222,6 @@ export function arkgen(argv:string[]) {
                 .catch(error => console.error(`Plugin ${options.plugin} not found: ${error}`))
         }
     }
-}
-
-function inplaceArkoalaGenerics(library: PeerLibrary): void {
-    const nameConvertor = new StructureNameConvertor(library)
-    library.files.forEach(file => inplaceGenerics(file, library, {
-        ignore: [ignoreComponentRule],
-        nameConvertor: (node) => convertNode(nameConvertor, node).text,
-        ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
-    }))
 }
 
 function ignoreComponentRule(node: IDLNode): boolean {

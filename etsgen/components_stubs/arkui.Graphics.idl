@@ -149,6 +149,7 @@ interface ShapeClip {
     void setOvalShape(common2D.Rect oval);
     void setCommandPath(CommandPath path);
 };
+typedef Corners NodeBorderRadiuses;
 Edges edgeColors(number all);
 Edges edgeWidths(number all);
 Edges borderStyles(BorderStyle all);

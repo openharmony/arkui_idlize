@@ -482,6 +482,16 @@ export function updateEachChild(node: IDLNode, op: (node: IDLNode) => IDLNode, c
     return node
 }
 
+export function cloneNodeInitializer(other: IDLNodeInitializer): IDLNodeInitializer {
+    return {
+        documentation: other.documentation,
+        extendedAttributes: other.extendedAttributes,
+        fileName: other.fileName,
+        nameLocation: other.nameLocation,
+        nodeLocation: other.nodeLocation,
+        valueLocation: other.valueLocation,
+    }
+}
 
 export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode): IDLNode {
     function track(visitor: (op: (node: IDLNode) => IDLNode) => () => IDLNode) {
@@ -502,12 +512,16 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
             throw new Error(`Unexpected node kind ${node.kind}`)
         }
     }
-    function isNamespaceMember(node: IDLNode): node is IDLNamespace | IDLInterface | IDLMethod | IDLCallback | IDLTypedef {
+    function isNamespaceMember(node: IDLNode): node is IDLNamespace | IDLInterface | IDLMethod | IDLCallback | IDLTypedef | IDLConstant {
         return isNamespace(node)
             || isInterface(node)
             || isMethod(node) && node.isFree
             || isCallback(node)
             || isTypedef(node)
+            || isEnum(node)
+            || isImport(node)
+            || isVersion(node)
+            || isConstant(node)
     }
     function isInterfaceMember(node: IDLNode): node is IDLConstructor | IDLMethod | IDLConstant | IDLProperty | IDLCallable {
         return isConstructor(node)
@@ -515,16 +529,6 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
             || isConstant(node)
             || isProperty(node)
             || isCallable(node)
-    }
-    function cloneNodeInitializer(other: IDLNodeInitializer): IDLNodeInitializer {
-        return {
-            documentation: other.documentation,
-            extendedAttributes: other.extendedAttributes,
-            fileName: other.fileName,
-            nameLocation: other.nameLocation,
-            nodeLocation: other.nodeLocation,
-            valueLocation: other.valueLocation,
-        }
     }
 
     if (isFile(node)) {
@@ -535,6 +539,16 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
                 node.fileName,
                 node.packageClause,
                 cloneNodeInitializer(node)
+            )
+        })
+    }
+    if (isNamespace(node)) {
+        return track((op) => {
+            const members = node.members.map(op).map(assert(isNamespaceMember))
+            return () => createNamespace(
+                node.name,
+                members,
+                cloneNodeInitializer(node),
             )
         })
     }
@@ -731,7 +745,7 @@ export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode
         return node
     }
 
-    return node
+    throw new Error(`Not implemented`)
 }
 
 export function isNamedNode(type: IDLNode): type is IDLNamedNode {
@@ -989,6 +1003,8 @@ export function isEqualByQualifedName(a?: IDLNamedNode, b?: IDLNamedNode, patter
 
 export function getPackageClause(node: IDLNode): string[] {
     const file = getFileFor(node)
+    if (!file)
+        throw new Error(`Can not find parent file for node ${node.kind}`)
     return file?.packageClause ?? []
 }
 
@@ -996,6 +1012,13 @@ export function getPackageName(node: IDLNode): string {
     return getPackageClause(node).join(".")
 }
 
+export function getPackageNameSafe(node: IDLNode): string | undefined {
+    try {
+        return getPackageName(node)
+    } catch (_) {
+        return undefined
+    }
+}
 
 export function isInPackage(entry: IDLEntry | IDLFile, packageName: string, exactMatch = false) {
     const entryPackageName = getPackageName(entry)
@@ -1046,6 +1069,14 @@ export function getQualifiedName(a: IDLNode, pattern: QNPattern): string {
 
 export function getFQName(a: IDLNode): string {
     return getQualifiedName(a, "package.namespace.name")
+}
+
+export function getFQNameSafe(a: IDLNode): string | undefined {
+    try {
+        return getFQName(a)
+    } catch (_) {
+        return undefined
+    }
 }
 
 export function createVersion(value: string[], nodeInitializer?: IDLNodeInitializer): IDLVersion {

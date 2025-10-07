@@ -11,6 +11,6 @@ declare class SymbolGlyphAttribute extends CommonMethod<SymbolGlyphAttribute> {
 
 //declare constSymbolGlyph: SymbolGlyphInterface;
 
-declare class SymbolGlyphModifier {
-    constructor(src?: Resource);
-}
+// declare class SymbolGlyphModifier {
+//     constructor(src?: Resource);
+// }

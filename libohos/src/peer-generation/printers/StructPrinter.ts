@@ -266,7 +266,7 @@ export class StructPrinter {
     private writeRuntimeType(target: idl.IDLNode, targetType: idl.IDLType, isOptional: boolean, writer: LanguageWriter) {
         if (idl.isNamedNode(target) && this.prologueDefinedRuntimeTypes.includes(target.name) && !isOptional)
             return
-        const resultType = idl.createReferenceType("RuntimeType")
+        const resultType = idl.createReferenceType("idlize.stdlib.RuntimeType")
         const op = this.writeRuntimeTypeOp(target, targetType, resultType, isOptional, writer)
         if (op) {
             writer.print("template <>")

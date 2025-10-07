@@ -49,7 +49,7 @@ class SerializerPrinter {
     private generateInterfaceSerializeSignature(target: idl.IDLInterface): Method {
         return new Method(`write`,
             new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType('SerializerBase'), idl.createReferenceType(target)],
+                [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
                 [this.serializerArgName, "value"],
                 undefined,
                 undefined,
@@ -65,7 +65,7 @@ class SerializerPrinter {
     private generateInterfaceSerializer(writer: LanguageWriter, imports:ImportsCollector, target: idl.IDLInterface) {
         const signature = new Method(`write`,
             new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType('SerializerBase'), idl.createReferenceType(target)],
+                [idl.createReferenceType('idlize.internal.SerializerBase'), idl.createReferenceType(target)],
                 [this.serializerArgName, "value"],
                 undefined,
                 undefined,
@@ -83,7 +83,7 @@ class SerializerPrinter {
         writer.writeStatement(
             writer.makeAssign(
                 "valueSerializer",
-                idl.createReferenceType("SerializerBase"),
+                idl.createReferenceType("idlize.internal.SerializerBase"),
                 writer.makeString(this.serializerArgName),
                 true,
                 false,
@@ -142,7 +142,7 @@ class SerializerPrinter {
         const type = idl.createReferenceType(target)
         return new Method('read',
             new NamedMethodSignature(type,
-                [idl.createReferenceType('DeserializerBase')],
+                [idl.createReferenceType('idlize.internal.DeserializerBase')],
                 [this.deserializerArgName],
                 undefined,
                 undefined,
@@ -170,7 +170,7 @@ class SerializerPrinter {
         writer.writeStatement(
             writer.makeAssign(
                 "valueDeserializer",
-                idl.createReferenceType("DeserializerBase"),
+                idl.createReferenceType("idlize.internal.DeserializerBase"),
                 writer.makeString(this.deserializerArgName),
                 true,
                 false,

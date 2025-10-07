@@ -30,10 +30,6 @@ interface IndicatorStyle {
 }
 
 declare class TabBarSymbol {
-
-    normal: SymbolGlyphModifier;
-
-    selected?: SymbolGlyphModifier;
 }
 
 declare enum LayoutMode {

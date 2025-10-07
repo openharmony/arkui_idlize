@@ -76,7 +76,7 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     }
 
     protected selectGlobal(node:idl.IDLEntry): string {
-        if (idl.getPackageName(node) === '')
+        if (!idl.getPackageNameSafe(node))
             return selectInternalsPath()
         return this.selectInterface(node)
     }
@@ -155,7 +155,7 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     }
 
     protected selectGlobal(node:idl.IDLEntry): string {
-        if (idl.getPackageName(node) === '')
+        if (!idl.getPackageNameSafe(node))
             return selectInternalsPath()
         return this.selectInterface(node)
     }

@@ -528,17 +528,6 @@ declare interface NavigationMenuItem {
   icon?: string;
 
   /**
-   * The symbol of navigation menu item.
-   *
-   * @type { ?SymbolGlyphModifier }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  symbolIcon?: SymbolGlyphModifier;
-
-  /**
    * Whether to enable this menu item.
    *
    * @type { ?boolean }
@@ -1855,7 +1844,7 @@ declare interface ToolbarItem {
    * @atomicservice
    * @since 12
    */
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 
   /**
    * Trigger by navigation toolbar item click.
@@ -1923,7 +1912,7 @@ declare interface ToolbarItem {
    * @atomicservice
    * @since 12
    */
-  activeSymbolIcon?: SymbolGlyphModifier;
+  // activeSymbolIcon?: SymbolGlyphModifier;
 }
 
 /**

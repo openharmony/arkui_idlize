@@ -75,7 +75,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         argConvertors.forEach((it, index) => {
             if (it.useArray) {
                 if (!serializerCreated) {
-                    const serializerRef = createReferenceType('SerializerBase')
+                    const serializerRef = createReferenceType('idlize.internal.SerializerBase')
                     const serializerEntry = library.resolveTypeReference(serializerRef)
                     if (!serializerEntry) {
                         throw new Error("Not found SerializerBase!")
@@ -83,7 +83,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     writer.addFeature('SerializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
                     writer.addFeature('DeserializerBase', library.layout.resolve({ node: serializerEntry, role: LayoutNodeRole.INTERFACE }))
                     writer.writeStatement(
-                        writer.makeAssign(`thisSerializer`, createReferenceType('SerializerBase'),
+                        writer.makeAssign(`thisSerializer`, createReferenceType('idlize.internal.SerializerBase'),
                             writer.makeMethodCall('SerializerBase', 'hold', []), true)
                     )
                     serializerCreated = true
@@ -196,7 +196,7 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     writer.writeStatement(
         writer.makeAssign(
             deserializerName,
-            idl.createReferenceType("DeserializerBase"),
+            idl.createReferenceType("idlize.internal.DeserializerBase"),
             writer.makeString(makeDeserializerInstance(returnValName, writer.language)),
             true,
             false,

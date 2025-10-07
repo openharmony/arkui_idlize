@@ -139,6 +139,12 @@ function compareDeep(oldData: any, newData: any, paths: Set<string>): Diff[] {
     return []
 }
 
+export function compareNodes(a: idl.IDLNode, b: idl.IDLNode): boolean {
+    const paths = new Set<string>()
+    compareDeep(a, b, paths)
+    return paths.size === 0
+}
+
 export function compareParsingResults(oldFile: idl.IDLFile, newFile: idl.IDLFile): boolean {
     const paths = new Set<string>()
     compareDeep(oldFile, newFile, paths)

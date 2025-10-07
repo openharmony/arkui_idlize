@@ -14490,7 +14490,7 @@ declare interface MenuElement {
    * @atomicservice
    * @since 12
    */
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 
   /**
    * If the value is true, the menu element is available and can respond to operations such as clicking.
@@ -14921,9 +14921,9 @@ declare interface ImageModifier {}
  * @since 12
  */
 // declare type SymbolGlyphModifier = import('../api/arkui/SymbolGlyphModifier').SymbolGlyphModifier;
-class SymbolGlyphModifier {
-  constructor(src?: Resource);
-}
+// class SymbolGlyphModifier {
+//   constructor(src?: Resource);
+// }
 
 /**
  * Defines the preview options.

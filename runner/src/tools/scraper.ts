@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { ConfigTypeInfer, D, Language, NativeModuleType, PeerLibrary, throwException, parseIDLFile } from "@idlizer/core";
+import { ConfigTypeInfer, D, Language, NativeModuleType, PeerLibrary, throwException, parseIDLFile, createAlgotithmicReferenceResolver } from "@idlizer/core";
 import { createFile, createNamespace, DebugUtils, forEachChild, getFileFor, getFQName, IDLEntry, IDLFile, isImport, isNamespace, isReferenceType, toIDLString } from "@idlizer/core/idl";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative, basename, resolve, sep } from "node:path";
@@ -102,8 +102,8 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     /////////////////////////////////////////////////////////////
     // the algorithm
 
-    const resolver = new PeerLibrary(Language.ARKTS, new NativeModuleType("___"), false)
-    resolver.files.push(...library, ...interfacesLibrary)
+    const files = [...library, ...interfacesLibrary]
+    const resolver = createAlgotithmicReferenceResolver(files)
 
     const roots = findRootFiles(library, options.target, options).concat(interfacesLibrary)
     const marked = new Set<string>()

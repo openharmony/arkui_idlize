@@ -51,6 +51,8 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertTypedef(node: idl.IDLTypedef): string {
+        if (idl.isSyntheticEntry(node))
+            return this.convert(node.type)
         return this.mangleTopLevel(node) ?? idl.getQualifiedName(node, "namespace.name")
     }
     convertCallback(node: idl.IDLCallback): string {
@@ -117,6 +119,9 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             if (idl.isSyntheticEntry(decl)) {
                 if (idl.isCallback(decl)) {
                     return this.mapCallback(decl, type.typeArguments)
+                }
+                if (idl.isTypedef(decl)) {
+                    return this.convert(decl.type)
                 }
                 const entity = idl.getExtAttribute(decl, idl.IDLExtendedAttributes.Entity)
                 if (entity) {

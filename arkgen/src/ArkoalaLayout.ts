@@ -163,7 +163,7 @@ export class ArkTsLayout extends CommonLayoutBase {
         if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language, this.isSdk)
         }
-        const packageName = idl.getPackageName(target.node)
+        const packageName = idl.getPackageNameSafe(target.node)
 
         const moduleImport = getModuleImport(target.node, target.role, Language.ARKTS)
         if (moduleImport) return moduleImport

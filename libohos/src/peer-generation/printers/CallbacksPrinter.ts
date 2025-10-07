@@ -58,6 +58,8 @@ export function printCallbacksKinds(library: PeerLibrary, writer: LanguageWriter
     let callbacksKindsEnum = idl.createEnum(
         CallbackKind, [], {}
     )
+    const stubFile = idl.linkParentBack(idl.createFile([callbacksKindsEnum]))
+    console.log(`WARNING: using stub file ${stubFile.kind} to allow FQN resolving. Seems like for CallbackKind we must not create enum entry, instead use another LW IR`)
     callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
         idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
     )
@@ -82,6 +84,8 @@ export function createCallbackKindPrinter(language: Language): PrinterFunction {
             let callbacksKindsEnum = idl.createEnum(
                 CallbackKind, [], {}
             )
+            const stubFile = idl.linkParentBack(idl.createFile([callbacksKindsEnum]))
+            console.log(`WARNING: using stub file ${stubFile.kind} to allow FQN resolving. Seems like for CallbackKind we must not create enum entry, instead use another LW IR`)
             callbacksKindsEnum.elements = collectUniqueCallbacks(library, { transformCallbacks: true }).map(it =>
                 idl.createEnumMember(generateCallbackKindName(it), callbacksKindsEnum, idl.IDLNumberType, generateCallbackKindValue(it))
             )
@@ -94,7 +98,7 @@ export function createCallbackKindPrinter(language: Language): PrinterFunction {
         }
         return [{
             over: {
-                node: library.resolveTypeReference(idl.createReferenceType("CallbackKind")) as idl.IDLEntry,
+                node: library.resolveTypeReference(idl.createReferenceType("idlize.internal.CallbackKind")) as idl.IDLEntry,
                 role: LayoutNodeRole.PEER,
             },
             generate,
@@ -182,14 +186,14 @@ class DeserializeCallbacksVisitor {
         if (this.writer.language === Language.CPP) {
             signature = new NamedMethodSignature(idl.IDLVoidType, [idl.IDLSerializerBuffer, idl.IDLI32Type], [`thisArray`, `thisLength`])
         } else {
-            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(`DeserializerBase`)], [`thisDeserializer`])
+            signature = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType(`idlize.internal.DeserializerBase`)], [`thisDeserializer`])
         }
         this.writer.writeFunctionImplementation(`deserializeAndCall${callback.name}`, signature, writer => {
             const resourceIdName = `resourceId`
             const callName = `call`
             if (writer.language === Language.CPP) {
-                writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`DeserializerBase`),
-                    writer.makeClassInit(idl.createReferenceType('DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
+                writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`idlize.internal.DeserializerBase`),
+                    writer.makeClassInit(idl.createReferenceType('idlize.internal.DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
                     true, false))
             }
             writer.writeStatement(writer.makeAssign(resourceIdName, idl.IDLI32Type, writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), true))
@@ -230,11 +234,9 @@ class DeserializeCallbacksVisitor {
             if (hasContinuation) {
                 const continuationReference = this.library.createContinuationCallbackReference(callback.returnType)
                 const convertor = this.library.typeConvertor(`continuation`, continuationReference)
-                if (convertor instanceof CallbackConvertor) {
-                    writer.writeStatement(convertor.convertorDeserialize(`continuationBuffer`, `thisDeserializer`, (expr) => {
-                        return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
-                    }, writer, true))
-                }
+                writer.writeStatement(convertor.convertorDeserialize(`continuationBuffer`, `thisDeserializer`, (expr) => {
+                    return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
+                }, writer))
             }
             if (writer.language === Language.CPP) {
                 const cppArgsNames = [
@@ -262,12 +264,12 @@ class DeserializeCallbacksVisitor {
             }
         })
         if (this.writer.language === Language.CPP) {
-            let signatureSync = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('VMContext'), idl.IDLSerializerBuffer, idl.IDLI32Type], [vmContext, `thisArray`, `thisLength`])
+            let signatureSync = new NamedMethodSignature(idl.IDLVoidType, [idl.createReferenceType('idlize.stdlib.VMContext'), idl.IDLSerializerBuffer, idl.IDLI32Type], [vmContext, `thisArray`, `thisLength`])
             this.writer.writeFunctionImplementation(`deserializeAndCallSync${callback.name}`, signatureSync, writer => {
                 const resourceIdName = `resourceId`
                 const callName = `callSyncMethod`
-                writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`DeserializerBase`),
-                        writer.makeClassInit(idl.createReferenceType('DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
+                writer.writeStatement(writer.makeAssign(`thisDeserializer`, idl.createReferenceType(`idlize.internal.DeserializerBase`),
+                        writer.makeClassInit(idl.createReferenceType('idlize.internal.DeserializerBase'), [writer.makeString('thisArray'), writer.makeString('thisLength')]),
                         true, false))
                 writer.writeStatement(writer.makeAssign(resourceIdName, idl.IDLI32Type, writer.makeMethodCall(`thisDeserializer`, `readInt32`, []), true))
                 const callerSyncInvocation = writer.makeString(`getManagedCallbackCallerSync(${generateCallbackKindAccess(callback, writer.language)})`)
@@ -321,16 +323,16 @@ class DeserializeCallbacksVisitor {
                 [`kind`, `thisArray`, `thisLength`],
             )
             signatureSync = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType('VMContext'), idl.IDLI32Type, idl.IDLSerializerBuffer, idl.IDLI32Type],
+                [idl.createReferenceType('idlize.stdlib.VMContext'), idl.IDLI32Type, idl.IDLSerializerBuffer, idl.IDLI32Type],
                 [`vmContext`, `kind`, `thisArray`, `thisLength`],
             )
         } else {
             signature = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType(`DeserializerBase`)],
+                [idl.createReferenceType(`idlize.internal.DeserializerBase`)],
                 [`thisDeserializer`],
             )
             signatureSync = new NamedMethodSignature(idl.IDLVoidType,
-                [idl.createReferenceType(`DeserializerBase`)],
+                [idl.createReferenceType(`idlize.internal.DeserializerBase`)],
                 [`thisDeserializer`],
             )
         }
@@ -502,12 +504,12 @@ class ManagedCallCallbackVisitor {
             ["resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`CallManaged${callback.name}`, signature, writer => {
-            writer.writeStatement(writer.makeAssign(`callbackBuffer`, idl.createReferenceType(`CallbackBuffer`),
+            writer.writeStatement(writer.makeAssign(`callbackBuffer`, idl.createReferenceType(`idlize.internal.CallbackBuffer`),
                 writer.makeString(`{{}, {}}`), true, false))
-            writer.writeStatement(writer.makeAssign(`callbackResourceSelf`, idl.createReferenceType(`CallbackResource`),
+            writer.writeStatement(writer.makeAssign(`callbackResourceSelf`, idl.createReferenceType(`idlize.stdlib.CallbackResource`),
                 this.writer.makeString(`{resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
             writer.writeExpressionStatement(writer.makeMethodCall(`callbackBuffer.resourceHolder`, `holdCallbackResource`, [writer.makeString(`&callbackResourceSelf`)]))
-            writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
+            writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`idlize.internal.SerializerBase`),
                 writer.makeString(`SerializerBase((KSerializerBuffer)&(callbackBuffer.buffer), sizeof(callbackBuffer.buffer), &(callbackBuffer.resourceHolder))`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
@@ -528,12 +530,12 @@ class ManagedCallCallbackVisitor {
             argsNames.push(`continuation`)
         }
         const signature = new NamedMethodSignature(idl.IDLVoidType,
-            [idl.createReferenceType('VMContext'), idl.IDLI32Type, ...args],
+            [idl.createReferenceType('idlize.stdlib.VMContext'), idl.IDLI32Type, ...args],
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`CallManaged${callback.name}Sync`, signature, writer => {
             writer.print('uint8_t dataBuffer[4096];')
-            writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
+            writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`idlize.internal.SerializerBase`),
                 writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(peerGeneratorConfiguration().ApiKind.toString())]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
@@ -548,7 +550,7 @@ class ManagedCallCallbackVisitor {
 
     private writeInteropImplementation(callbacks: idl.IDLCallback[]): void {
         const signature = new NamedMethodSignature(idl.IDLPointerType,
-            [idl.createReferenceType(`CallbackKind`)],
+            [idl.createReferenceType(`idlize.internal.CallbackKind`)],
             [`kind`],
             undefined,
             undefined,
@@ -595,7 +597,7 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
     return (library: PeerLibrary): PrinterResult[] => {
         return [{
             over: {
-                node: library.resolveTypeReference(idl.createReferenceType("deserializeAndCallCallback")) as idl.IDLEntry,
+                node: library.resolveTypeReference(idl.createReferenceType(`${idl.PACKAGE_IDLIZE_INTERNAL}.deserializeAndCallCallback`)) as idl.IDLEntry,
                 role: LayoutNodeRole.PEER,
             },
             generate: () => {

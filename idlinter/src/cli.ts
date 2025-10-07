@@ -23,13 +23,7 @@ import "./validator"
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
 
     performance.mark("procStart")
-
-    for (let ent of checkFiles) {
-        idlManager.addFile(ent)
-    }
-    for (let ent of loadFiles) {
-        idlManager.addFile(ent, true)
-    }
+    idlManager.setFiles(Array.from(checkFiles), Array.from(loadFiles))
     idlManager.runPasses()
 
     performance.mark("procEnd")

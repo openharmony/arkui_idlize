@@ -44,7 +44,8 @@ import { generatorConfiguration } from '../config'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
-import { ReferenceResolver } from './ReferenceResolver'
+import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
+import { toDeclaration } from './toDeclaration'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -103,15 +104,16 @@ export class PeerLibrary implements LibraryInterface {
 
     public layout: LayoutManager = LayoutManager.Empty()
 
-    private _syntheticFile: idl.IDLFile = idl.createFile([])
-    public initSyntheticEntries(file: idl.IDLFile) {
-        this._syntheticFile = file
+    private _files: idl.IDLFile[] = []
+    public get files(): idl.IDLFile[] {
+        return this._files
     }
-    public getSyntheticData() {
-        return this._syntheticFile.entries.filter(it => idl.isInterface(it)) as idl.IDLInterface[]
+    public set files(value: idl.IDLFile[]) {
+        this._files = value
+        this.resolver = createCachedReferenceResolver(value)
     }
-    public readonly files: idl.IDLFile[] = []
     public readonly auxFiles: idl.IDLFile[] = []
+    private resolver: ReferenceResolver = createCachedReferenceResolver([])
 
     public readonly materializedClasses: Map<string, MaterializedClass> = new Map()
     public get orderedMaterialized(): MaterializedClass[] {
@@ -172,7 +174,7 @@ export class PeerLibrary implements LibraryInterface {
             idl.IDLVoidType,
             { nameConvertor: new StructureNameConvertor(this) }
         )
-        return idl.createReferenceType(syntheticName)
+        return idl.createReferenceType(`synthetic.${syntheticName}`)
     }
 
     private context: string | undefined
@@ -191,138 +193,8 @@ export class PeerLibrary implements LibraryInterface {
         return this.createTypeNameConvertor(this.language).convert(type)
     }
 
-    private referenceCache: Map<idl.IDLReferenceType | string, idl.IDLEntry | undefined> | undefined
-    public enableCache() {
-        this.referenceCache = new Map()
-    }
-
     resolveTypeReference(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
-        const key = type.parent ? type : type.name // does entry have resolve context or just FQN
-        let result: idl.IDLEntry | undefined = this.referenceCache?.has(key)
-            ? this.referenceCache.get(key)
-            : this.resolveTypeReferenceUncached(type, singleStep)
-        this.referenceCache?.set(key, result)
-        return result
-    }
-
-    private resolveTypeReferenceUncached(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
-        if (this.referenceCache?.has(type))
-            return this.referenceCache.get(type)
-        let result = this.resolveNamedNode(type.name.split("."), getPov(type))
-        if (!singleStep) {
-            const seen = new Set<idl.IDLEntry>
-            while (result) {
-                let nextResult: idl.IDLEntry | undefined = undefined
-                if (idl.isImport(result))
-                    nextResult = this.resolveImport(result)
-                else if (idl.isReferenceType(result))
-                    nextResult = this.resolveNamedNode(result.name.split("."))
-
-                if (!nextResult)
-                    break;
-
-                if (seen.has(nextResult)) {
-                    console.warn(`Cyclic referenceType: ${type.name}, seen: [${[...seen.values()].map(idl.getFQName).join(", ")}]`)
-                    break;
-                }
-                seen.add(nextResult)
-                result = nextResult
-            }
-        }
-        if (result && (idl.isImport(result) || idl.isNamespace(result)))
-            result = undefined
-
-        this.referenceCache?.set(type, result)
-        return result
-    }
-
-    private _useFallback = true
-    disableFallback() {
-        this._useFallback = false
-    }
-    resolveNamedNode(target: string[], pov: idl.IDLNode | undefined = undefined): idl.IDLEntry | undefined {
-        const qualifiedName = target.join(".")
-        const entry = this._syntheticFile.entries.find(it => it.name === qualifiedName)
-        if (entry)
-            return entry
-
-        if (1 === target.length) {
-            const predefined = this.files.flatMap(it => it.entries).filter(isInIdlizeInternal)
-            const found = predefined.find(it => it.name === target.at(-1))
-            if (found)
-                return found;
-        }
-
-        const corpus = this.files.concat(this.auxFiles)
-
-        let result = resolveNamedNode(target, pov, corpus)
-        if (result && idl.isEntry(result))
-            return result
-
-        if (1 == target.length) {
-            const stdScopes = generatorConfiguration().globalPackages.map(it => it.split('.'))
-            for (const stdScope of stdScopes) {
-                result = resolveNamedNode([...stdScope, ...target], undefined, corpus)
-                if (result && idl.isEntry(result))
-                    return result
-            }
-        }
-
-        // TODO: remove the next block after namespaces out of quarantine
-        if (this._useFallback) {
-            const povAsReadableString = pov
-                ? `'${idl.getFQName(pov)}'`
-                : "[root]"
-
-            // retry from root
-            pov = undefined
-            const resolveds: idl.IDLNode[] = []
-            for (let file of this.files) {
-                result = resolveNamedNode([...file.packageClause, ...target], pov, corpus)
-                if (result && idl.isEntry(result)) {
-                    // too much spam
-                    // console.warn(`WARNING: Type reference '${qualifiedName}' is not resolved from ${povAsReadableString} but resolved from some package '${file.packageClause().join(".")}'`)
-                    resolveds.push(result)
-                }
-            }
-
-            // and from each namespace
-            const traverseNamespaces = (entry: idl.IDLEntry) => {
-                if (entry && idl.isNamespace(entry) && entry.members.length) {
-                    const resolved = resolveNamedNode([...idl.getNamespacesPathFor(entry).map(it => it.name), ...target], pov, corpus)
-                    if (resolved) {
-                        console.warn(`WARNING: Name '${qualifiedName}' is not resolved from ${povAsReadableString} but resolved from some namespace: '${idl.getNamespacesPathFor(resolved).map(obj => obj.name).join(".")}'`)
-                        resolveds.push(resolved)
-                    }
-                    entry.members.forEach(traverseNamespaces)
-                }
-            }
-            this.files.forEach(file => file.entries.forEach(traverseNamespaces))
-
-            for (const resolved of resolveds)
-                if (idl.isEntry(resolved))
-                    return resolved
-        }// end of block to remove
-
-        return undefined
-    }
-
-    resolveImport(target: idl.IDLImport): idl.IDLEntry | undefined {
-        let result = this.resolveNamedNode(target.clause)
-        if (result) {
-            if (idl.isReferenceType(result))
-                return this.resolveTypeReference(result)
-            if (idl.isImport(result)) {
-                if (result == target) {
-                    console.log("Self-targeted Import?")
-                    return undefined
-                }
-                return this.resolveImport(result)
-            }
-            if (idl.isEntry(result))
-                return result
-        }
-        return undefined
+        return this.resolver.resolveTypeReference(type, singleStep)
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {
@@ -416,13 +288,7 @@ export class PeerLibrary implements LibraryInterface {
             return new ImportTypeConvertor(param, this.createTypeNameConvertor(this.language).convert(type))
         }
         if (idl.isImport(declaration)) {
-            const target = this.resolveImport(declaration)
-            if (target && idl.isEntry(target))
-                return this.declarationConvertor(param, type, target)
-            else {
-                warn(`Unable to resolve Import ${declaration.clause.join(".")} as ${declaration.name}`)
-                return new CustomTypeConvertor(param, declaration.name, false, declaration.name)
-            }
+            throw new Error(`Unexpected declaration ${declaration.kind}`)
         }
         if (idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
             const targetRef = idl.createReferenceType(idl.getExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)!)
@@ -479,51 +345,7 @@ export class PeerLibrary implements LibraryInterface {
     }
 
     toDeclaration(type: idl.IDLType | idl.IDLTypedef | idl.IDLCallback | idl.IDLEnum | idl.IDLInterface): idl.IDLEntry | idl.IDLType {
-        switch (type) {
-            case idl.IDLAnyType: return ArkCustomObject
-            case idl.IDLVoidType: return idl.IDLVoidType
-            case idl.IDLUndefinedType: return idl.IDLUndefinedType
-            case idl.IDLUnknownType: return ArkCustomObject
-            // case idl.IDLObjectType: return ArkCustomObject
-        }
-        const typeName = idl.isNamedNode(type) ? type.name : undefined
-        switch (typeName) {
-            case "object":
-            case "Object": return idl.IDLObjectType
-        }
-        if (idl.isReferenceType(type)) {
-            // TODO: remove all this!
-            if (type.name === 'Date') {
-                return ArkDate
-            }
-            if (type.name === 'AnimationRange') {
-                return ArkCustomObject
-            }
-            if (type.name === 'Function') {
-                return ArkFunction
-            }
-            if (type.name === 'Optional') {
-                return this.toDeclaration((type as idl.IDLReferenceType).typeArguments![0])
-            }
-            const decl = this.resolveTypeReference(type)
-            if (!decl) {
-                warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
-            }
-            if (decl && idl.isTypedef(decl) && forceTypedefAsResource(this, type, decl)) {
-                return idl.IDLObjectType
-            }
-            if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
-                const type = toIdlType("", idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)!)
-                return this.toDeclaration(type)
-            }
-            return !decl ? ArkCustomObject  // assume some builtin type
-                : idl.isTypedef(decl) ? this.toDeclaration(decl.type)
-                    : decl
-        }
-        if (isImportAttr(type)) {
-            return ArkCustomObject
-        }
-        return type
+        return toDeclaration(type, this)
     }
     setFileLayout(strategy: LayoutManagerStrategy) {
         this.layout = new LayoutManager(strategy)
@@ -546,7 +368,7 @@ export function cleanPrefix(name: string, prefix: string): string {
     return name.replace(prefix, "")
 }
 
-function forceTypedefAsResource(resolver: ReferenceResolver, type: idl.IDLType, decl: idl.IDLTypedef): boolean {
+export function forceTypedefAsResource(resolver: ReferenceResolver, type: idl.IDLType, decl: idl.IDLTypedef): boolean {
     if (generatorConfiguration().forceResource.includes(idl.getFQName(decl))) return true
     if (isCyclicTypeDef(resolver, decl)) {
         warn(`Cyclic typedef: ${idl.DebugUtils.debugPrintType(type)}`)

@@ -624,11 +624,10 @@ typedef struct SwiperControllerPeer* Ark_SwiperController;
 typedef struct Opt_SwiperController Opt_SwiperController;
 typedef struct Ark_SymbolEffect Ark_SymbolEffect;
 typedef struct Opt_SymbolEffect Opt_SymbolEffect;
-typedef struct SymbolGlyphModifierPeer SymbolGlyphModifierPeer;
-typedef struct SymbolGlyphModifierPeer* Ark_SymbolGlyphModifier;
-typedef struct Opt_SymbolGlyphModifier Opt_SymbolGlyphModifier;
 typedef struct Ark_SystemBarStyle Ark_SystemBarStyle;
 typedef struct Opt_SystemBarStyle Opt_SystemBarStyle;
+typedef struct Ark_TabBarSymbol Ark_TabBarSymbol;
+typedef struct Opt_TabBarSymbol Opt_TabBarSymbol;
 typedef struct TabsControllerPeer TabsControllerPeer;
 typedef struct TabsControllerPeer* Ark_TabsController;
 typedef struct Opt_TabsController Opt_TabsController;
@@ -1410,8 +1409,6 @@ typedef struct Ark_SwiperAutoFill Ark_SwiperAutoFill;
 typedef struct Opt_SwiperAutoFill Opt_SwiperAutoFill;
 typedef struct Ark_SwiperContentAnimatedTransition Ark_SwiperContentAnimatedTransition;
 typedef struct Opt_SwiperContentAnimatedTransition Opt_SwiperContentAnimatedTransition;
-typedef struct Ark_TabBarSymbol Ark_TabBarSymbol;
-typedef struct Opt_TabBarSymbol Opt_TabBarSymbol;
 typedef struct Ark_TabsOptions Ark_TabsOptions;
 typedef struct Opt_TabsOptions Opt_TabsOptions;
 typedef struct Ark_TerminationInfo Ark_TerminationInfo;
@@ -1516,8 +1513,6 @@ typedef struct Ark_Union_ResourceColor_LinearGradient Ark_Union_ResourceColor_Li
 typedef struct Opt_Union_ResourceColor_LinearGradient Opt_Union_ResourceColor_LinearGradient;
 typedef struct Ark_Union_ResourceStr_PixelMap Ark_Union_ResourceStr_PixelMap;
 typedef struct Opt_Union_ResourceStr_PixelMap Opt_Union_ResourceStr_PixelMap;
-typedef struct Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
-typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol Ark_Union_ResourceStr_TabBarSymbol;
 typedef struct Opt_Union_ResourceStr_TabBarSymbol Opt_Union_ResourceStr_TabBarSymbol;
 typedef struct Ark_Union_ScrollAnimationOptions_Boolean Ark_Union_ScrollAnimationOptions_Boolean;
@@ -1530,8 +1525,8 @@ typedef struct Ark_Union_String_Number_Resource Ark_Union_String_Number_Resource
 typedef struct Opt_Union_String_Number_Resource Opt_Union_String_Number_Resource;
 typedef struct Ark_Union_String_Number_Resource_Buffer Ark_Union_String_Number_Resource_Buffer;
 typedef struct Opt_Union_String_Number_Resource_Buffer Opt_Union_String_Number_Resource_Buffer;
-typedef struct Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier;
-typedef struct Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier;
+typedef struct Ark_Union_String_PixelMap_Resource Ark_Union_String_PixelMap_Resource;
+typedef struct Opt_Union_String_PixelMap_Resource Opt_Union_String_PixelMap_Resource;
 typedef struct Ark_Union_String_Resource Ark_Union_String_Resource;
 typedef struct Opt_Union_String_Resource Opt_Union_String_Resource;
 typedef struct Ark_Union_String_Resource_LinearGradient_common Ark_Union_String_Resource_LinearGradient_common;
@@ -1796,8 +1791,6 @@ typedef struct Ark_Union_EdgeWidths_Length_LocalizedEdgeWidths Ark_Union_EdgeWid
 typedef struct Opt_Union_EdgeWidths_Length_LocalizedEdgeWidths Opt_Union_EdgeWidths_Length_LocalizedEdgeWidths;
 typedef struct Ark_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths Ark_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths;
 typedef struct Opt_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths Opt_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths;
-typedef struct Ark_Union_IconOptions_SymbolGlyphModifier Ark_Union_IconOptions_SymbolGlyphModifier;
-typedef struct Opt_Union_IconOptions_SymbolGlyphModifier Opt_Union_IconOptions_SymbolGlyphModifier;
 typedef struct Ark_Union_Length_BorderRadiuses Ark_Union_Length_BorderRadiuses;
 typedef struct Opt_Union_Length_BorderRadiuses Opt_Union_Length_BorderRadiuses;
 typedef struct Ark_Union_Length_BorderRadiuses_LocalizedBorderRadiuses Ark_Union_Length_BorderRadiuses_LocalizedBorderRadiuses;
@@ -4587,10 +4580,6 @@ typedef struct Opt_SymbolEffect {
     Ark_Tag tag;
     Ark_SymbolEffect value;
 } Opt_SymbolEffect;
-typedef struct Opt_SymbolGlyphModifier {
-    Ark_Tag tag;
-    Ark_SymbolGlyphModifier value;
-} Opt_SymbolGlyphModifier;
 typedef struct Ark_SystemBarStyle {
     /* kind: Interface */
     void *handle;
@@ -4599,6 +4588,14 @@ typedef struct Opt_SystemBarStyle {
     Ark_Tag tag;
     Ark_SystemBarStyle value;
 } Opt_SystemBarStyle;
+typedef struct Ark_TabBarSymbol {
+    /* kind: Interface */
+    void *handle;
+} Ark_TabBarSymbol;
+typedef struct Opt_TabBarSymbol {
+    Ark_Tag tag;
+    Ark_TabBarSymbol value;
+} Opt_TabBarSymbol;
 typedef struct Opt_TabsController {
     Ark_Tag tag;
     Ark_TabsController value;
@@ -5703,8 +5700,8 @@ typedef struct Opt_Callback_Boolean_HoverEvent_Void {
 typedef struct Callback_Boolean_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Boolean isSelected);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Boolean isSelected);
+    void (*call)(const Ark_Int32 resourceId, const Ark_Boolean data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Boolean data);
 } Callback_Boolean_Void;
 typedef struct Opt_Callback_Boolean_Void {
     Ark_Tag tag;
@@ -5863,8 +5860,8 @@ typedef struct Opt_Callback_FormCallbackInfo_Void {
 typedef struct Callback_GestureEvent_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_GestureEvent event);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_GestureEvent event);
+    void (*call)(const Ark_Int32 resourceId, const Ark_GestureEvent data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_GestureEvent data);
 } Callback_GestureEvent_Void;
 typedef struct Opt_Callback_GestureEvent_Void {
     Ark_Tag tag;
@@ -5993,8 +5990,8 @@ typedef struct Opt_Callback_KeyEvent_Boolean {
 typedef struct Callback_KeyEvent_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_KeyEvent event);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_KeyEvent event);
+    void (*call)(const Ark_Int32 resourceId, const Ark_KeyEvent data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_KeyEvent data);
 } Callback_KeyEvent_Void;
 typedef struct Opt_Callback_KeyEvent_Void {
     Ark_Tag tag;
@@ -6023,8 +6020,8 @@ typedef struct Opt_Callback_Literal_Number_offsetRemain_Void {
 typedef struct Callback_MouseEvent_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_MouseEvent event);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_MouseEvent event);
+    void (*call)(const Ark_Int32 resourceId, const Ark_MouseEvent data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_MouseEvent data);
 } Callback_MouseEvent_Void;
 typedef struct Opt_Callback_MouseEvent_Void {
     Ark_Tag tag;
@@ -6153,8 +6150,8 @@ typedef struct Opt_Callback_Number_ScrollState_Void {
 typedef struct Callback_Number_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number selected);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number selected);
+    void (*call)(const Ark_Int32 resourceId, const Ark_Number data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number data);
 } Callback_Number_Void;
 typedef struct Opt_Callback_Number_Void {
     Ark_Tag tag;
@@ -6443,8 +6440,8 @@ typedef struct Opt_Callback_String_Unknown_Void {
 typedef struct Callback_String_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_String value);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_String value);
+    void (*call)(const Ark_Int32 resourceId, const Ark_String data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_String data);
 } Callback_String_Void;
 typedef struct Opt_Callback_String_Void {
     Ark_Tag tag;
@@ -6493,8 +6490,8 @@ typedef struct Opt_Callback_TerminationInfo_Void {
 typedef struct Callback_TextPickerResult_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_TextPickerResult value);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TextPickerResult value);
+    void (*call)(const Ark_Int32 resourceId, const Ark_TextPickerResult data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TextPickerResult data);
 } Callback_TextPickerResult_Void;
 typedef struct Opt_Callback_TextPickerResult_Void {
     Ark_Tag tag;
@@ -6523,8 +6520,8 @@ typedef struct Opt_Callback_TouchEvent_HitTestMode {
 typedef struct Callback_TouchEvent_Void {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_TouchEvent event);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TouchEvent event);
+    void (*call)(const Ark_Int32 resourceId, const Ark_TouchEvent data);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TouchEvent data);
 } Callback_TouchEvent_Void;
 typedef struct Opt_Callback_TouchEvent_Void {
     Ark_Tag tag;
@@ -7074,7 +7071,6 @@ typedef struct Opt_ButtonOptions {
 typedef struct Ark_CancelButtonSymbolOptions {
     /* kind: Interface */
     Opt_CancelButtonStyle style;
-    Opt_SymbolGlyphModifier icon;
 } Ark_CancelButtonSymbolOptions;
 typedef struct Opt_CancelButtonSymbolOptions {
     Ark_Tag tag;
@@ -7839,7 +7835,6 @@ typedef struct Ark_NavigationMenuItem {
     /* kind: Interface */
     Ark_String value;
     Opt_String icon;
-    Opt_SymbolGlyphModifier symbolIcon;
     Opt_Boolean isEnabled;
     Opt_Callback_Void action;
 } Ark_NavigationMenuItem;
@@ -8237,15 +8232,6 @@ typedef struct Opt_SwiperContentAnimatedTransition {
     Ark_Tag tag;
     Ark_SwiperContentAnimatedTransition value;
 } Opt_SwiperContentAnimatedTransition;
-typedef struct Ark_TabBarSymbol {
-    /* kind: Interface */
-    Ark_SymbolGlyphModifier normal;
-    Opt_SymbolGlyphModifier selected;
-} Ark_TabBarSymbol;
-typedef struct Opt_TabBarSymbol {
-    Ark_Tag tag;
-    Ark_TabBarSymbol value;
-} Opt_TabBarSymbol;
 typedef struct Ark_TabsOptions {
     /* kind: Interface */
     Opt_BarPosition barPosition;
@@ -8869,19 +8855,6 @@ typedef struct Opt_Union_ResourceStr_PixelMap {
     Ark_Tag tag;
     Ark_Union_ResourceStr_PixelMap value;
 } Opt_Union_ResourceStr_PixelMap;
-typedef struct Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_ResourceStr value0;
-        Ark_PixelMap value1;
-        Ark_SymbolGlyphModifier value2;
-    };
-} Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
-typedef struct Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier {
-    Ark_Tag tag;
-    Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier value;
-} Opt_Union_ResourceStr_PixelMap_SymbolGlyphModifier;
 typedef struct Ark_Union_ResourceStr_TabBarSymbol {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -8958,20 +8931,19 @@ typedef struct Opt_Union_String_Number_Resource_Buffer {
     Ark_Tag tag;
     Ark_Union_String_Number_Resource_Buffer value;
 } Opt_Union_String_Number_Resource_Buffer;
-typedef struct Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier {
+typedef struct Ark_Union_String_PixelMap_Resource {
     /* kind: UnionType */
     Ark_Int32 selector;
     union {
         Ark_String value0;
         Ark_PixelMap value1;
         Ark_Resource value2;
-        Ark_SymbolGlyphModifier value3;
     };
-} Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier;
-typedef struct Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier {
+} Ark_Union_String_PixelMap_Resource;
+typedef struct Opt_Union_String_PixelMap_Resource {
     Ark_Tag tag;
-    Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier value;
-} Opt_Union_String_PixelMap_Resource_SymbolGlyphModifier;
+    Ark_Union_String_PixelMap_Resource value;
+} Opt_Union_String_PixelMap_Resource;
 typedef struct Ark_Union_String_Resource {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -9344,7 +9316,6 @@ typedef struct Ark_MenuElement {
     /* kind: Interface */
     Ark_ResourceStr value;
     Opt_ResourceStr icon;
-    Opt_SymbolGlyphModifier symbolIcon;
     Opt_Boolean enabled;
     Callback_Void action;
 } Ark_MenuElement;
@@ -9501,7 +9472,6 @@ typedef struct Ark_SelectOption {
     /* kind: Interface */
     Ark_ResourceStr value;
     Opt_ResourceStr icon;
-    Opt_SymbolGlyphModifier symbolIcon;
 } Ark_SelectOption;
 typedef struct Opt_SelectOption {
     Ark_Tag tag;
@@ -9655,11 +9625,9 @@ typedef struct Ark_ToolbarItem {
     /* kind: Interface */
     Ark_ResourceStr value;
     Opt_ResourceStr icon;
-    Opt_SymbolGlyphModifier symbolIcon;
     Opt_Callback_Void action;
     Opt_ToolbarItemStatus status;
     Opt_ResourceStr activeIcon;
-    Opt_SymbolGlyphModifier activeSymbolIcon;
 } Ark_ToolbarItem;
 typedef struct Opt_ToolbarItem {
     Ark_Tag tag;
@@ -10461,18 +10429,6 @@ typedef struct Opt_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths {
     Ark_Tag tag;
     Ark_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths value;
 } Opt_Union_EdgeWidths_LengthMetrics_LocalizedEdgeWidths;
-typedef struct Ark_Union_IconOptions_SymbolGlyphModifier {
-    /* kind: UnionType */
-    Ark_Int32 selector;
-    union {
-        Ark_IconOptions value0;
-        Ark_SymbolGlyphModifier value1;
-    };
-} Ark_Union_IconOptions_SymbolGlyphModifier;
-typedef struct Opt_Union_IconOptions_SymbolGlyphModifier {
-    Ark_Tag tag;
-    Ark_Union_IconOptions_SymbolGlyphModifier value;
-} Opt_Union_IconOptions_SymbolGlyphModifier;
 typedef struct Ark_Union_Length_BorderRadiuses {
     /* kind: UnionType */
     Ark_Int32 selector;
@@ -12237,7 +12193,7 @@ typedef struct GENERATED_ArkUINavDestinationModifier {
     void (*setMode)(Ark_NativePointer node,
                     Ark_NavDestinationMode value);
     void (*setBackButtonIcon)(Ark_NativePointer node,
-                              const Ark_Union_ResourceStr_PixelMap_SymbolGlyphModifier* value);
+                              const Ark_Union_ResourceStr_PixelMap* value);
     void (*setMenus)(Ark_NativePointer node,
                      const Ark_Union_Array_NavigationMenuItem_CustomBuilder* value);
     void (*setOnReady)(Ark_NativePointer node,
@@ -12274,7 +12230,7 @@ typedef struct GENERATED_ArkUINavigationModifier {
     void (*setMode)(Ark_NativePointer node,
                     Ark_NavigationMode value);
     void (*setBackButtonIcon)(Ark_NativePointer node,
-                              const Ark_Union_String_PixelMap_Resource_SymbolGlyphModifier* value);
+                              const Ark_Union_String_PixelMap_Resource* value);
     void (*setHideNavBar)(Ark_NativePointer node,
                           Ark_Boolean value);
     void (*setTitle)(Ark_NativePointer node,
@@ -12529,7 +12485,7 @@ typedef struct GENERATED_ArkUISearchModifier {
     void (*setFontColor)(Ark_NativePointer node,
                          const Ark_ResourceColor* value);
     void (*setSearchIcon)(Ark_NativePointer node,
-                          const Ark_Union_IconOptions_SymbolGlyphModifier* value);
+                          const Ark_IconOptions* value);
     void (*setCancelButton)(Ark_NativePointer node,
                             const Ark_Union_CancelButtonOptions_CancelButtonSymbolOptions* value);
     void (*setTextIndent)(Ark_NativePointer node,
@@ -14711,12 +14667,6 @@ typedef struct GENERATED_ArkUISwiperControllerAccessor {
                             const Opt_VoidCallback* callback_);
 } GENERATED_ArkUISwiperControllerAccessor;
 
-typedef struct GENERATED_ArkUISymbolGlyphModifierAccessor {
-    void (*destroyPeer)(Ark_SymbolGlyphModifier peer);
-    Ark_SymbolGlyphModifier (*construct)(const Opt_Resource* src);
-    Ark_NativePointer (*getFinalizer)();
-} GENERATED_ArkUISymbolGlyphModifierAccessor;
-
 typedef struct GENERATED_ArkUITabsControllerAccessor {
     void (*destroyPeer)(Ark_TabsController peer);
     Ark_TabsController (*construct)();
@@ -15130,7 +15080,6 @@ typedef struct GENERATED_ArkUIAccessors {
     const GENERATED_ArkUISwipeGestureEventAccessor* (*getSwipeGestureEventAccessor)();
     const GENERATED_ArkUISwiperContentTransitionProxyAccessor* (*getSwiperContentTransitionProxyAccessor)();
     const GENERATED_ArkUISwiperControllerAccessor* (*getSwiperControllerAccessor)();
-    const GENERATED_ArkUISymbolGlyphModifierAccessor* (*getSymbolGlyphModifierAccessor)();
     const GENERATED_ArkUITabsControllerAccessor* (*getTabsControllerAccessor)();
     const GENERATED_ArkUITapGestureEventAccessor* (*getTapGestureEventAccessor)();
     const GENERATED_ArkUITextBaseControllerAccessor* (*getTextBaseControllerAccessor)();

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
+// declare type SymbolGlyphModifier = import('../../resource/symbol').SymbolGlyphModifier;
 
 declare type ComponentContent = import('../api/arkui/ComponentContent').ComponentContent;
 

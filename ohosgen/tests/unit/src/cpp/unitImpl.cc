@@ -695,7 +695,7 @@ Array_String test_materialized_classes_MaterializedComplexArguments_method4Impl(
 Array_UtilityInterface test_materialized_classes_MaterializedComplexArguments_method5Impl(OH_NativePointer thisPtr, const Array_UtilityInterface* arrayInterfaces) {
     return reinterpret_cast<OH_UNIT_test_materialized_classes_MaterializedComplexArgumentsPeer*>(thisPtr)->method5(*arrayInterfaces);
 }
-void GlobalScope_test_any_testImpl(const OH_UNIT_test_any_WithAny* x, const UNIT_test_any_Callback_Any_Void* f) {
+void GlobalScope_test_any_testImpl(const OH_UNIT_test_any_WithAny* x, const UNIT_Callback_Any_Void* f) {
     f->call(f->resource.resourceId, x->field);
 }
 // BigInt

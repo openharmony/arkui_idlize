@@ -26,9 +26,9 @@ interface BoardStyle {
 
 declare class TabBarSymbol {
 
-    normal: SymbolGlyphModifier;
+    // normal: SymbolGlyphModifier;
 
-    selected?: SymbolGlyphModifier;
+    // selected?: SymbolGlyphModifier;
 }
 
 declare enum LayoutMode {

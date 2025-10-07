@@ -121,7 +121,7 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
         generate: () => {
             const imports = new ImportsCollector
             fillPeerImports(imports, library)
-            collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), imports)
+            collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
             library.globals.forEach(scope => {
                 const groupedMethods = groupOverloadsIDL(scope.methods, library.language)
                 groupedMethods.filter(it => it.length).forEach(methods => {
@@ -214,6 +214,6 @@ function fillPeerImports(collector: ImportsCollector, library: PeerLibrary) {
             "toPeerPtr",
         ], "koalaui.interop")
     }
-    collectDeclItself(library, idl.createReferenceType('CallbackKind'), collector)
-    collectDeclItself(library, idl.createReferenceType(NativeModule.Generated.name), collector)
+    collectDeclItself(library, idl.createReferenceType('idlize.internal.CallbackKind'), collector)
+    collectDeclItself(library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), collector)
 }

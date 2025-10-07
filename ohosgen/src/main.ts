@@ -27,26 +27,28 @@ import {
     D,
     formatInputPaths,
     NativeModuleType,
-    inplaceGenerics,
-    inplaceNullsAsUndefined,
-    inplaceTransformOnSerialize,
-    StructureNameConvertor,
-    convertNode,
     validatePaths,
-    inplaceFQN,
+    fqnTransformer,
+    createAlgotithmicReferenceResolver,
+    nullsTransformer,
+    transformOnSerializeTransformer,
+    genericsTransformer,
 } from "@idlizer/core"
 import {
     getFQName,
+    IDLFile,
     IDLNode,
     linearizeNamespaceMembers,
+    linkParentBack,
     transformMethodsAsync2ReturnPromise,
 } from "@idlizer/core/idl"
 import { loadPeerConfiguration,
     IdlPeerProcessor,
-    loadPlugin, fillSyntheticDeclarations, peerGeneratorConfiguration,
+    loadPlugin, peerGeneratorConfiguration,
     libohosPredefinedFiles,
     PeerGeneratorConfigurationSchema,
     NativeModule,
+    syntheticTransformer,
 } from "@idlizer/libohos"
 import { readLibrary } from "@idlizer/interfaces"
 import { generateOhos } from "./ohos"
@@ -112,7 +114,7 @@ if (options.idl2peer) {
     validatePaths(inputDirs, "dir")
     validatePaths(inputFiles, "file")
 
-    const idlLibrary = new PeerLibrary(language, NativeModule.Interop)
+    let files: IDLFile[] = []
     const allInputFiles = scanInputDirs(inputDirs)
         .concat(inputFiles)
         .concat(libohosPredefinedFiles())
@@ -123,26 +125,31 @@ if (options.idl2peer) {
         idlFilename = path.resolve(idlFilename)
         const file = parseIDLFile(idlFilename)
         linearizeNamespaceMembers(file.entries).forEach(transformMethodsAsync2ReturnPromise)
-        idlLibrary.files.push(file)
+        files.push(file)
     })
     if (options.verifyIdl) {
-        idlLibrary.files.forEach(file => {
-            verifyIDLLinter(file, idlLibrary, peerGeneratorConfiguration().linter)
+        files.forEach(file => {
+            verifyIDLLinter(file, createAlgotithmicReferenceResolver(files), peerGeneratorConfiguration().linter)
         })
     }
+    initGeneratedNativeModuleName()
 
-    initLibraryName(idlLibrary)
-    idlLibrary.files.forEach(file => {
-        inplaceTransformOnSerialize(file, (node: IDLNode) => {
-            const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
-                it => it.from === getFQName(node))
-            return transformation?.to
-        })
+    files = fqnTransformer(files.map(linkParentBack), createAlgotithmicReferenceResolver(files, true))
+    files = transformOnSerializeTransformer(files, (node: IDLNode) => {
+        const transformation = peerGeneratorConfiguration().transformOnSerialize.find(
+            it => it.from === getFQName(node))
+        return transformation?.to
     })
-    idlLibrary.files.forEach(file => inplaceFQN(file, idlLibrary))
-    idlLibrary.files.forEach(inplaceNullsAsUndefined)
-    inplaceOhosgenGenerics(idlLibrary)
-    fillSyntheticDeclarations(idlLibrary)
+    files = nullsTransformer(files)
+    files = genericsTransformer(files, {
+        ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
+        ignore: [],
+    })
+    files = syntheticTransformer(files)
+
+    const idlLibrary = new PeerLibrary(language, NativeModule.Interop)
+    idlLibrary.files = files
+    initLibraryName(idlLibrary)
     new IdlPeerProcessor(idlLibrary).process()
     generateTarget(idlLibrary, outDir, options.useOst)
 
@@ -180,14 +187,15 @@ function processInputFiles(files: string[] | string | undefined): string[] {
 
 function initLibraryName(idlLibrary: PeerLibrary) {
     // TODO really dirty - I do not like PeerLibrary.name at all, should be reworked in another way.
-    idlLibrary.name = options.defaultIdlPackage?.toUpperCase() ?? ""
-    if (!idlLibrary.name.length) {
-        idlLibrary.name = suggestLibraryName(idlLibrary)
-    }
+    idlLibrary.name = options.defaultIdlPackage?.toUpperCase() || suggestLibraryName()
     if (!idlLibrary.name.length) {
         throw new Error("No name can be assigned to generated package. please provide name via --default-idl-package ")
     }
-    NativeModule.Generated = new NativeModuleType(idlLibrary.name + 'NativeModule')
+}
+
+function initGeneratedNativeModuleName() {
+    const name = options.defaultIdlPackage?.toUpperCase() || suggestLibraryName()
+    NativeModule.Generated = new NativeModuleType(name + 'NativeModule')
 }
 
 function generateTarget(idlLibrary: PeerLibrary, outDir: string, useOst: boolean) {
@@ -211,12 +219,4 @@ function generateTarget(idlLibrary: PeerLibrary, outDir: string, useOst: boolean
 function skoalaPredefinedFiles(): string[] {
     const PREDEFINED_PATH = path.resolve('tests', 'skoala', 'predefined')
     return scanInputDirs([PREDEFINED_PATH])
-}
-
-function inplaceOhosgenGenerics(library: PeerLibrary) {
-    const nameConvertor = new StructureNameConvertor(library)
-    library.files.forEach(file => inplaceGenerics(file, library, {
-        nameConvertor: (node) => convertNode(nameConvertor, node).text,
-        ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,
-    }))
 }

@@ -414,7 +414,7 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         return createReferenceType('Tag')
     }
     getRuntimeType(): IDLType {
-        return createReferenceType(`RuntimeType`)
+        return createReferenceType(`idlize.stdlib.RuntimeType`)
     }
     makeTupleAssign(receiver: string, tupleFields: string[]): LanguageStatement {
         const statements =

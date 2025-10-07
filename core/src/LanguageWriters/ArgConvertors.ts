@@ -407,7 +407,7 @@ export class ObjectConvertor extends BaseArgConvertor {
     }
     holdResource(name: string, holder: string, writer: LanguageWriter): void {
         writer.writeStatement(
-            writer.makeAssign(name, idl.createReferenceType(`CallbackResource`),
+            writer.makeAssign(name, idl.createReferenceType(`idlize.stdlib.CallbackResource`),
                 writer.makeString(`{${this.param}.resource.resourceId, holdManagedCallbackResource, releaseManagedCallbackResource}`), true))
         writer.writeExpressionStatement(
             writer.makeMethodCall(holder, 'holdCallbackResource', [
@@ -1288,7 +1288,7 @@ export class CallbackConvertor extends BaseArgConvertor {
         const statements: LanguageStatement[] = []
         statements.push(writer.makeAssign(
             resourceName,
-            idl.createReferenceType("CallbackResource"),
+            idl.createReferenceType("idlize.stdlib.CallbackResource"),
             writer.makeMethodCall(deserializerName, 'readCallbackResource', []),
             true,
         ))
@@ -1336,7 +1336,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             ]
         }
         const result = writer.makeLambda(callbackSignature, [
-            writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('SerializerBase'), writer.makeMethodCall('SerializerBase', 'hold', []), true),
+            writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('idlize.internal.SerializerBase'), writer.makeMethodCall('SerializerBase', 'hold', []), true),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`,
                 [writer.makeString(`${resourceName}.resourceId`)])),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writePointer`,
@@ -1435,7 +1435,7 @@ export function generateCallbackAPIArguments(library: LibraryInterface, callback
 
 export function maybeTransformManagedCallback(callback: idl.IDLCallback, library: ReferenceResolver): idl.IDLCallback | undefined {
     if (callback.name === "CustomBuilder")
-        return library.resolveTypeReference(idl.createReferenceType("CustomNodeBuilder")) as idl.IDLCallback
+        return library.resolveTypeReference(idl.createReferenceType("arkui.component.idlize.CustomNodeBuilder")) as idl.IDLCallback
     return undefined
 }
 

@@ -44,7 +44,7 @@ import { collectComponents, findComponentByType, IdlComponentDeclaration, isComp
 import { ReferenceResolver } from "@idlizer/core"
 import * as path from "path"
 
-export const FinalizableType = idl.createReferenceType("Finalizable")
+export const FinalizableType = idl.createReferenceType("idlize.internal.Finalizable")
 export const RefCountedType = idl.createReferenceType("RefCounted")
 
 export function isRefCounted(declaration: idl.IDLInterface, resolver: ReferenceResolver): boolean {
@@ -303,7 +303,7 @@ export class IdlPeerProcessor {
                 signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), it)),
                 signature.returnType,
                 idl.isMethod(method) && !method.isStatic ? decl : undefined,
-                peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
+                peerGeneratorConfiguration().forceContext.includes(idl.getFQNameSafe(method) ?? "") ? [MethodModifier.FORCE_CONTEXT] : undefined
             ),
             originalParentName, implemenationParentName, returnType, false,
             overloadInfo.alias ?? methodName,

@@ -16,7 +16,7 @@
 declare interface SelectOption {
   value: ResourceStr;
   icon?: ResourceStr;
-  symbolIcon?: SymbolGlyphModifier;
+  // symbolIcon?: SymbolGlyphModifier;
 }
 
 declare interface MenuItemConfiguration extends CommonConfiguration<MenuItemConfiguration> {
