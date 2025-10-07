@@ -154,7 +154,7 @@ export function parseIDLFile(fileName: string, content?: string, quiet?: boolean
         return parseIDLFileNew(fileName, content)
     } finally {
         if (!quiet && DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
-            DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).map(it => outputDiagnosticMessageFormatted(it))
+            DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).forEach(it => outputDiagnosticMessageFormatted(it))
         }
     }
 }

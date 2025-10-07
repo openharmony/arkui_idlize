@@ -451,11 +451,11 @@ class DefaultSerializerDependencyFilter implements DependencyFilter {
             && this.canSerializeDependency(node)
     }
     isParameterized(node: idl.IDLEntry) {
-        return idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)
-            || ["Record", "Required"].includes(node.name!)
+        return idl.isGeneric(node) && node.typeParameters && node.typeParameters.length
+            || ["Record", "Required"].includes(node.name)
     }
     isParametrizedWithAllDefaults(node: idl.IDLEntry): boolean {
-        return !!idl.getExtAttribute(node, idl.IDLExtendedAttributes.TypeParameters)?.split(',').every(it => it.includes("="))
+        return false
     }
 
     canHandleParametrized(node: idl.IDLEntry): boolean {

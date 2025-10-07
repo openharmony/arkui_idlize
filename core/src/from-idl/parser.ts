@@ -15,9 +15,11 @@
 
 import * as fs from "fs"
 import * as idl from "../idl"
-import { DiagnosticException, DiagnosticMessage, Location, Position } from "../diagnostictypes"
+import { DiagnosticException, DiagnosticMessage, Location, MessageSeverityList, Position } from "../diagnostictypes"
 import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnosticmessages"
 
+const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
+const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
 const DuplicatePackageDeclaration = new DiagnosticMessageGroup("error", "DuplicatePackageDeclaration", "Duplicate package declaration", "Duplicate of")
@@ -109,8 +111,10 @@ export class Parser {
             this._prevToken = this._curToken
             let result = parser()
             if (DiagnosticMessageGroup.allGroupsEntries.length != previousDiagnosticsCount) {
-                // Empty for now, messages will be added in following `catch`.
-                throw new FatalParserException()
+                if (DiagnosticMessageGroup.allGroupsEntries.slice(previousDiagnosticsCount).some(msg => MessageSeverityList.indexOf(msg.severity) <= MessageSeverityList.indexOf('error'))) {
+                    // Empty for now, messages will be added in following `catch`.
+                    throw new FatalParserException()
+                }
             }
             return result
         } catch (e) {
@@ -360,8 +364,13 @@ export class Parser {
         return token
     }
 
-    parseAndPushGenerics(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
+    parseAndPushGenerics(ext: idl.IDLExtendedAttribute[] | undefined): string[] | undefined {
         const gen = extractTypeParameters(ext) ?? []
+        const found = ext?.find(e => e.name === LEGACY_TYPE_PARAMETERS_ATTRIBUTE)
+        if (found && found.nameLocation) {
+            DeprecatedTypeParameters.reportDiagnosticMessage([found.nameLocation], 'TypeParameters attribute is deprecated, use "<..>" syntax');
+            ext?.splice(ext.indexOf(found), 1)
+        }
         if (this.seeAndSkip("<")) {
             let next = false
             while (!this.seeAndSkip(">")) {
@@ -374,7 +383,7 @@ export class Parser {
         }
         // To be restored in parseDeclaration
         this._generics.push(gen)
-        return gen
+        return gen.length === 0 ? undefined : gen
     }
 
     hasGeneric(name: string): boolean {
@@ -562,7 +571,7 @@ export class Parser {
                 duplicates.add(name.value)
             }
             names.add(name.value)
-            if (name.value == idl.IDLExtendedAttributes.TypeArguments || name.value == idl.IDLExtendedAttributes.TypeParametersDefaults) {
+            if (name.value === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE || name.value === idl.IDLExtendedAttributes.TypeParametersDefaults) {
                 // TypeArguments parsing support
                 try {
                     this._inLiteralParsingLevel += 1
@@ -615,7 +624,7 @@ export class Parser {
         // Tuned for IDLize types, no support for legacy combinations like "unsigned short"
         trac("parseType")
         const parsedExt = this.parseExtendedAttributes()
-        const ext = parsedExt ? (outerExt ? parsedExt.concat(outerExt) : parsedExt) : (outerExt ? [...outerExt] : undefined) 
+        const ext = parsedExt ? (outerExt ? parsedExt.concat(outerExt) : parsedExt) : (outerExt ? [...outerExt] : undefined)
         const sloc = this.trackLocation()
         if (this.seeAndSkip("(")) {
             let combinedTypes: idl.IDLType[] = []
@@ -639,6 +648,11 @@ export class Parser {
         }
         const name = this.parseFullIdentifier()
         const genArgs = extractTypeArguments(ext) ?? []
+        const foundArgAttr = ext?.find(it => it.name === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE)
+        if (foundArgAttr && foundArgAttr.nameLocation) {
+            DeprecatedTypeArguments.reportDiagnosticMessage([foundArgAttr.nameLocation], 'TypeArgument is deprecated extended attribute, use "<..>" syntax')
+            ext?.splice(ext.indexOf(foundArgAttr), 1)
+        }
         if (this.seeAndSkip("<")) {
             let next = false
             while (!this.seeAndSkip(">")) {
@@ -1043,12 +1057,15 @@ function sanitizeTypeParameter(param: string): string {
     return param
 }
 
-function extractTypeParameters(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
-    return ext?.find(x => x.name == idl.IDLExtendedAttributes.TypeParameters)?.value?.split(",")?.map(sanitizeTypeParameter)
-}
+const LEGACY_TYPE_PARAMETERS_ATTRIBUTE = "TypeParameters"
+const LEGACY_TYPE_ARGUMENTS_ATTRIBUTE = "TypeArguments"
 
 function extractTypeArguments(ext?: idl.IDLExtendedAttribute[]): idl.IDLType[] | undefined {
-    return ext?.find(x => x.name == idl.IDLExtendedAttributes.TypeArguments)?.typesValue
+    return ext?.find(x => x.name === LEGACY_TYPE_ARGUMENTS_ATTRIBUTE)?.typesValue
+}
+
+function extractTypeParameters(ext?: idl.IDLExtendedAttribute[]): string[] | undefined {
+    return ext?.find(x => x.name === LEGACY_TYPE_PARAMETERS_ATTRIBUTE)?.value?.split(",")?.map(sanitizeTypeParameter)
 }
 
 const builtinTypesList = [idl.IDLPointerType, idl.IDLVoidType, idl.IDLBooleanType, 

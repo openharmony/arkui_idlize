@@ -4,13 +4,18 @@ import { assert, suite, test } from "@koalaui/harness"
 import { parseIDLFile, parseIDLFileNew, compareParsingResults } from "../src/from-idl/deserialize"
 import { toIDLString } from "../src/idl"
 import { DiagnosticMessageGroup } from "../src/diagnosticmessages"
-import { outputDiagnosticMessageFormatted } from "../src/formatter"
 
 const idlDirPath = './test/idls/'
 
 function checkIdlFile(fname: string): void {
   const astTree1 = parseIDLFile(path.join(idlDirPath, fname))  // parse source.idl into tree1
   const tmp = toIDLString(astTree1, {})
+  if (process.argv.includes('--show-dump')) {
+    const title = '=== ' + fname + ' ==='
+    console.log(title)
+    console.log(tmp)
+    console.log('='.repeat(title.length))
+  }
   const astTree2 = parseIDLFileNew("", tmp)              // parse string into tree2
   const res = compareParsingResults(astTree1, astTree2)  // compare trees
   assert(res, "during testing " + fname)
@@ -94,6 +99,9 @@ suite("IDL parser test suite", () => {
     checkIdlFile("typedef-1.idl")
   })
 
+  test("Test IDL deep generic references", () => {
+    checkIdlFile("gen-1.idl")
+  })
 })
 
 suite("IDL parser error processing suite", () => {

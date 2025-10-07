@@ -47,19 +47,12 @@ export function maybeRestoreGenerics(
     }
     if (maybeTransformedGeneric && idl.hasExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)) {
         const originalName = idl.getExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)!
-        const typeArgumentsAttribute = idl.getExtAttribute(maybeTransformedGeneric, idl.IDLExtendedAttributes.TypeArguments)
-        const typeArguments = idl.getExtAttributeTypesValue(maybeTransformedGeneric, idl.IDLExtendedAttributes.TypeArguments)
-        if (!typeArgumentsAttribute || !typeArguments)
+        const typeArguments = idl.getExtAttributeTypesValue(maybeTransformedGeneric, idl.IDLExtendedAttributes.OriginalGenericName)
+        if (!typeArguments)
             throw new Error(`Can not restore original generic type arguments for ${originalName}: no type arguments`)
         return idl.createReferenceType(
             originalName,
             typeArguments,
-            {
-                extendedAttributes: [{
-                    name: idl.IDLExtendedAttributes.TypeArguments,
-                    value: typeArgumentsAttribute,
-                }]
-            }
         )
     }
     return undefined
@@ -109,16 +102,11 @@ function monomorphizeEntry<T extends idl.IDLEntry>(typedEntry: T, typeArguments:
         }
         return node
     })
-    monomorphizedEntry.extendedAttributes = monomorphizedEntry.extendedAttributes?.filter(it => {
-        return it.name != idl.IDLExtendedAttributes.TypeParameters
-    }) ?? []
+    monomorphizedEntry.extendedAttributes ??= []
     monomorphizedEntry.extendedAttributes.push({
         name: idl.IDLExtendedAttributes.OriginalGenericName,
         value: idl.getFQName(typedEntry),
-    }, {
-        name: idl.IDLExtendedAttributes.TypeArguments,
-        value: typeArguments.map(type => idl.printType(type)).join(","),
-        typesValue: typeArguments,
+        typesValue: typeArguments.map(idl.clone),
     })
     inplaceRemoveMeaninglessFields(monomorphizedEntry)
     return monomorphizedEntry;

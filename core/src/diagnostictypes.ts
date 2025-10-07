@@ -22,7 +22,7 @@ export type MessageSeverity =  "fatal" | "error" | "warning" | "information" | "
 /**
  * Diagnostic message severity values.
  */
-export let MessageSeverityList: MessageSeverity[] =  ["fatal", "error", "warning", "information", "hint"]
+export const MessageSeverityList: MessageSeverity[] =  ["fatal", "error", "warning", "information", "hint"]
 
 /**
  * Message that reports specific error/warning, contains multiple parts and fixes.

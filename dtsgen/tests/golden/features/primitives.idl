@@ -14,7 +14,7 @@ interface Iface {
     void foo(record<String, number> value);
     void foo(date value);
     void foo(buffer value);
-    void foo([TypeArguments="String"] Readonly value);
+    void foo(Readonly<String> value);
     void foo((String or undefined) value);
     any bar01();
     Object bar02();
@@ -34,6 +34,6 @@ interface Iface {
     date bar16();
     buffer bar17();
     String bar18();
-    ([TypeArguments="String"] Readonly) bar19();
+    Readonly<String> bar19();
     (String or undefined) bar20();
 };

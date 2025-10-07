@@ -86,8 +86,6 @@ export enum IDLExtendedAttributes {
     Throws = "Throws",
     TraceKey = "TraceKey",
     TypeAnnotations = "TypeAnnotations",
-    TypeArguments = "TypeArguments",
-    TypeParameters = "TypeParameters",
     TypeParametersDefaults = "TypeParametersDefaults",
     VerbatimDts = "VerbatimDts",
     HandWrittenImplementation = "HandWrittenImplementation",
@@ -161,7 +159,7 @@ export interface IDLOptionalType extends IDLType {
 }
 
 export type IDLContainerKind =
-      'sequence'
+    'sequence'
     | 'record'
     | 'Promise'
 
@@ -294,11 +292,11 @@ export interface IDLCallback extends IDLEntry, IDLSignature {
     returnType: IDLType
 }
 
-type IDLNodeVisitorVoid = (node:IDLNode) => void
-type IDLNodeVisitorValue = (node:IDLNode) => () => void
+type IDLNodeVisitorVoid = (node: IDLNode) => void
+type IDLNodeVisitorValue = (node: IDLNode) => () => void
 
 type IDLNodeVisitor =
-      IDLNodeVisitorVoid
+    IDLNodeVisitorVoid
     | IDLNodeVisitorValue
 
 export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (entry: IDLNode) => void): void {
@@ -385,7 +383,7 @@ export function forEachChild(node: IDLNode, cbEnter: IDLNodeVisitor, cbLeave?: (
 }
 
 /** Updates tree in place! */
-export function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cbLeave?: (entry: IDLNode) => void): IDLNode {
+export function updateEachChild(node: IDLNode, op: (node: IDLNode) => IDLNode, cbLeave?: (entry: IDLNode) => void): IDLNode {
     const old = node
     node = op(old)
     if (node.kind !== old.kind && !(isType(old) && isType(node))) {
@@ -485,7 +483,7 @@ export function updateEachChild(node: IDLNode, op: (node:IDLNode) => IDLNode, cb
 }
 
 
-export function visitChildren(node: IDLNode, mutator: (node:IDLNode) => IDLNode): IDLNode {
+export function visitChildren(node: IDLNode, mutator: (node: IDLNode) => IDLNode): IDLNode {
     function track(visitor: (op: (node: IDLNode) => IDLNode) => () => IDLNode) {
         let changed = false
         let factory: () => IDLNode = visitor(
@@ -848,7 +846,7 @@ function createPrimitiveType(name: string): IDLPrimitiveType {
     }
 }
 
-export function createOptionalType(element:IDLType, nodeInitializer?: IDLNodeInitializer): IDLOptionalType {
+export function createOptionalType(element: IDLType, nodeInitializer?: IDLNodeInitializer): IDLOptionalType {
     if (isOptionalType(element) && !nodeInitializer) {
         return element
     }
@@ -915,7 +913,7 @@ export type IDLNodeInitializer = {
     valueLocation?: Location
 }
 
-export function createNamespace(name:string, members?: IDLEntry[], nodeInitializer?:IDLNodeInitializer): IDLNamespace {
+export function createNamespace(name: string, members?: IDLEntry[], nodeInitializer?: IDLNodeInitializer): IDLNamespace {
     return {
         kind: IDLKind.Namespace,
         members: members ?? [],
@@ -1019,7 +1017,7 @@ export function deriveQualifiedNameFrom(name: string, from: IDLNode): string {
     return [...getPackageClause(from), ...getNamespacesPathFor(from).map(it => it.name), name].join(".")
 }
 
-export function getQualifiedName(a:IDLNode, pattern: QNPattern): string {
+export function getQualifiedName(a: IDLNode, pattern: QNPattern): string {
     const result: string[] = []
     if ("package.namespace.name" === pattern)
         result.push(...getPackageClause(a), ...getNamespacesPathFor(a).map(it => it.name))
@@ -1046,11 +1044,11 @@ export function getQualifiedName(a:IDLNode, pattern: QNPattern): string {
     return result.join(".")
 }
 
-export function getFQName(a:IDLNode): string {
+export function getFQName(a: IDLNode): string {
     return getQualifiedName(a, "package.namespace.name")
 }
 
-export function createVersion(value: string[], nodeInitializer?:IDLNodeInitializer): IDLVersion {
+export function createVersion(value: string[], nodeInitializer?: IDLNodeInitializer): IDLVersion {
     return {
         kind: IDLKind.Version,
         value,
@@ -1062,7 +1060,7 @@ export function createVersion(value: string[], nodeInitializer?:IDLNodeInitializ
     }
 }
 
-export function fetchNamespaceFrom(pointOfView?: IDLNode): IDLNamespace|undefined {
+export function fetchNamespaceFrom(pointOfView?: IDLNode): IDLNamespace | undefined {
     let node: IDLNode | undefined = pointOfView
     while (node) {
         if (isNamespace(node))
@@ -1072,12 +1070,12 @@ export function fetchNamespaceFrom(pointOfView?: IDLNode): IDLNamespace|undefine
     return undefined
 }
 
-export function createReferenceType(name: string, typeArguments?: IDLType[], nodeInitializer?:IDLNodeInitializer): IDLReferenceType
-export function createReferenceType(source: IDLEntry, typeArguments?: IDLType[], nodeInitializer?:IDLNodeInitializer): IDLReferenceType
+export function createReferenceType(name: string, typeArguments?: IDLType[], nodeInitializer?: IDLNodeInitializer): IDLReferenceType
+export function createReferenceType(source: IDLEntry, typeArguments?: IDLType[], nodeInitializer?: IDLNodeInitializer): IDLReferenceType
 export function createReferenceType(
     nameOrSource: string | IDLEntry,
     typeArguments?: IDLType[],
-    nodeInitializer?:IDLNodeInitializer
+    nodeInitializer?: IDLNodeInitializer
 ): IDLReferenceType {
     let name: string
     if (typeof nameOrSource === 'string') {
@@ -1096,7 +1094,7 @@ export function createReferenceType(
     }
 }
 
-export function entityToType(entity:IDLNode): IDLType {
+export function entityToType(entity: IDLNode): IDLType {
     if (isType(entity)) {
         return entity
     } else if (isEntry(entity)) {
@@ -1131,7 +1129,7 @@ export function createUnionType(types: IDLType[], name?: string, nodeInitializer
     }
 }
 
-export function createFile(entries: IDLEntry[], fileName?: string, packageClause: string[] = [], nodeInitializer?:IDLNodeInitializer): IDLFile {
+export function createFile(entries: IDLEntry[], fileName?: string, packageClause: string[] = [], nodeInitializer?: IDLNodeInitializer): IDLFile {
     return {
         kind: IDLKind.File,
         packageClause,
@@ -1341,8 +1339,7 @@ export function createConstructor(
 }
 
 export function createCallback(name: string, parameters: IDLParameter[], returnType: IDLType,
-        nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback
-{
+    nodeInitializer: IDLNodeInitializer = {}, typeParameters: string[] = []): IDLCallback {
     return {
         kind: IDLKind.Callback,
         name, parameters, returnType, typeParameters,
@@ -1389,7 +1386,7 @@ export function createConstant(name: string, type: IDLType, value?: string, node
     }
 }
 
-export function clone<T extends IDLNode>(node:T): T {
+export function clone<T extends IDLNode>(node: T): T {
     const make = (newnode: IDLNode): T => {
         if (node.nodeLocation) {
             newnode.nodeLocation = node.nodeLocation
@@ -1723,7 +1720,7 @@ export function clone<T extends IDLNode>(node:T): T {
     }
 }
 
-export function hasTypeParameters(entry:IDLEntry): boolean {
+export function hasTypeParameters(entry: IDLEntry): boolean {
     let foundTypeParameter = false
     forEachChild(entry, n => {
         if (isTypeParameterType(n)) {
@@ -1731,6 +1728,13 @@ export function hasTypeParameters(entry:IDLEntry): boolean {
         }
     })
     return foundTypeParameter
+}
+export function isGeneric(entry: IDLEntry): entry is IDLEntry & { typeParameters?: string[] } {
+    return isInterface(entry)
+        || isTypedef(entry)
+        || isCallback(entry)
+        || isMethod(entry)
+        || isCallable(entry)
 }
 
 export function escapeIDLKeyword(name: string): string {
@@ -1755,7 +1759,7 @@ const printedIndentDec: PrintedIndentDec = "[[indent-dec]]"
 type PrintTypeOptions = {
     [key: string]: any
 }
-export function printType(type: IDLType | IDLInterface | undefined, options?:PrintTypeOptions): string {
+export function printType(type: IDLType | IDLInterface | undefined, options?: PrintTypeOptions): string {
     if (!type) throw new Error("Missing type")
     if (isInterface(type)) return type.name
     if (isOptionalType(type)) {
@@ -1769,12 +1773,14 @@ export function printType(type: IDLType | IDLInterface | undefined, options?:Pri
     if (isPrimitiveType(type)) return type.name
     if (isContainerType(type)) return `${type.containerKind}<${type.elementType.map(it => printType(it)).join(", ")}>`
     if (isReferenceType(type)) {
-        if (type.typeArguments)
-            updateExtAttribute(type, IDLExtendedAttributes.TypeArguments, type.typeArguments.map(it=>printType(it)).join(","))
-        if (!type.extendedAttributes?.length)
-            return type.name;
-        let res = `[${quoteAttributeValues(type.extendedAttributes)}] ${type.name}`;
-        if (options?.bracketsAroundReferenceTypeWithExtAttrs)
+        const maybeExtendedAttributes = type.extendedAttributes && type.extendedAttributes.length
+            ? `[${quoteAttributeValues(type.extendedAttributes)}] `
+            : ''
+        const maybeTypeArguments = type.typeArguments && type.typeArguments.length
+            ? '<' + type.typeArguments.map(t => printType(t)).join(', ') + '>'
+            : ''
+        let res = `${maybeExtendedAttributes}${type.name}${maybeTypeArguments}`;
+        if (maybeExtendedAttributes.length && options?.bracketsAroundReferenceTypeWithExtAttrs)
             return `(${res})`;
         return res;
     }
@@ -1784,7 +1790,7 @@ export function printType(type: IDLType | IDLInterface | undefined, options?:Pri
 }
 
 export function printReturnType(type: IDLType | IDLInterface | undefined): string {
-    return printType(type, {bracketsAroundReferenceTypeWithExtAttrs: true});
+    return printType(type, { bracketsAroundReferenceTypeWithExtAttrs: true });
 }
 
 export function printParameters(parameters: IDLParameter[] | undefined): string {
@@ -1831,9 +1837,9 @@ export function printProperty(idl: IDLProperty): PrintedLine[] {
 }
 
 export function printExtendedAttributes(idl: IDLNode, indentLevel: number): PrintedLine[] {
-    let typeParameters: string[]|undefined
-    let typeArguments: IDLType[]|undefined
-    switch(idl.kind) {
+    let typeParameters: string[] | undefined
+    let typeArguments: IDLType[] | undefined
+    switch (idl.kind) {
         case IDLKind.Interface:
             typeParameters = (idl as IDLInterface).typeParameters
             break
@@ -1850,11 +1856,7 @@ export function printExtendedAttributes(idl: IDLNode, indentLevel: number): Prin
             typeArguments = (idl as IDLReferenceType).typeArguments
             break
     }
-    const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes || [])
-    if (typeParameters?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeParameters))
-        attributes.push({ name: IDLExtendedAttributes.TypeParameters, value: typeParameters.join(",") })
-    if (typeArguments?.length && !attributes.find(x => x.name === IDLExtendedAttributes.TypeArguments))
-        attributes.push({ name: IDLExtendedAttributes.TypeArguments, value: typeArguments.map(it=>printType(it)).join(",") })
+    const attributes: IDLExtendedAttribute[] = Array.from(idl.extendedAttributes ?? [])
 
     if (idl.documentation) {
         let docs: IDLExtendedAttribute = {
@@ -1890,10 +1892,14 @@ export const attributesToQuote = new Set([
     IDLExtendedAttributes.Import,
     IDLExtendedAttributes.Interfaces,
     IDLExtendedAttributes.TraceKey,
-    IDLExtendedAttributes.TypeArguments,
-    IDLExtendedAttributes.TypeParameters,
     IDLExtendedAttributes.TypeParametersDefaults,
 ])
+
+function printSpacedTypeParameters(params:string[] | undefined): string {
+    return params && params.length
+        ? '<' + params.join(', ') + '> '
+        : ''
+}
 
 function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone {
     return attributes
@@ -1906,7 +1912,8 @@ function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): stringOrNone
                 value = value.replaceAll('\\', '\\\\').replaceAll('"', '\\"')
                 attr += `=${attributesToQuote.has(it.name as IDLExtendedAttributes) ? `"${value}"` : it.value}`
             }
-            return attr})
+            return attr
+        })
         .join(", ")
 }
 
@@ -1928,7 +1935,7 @@ export function printMethod(idl: IDLMethod): PrintedLine[] {
     }
     return [
         ...printExtendedAttributes(idl, 1),
-        `${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}${printReturnType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
+        `${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}${printSpacedTypeParameters(idl.typeParameters)}${printReturnType(idl.returnType)} ${idl.name}(${printParameters(idl.parameters)});`
     ]
 }
 
@@ -1944,13 +1951,13 @@ export function printPackage(idl: IDLFile): PrintedLine[] {
 export function printImport(idl: IDLImport): PrintedLine[] {
     const effectiveClause = idl.clause.filter(it => !!it)
     return [
-        `import ${effectiveClause.join(".")||"NULL_IMPORT"}${idl.name ? " as " : ""}${idl.name};`
+        `import ${effectiveClause.join(".") || "NULL_IMPORT"}${idl.name ? " as " : ""}${idl.name};`
     ]
 }
 
 export function printNamespace(idl: IDLNamespace): PrintedLine[] {
     return [
-        ...printExtendedAttributes(idl,0),
+        ...printExtendedAttributes(idl, 0),
         `namespace ${idl.name} {`,
         printedIndentInc,
         ...idl.members.map(member => printIDL(member)).flat(),
@@ -1962,7 +1969,7 @@ export function printNamespace(idl: IDLNamespace): PrintedLine[] {
 export function printCallback(idl: IDLCallback): PrintedLine[] {
     return [
         ...printExtendedAttributes(idl, 0),
-        `callback ${idl.name} = ${printReturnType(idl.returnType)} (${printParameters(idl.parameters)});`
+        `callback ${printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ${printReturnType(idl.returnType)} (${printParameters(idl.parameters)});`
     ]
 }
 
@@ -1980,11 +1987,18 @@ function printInterfaceInherit(idl: IDLInterface): string {
     return ": " + types.join(', ')
 }
 
+function printInterfaceHead(decl: IDLInterface): string {
+    return [
+        'interface ',
+        printSpacedTypeParameters(decl.typeParameters),
+        `${decl.name}${printInterfaceInherit(decl)} {`,
+    ].join('')
+}
+
 export function printInterface(idl: IDLInterface): PrintedLine[] {
     return [
         ...printExtendedAttributes(idl, 0),
-        `interface ${idl.name}${printInterfaceInherit(idl)} {`,
-        // TODO: type system hack!
+        printInterfaceHead(idl),
     ]
         .concat(printedIndentInc)
         .concat(idl.constructors.map(printConstructor).flat())
@@ -2038,7 +2052,7 @@ export function printTypedef(idl: IDLTypedef): PrintedLine[] {
     return [
         idl.documentation,
         ...printExtendedAttributes(idl, 0),
-        `typedef ${printType(idl.type)} ${idl.name!};`
+        `typedef ${printSpacedTypeParameters(idl.typeParameters)}${printType(idl.type)} ${idl.name!};`
     ]
 }
 
@@ -2119,9 +2133,9 @@ export function getVerbatimDts(node: IDLEntry): stringOrNone {
 }
 
 export const IDLContainerUtils = {
-    isRecord: (x:IDLNode) => isContainerType(x) && x.containerKind === 'record',
-    isSequence: (x:IDLNode) => isContainerType(x) && x.containerKind === 'sequence',
-    isPromise: (x:IDLNode) => isContainerType(x) && x.containerKind === 'Promise'
+    isRecord: (x: IDLNode) => isContainerType(x) && x.containerKind === 'record',
+    isSequence: (x: IDLNode) => isContainerType(x) && x.containerKind === 'sequence',
+    isPromise: (x: IDLNode) => isContainerType(x) && x.containerKind === 'Promise'
 }
 
 /**
@@ -2164,7 +2178,7 @@ export function maybeOptional(type: IDLType, optional = false): IDLType {
 }
 
 export const DebugUtils = {
-    debugPrintType: (type:IDLType): string => {
+    debugPrintType: (type: IDLType): string => {
         if (isContainerType(type)) {
             return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]]`
         }
@@ -2187,7 +2201,7 @@ export function asPromise(type?: IDLType): IDLContainerType | undefined {
     return container
 }
 
-export function transformMethodsAsync2ReturnPromise(entry : IDLEntry) {
+export function transformMethodsAsync2ReturnPromise(entry: IDLEntry) {
     forEachFunction(entry, function_ => {
         if (function_.isAsync) {
             function_.isAsync = false
@@ -2197,7 +2211,7 @@ export function transformMethodsAsync2ReturnPromise(entry : IDLEntry) {
     })
 }
 
-export function transformMethodsReturnPromise2Async(entry : IDLEntry) {
+export function transformMethodsReturnPromise2Async(entry: IDLEntry) {
     forEachFunction(entry, function_ => {
         const promise = asPromise(function_.returnType)
         if (promise) {
@@ -2207,14 +2221,14 @@ export function transformMethodsReturnPromise2Async(entry : IDLEntry) {
     })
 }
 
-export interface SignatureTag {index: number, name: string, value: string}
+export interface SignatureTag { index: number, name: string, value: string }
 
 export function fetchSignatureTags(node: IDLSignature): SignatureTag[] {
     if (!node.extendedAttributes)
         return []
     return node.extendedAttributes
         .filter((ea) => ea.name === IDLExtendedAttributes.DtsTag)
-        .map((ea):SignatureTag => {
+        .map((ea): SignatureTag => {
             if (!ea.value)
                 throw new Error('Empty DtsTag is not allowed')
             let indexNameValue = ea.value.split('|')
@@ -2236,7 +2250,7 @@ export function fetchSignatureTags(node: IDLSignature): SignatureTag[] {
         .sort((a, b) => a.index - b.index)
 }
 
-export function mixMethodParametersAndTags(node: IDLSignature) : (IDLParameter | SignatureTag)[] {
+export function mixMethodParametersAndTags(node: IDLSignature): (IDLParameter | SignatureTag)[] {
     let mix: (IDLParameter | SignatureTag)[] = node.parameters.slice(0)
     for (const tag of fetchSignatureTags(node))
         mix.splice(tag.index, 0, tag)
@@ -2261,7 +2275,7 @@ export function linearizeNamespaceMembers(entries: IDLEntry[]) {
     return linearized
 }
 
-export function extremumOfOrdinals(enumEntry: IDLEnum): {low: number, high: number} {
+export function extremumOfOrdinals(enumEntry: IDLEnum): { low: number, high: number } {
     let low: number = 0
     let high: number = 0
     enumEntry.elements.forEach((member, index) => {
@@ -2272,7 +2286,7 @@ export function extremumOfOrdinals(enumEntry: IDLEnum): {low: number, high: numb
         if (low > value) low = value
         if (high < value) high = value
     })
-    return {low, high}
+    return { low, high }
 }
 
 export const PACKAGE_IDLIZE_INTERNAL = "idlize.internal"

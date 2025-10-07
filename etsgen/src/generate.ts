@@ -1574,7 +1574,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 defaults: undefined
             }
         }
-        const attrs = [{ name: idl.IDLExtendedAttributes.TypeParameters, value: result.join(',') }]
+        const attrs: idl.IDLExtendedAttribute[] = []
         if (defaults.length > 0) {
             attrs.push({
                 name: idl.IDLExtendedAttributes.TypeParametersDefaults,
