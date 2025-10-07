@@ -2083,7 +2083,7 @@ export function printTypedef(idl: IDLTypedef): PrintedLine[] {
     return [
         idl.documentation,
         ...printExtendedAttributes(idl, 0),
-        `typedef ${printSpacedTypeParameters(idl.typeParameters)}${printType(idl.type)} ${idl.name!};`
+        `typedef ${printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ${printType(idl.type)};`
     ]
 }
 

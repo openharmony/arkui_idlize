@@ -15,4 +15,4 @@ interface BusinessError {
     attribute i32 code;
     attribute T data;
 };
-typedef (undefined or idlize.stdlib.Null or Object) RecordData;
+typedef RecordData = (undefined or idlize.stdlib.Null or Object);

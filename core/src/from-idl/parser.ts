@@ -20,6 +20,7 @@ import { DiagnosticMessageGroup, LoadingFatal, InternalFatal } from "../diagnost
 
 const DeprecatedTypeArguments = new DiagnosticMessageGroup("warning", "DeprecatedTypeArguments", "TypeArguments is deprecated", "TypeArguments extended attribute is deprecated")
 const DeprecatedTypeParameters = new DiagnosticMessageGroup("warning", "DeprecatedTypeParameters", "TypeParameters is deprecated", "TypeParameters extended attribute is deprecated")
+const DeprecatedTypedefSyntax = new DiagnosticMessageGroup("warning", "DeprecatedTypedefSyntax", "C-Style typedef syntax is deprecated", "C-Style typedef syntax is deprecated")
 const DuplicateModifier = new DiagnosticMessageGroup("error", "DuplicateModifier", "Duplicate modifier", "Duplicate of")
 const NotApplicableModifier = new DiagnosticMessageGroup("error", "NotApplicableModifier", "Not applicable modifier")
 const DuplicatePackageDeclaration = new DiagnosticMessageGroup("error", "DuplicatePackageDeclaration", "Duplicate package declaration", "Duplicate of")
@@ -37,6 +38,28 @@ const ExpectedReferenceType = new DiagnosticMessageGroup("error", "ExpectedRefer
 const ExpectedGenericArguments = new DiagnosticMessageGroup("error", "ExpectedGenericArguments", "Expected generic arguments")
 const UnexpectedGenericArguments = new DiagnosticMessageGroup("error", "UnexpectedGenericArguments", "Unexpected generic arguments")
 const InlineParsingDepthExceeded = new DiagnosticMessageGroup("fatal", "InlineParsingDepthExceeded", "Inline parsing depth exceeded")
+
+interface ParseResultOk<T> {
+    ok: true
+    result: T
+}
+interface ParseResultFail {
+    ok: false
+    message: DiagnosticMessage
+}
+
+type ParseResult<T> = ParseResultOk<T> | ParseResultFail
+const ParseResult = {
+    ok: <T>(result:T): ParseResult<T> => ({ ok: true, result }),
+    fail: <T>(message:DiagnosticMessage): ParseResult<T> => ({ ok: false, message }),
+    unwrap: <T>(result:ParseResult<T>): T => {
+        if (result.ok) {
+            return result.result
+        }
+        DiagnosticMessageGroup.collectedResults.push(result.message)
+        throw new DiagnosticException(result.message)
+    }
+}
 
 export class FatalParserException extends Error {
     diagnosticMessages?: DiagnosticMessage[]
@@ -323,25 +346,29 @@ export class Parser {
 
     parseSingleIdentifier(): Token {
         trac("parseSingleIdentifier")
-        const token = this.parseFullIdentifier()
-        if (token.value.includes(".")) {
-            IncorrectIdentifier.throwDiagnosticMessage([this.curLocation])
-        }
-        return token
+        return ParseResult.unwrap(this.parseIdentifierSafe(true));
     }
 
     parseFullIdentifier(): Token {
         trac("parseFullIdentifier")
+        return ParseResult.unwrap(this.parseIdentifierSafe(false))
+    }
+
+    parseIdentifierSafe(single = false): ParseResult<Token> {
+        trac("parseIdentifierSafe")
         if (this.curKind != TokenKind.Words || literalTypes.has(this.curValue) && this.curValue != "undefined") {
-            UnexpectedToken.throwDiagnosticMessage([this.curLocation], "Unexpected token, expected identifier")
+            return ParseResult.fail(UnexpectedToken.generateDiagnosticMessage([this.curLocation], "Unexpected token, expected identifier"))
+        }
+        if (single && this.curValue.includes(".")) {
+            return ParseResult.fail(IncorrectIdentifier.generateDiagnosticMessage([this.curLocation]))
         }
         if (this.curValue.startsWith("-")) {
             // Valid for identifiers in WebIDL, but not in Idlize
-            IncorrectIdentifier.throwDiagnosticMessage([this.curLocation])
+            return ParseResult.fail(IncorrectIdentifier.generateDiagnosticMessage([this.curLocation]))
         }
         const token = this.curToken
         this._lexerNext()
-        return token
+        return ParseResult.ok(token)
     }
 
     parseFullIdentifierOrLiteral(): Token {
@@ -812,13 +839,31 @@ export class Parser {
         const ext = this.consumeCurrentExtended()
         this.skip("typedef")
         const typeParameters = this.parseAndPushGenerics(ext)
-        const type = this.parseType()
-        const name = this.parseSingleIdentifier()
+        const maybeName = this.parseIdentifierSafe(true)
+        let name: Token
+        let type: idl.IDLType
+        let deprecatedSyntax = false
+        if (!maybeName.ok) {
+            type = this.parseType()
+            name = this.parseSingleIdentifier()
+            deprecatedSyntax = true
+        } else if (this.seeAndSkip("=")) {
+            type = this.parseType()
+            name = maybeName.result
+        } else {
+            type = builtinTypes.get(maybeName.result.value)
+                ?? idl.createReferenceType(maybeName.result.value, undefined, { extendedAttributes: [], nodeLocation: maybeName.result.location })
+            name = this.parseSingleIdentifier()
+            deprecatedSyntax = true
+        }
+        this.skip(";")
         if (idl.isUnionType(type)) {
             type.name = name.value
             type.extendedAttributes = ext
         }
-        this.skip(";")
+        if (deprecatedSyntax) {
+            DeprecatedTypedefSyntax.reportDiagnosticMessage([sloc()], "C-Style typedef syntax is deprecated");
+        }
         return idl.createTypedef(name.value, type, typeParameters, {extendedAttributes: ext, documentation: extractDocumentation(ext), nodeLocation: sloc(), nameLocation: name.location})
     }
 

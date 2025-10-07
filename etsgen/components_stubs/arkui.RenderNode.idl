@@ -19,7 +19,7 @@ import arkui.Graphics.Vector2 as Vector2;
 
 import arkui.component.units.EdgeStyles as EdgeStyles;
 
-typedef Vector2 Offset_graphics;  // TODO must be removed when names collision problem is resolved
+typedef Offset_graphics = Vector2;  // TODO must be removed when names collision problem is resolved
 
 [Entity=Interface]
 interface RenderNode {

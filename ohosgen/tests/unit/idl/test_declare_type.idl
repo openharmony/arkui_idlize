@@ -1,5 +1,5 @@
 package test_declare_type;
-typedef (number or boolean) HelloType;
+typedef HelloType = (number or boolean);
 interface Hello {
     void hello(HelloType value);
 };

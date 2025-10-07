@@ -8,4 +8,4 @@ interface <A, B> F {
     attribute B b;
 };
 
-typedef F<String, G<i32>> S;
+typedef S = F<String, G<i32>>;

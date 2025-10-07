@@ -5,7 +5,7 @@ interface MyInterfaceToDelete {
 [Entity=Class]
 interface MyClassToDelete {
 };
-typedef number MyTypedefToDelete;
+typedef MyTypedefToDelete = number;
 void MyFunctionToDelete();
 dictionary MyEnumToDelete {
     number VALUE = 0;

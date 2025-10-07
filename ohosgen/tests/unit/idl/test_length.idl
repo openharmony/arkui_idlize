@@ -4,5 +4,5 @@ interface Resource {
     [Optional]
     attribute number type;
 };
-typedef (String or number or Resource) Length;
+typedef Length = (String or number or Resource);
 boolean testLength(number step, Length value);

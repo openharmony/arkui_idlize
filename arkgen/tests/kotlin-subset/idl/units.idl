@@ -3,7 +3,7 @@ package arkui.component;
 interface Resource {
 };
 
-typedef (String or number or Resource) Length;
+typedef Length = (String or number or Resource);
 [Entity=Interface]
 interface Position {
     [Optional]
