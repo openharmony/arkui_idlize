@@ -1,9 +1,9 @@
 
 @memo
 export function %COMPONENT_NAME%Impl(
-    @memo
+    @memo @memo_skip
     style: ((attributes: %COMPONENT_ATTRIBUTE_NAME%) => void) | undefined,
-    @memo
+    @memo @memo_skip
     content_?: () => void,
 ): void {
     const receiver = remember<%COMPONENT_CLASS_NAME%>((): %COMPONENT_CLASS_NAME% => {
