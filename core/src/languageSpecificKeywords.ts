@@ -42,12 +42,6 @@ export const CJKeywords = new Set([
     'prop', 'mut', 'unsafe', 'get', 'set', 'type'
 ])
 
-export const IDLKeywords = new Set<string>([
-    "attribute", "callback", "object", "toString",
-    'sequence', 'record', 'or', 'Int8Array', 
-    'interface', 'number', 'undefined'
-])
-
 export const TSKeywords = new Set([
     "namespace"
 ])
