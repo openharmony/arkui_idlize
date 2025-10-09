@@ -851,6 +851,12 @@
                 "hookName": "hookOff",
                 "replaceImplementation": false
             }
+        },
+        "XComponentAttribute": {
+            "setXComponentOptions": {
+                "hookName": "hookSetXComponentOptions",
+                "replaceImplementation": false
+            }
         }
     },
     "materialized": {
