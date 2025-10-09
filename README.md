@@ -125,3 +125,22 @@ node . --dts2idl --input-dir ../arkui-common/ohos-sdk-ets/openharmony/10/ets/com
 ```
 
 Results are in `./idl/` folder.
+
+### API status tracker
+
+ API tracker produces list of generated API's with their statuses. Files generated:
+  - `NEW_DEV_API_STATUS.md` - status of development of generated API's, uses `DEV_API_STATUS.md` as input
+  - `FULL_SDK_STATUS.md` - full list of SDK API's
+ Run tracker:
+ 1. Prepare
+    ```bash
+    npm i; cd external; npm i;cd -
+    ```
+ 1. Run tracker with SDK compilation
+    ```bash
+    npm run tracker
+    ```
+    1. Run status update only after updating `DEV_API_STATUS.md` file
+       ```bash
+       npm run tracker:track
+       ```
