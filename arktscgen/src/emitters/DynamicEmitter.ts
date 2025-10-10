@@ -27,12 +27,9 @@ import { BindingsPrinter } from "../printers/interop/BindingsPrinter"
 import { AllPeersPrinter } from "../printers/library/AllPeersPrinter"
 import { FactoryPrinter } from "../printers/library/FactoryPrinter"
 import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
-import { ParameterTransformer } from "../transformers/common/ParameterTransformer"
 import { NullabilityTransformer } from "../transformers/peers/NullabilityTransformer"
-import { AttributeTransformer } from "../transformers/peers/factory/AttributeTransformer"
 import { ConstMergeTransformer } from "../transformers/peers/ConstMergeTransformer"
 import { Transformer } from "../transformers/Transformer"
-import { UniversalCreateTransformer } from "../transformers/peers/UniversalCreateTransformer"
 
 class SingleFileEmitter {
     constructor(
@@ -145,20 +142,13 @@ export class DynamicEmitter {
     }
 
     private printPeers(idl: IDLFile): void {
-        idl = this.withLog(new ParameterTransformer(idl))
         idl = this.withLog(new ConstMergeTransformer(idl))
-        idl = this.withLog(new UniversalCreateTransformer(idl))
         idl = this.withLog(new NullabilityTransformer(idl, this.config))
 
         const out = this.printFiles(this.peersPrinter, idl)
         // override index printer
         this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined, out)
         this.printFile(this.indexPrinter, idl)
-        this.printFactory(idl)
-    }
-
-    private printFactory(idl: IDLFile): void {
-        idl = this.withLog(new AttributeTransformer(idl))
         this.printFile(this.factoryPrinter, idl)
     }
 

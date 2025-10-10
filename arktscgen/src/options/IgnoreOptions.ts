@@ -44,6 +44,11 @@ export class IgnoreOptions {
     private readonly peers: string[] = []
     private readonly partial: Partial[] = []
 
+    // A different method as the signature and implementation may change
+    hasReexportReplacement(name: string): boolean {
+        return this.isIgnoredPeer(name)
+    }
+
     isIgnoredPeer(name: string): boolean {
         return this.peers.includes(name)
     }

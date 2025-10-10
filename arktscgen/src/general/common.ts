@@ -14,9 +14,9 @@
  */
 
 import { Config } from "./Config"
-import { IDLInterface, IDLMethod, isVoidType, throwException } from "@idlizer/core"
+import { IDLInterface, IDLMethod, IDLParameter, isReferenceType, isVoidType, throwException } from "@idlizer/core"
 import { InteropConstructions } from "../constuctions/InteropConstructions"
-import { nodeType, parent } from "../utils/idl"
+import { innerTypeCommon, nodeType, parent } from "../utils/idl"
 import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
 
 export function peerMethod(name: string): string {
@@ -24,6 +24,10 @@ export function peerMethod(name: string): string {
     name = dropPrefix(name, Config.uselessPrefix)
     name = pascalToCamel(name)
     return name
+}
+
+export function makeMethodName(name: string): string {
+    return peerMethod(name)
 }
 
 export function splitCreateOrUpdate(fullName: string): { createOrUpdate: string, rest: string } {
@@ -47,8 +51,14 @@ export function mangleIfKeyword(name: string): string {
     return name
 }
 
+export function isContext(param: IDLParameter): boolean {
+    const inner = innerTypeCommon(param.type)
+    return isReferenceType(inner) && inner.name === `${Config.dataClassPrefix}${Config.context}`
+}
+
 export function isGetter(node: IDLMethod): boolean {
-    if (node.parameters.length !== 0) {
+    const params = node.parameters
+    if (params.length > 1 || (params.length === 1 && !isContext(params.at(0)!))) {
         return false
     }
     if (isVoidType(node.returnType)) {

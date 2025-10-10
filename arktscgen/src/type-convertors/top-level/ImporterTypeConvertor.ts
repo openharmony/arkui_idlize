@@ -14,17 +14,20 @@
  */
 
 import { IDLContainerUtils, IDLType, isContainerType, isEnum, isInterface, isOptionalType, isReferenceType } from "@idlizer/core"
+import { Config } from "../../general/Config"
 import { Importer } from "../../printers/library/Importer"
+import { fqName } from "../../utils/idl"
+import { dropPrefix } from "../../utils/string"
 import { BaseTypeConvertor } from "../BaseTypeConvertor"
 
-export function convertAndImport(importer: Importer, converter: BaseTypeConvertor<string>, type: IDLType): string {
+export function convertAndImport(importer: Importer, converter: BaseTypeConvertor<string>, type: IDLType, config: Config): string {
     const result = converter.convertType(type)
 
     if (isOptionalType(type)) {
-        const _ = convertAndImport(importer, converter, type.type)
+        const _ = convertAndImport(importer, converter, type.type, config)
 
     } else if (isContainerType(type) && IDLContainerUtils.isSequence(type)) {
-        const _ = convertAndImport(importer, converter, type.elementType[0])
+        const _ = convertAndImport(importer, converter, type.elementType[0], config)
 
     } else if (isReferenceType(type)) {
         const node = converter.typechecker.resolveReference(type)
@@ -32,7 +35,11 @@ export function convertAndImport(importer: Importer, converter: BaseTypeConverto
             importer.withEnumImport(result)
 
         } else if (node && isInterface(node) && converter.typechecker.isPeer(node)){
-            importer.withPeerImport(type)
+            if (config.ignore.hasReexportReplacement(fqName(node))) {
+                importer.withReexportImport(dropPrefix(type.name, Config.dataClassPrefix))
+            } else {
+                importer.withPeerImport(type)
+            }
         }
     }
 

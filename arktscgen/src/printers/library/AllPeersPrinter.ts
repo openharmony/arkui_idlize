@@ -19,6 +19,7 @@ import {
     IDLFile,
     IDLInterface,
     IDLKind,
+    IDLMethod,
     IDLNamespace,
     IDLNode,
     IDLType,
@@ -34,6 +35,7 @@ import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { Typechecker } from "../../general/Typechecker"
+import { isImplInterface } from "../../general/common"
 
 export class AllPeersPrinter extends MultiFilePrinter {
     private static FlattenNamespaces = [Config.irNamespace]
@@ -57,32 +59,45 @@ export class AllPeersPrinter extends MultiFilePrinter {
             return []
         }
 
-        const importer = new Importer(this.typechecker, '.', ns.name)
-        const writer = this.makeWriter(importer)
-        const printer = new PeerPrinter(this.config, this.typechecker, importer)
-
-        writer.pushNamespace(ns.name, { ident: false });
-        members.forEach(m => printer.printInterface(m, writer))
-        writer.popNamespace({ ident: false });
-
-        return [{
-            exports: [ns.name],
-            fileName: `${ns.name}.ts`,
-            output: AllPeersPrinter.makeString(importer, writer)
-        }]
+        return [this.printFile(ns.name, [ns.name], (printer: PeerPrinter, writer: TSLanguageWriter): void => {
+            writer.pushNamespace(ns.name, { ident: false })
+            members.forEach(m => printer.printInterface(m, writer))
+            writer.popNamespace({ ident: false })
+        })]
     }
 
     printInterface(iface: IDLInterface): MultiFileOutput {
-        const importer = new Importer(this.typechecker, '.', iface.name)
+        if (isImplInterface(iface.name)) {
+            const ns = 'compiler'
+            return this.printFile('public', [ns], (printer: PeerPrinter, writer: TSLanguageWriter) => {
+                writer.pushNamespace(ns, { ident: false })
+                iface.methods
+                    .filter(this.isAllowedMethod.bind(this, iface))
+                    .forEach(m => printer.printFunction(iface, m, writer))
+                writer.popNamespace({ ident: false })
+            })
+        }
+
+        return this.printFile(iface.name, ['*'], (printer: PeerPrinter, writer: TSLanguageWriter) =>
+            printer.printInterface(iface, writer)
+        )
+    }
+
+    private printFile(
+        name: string,
+        exports: string[],
+        cb: (printer: PeerPrinter, writer: TSLanguageWriter) => void
+    ): MultiFileOutput {
+        const importer = new Importer(this.typechecker, '.', name)
         const writer = this.makeWriter(importer)
         const printer = new PeerPrinter(this.config, this.typechecker, importer)
 
-        printer.printInterface(iface, writer)
+        cb(printer, writer)
 
         return {
-            exports: ['*'],
-            fileName: PeersConstructions.fileName(iface.name),
-            output: AllPeersPrinter.makeString(importer, writer)
+            exports: exports,
+            fileName: PeersConstructions.fileName(name),
+            output: [...importer.getOutput(), '', ...writer.getOutput()].join(`\n`)
         }
     }
 
@@ -113,7 +128,7 @@ export class AllPeersPrinter extends MultiFilePrinter {
     private makeWriter(importer: Importer): TSLanguageWriter {
         const converter = {
             convert: (node: IDLType) => convertAndImport(
-                importer, new LibraryTypeConvertor(this.typechecker), node
+                importer, new LibraryTypeConvertor(this.typechecker), node, this.config
             )
         }
         return new TSLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), converter)
@@ -123,8 +138,8 @@ export class AllPeersPrinter extends MultiFilePrinter {
         return this.typechecker.isPeer(node) && !this.config.ignore.isIgnoredPeer(fqName(node))
     }
 
-    private static makeString(importer: Importer, writer: TSLanguageWriter): string {
-        return [...importer.getOutput(), '', ...writer.getOutput()] .join(`\n`)
+    private isAllowedMethod(iface: IDLInterface, node: IDLMethod): boolean {
+        return !this.config.ignore.isIgnoredMethod(fqName(iface), node.name)
     }
 
     public static printIndexFile(out: MultiFileOutput[], _: IDLFile): string {

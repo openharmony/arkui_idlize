@@ -56,7 +56,7 @@ export function isString(node: IDLType): node is IDLPrimitiveType {
     return isPrimitiveType(node) && node.name === `String`
 }
 
-export function isSequence(node: IDLType): boolean {
+export function isSequence(node: IDLType): node is IDLContainerType {
     return IDLContainerUtils.isSequence(node)
 }
 

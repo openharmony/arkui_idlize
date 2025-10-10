@@ -28,9 +28,12 @@ import {
     IDLType,
     IDLUndefinedType,
     IDLVoidType,
+    isInterface,
     isOptionalType,
+    isPrimitiveType,
     isProperty,
     isReferenceType,
+    isVoidType,
     LanguageExpression,
     LanguageStatement,
     Method,
@@ -40,31 +43,36 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import {
-    makeMethod,
-    nodeNamespace,
+    makeSignature,
     nativeType,
     innerTypeCommon,
-    makeEnoughQualifiedName
+    makeEnoughQualifiedName,
+    makeMethod,
+    isSequence,
+    isString,
 } from "../../utils/idl"
 import {
     isAbstract,
+    isContext,
+    isCreate,
     isCreateOrUpdate,
     isDataClass,
     isGetter,
     isReal,
     isRegular,
+    makeMethodName,
     mangleIfKeyword,
     peerMethod
 } from "../../general/common"
 import { Importer } from "./Importer"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { InteropConstructions } from "../../constuctions/InteropConstructions"
 import { Typechecker } from "../../general/Typechecker"
 import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
 import { unpackWrapper, hasTypeHintArgument, typeHintArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
 import { Config } from "../../general/Config"
 import { ExtraParameter } from "../../options/ExtraParameters"
 import assert from "node:assert"
+import { pascalToCamel } from "../../utils/string"
 
 export class PeerPrinter {
     private bindingParameterTypeConvertor = new BindingParameterTypeConvertor(this.typechecker)
@@ -105,7 +113,6 @@ export class PeerPrinter {
     }
 
     private printConstructor(iface: IDLInterface, writer: TSLanguageWriter): void {
-        const isRealNode = isReal(iface)
         const isAstNodeDescendant = this.typechecker.isHeir(iface, Config.astNodeCommonAncestor)
         const args: IDLType[] = [IDLPointerType]
         const argNames: string[] = [PeersConstructions.pointerParameter]
@@ -162,23 +169,43 @@ export class PeerPrinter {
     }
 
     private printMethods(iface: IDLInterface, writer: TSLanguageWriter): void {
-        iface.methods.forEach(it => {
-            if (isCreateOrUpdate(it.name)) {
-                // TODO: This condition is not clear - classes with c_type attribute
-                // is not abstract too, is it?
-                // The check for a native type allows types that is descendants of
-                // AstNode but have not type attribute, for example, varbinder.FunctionDecl
-                if (isAbstract(iface) && nativeType(iface) === undefined) {
-                    console.log(`Skipped ${iface.name}.${it.name}`);
-                    return
-                }
-                return this.printCreateOrUpdate(iface, it, writer)
+        type Methods = { creates: IDLMethod[], updates: IDLMethod[], other: IDLMethod[] }
+        const methods = iface.methods
+            .reduce((out, m) => {
+                !isCreateOrUpdate(m.name) ? out.other.push(m):
+                    isCreate(m.name) ? out.creates.push(m) : out.updates.push(m)
+                return out
+        }, { creates: [], updates: [], other: [] } as Methods)
+
+        // TODO: isAbstract checks if an interface has AstNode type this is not
+        // suitable for other namespaces than ir.
+        if (isAbstract(iface) && nativeType(iface) === undefined) {
+            console.log(`Skipped ${iface.name}.create/update methods`);
+        } else {
+            // Compatibility: keep only one create method if we found 'universal'
+            // and all methods if not (updates is not filtered, why?).
+            // TODO: Do not filter methods in peers
+            const isCompat = ['ETSTuple', 'ExportNamedDeclaration', 'ETSParameterExpression']
+                .includes(iface.name)
+
+            const toPrint = isCompat ?
+                methods.creates
+                    .concat(methods.updates)
+                    .sort((a, b) => iface.methods.indexOf(a) - iface.methods.indexOf(b)) :
+                PeerPrinter.filterMoreSpecific(methods.creates)
+                    .concat(methods.updates)
+
+            toPrint.forEach(m =>
+                 this.printCreateOrUpdate(iface, m, writer)
+            )
+        }
+
+        methods.other.forEach(node => {
+            if (isGetter(node)) {
+                return this.printGetter(iface, node, writer)
             }
-            if (isGetter(it)) {
-                return this.printGetter(iface, it, writer)
-            }
-            if (isRegular(it)) {
-                return this.printRegular(iface, it, writer)
+            if (isRegular(node)) {
+                return this.printRegular(iface, node, writer)
             }
         })
     }
@@ -195,12 +222,10 @@ export class PeerPrinter {
 
     private printGetter(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
         writer.writeMethodImplementation(
-            new Method(
+            this.makeMethod2(
                 peerMethod(node.name),
-                new MethodSignature(
-                    node.returnType,
-                    []
-                ),
+                node.returnType,
+                [],
                 [MethodModifier.GETTER]
             ),
             () => {
@@ -213,15 +238,40 @@ export class PeerPrinter {
         )
     }
 
+    public printFunction(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
+        const returnTypeInner = innerTypeCommon(node.returnType)
+        const nativeCall = this.wrapBindingCall(
+            this.makeStaticBindingCall(undefined, node, writer),
+            node.returnType,
+            writer
+        )
+
+        writer.writeFunctionImplementation(
+            pascalToCamel(node.name),
+            makeSignature(
+                PeerPrinter.removeArrayLengthParam(PeerPrinter.removeContextParam(node.parameters)),
+                node.returnType
+            ),
+            () => {
+                writer.writeStatement(
+                    isVoidType(node.returnType)
+                        ? writer.makeStatement(nativeCall) : writer.makeReturn(nativeCall)
+                )
+            }
+        )
+    }
+
     private printRegular(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
         writer.writeExpressionStatement(
             writer.makeString(`/** @deprecated */`)
         )
         writer.writeMethodImplementation(
-            makeMethod(
+            this.makeMethod2(
                 peerMethod(node.name),
-                node.parameters.map(it => createParameter(it.name, it.type)),
-                PeersConstructions.this.type
+                PeersConstructions.this.type,
+                node.parameters
+                    .map(it => createParameter(it.name, it.type)),
+                []
             ),
             () => {
                 writer.writeExpressionStatement(
@@ -238,23 +288,37 @@ export class PeerPrinter {
         )
     }
 
-    private makeReturnBindingCall(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
-        const nativeCall = writer.makeFunctionCall(
-            PeersConstructions.callBinding(iface.name, node.name, nodeNamespace(iface)),
-            this.makeBindingArguments(
-                [
-                    createParameter(
-                        PeersConstructions.pointerUsage,
-                        IDLPointerType
-                    ),
-                    ...node.parameters
-                ],
-                writer
-            )
+    private makeStaticBindingCall(iface: IDLInterface|undefined, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
+        return writer.makeFunctionCall(
+            PeersConstructions.callBinding(iface?.name ?? '', node.name),
+            this.makeBindingArguments(node.parameters, writer)
         )
+    }
 
-        const wrapper = unpackWrapper(node.returnType, this.typechecker)
-        const innerType = innerTypeCommon(node.returnType)
+    private makePeerBindingCall(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
+        const params = node.parameters.slice(0)
+        params.splice(1, 0, createParameter(PeersConstructions.pointerUsage, IDLPointerType))
+        return writer.makeFunctionCall(
+            PeersConstructions.callBinding(iface.name, node.name),
+            this.makeBindingArguments(params, writer)
+        )
+    }
+
+    private makeReturnBindingCall(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
+        return this.wrapBindingCall(
+            this.makePeerBindingCall(iface, node, writer),
+            node.returnType,
+            writer
+        )
+    }
+
+    private wrapBindingCall(
+        nativeCall: LanguageExpression,
+        returnType: IDLType,
+        writer: TSLanguageWriter
+    ): LanguageExpression {
+        const wrapper = unpackWrapper(returnType, this.typechecker)
+        const innerType = innerTypeCommon(returnType)
 
         if (wrapper) {
             const args = [nativeCall]
@@ -270,7 +334,7 @@ export class PeerPrinter {
         const convertName = (ref: IDLReferenceType): string =>
             makeEnoughQualifiedName(ref, this.typechecker.resolveReference.bind(this.typechecker))
 
-        return isOptionalType(node.returnType) && isReferenceType(innerType) ?
+        return isOptionalType(returnType) && isReferenceType(innerType) ?
             writer.makeNewObject(convertName(innerType), [nativeCall]) : nativeCall
     }
 
@@ -368,29 +432,15 @@ export class PeerPrinter {
     private printCreateOrUpdate(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
         const extraParameters = PeerPrinter.makeExtraParameters(iface, this.config, this.typechecker)
         writer.writeMethodImplementation(
-            makeMethod(
-                PeersConstructions.createOrUpdate(
-                    iface.name,
-                    node.name
-                ),
-                node.parameters
-                    .map(it => createParameter(it.name, it.type))
-                    .concat(extraParameters),
+            this.makeMethod2(
+                `${makeMethodName(node.name)}${iface.name}`,
                 node.returnType,
+                node.parameters
+                    .concat(extraParameters),
                 [MethodModifier.STATIC]
             ),
             (writer: TSLanguageWriter) => {
-                const nativeCall = writer.makeFunctionCall(
-                    writer.makeString(
-                        PeersConstructions.callBinding(
-                            iface.name,
-                            node.name,
-                            nodeNamespace(iface)
-                        )
-                    ),
-                    this.makeBindingArguments(node.parameters, writer)
-                )
-
+                const nativeCall = this.makeStaticBindingCall(iface, node, writer)
                 const varName = 'result'
                 const makeStmt = (property: ExtraParameter) =>
                     PeerPrinter.makeExtraStatement(
@@ -431,24 +481,91 @@ export class PeerPrinter {
         )
     }
 
-    private makeBindingArguments(parameters: IDLParameter[], writer: TSLanguageWriter): LanguageExpression[] {
-        return [
-            createParameter(
-                InteropConstructions.context.name,
-                InteropConstructions.context.type
+    private makeBindingArguments(parameters: readonly IDLParameter[], writer: TSLanguageWriter): LanguageExpression[] {
+        return parameters
+            .map(it => createParameter(mangleIfKeyword(it.name), it.type))
+            .reduce((prev, param, index, arr) => {
+                if (PeerPrinter.isArrayLengthParam(param)) {
+                    const seqInd = index > 0 && isSequence(arr[index - 1].type) ? index - 1 :
+                        index < arr.length && isSequence(arr[index + 1].type) ? index + 1 : -1;
+                    if (seqInd !== -1) {
+                        return [...prev, PeersConstructions.arrayLength(arr[seqInd].name)]
+                    }
+                    console.warn(`Parameter ${param.name} at index ${index} \
+                                 matches array length heuristic but has no sequnce parameter!`);
+
+                } else if (isSequence(param.type)) {
+                    return [...prev, isString(param.type.elementType[0]) ?
+                        PeersConstructions.passStringArray(param.name) : PeersConstructions.passNodeArray(param.name)]
+                }
+
+                return [...prev, this.bindingParameterTypeConvertor.convertType(param.type)(param.name)].flat()
+            }, [] as string[])
+            .map(it => writer.makeString(it))
+    }
+
+    private makeMethod2( name: string, returnType: IDLType, parameters: IDLParameter[], modifiers?: MethodModifier[]): Method {
+        return makeMethod(name, PeerPrinter.filterParameters(parameters), returnType, modifiers)
+    }
+
+    public static filterMoreSpecific(methods: IDLMethod[]): IDLMethod[] {
+        const ifaceName = methods.length && methods[0].parent && isInterface(methods[0].parent) ?  methods[0].parent.name : ''
+        const compat = ['ETSTuple', 'ExportNamedDeclaration']
+
+        const noCopyCtor = methods
+            .filter(m => !(m.parameters.length === 2 && isContext(m.parameters[0]) && m.parameters[1].name === 'other'))
+
+        if (compat.includes(ifaceName)) {
+            return methods
+        }
+
+        // This is a simplified algo of UniversalCreateTransformer
+        return noCopyCtor.length ?  [
+            noCopyCtor.reduce((prev, curr) =>
+                curr.parameters.length > prev.parameters.length ? curr : prev,
+                noCopyCtor[0]
             )
-        ]
-            .concat(parameters)
-            .map(it =>
-                createParameter(
-                    mangleIfKeyword(it.name),
-                    it.type
-                )
-            )
-            .flatMap(it =>
-                this.bindingParameterTypeConvertor.convertType(it.type)(it.name)
-            )
-            .map(it => writer.makeString(it)) // todo: writer not needed
+        ] : noCopyCtor
+    }
+
+    public static filterParameters(params: IDLParameter[]): IDLParameter[] {
+        return PeerPrinter.removeArrayLengthParam(PeerPrinter.removeContextParam(params))
+    }
+
+    public static isArrayLengthParam(param: IDLParameter): boolean {
+        return isPrimitiveType(param.type) &&
+            ['u32', 'i32', 'u64', 'i64'].includes(param.type.name) &&
+            ['Len', 'Count', 'Num', 'argc'].some(m => param.name.endsWith(m))
+    }
+
+    public static findArrayLengthParam(parameters: readonly IDLParameter[], startIndex: number = 0): number {
+        let seqInd = parameters.findIndex((p, index) => index >= startIndex && isSequence(p.type))
+        while (seqInd !== -1) {
+            if (seqInd > 0 && this.isArrayLengthParam(parameters[seqInd - 1])) {
+                return seqInd - 1
+            }
+            if (seqInd + 1 < parameters.length && this.isArrayLengthParam(parameters[seqInd + 1])) {
+                return seqInd + 1
+            }
+            seqInd = parameters.findIndex((p, index) => index >= (startIndex + seqInd + 1) && isSequence(p.type))
+
+        }
+        return -1;
+    }
+
+    public static removeArrayLengthParam(parameters: readonly IDLParameter[]): IDLParameter[] {
+        const params = [...parameters]
+        let index = this.findArrayLengthParam(params)
+        while (index !== -1) {
+            params.splice(index, 1)
+            index = this.findArrayLengthParam(params, index)
+        }
+        return params
+    }
+
+    public static removeContextParam(parameters: readonly IDLParameter[]): IDLParameter[] {
+        const first = parameters.at(0)
+        return first && isContext(first) ? parameters.slice(1) : [...parameters]
     }
 
     private printAddToNodeMap(iface: IDLInterface, writer: TSLanguageWriter): void {

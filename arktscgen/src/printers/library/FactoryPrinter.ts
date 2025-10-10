@@ -24,8 +24,9 @@ import {
     IDLProperty,
     IDLType,
     IndentedPrinter,
+    isDefined,
+    isOptionalType,
     Method,
-    throwException,
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
@@ -42,13 +43,14 @@ import { Config } from "../../general/Config"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
+    protected converter = new LibraryTypeConvertor(this.typechecker)
 
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),
         createEmptyReferenceResolver(),
         {
             convert: (node: IDLType) => convertAndImport(
-                this.importer, new LibraryTypeConvertor(this.typechecker), node
+                this.importer, this.converter, node, this.config
             )
         }
     )
@@ -75,20 +77,39 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     protected filterInterface(node: IDLInterface): boolean {
-        return !this.typechecker.isPeer(node) || FactoryPrinter.getUniversalCreate(node) == undefined
+        return !this.typechecker.isPeer(node)
     }
 
     printInterface(node: IDLInterface) {
-        this.printCreate(node)
+        const filtered = PeerPrinter.filterMoreSpecific(
+            node.methods.filter(m => isCreate(m.name))
+        )
+        const universal = filtered.at(0)
+        if (!universal || filtered.length > 1) {
+            //console.log(`${node.name}: more methods`);
+            return
+        }
+
+        const params = PeerPrinter.filterParameters(universal.parameters)
+        const getters = this.gettersForParams(params, node.methods)
+        if (!getters) {
+            return
+        }
+
+        // Compatibility: using getter name for create/update parameters instead original
+        const parameters = params.map((p,i) =>
+            createParameter(peerMethod(getters[i].name), p.type, p.isOptional))
+
+        this.printCreate(node, universal.name, parameters)
         this.writer.print(',')
-        this.printUpdate(node)
+        this.printUpdate(node, universal.name, parameters, getters)
         this.writer.print(',')
     }
 
-    private printCreate(node: IDLInterface): void {
+    private printCreate(node: IDLInterface, universalName: string, parameters: IDLParameter[]): void {
         const extraParameters = PeerPrinter.makeExtraParameters(node, this.config, this.typechecker)
         const signature = makeSignature(
-            this.makeParameters(node.properties).concat(extraParameters),
+            parameters.concat(extraParameters),
             createReferenceType(node.name)
         )
 
@@ -100,7 +121,7 @@ export class FactoryPrinter extends SingleFilePrinter {
             () => this.writer.writeStatement(
                 this.writer.makeReturn(
                     this.writer.makeFunctionCall(
-                        FactoryPrinter.callUniversalCreate(node),
+                        this.callUniversalCreate(node, universalName),
                         signature.argNames!
                             .map(mangleIfKeyword)
                             .map(it => this.writer.makeString(it))
@@ -110,14 +131,7 @@ export class FactoryPrinter extends SingleFilePrinter {
         )
     }
 
-    private makeParameters(properties: IDLProperty[]): IDLParameter[] {
-        // We may need to ensure optional parameters are at the end
-        return properties
-            .map(it => createParameter(it.name, it.type, it.isOptional))
-    }
-
-    private printUpdate(node: IDLInterface): void {
-        const parameters = this.makeParameters(node.properties)
+    private printUpdate(node: IDLInterface, universalName: string, parameters: IDLParameter[], getters: IDLMethod[]): void {
         const extraParameters = this.config.parameters.getParameters(node.name)
         const signature = makeSignature([{
                 name: FactoryConstructions.original,
@@ -153,7 +167,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                     )
                 )
 
-                if (node.properties.length !== 0) {
+                if (parameters.length) {
                     writer.writeStatement(
                         writer.makeCondition(
                             expr(isSameAll),
@@ -163,7 +177,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                 }
 
                 const createCall = writer.makeFunctionCall(
-                    FactoryPrinter.callUniversalCreate(node),
+                    this.callUniversalCreate(node, universalName),
                     (parameters as { name: string }[])
                         .concat(extraParameters)
                         .map(p => expr(mangleIfKeyword(p.name)))
@@ -178,25 +192,51 @@ export class FactoryPrinter extends SingleFilePrinter {
         )
     }
 
-    private static callUniversalCreate(node: IDLInterface) {
+    private callUniversalCreate(node: IDLInterface, name: string) {
         return PeersConstructions.callPeerMethod(
             node.name,
             PeersConstructions.createOrUpdate(
                 node.name,
-                FactoryPrinter.getUniversalCreate(node)?.name
-                    ?? throwException(`unexpected node with no universal create`)
+                name
             )
         )
     }
 
-    private static getUniversalCreate(node: IDLInterface): IDLMethod | undefined {
-        const creates = node.methods.filter(it => isCreate(it.name))
-        if (creates.length !== 1) {
-            return undefined
+    private gettersForParams(params: IDLParameter[], methods: IDLMethod[]): IDLMethod[]|undefined {
+        const toTypeName = (type: IDLType) => {
+            const rawType = isOptionalType(type) ? type.type : type
+            return `${this.converter.convertType(rawType)}`
         }
-        if (node.properties.length !== creates[0].parameters.length) {
-            return undefined
-        }
-        return creates[0]
+
+        const mappedMethods: [string, IDLMethod][] = methods
+            .map((m) => [toTypeName(m.returnType), m])
+
+        const getters = params
+            .map(param => {
+                const paramTypeName = toTypeName(param.type)
+                const sameTypeMethods = mappedMethods
+                    .filter(tuple => tuple[0] === paramTypeName)
+                    .map(tuple => tuple[1])
+
+                // FIXME: For now, we compare names only if there is an ambiguity.
+                // This is for backward compatibility, for algorithm that searches
+                // in parents too it should compare names always.
+                const sameNameMethods = sameTypeMethods.length > 1 ?
+                    sameTypeMethods.filter(m => peerMethod(m.name) === param.name) :
+                    sameTypeMethods
+
+                if (sameNameMethods.length === 1) {
+                    mappedMethods.splice(
+                        mappedMethods.findIndex(([_, m]) => m === sameTypeMethods[0]),
+                        1
+                    )
+                    return sameNameMethods[0]
+                }
+
+                return undefined
+            })
+
+        const defined = getters.filter(isDefined)
+        return defined.length === getters.length ? defined : undefined
     }
 }
