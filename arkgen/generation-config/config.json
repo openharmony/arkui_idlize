@@ -862,6 +862,12 @@
                 "hookName": "hookSetXComponentOptions",
                 "replaceImplementation": false
             }
+        },
+        "WithThemeAttribute": {
+            "setWithThemeOptions": {
+                "hookName": "hookWithThemeOptions",
+                "replaceImplementation": true
+            }
         }
     },
     "materialized": {
