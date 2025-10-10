@@ -83,13 +83,15 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
 }
 
 function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorter): void {
+    const nameConvertor = library.createTypeNameConvertor(Language.CPP)
     const foundCallbacksNames = new Set<string>()
     const foundCallbacks: idl.IDLCallback[] = []
     const addCallback = (callback: idl.IDLCallback) => {
         callback = maybeTransformManagedCallback(callback, library) ?? callback
-        if (foundCallbacksNames.has(callback.name))
+        const name = nameConvertor.convert(callback)
+        if (foundCallbacksNames.has(name))
             return
-        foundCallbacksNames.add(callback.name)
+        foundCallbacksNames.add(name)
         foundCallbacks.push(callback)
     }
     for (const decl of orderer.getToposorted()) {
@@ -118,7 +120,7 @@ function synthesizeCallbacks(library: LibraryInterface, orderer: DependencySorte
             addCallback(continuation)
     }
     foundCallbacks
-        .sort((a, b) => a.name.localeCompare(b.name))
+        .sort((a, b) => nameConvertor.convert(a).localeCompare(nameConvertor.convert(b)))
         .filter(callback => {
             const subtypes = callback.parameters.map(it => it.type!).concat(callback.returnType)
                 .flatMap(it => {

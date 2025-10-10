@@ -29,7 +29,7 @@ function copyDir(from, to, filters) {
         if (!it.isFile()) {
             return
         }
-        const relativePath = path.relative(from, path.join(it.parentPath, it.name))
+        const relativePath = path.relative(from, path.join(it.parentPath ?? it.path, it.name))
         const sourcePath = path.join(from, relativePath)
         const targetPath = path.join(to, relativePath)
         if (!filters || filters.includes(sourcePath)) {
