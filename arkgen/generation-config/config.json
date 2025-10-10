@@ -581,6 +581,7 @@
             "PageTransitionExitInterface",
             "CommonTransition",
             "wrapBuilder",
+            "DrawModifier",
             "ContentModifier",
             "CustomStyles",
             "applyStyles",
@@ -693,6 +694,10 @@
             },
             "customProperty": {
                 "hookName": "hookCustomPropertyImpl",
+                "replaceImplementation": true
+            },
+            "drawModifier": {
+                "hookName": "hookDrawModifier",
                 "replaceImplementation": true
             }
         },

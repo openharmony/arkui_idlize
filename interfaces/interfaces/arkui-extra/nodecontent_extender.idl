@@ -1,0 +1,9 @@
+package arkui.component.idlize;
+
+[Entity=Class]
+interface NodeContentExtender {
+  static pointer constructorNodeContent();
+  static pointer getDestroy();
+  static boolean addFrameNode(pointer content, pointer node);
+  static boolean removeFrameNode(pointer content, pointer node);
+};
