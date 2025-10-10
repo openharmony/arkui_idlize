@@ -719,6 +719,12 @@
                 "replaceImplementation": true
             }
         },
+        "ImageAttribute": {
+            "setImageOptions": {
+                "hookName": "hookImageSetImageOptions",
+                "replaceImplementation": false
+            }
+        },
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
