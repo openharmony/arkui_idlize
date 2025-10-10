@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
 
@@ -79,6 +79,15 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
+        const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
+        if (this.peerLibrary.language === Language.ARKTS) {
+            printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), w => {
+                w.writeStatement(w.makeThrowError(`Unimplemented method applyAttributesFinish`))
+            })
+        }
+        else {
+            printer.writeMethodDeclaration('applyAttributesFinish', applyAttributesFinishSignature)
+        }
         printer.popIndent()
         printer.print('}')
         const stylePrinter = this.peerLibrary.createLanguageWriter()
@@ -101,6 +110,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
                 })
             })
             stylePrinter.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
+                writer.writeStatement(writer.makeThrowError("Not implemented"))
+            })
+            stylePrinter.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature, [MethodModifier.PUBLIC]), writer => {
                 writer.writeStatement(writer.makeThrowError("Not implemented"))
             })
         }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
