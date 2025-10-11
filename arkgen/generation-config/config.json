@@ -666,6 +666,12 @@
                 "replaceImplementation": true
             }
         },
+        "CanvasAttribute": {
+            "setCanvasOptions": {
+                "hookName": "hookSetCanvasOptions",
+                "replaceImplementation": false
+            }
+        },
         "CommonMethod": {
             "id": {
                 "hookName": "hookId",
@@ -820,6 +826,12 @@
             "contentModifier": {
                 "hookName": "hookToggleContentModifier",
                 "replaceImplementation": true
+            }
+        },
+        "VideoAttribute": {
+            "setVideoOptions": {
+                "hookName": "hookSetVideoOptions",
+                "replaceImplementation": false
             }
         },
         "waterFlowAttribute": {
