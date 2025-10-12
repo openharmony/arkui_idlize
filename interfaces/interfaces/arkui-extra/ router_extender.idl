@@ -25,4 +25,7 @@ interface RouterExtender {
   static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
   static Promise<void> replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
   static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static pointer createDynamic(String url, optional boolean recover);
+  static pointer pushDynamic(pointer pageNode, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
+  static pointer replaceDynamic(pointer pageNode, String url, optional boolean recover, optional RouterFinishCallback finishCallback);
 };
