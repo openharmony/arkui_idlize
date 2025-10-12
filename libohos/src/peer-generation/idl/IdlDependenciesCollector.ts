@@ -38,9 +38,13 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         const maybeDecl = this.library.resolveTypeReference(type)
         return maybeDecl ? [maybeDecl] : []
     }
+    private preventRecursive = new Set<idl.IDLEntry>()
     convertTypeReference(type: idl.IDLReferenceType): idl.IDLEntry[] {
         const decl = this.library.resolveTypeReference(type)
         if (!decl) return []
+        if (this.preventRecursive.has(decl))
+            return []
+        this.preventRecursive.add(decl)
         const result: idl.IDLEntry[] = idl.isEnumMember(decl) ? [decl.parent] : [decl]
         if (type.typeArguments) {
             result.push(...type.typeArguments.flatMap(it => convertType(this, it)))
@@ -54,6 +58,7 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         if (idl.isInterface(decl) && [idl.IDLInterfaceSubkind.AnonymousInterface, idl.IDLInterfaceSubkind.Tuple].includes(decl.subkind)) {
             result.push(...this.convert(decl))
         }
+        this.preventRecursive.delete(decl)
         return result
     }
     convertTypeParameter(type: idl.IDLTypeParameterType): idl.IDLEntry[] {

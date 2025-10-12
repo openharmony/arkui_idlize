@@ -95,10 +95,11 @@ export function maybeOptional(type: IDLType, optional = false): IDLType {
 
 export const DebugUtils = {
     debugPrintType: (type: IDLType): string => {
+        const filename = type.fileName ? `, fileName: '${type.fileName}'` : ""
         if (isContainerType(type)) {
-            return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]]`
+            return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]${filename}]`
         }
-        return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}']`
+        return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}'${filename}]`
     },
 }
 
