@@ -60,6 +60,8 @@ interface GestureOps {
     static void addGestureToGroup(pointer group, pointer gesture);
     static void removeGestureByTag(pointer node, String tag);
     static void clearGestures(pointer node);
+    static number getGestureEventType(pointer event);
+    static boolean isScrollableComponent(pointer event);
 };
 
 [Entity=Class]
