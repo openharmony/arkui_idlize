@@ -60,8 +60,8 @@ interface FrameNodeExtender {
   static void recycle(FrameNode peer);
   static pointer getFrameNodePtr(FrameNode node);
   static pointer createTypedFrameNode(String type);
-  static pointer createByRawPtr(FrameNode peer, FrameNode pointer);
-  static FrameNode unWrapRawPtr(FrameNode peer, pointer pointer);
+  static pointer createByRawPtr(pointer ptr);
+  static pointer unWrapRawPtr(pointer ptr);
   static UICommonEvent getCommonEvent(FrameNode peer);
   static pointer getRenderNode(pointer peer);
 };
