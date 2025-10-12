@@ -75,9 +75,10 @@ class StatusTracker {
     }
 }
 
-function processFile(outDir: string, baseDir: string, file: string, configPath:string, config: ETSVisitorConfig, status: StatusTracker): IDLSuperFile {
-    let input = fs.readFileSync(file).toString()
-    //let module = arkts.createETSModuleFromSource(input, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
+function processFile(program: arkts.Program, outDir: string, baseDir: string, configPath:string, config: ETSVisitorConfig, status: StatusTracker): IDLSuperFile {
+    const file = program.absoluteName
+    arkts.arktsGlobal.filePath = file
+
     const configText = fs.readFileSync(configPath, 'utf-8')
     const configContent = JSON.parse(configText)
     const paths = configContent.compilerOptions.paths ?? {};
@@ -85,23 +86,6 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
     for (const key in paths) {
         pathMap.set(key, path.normalize(path.join(path.dirname(configPath), paths[key][0])))
     }
-    arkts.initVisitsTable()
-    arkts.arktsGlobal.filePath = file
-    arkts.arktsGlobal.config = arkts.Config.create([
-        '_',
-        '--arktsconfig',
-        configPath,
-        file,
-        '--extension',
-        'ets',
-        '--stdlib',
-        path.join(process.env.PANDA_SDK_PATH as string, 'ets', 'stdlib'),
-        '--output',
-        'a.abc'
-    ]).peer
-    arkts.arktsGlobal.compilerContext = arkts.Context.createFromString(input)
-    arkts.proceedToState(arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
-    const script = arkts.createETSModuleFromContext()
     let localStatus = new StatusTracker(status.enabled)
     let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)
     if (config.DeletedPackages.some(deleted => idl.qualifiedNameStartsWith(idlVisitor.packageClause, deleted.split(".")))) {
@@ -115,7 +99,7 @@ function processFile(outDir: string, baseDir: string, file: string, configPath:s
             exportsAll: new Set
         }
     }
-    idlVisitor.visitor(script)
+    idlVisitor.visitor(program.ast)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
     const outFile = path.join(outDir, fileRelativePath.replace(".d.ets", ".idl"))
@@ -162,10 +146,36 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
         error: unknown
         fileName: string
     }[] = []
-    inputFiles.forEach(file => {
+
+    arkts.initVisitsTable()
+    arkts.arktsGlobal.config = arkts.Config.create([
+        '_',
+        '--arktsconfig',
+        etsConfigPath,
+        inputFiles[0],
+        '--extension',
+        'ets',
+        '--stdlib',
+        path.join(process.env.PANDA_SDK_PATH as string, 'ets', 'stdlib'),
+        '--output',
+        'a.abc',
+        '--simultaneous'
+    ]).peer
+    if (!arkts.global.configIsInitialized()) throw new Error(`Wrong config: path=${etsConfigPath}`);
+    arkts.arktsGlobal.compilerContext = arkts.Context.createContextGenerateAbcForExternalSourceFiles(inputFiles)
+    arkts.global.isContextGenerateAbcForExternalSourceFiles = true;
+    const options = arkts.Options.createOptions(new arkts.Config(arkts.global.config));
+    arkts.global.arktsconfig = options.getArkTsConfig();
+
+    arkts.proceedToState(arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
+    const pluginContext = new arkts.PluginContextImpl()
+    const program = arkts.arktsGlobal.compilerContext!.program
+    arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
+        if (!inputFiles.includes(program.absoluteName))
+            return
         try {
-            doJob(file, () => {
-                const idlFile = processFile(outDir, baseDir, file, etsConfigPath, config, status)
+            doJob(program.absoluteName, () =>  {
+                const idlFile = processFile(program, outDir, baseDir, etsConfigPath, config, status)
                 if (config.DeletedPackages.includes(idlFile.file.packageClause.join("."))) {
                     console.log(`WARNING: Package ${idlFile.file.packageClause.join(".")} was deleted`)
                 } else {
@@ -181,10 +191,11 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
             // throw e
             failed.push({
                 error: e,
-                fileName: file
+                fileName: program.absoluteName
             })
         }
-    })
+    }, pluginContext, undefined, undefined)
+
     if (traceStatus) {
         fs.writeFileSync(traceStatus, status.Print())
     }
