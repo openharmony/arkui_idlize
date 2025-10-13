@@ -92,9 +92,6 @@
         "ScrollableCommonMethod": [
             "onWillScroll",
             "onDidScroll"
-        ],
-        "SliderBlockStyle": [
-            "shape"
         ]
     },
     "StubbedDeclarations": [
