@@ -138,7 +138,7 @@ class PeerFileVisitor {
             IDLVoidType,
             [IDLPointerType, IDLI32Type, IDLStringType, IDLI32Type],
             ['peerPtr', 'id', 'name', 'flags'],
-            [undefined, undefined, '""', '0'])
+            [undefined, undefined, [Language.TS, Language.ARKTS].includes(printer.language) ? `''` : '""', '0'])
 
         printer.writeConstructorImplementation(componentToPeerClass(peer.componentName), signature, (writer) => { },
             { delegationArgs: ['peerPtr', 'id', 'name', 'flags'].map(it => printer.makeString(it)), delegationName: peer.parentComponentName },

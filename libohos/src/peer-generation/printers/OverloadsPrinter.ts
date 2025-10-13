@@ -309,7 +309,7 @@ export class OverloadsPrinter {
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             if (this.isComponent) {
-                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
+                writer.print(`if (this.checkPriority('${collapsedMethod.name}')) {`)
                 this.printer.pushIndent()
             }
             const hookMethod = getHookMethod(peer, collapsedMethod.name)

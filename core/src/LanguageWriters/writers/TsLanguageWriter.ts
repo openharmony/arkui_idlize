@@ -240,7 +240,7 @@ export class TSLanguageWriter extends LanguageWriter {
             if (member.alias !== undefined) {
                 value = member.alias
             } else {
-                value = `${member.stringId != undefined ? `"${member.stringId}"` : `${member.numberId}`}`
+                value = `${member.stringId != undefined ? `'${member.stringId}'` : `${member.numberId}`}`
             }
             const maybeComma = index < members.length - 1 ? "," : ""
             this.printer.print(`${member.name} = ${value}${maybeComma}`)
