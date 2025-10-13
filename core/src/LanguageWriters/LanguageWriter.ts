@@ -340,6 +340,12 @@ export enum FieldModifier {
     SET,
 }
 
+export const ACCESS_MODIFIERS_SET = new Set([
+    FieldModifier.PRIVATE,
+    FieldModifier.PROTECTED,
+    FieldModifier.PUBLIC
+])
+
 export enum MethodModifier {
     PUBLIC,
     PRIVATE,

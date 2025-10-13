@@ -308,7 +308,7 @@ export function makeArkuiModule(componentsFiles: string[], root:string): string 
         componentsFiles.map(file => {
             const relativePath = path.relative(root, file)
             const basenameNoExt = relativePath.replaceAll(path.extname(relativePath), "")
-            return `export * from "./${basenameNoExt}"`
+            return `export * from './${basenameNoExt}'`
         }).sort().join("\n")
     )
 }
