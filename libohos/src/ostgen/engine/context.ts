@@ -44,9 +44,8 @@ export class MakeResult {
             throw new Error("ERROR 1")
         }
         if (![
-            lw.LWKind.ConstType,
-            lw.LWKind.AppType,
-            lw.LWKind.FuncType,
+            lw.LWKind.ValueType,
+            lw.LWKind.FunctionalType,
         ].includes(target.kind)) {
             throw new Error("ERROR 2")
         }

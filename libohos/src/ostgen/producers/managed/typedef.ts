@@ -23,7 +23,7 @@ export const typedefProducer = createSpecialProducer(
     const generatedDeclName = managedName(idl.getFQName(typedef))
     return {
       artifact: {
-        reference: T.cc(generatedDeclName),
+        reference: T.c(generatedDeclName),
         implementationGenerator: () =>
           [D.type(generatedDeclName, ctx.useManaged(typedef.type).reference())]
       }

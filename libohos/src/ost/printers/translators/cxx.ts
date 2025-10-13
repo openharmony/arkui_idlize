@@ -33,19 +33,14 @@ export class CXXPrinter {
 
   printDirectType(type: lw.LWType, name: string) {
     switch (type.kind) {
-      case lw.LWKind.ConstType: {
-        this.printAbstractType(type)
-        this.p.put(' ', name)
-        break
-      }
-      case lw.LWKind.AppType: {
+      case lw.LWKind.ValueType: {
         /* std specification */
         // todo
         this.printAbstractType(type)
         this.p.put(' ', name)
         break
       }
-      case lw.LWKind.FuncType: {
+      case lw.LWKind.FunctionalType: {
         this.printAbstractType(type.returnType)
         this.p.put(' ', '(', '*', name, ')', '(')
         type.params.forEach((param, i) => {
@@ -61,13 +56,9 @@ export class CXXPrinter {
   }
   printAbstractType(type: lw.LWType) {
     switch (type.kind) {
-      case lw.LWKind.ConstType: {
-        this.p.put(type.name)
-        break
-      }
-      case lw.LWKind.AppType: {
+      case lw.LWKind.ValueType: {
         // stdlib specification
-        switch (type.head) {
+        switch (type.name) {
           case std.names.types.pointer: {
             this.printAbstractType(type.args[0])
             this.p.put('*')
@@ -90,18 +81,20 @@ export class CXXPrinter {
           }
         }
 
-        this.p.put(type.head)
-        this.p.put('<')
-        type.args.forEach((arg, i) => {
-          if (i > 0) {
-            this.p.put(',', ' ')
-          }
-          this.printAbstractType(arg)
-        })
-        this.p.put('>')
+        this.p.put(type.name)
+        if (type.args.length) {
+          this.p.put('<')
+          type.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printAbstractType(arg)
+          })
+          this.p.put('>')
+        }
         break
       }
-      case lw.LWKind.FuncType: {
+      case lw.LWKind.FunctionalType: {
         this.printAbstractType(type.returnType)
         this.p.put(' ', '(', '*', ')', '(')
         type.params.forEach((param, i) => {

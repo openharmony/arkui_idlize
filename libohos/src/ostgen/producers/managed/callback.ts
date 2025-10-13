@@ -23,7 +23,7 @@ export const callbackProducer = createSpecialProducer(
     const generatedDeclName = managedName(idl.getFQName(callback))
     return {
       artifact: {
-        reference: T.cc(generatedDeclName),
+        reference: T.c(generatedDeclName),
         implementationGenerator: () => {
           return [D.type(
             generatedDeclName,

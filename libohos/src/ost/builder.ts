@@ -99,29 +99,20 @@ export const S = {
     condition,
     thenBody,
     elseBody,
-  })
+  }),
+  none: (): lw.NoneStatement => ({
+    kind: lw.LWKind.NoneStatement
+  }),
 }
 
 export const T = {
-  cc: (name: string): lw.ConstType => ({
-    kind: lw.LWKind.ConstType,
-    name
+  c: (name: string, ...args:lw.LWType[]): lw.ValueType => ({
+    kind: lw.LWKind.ValueType,
+    name,
+    args,
   }),
-  c: (name: string, ...args: lw.LWType[]): lw.ConstType | lw.AppType => {
-    if (args.length === 0) {
-      return {
-        kind: lw.LWKind.ConstType,
-        name
-      }
-    }
-    return {
-      kind: lw.LWKind.AppType,
-      head: name,
-      args,
-    }
-  },
-  fn: (params: [name: string, type: lw.LWType][], returnType: lw.LWType): lw.FuncType => ({
-    kind: lw.LWKind.FuncType,
+  fn: (params: [name: string, type: lw.LWType][], returnType: lw.LWType): lw.FunctionalType => ({
+    kind: lw.LWKind.FunctionalType,
     params: params.map(([name, type]) => ({ name, type })),
     returnType
   }),

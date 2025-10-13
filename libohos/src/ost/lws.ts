@@ -28,6 +28,7 @@ export enum LWKind {
   ReturnStatement,
   LoopStatement,
   IfStatement,
+  NoneStatement,
 
   VariableExpression,
   ConstantExpression,
@@ -39,9 +40,8 @@ export enum LWKind {
   ConstructorExpression,
   CheckCastExpression,
 
-  ConstType,
-  FuncType,
-  AppType,
+  ValueType,
+  FunctionalType,
 }
 
 ////////////////////////////////////////////////////////
@@ -203,6 +203,9 @@ export interface IfStatement {
   thenBody: LWStatement
   elseBody?: LWStatement
 }
+export interface NoneStatement {
+  kind: LWKind.NoneStatement
+}
 export type LWStatement =
     DeclarationStatement
   | CompoundStatement
@@ -210,6 +213,7 @@ export type LWStatement =
   | ReturnStatement
   | LoopStatement
   | IfStatement
+  | NoneStatement
 
 export interface VariableExpression {
   kind: LWKind.VariableExpression
@@ -277,27 +281,23 @@ export type LWExpression =
   | ConstructorExpression
   | CheckCastExpression
 
-export interface ConstType {
-  kind: LWKind.ConstType
+export interface ValueType {
+  kind: LWKind.ValueType
   name: string
+  args: LWType[]
 }
-export interface FuncType {
-  kind: LWKind.FuncType
+export interface FunctionalType {
+  kind: LWKind.FunctionalType
   params: {
     name: string
     type: LWType
   }[]
   returnType: LWType
 }
-export interface AppType {
-  kind: LWKind.AppType
-  head: string
-  args: LWType[]
-}
+
 export type LWType =
-    ConstType
-  | FuncType
-  | AppType
+    ValueType
+  | FunctionalType
 
 export interface LWProgramChunk {
   package: string

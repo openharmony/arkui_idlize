@@ -21,11 +21,7 @@ export class DumpPrinter {
 
   printType(type: lw.LWType) {
     switch (type.kind) {
-      case lw.LWKind.ConstType: {
-        this.p.put(type.name)
-        break
-      }
-      case lw.LWKind.FuncType: {
+      case lw.LWKind.FunctionalType: {
         this.p.put('(')
         type.params.forEach((param, i) => {
           if (i > 0) {
@@ -39,19 +35,21 @@ export class DumpPrinter {
         this.printType(type.returnType)
         break
       }
-      case lw.LWKind.AppType: {
+      case lw.LWKind.ValueType: {
         // stdlib specification
         // TODO
 
-        this.p.put(type.head)
-        this.p.put('(')
-        type.args.forEach((arg, i) => {
-          if (i > 0) {
-            this.p.put(',', ' ')
-          }
-          this.printType(arg)
-        })
-        this.p.put(')')
+        this.p.put(type.name)
+        if (type.args.length) {
+          this.p.put('(')
+          type.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printType(arg)
+          })
+          this.p.put(')')
+        }
         break
       }
     }

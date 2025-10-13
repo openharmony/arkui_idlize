@@ -23,7 +23,7 @@ export const unionProducer = createSpecialProducer(
     const name = cApiName(idl.getFQName(node))
     return {
       artifact: {
-        reference: T.cc(name),
+        reference: T.c(name),
         implementationGenerator: () =>
           [D.union(name, node.types.map(type => ctx.useCApi(type).reference()))]
       }

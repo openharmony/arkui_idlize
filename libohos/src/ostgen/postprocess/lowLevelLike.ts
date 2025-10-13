@@ -51,7 +51,10 @@ class MakeInstance extends IdentityTransformer {
         private subst: Map<string, lw.LWType>
     ) { super() }
 
-    goConstType(type: lw.ConstType): lw.LWType {
+    goValueType(type: lw.ValueType): lw.LWType {
+        if (type.args.length) {
+            return super.goValueType(type)
+        }
         if (this.subst.has(type.name)) {
             return this.subst.get(type.name)!
         }
@@ -104,9 +107,8 @@ class MakeMono extends IdentityTransformer {
     }
     private makeSpecializedArgName(type: lw.LWType): string {
         switch (type.kind) {
-            case lw.LWKind.ConstType: return type.name.split('.').pop()!
-            case lw.LWKind.AppType: throw new Error("")
-            case lw.LWKind.FuncType: throw new Error("")
+            case lw.LWKind.ValueType: return type.name.split('.').pop()!
+            case lw.LWKind.FunctionalType: throw new Error("")
         }
     }
     private makeSpecializedName(name: string, args: lw.LWType[]): string {
@@ -135,12 +137,15 @@ class MakeMono extends IdentityTransformer {
         throw new Error(`Unsupported generic declaration "${name}" of kind "${lw.LWKind[decl.kind]}"`)
     }
 
-    goAppType(type: lw.AppType): lw.LWType {
-        const processed = super.goAppType(type) as lw.AppType
-        if (processed.head.startsWith('@') || processed.head.startsWith('#')) {
+    goValueType(type: lw.ValueType): lw.LWType {
+        const processed = super.goValueType(type) as lw.ValueType
+        if (processed.name.startsWith('@') || processed.name.startsWith('#')) {
             return processed
         }
-        return this.specialize(processed.head, processed.args)
+        if (processed.args.length === 0) {
+            return processed
+        }
+        return this.specialize(processed.name, processed.args)
     }
 
     go(decls:lw.LWDeclaration[]): lw.LWDeclaration[] {
@@ -167,12 +172,12 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
         const className = decl.name.split('.').pop()!.replace(/Modifier$/, '');
         const modifierImplName = implName(decl.name + 'Impl');
         apiStruct.field(className)
-            .funcType().returns(Ts.const(Ts.ptr(T.cc(decl.name)))).$().$()
+            .funcType().returns(Ts.const(Ts.ptr(T.c(decl.name)))).$().$()
         // modifier implementation
         const modifierImpl = Builders.func(modifierImplName)
-            .returns(Ts.const(Ts.ptr(T.cc(decl.name))))
+            .returns(Ts.const(Ts.ptr(T.c(decl.name))))
             .block()
-                .decl('instance', T.cc(decl.name)).static().value()
+                .decl('instance', T.c(decl.name)).static().value()
                     .ctor().asStruct().args(
                         decl.members.map(it => E.unary(Op.ref, E.v(it.name + 'Impl')))).$().$().$()
                 .return().valueExpr(E.unary(Op.ref, E.v('instance'))).$().$().$()
@@ -182,11 +187,11 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     })
     // API implementation function
     const apiImpl = Builders.func(implName(`Get${generatorConfiguration().moduleName.toUpperCase()}APIImpl`))
-        .returns(Ts.const(Ts.ptr(T.cc(apiStructName))))
+        .returns(Ts.const(Ts.ptr(T.c(apiStructName))))
         .param('version').type(Ts.prim.i32).$()
         ///extern "C"
         .block()
-            .decl('api', T.cc(apiStructName)).static().value()
+            .decl('api', T.c(apiStructName)).static().value()
                 .ctor().asStruct().args([E.c(1), ...apiImpls]).$().$().$()
             .if()
                 .cond().binary(Op.ne).leftStr('version').right().access(E.v('api')).member('version').$().$().$().$()
@@ -200,7 +205,7 @@ function makeForwardDeclarations(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
         ([fwd, tdef, str], decl) => {
             if (decl.kind == lw.LWKind.StructureDeclaration) {
                 str.push(decl)
-                fwd.push(D.type(decl.name, Ts.struct(T.cc(decl.name))))
+                fwd.push(D.type(decl.name, Ts.struct(T.c(decl.name))))
             } else {
                 tdef.push(decl)
             }
@@ -251,8 +256,8 @@ class TypeAliasing extends IdentityTransformer {
             : path[path.length - 1]
         return prefix === 'capi' ? this.LongPrefix + typeName : typeName
     }
-    override goConstType(type: lw.ConstType): lw.LWType {
-        return T.cc(this.goTypeName(type.name))
+    override goValueType(type: lw.ValueType): lw.LWType {
+        return type.args.length === 0 ? T.c(this.goTypeName(type.name)) : super.goValueType(type)
     }
     override goEnumDeclaration(decl: lw.EnumDeclaration): lw.EnumDeclaration {
         decl = super.goEnumDeclaration(decl)
@@ -285,7 +290,7 @@ class TypeAliasing extends IdentityTransformer {
         return decl
     }
     override goVariableExpression(expr: lw.VariableExpression): lw.VariableExpression {
-        expr = super.goVariableExpression(expr)
+        expr = super.goVariableExpression(expr) as lw.VariableExpression
         expr.name = utils.hasHint(expr, std.names.hints.isType)
             ? this.goTypeName(expr.name)
             : expr.name

@@ -14,7 +14,7 @@
  */
 
 import { D, DD, E, S, T } from "./builder"
-import { AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration, ConstructorExpression, ConstType, DeclarationStatement, ExpressionStatement, FunctionDeclaration, FuncType, IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier, StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation, UnaryExpression, CheckCastExpression } from "./lws"
+import { AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration, ConstructorExpression, DeclarationStatement, ExpressionStatement, FunctionDeclaration, IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier, StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation, UnaryExpression, CheckCastExpression, FunctionalType } from "./lws"
 import { Hs, Md, std, Ts } from "./stdlib";
 
 const id = <T>(it: T) => it
@@ -531,7 +531,7 @@ class ParamBuilder<P> {
     ) {}
     private _type?: LWType
     type(type: LWType) { this._type = type; return this }
-    typeStr(type: string) { this._type = T.cc(type); return this }
+    typeStr(type: string) { this._type = T.c(type); return this }
     $(): P {
         check("Parameter", this._type)
         return this._cont(this._name, this._type!)
@@ -539,7 +539,7 @@ class ParamBuilder<P> {
 }
 
 class FunctionTypeBuilder<P> {
-    constructor(private _cont: (type: FuncType) => P) {}
+    constructor(private _cont: (type: FunctionalType) => P) {}
     private _parameters: [name: string, type: LWType][] = []
     private _returnType?: LWType
     returns(type: LWType) { this._returnType = type; return this }

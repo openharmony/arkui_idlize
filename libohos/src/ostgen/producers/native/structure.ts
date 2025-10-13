@@ -26,7 +26,7 @@ export const structureProducer = createSpecialProducer(
     const name = cApiName(idl.getFQName(node))
     return {
       artifact: {
-        reference: T.cc(name),
+        reference: T.c(name),
         implementationGenerator: () =>
           isMaterialized(node, ctx.base.library)
             ? makeMaterialized(node, name)

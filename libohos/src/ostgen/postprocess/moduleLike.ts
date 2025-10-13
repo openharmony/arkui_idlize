@@ -140,10 +140,10 @@ class RefSearcher extends IdentityTransformer {
         }
         return this.trimNs(name)
     }
-    override goConstType(type: lw.ConstType): lw.LWType {
+    override goValueType(type: lw.ValueType): lw.LWType {
         return type.name.startsWith('@')
-            ? super.goConstType(type)
-            : T.c(this.goTypeName(type.name))
+            ? super.goValueType(type)
+            : T.c(this.goTypeName(type.name), ...type.args.map(t => this.goType(t)))
     }
     override goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
         expr = super.goConstructorExpression(expr)
@@ -151,7 +151,7 @@ class RefSearcher extends IdentityTransformer {
         return expr
     }
     override goVariableExpression(expr: lw.VariableExpression): lw.VariableExpression {
-        expr = super.goVariableExpression(expr)
+        expr = super.goVariableExpression(expr) as lw.VariableExpression
         if (utils.hasHint(expr, std.names.hints.isType))
             expr.name = this.goTypeName(expr.name)
         return expr

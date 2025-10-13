@@ -17,7 +17,7 @@ import * as idl from "@idlizer/core/idl";
 import { Hs, E, lw, Op, S, std, T, Ts } from "../../../ost";
 import { AdvancedGeneratorContext, bridgeName } from "../common";
 import { Builders } from "../../../ost/builders";
-import { ConstType, IfStatement, LWExpression, LWKind, LWType } from "../../../ost/lws";
+import { IfStatement, LWExpression, LWKind, LWType } from "../../../ost/lws";
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type) {

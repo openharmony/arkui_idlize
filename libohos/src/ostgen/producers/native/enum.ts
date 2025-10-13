@@ -24,7 +24,7 @@ export const enumProducer = createProducer(
     const name = cApiName(idl.getFQName(node))
     return {
       artifact: {
-        reference: T.cc(name),
+        reference: T.c(name),
         implementationGenerator: () =>
           [D.enum(name, node.elements.map(element => {
             return {

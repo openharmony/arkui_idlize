@@ -33,7 +33,7 @@ export const structureProducer = createSpecialProducer(
       : makeInterface
     return {
       artifact: {
-        reference: T.cc(declName),
+        reference: T.c(declName),
         implementationGenerator: () => {
           ctx.useCApi(node)
           return generator(node, declName, ctx)
@@ -98,14 +98,14 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
     ...syntheticMethods
   ].forEach(it => ctx.useManaged(it))
 
-  const peerType = Ts.union([T.cc('Finalizable'), T.cc('undefined')])
+  const peerType = Ts.union([T.c('Finalizable'), T.c('undefined')])
   const thisType = ctx.useManaged(node).reference()
   const intClass = Builders.class(name + 'Internal')
     .method('fromPtr').static()
       .returns(thisType)
       .param('ptr').type(Ts.prim.pointer).$().block()
         .return(thisType).ctor(name).args([E.v('ptr')]).$().$().$().$().$()
-  const matClass = Builders.class(name).implements(T.cc('MaterializedBase'))
+  const matClass = Builders.class(name).implements(T.c('MaterializedBase'))
     // peer
     .field('peer').type(peerType).$()
     .method('getPeer').returns(peerType).block()

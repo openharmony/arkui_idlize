@@ -18,7 +18,7 @@ import { ProducerDescription } from "../../engine/context";
 import { Hs, E, T, Ts } from "../../../ost";
 import { ArgConvertor } from "./argConvertor";
 import { Builders } from "../../../ost/builders";
-import { ConstType, LWExpression, LWKind, LWType } from "../../../ost/lws";
+import { LWExpression, LWKind, LWType, ValueType } from "../../../ost/lws";
 import { isMaterialized } from "@idlizer/core";
 
 function makeSerializerName(node: idl.IDLInterface, native: boolean) {
@@ -61,17 +61,17 @@ function makeSerializerClass(native: boolean, node: idl.IDLInterface, type: LWTy
   return Builders.class(makeSerializerName(node, native))
     .method('write')
       .static()
-      .param('serializer').type(Ts.ref(T.cc('SerializerBase'))).$()
+      .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
       .param('value').type(type).$().$()
     .method('read')
       .static()
-      .param('deserializer').type(Ts.ref(T.cc('DeserializerBase'))).$()
+      .param('deserializer').type(Ts.ref(T.c('DeserializerBase'))).$()
       .returns(type).$().$()
 }
 
 function makeSerializerWrite(native: boolean, node: idl.IDLInterface, type: LWType, ctx: AdvancedGeneratorContext) {
   const block = Builders.func(makeSerializerName(node, native) + '::write')
-    .param('serializer').type(Ts.ref(T.cc('SerializerBase'))).$()
+    .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
     .block()
   if (isMaterialized(node, ctx.base.library)) {
@@ -86,7 +86,7 @@ function makeSerializerWrite(native: boolean, node: idl.IDLInterface, type: LWTy
 
 function makeSerializerRead(native: boolean, node: idl.IDLInterface, type: LWType, ctx: AdvancedGeneratorContext) {
   const block = Builders.func(makeSerializerName(node, native) + '::read')
-    .param('deserializer').type(Ts.ref(T.cc('DeserializerBase'))).$()
+    .param('deserializer').type(Ts.ref(T.c('DeserializerBase'))).$()
     .returns(type)
     .block()
   if (isMaterialized(node, ctx.base.library)) {
@@ -120,6 +120,6 @@ function ptrToMaterialized(value: string, type: LWType, native: boolean): LWExpr
           hints: [Hs.staticMethod()]
       }
       : Builders.call()
-          .receiverExpr(E.v((type as ConstType).name + 'Internal', [Hs.isType()]))
+          .receiverExpr(E.v((type as ValueType).name + 'Internal', [Hs.isType()]))
           .functionName('fromPtr').arg(value).$().$()
 }

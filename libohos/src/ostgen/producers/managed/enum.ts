@@ -23,7 +23,7 @@ export const enumProducer = createSpecialProducer(
     const generatedDeclName = managedName(idl.getFQName(node))
     return {
       artifact: {
-        reference: T.cc(generatedDeclName),
+        reference: T.c(generatedDeclName),
         implementationGenerator: () => {
           return [D.enum(generatedDeclName,
             node.elements.map(element => {

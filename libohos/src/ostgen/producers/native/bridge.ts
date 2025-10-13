@@ -62,8 +62,8 @@ export const functionBridgeProducer = createSpecialProducer(
           if (returnType === Ts.prim.returnBuffer) {
             const conv = new ArgConvertor(ctx, E.v('returnSerializer'), true)
             bridge
-              .decl('returnValue', T.cc(std.names.types.auto)).valueExpr(apiCall).$()///make decl.type optional?
-              .decl('returnSerializer', T.cc('SerializerBase')).value().ctor().asStruct().$().$().$()
+              .decl('returnValue', T.c(std.names.types.auto)).valueExpr(apiCall).$()///make decl.type optional?
+              .decl('returnSerializer', T.c('SerializerBase')).value().ctor().asStruct().$().$().$()
               .statements([conv.write(E.v('returnValue'), method.returnType)])
               .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
           } else {
@@ -136,15 +136,15 @@ function interopReturnType(
     case idl.IDLVoidType: return [returnType, undefined, true]
     case idl.IDLNumberType: return [returnType, 'KInteropNumber', true]
     case idl.IDLStringType: return [returnType, 'KStringPtr', true]
-    default: return [T.cc('KInteropReturnBuffer'), 'KInteropReturnBuffer', false]
+    default: return [T.c('KInteropReturnBuffer'), 'KInteropReturnBuffer', false]
   }
 }
 
 function interopType(type: idl.IDLType, ctx: AdvancedGeneratorContext): LWType {
   switch (type) {
-    case idl.IDLNumberType: return T.cc('KInteropNumber')
-    case idl.IDLBufferType: return T.cc('KInteropBuffer')
-    case idl.IDLSerializerBuffer: return T.cc('KSerializerBuffer')
+    case idl.IDLNumberType: return T.c('KInteropNumber')
+    case idl.IDLBufferType: return T.c('KInteropBuffer')
+    case idl.IDLSerializerBuffer: return T.c('KSerializerBuffer')
     case idl.IDLFunctionType: return Ts.prim.i32
     case idl.IDLDate: return Ts.prim.i64
     default: return ctx.useCApi(type).reference()

@@ -20,11 +20,11 @@ import { T, utils } from "../../builder";
 import { ConvertTSTypes, TSPrinter } from "./typescript";
 
 export class ConvertArkTSTypes extends ConvertTSTypes {
-  override goConstType(type: lw.ConstType): lw.ConstType {
+  override goValueType(type: lw.ValueType): lw.ValueType {
     switch (type.name) {
-      case std.names.types.bigint: return T.cc('long')
+      case std.names.types.bigint: return T.c('long')
     }
-    return super.goConstType(type)
+    return super.goValueType(type)
   }
 }
 

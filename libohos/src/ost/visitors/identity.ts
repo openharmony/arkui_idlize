@@ -163,6 +163,11 @@ export class IdentityTransformer {
       elseBody: over(stmt.elseBody, eb => this.goStatement(eb))
     }
   }
+  goNoneStatement(stmt:lw.NoneStatement): lw.NoneStatement {
+    return {
+      kind: stmt.kind,
+    }
+  }
   goStatement(stmt:lw.LWStatement): lw.LWStatement {
     switch (stmt.kind) {
       case lw.LWKind.DeclarationStatement: return this.goDeclarationStatement(stmt)
@@ -171,10 +176,11 @@ export class IdentityTransformer {
       case lw.LWKind.ReturnStatement: return this.goReturnStatement(stmt)
       case lw.LWKind.LoopStatement: return this.goLoopStatement(stmt)
       case lw.LWKind.IfStatement: return this.goIfStatement(stmt)
+      case lw.LWKind.NoneStatement: return this.goNoneStatement(stmt)
     }
   }
 
-  goVariableExpression(expr:lw.VariableExpression): lw.VariableExpression {
+  goVariableExpression(expr:lw.VariableExpression): lw.LWExpression {
     return {
       kind: expr.kind,
       name: expr.name,
@@ -261,13 +267,14 @@ export class IdentityTransformer {
     }
   }
 
-  goConstType(type:lw.ConstType): lw.LWType {
+  goValueType(type:lw.ValueType): lw.LWType {
     return {
       kind: type.kind,
-      name: type.name
+      name: type.name,
+      args: type.args.map(t => this.goType(t)),
     }
   }
-  goFuncType(type:lw.FuncType): lw.LWType {
+  goFunctionalType(type:lw.FunctionalType): lw.LWType {
     return {
       kind: type.kind,
       params: type.params.map(p => ({
@@ -277,18 +284,10 @@ export class IdentityTransformer {
       returnType: this.goType(type.returnType)
     }
   }
-  goAppType(type:lw.AppType): lw.LWType {
-    return {
-      kind: type.kind,
-      head: type.head,
-      args: type.args.map(t => this.goType(t))
-    }
-  }
   goType(type:lw.LWType): lw.LWType {
     switch (type.kind) {
-      case lw.LWKind.ConstType: return this.goConstType(type)
-      case lw.LWKind.AppType: return this.goAppType(type)
-      case lw.LWKind.FuncType: return this.goFuncType(type)
+      case lw.LWKind.ValueType: return this.goValueType(type)
+      case lw.LWKind.FunctionalType: return this.goFunctionalType(type)
     }
   }
   goAnnotation(annotation:lw.Annotation): lw.Annotation {

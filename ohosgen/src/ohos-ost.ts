@@ -54,7 +54,7 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     selector.register(createProducer(
         { is: idl.isConstant, role: roles.managed },
         (constant, ctx) => {
-            return { artifact: { reference: T.cc("///managed.constant.fallback")}}
+            return { artifact: { reference: T.c("///managed.constant.fallback")}}
         }))
 
     const ctx = new GeneratorContext(peerLibrary, selector)

@@ -39,38 +39,37 @@ export class ConvertTSTypes extends IdentityTransformer {
       this.nameStack = [localPackage]
   }
 
-  override goConstType(type: lw.ConstType): lw.ConstType {
+  override goValueType(type: lw.ValueType): lw.ValueType {
     switch (type.name) {
-      case std.names.types.bigint: return T.cc('bigint')
-      case std.names.types.boolean: return T.cc('boolean')
-      case std.names.types.buffer: return T.cc('ArrayBuffer')
-      case std.names.types.f32: return T.cc('float')
-      case std.names.types.f64: return T.cc('double')
-      case std.names.types.i8: return T.cc('byte')
-      case std.names.types.i32: return T.cc('int')
-      case std.names.types.i64: return T.cc('long')
-      case std.names.types.object: return T.cc('object')
-      case std.names.types.nativePointer: return T.cc('KPointer')
-      case std.names.types.number: return T.cc('number')
-      case std.names.types.serializerBuffer: return T.cc('KSerializerBuffer')
-      case std.names.types.string: return T.cc('string')
-      case std.names.types.u8: return T.cc('byte')
-      case std.names.types.u32: return T.cc('int')
-      case std.names.types.u64: return T.cc('long')
-      case std.names.types.void: return T.cc('void')
+      case std.names.types.bigint: return T.c('bigint')
+      case std.names.types.boolean: return T.c('boolean')
+      case std.names.types.buffer: return T.c('ArrayBuffer')
+      case std.names.types.f32: return T.c('float')
+      case std.names.types.f64: return T.c('double')
+      case std.names.types.i8: return T.c('byte')
+      case std.names.types.i32: return T.c('int')
+      case std.names.types.i64: return T.c('long')
+      case std.names.types.object: return T.c('object')
+      case std.names.types.nativePointer: return T.c('KPointer')
+      case std.names.types.number: return T.c('number')
+      case std.names.types.serializerBuffer: return T.c('KSerializerBuffer')
+      case std.names.types.string: return T.c('string')
+      case std.names.types.u8: return T.c('byte')
+      case std.names.types.u32: return T.c('int')
+      case std.names.types.u64: return T.c('long')
+      case std.names.types.void: return T.c('void')
+    }
+    if (type.args.length > 0) {
+      type = super.goValueType(type) as lw.ValueType
+      switch (type.name) {
+        case 'idlize.Array': return T.c('Array', ...type.args)
+        case 'idlize.Map': return T.c('Map', ...type.args)
+      }
     }
     // strip local package from type name
     const localPrefix = this.nameStack.map(it => it + '.').join('')
     if (type.name.startsWith(localPrefix))
-      return T.cc(type.name.substring(localPrefix.length))
-    return type
-  }
-  override goAppType(type: lw.AppType): lw.LWType {
-    type = super.goAppType(type) as lw.AppType
-    switch (type.head) {
-      case 'idlize.Array': return T.c('Array', ...type.args)
-      case 'idlize.Map': return T.c('Map', ...type.args)
-    }
+      return T.c(type.name.substring(localPrefix.length))
     return type
   }
   override goNamespaceDeclaration(decl: lw.NamespaceDeclaration): lw.NamespaceDeclaration {
@@ -87,11 +86,7 @@ export class TSPrinter {
 
   printType(type: lw.LWType) {
     switch (type.kind) {
-      case lw.LWKind.ConstType: {
-        this.p.put(type.name)
-        break
-      }
-      case lw.LWKind.FuncType: {
+      case lw.LWKind.FunctionalType: {
         this.p.put('(')
         type.params.forEach((param, i) => {
           if (i > 0) {
@@ -105,9 +100,9 @@ export class TSPrinter {
         this.printType(type.returnType)
         break
       }
-      case lw.LWKind.AppType: {
+      case lw.LWKind.ValueType: {
         // stdlib specification
-        switch (type.head) {
+        switch (type.name) {
           case std.names.types.pointer: { this.printType(type.args[0]); return }
           case std.names.types.reference: { this.printType(type.args[0]); return }
           case std.names.types.constant: { this.printType(type.args[0]); return }
@@ -127,15 +122,17 @@ export class TSPrinter {
             return
         }
 
-        this.p.put(type.head)
-        this.p.put('<')
-        type.args.forEach((arg, i) => {
-          if (i > 0) {
-            this.p.put(',', ' ')
-          }
-          this.printType(arg)
-        })
-        this.p.put('>')
+        this.p.put(type.name)
+        if (type.args.length) {
+          this.p.put('<')
+          type.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printType(arg)
+          })
+          this.p.put('>')
+        }
         break
       }
     }

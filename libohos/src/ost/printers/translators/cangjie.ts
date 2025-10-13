@@ -28,11 +28,11 @@ const varMapping = new Map([
 ])
 
 export class ConvertCJTypes extends IdentityTransformer {
-  goConstType(type: lw.ConstType): lw.ConstType {
+  goValueType(type: lw.ValueType): lw.ValueType {
     switch (type.name) {
-      case std.names.types.i32: return T.cc('Int32')
-      case std.names.types.string: return T.cc('String')
-      case std.names.types.void: return T.cc('Unit')
+      case std.names.types.i32: return T.c('Int32')
+      case std.names.types.string: return T.c('String')
+      case std.names.types.void: return T.c('Unit')
     }
     return type
   }
@@ -43,11 +43,7 @@ export class CangjiePrinter {
   private readonly p = new IndentPrinter()
   printType(type: lw.LWType) {
     switch (type.kind) {
-      case lw.LWKind.ConstType: {
-        this.p.put(type.name)
-        break
-      }
-      case lw.LWKind.FuncType: {
+      case lw.LWKind.FunctionalType: {
         this.p.put('(')
         type.params.forEach((param, i) => {
           if (i > 0) {
@@ -61,23 +57,25 @@ export class CangjiePrinter {
         this.printType(type.returnType)
         break
       }
-      case lw.LWKind.AppType: {
+      case lw.LWKind.ValueType: {
         // stdlib specification
-        switch (type.head) {
+        switch (type.name) {
           case std.names.types.pointer: { this.printType(type.args[0]); return }
           case std.names.types.reference: { this.printType(type.args[0]); return }
           case std.names.types.constant: { this.printType(type.args[0]); return }
         }
 
-        this.p.put(type.head)
-        this.p.put('<')
-        type.args.forEach((arg, i) => {
-          if (i > 0) {
-            this.p.put(',', ' ')
-          }
-          this.printType(arg)
-        })
-        this.p.put('>')
+        this.p.put(type.name)
+        if (type.args.length) {
+          this.p.put('<')
+          type.args.forEach((arg, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.printType(arg)
+          })
+          this.p.put('>')
+        }
         break
       }
     }
