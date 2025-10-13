@@ -40,7 +40,6 @@ interface M3Options {
     target: string
     language: string
     scraperConfig?: string
-    formatArkts?: boolean
 }
 
 function m3(sdkPathInput: string, installPath: string, options: M3Options) {
@@ -66,14 +65,12 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
         idlPath: scrapedIDLs
     })
 
-    if (options.formatArkts && options.language === 'arkts') {
-        if (formatArkts({
-            inputDir: peersPath,
-            outputDir: undefined,
-            inplace: true
-        }) < 0) {
-            console.log('ArkTS formatting failed')
-        }
+    if (formatArkts({
+        inputDir: peersPath,
+        outputDir: undefined,
+        inplace: true
+    }) < 0) {
+        console.error('ERROR: ArkTS formatting failed')
     }
 
     let installSourceDir = peersPath
@@ -152,7 +149,6 @@ function main(argv: string[]) {
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
-        .option('--format-arkts')
         .action(m3)
 
     program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
