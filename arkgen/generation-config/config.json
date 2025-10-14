@@ -853,16 +853,6 @@
                 "replaceImplementation": false
             }
         },
-        "CanvasRenderingContext2D": {
-            "on": {
-                "hookName": "hookOn",
-                "replaceImplementation": false
-            },
-            "off": {
-                "hookName": "hookOff",
-                "replaceImplementation": false
-            }
-        },
         "XComponentAttribute": {
             "setXComponentOptions": {
                 "hookName": "hookSetXComponentOptions",
