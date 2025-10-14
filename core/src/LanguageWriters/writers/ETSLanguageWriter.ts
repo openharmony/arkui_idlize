@@ -313,15 +313,15 @@ export class ETSLanguageWriter extends TSLanguageWriter {
 
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         if (node === idl.IDLI64Type)
-            return this.makeMethodCall(value.asString(), `toLong`, [])
+            return this.makeMethodCall(value.asString() + '!', `toLong`, [])
         if (node === idl.IDLI32Type)
-            return this.makeMethodCall(value.asString(), `toInt`, [])
+            return this.makeMethodCall(value.asString() + '!', `toInt`, [])
         if (node === idl.IDLI8Type)
-            return this.makeMethodCall(value.asString(), `toByte`, [])
+            return this.makeMethodCall(value.asString() + '!', `toByte`, [])
         if (node === idl.IDLF64Type)
-            return this.makeMethodCall(value.asString(), `toDouble`, [])
+            return this.makeMethodCall(value.asString() + '!', `toDouble`, [])
         if (node === idl.IDLF32Type)
-            return this.makeMethodCall(value.asString(), `toFloat`, [])
+            return this.makeMethodCall(value.asString() + '!', `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
 }
