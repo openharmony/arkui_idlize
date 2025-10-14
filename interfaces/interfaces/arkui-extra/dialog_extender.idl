@@ -1,0 +1,8 @@
+package arkui.component.idlize;
+
+[Entity=Class]
+interface DialogExtender {
+  static void showTimePickerDialog(TimePickerDialogOptions options);
+  static void showTextPickerDialog(TextPickerDialogOptions options);
+  static void showDatePickerDialog(DatePickerDialogOptions options);
+};
