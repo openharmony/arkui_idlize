@@ -832,6 +832,10 @@
             "setVideoOptions": {
                 "hookName": "hookSetVideoOptions",
                 "replaceImplementation": false
+            },
+            "analyzerConfig": {
+                "hookName": "hookVideoAnalyzerConfig",
+                "replaceImplementation": true
             }
         },
         "waterFlowAttribute": {
@@ -867,6 +871,16 @@
             },
             "off": {
                 "hookName": "hookOff",
+                "replaceImplementation": false
+            },
+            "startImageAnalyzer": {
+                "hookName": "hookCanvasStartImageAnalyzer",
+                "replaceImplementation": false
+            }
+        },
+        "XComponentController": {
+            "startImageAnalyzer": {
+                "hookName": "hookXComponentStartImageAnalyzer",
                 "replaceImplementation": false
             }
         },
