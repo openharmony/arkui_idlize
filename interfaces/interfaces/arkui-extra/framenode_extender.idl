@@ -64,4 +64,5 @@ interface FrameNodeExtender {
   static FrameNode unWrapRawPtr(FrameNode peer, pointer pointer);
   static UICommonEvent getCommonEvent(FrameNode peer);
   static pointer getRenderNode(pointer peer);
+  static sequence<f64> convertPoint(FrameNode peer, FrameNode node, Vector2 vector2);
 };
