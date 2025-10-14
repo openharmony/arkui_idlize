@@ -23,6 +23,8 @@ import { BlockStatement, ExpressionStatement, IfStatement, LanguageWriter, Metho
     LayoutNodeRole,
     createOutArgConvertor,
     isInCurrentModule,
+    createLanguageWriter,
+    IdlNameConvertor,
 } from "@idlizer/core"
 import * as idl from  '@idlizer/core/idl'
 import { NativeModule } from "../NativeModule";
@@ -35,7 +37,7 @@ import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfigur
 import { isDirectMethod, isVMContextMethod } from './MethodUtils'
 
 class NativeModulePrinterBase {
-    readonly nativeModule: LanguageWriter = this.library.createLanguageWriter(this.language)
+    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language, this.library))
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -114,7 +116,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 }
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
-    private readonly interopConvertor = createInteropArgConvertor(this.language)
+    private readonly interopConvertor = createInteropArgConvertor(this.language, this.library)
     private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
 
     constructor(
@@ -569,7 +571,7 @@ export function makeInteropMethod(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method
@@ -582,7 +584,7 @@ export function makeInteropMethod(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
@@ -612,11 +614,11 @@ function makeInteropMethodInner(
         forceContext: boolean,
         throws: boolean,
         hasReceiver: boolean,
-        interopConvertor?: TypeConvertor<string>,
+        interopConvertor?: IdlNameConvertor,
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
-    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
+    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language, library)
     const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
     const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
         ? [{ name: 'ptr', type: idl.IDLPointerType }] : []
@@ -632,7 +634,7 @@ function makeInteropMethodInner(
         } else {
             interopParameters.push({
                 name: `${it.param}`,
-                type: idl.createReferenceType('%TEXT%:' + convertType(interopConvertor, it.interopType()))
+                type: idl.createReferenceType('%TEXT%:' + interopConvertor.convert(it.interopType()))
             })
         }
     })

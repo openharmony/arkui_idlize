@@ -34,11 +34,6 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     }
     override convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case idl.IDLU8Type: return 'KUint8ArrayPtr'
-                case idl.IDLI32Type: return 'KInt32ArrayPtr'
-                case idl.IDLF32Type: return 'KFloat32ArrayPtr'
-            }
             return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
         return super.convertContainer(type)
@@ -115,4 +110,11 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     }
 }
 
-export class ETSInteropArgConvertor extends TSInteropArgConvertor {}
+export class ETSInteropArgConvertor extends TSInteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLBigintType: return 'long'
+        }
+        return super.convertPrimitiveType(type)
+    }
+}

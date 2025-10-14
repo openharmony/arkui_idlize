@@ -493,7 +493,7 @@ export class TSLanguageWriter extends LanguageWriter {
         }
         return this.makeString(`${value.asString()}.valueOf()`)
     }
-    override castToBoolean(value: string): string { return `+${value}` }
+    override castToBoolean(value: string): string { return `!!${value}` }
     override makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`${value} instanceof Object`)
     }

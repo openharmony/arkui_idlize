@@ -309,7 +309,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return `(${value}).toChar()`
         return `(${value}).toInt()` // FIXME: is there int8 in ARKTS?
     }
-    override castToBoolean(value: string): string { return `${value} ? 1 : 0` }
+    override castToBoolean(value: string): string { return `${value} ? true : false` }
 
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         if (node === idl.IDLI64Type)

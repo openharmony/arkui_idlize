@@ -1056,33 +1056,7 @@ declare interface TextPickerDialogOptions extends TextPickerOptions {
  * @atomicservice
  * @since 11
  */
-declare class TextPickerDialog {
-  /**
-   * Invoking method display.
-   *
-   * @param { TextPickerDialogOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @since 8
-   */
-  /**
-   * Invoking method display.
-   *
-   * @param { TextPickerDialogOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @since 10
-   */
-  /**
-   * Invoking method display.
-   *
-   * @param { TextPickerDialogOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 11
-   */
-  static show(options?: TextPickerDialogOptions): undefined;
-}
+declare class TextPickerDialog {}
 
 /**
  * Defines TextPicker Component.
