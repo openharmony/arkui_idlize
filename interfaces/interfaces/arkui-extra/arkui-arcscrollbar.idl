@@ -1,0 +1,9 @@
+package arkui.component.idlize;
+import arkui.component.scroll.Scroller as Scroller;
+import arkui.component.enums.BarState as BarState;
+import ohos.arkui.ArcScrollBar.ArcScrollBarOptions as ArcScrollBarOptions;
+[Entity=Class]
+interface ArcScrollBarExtender {
+    static pointer arcScrollBarConstructor(i32 id);
+    static void setArcScrollBarOptions(pointer node, ArcScrollBarOptions options);
+};
