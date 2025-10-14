@@ -28,6 +28,7 @@
                 "ohos.intl",
                 "ohos.matrix4",
                 "ohos.measure",
+                "ohos.router",
                 "ohos.multimodalInput",
                 "ohos.promptAction",
                 "ohos.window",

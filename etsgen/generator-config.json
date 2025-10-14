@@ -63,6 +63,7 @@
         "UICommonTransition",
         "UIPageTransitionEnter",
         "UIPageTransitionExit",
+        "ForEach",
         "_r",
         "_rawfile",
         "LazyGridLayoutAttribute",
@@ -79,9 +80,6 @@
         "ScrollableCommonMethod": [
             "onWillScroll",
             "onDidScroll"
-        ],
-        "SliderBlockStyle": [
-            "shape"
         ]
     },
     "StubbedDeclarations": [],

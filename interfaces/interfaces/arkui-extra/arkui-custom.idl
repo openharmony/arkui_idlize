@@ -65,6 +65,8 @@ interface GestureOps {
     static void addGestureToGroup(pointer group, pointer gesture);
     static void removeGestureByTag(pointer node, String tag);
     static void clearGestures(pointer node);
+    static number getGestureEventType(pointer event);
+    static boolean isScrollableComponent(pointer event);
 };
 
 [Entity=Class]
@@ -229,3 +231,11 @@ interface NodeContainerOps {
     static void setOnTouchEvent(pointer self, optional Callback_TouchEvent_Void value);
 };
 callback NodeContainerOps_onAboutToResize = void (Size size);
+
+[Entity=Class]
+interface ThemeOps {
+    static void sendThemeToNative(sequence<ResourceColor> colorArray, i32 elmtId);
+    static void setDefaultTheme(sequence<ResourceColor> colorArray, boolean isDark);
+    static void createAndBindTheme(i32 themeScopeId, i32 themeId, sequence<ResourceColor> colorArray, ThemeColorMode colorMode, Callback_Void onThemeScopeDestroy);
+    static void applyThemeScopeIdToNode(pointer ptr, i32 themeScopeId);
+};

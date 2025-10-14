@@ -464,7 +464,23 @@
         "UserDataSpan",
         "arkui.component.pluginComponent.RecordData",
         "arkui.component.uiExtensionComponent.RecordData",
-        "ImageData"
+        "ImageData",
+        "Gesture",
+        "GestureGroup",
+        "TapGesture",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "RotationGesture",
+        "SwipeGesture",
+        "GestureGroup",
+        "GestureHandler",
+        "LongPressGestureHandler",
+        "PanGestureHandler",
+        "PinchGestureHandler",
+        "TapGestureHandler",
+        "RotationGestureHandler",
+        "SwipeGestureHandler"
     ],
     "rootComponents": [
         "Root",
@@ -531,7 +547,22 @@
             "TabContent",
             "ListItem",
             "ImageData",
-            "PeerNode"
+            "PeerNode",
+            "Gesture",
+            "TapGesture",
+            "LongPressGesture",
+            "PanGesture",
+            "PinchGesture",
+            "RotationGesture",
+            "SwipeGesture",
+            "GestureGroup",
+            "GestureHandler",
+            "LongPressGestureHandler",
+            "PanGestureHandler",
+            "PinchGestureHandler",
+            "TapGestureHandler",
+            "RotationGestureHandler",
+            "SwipeGestureHandler"
         ],
         "ignoreEntry": [
             "Optional",
@@ -630,6 +661,10 @@
             "customProperty": {
                 "hookName": "hookCustomPropertyImpl",
                 "replaceImplementation": true
+            },
+            "drawModifier": {
+                "hookName": "hookDrawModifier",
+                "replaceImplementation": true
             }
         },
         "CheckboxAttribute": {
@@ -648,6 +683,12 @@
             "contentModifier": {
                 "hookName": "hookGaugeContentModifier",
                 "replaceImplementation": true
+            }
+        },
+        "ImageAttribute": {
+            "setImageOptions": {
+                "hookName": "hookImageSetImageOptions",
+                "replaceImplementation": false
             }
         },
         "LoadingProgressAttribute": {
@@ -762,14 +803,16 @@
                 "replaceImplementation": false
             }
         },
-        "CanvasRenderingContext2D": {
-            "on": {
-                "hookName": "hookOn",
+        "XComponentAttribute": {
+            "setXComponentOptions": {
+                "hookName": "hookSetXComponentOptions",
                 "replaceImplementation": false
-            },
-            "off": {
-                "hookName": "hookOff",
-                "replaceImplementation": false
+            }
+        },
+        "WithThemeAttribute": {
+            "setWithThemeOptions": {
+                "hookName": "hookWithThemeOptions",
+                "replaceImplementation": true
             }
         }
     },

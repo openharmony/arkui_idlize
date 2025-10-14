@@ -51,7 +51,7 @@ function listIdl(listPath: string | string[], what: string, excluding?: Set<stri
             return new Set([path.normalize(listPath)].filter((n) => !excluding || !excluding.has(n)))
         }
         if (stat.isDirectory()) {
-            let files = fs.readdirSync(listPath, { recursive: true, withFileTypes: true }).map((n) => path.join(n.parentPath, n.name)).filter((n) => n.endsWith(".idl")).map(path.normalize).filter((n) => !excluding || !excluding.has(n))
+            let files = fs.readdirSync(listPath, { recursive: true, withFileTypes: true }).map((n) => path.join(n.parentPath ?? n.path, n.name)).filter((n) => n.endsWith(".idl")).map(path.normalize).filter((n) => !excluding || !excluding.has(n))
             return new Set(files)
         }
     } catch (e) {
