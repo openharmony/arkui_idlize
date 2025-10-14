@@ -38,7 +38,7 @@ import {
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
 import { isComponentDeclaration } from '../ComponentsCollector'
-import { DependenciesCollector } from '../idl/IdlDependenciesCollector'
+import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { ImportsCollector, ImportFeature } from '../ImportsCollector'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
 import { collectAllProperties } from './StructPrinter'
@@ -1196,6 +1196,8 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             registerEntry(entry)
         }, (union) => { registerUnion(union) })
         for (const file of this.peerLibrary.files) {
+            if (!isInCurrentModule(file))
+                continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
                 if (idl.isImport(entry) ||
                     idl.isNamespace(entry) ||
@@ -1229,23 +1231,30 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                 })
             }
         }
+        // Kotlin collector which collects imports for union elements
+        // Default Kotlin collector treats unions as synthetic class
+        // and do not traverse union types
+        const collector = new KotlinDependenciesCollector(this.peerLibrary, false)
         for (const entries of moduleToTypes.values()) {
             const nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.KOTLIN)
             const seenNames = new Set<string>()
             for (const entry of entries) {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
-                collectDeclDependencies(this.peerLibrary, entry, imports)
+                collectDeclDependencies(this.peerLibrary, entry, imports, {}, collector)
                 // TBD: add primitives like Buffer to the with the dependecy collector
                 imports.addFeature({ feature: "NativeBuffer", module: "koalaui.interop" })
 
                 const printVisitor = new KotlinDeclarationConvertor(writer, seenNames, this.peerLibrary)
                 printVisitor.makeUnion(writer, entry)
 
+                const unionTypedef = idl.createTypedef(nameConvertor.convert(entry), entry)
+                unionTypedef.parent = entry.parent
+
                 result.push({
                     generate: () => { return { content: writer, imports } },
                     over: {
-                        node: idl.createTypedef(nameConvertor.convert(entry), entry),
+                        node: unionTypedef,
                         role: LayoutNodeRole.INTERFACE
                     }
                 })

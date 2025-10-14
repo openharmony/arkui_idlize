@@ -20,14 +20,9 @@
 
 #include "interop-logging.h"
 
-OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
+OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView* bufferOrDataView, const Opt_String* encoding) {
     return {};
 }
-
-// TBD: generate from sdk and properly parse std DataView type
-// OH_OHOS_XML_xml_XmlSerializerHandle xml_XmlSerializer_constructImpl(const OH_OHOS_XML_Union_Buffer_CustomObject* buffer, const Opt_String* encoding) {
-//     return {};
-// }
 void xml_XmlSerializer_destructImpl(OH_OHOS_XML_xml_XmlSerializerHandle thiz) {
 }
 void xml_XmlSerializer_setAttributesImpl(OH_OHOS_XML_VMContext vmContext, OH_NativePointer thisPtr, const OH_String* name, const OH_String* value) {
@@ -114,18 +109,11 @@ OH_Number xml_ParseInfo_getAttributeCountImpl(OH_NativePointer thisPtr) {
     return {};
 }
 
-OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_Buffer* buffer, const Opt_String* encoding) {
-    const ExpatParser* parser = new ExpatParser(*buffer);
+OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_OHOS_XML_Union_Buffer_DataView* bufferOrDataView, const Opt_String* encoding) {
+    OH_Buffer buffer = bufferOrDataView->value0;
+    const ExpatParser* parser = new ExpatParser(buffer);
     return (OH_OHOS_XML_xml_XmlPullParserHandle)parser;
 }
-
-// TBD: generate from sdk and properly parse std DataView type
-// OH_OHOS_XML_xml_XmlPullParserHandle xml_XmlPullParser_constructImpl(const OH_OHOS_XML_Union_Buffer_CustomObject* bufferOrView, const Opt_String* encoding) {
-//     OH_Buffer buffer = bufferOrView->value0;
-//     const ExpatParser* parser = new ExpatParser(buffer);
-//     return (OH_OHOS_XML_xml_XmlPullParserHandle)parser;
-// }
-
 
 void xml_XmlPullParser_destructImpl(OH_OHOS_XML_xml_XmlPullParserHandle thiz) {
     const ExpatParser* parser = (ExpatParser*) thiz;

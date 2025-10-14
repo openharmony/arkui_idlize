@@ -5,15 +5,13 @@ import ohos.xml.xml_MapTest
 import ohos.xml.xml_ParseInfo
 import ohos.xml.xml_ParseOptions
 import ohos.xml.xml_XmlPullParser
-// import synthetic_types.Union_Buffer_DataView
+import synthetic_types.Union_Buffer_Langlib_DataView
 
 public fun run() {
     val sampleXml = "<foo valOfFoo=\"xx\">Hello<bar>124</bar>World</foo>"
     println("PARSING ${sampleXml}")
     val buffer = encodeText(sampleXml)
-    val parser = xml_XmlPullParser(buffer, "utf8")
-    // TBD: generate from sdk and properly parse std DataView type
-    // val parser = xml_XmlPullParser(Union_Buffer_DataView(buffer), "utf8")
+    val parser = xml_XmlPullParser(Union_Buffer_Langlib_DataView(buffer), "utf8")
     parser.parseXml(
         object: xml_ParseOptions {
             override var supportDoctype: Boolean? = true;

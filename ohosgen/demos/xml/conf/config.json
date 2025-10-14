@@ -3,6 +3,10 @@
     "GenerateUnused": true,
     "moduleName": "ohos.xml",
     "modules": {
+        "langlib": {
+            "name": "langlib",
+            "packages": ["langlib"]
+        },
         "ohos.xml": {
             "name": "ohos.xml",
             "packages": ["ohos.xml", "ohos.base", "synthetic_types"]

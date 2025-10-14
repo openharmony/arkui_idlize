@@ -30,6 +30,11 @@ export function HandwrittenModule(language: Language): string {
     }
 }
 
+function getLibraryName(node: idl.IDLEntry, lang: Language, prefix: string = "@") {
+    const conf = peerGeneratorConfiguration()
+    return mapLibraryName(node, lang, conf?.libraryNameMapping, prefix)
+}
+
 export class OhosTsLayout implements LayoutManagerStrategy {
     constructor(
         protected library: PeerLibrary
@@ -46,7 +51,7 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {
-        if (isInIdlize(node)) {
+        if (idl.isInIdlize(node)) {
             if (this.interopObjects.includes(node.name)) {
                 return selectInteropPath()
             }
@@ -67,8 +72,7 @@ export class OhosTsLayout implements LayoutManagerStrategy {
                 : "@" + idl.getPackageName(node)
         }
 
-        const conf = peerGeneratorConfiguration()
-        return mapLibraryName(node, this.library.language, conf?.libraryNameMapping)
+        return getLibraryName(node, this.library.language)
     }
 
     protected selectPeer(node:idl.IDLEntry): string {
@@ -130,6 +134,9 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
         if (idl.isHandwritten(node)) {
             return HandwrittenModule(this.library.language)
         }
+        if (this.isSyntheticType(node)) {
+            return getSyntheticTypesFileName()
+        }
         if (isInCurrentModule(node)) {
             if (canCropCurrentModulePrefix()) {
                 const cropped = cropCurrentModulePrefix(idl.getPackageName(node))
@@ -142,12 +149,9 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
                 : idl.getPackageName(node)
         }
 
-        if (this.isSyntheticType(node)) {
-            return getSyntheticTypesFileName()
-        }
 
         const conf = peerGeneratorConfiguration()
-        return mapLibraryName(node, this.library.language, conf?.libraryNameMapping)
+        return mapLibraryName(node, this.library.language, conf?.libraryNameMapping, "")
     }
 
     protected selectPeer(node:idl.IDLEntry): string {

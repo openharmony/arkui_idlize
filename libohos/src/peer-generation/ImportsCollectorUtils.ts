@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted, getInitializerFeature, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
-import { createDependenciesCollector } from "./idl/IdlDependenciesCollector"
+import { createDependenciesCollector, DependenciesCollector } from "./idl/IdlDependenciesCollector"
 import { getInternalClassName, isMaterialized, PeerLibrary, maybeTransformManagedCallback } from "@idlizer/core"
 
 export function convertDeclToFeature(library: PeerLibrary, node: idl.IDLEntry | idl.IDLReferenceType): ImportFeature {
@@ -134,8 +134,9 @@ export function collectDeclDependencies(
         includeMaterializedInternals?: boolean,
         includeTransformedCallbacks?: boolean,
     },
+    collector?: DependenciesCollector,
 ): void {
-    const collector = createDependenciesCollector(library)
+    collector = collector ?? createDependenciesCollector(library)
     const deps = collector.convert(node)
     if (options?.expandTypedefs) {
         for (let i = 0; i < deps.length; i++) {

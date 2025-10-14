@@ -167,9 +167,12 @@ export class IdlPeerProcessor {
                         fileName: first.fileName
                     }
                 )
+                constructor.parent = decl
                 constructors = [constructor]
             } else {
-                constructors = [idl.createConstructor([], idl.IDLVoidType)]
+                const constructor = idl.createConstructor([], idl.IDLVoidType)
+                constructor.parent = decl
+                constructors = [constructor]
             }
         }
         const mConstructors = isStaticMaterialized ? [] : constructors.map(c => this.makeMaterializedMethod(decl, c, fullCName, implemenationParentName))

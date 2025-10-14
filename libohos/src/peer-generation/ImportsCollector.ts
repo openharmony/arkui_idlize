@@ -101,9 +101,9 @@ export class ImportsCollector {
                         return
                     module = `./${path.relative(currentModuleDir, module)}`
                 }
-                if (module.startsWith(`^`)) {
-                    module = module.substring(1)
-                }
+            }
+            if (module.startsWith(`^`)) {
+                module = module.substring(1)
             }
             if (printer.language === Language.KOTLIN) {
                 if (currentModule === module) {

@@ -6,6 +6,7 @@
         "paths": {
             "#compat": ["./src/panda/compat"],
             "#components": ["./generated/arkts"],
+            "@langlib": ["./src/panda/handwritten/langlib"],
             "@ohos.xml": ["./generated/arkts/@ohos.xml"],
             "@ohos.base": ["./generated/arkts/@ohos.base"],
             "@koalaui/interop": ["../../../external/interop/src/arkts"],

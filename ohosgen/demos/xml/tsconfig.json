@@ -8,6 +8,7 @@
         "baseUrl": ".",
         "paths": {
             "#compat": ["./src/node/compat.ts"],
+            "@langlib": ["./src/node/handwritten/langlib"],
             "@ohos.xml": ["./generated/ts/@ohos.xml"],
             "@ohos.base": ["./generated/ts/@ohos.base"],
         }
