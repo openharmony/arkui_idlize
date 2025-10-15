@@ -10,6 +10,12 @@ callback Callback_CreateItem = pointer (i32 index);
 callback Callback_OnMoveFromTo = void (i32 from, i32 to);
 
 [Entity=Class]
+interface ForEachOps {
+    static void SyncOnMoveOps(pointer node, sequence<pointer> additionalChild,
+        (OnMoveHandler or undefined) onMoveOps, (ItemDragEventHandler or undefined) onMoveDragEventOps);
+};
+
+[Entity=Class]
 interface LazyForEachOps {
     // provide necessary info and callbacks to the ScrollView in the backend
     static void NotifyChange(pointer node, i32 startIndex, i32 endIndex, i32 count);
