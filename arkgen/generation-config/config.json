@@ -681,6 +681,16 @@
         ]
     },
     "hooks": {
+        "DragEventInternal":{
+            "startDataLoading": {
+                "hookName": "hookDragEventStartDataLoading",
+                "replaceImplementation": true
+            },
+            "getSummary": {
+                "hookName": "hookDragEventGetSummary",
+                "replaceImplementation": true
+            }
+        },
         "ButtonAttribute": {
             "contentModifier": {
                 "hookName": "hookButtonContentModifier",
@@ -718,6 +728,14 @@
             },
             "drawModifier": {
                 "hookName": "hookDrawModifier",
+                "replaceImplementation": true
+            },
+            "allowDrop": {
+                "hookName": "hookAllowDrop",
+                "replaceImplementation": true
+            },
+            "dragPreviewOptions": {
+                "hookName": "hookDragPreviewOptions",
                 "replaceImplementation": true
             }
         },
