@@ -327,6 +327,9 @@ export class OverloadsPrinter {
             if (this.isComponent) {
                 this.printer.popIndent()
                 this.printer.print(`}`)
+                if (collapsedMethod.name.startsWith('set') && collapsedMethod.name.endsWith('Options')) {
+                    this.printer.print('this.applyOptionsFinish();')
+                }
                 this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
