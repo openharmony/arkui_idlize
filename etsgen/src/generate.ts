@@ -1223,7 +1223,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             extendedAttributes.push(...typeParametersAttrs)
             return this.contextual.extend(methodName, () => {
                 const key = parentName + '.' + methodName
-                if (this.config.Throws.includes(key)) {
+                if (this.config.Throws.includes(key) || arkts.getJsDoc(method)?.includes("@throws")) {
                     extendedAttributes.push({
                         name: idl.IDLExtendedAttributes.Throws
                     })
