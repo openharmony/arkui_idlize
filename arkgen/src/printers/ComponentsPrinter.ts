@@ -226,6 +226,10 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
             })
+            const applyOptionsFinish = 'applyOptionsFinish'
+            writer.writeMethodImplementation(new Method(applyOptionsFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                writer.writeMethodCall('super', applyOptionsFinish, [])
+            })
         }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
 
 
