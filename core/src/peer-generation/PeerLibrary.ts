@@ -449,6 +449,9 @@ export class PeerLibrary implements LibraryInterface {
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
+            if (generatorConfiguration().forceResource.includes(declaration.name)) {
+                return new ObjectConvertor(param, type)
+            }
             if (isMaterialized(declaration, this)) {
                 return new MaterializedClassConvertor(this, param, declaration)
             }
