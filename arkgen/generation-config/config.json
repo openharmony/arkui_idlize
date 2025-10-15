@@ -608,7 +608,9 @@
             "TapGestureHandler",
             "RotationGestureHandler",
             "SwipeGestureHandler",
-            "GestureType"
+            "GestureType",
+            "TouchTestInfo",
+            "TouchResult"
         ],
         "ignoreEntry": [
             "Optional",
