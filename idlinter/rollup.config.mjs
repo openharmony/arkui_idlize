@@ -51,7 +51,11 @@ export default {
           console.error(message)
         }
     },
-    external: ["commander", "typescript"],
+    external: [
+        "commander",
+        "typescript",
+        "@koalaui/libarkts"
+    ],
     plugins: [
         typescript({
             outputToFilesystem: false,

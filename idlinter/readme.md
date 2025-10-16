@@ -23,13 +23,17 @@ Usage: idlinter [options]
 
 Options:
   -V, --version             output the version number
-  --check <paths...>        Paths to individual .idl files (or directories recursively containing them) for validation
+  -h, --help                display help for command
+
+  check <paths...>          Paths to individual .idl files (or directories recursively containing them) for validation
   --load <paths...>         Paths to individual .idl files (or directories recursively containing them) for loading and symbol search
-                            (only those also mentioned in --check will be checked)
+                            (these files will not be checked)
   --features <features...>  Enable additional validation features,
                             including:
                             ohos  OHOS-specific checks
-  -h, --help                display help for command
+
+  compat-idl <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
+  compat-dts <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
 
 Exit codes are (1) for invalid arguments and (2) in case of errors/fatals found in .idl files.
 ```

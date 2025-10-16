@@ -13,12 +13,15 @@
  * limitations under the License.
  */
 
-import { program } from "commander"
 import * as fs from "fs"
+import * as os from "os"
 import * as path from "path"
+import { Command } from "commander"
 import { DiagnosticMessageGroup, outputDiagnosticResultsFormatted } from "@idlizer/core"
+import { etsgen } from "@idlizer/etsgen"
 import { idlManager } from "./idlprocessing"
 import "./validator"
+import { checkCompat } from "./compat"
 
 function processIdl(checkFiles: Set<string>, loadFiles: Set<string>) {
 
@@ -60,16 +63,7 @@ function listIdl(listPath: string | string[], what: string, excluding?: Set<stri
     process.exit(1)
 }
 
-export function idlinterMain() {
-    const cmd = program
-        .version("0.0.7")
-        .option("--check <paths...>", "Paths to individual .idl files (or directories recursively containing them) for validation")
-        .option("--load <paths...>", "Paths to individual .idl files (or directories recursively containing them) for loading and symbol search\n(only those also mentioned in --check will be checked)")
-        .option("--features <features...>", "Enable additional validation features,\nincluding:\n" + idlManager.featuresHelp)
-        .addHelpText("after", "\nExit codes are (1) for invalid arguments and (2) in case of errors/fatals found in .idl files.")
-
-    const options = cmd.parse().opts()
-
+function validateIdl(paths: string[], options: { load: string[], features: string[] }) {
     try {
         idlManager.loadFeatures(options.features)
     } catch (e: any) {
@@ -77,23 +71,59 @@ export function idlinterMain() {
         process.exit(1)
     }
 
-    let checkFiles = new Set<string>()
-    let loadFiles = new Set<string>()
-    if (options.check == null && options.load == null) {
-        program.help()
-    }
-    if (options.check != null) {
-        checkFiles = listIdl(options.check, "--check")
-    }
-    if (options.load != null) {
-        loadFiles = listIdl(options.load, "--load", checkFiles)
-    }
-
+    let checkFiles = listIdl(paths, "check")
+    let loadFiles = options.load == null
+        ? new Set<string>()
+        : listIdl(options.load, "--load", checkFiles)
     processIdl(checkFiles, loadFiles)
-
     if (DiagnosticMessageGroup.collectedResults.hasErrors) {
         process.exit(2)
     }
+}
+
+function checkCompatDts(baseDir: string, targetDir: string) {
+    function ets2idl(inputDir: string, suffix: number): string {
+        const outputDir = path.join(os.tmpdir(), 'idlinter.' + process.pid.toString(), suffix.toString())
+        etsgen([
+            '--ets2idl',
+            '--base-dir', inputDir,
+            '--input-dir', inputDir,
+            '--output-dir', outputDir,
+            '--docs', 'none'])
+        return outputDir
+    }
+    checkCompatIdl(ets2idl(baseDir, 0), ets2idl(targetDir, 1))
+}
+
+function checkCompatIdl(baseDir: string, targetDir: string) {
+    checkCompat(listIdl(baseDir, "base"), listIdl(targetDir, "target"))
+    outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
+    if (DiagnosticMessageGroup.collectedResults.hasErrors) {
+        process.exit(2)
+    }
+}
+
+export function idlinterMain() {
+    const program = new Command()
+        .name("@idlizer/idlinter")
+        .version("0.0.8")
+        .addHelpText("after", "\nExit codes are (1) for invalid arguments and (2) in case of errors/fatals found in .idl files.")
+
+    program.command('compat-idl <dir0> <dir1>')
+        .description('check if dir1 is API-wise compatible with dir0')
+        .action(checkCompatIdl)
+
+    program.command('compat-dts <dir0> <dir1>')
+        .description('check if dir1 is API-wise compatible with dir0')
+        .action(checkCompatDts)
+
+    program.command('check <paths...>')
+        .description("Validate individual .idl files (or directories recursively containing them)")
+        .option("--load <paths...>", "Paths to individual .idl files (or directories recursively containing them) for loading and symbol search\n(these files will not be checked)")
+        .option("--features <features...>", "Enable additional validation features,\nincluding:\n" + idlManager.featuresHelp)
+        .action(validateIdl)
+
+    program.parse(process.argv.slice(2), { from: 'user' })
 }
 
 if (require.main === module) {

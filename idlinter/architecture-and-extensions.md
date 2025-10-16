@@ -2,9 +2,9 @@
 
 ## CLI for users
 
-At first, user runs `idlinter` with values for `--check <paths...>`, `--load <paths...>` and `--features <features...>`. The reason to separate `--load` from `--check` is to avoid unnecessary diagnostics for files that supposed to be only loaded as dependencies. While diagnostics themselves are usually quick, reports can be quite long, and using only subset in `--check` provides better UX for checking and demonstration. And some name-related or type-related checks are only necessary for specific IDL processing pipelines, `--features` allows to enable them.
+At first, user runs `idlinter` with values for `check <paths...>`, `--load <paths...>` and `--features <features...>`. The reason to separate `--load` from `check` is to avoid unnecessary diagnostics for files that supposed to be only loaded as dependencies. While diagnostics themselves are usually quick, reports can be quite long, and using only subset in `check` provides better UX for checking and demonstration. And some name-related or type-related checks are only necessary for specific IDL processing pipelines, `--features` allows to enable them.
 
-`idlinter` sets up requested features and starts loading files from `--check` and `--load` one by one. Any parsing error becomes `fatal` for specific file, but the rest will parsed and processed.
+`idlinter` sets up requested features and starts loading files from `check` and `--load` one by one. Any parsing error becomes `fatal` for specific file, but the rest will parsed and processed.
 
 When all files are loaded - validation starts. Only global passes (registered without features) or passes under enabled features are activated, along with their dependencies.
 
@@ -41,7 +41,7 @@ fatal: 0, error: 43, warning: 0, information: 0, hint: 0
 
 `idlinterMain()` in `src/cli.ts` translates user's CLI request into series of API calls and uses `idlManager` (global instance of `IdlProcessingManager`) for validation.
 
-It activates features mentioned in `--features` option, scans files/directories in `--check` and `--load` and adds files to `idlManager`, where they are parsed and transformed to a tree of `IDLNode` instances. If something wrong on options level - exit code (1) is returned.
+It activates features mentioned in `--features` option, scans files/directories in `check` and `--load` and adds files to `idlManager`, where they are parsed and transformed to a tree of `IDLNode` instances. If something wrong on options level - exit code (1) is returned.
 
 Then validation processing happens (`idlManager.runPasses()`), collected diagnostics are formatted and printed along with totals (`outputReadableResult()` from `src/formatter.ts`), and appropriate exit code (0 or 2) is generated.
 

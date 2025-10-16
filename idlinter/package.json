@@ -15,6 +15,7 @@
   "keywords": [],
   "dependencies": {
     "@idlizer/core": "2.1.10+devel",
+    "@idlizer/etsgen": "2.1.10+devel",
     "commander": "^10.0.0"
   },
   "devDependencies": {
@@ -31,6 +32,6 @@
   "scripts": {
     "clean": "rimraf dist build",
     "compile:self": "tsc --build --force && rollup -c",
-    "compile": "npm run compile -C ../core && npm run compile:self"
+    "compile": "npm run compile -C ../etsgen && npm run compile:self"
   }
 }
