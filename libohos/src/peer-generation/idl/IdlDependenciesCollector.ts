@@ -19,6 +19,7 @@ import { LibraryInterface, PeerLibrary } from '@idlizer/core'
 import { Language } from '@idlizer/core'
 
 export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
+    private nodeStack: string[] = []
     constructor(protected readonly library: LibraryInterface) {}
 
     convertOptional(type: idl.IDLOptionalType): idl.IDLEntry[] {
@@ -94,7 +95,11 @@ export class DependenciesCollector implements NodeConvertor<idl.IDLEntry[]> {
         return []
     }
     convertTypedef(decl: idl.IDLTypedef): idl.IDLEntry[] {
+        if (this.nodeStack.includes(decl.name))
+            return []  // break typedef cycles that cause overflows
+        this.nodeStack.push(decl.name)
         const entries = this.convert(decl.type)
+        this.nodeStack.pop()
         return entries
     }
     convertCallback(decl: idl.IDLCallback): idl.IDLEntry[] {

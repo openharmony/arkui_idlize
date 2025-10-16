@@ -15,6 +15,7 @@
   "dependencies": {
     "@idlizer/arkgen": "2.1.10+devel",
     "@idlizer/etsgen": "2.1.10+devel",
+    "@idlizer/ohosgen": "2.1.10+devel",
     "@idlizer/core": "2.1.10+devel",
     "@idlizer/libohos": "2.1.10+devel",
     "@idlizer/interfaces": "2.1.10+devel",
@@ -34,7 +35,7 @@
   "scripts": {
     "clean": "rimraf .rollup.cache lib out",
     "compile:self": "rollup -c",
-    "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && npm run compile:self",
+    "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && npm run compile -C ../ohosgen && npm run compile:self",
     "prepare:sdk": "rimraf ../sdk-patched-arkts ../sdk-patched ../absolute-sdk-patched-arkts && npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched",
     "absolute:sdk": "rimraf ../absolute-sdk-patched-arkts && npm run compile && node . m3-sdk ../sdk-patched-arkts ../absolute-sdk-patched-arkts",
     "tracker": "node . tracker ../sdk-patched-arkts /dev/null /dev/null ../doc",

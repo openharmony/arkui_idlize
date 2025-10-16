@@ -16,8 +16,9 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
 import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CONFIG, SCRAPER_CWD, WORKING_DIR } from "./shared"
+import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen"
 import { commands } from "./commands"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
 import { formatArkts } from "./tools/formatArkts"
 
@@ -42,18 +43,19 @@ interface M3Options {
     scraperConfig?: string
 }
 
-function m3(sdkPathInput: string, installPath: string, options: M3Options) {
-    setup()
-
-    let sdkPath = sdkPathInput
+function sdk2idl(sdkPath: string, options: M3Options) {
     let configPath: string | undefined = undefined
     if (options.originalSdk) {
         const prepareResult = commands.prepareSdk({ sdkPath, installArktsConfig: true })
         sdkPath = prepareResult.sdkPath12
         configPath = prepareResult.configPath
     }
+    return commands.ets2idl({ sdkPath, configPath })
+}
 
-    const { idlPaths } = commands.ets2idl({ sdkPath, configPath })
+function m3(sdkPath: string, installPath: string, options: M3Options) {
+    setup()
+    const { idlPaths } = sdk2idl(sdkPath, options)
     const { scrapedIDLs, arkuiConfig } = commands.scrape({
         idlDirectory: idlPaths,
         configPath: options.scraperConfig ?? SCRAPER_CONFIG,
@@ -80,6 +82,18 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
         case 'all': { break }
     }
     commands.install({ sourceDir: installSourceDir, installPath })
+}
+
+function complete(sdkPath: string, installPath: string, options: M3Options) {
+    setup()
+    const { idlPaths } = sdk2idl(sdkPath, options)
+    const { peersPath } = commands.idl2ohos({
+        target: options.target,
+        language: options.language,
+        optionsFile: resolve(arkgenConfigPath(), 'config.json'),
+        idlPath: idlPaths
+    })
+    commands.install({ sourceDir: peersPath, installPath })
 }
 
 function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string, installPath: string) {
@@ -150,6 +164,12 @@ function main(argv: string[]) {
         .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
         .action(m3)
+
+    program.command('complete <sdk-path> <install-path>')
+        .description('generate peers from complete sdk')
+        .option('--language <language>', 'ts | arkts', 'arkts')
+        .option('--original-sdk')
+        .action(complete)
 
     program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
         .description('generate tracker report')

@@ -985,10 +985,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                             extendedAttributes: (serializedMethod.extendedAttributes ?? []).concat({ name: idl.IDLExtendedAttributes.Synthetic })
                         }
                     )
-                    if (!this.seenTypes.has(syntheticCallback.name)) {
-                        this.seenTypes.add(syntheticCallback.name)
-                        this.addSyntheticType(syntheticCallback)
-                    }
+                    this.addSyntheticType(syntheticCallback)
                     let propertyPostfix = ""
                     let extendedAttributes = (serializedMethod.extendedAttributes ?? [])
                     const extraCallback = this.config.ForceCallback.get(key) === idl.IDLExtendedAttributes.ExtraMethod
@@ -1300,7 +1297,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         })
     }
 
-    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]*$/g)
+    private static etsFunctionTypeReferencePattern = new RegExp(/^Function[0-9]*$/)
     private static isFunctionTypeReference(name: string) {
         return IDLVisitor.etsFunctionTypeReferencePattern.test(name)
     }
@@ -1374,10 +1371,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
             const mbEtsCallback = this.maybeSerializeETSFunctionReference(type)
             if (mbEtsCallback) {
                 const [etsCallback, args] = mbEtsCallback
-                if (!this.seenTypes.has(etsCallback.name)) {
-                    this.seenTypes.add(etsCallback.name)
-                    this.addSyntheticType(etsCallback)
-                }
+                this.addSyntheticType(etsCallback)
                 return idl.createReferenceType(
                     etsCallback.name,
                     args.length === 0 ? undefined : args.map(it => {
@@ -1428,10 +1422,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                     })
                     const typeParametersOrdered = typeParameters.size === 0 ? undefined : Array.from(typeParameters)
                     const tuple = this.createTuple(typeArgs!, typeParametersOrdered)
-                    if (!this.seenTypes.has(tuple.name)) {
-                        this.seenTypes.add(tuple.name)
-                        this.addSyntheticType(tuple)
-                    }
+                    this.addSyntheticType(tuple)
                     return idl.createReferenceType(tuple.name, typeParametersOrdered?.map(it => idl.createTypeParameterReference(it)))
                 }
             }
@@ -1439,10 +1430,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         if (arkts.isETSFunctionType(type)) {
             const [funcType, typeArguments] = this.serializeFunctionType(type as arkts.ETSFunctionType)
-            if (!this.seenTypes.has(funcType.name)) {
-                this.seenTypes.add(funcType.name)
-                this.addSyntheticType(funcType)
-            }
+            this.addSyntheticType(funcType)
             return idl.createReferenceType(
                 funcType.name,
                 typeArguments.length === 0 ? undefined : typeArguments.map(arg => {
@@ -1453,10 +1441,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         if (arkts.isETSTuple(type)) {
             const [tupleType, typeArguments] = this.serializeTupleType(type)
-            if (!this.seenTypes.has(tupleType.name)) {
-                this.seenTypes.add(tupleType.name)
-                this.addSyntheticType(tupleType)
-            }
+            this.addSyntheticType(tupleType)
             return idl.createReferenceType(
                 tupleType.name,
                 typeArguments.length === 0 ? undefined : typeArguments.map(arg => {
@@ -1470,9 +1455,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
         }
         throw new Error(`Failed type conversion for ${type ? this.printNode(type) : "undefined"}`)
     }
-
-    // possible bug: entires collected here using .name, not FQName
-    private seenTypes = new Set<string>()
 
     serializePrimitive(type: arkts.Es2pandaPrimitiveType): idl.IDLType {
         switch (type) {

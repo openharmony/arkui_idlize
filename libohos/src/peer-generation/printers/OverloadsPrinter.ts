@@ -397,7 +397,7 @@ export class OverloadsPrinter {
     }
 
     public printPeerCallAndReturn(peer: string, collapsedMethod: Method, peerMethod: PeerMethod) {
-        const argsNames = peerMethod.argConvertors(this.library).map((conv, index) => {
+        const argsNames = peerMethod.sig.args.map((_, index) => {
             const argName = collapsedMethod.signature.argName(index)
             const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))

@@ -14,6 +14,8 @@
  */
 
 import { arkgen } from "@idlizer/arkgen"
+import { ohosgen } from "@idlizer/ohosgen"
+import { libraries as predefs } from "@idlizer/interfaces"
 import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
 import { flat, scan, over } from "../utils"
 
@@ -62,6 +64,31 @@ export function idl2peer({
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],
             over(trackerStatus, st => ['--tracker-status', st]),
+        ])
+    )
+    return {
+        peersPath: GENERATED_PEER_DIR
+    }
+}
+
+export function idl2ohos({
+    target,
+    language,
+    idlPath,
+    optionsFile,
+}: Idl2PeerConfig): Idl2PeerResult {
+    const idlFiles = [
+        ...scan(idlPath),
+        ...scan(predefs.arkuiExtra)
+    ]
+    ohosgen(
+        flat([
+            '--idl2peer',
+            ['--input-files', flat(idlFiles).join(",")],
+            ['--output-dir', GENERATED_PEER_DIR],
+            ['--language', language],
+            ['--arkts-extension', '.ets'],
+            optionsFile ? [`--options-file`, optionsFile] : [],
         ])
     )
     return {

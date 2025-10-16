@@ -23,17 +23,17 @@ const ENABLE_SOURCE_MAPS = true;  // Enable for debugging
 export default {
     input: "./src/main.ts",
     output: {
-        file: "./lib/index.js",
+        file: "./lib/cli.js",
         format: "commonjs",
         sourcemap: ENABLE_SOURCE_MAPS,
         sourcemapPathTransform: (relativeSourcePath, sourcemapPath) => {
             const sourcemapDir = path.dirname(sourcemapPath)
             let absolute = path.join(sourcemapDir, relativeSourcePath);
-            if(fs.existsSync(absolute))
+            if (fs.existsSync(absolute))
                 return path.relative(sourcemapDir, absolute)
             // For some reason Rollup adds extra ../ to relativeSourcePath, compensate it
             absolute = path.join(sourcemapDir, "extra", relativeSourcePath);
-            if(fs.existsSync(absolute))
+            if (fs.existsSync(absolute))
                 return path.relative(sourcemapDir, absolute)
             console.warn("unable to map source path:", relativeSourcePath, " -> ", sourcemapPath);
             return relativeSourcePath

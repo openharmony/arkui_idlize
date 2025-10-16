@@ -16,8 +16,6 @@
         "int",
         "wrapBuilder",
         "AnimatableArithmetic",
-        "IMonitorValue",
-        "IMonitor",
         "MethodDecorator",
         "ParticleInterface",
         "ParticleAttribute",
@@ -69,8 +67,6 @@
         "LazyGridLayoutAttribute",
         "LazyVGridLayoutAttribute",
         "LazyVGridLayoutInterface",
-        "ToolBarOption",
-        "ToolBarOptions",
         "DynamicNode"
     ],
     "DeletedMembers": {
@@ -80,7 +76,8 @@
         "ScrollableCommonMethod": [
             "onWillScroll",
             "onDidScroll"
-        ]
+        ],
+        "Readable": [ "read" ]
     },
     "StubbedDeclarations": [],
     "Components": [

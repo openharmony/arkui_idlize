@@ -37,6 +37,7 @@ build idlize:
         - interfaces/dist
         - libohos/build
         - linter/lib
+        - ohosgen/build
         - ohosgen/lib
         - runner/lib
 
