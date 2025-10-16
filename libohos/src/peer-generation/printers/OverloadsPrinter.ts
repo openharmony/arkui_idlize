@@ -399,7 +399,11 @@ export class OverloadsPrinter {
     public printPeerCallAndReturn(peer: string, collapsedMethod: Method, peerMethod: PeerMethod) {
         const argsNames = peerMethod.sig.args.map((_, index) => {
             const argName = collapsedMethod.signature.argName(index)
-            const castedArgName = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}_casted`
+            let argNameTmp = `${(peerMethod.method.signature as NamedMethodSignature).argsNames[index]}`
+            if (argNameTmp.endsWith('_')) {
+                argNameTmp = argName.slice(0, -1)
+            }
+            const castedArgName = `${argNameTmp}Casted`
             const castedType = idl.maybeOptional(peerMethod.method.signature.args[index], peerMethod.method.signature.isArgOptional(index))
             if (this.printer.language == Language.CJ) {
                 if (idl.isOptionalType(collapsedMethod.signature.args[index])) {

@@ -499,7 +499,7 @@ export class TSLanguageWriter extends LanguageWriter {
     }
 
     override escapeKeyword(keyword: string): string {
-        return TSKeywords.has(keyword) ? keyword + "_" : keyword
+        return TSKeywords.has(keyword) ? keyword + "Val" : keyword
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         const runtimeTypeList = runtimeTypes.map(ty => "RuntimeType." + RuntimeType[ty]).join(", ")

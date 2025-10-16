@@ -596,8 +596,8 @@ export class TupleConvertor extends AggregateConvertor {
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const stmts: LanguageStatement[] = this.memberConvertors.flatMap((it, index) => {
             return [
-                printer.makeAssign(`${value}_${index}`, undefined, printer.makeTupleAccess(value, index), true),
-                it.convertorSerialize(param, `${value}_${index}`, printer)
+                printer.makeAssign(`${value}N${index}`, undefined, printer.makeTupleAccess(value, index), true),
+                it.convertorSerialize(param, `${value}N${index}`, printer)
             ]
         })
         return printer.makeBlock(stmts, false)
@@ -978,7 +978,7 @@ export class OptionConvertor extends BaseArgConvertor {
         throw new Error("Must never be used")
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        const runtimeBufferName = `${bufferName}_runtimeType`
+        const runtimeBufferName = `${bufferName}RuntimeType`
         const statements: LanguageStatement[] = []
         statements.push(writer.makeAssign(runtimeBufferName, undefined,
             writer.makeCast(writer.makeString(`${deserializerName}.readInt8()`), writer.getRuntimeType()), true))
