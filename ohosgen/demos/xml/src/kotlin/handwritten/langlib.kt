@@ -9,7 +9,7 @@ public interface DataView {
 private class DataViewImpl : DataView {
 }
 
-public class DataView_serializer {
+public class LanglibDataViewSerializerImpl {
 
     companion object {
 

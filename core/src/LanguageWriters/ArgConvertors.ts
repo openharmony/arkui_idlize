@@ -39,12 +39,9 @@ import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { isInExternalModule } from "../peer-generation/modules";
-import { isTopLevelConflicted } from "../peer-generation/ConflictingDeclarations";
 
-export function getSerializerName(library: LibraryInterface, language: Language, declaration:idl.IDLEntry) {
-    const qualifier = isTopLevelConflicted(library, language, declaration)
-        ? "package.namespace.name" : "namespace.name"
-    return `${idl.getQualifiedName(declaration, qualifier).split('.').join('_')}_serializer`;
+export function getSerializerName(_library: LibraryInterface, _language: Language, declaration:idl.IDLEntry) {
+    return `${idl.getQualifiedName(declaration, "package.namespace.name").split('.').map(capitalize).join('')}SerializerImpl`;
 }
 
 export interface ArgConvertor {
