@@ -32,8 +32,7 @@ Options:
                             including:
                             ohos  OHOS-specific checks
 
-  compat-idl <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
-  compat-dts <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
+  compat <dir0> <dir1>   Check if dir1 is API-wise compatible with dir0
 
 Exit codes are (1) for invalid arguments and (2) in case of errors/fatals found in .idl files.
 ```
