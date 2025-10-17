@@ -284,7 +284,7 @@ class ModifiersFileVisitor {
                 const functionName = method.method.name
                 let v = 0
                 if (overloadCounter.has(functionName) && collectDepth > 1) return;
-                if (overloadCounter.has(functionName)) v++
+                if (overloadCounter.has(functionName)) v = overloadCounter.get(functionName)! + 1;
                 overloadCounter.set(functionName, v)
                 attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
             })
