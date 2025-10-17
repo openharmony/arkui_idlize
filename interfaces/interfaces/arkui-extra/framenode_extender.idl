@@ -58,6 +58,9 @@ interface FrameNodeExtender {
   static pointer getFrameNodeByUniqueId(number id);
   static void reuse(FrameNode peer);
   static void recycle(FrameNode peer);
+  static boolean createAnimation(FrameNode peer, AnimationPropertyType property, (sequence<f64> or undefined) startValue, sequence<f64> endValue, AnimateParam param);
+  static boolean cancelAnimations(FrameNode peer, sequence<AnimationPropertyType> properties);
+  static sequence<f64> getNodePropertyValue(FrameNode peer, AnimationPropertyType property);
   static pointer getFrameNodePtr(FrameNode node);
   static pointer createTypedFrameNode(String type);
   static pointer createByRawPtr(FrameNode peer, FrameNode pointer);
