@@ -46,6 +46,7 @@ import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
 import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
 import { toDeclaration } from './toDeclaration'
+import { ArrayTypeChecker } from './ArrayTypeChecker'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -87,6 +88,7 @@ export const lenses = {
 }
 
 export class PeerLibrary implements LibraryInterface {
+    public arrayTypeChecker = new ArrayTypeChecker()
     private _cachedIdlLibrary?: IDLLibrary
     asIDLLibrary(): IDLLibrary {
         if (this._cachedIdlLibrary) {

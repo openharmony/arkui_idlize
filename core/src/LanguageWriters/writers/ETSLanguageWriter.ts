@@ -299,6 +299,9 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeNaryOp('==', args)
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
+        if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)) {
+            return `${value} instanceof Array && ${this.getTypeCheckName(type)}(${value})`
+        }
         return `${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {

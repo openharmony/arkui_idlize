@@ -291,7 +291,7 @@ class SerializerPrinter {
         return printer
     }
 
-    private generateSerializerClass(target: idl.IDLEntry): PrinterResult[] {
+    private generateSerializerClass(target: idl.IDLInterface): PrinterResult[] {
         const generate = () => {
             const writer = this.library.createLanguageWriter(this.language)
             const imports = new ImportsCollector()
@@ -306,12 +306,11 @@ class SerializerPrinter {
             }
             writer.writeClass(className, writer => {
                 writer.makeStaticBlock(() => {
-                    if (idl.isInterface(target)) {
-                        this.generateInterfaceSerializer(writer, imports, target)
-                        this.generateInterfaceDeserializer(writer, imports, target)
-                    }
+                    this.generateInterfaceSerializer(writer, imports, target)
+                    this.generateInterfaceDeserializer(writer, imports, target)
                 })
             })
+            this.library.arrayTypeChecker.writePropertiesArrayTypeCheckers(target, writer);
             return { content: writer, imports}
         }
 
