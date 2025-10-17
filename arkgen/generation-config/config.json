@@ -591,7 +591,25 @@
             "WrappedBuilder",
             "TabContent",
             "ListItem",
-            "ImageData"
+            "ImageData",
+            "Gesture",
+            "TapGesture",
+            "LongPressGesture",
+            "PanGesture",
+            "PinchGesture",
+            "RotationGesture",
+            "SwipeGesture",
+            "GestureGroup",
+            "GestureHandler",
+            "LongPressGestureHandler",
+            "PanGestureHandler",
+            "PinchGestureHandler",
+            "TapGestureHandler",
+            "RotationGestureHandler",
+            "SwipeGestureHandler",
+            "GestureType",
+            "TouchTestInfo",
+            "TouchResult"
         ],
         "ignoreEntry": [
             "Optional",
@@ -660,6 +678,16 @@
         ]
     },
     "hooks": {
+        "DragEventInternal":{
+            "startDataLoading": {
+                "hookName": "hookDragEventStartDataLoading",
+                "replaceImplementation": true
+            },
+            "getSummary": {
+                "hookName": "hookDragEventGetSummary",
+                "replaceImplementation": true
+            }
+        },
         "ButtonAttribute": {
             "contentModifier": {
                 "hookName": "hookButtonContentModifier",
@@ -699,6 +727,14 @@
             },
             "customProperty": {
                 "hookName": "hookCustomPropertyImpl",
+                "replaceImplementation": true
+            },
+            "allowDrop": {
+                "hookName": "hookAllowDrop",
+                "replaceImplementation": true
+            },
+            "dragPreviewOptions": {
+                "hookName": "hookDragPreviewOptions",
                 "replaceImplementation": true
             }
         },
@@ -832,6 +868,10 @@
             "setVideoOptions": {
                 "hookName": "hookSetVideoOptions",
                 "replaceImplementation": false
+            },
+            "analyzerConfig": {
+                "hookName": "hookVideoAnalyzerConfig",
+                "replaceImplementation": true
             }
         },
         "waterFlowAttribute": {
@@ -867,6 +907,16 @@
             },
             "off": {
                 "hookName": "hookOff",
+                "replaceImplementation": false
+            },
+            "startImageAnalyzer": {
+                "hookName": "hookCanvasStartImageAnalyzer",
+                "replaceImplementation": false
+            }
+        },
+        "XComponentController": {
+            "startImageAnalyzer": {
+                "hookName": "hookXComponentStartImageAnalyzer",
                 "replaceImplementation": false
             }
         },
