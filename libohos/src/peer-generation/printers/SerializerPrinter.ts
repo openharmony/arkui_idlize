@@ -23,7 +23,7 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectAllProperties, collectProperties } from '../printers/StructPrinter'
+import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../printers/StructPrinter'
 import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { LayoutNodeRole } from '@idlizer/core'
@@ -206,9 +206,15 @@ class SerializerPrinter {
                 }, writer))
             })
             if (writer.language !== Language.CPP) {
+                let meaninglessProperties: idl.IDLProperty[] = []
+                if (writer.language === Language.ARKTS) {
+                    meaninglessProperties = collectMeaninglessProperties(target, this.library)
+                }
                 const propsAssignees = properties.map(it => {
                     return `${it.name}: ${it.name}TmpResult`
-                })
+                }).concat(meaninglessProperties.map(it => {
+                    return `${it.name}: undefined`
+                }))
                 if (writer.language == Language.CJ) {
                     let parentProperties: idl.IDLProperty[] = []
                     const superNames = target.inheritance
