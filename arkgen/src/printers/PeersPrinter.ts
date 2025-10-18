@@ -198,7 +198,6 @@ class PeerFileVisitor {
             (peer.methods as any[])
                 .forEach(method => this.printPeerMethod(method, writer))
         }, this.generatePeerParentName(peer))
-        this.library.arrayTypeChecker.writeMethodsArrayTypeCheckers(peer.decl, printer)
     }
 
     printFile(): PrinterResult[] {

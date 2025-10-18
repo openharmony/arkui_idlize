@@ -17,7 +17,7 @@ import { Language } from "../Language"
 import { IndentedPrinter } from "../IndentedPrinter"
 
 import * as idl from "../idl"
-import { capitalize, stringOrNone } from "../util";
+import { stringOrNone } from "../util";
 import * as fs from "fs"
 import { NativeModuleType, RuntimeType } from "./common"
 import { ArgConvertor } from "./ArgConvertors";
@@ -820,27 +820,8 @@ export abstract class LanguageWriter {
     typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
         return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
     }
-    getTypeCheckName(type: idl.IDLType): string {
-        return "is" + this.getTypeCheckNames(type).join("")
-    }
-    private getTypeCheckNames(type: idl.IDLType): string[] {
-        if (idl.isUnionType(type)) {
-            return type.types.flatMap(it => this.getTypeCheckNames(it))
-        }
-        if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)) {
-            return ["Array", ... this.getTypeCheckNames(type.elementType[0])]
-        }
-        if (idl.isReferenceType(type)) {
-            const entity = this.resolver.resolveTypeReference(type)!
-            if (idl.isInterface(entity) && entity.subkind == idl.IDLInterfaceSubkind.Tuple) {
-                return ["Tuple"]
-            }
-        }
-        if (idl.isTypeParameterType(type)) {
-            return ["Object"]
-        }
-        return [capitalize(this.getNodeName(type))]
-    }
+
+
     /**
      * Writes `namespace <namespace> {` and adds extra indent
      * @param namespace Namespace to begin
