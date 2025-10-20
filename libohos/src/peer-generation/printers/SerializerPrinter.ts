@@ -251,7 +251,7 @@ class SerializerPrinter {
                 writer.makeMethodCall(`valueDeserializer`, `readPointer`, []), true, false))
         if (writer.language === Language.CPP) {
             writer.writeStatement(
-                writer.makeReturn(writer.makeCast(writer.makeString(`ptr`), target)))
+                writer.makeReturn(writer.makeCast(writer.makeString(`ptr`), idl.createReferenceType(target))))
             return
         }
 
