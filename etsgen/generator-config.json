@@ -33,6 +33,7 @@
         "AccelerationOptions",
         "ParticleOptions",
         "EmitterOptions",
+        "EmitterProperty",
         "ForEachInterface",
         "ForEachAttribute",
         "LazyForEachAttribute",
@@ -86,7 +87,6 @@
     "StubbedDeclarations": [
         "OnWillScrollCallback",
         "LayoutChild",
-        "EmitterProperty",
         "ColumnOptionsV2",
         "RowOptionsV2"
     ],
