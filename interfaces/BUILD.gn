@@ -1,0 +1,63 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("${idlize.imports_prefix}/npm.gni")
+import("${idlize.imports_prefix}/node.gni")
+
+npm_cmd("compile") {
+    deps = [
+        "${idlize.root_path}/core:compile"
+    ]
+    project_path = rebase_path(".")
+    run_tasks = [ "compile:self" ]
+}
+
+node_cmd("etsgen:generate") {
+    script = rebase_path("../etsgen")
+    args = [
+        "--ets2idl",
+        "--output-dir",
+        rebase_path("$root_gen_dir/interfaces/idl"),
+        "--base-dir",
+        rebase_path("../sdk-patched-arkts/api"),
+        "--input-dir",
+        rebase_path("../sdk-patched-arkts/api"),
+    ]
+    deps = [
+        "${idlize.root_path}/etsgen:compile",
+        "${idlize.root_path}/tools:sdk"
+    ]
+}
+
+node_cmd("test") {
+    deps = [
+        ":compile",
+        ":etsgen:generate",
+    ]
+    script = rebase_path("../idlinter")
+    args = [
+        "check",
+        rebase_path("./interfaces"),
+        "--load",
+        rebase_path("$root_gen_dir/interfaces/idl"),
+        rebase_path("../libohos/predefined/stdlib.idl"),
+    ]
+}
+
+group("all") {
+    deps = [
+        ":compile",
+        ":etsgen:generate",
+        ":test",
+    ]
+}

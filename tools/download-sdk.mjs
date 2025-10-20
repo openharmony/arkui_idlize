@@ -24,6 +24,7 @@ const setup = JSON.parse(fs.readFileSync(__setupFile))
 console.log("use setup:", setup)
 const repoUrl = setup.url
 const repoRef = setup.ref
+const idlizeDir = path.join(path.dirname(__thisScript), '..')
 const repoDir = `${path.dirname(__thisScript)}/../interface_sdk-js`
 const gitDir = `${repoDir}/.git`
 
@@ -93,8 +94,8 @@ if (repoRefKind === 'local') {
 // repo ready
 
 // link to project
-let sdk = "./arkgen/sdk"
-let components = "./interface_sdk-js/api/\@internal/component/ets"
+let sdk = `${idlizeDir}/arkgen/sdk`
+let components = `${idlizeDir}/interface_sdk-js/api/\@internal/component/ets`
 if (!fs.existsSync(sdk)) {
     fs.mkdirSync(sdk)
     try {
