@@ -81,14 +81,14 @@ import {
     StructPrinter,
     TargetFile,
     BridgeApi,
-    BridgeCcVisitor,
+    BridgeVisitor,
     BridgeHeaderVisitor,
     createSyntheticGlobalScope,
     isGlobalScope,
     createDeserializeAndCallPrinter,
     readTemplate,
     peerGeneratorConfiguration,
-    libraryCcDeclaration,
+    libraryDeclaration,
     createCSerializerPrinter,
     getDeclarationUniqueName,
     printKotlinCInteropDefFile
@@ -325,7 +325,7 @@ class OHOSNativeVisitor {
     }
 
     private writeApiGetter(writer: CppLanguageWriter): void {
-        writer.writeLines(readTemplate("api_getter.cc")
+        writer.writeLines(readTemplate("api_getter.cpp")
             .replaceAll("%API_KIND%", `OH_${this.libraryName}_APIKind::OH_${this.libraryName}_API_KIND`)
             .replaceAll("%API_NAME%", `${generatorConfiguration().TypePrefix}${this.libraryName}_API`))
     }
@@ -373,13 +373,13 @@ class OHOSNativeVisitor {
         printCallbacksKinds(this.library, callbackKindsPrinter)
 
         this.cppWriter.writeLines(
-            readLangTemplate('api_impl_prologue.cc', Language.CPP)
+            readLangTemplate('api_impl_prologue.cpp', Language.CPP)
                 .replaceAll("%INTEROP_MODULE_NAME%", `${this.libraryName.toUpperCase()}NativeModule`)
                 .replaceAll("%API_HEADER_PATH%", `${this.libraryName.toLowerCase()}.h`)
                 .replaceAll("%CALLBACK_KINDS%", callbackKindsPrinter.getOutput().join("\n"))
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
-        this.cppWriter.writeLines(libraryCcDeclaration({removeCopyright: true}))
+        this.cppWriter.writeLines(libraryDeclaration({removeCopyright: true}))
         const interopRootPath = getInteropRootPath()
         const interopTypesPath = path.resolve(interopRootPath, 'src', 'cpp', 'interop-types.h')
         const interopTypesContent = fs.readFileSync(interopTypesPath, 'utf-8')
@@ -402,14 +402,14 @@ class OHOSNativeVisitor {
         this.writeImpls()
         this.implementationApiFile.content.concat(writer)
         this.writeApiGetter(this.cppWriter)
-        this.cppWriter.concat(printBridgeCc(this.library).generated)
+        this.cppWriter.concat(printBridge(this.library).generated)
         this.cinteropHeader.content.concat(printBridgeHeader(this.library).generated)
         createDeserializeAndCallPrinter(this.library.name, Language.CPP)(this.library).forEach(result => {
             const generated = wrapCurrentFileDescription(result.over, result.generate)
             const content = generated instanceof LanguageWriter ? generated : generated.content
             this.cppWriter.concat(content)
         })
-        // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cc').content)
+        // this.cppWriter.concat(makeDeserializeAndCall(this.library, Language.CPP, 'serializer.cpp').content)
         this.cppWriter.concat(printManagedCaller('', this.library).content)
         this.hWriter.writeLines(readTemplate('any_api.h'))
         this.hWriter.writeLines(readTemplate('generic_service_api.h'))
@@ -419,7 +419,7 @@ class OHOSNativeVisitor {
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
         this.implementationApiFile.content.writeLines(
-            readLangTemplate('api_impl_epilogue.cc', Language.CPP)
+            readLangTemplate('api_impl_epilogue.cpp', Language.CPP)
                 .replaceAll("%LIBRARY_NAME%", this.libraryName.toUpperCase())
         )
     }
@@ -465,7 +465,7 @@ class ReturnTypeConvertor extends CppReturnTypeConvertor {
 }
 
 // TODO commonize this piece of code
-class OhosBridgeCcVisitor extends BridgeCcVisitor {
+class OhosBridgeVisitor extends BridgeVisitor {
     protected generateApiCall(context: idl.IDLInterface): string {
         // TODO: may be need some translation tables?
         let clazz = getDeclarationUniqueName(context)
@@ -515,8 +515,8 @@ class OhosBridgeCcVisitor extends BridgeCcVisitor {
     }
 }
 
-export function printBridgeCc(peerLibrary: PeerLibrary): BridgeApi {
-    const visitor = new OhosBridgeCcVisitor(peerLibrary, false)
+export function printBridge(peerLibrary: PeerLibrary): BridgeApi {
+    const visitor = new OhosBridgeVisitor(peerLibrary, false)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
 }
@@ -536,9 +536,9 @@ export function generateNativeOhos(peerLibrary: PeerLibrary): Map<TargetFile, st
     visitor.printC()
     return new Map([
         [new TargetFile(`${peerLibrary.name.toLowerCase()}.h`), visitor.hWriter.getOutput().join('\n')],
-        [new TargetFile(`${peerLibrary.name.toLowerCase()}.cc`), visitor.cppWriter.getOutput().join('\n')],
-        [new TargetFile(`${peerLibrary.name.toLowerCase()}Impl_temp.cc`), visitor.implementationStubsFile.printToString()],
-        [new TargetFile(`${peerLibrary.name.toLowerCase()}ApiImpl_temp.cc`), visitor.implementationApiFile.printToString()],
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}.cpp`), visitor.cppWriter.getOutput().join('\n')],
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}Impl_temp.cpp`), visitor.implementationStubsFile.printToString()],
+        [new TargetFile(`${peerLibrary.name.toLowerCase()}ApiImpl_temp.cpp`), visitor.implementationApiFile.printToString()],
         [new TargetFile(visitor.cinteropHeader.name), visitor.cinteropHeader.printToString()],
         [new TargetFile(`cinterop.def`), printKotlinCInteropDefFile([visitor.cinteropHeader.name])],
     ])

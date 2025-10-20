@@ -21,9 +21,9 @@ include_dirs = [
 ]
 
 sources = [
-    'application/generated/native/application.cc',
-    'application/generated/native/applicationApiImpl_temp.cc',
-    'launcher/src/cpp/contextImpl.cc',
+    'application/generated/native/application.cpp',
+    'application/generated/native/applicationApiImpl_temp.cpp',
+    'launcher/src/cpp/contextImpl.cpp',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
@@ -76,10 +76,10 @@ if is_node
         external_interop_dir / 'napi'
     ]
     sources += [
-        external_interop_dir / 'napi/convertors-napi.cc'
+        external_interop_dir / 'napi/convertors-napi.cpp'
     ]
     if os == 'windows'
-        sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cc' ]
+        sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cpp' ]
     endif
 elif is_panda
     library_name = 'APPLICATIONNativeModule'
@@ -93,8 +93,8 @@ elif is_panda
         external_interop_dir / 'ani' / 'panda',
     ]
     sources += [
-        external_interop_dir / 'ani/convertors-ani.cc',
-        external_interop_dir / 'types/signatures.cc',
+        external_interop_dir / 'ani/convertors-ani.cpp',
+        external_interop_dir / 'types/signatures.cpp',
     ]
 elif is_cj
     library_name = 'APPLICATIONNativeModule'
@@ -105,8 +105,8 @@ elif is_cj
         external_interop_dir / 'cangjie',
     ]
     sources += [
-        external_interop_dir / 'cangjie/convertors-cj.cc',
-        external_interop_dir / 'types/signatures.cc',
+        external_interop_dir / 'cangjie/convertors-cj.cpp',
+        external_interop_dir / 'types/signatures.cpp',
     ]
 endif
 

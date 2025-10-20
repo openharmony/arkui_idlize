@@ -612,7 +612,7 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
 }
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
-    const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
+    const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // TODO combine with TargetFile
     const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile

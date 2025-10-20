@@ -412,7 +412,7 @@ class SerializerBase {
     // ...
 }
 
-// bridge.cc
+// bridge.cpp
 
 void impl_GlobalScope_foo(KSerializerBuffer thisArray, int32_t thisLength) {
     Deserializer thisDeserializer(thisArray, thisLength);
@@ -502,7 +502,7 @@ export function deserializeAndCallFoo(thisDeserializer: Deserializer): void {
 }
 ```
 
-Where from deserializeAndCallFoo is being called? As you can see, _CallCallback/_CallCallbackSync methos belongs to InteropNativeModule in interop package, where deserializeAndCallFoo placed in generated code inside exact library (for arkoala you can find it in [arkoala-arkts/framework/native/src/generated/callback_deserialize_call.cc](https://gitee.com/rri_opensource/koala_projects/blob/master/arkoala-arkts/framework/native/src/generated/callback_deserialize_call.cc)). After function there is comes KOALA_EXECUTE macros, that executes code on library load and assignes deserializeAndCallCallback as handler for _CallCallback method.
+Where from deserializeAndCallFoo is being called? As you can see, _CallCallback/_CallCallbackSync methos belongs to InteropNativeModule in interop package, where deserializeAndCallFoo placed in generated code inside exact library (for arkoala you can find it in [arkoala-arkts/framework/native/src/generated/callback_deserialize_call.cpp](https://gitee.com/rri_opensource/koala_projects/blob/master/arkoala-arkts/framework/native/src/generated/callback_deserialize_call.cpp)). After function there is comes KOALA_EXECUTE macros, that executes code on library load and assignes deserializeAndCallCallback as handler for _CallCallback method.
 
 ```c++
 void deserializeAndCallCallback(OH_Int32 kind, KSerializerBuffer thisArray, OH_Int32 thisLength)
