@@ -418,7 +418,7 @@ class ModifiersFileVisitor {
                         switchPrinter.print(`default: {`)
                         switchPrinter.pushIndent()
                         switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
-                        switchPrinter.print(`${resetStatement.asString()};`)
+                        if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
                         switchPrinter.popIndent()
