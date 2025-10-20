@@ -182,7 +182,7 @@ def ReadHandwritten(fname):
         for line in f:
             cols = line.split('|')
             if skip:
-                if len(cols) > 8 and cols[1].strip().startswith('-'):
+                if len(cols) > 9 and cols[1].strip().startswith('-'):
                     skip = False
                 continue
             st = HandwrittenStatus(*map(str.strip,cols))
@@ -263,16 +263,19 @@ def Handwritten():
     with open(HANDWRITTEN, 'w') as f:
         sw = max(map(lambda x: len(x), snames))
         v = 'Status'
-        f.write(f'| {v:{sw}} | ' + (' | '.join(stats.keys())) + ' |\n')
+        f.write(f'| {v:{sw}} | ' + (' | '.join(stats.keys())) + ' | Total |\n')
         v = '-' * sw
-        sep = f'| {v} | ' + (' | '.join(map(lambda x: '-' * len(x), stats.keys()))) + ' |\n'
+        sep = f'| {v} | ' + (' | '.join(map(lambda x: '-' * len(x), stats.keys()))) + f' | ----- |\n'
         f.write(sep)
+        total = 0
         for s in sorted(snames):
-            f.write(f'| {s:{sw}} | ' + (' | '.join(map(lambda x: f'{stats[x].get(s, 0):{len(x)}}', stats.keys()))) + ' |\n')
+            tot = sum([stats[x].get(s, 0) for x in stats.keys()])
+            total += tot
+            f.write(f'| {s:{sw}} | ' + (' | '.join(map(lambda x: f'{stats[x].get(s, 0):{len(x)}}', stats.keys()))) + f' | {tot:5} |\n')
         f.write(sep)
         v = 'Total'
-        f.write(f'| {v:{sw}} | ' + (' | '.join(map(lambda x: f'{sum(stats[x].values()):{len(x)}}', stats.keys()))) + ' |\n')
-        
+        f.write(f'| {v:{sw}} | ' + (' | '.join(map(lambda x: f'{sum(stats[x].values()):{len(x)}}', stats.keys()))) + f' | {total:5} |\n')
+
         f.write('\n')
         f.write(f'| Item Status | Owner | Last test status | Last test version | Comments | Package | SDK Parent | SDK Name | Override | Type | C API Parent | C API Name |\n')
         f.write(f'| ----------- | ----- | ---------------- | ----------------- | -------- | ------- | ---------- | -------- | -------- | ---- | ------------ | ---------- |\n')
@@ -287,14 +290,15 @@ def PrepareSdk():
     exclude = config['exclude']
 
     with open(SDK_STATUS, 'w') as fo:
+        res = []
         with open(FULL_SDK_STATUS) as fi:
             fo.write(fi.readline())
             for line in fi:
                 pkg = line.split('|')[1].strip()
                 if inpkg(pkg, include) and not inpkg(pkg, exclude):
-                    fo.write(line)
-
-#        # Append deleted packages        
+                    res.append(line)
+        fo.write(''.join(sorted(res, key=lambda x: x.split('|')[1].strip())))
+#        # Append deleted packages
 #        deleted = ReadSdk(DELETED_SDK_STATUS)
 #        for i in deleted:
 #            r = list(i)
