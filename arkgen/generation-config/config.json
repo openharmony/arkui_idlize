@@ -538,6 +538,8 @@
         "CommonTransition",
         "CalendarAttribute",
         "ContainerSpanAttribute",
+        "SymbolSpanAttribute",
+        "SpanAttribute",
         "CustomLayoutRoot"
     ],
     "standaloneComponents": [
