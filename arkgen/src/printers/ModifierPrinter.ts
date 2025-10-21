@@ -204,6 +204,7 @@ class ModifiersFileVisitor {
         })
         importsCollector.addFeature(componentToPeerClass(component.name), `./${peerLocation}`)
         importsCollector.addFeatures(["int32"], "@koalaui/common")
+        importsCollector.addFeature("ModifierState", "./CommonModifier")
         collectDeclDependencies(this.library, component.attributeDeclaration, importsCollector)
         expandComponentWithSupers(this.library, component.attributeDeclaration).forEach(decl => {
             collectDeclItself(this.library, decl, importsCollector)
@@ -344,6 +345,7 @@ class ModifiersFileVisitor {
 
         printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
             writer.print("_instanceId: number = -1;")
+            writer.print("_state: ModifierState = new ModifierState")
 
             writer.writeMethodImplementation(new Method(
                 `setInstanceId`,
@@ -375,6 +377,7 @@ class ModifiersFileVisitor {
             writer.writeMethodImplementation(new Method('applyModifierPatch',
                 new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("PeerNode")], [], [], [], ['node'])),
                 writer => {
+                    writer.print(`this._state.addRef()`);
                     if (parentSet) writer.print('super.applyModifierPatch(node)');
                     writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
                     const statements: IfStatement[] = []
@@ -520,6 +523,7 @@ class ModifiersFileVisitor {
                     attribute.argTypes.forEach((t, index) => {
                         thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
                     })
+                    thenStatements.push(writer.makeStatement(writer.makeString(`this._state.fireChange()`)))
                     const thenStatementBlock = writer.makeBlock(thenStatements)
                     const elseStatementBlock = writer.makeBlock([writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.SKIP`), false)])
                     const condition = writer.makeCondition(equalNary, thenStatementBlock, elseStatementBlock)
