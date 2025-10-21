@@ -24,7 +24,7 @@
   "scripts": {
     "clean": "rimraf -g build lib .rollup.cache",
     "compile:self": "tsc -b . && rollup -c",
-    "compile": "npm run -C ../core compile && tsc -b . && npm run compile:self",
+    "compile": "npm run -C ../core compile && npm run compile:self",
     "common:idl": "npm run compile && node . --dts2idl --output-dir ./out/idl --base-dir ../sdk-patched/api --input-dir  ../sdk-patched/api/@internal/component/ets/,../sdk-patched/api/global --verify-idl --docs=none",
     "common:dts": "npm run compile && node . --idl2dts --output-dir ./out/dts --input-dir ./out/idl",
     "create:closed:subset": "npm run compile && node . --dts2idl --base-dir ../sdk-patched/api --input-dir ../sdk-patched/api/@internal/component/ets --output-dir out/ --options-file ./generation-config/arkui-config.json && cp stdlib.idl out/stdlib.idl && node . --lint --input-dir out/",

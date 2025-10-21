@@ -75,7 +75,7 @@ export * from "./peer-generation/idl/common"
 export * from "./from-idl/IDLLinter"
 export { fromIDL, scanIDL }  from "./from-idl/common"
 export { idlToDtsString, CustomPrintVisitor }  from "./from-idl/DtsPrinter"
-export { parseIDLFile, addSyntheticType, resolveSyntheticType, compareNodes } from "./from-idl/deserialize"
+export { parseIDLFile, addSyntheticType, resolveSyntheticType, compareNodes, toIdlType } from "./from-idl/deserialize"
 export { Parser, FatalParserException } from "./from-idl/parser"
 
 export { D, ConfigTypeInfer, ConfigSchema, inspectSchema } from './configDescriber'

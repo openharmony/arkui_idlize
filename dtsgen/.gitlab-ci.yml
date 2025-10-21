@@ -8,7 +8,6 @@ dtsgen golden:
   - build external
   before_script:
     - !reference [.npm, script]
-    - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/dtsgen
   script:
     - npm test

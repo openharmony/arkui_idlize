@@ -34,6 +34,7 @@ const idlizer_dependencies = [
     "@idlizer/libohos",
     "@idlizer/etsgen",
     "@idlizer/arkgen",
+    "@idlizer/ohosgen",
     "@idlizer/runner"
 ]
 

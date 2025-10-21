@@ -14,6 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
+import { toIdlType } from "@idlizer/core"
 import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted, getInitializerFeature, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, DependenciesCollector } from "./idl/IdlDependenciesCollector"
@@ -103,6 +104,10 @@ export function collectDeclItself(
             return
         }
         emitter.addFeature(feature.feature, feature.module, feature.alias, feature.isDefault)
+        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.TransformOnSerialize)) {
+            const targetType = toIdlType("", idl.getExtAttribute(node, idl.IDLExtendedAttributes.TransformOnSerialize)!)
+            collectDeclDependencies(library, targetType, emitter, options)
+        }
         if (options?.includeMaterializedInternals) {
             if (idl.isInterface(node) && isMaterialized(node, library) && !isStaticMaterialized(node, library) && !isInExternalModule(node)) {
                 const ns = idl.getNamespaceName(node)

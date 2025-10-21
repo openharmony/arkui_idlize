@@ -179,12 +179,12 @@ export class ModifierVisitor {
         const returnValue = isVoid
             ? undefined
             : peerReturnValue(this.library, context, method) ?? returnValueConvertor.convert(returnType)
+        const constructorReturnStatement = method.sig.name == PeerMethodSignature.CTOR ? this.makeConstructReturnStatement(_, context, method) : undefined
+        const returnStatement = constructorReturnStatement ?? _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)
         _.writeStatement(
             _.makeCondition(
                 _.makeString("!needGroupedLog(1)"),
-                _.makeBlock([method.sig.name == PeerMethodSignature.CTOR
-                    ? this.makeConstructReturnStatement(_, context, method)
-                    : _.makeReturn(returnValue ? _.makeString(returnValue) : undefined)])
+                _.makeBlock([returnStatement])
             )
         )
         _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
@@ -197,30 +197,26 @@ export class ModifierVisitor {
             _.print(`out.append("[return ${returnValue}] \\n");`)
         }
         _.print(`appendGroupedLog(1, out);`)
-        if (method.sig.name == PeerMethodSignature.CTOR) {
-            _.writeStatement(this.makeConstructReturnStatement(_, context, method))
-        } else {
-            this.printReturnStatement(this.dummy, method, returnType, true, returnValue)
-        }
+        _.writeStatement(returnStatement)
     }
 
-    printModifierImplFunctionBody(method: PeerMethod, returnType?: idl.IDLType, clazz: PeerClass | undefined = undefined) {
+    printModifierImplFunctionBody(method: PeerMethod, returnType: idl.IDLType, clazz: PeerClass | undefined = undefined) {
         if (!this.isDummy) {
             this.printBodyImplementation(this.real, method, clazz)
         }
         this.printReturnStatement(this.real, method, returnType)
     }
 
-    private makeConstructReturnStatement(printer: LanguageWriter, context: idl.IDLInterface, method: PeerMethod): LanguageStatement {
+    private makeConstructReturnStatement(printer: LanguageWriter, context: idl.IDLInterface, method: PeerMethod): LanguageStatement | undefined {
         const convertor = this.library.createTypeNameConvertor(Language.CPP)
         if (isComponentDeclaration(this.library, context))
             return printer.makeReturn(printer.makeString(`new TreeNode("${method.originalParentName}", id, flags);`))
         if (isMaterialized(context, this.library))
-            return printer.makeReturn(printer.makeString(`reinterpret_cast<${convertor.convert(context)}>(100)`))
+            return printer.makeReturn(printer.makeString(`reinterpret_cast<${convertor.convert(idl.createReferenceType(context))}>(100)`))
         throw new Error("Unknown receiver type for constructor creation")
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnType?: idl.IDLType, isDummy?: boolean, returnValue: string | undefined = undefined) {
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnType: idl.IDLType, isDummy?: boolean, returnValue: string | undefined = undefined) {
         const isVoid = this.returnTypeConvertor.isVoid(returnType ?? method.returnType)
         if (isDummy) {
             if (returnValue) {

@@ -1,0 +1,72 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+template("node_cmd") {
+  assert(defined(invoker.script), "node_cmd requires 'script' parameter")
+  
+  # Use target name for stamp file if not specified
+  stamp_file = "$target_out_dir/.${target_name}.stamp"
+  if (defined(invoker.stamp_file)) {
+    stamp_file = invoker.stamp_file
+  }
+  
+  # Collect arguments for the node script
+  script_args = []
+  if (defined(invoker.args)) {
+    script_args += invoker.args
+  }
+  
+  wrapper_script = "${idlize.scripts_path}/node.py"
+  
+  action(target_name) {
+    script = wrapper_script
+    
+    # Default outputs include stamp file unless overridden
+    if (!defined(invoker.outputs)) {
+      outputs = [ stamp_file ]
+    } else {
+      outputs = invoker.outputs
+    }
+
+    deps = [ "${idlize.root_path}:npm_install_all" ]
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
+    
+    # Collect all inputs
+    inputs = []
+    if (defined(invoker.inputs)) {
+      inputs += invoker.inputs
+    }
+    
+    # Always include the script itself as an input
+    inputs += [ invoker.script ]
+    
+    if (defined(invoker.depfile)) {
+      depfile = invoker.depfile
+    }
+    
+    args = [
+      "--node-script",
+      rebase_path(invoker.script, root_build_dir),
+      "--stamp",
+      rebase_path(stamp_file, root_build_dir),
+    ]
+    
+    # Add script-specific arguments
+    if (script_args != []) {
+      args += [ "--" ]
+      args += script_args
+    }
+  }
+}

@@ -14,11 +14,9 @@
  */
 
 import * as fs from "fs"
-import * as os from "os"
 import * as path from "path"
 import { Command } from "commander"
 import { DiagnosticMessageGroup, outputDiagnosticResultsFormatted } from "@idlizer/core"
-import { etsgen } from "@idlizer/etsgen"
 import { idlManager } from "./idlprocessing"
 import "./validator"
 import { checkCompat } from "./compat"
@@ -81,21 +79,7 @@ function validateIdl(paths: string[], options: { load: string[], features: strin
     }
 }
 
-function checkCompatDts(baseDir: string, targetDir: string) {
-    function ets2idl(inputDir: string, suffix: number): string {
-        const outputDir = path.join(os.tmpdir(), 'idlinter.' + process.pid.toString(), suffix.toString())
-        etsgen([
-            '--ets2idl',
-            '--base-dir', inputDir,
-            '--input-dir', inputDir,
-            '--output-dir', outputDir,
-            '--docs', 'none'])
-        return outputDir
-    }
-    checkCompatIdl(ets2idl(baseDir, 0), ets2idl(targetDir, 1))
-}
-
-function checkCompatIdl(baseDir: string, targetDir: string) {
+function checkCompatDirs(baseDir: string, targetDir: string) {
     checkCompat(listIdl(baseDir, "base"), listIdl(targetDir, "target"))
     outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
     if (DiagnosticMessageGroup.collectedResults.hasErrors) {
@@ -109,13 +93,9 @@ export function idlinterMain() {
         .version("0.0.8")
         .addHelpText("after", "\nExit codes are (1) for invalid arguments and (2) in case of errors/fatals found in .idl files.")
 
-    program.command('compat-idl <dir0> <dir1>')
+    program.command('compat <dir0> <dir1>')
         .description('check if dir1 is API-wise compatible with dir0')
-        .action(checkCompatIdl)
-
-    program.command('compat-dts <dir0> <dir1>')
-        .description('check if dir1 is API-wise compatible with dir0')
-        .action(checkCompatDts)
+        .action(checkCompatDirs)
 
     program.command('check <paths...>')
         .description("Validate individual .idl files (or directories recursively containing them)")

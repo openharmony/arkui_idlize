@@ -36,3 +36,17 @@ include:
     - dtsgen/.gitlab-ci.yml
     - interfaces/.gitlab-ci.yml
     - tools/.gitlab-ci.yml
+
+gn:
+  stage: build
+  tags:
+    - idlize-ci
+    - koala-ci
+  needs: []
+  script:
+    - !reference [.npmrc, script]
+    - cd external 
+    - bash ./tools/utils/gni/gen_gni_mirror.sh .
+    - cd ..
+    - gn gen out/dir
+    - ninja -C out/dir :all
