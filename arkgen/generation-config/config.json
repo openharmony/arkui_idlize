@@ -973,7 +973,9 @@
         "TestCallIntIntArraySum",
         "TestCallVoidIntArrayPrefixSum",
         "TestCallIntRecursiveCallback",
-        "TestCallIntMemory"
+        "TestCallIntMemory",
+        "arkui.component.idlize.RouterExtender.back",
+        "arkui.component.idlize.RouterExtender.runPage"
     ],
     "constants": {
         "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
