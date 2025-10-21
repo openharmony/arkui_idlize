@@ -418,7 +418,13 @@ class ModifiersFileVisitor {
                         switchPrinter.print(`default: {`)
                         switchPrinter.pushIndent()
                         switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
-                        if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
+                        if (attribute.isOptional) {
+                            if (hookRecord && hookRecord.replaceImplementation) {
+                                switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [switchPrinter.makeThis(), ...resetParams]).asString()};`)
+                            } else {
+                                switchPrinter.print(`${resetStatement.asString()};`)
+                            }
+                        }
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
                         switchPrinter.popIndent()

@@ -28,23 +28,7 @@ diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/commo
 index 168d42dd7..375f5e334 100644
 --- a/api/arkui/component/common.static.d.ets
 +++ b/api/arkui/component/common.static.d.ets
-@@ -7356,13 +7356,13 @@ export declare interface SheetOptions extends BindOptions {
-     /**
-      * Defines sheet detents
-      *
--     * @type { ?(SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents) }
-+     * @type { ?(TripleLengthDetents) }
-      * @syscap SystemCapability.ArkUI.ArkUI.Full
-      * @crossplatform
-      * @atomicservice
-      * @since 20
-      */
--    detents?: SingleLengthDetent | DoubleLengthDetents | TripleLengthDetents;
-+    detents?: TripleLengthDetents;
-     /**
-      * Background blur of the sheet. By default, there is no background blur.
-      *
-@@ -10368,13 +10368,13 @@ export declare interface BackgroundOptions {
+@@ -10463,13 +10463,13 @@ export declare interface BackgroundOptions {
  /**
   * Defines the value of the custom property..
   *
@@ -60,7 +44,7 @@ index 168d42dd7..375f5e334 100644
  export declare interface CommonMethod {
      /**
       * Sets the width of the component or its horizontal layout policy. By default, the
-@@ -11113,7 +11113,7 @@ export declare interface CommonMethod {
+@@ -11208,7 +11208,7 @@ export declare interface CommonMethod {
       * @atomicservice
       * @since 20
       */
@@ -69,7 +53,7 @@ index 168d42dd7..375f5e334 100644
      /**
       * Digital crown input.
       *
-@@ -15382,4 +15382,4 @@ export declare function $$<T>(value: T): Bindable<T>;
+@@ -15486,4 +15486,4 @@ export declare function $$<T>(value: T): Bindable<T>;
   * @syscap SystemCapability.ArkUI.ArkUI.Full
   * @since 20
   */
