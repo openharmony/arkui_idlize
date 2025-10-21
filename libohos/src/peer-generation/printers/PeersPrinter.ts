@@ -66,11 +66,16 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         method.method.modifiers, method.method.generics
     )
     const argConvertors = method.argAndOutConvertors(library)
+    const isSetOptions = method.sig.name.startsWith('set') && method.sig.name.endsWith('Options')
     printer.writeMethodImplementation(peerMethod, (writer) => {
         let scopes = argConvertors.filter(it => it.isScoped)
         scopes.forEach(it => {
             writer.pushIndent()
         })
+        if (isSetOptions) {
+            writer.print(`ArkThemeScopeManager.getInstance().applyThemeScopeIdToNode(this.peer.ptr);`)
+            writer.addFeature(`ArkThemeScopeManager`, '#arktheme')
+        }
         let serializerCreated = false
         let returnValueFilledThroughOutArg = false
         argConvertors.forEach((it, index) => {
