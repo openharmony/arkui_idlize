@@ -902,6 +902,12 @@
                 "hookName": "hookWithThemeOptions",
                 "replaceImplementation": true
             }
+        },
+        "CommonMethodModifier": {
+            "size": {
+                "hookName": "hookCommonMethodModifierSize",
+                "replaceImplementation": true
+            }
         }
     },
     "materialized": {
