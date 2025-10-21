@@ -27,8 +27,6 @@ import { BindingsPrinter } from "../printers/interop/BindingsPrinter"
 import { AllPeersPrinter } from "../printers/library/AllPeersPrinter"
 import { FactoryPrinter } from "../printers/library/FactoryPrinter"
 import { OptionsFilterTransformer } from "../transformers/common/filter/OptionsFilterTransformer"
-import { NullabilityTransformer } from "../transformers/peers/NullabilityTransformer"
-import { ConstMergeTransformer } from "../transformers/peers/ConstMergeTransformer"
 import { Transformer } from "../transformers/Transformer"
 
 class SingleFileEmitter {
@@ -142,9 +140,6 @@ export class DynamicEmitter {
     }
 
     private printPeers(idl: IDLFile): void {
-        idl = this.withLog(new ConstMergeTransformer(idl))
-        idl = this.withLog(new NullabilityTransformer(idl, this.config))
-
         const out = this.printFiles(this.peersPrinter, idl)
         // override index printer
         this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined, out)
