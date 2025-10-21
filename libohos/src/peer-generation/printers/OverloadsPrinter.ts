@@ -327,9 +327,6 @@ export class OverloadsPrinter {
             if (this.isComponent) {
                 this.printer.popIndent()
                 this.printer.print(`}`)
-                if (collapsedMethod.name.startsWith('set') && collapsedMethod.name.endsWith('Options')) {
-                    this.printer.print('this.applyOptionsFinish();')
-                }
                 this.printer.writeStatement(this.printer.makeReturn(collapsedMethod.signature.returnType == idl.IDLThisType ? this.printer.makeThis() : undefined))
             }
         })
@@ -439,6 +436,9 @@ export class OverloadsPrinter {
                 }
             } else {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
+            }
+            if (collapsedMethod.name.startsWith('set') && collapsedMethod.name.endsWith('Options')) {
+                this.printer.print(`this.applyOptionsFinish('${peer}');`)
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
         } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {
