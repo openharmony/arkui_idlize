@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, throwException } from "@idlizer/core"
+import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, throwException, isInterface } from "@idlizer/core"
 import { Typechecker } from "../../../general/Typechecker"
 import { BaseTypeConvertor } from "../../BaseTypeConvertor"
 import { BridgesConstructions } from "../../../constuctions/BridgesConstructions"
 import { NativeTypeConvertor } from "./NativeTypeConvertor"
 import { Config } from "../../../general/Config"
-import { baseName, innerType, isString } from "../../../utils/idl"
+import { baseName, innerType, isString, nativeType } from "../../../utils/idl"
 
 export class CastTypeConvertor extends BaseTypeConvertor<string> {
     private castToTypeConvertor = new CastToTypeConvertor(this.typechecker)
@@ -81,12 +81,13 @@ class CastToTypeConvertor extends BaseTypeConvertor<string> {
                 ),
             enum: (type: IDLReferenceType) => type.name,
             reference: (type: IDLReferenceType) => {
-                return BridgesConstructions.referenceType(
-                    typechecker.isHeir(type, Config.astNodeCommonAncestor)
-                        ? Config.astNodeCommonAncestor
-                        : baseName(type)
-                )
-            },
+                const iface = typechecker.resolveReference(type) ?? throwException(`Unresolved reference: ${type.name}`)
+                const castType = isInterface(iface)
+                    ? nativeType(iface) ?? (typechecker.isHeir(iface, Config.astNodeCommonAncestor)
+                        ? Config.astNodeCommonAncestor : baseName(type))
+                    : baseName(type)
+                return BridgesConstructions.referenceType(castType) },
+
             i8: primitive,
             iu8: primitive,
             i16: primitive,

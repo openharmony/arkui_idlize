@@ -31,7 +31,6 @@ export class BridgesConstructions {
     static referenceType(name: string): string {
         // FIXME: Rewrite CastTypeConvertors using idl.CppInteropArgConverter
         // and LanguageWriter constructions.
-        // Use c_type attribute from declaration.
         const addPrefix = (n: string) =>
             (n.startsWith(Config.dataClassPrefix) ? n : `${Config.dataClassPrefix}${n}`)
         return `${addPrefix(name)}*`
