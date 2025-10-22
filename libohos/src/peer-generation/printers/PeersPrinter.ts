@@ -46,12 +46,6 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-export function componentToStyleClass(component: string) {
-    if (component.endsWith("Attribute"))
-        component = component.substring(0, component.length - 9)
-    return `Ark${component}Style`
-}
-
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,

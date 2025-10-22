@@ -14,11 +14,11 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
+import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, JavaInterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { capitalize, DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
-import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
+import { componentToAttributesInterface } from "./PeersPrinter"
 
 function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
     const result = new Set<string>()
@@ -82,38 +82,10 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         } else {
             printer.writeMethodDeclaration('attributeModifier', attributeModifierSignature)
         }
-        // {
-        //     const callableMethods = peer.methods.filter(it => it.isCallSignature)[0]
-        //     const methodName = `set${capitalize(peer.componentName)}Options`
-        //     printer.writeMethod
-        // }
         
         printer.popIndent()
         printer.print('}')
-        const stylePrinter = this.peerLibrary.createLanguageWriter()
-        const parentStyle = generateStyleParentClass(peer)
-        stylePrinter.writeClass(componentToStyleClass(idlInterface.name), (writer) => {
-            for (const field of peer.attributesFields) {
-                writer.writeFieldDeclaration(
-                    field.name + "_value",
-                    field.type,
-                    [],
-                    true
-                )
-            }
-            collapsedMethods.forEach(method => {
-                // TODO: temporary hack
-                stylePrinter.writeMethodImplementation(method.method, (writer) => {
-                    if (method.method.signature.returnType == idl.IDLThisType) {
-                        writer.writeStatement(writer.makeReturn(writer.makeThis()))
-                    }
-                })
-            })
-            stylePrinter.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
-                writer.writeStatement(writer.makeThrowError("Not implemented"))
-            })
-        }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
-        return printer.getOutput().concat(stylePrinter.getOutput())
+        return printer.getOutput()
     }
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()
