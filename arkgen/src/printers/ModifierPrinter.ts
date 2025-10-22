@@ -305,7 +305,7 @@ class ModifiersFileVisitor {
 
     generateHooksCall(hookName: string, params: LanguageExpression[], writer: LanguageWriter): LanguageExpression {
         const hookCall = writer.makeFunctionCall(hookName, [
-            writer.makeThis(), ...params
+            writer.makeString('peer'), ...params
         ])
         return hookCall;
     }
@@ -400,6 +400,7 @@ class ModifiersFileVisitor {
                         if (hookRecord && hookRecord.replaceImplementation) {
                             collectedHooks.push(hookRecord.hookName)
                         }
+                        // hookCall in applyModifierPatch
                         const statement = (hookRecord && hookRecord.replaceImplementation) ? this.generateHooksCall(hookRecord.hookName, params, writer) : writer.makeMethodCall('peer', methodName, params)
                         const resetStatement = writer.makeMethodCall('peer', methodName, resetParams)
                         const switchPrinter = this.library.createLanguageWriter();
@@ -423,7 +424,7 @@ class ModifiersFileVisitor {
                         switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
                         if (attribute.isOptional) {
                             if (hookRecord && hookRecord.replaceImplementation) {
-                                switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [switchPrinter.makeThis(), ...resetParams]).asString()};`)
+                                switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
                             } else {
                                 switchPrinter.print(`${resetStatement.asString()};`)
                             }
@@ -500,6 +501,7 @@ class ModifiersFileVisitor {
                     }
                     const hookMethod = getHookMethod(this.generateAttributeSetName(componentAttribute.name), attribute.method.method.name)
                     if (hookMethod) {
+                        // hook call for Modifier member function
                         this.printHookedMethodBody(attribute.method.method, hookMethod.hookName, writer)
                         collectedHooks.push(hookMethod.hookName)
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
