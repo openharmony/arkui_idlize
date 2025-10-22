@@ -87,14 +87,14 @@ export class UnionRuntimeTypeChecker {
             }
         })
     }
-    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter): LanguageExpression {
+    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter, type?: IDLType): LanguageExpression {
         const convertor = this.convertors[convertorIndex]
         if (this.conflictingConvertors.has(convertor) && writer.language === Language.TS) {
             const discriminator = convertor.unionDiscriminator(value, convertorIndex, writer, this.duplicateMembers)
             if (discriminator) return discriminator
         }
         return writer.makeString(
-            writer.discriminate(value, convertorIndex, convertor.idlType, convertor.runtimeTypes)
+            writer.discriminate(value, convertorIndex, type ?? convertor.idlType, convertor.runtimeTypes)
         )
     }
 }

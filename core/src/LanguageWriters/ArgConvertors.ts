@@ -1011,6 +1011,16 @@ export class OptionConvertor extends BaseArgConvertor {
     }
 }
 
+class ConvertorItem {
+    constructor(
+        public convertor: ArgConvertor,
+        public index: number,
+        public type: idl.IDLType,
+        public elemName?: string
+    ) {
+    }
+}
+
 export class UnionConvertor extends BaseArgConvertor {
     private readonly memberConvertors: ArgConvertor[]
     private unionChecker: UnionRuntimeTypeChecker
@@ -1025,32 +1035,80 @@ export class UnionConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Do not use for union")
     }
+    isSequence(type: idl.IDLType): boolean {
+        return idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)
+    }
+    isIndexedDiscriminator(writer: LanguageWriter) {
+        // TBD: make indexed descriminator only for TS
+        if (writer.language == Language.ARKTS) return false
+        return true
+    }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const branches: BranchStatement[] = this.memberConvertors.map((it, index) => {
-            const discriminator = this.unionChecker.makeDiscriminator(value, index, printer)
-            const statements: LanguageStatement[] = []
+        const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, it.idlType))
+        if (this.isIndexedDiscriminator(printer))
+            return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, printer, it)));
+        // Make array type descrimination
+        return this.convertorSerializeMultiBranch(param, value, printer, convertorItems)
+    }
+    makeStoreSelector(param: string, index: number, printer: LanguageWriter): LanguageStatement {
+        return printer.makeStatement(
+            printer.makeMethodCall(
+                `${param}Serializer`, "writeInt8",
+                [printer.makeString(printer.castToInt(index.toString(), 8))]
+            )
+        )
+    }
+    makeBranch(param: string, value: string, printer: LanguageWriter, convertorItem: ConvertorItem): BranchStatement {
+        const convertor = convertorItem.convertor
+        const index = convertorItem.index
+        const type = convertorItem.type
+        const discriminator = this.unionChecker.makeDiscriminator(convertorItem.elemName ?? value, index, printer, type)
+        const statements: LanguageStatement[] = []
+        statements.push(this.makeStoreSelector(param, index, printer))
+        if (!(convertor instanceof UndefinedConvertor)) {
+            const varName = `${value}ForIdx${index}`
             statements.push(
+                printer.makeAssign(varName, undefined,
+                    printer.makeUnionVariantCast(convertor.getObjectAccessor(printer.language, value), printer.getNodeName(convertor.idlType), convertor, index), true)
+            )
+            statements.push(convertor.convertorSerialize(param, varName, printer))
+        }
+
+        const stmt = new BlockStatement(statements, false)
+        return { expr: discriminator, stmt }
+    }
+    makeArrayBranch(param: string, value: string, printer: LanguageWriter, arrayElemConvertors: ConvertorItem[]): BranchStatement[] {
+        if (arrayElemConvertors.length == 0) return []
+
+        const arrayConvertor = arrayElemConvertors[0]
+        const elemName = `${value}Elem`
+        const elemAccess = printer.makeString(`${value}[0]`)
+        const checkZeroArray = printer.makeCondition(
+            printer.makeString(`${value}.length == 0`),
+            new BlockStatement([
+                this.makeStoreSelector(param, arrayConvertor.index, printer),
                 printer.makeStatement(
-                    printer.makeMethodCall(
-                        `${param}Serializer`, "writeInt8",
-                        [printer.makeString(printer.castToInt(index.toString(), 8))]
-                    )
-                ))
-
-            if (!(it instanceof UndefinedConvertor)) {
-                const varName = `${value}ForIdx${index}`
-                statements.push(
-                    printer.makeAssign(varName, undefined,
-                        printer.makeUnionVariantCast(it.getObjectAccessor(printer.language, value), printer.getNodeName(it.idlType), it, index), true)
-                )
-                statements.push(it.convertorSerialize(param, varName, printer))
-            }
-
-            const stmt = new BlockStatement(statements, false)
-            return { expr: discriminator, stmt }
-        })
-
-        return printer.makeMultiBranchCondition(branches)
+                    printer.makeMethodCall(`${param}Serializer`, "writeInt32", [printer.makeString("0")]))
+            ], true, false),
+            new BlockStatement([
+                printer.makeAssign(elemName, undefined, elemAccess, true, true),
+                this.convertorSerializeMultiBranch(param, value, printer, arrayElemConvertors.map(it =>
+                    new ConvertorItem(it.convertor, it.index, (it.type as idl.IDLContainerType).elementType[0], elemName)))
+            ], true, false)
+        )
+        const arrayMultiBranch: BranchStatement = {
+            expr: this.unionChecker.makeDiscriminator(value, arrayElemConvertors[0].index, printer, arrayConvertor.type),
+            stmt: checkZeroArray
+        }
+        return [arrayMultiBranch]
+    }
+    convertorSerializeMultiBranch(param: string, value: string, printer: LanguageWriter, convertors: ConvertorItem[]): LanguageStatement {
+        return printer.makeMultiBranchCondition([
+            ...convertors
+                .filter(it => !this.isSequence(it.type))
+                .map(it => this.makeBranch(param, value, printer, it)),
+            ...this.makeArrayBranch(param, value, printer, convertors.filter(it => this.isSequence(it.type)))
+        ])
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
         const statements: LanguageStatement[] = []

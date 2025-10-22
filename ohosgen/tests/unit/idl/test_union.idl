@@ -1,0 +1,14 @@
+package test_union;
+
+dictionary UnionSampleEnum {
+    number A = 0;
+    number B = 1;
+};
+
+[Entity=Interface]
+interface UnionSampleInterface {
+
+    attribute (boolean or number or String or UnionSampleEnum or sequence<boolean> or sequence<UnionSampleEnum>) prop;
+};
+
+UnionSampleInterface checkUnionSample(UnionSampleInterface value);

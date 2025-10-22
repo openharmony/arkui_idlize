@@ -1090,3 +1090,8 @@ void IDLCheckProps_checkImpl(OH_NativePointer thisPtr) {
 OH_UNIT_IDLCheckProps GlobalScope_testIDLCheckPropsImpl(OH_UNIT_IDLCheckProps arg) {
     return {};
 }
+
+// Unions
+OH_UNIT_UnionSampleInterface GlobalScope_checkUnionSampleImpl(const OH_UNIT_UnionSampleInterface* value) {
+    return *value;
+}
