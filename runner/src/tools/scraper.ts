@@ -128,7 +128,7 @@ export function runScraper(root: string, configPath:string):ScraperResult {
             fileNames.add(getFileFor(entry)?.fileName ?? '<...>')
         forEachChild(entry, (node) => {
             if (isReferenceType(node)) {
-                const resolved = resolver.resolveTypeReference(node, true)
+                const resolved = resolver.resolveTypeReference(node, { terminalImports: true })
                 if (resolved) {
                     queue.push(resolved)
                 } else {

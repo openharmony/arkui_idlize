@@ -17,7 +17,7 @@ import * as idl from '../idl'
 import { getPov, resolveNamedNode } from '../resolveNamedNode'
 
 export interface ReferenceResolver {
-    resolveTypeReference(type: idl.IDLReferenceType, terminalImports?: boolean): idl.IDLEntry | undefined
+    resolveTypeReference(type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined
     toDeclaration(type: idl.IDLNode): idl.IDLNode
 }
 
@@ -35,8 +35,8 @@ export function createEmptyReferenceResolver(): ReferenceResolver {
 /** Please do not store any global instances */
 export function createAlternativeReferenceResolver(mainResolver: ReferenceResolver, alternatives: Map<string, idl.IDLEntry>): ReferenceResolver {
     return {
-        resolveTypeReference(type, terminalImports: boolean) {
-            return mainResolver.resolveTypeReference(type, terminalImports) ?? alternatives.get(type.name)
+        resolveTypeReference(type, options?: { terminalImports?: boolean, unresolvedOk?: boolean }) {
+            return mainResolver.resolveTypeReference(type, options) ?? alternatives.get(type.name)
         },
         toDeclaration(type) {
             return mainResolver.toDeclaration(type)
@@ -74,11 +74,9 @@ export function createAlgotithmicReferenceResolver(files: idl.IDLFile[], useFall
         return resolveds.size ? resolveds.values().next().value : undefined
     }
     return {
-        resolveTypeReference(type, terminalImports: boolean) {
-            if (type.name === "NavDestinationState")
-                console.log("AAA")
+        resolveTypeReference(type, options?: { terminalImports?: boolean, unresolvedOk?: boolean }) {
             let result: idl.IDLNode | undefined = resolveNamedNode(type.name.split("."), getPov(type), files) ?? (useFallback ? resolveFallback(type) : undefined)
-            if (!terminalImports) {
+            if (!options?.terminalImports) {
                 const seen = new Set<idl.IDLNode>
                 while (result) {
                     let nextResult: idl.IDLNode | undefined = undefined
@@ -127,8 +125,8 @@ export function createCachedReferenceResolver(files: idl.IDLFile[]): ReferenceRe
         })
     }
     return {
-        resolveTypeReference(type, terminalImports) {
-            if (!cache.has(type.name))
+        resolveTypeReference(type, options?: { terminalImports?: boolean, unresolvedOk?: boolean }) {
+            if (!options?.unresolvedOk && !cache.has(type.name))
                 console.warn(`WARNING: reference ${idl.DebugUtils.debugPrintType(type)} was not found`)
             return cache.get(type.name)
         },

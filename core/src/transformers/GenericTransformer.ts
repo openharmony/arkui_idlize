@@ -53,10 +53,10 @@ export function genericsTransformer(
         },
         layout: LayoutManager.Empty(),
         libraryPrefix: '',
-        resolveTypeReference: function (type: idl.IDLReferenceType, terminalImports?: boolean): idl.IDLEntry | undefined {
+        resolveTypeReference: function (type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined {
             if (resolverAdditionals.has(type.name))
                 return resolverAdditionals.get(type.name)!
-            return resolver.resolveTypeReference(type, terminalImports)
+            return resolver.resolveTypeReference(type, options)
         },
         toDeclaration: function (type: idl.IDLNode): idl.IDLNode {
             if (!idl.isType(type) && !idl.isEntry(type))

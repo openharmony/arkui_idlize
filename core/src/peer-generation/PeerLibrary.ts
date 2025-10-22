@@ -174,7 +174,10 @@ export class PeerLibrary implements LibraryInterface {
             idl.IDLVoidType,
             { nameConvertor: new StructureNameConvertor(this) }
         )
-        return idl.createReferenceType(`synthetic.${syntheticName}`)
+        const primaryReference = idl.createReferenceType(`synthetic.${syntheticName}`)
+        if (this.resolveTypeReference(primaryReference, { unresolvedOk: true }))
+            return primaryReference
+        return idl.createReferenceType(`synthetic.synthetic_${syntheticName}`)
     }
 
     private context: string | undefined
@@ -193,8 +196,8 @@ export class PeerLibrary implements LibraryInterface {
         return this.createTypeNameConvertor(this.language).convert(type)
     }
 
-    resolveTypeReference(type: idl.IDLReferenceType, singleStep?: boolean): idl.IDLEntry | undefined {
-        return this.resolver.resolveTypeReference(type, singleStep)
+    resolveTypeReference(type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined {
+        return this.resolver.resolveTypeReference(type, options)
     }
 
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam = false): ArgConvertor {

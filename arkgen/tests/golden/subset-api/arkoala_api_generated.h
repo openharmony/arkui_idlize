@@ -1129,6 +1129,20 @@ typedef struct SizeChangeCallback SizeChangeCallback;
 typedef struct Opt_SizeChangeCallback Opt_SizeChangeCallback;
 typedef struct SubmitCallback SubmitCallback;
 typedef struct Opt_SubmitCallback Opt_SubmitCallback;
+typedef struct synthetic_Callback_Boolean_Void synthetic_Callback_Boolean_Void;
+typedef struct Opt_synthetic_Callback_Boolean_Void Opt_synthetic_Callback_Boolean_Void;
+typedef struct synthetic_Callback_KeyEvent_Void synthetic_Callback_KeyEvent_Void;
+typedef struct Opt_synthetic_Callback_KeyEvent_Void Opt_synthetic_Callback_KeyEvent_Void;
+typedef struct synthetic_Callback_MouseEvent_Void synthetic_Callback_MouseEvent_Void;
+typedef struct Opt_synthetic_Callback_MouseEvent_Void Opt_synthetic_Callback_MouseEvent_Void;
+typedef struct synthetic_Callback_Number_Void synthetic_Callback_Number_Void;
+typedef struct Opt_synthetic_Callback_Number_Void Opt_synthetic_Callback_Number_Void;
+typedef struct synthetic_Callback_String_Void synthetic_Callback_String_Void;
+typedef struct Opt_synthetic_Callback_String_Void Opt_synthetic_Callback_String_Void;
+typedef struct synthetic_Callback_TextPickerResult_Void synthetic_Callback_TextPickerResult_Void;
+typedef struct Opt_synthetic_Callback_TextPickerResult_Void Opt_synthetic_Callback_TextPickerResult_Void;
+typedef struct synthetic_Callback_TouchEvent_Void synthetic_Callback_TouchEvent_Void;
+typedef struct Opt_synthetic_Callback_TouchEvent_Void Opt_synthetic_Callback_TouchEvent_Void;
 typedef struct TextPickerScrollStopCallback TextPickerScrollStopCallback;
 typedef struct Opt_TextPickerScrollStopCallback Opt_TextPickerScrollStopCallback;
 typedef struct TransitionFinishCallback TransitionFinishCallback;
@@ -1321,8 +1335,6 @@ typedef struct Ark_NavContentInfo Ark_NavContentInfo;
 typedef struct Opt_NavContentInfo Opt_NavContentInfo;
 typedef struct Ark_NavDestinationCommonTitle Ark_NavDestinationCommonTitle;
 typedef struct Opt_NavDestinationCommonTitle Opt_NavDestinationCommonTitle;
-typedef struct Ark_NavigationAnimatedTransition Ark_NavigationAnimatedTransition;
-typedef struct Opt_NavigationAnimatedTransition Opt_NavigationAnimatedTransition;
 typedef struct Ark_NavigationCommonTitle Ark_NavigationCommonTitle;
 typedef struct Opt_NavigationCommonTitle Opt_NavigationCommonTitle;
 typedef struct Ark_NavigationInterception Ark_NavigationInterception;
@@ -1593,6 +1605,8 @@ typedef struct Ark_MenuElement Ark_MenuElement;
 typedef struct Opt_MenuElement Opt_MenuElement;
 typedef struct Ark_NativeEmbedDataInfo Ark_NativeEmbedDataInfo;
 typedef struct Opt_NativeEmbedDataInfo Opt_NativeEmbedDataInfo;
+typedef struct Ark_NavigationAnimatedTransition Ark_NavigationAnimatedTransition;
+typedef struct Opt_NavigationAnimatedTransition Opt_NavigationAnimatedTransition;
 typedef struct Ark_NavigationTitleOptions Ark_NavigationTitleOptions;
 typedef struct Opt_NavigationTitleOptions Opt_NavigationTitleOptions;
 typedef struct Ark_NavigationToolbarOptions Ark_NavigationToolbarOptions;
@@ -5630,8 +5644,8 @@ typedef struct Opt_AsyncCallback_CustomSpanMeasureInfo_CustomSpanMetrics {
 typedef struct AsyncCallback_TextMenuItem_TextRange_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_TextMenuItem menuItem, const Ark_TextRange range, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TextMenuItem menuItem, const Ark_TextRange range, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_TextMenuItem menuItem, const Ark_TextRange range, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TextMenuItem menuItem, const Ark_TextRange range, const synthetic_Callback_Boolean_Void continuation);
 } AsyncCallback_TextMenuItem_TextRange_Boolean;
 typedef struct Opt_AsyncCallback_TextMenuItem_TextRange_Boolean {
     Ark_Tag tag;
@@ -5680,8 +5694,8 @@ typedef struct Opt_Callback_Array_TouchTestInfo_TouchResult {
 typedef struct Callback_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const synthetic_Callback_Boolean_Void continuation);
 } Callback_Boolean;
 typedef struct Opt_Callback_Boolean {
     Ark_Tag tag;
@@ -5760,8 +5774,8 @@ typedef struct Opt_Callback_CutEvent_Void {
 typedef struct Callback_DeleteValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_DeleteValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_DeleteValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_DeleteValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_DeleteValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_DeleteValue_Boolean;
 typedef struct Opt_Callback_DeleteValue_Boolean {
     Ark_Tag tag;
@@ -5910,8 +5924,8 @@ typedef struct Opt_Callback_HitTestMode_Void {
 typedef struct Callback_InsertValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_InsertValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_InsertValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_InsertValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_InsertValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_InsertValue_Boolean;
 typedef struct Opt_Callback_InsertValue_Boolean {
     Ark_Tag tag;
@@ -5980,8 +5994,8 @@ typedef struct Opt_Callback_ItemDragInfo_Void {
 typedef struct Callback_KeyEvent_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_KeyEvent data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_KeyEvent data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_KeyEvent data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_KeyEvent data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_KeyEvent_Boolean;
 typedef struct Opt_Callback_KeyEvent_Boolean {
     Ark_Tag tag;
@@ -6080,8 +6094,8 @@ typedef struct Opt_Callback_NavigationTransitionProxy_Void {
 typedef struct Callback_Number_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number index, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number index, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_Number index, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number index, const synthetic_Callback_Boolean_Void continuation);
 } Callback_Number_Boolean;
 typedef struct Opt_Callback_Number_Boolean {
     Ark_Tag tag;
@@ -6090,8 +6104,8 @@ typedef struct Opt_Callback_Number_Boolean {
 typedef struct Callback_Number_Number_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number from, const Ark_Number to, const synthetic_Callback_Boolean_Void continuation);
 } Callback_Number_Number_Boolean;
 typedef struct Opt_Callback_Number_Number_Boolean {
     Ark_Tag tag;
@@ -6250,8 +6264,8 @@ typedef struct Opt_Callback_Opt_Boolean_Void {
 typedef struct Callback_Opt_Literal_Object_detail_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Opt_Literal_Object_detail event, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Opt_Literal_Object_detail event, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Opt_Literal_Object_detail event, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Opt_Literal_Object_detail event, const synthetic_Callback_Boolean_Void continuation);
 } Callback_Opt_Literal_Object_detail_Boolean;
 typedef struct Opt_Callback_Opt_Literal_Object_detail_Boolean {
     Ark_Tag tag;
@@ -6320,8 +6334,8 @@ typedef struct Opt_Callback_ResourceStr_Void {
 typedef struct Callback_RichEditorChangeValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorChangeValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorChangeValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorChangeValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorChangeValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_RichEditorChangeValue_Boolean;
 typedef struct Opt_Callback_RichEditorChangeValue_Boolean {
     Ark_Tag tag;
@@ -6330,8 +6344,8 @@ typedef struct Opt_Callback_RichEditorChangeValue_Boolean {
 typedef struct Callback_RichEditorDeleteValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorDeleteValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorDeleteValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorDeleteValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorDeleteValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_RichEditorDeleteValue_Boolean;
 typedef struct Opt_Callback_RichEditorDeleteValue_Boolean {
     Ark_Tag tag;
@@ -6340,8 +6354,8 @@ typedef struct Opt_Callback_RichEditorDeleteValue_Boolean {
 typedef struct Callback_RichEditorInsertValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorInsertValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorInsertValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_RichEditorInsertValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_RichEditorInsertValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_RichEditorInsertValue_Boolean;
 typedef struct Opt_Callback_RichEditorInsertValue_Boolean {
     Ark_Tag tag;
@@ -6450,8 +6464,8 @@ typedef struct Opt_Callback_String_Void {
 typedef struct Callback_StyledStringChangeValue_Boolean {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, const Ark_StyledStringChangeValue data, const Callback_Boolean_Void continuation);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_StyledStringChangeValue data, const Callback_Boolean_Void continuation);
+    void (*call)(const Ark_Int32 resourceId, const Ark_StyledStringChangeValue data, const synthetic_Callback_Boolean_Void continuation);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_StyledStringChangeValue data, const synthetic_Callback_Boolean_Void continuation);
 } Callback_StyledStringChangeValue_Boolean;
 typedef struct Opt_Callback_StyledStringChangeValue_Boolean {
     Ark_Tag tag;
@@ -6907,6 +6921,76 @@ typedef struct Opt_SubmitCallback {
     Ark_Tag tag;
     SubmitCallback value;
 } Opt_SubmitCallback;
+typedef struct synthetic_Callback_Boolean_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_Boolean isSelected);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Boolean isSelected);
+} synthetic_Callback_Boolean_Void;
+typedef struct Opt_synthetic_Callback_Boolean_Void {
+    Ark_Tag tag;
+    synthetic_Callback_Boolean_Void value;
+} Opt_synthetic_Callback_Boolean_Void;
+typedef struct synthetic_Callback_KeyEvent_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_KeyEvent event);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_KeyEvent event);
+} synthetic_Callback_KeyEvent_Void;
+typedef struct Opt_synthetic_Callback_KeyEvent_Void {
+    Ark_Tag tag;
+    synthetic_Callback_KeyEvent_Void value;
+} Opt_synthetic_Callback_KeyEvent_Void;
+typedef struct synthetic_Callback_MouseEvent_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_MouseEvent event);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_MouseEvent event);
+} synthetic_Callback_MouseEvent_Void;
+typedef struct Opt_synthetic_Callback_MouseEvent_Void {
+    Ark_Tag tag;
+    synthetic_Callback_MouseEvent_Void value;
+} Opt_synthetic_Callback_MouseEvent_Void;
+typedef struct synthetic_Callback_Number_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_Number selected);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_Number selected);
+} synthetic_Callback_Number_Void;
+typedef struct Opt_synthetic_Callback_Number_Void {
+    Ark_Tag tag;
+    synthetic_Callback_Number_Void value;
+} Opt_synthetic_Callback_Number_Void;
+typedef struct synthetic_Callback_String_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_String value);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_String value);
+} synthetic_Callback_String_Void;
+typedef struct Opt_synthetic_Callback_String_Void {
+    Ark_Tag tag;
+    synthetic_Callback_String_Void value;
+} Opt_synthetic_Callback_String_Void;
+typedef struct synthetic_Callback_TextPickerResult_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_TextPickerResult value);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TextPickerResult value);
+} synthetic_Callback_TextPickerResult_Void;
+typedef struct Opt_synthetic_Callback_TextPickerResult_Void {
+    Ark_Tag tag;
+    synthetic_Callback_TextPickerResult_Void value;
+} Opt_synthetic_Callback_TextPickerResult_Void;
+typedef struct synthetic_Callback_TouchEvent_Void {
+    /* kind: Callback */
+    Ark_CallbackResource resource;
+    void (*call)(const Ark_Int32 resourceId, const Ark_TouchEvent event);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, const Ark_TouchEvent event);
+} synthetic_Callback_TouchEvent_Void;
+typedef struct Opt_synthetic_Callback_TouchEvent_Void {
+    Ark_Tag tag;
+    synthetic_Callback_TouchEvent_Void value;
+} Opt_synthetic_Callback_TouchEvent_Void;
 typedef struct TextPickerScrollStopCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
@@ -7801,17 +7885,6 @@ typedef struct Opt_NavDestinationCommonTitle {
     Ark_Tag tag;
     Ark_NavDestinationCommonTitle value;
 } Opt_NavDestinationCommonTitle;
-typedef struct Ark_NavigationAnimatedTransition {
-    /* kind: Interface */
-    Opt_Callback_Boolean_Void onTransitionEnd;
-    Opt_Number timeout;
-    Opt_Boolean isInteractive;
-    Callback_NavigationTransitionProxy_Void transition;
-} Ark_NavigationAnimatedTransition;
-typedef struct Opt_NavigationAnimatedTransition {
-    Ark_Tag tag;
-    Ark_NavigationAnimatedTransition value;
-} Opt_NavigationAnimatedTransition;
 typedef struct Ark_NavigationCommonTitle {
     /* kind: Interface */
     Ark_String main;
@@ -9331,6 +9404,17 @@ typedef struct Opt_NativeEmbedDataInfo {
     Ark_Tag tag;
     Ark_NativeEmbedDataInfo value;
 } Opt_NativeEmbedDataInfo;
+typedef struct Ark_NavigationAnimatedTransition {
+    /* kind: Interface */
+    Opt_synthetic_Callback_Boolean_Void onTransitionEnd;
+    Opt_Number timeout;
+    Opt_Boolean isInteractive;
+    Callback_NavigationTransitionProxy_Void transition;
+} Ark_NavigationAnimatedTransition;
+typedef struct Opt_NavigationAnimatedTransition {
+    Ark_Tag tag;
+    Ark_NavigationAnimatedTransition value;
+} Opt_NavigationAnimatedTransition;
 typedef struct Ark_NavigationTitleOptions {
     /* kind: Interface */
     Opt_ResourceColor backgroundColor;
@@ -10238,7 +10322,7 @@ typedef struct Opt_SwipeActionItem {
 typedef struct Ark_TextDataDetectorConfig {
     /* kind: Interface */
     Array_TextDataDetectorType types;
-    Opt_Callback_String_Void onDetectResultUpdate;
+    Opt_synthetic_Callback_String_Void onDetectResultUpdate;
     Opt_ResourceColor color;
     Opt_DecorationStyleInterface decoration;
 } Ark_TextDataDetectorConfig;
@@ -11077,7 +11161,7 @@ typedef struct Ark_SwipeActionOptions {
     Opt_Union_CustomBuilder_SwipeActionItem start;
     Opt_Union_CustomBuilder_SwipeActionItem end;
     Opt_SwipeEdgeEffect edgeEffect;
-    Opt_Callback_Number_Void onOffsetChange;
+    Opt_synthetic_Callback_Number_Void onOffsetChange;
 } Ark_SwipeActionOptions;
 typedef struct Opt_SwipeActionOptions {
     Ark_Tag tag;
@@ -11241,9 +11325,9 @@ typedef struct Ark_TextPickerDialogOptions {
     Opt_PickerDialogButtonStyle acceptButtonStyle;
     Opt_PickerDialogButtonStyle cancelButtonStyle;
     Opt_PickerTextStyle selectedTextStyle;
-    Opt_Callback_TextPickerResult_Void onAccept;
+    Opt_synthetic_Callback_TextPickerResult_Void onAccept;
     Opt_Callback_Void onCancel;
-    Opt_Callback_TextPickerResult_Void onChange;
+    Opt_synthetic_Callback_TextPickerResult_Void onChange;
     Opt_Callback_TextPickerResult_Void onScrollStop;
     Opt_Rectangle maskRect;
     Opt_DialogAlignment alignment;
@@ -11541,11 +11625,11 @@ typedef struct GENERATED_ArkUICommonMethodModifier {
     void (*setHoverEffect)(Ark_NativePointer node,
                            Ark_HoverEffect value);
     void (*setOnMouse)(Ark_NativePointer node,
-                       const Callback_MouseEvent_Void* event);
+                       const synthetic_Callback_MouseEvent_Void* event);
     void (*setOnTouch)(Ark_NativePointer node,
-                       const Callback_TouchEvent_Void* event);
+                       const synthetic_Callback_TouchEvent_Void* event);
     void (*setOnKeyEvent)(Ark_NativePointer node,
-                          const Callback_KeyEvent_Void* event);
+                          const synthetic_Callback_KeyEvent_Void* event);
     void (*setOnKeyPreIme)(Ark_NativePointer node,
                            const Callback_KeyEvent_Boolean* event);
     void (*setFocusable)(Ark_NativePointer node,
@@ -11984,9 +12068,9 @@ typedef struct GENERATED_ArkUIGridItemModifier {
     void (*setSelected)(Ark_NativePointer node,
                         Ark_Boolean value);
     void (*setOnSelect)(Ark_NativePointer node,
-                        const Callback_Boolean_Void* event);
+                        const synthetic_Callback_Boolean_Void* event);
     void (*set_onChangeEvent_selected)(Ark_NativePointer node,
-                                       const Callback_Number_Void* callback_);
+                                       const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUIGridItemModifier;
 
 typedef struct GENERATED_ArkUIImageModifier {
@@ -12170,9 +12254,9 @@ typedef struct GENERATED_ArkUIListItemModifier {
     void (*setSwipeAction)(Ark_NativePointer node,
                            const Ark_SwipeActionOptions* value);
     void (*setOnSelect)(Ark_NativePointer node,
-                        const Callback_Boolean_Void* event);
+                        const synthetic_Callback_Boolean_Void* event);
     void (*set_onChangeEvent_selected)(Ark_NativePointer node,
-                                       const Callback_Number_Void* callback_);
+                                       const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUIListItemModifier;
 
 typedef struct GENERATED_ArkUINavDestinationModifier {
@@ -12256,7 +12340,7 @@ typedef struct GENERATED_ArkUINavigationModifier {
     void (*setOnTitleModeChange)(Ark_NativePointer node,
                                  const Callback_NavigationTitleMode_Void* callback_);
     void (*setOnNavBarStateChange)(Ark_NativePointer node,
-                                   const Callback_Boolean_Void* callback_);
+                                   const synthetic_Callback_Boolean_Void* callback_);
     void (*setOnNavigationModeChange)(Ark_NativePointer node,
                                       const Callback_NavigationMode_Void* callback_);
     void (*setNavDestination)(Ark_NativePointer node,
@@ -12563,7 +12647,7 @@ typedef struct GENERATED_ArkUISearchModifier {
     void (*setEnableHapticFeedback)(Ark_NativePointer node,
                                     Ark_Boolean isEnabled);
     void (*set_onChangeEvent_value)(Ark_NativePointer node,
-                                    const Callback_String_Void* callback_);
+                                    const synthetic_Callback_String_Void* callback_);
 } GENERATED_ArkUISearchModifier;
 
 typedef struct GENERATED_ArkUISecurityComponentMethodModifier {
@@ -12579,9 +12663,9 @@ typedef struct GENERATED_ArkUISelectModifier {
     void (*setSelectOptions)(Ark_NativePointer node,
                              const Array_SelectOption* options);
     void (*set_onChangeEvent_selected)(Ark_NativePointer node,
-                                       const Callback_Number_Void* callback_);
+                                       const synthetic_Callback_Number_Void* callback_);
     void (*set_onChangeEvent_value)(Ark_NativePointer node,
-                                    const Callback_Number_Void* callback_);
+                                    const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUISelectModifier;
 
 typedef struct GENERATED_ArkUIShapeModifier {
@@ -12599,7 +12683,7 @@ typedef struct GENERATED_ArkUISideBarContainerModifier {
     void (*setMinSideBarWidth1)(Ark_NativePointer node,
                                 const Ark_Length* value);
     void (*set_onChangeEvent_showSideBar)(Ark_NativePointer node,
-                                          const Callback_Number_Void* callback_);
+                                          const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUISideBarContainerModifier;
 
 typedef struct GENERATED_ArkUISliderModifier {
@@ -12621,7 +12705,7 @@ typedef struct GENERATED_ArkUISliderModifier {
                         Ark_Boolean value,
                         const Opt_ResourceStr* content);
     void (*set_onChangeEvent_value)(Ark_NativePointer node,
-                                    const Callback_Number_Void* callback_);
+                                    const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUISliderModifier;
 
 typedef struct GENERATED_ArkUISpanModifier {
@@ -12728,7 +12812,7 @@ typedef struct GENERATED_ArkUISwiperModifier {
     void (*setIndicatorInteractive)(Ark_NativePointer node,
                                     Ark_Boolean value);
     void (*set_onChangeEvent_index)(Ark_NativePointer node,
-                                    const Callback_Number_Void* callback_);
+                                    const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUISwiperModifier;
 
 typedef struct GENERATED_ArkUISymbolGlyphModifier {
@@ -12780,7 +12864,7 @@ typedef struct GENERATED_ArkUITabsModifier {
     void (*setScrollable)(Ark_NativePointer node,
                           Ark_Boolean value);
     void (*set_onChangeEvent_index)(Ark_NativePointer node,
-                                    const Callback_Number_Void* callback_);
+                                    const synthetic_Callback_Number_Void* callback_);
 } GENERATED_ArkUITabsModifier;
 
 typedef struct GENERATED_ArkUITest1Modifier {
@@ -12941,7 +13025,7 @@ typedef struct GENERATED_ArkUITextInputModifier {
     void (*setCaretColor)(Ark_NativePointer node,
                           const Ark_ResourceColor* value);
     void (*setOnEditChanged)(Ark_NativePointer node,
-                             const Callback_Boolean_Void* callback_);
+                             const synthetic_Callback_Boolean_Void* callback_);
     void (*setOnEditChange)(Ark_NativePointer node,
                             const Callback_Boolean_Void* callback_);
     void (*setOnSubmit)(Ark_NativePointer node,
@@ -13102,7 +13186,7 @@ typedef struct GENERATED_ArkUIToggleModifier {
     void (*setToggleOptions)(Ark_NativePointer node,
                              const Ark_ToggleOptions* options);
     void (*set_onChangeEvent_isOn)(Ark_NativePointer node,
-                                   const Callback_Boolean_Void* callback_);
+                                   const synthetic_Callback_Boolean_Void* callback_);
 } GENERATED_ArkUIToggleModifier;
 
 typedef struct GENERATED_ArkUIVectorModifier {
