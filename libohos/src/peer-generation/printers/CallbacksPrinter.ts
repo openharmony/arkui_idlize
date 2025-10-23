@@ -526,9 +526,8 @@ class ManagedCallCallbackVisitor {
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`callManaged${callback.name}Sync`, signature, writer => {
-            writer.print('uint8_t dataBuffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`SerializerBase`),
-                writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
+                writer.makeString(`SerializerBase(nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(peerGeneratorConfiguration().ApiKind.toString())]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
@@ -536,7 +535,9 @@ class ManagedCallCallbackVisitor {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
-            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(dataBuffer), dataBuffer);`)
+            writer.print(`KInteropReturnBuffer callData = argsSerializer.toReturnBuffer();`)
+            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, callData.length, callData.data);`)
+            writer.print(`callData.dispose(callData.data, callData.length);`)
         })
     }
 
