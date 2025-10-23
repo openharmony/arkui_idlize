@@ -931,6 +931,12 @@
                 "hookName": "hookCommonMethodModifierSize",
                 "replaceImplementation": true
             }
+        },
+        "TabsAttribute": {
+            "pageFlipMode": {
+                "hookName": "hookTabsApplyAttributesFinish",
+                "replaceImplementation": false
+            }
         }
     },
     "materialized": {
