@@ -7,6 +7,12 @@ dictionary UnionSampleEnum {
     number D = 11;
 };
 
+[Entity=Tuple, Synthetic]
+interface UnionSampleTupleNumberString {
+    attribute number value0;
+    attribute String value1;
+};
+
 [Entity=Interface]
 interface UnionSampleEnumInterface {
 
@@ -25,6 +31,13 @@ interface UnionSampleNumberArrayInterface {
     attribute (number or sequence<number>) prop;
 };
 
+[Entity=Interface]
+interface UnionSampleTupleArrayInterface {
+
+    attribute (number or String or UnionSampleTupleNumberString or sequence<UnionSampleTupleNumberString>) prop;
+};
+
 UnionSampleEnumInterface checkUnionEnumSample(UnionSampleEnumInterface value);
 UnionSampleArrayInterface checkUnionArraySample(UnionSampleArrayInterface value);
 UnionSampleNumberArrayInterface checkUnionNumberArraySample(UnionSampleNumberArrayInterface value);
+UnionSampleTupleArrayInterface checkUnionTupleArraySample(UnionSampleTupleArrayInterface value);

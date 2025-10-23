@@ -42,6 +42,7 @@ export {
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
+    checkUnionTupleArraySample,
 } from "../../generated/ts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"

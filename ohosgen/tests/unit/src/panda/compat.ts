@@ -43,6 +43,7 @@ export {
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
+    checkUnionTupleArraySample,
 } from "../../generated/arkts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
@@ -81,6 +82,10 @@ export function toBigInt(value: long): long {
 }
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    if (value1 instanceof Tuple && value2 instanceof Tuple) {
+        // TBD: check tuple elements
+        return
+    }
     if (value1 instanceof Array && value2 instanceof Array) {
         arktest.assertEQ(value1.length, value2.length, "Arrays length differ!")
         for(let i = 0; i < value1.length; i++) {

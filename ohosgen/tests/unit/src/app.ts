@@ -53,6 +53,7 @@ import {
   checkUnionEnumSample,
   checkUnionArraySample,
   checkUnionNumberArraySample,
+  checkUnionTupleArraySample,
 } from '#compat'
 
 import { IDLCheckConstructor } from '#compat'
@@ -265,6 +266,13 @@ function checkUnions() {
   // Number Array union
   checkEQ(5, checkUnionNumberArraySample({ prop: 5 }).prop)
   checkEQ([1, 2, 3], checkUnionNumberArraySample({ prop: [1, 2, 3] }).prop)
+
+  // Tuple Array union
+  checkEQ(5, checkUnionTupleArraySample({ prop: 5 }).prop)
+  checkEQ("five", checkUnionTupleArraySample({ prop: "five" }).prop)
+  // checkEQ([5, 7], checkUnionTupleArraySample({ prop: [5, 7] }).prop)
+  // checkEQ(["five", "seven"], checkUnionTupleArraySample({ prop: ["five", "seven"] }).prop)
+  // checkEQ([7, "five"], checkUnionTupleArraySample({ prop: [7, "five"] }).prop)
 }
 
 function checkStaticMaterialized() {

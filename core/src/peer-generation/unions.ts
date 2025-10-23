@@ -90,8 +90,7 @@ export class UnionRuntimeTypeChecker {
         })
     }
     makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter, library: LibraryInterface, type?: IDLType): LanguageExpression {
-        var convertor = this.convertors[convertorIndex]
-
+        let convertor = this.convertors[convertorIndex]
         if (writer.language === Language.TS) {
             const isArray = idl.IDLContainerUtils.isSequence(convertor.idlType)
             if (isArray || this.conflictingConvertors.has(convertor)) {

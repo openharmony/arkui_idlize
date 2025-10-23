@@ -298,7 +298,16 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeNaryOp('==', args)
     }
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
-        return `${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`
+        return `${value} instanceof ${withInsideInstanceof(true, () => {
+            let typeName = this.getNodeName(type)
+            if (idl.isReferenceType(type)) {
+                const decl = this.resolver.resolveTypeReference(type)
+                if (decl && idl.isInterface(decl) && decl.subkind == idl.IDLInterfaceSubkind.Tuple) {
+                    typeName = "Tuple"
+                }
+            }
+            return typeName
+        })}`
     }
     override castToInt(value: string, bitness: 8 | 32): string {
         // This fix is used to avoid unnecessary writeInt8(value as int32) call, which is generated if value is already an int32
@@ -324,6 +333,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
     override instanceOf(value: string, type: idl.IDLType): LanguageExpression {
-        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
+        return this.makeString(this.discriminate(value, -1, type, []))
     }
 }
