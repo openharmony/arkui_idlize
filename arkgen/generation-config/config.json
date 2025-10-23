@@ -842,6 +842,10 @@
             "menuItemContentModifier": {
                 "hookName": "hookSelectContentModifier",
                 "replaceImplementation": true
+            },
+            "divider": {
+                "hookName": "hookSelectSetDividerMethod",
+                "replaceImplementation": false
             }
         },
         "SliderAttribute": {
