@@ -83,13 +83,15 @@ export function toBigInt(value: long): long {
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
     if (value1 instanceof Tuple && value2 instanceof Tuple) {
-        // TBD: check tuple elements
-        return
+        // TBD: check tuples by their elements
+        // For some way the smart cast does not work for Tuple
+        arktest.assertEQ(`${value1}`, `${value2}`, comment)
+        return;
     }
     if (value1 instanceof Array && value2 instanceof Array) {
         arktest.assertEQ(value1.length, value2.length, "Arrays length differ!")
         for(let i = 0; i < value1.length; i++) {
-            arktest.assertEQ(value1[i], value2[i], comment)
+            checkEQ(value1[i], value2[i], comment)
         }
         return
     }

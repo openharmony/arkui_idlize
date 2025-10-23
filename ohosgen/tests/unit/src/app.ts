@@ -270,9 +270,11 @@ function checkUnions() {
   // Tuple Array union
   checkEQ(5, checkUnionTupleArraySample({ prop: 5 }).prop)
   checkEQ("five", checkUnionTupleArraySample({ prop: "five" }).prop)
-  // checkEQ([5, 7], checkUnionTupleArraySample({ prop: [5, 7] }).prop)
-  // checkEQ(["five", "seven"], checkUnionTupleArraySample({ prop: ["five", "seven"] }).prop)
-  // checkEQ([7, "five"], checkUnionTupleArraySample({ prop: [7, "five"] }).prop)
+  // TBD: Fix Tuple serialization for TS
+  // const tuple: [number, string] = [7, "seven"]
+  // checkEQ(tuple, checkUnionTupleArraySample({ prop: tuple }).prop)
+  // const tuples: [number, string][] = [[8, "eight"], [9, "nine"]]
+  // checkEQ(tuples, checkUnionTupleArraySample({ prop: tuples }).prop)
 }
 
 function checkStaticMaterialized() {
