@@ -26,7 +26,6 @@ import {
     IndentedPrinter,
     isDefined,
     isOptionalType,
-    isReferenceType,
     isParameter,
     Method,
     TSLanguageWriter
@@ -40,8 +39,9 @@ import { Importer } from "./Importer"
 import { LibraryTypeConvertor } from "../../type-convertors/top-level/LibraryTypeConvertor"
 import { id } from "../../utils/types"
 import { FactoryConstructions } from "../../constuctions/FactoryConstructions"
-import { PeerPrinter } from "./PeerPrinter"
 import { Config } from "../../general/Config"
+import { Filter } from "../Filter"
+import { CommonGenerator } from "../Generator"
 
 export class FactoryPrinter extends SingleFilePrinter {
     protected importer = new Importer(this.typechecker, `peers`)
@@ -83,7 +83,7 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     printInterface(node: IDLInterface) {
-        const filtered = PeerPrinter.filterMoreSpecific(
+        const filtered = Filter.filterMoreSpecific(
             node.methods.filter(m => isCreate(m.name))
         )
         const universal = filtered.at(0)
@@ -92,8 +92,8 @@ export class FactoryPrinter extends SingleFilePrinter {
             return
         }
 
-        const params = PeerPrinter.filterParameters(universal.parameters)
-        const methods = PeerPrinter.filterMethods(node.methods)
+        const params = Filter.filterParameters(universal.parameters)
+        const methods = Filter.filterMethods(node.methods)
         const getters = this.gettersForParams(params, methods)
         if (!getters) {
             return
@@ -111,14 +111,14 @@ export class FactoryPrinter extends SingleFilePrinter {
 
     private printCreate(node: IDLInterface, universalName: string, parameters: IDLParameter[]): void {
         const isNullable = (type: IDLType|IDLParameter) =>
-            PeerPrinter.isNullableType(isParameter(type) ? type.type : type, this.typechecker)
-        const extraParameters = PeerPrinter.makeExtraParameters(node, this.config, this.typechecker)
+            Filter.isNullableType(isParameter(type) ? type.type : type, this.typechecker)
+        const extraParameters = CommonGenerator.makeExtraParameters(node, this.config, this.typechecker)
         const signature = makeSignature(
             parameters
                 .concat(extraParameters)
                 .map(p => ({
                     name: p.name,
-                    type: PeerPrinter.makeOptionalType(p.type, isNullable),
+                    type: Filter.makeOptionalType(p.type, isNullable),
                     isOptional: p.isOptional
                 })),
             createReferenceType(node.name)
@@ -143,7 +143,7 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private printUpdate(node: IDLInterface, universalName: string, parameters: IDLParameter[], getters: IDLMethod[]): void {
-        const isNullable = (type: IDLType) => PeerPrinter.isNullableType(type, this.typechecker)
+        const isNullable = (type: IDLType) => Filter.isNullableType(type, this.typechecker)
         const extraParameters = this.config.parameters.getParameters(node.name)
         const signature = makeSignature([{
                 name: FactoryConstructions.original,
@@ -152,7 +152,7 @@ export class FactoryPrinter extends SingleFilePrinter {
             }]
                 .concat(parameters)
                 .concat(extraParameters
-                    .map(p => PeerPrinter.makeExtraParameter(p, node, this.typechecker))
+                    .map(p => CommonGenerator.makeExtraParameter(p, node, this.typechecker))
                 )
                 .map((p,i) => ({
                     name: p.name,
@@ -177,7 +177,7 @@ export class FactoryPrinter extends SingleFilePrinter {
                         .map(param => same(param.name, param.name))
                         .concat(
                             extraParameters.map(param => {
-                                const [get, _] = PeerPrinter.resolveProperty(param, node, this.typechecker)
+                                const [get, _] = CommonGenerator.resolveProperty(param, node, this.typechecker)
                                 return same(param.name, peerMethod(get.name))
                             }
                         )
