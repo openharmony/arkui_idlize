@@ -380,7 +380,7 @@ export class OverloadsPrinter {
                         isNeedDiscriminator = resolved !== undefined && idl.isEnum(resolved)
                     }
                     if (isNeedDiscriminator) {
-                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer, this.library))
                     }
                 }
             )

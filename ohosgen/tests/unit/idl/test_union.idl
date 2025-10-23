@@ -3,12 +3,28 @@ package test_union;
 dictionary UnionSampleEnum {
     number A = 0;
     number B = 1;
+    number C = 10;
+    number D = 11;
 };
 
 [Entity=Interface]
-interface UnionSampleInterface {
+interface UnionSampleEnumInterface {
+
+    attribute (number or UnionSampleEnum) prop;
+};
+
+[Entity=Interface]
+interface UnionSampleArrayInterface {
 
     attribute (boolean or number or String or UnionSampleEnum or sequence<boolean> or sequence<UnionSampleEnum>) prop;
 };
 
-UnionSampleInterface checkUnionSample(UnionSampleInterface value);
+[Entity=Interface]
+interface UnionSampleNumberArrayInterface {
+
+    attribute (number or sequence<number>) prop;
+};
+
+UnionSampleEnumInterface checkUnionEnumSample(UnionSampleEnumInterface value);
+UnionSampleArrayInterface checkUnionArraySample(UnionSampleArrayInterface value);
+UnionSampleNumberArrayInterface checkUnionNumberArraySample(UnionSampleNumberArrayInterface value);

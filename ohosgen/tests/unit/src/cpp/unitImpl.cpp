@@ -1092,6 +1092,13 @@ OH_UNIT_IDLCheckProps GlobalScope_testIDLCheckPropsImpl(OH_UNIT_IDLCheckProps ar
 }
 
 // Unions
-OH_UNIT_UnionSampleInterface GlobalScope_checkUnionSampleImpl(const OH_UNIT_UnionSampleInterface* value) {
+OH_UNIT_UnionSampleEnumInterface GlobalScope_checkUnionEnumSampleImpl(const OH_UNIT_UnionSampleEnumInterface* value) {
     return *value;
 }
+OH_UNIT_UnionSampleArrayInterface GlobalScope_checkUnionArraySampleImpl(const OH_UNIT_UnionSampleArrayInterface* value) {
+    return *value;
+}
+OH_UNIT_UnionSampleNumberArrayInterface GlobalScope_checkUnionNumberArraySampleImpl(const OH_UNIT_UnionSampleNumberArrayInterface* value) {
+    return *value;
+}
+

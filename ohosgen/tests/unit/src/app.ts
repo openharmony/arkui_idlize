@@ -48,7 +48,12 @@ import {
   testLength
 } from '#compat'
 
-import { UnionSampleEnum, UnionSampleInterface, checkUnionSample} from '#compat'
+import {
+  UnionSampleEnum,
+  checkUnionEnumSample,
+  checkUnionArraySample,
+  checkUnionNumberArraySample,
+} from '#compat'
 
 import { IDLCheckConstructor } from '#compat'
 
@@ -232,18 +237,34 @@ function checkDataInterfaces() {
 }
 
 function checkUnions() {
-  checkEQ(false, checkUnionSample({prop: false}).prop)
-  checkEQ(true, checkUnionSample({prop: true}).prop)
-  checkEQ("abc", checkUnionSample({prop: "abc"}).prop)
 
-  assertDoubleEQ(1.23, checkUnionSample({prop: 1.23}).prop as number)
+  // Enum union
+  checkEQ(0, checkUnionEnumSample({prop: 0}).prop)
+  checkEQ(1, checkUnionEnumSample({prop: 1}).prop)
+  checkEQ(10, checkUnionEnumSample({prop: 10}).prop)
+  checkEQ(11, checkUnionEnumSample({prop: 11}).prop)
+  checkEQ(12, checkUnionEnumSample({prop: 12}).prop)
+  checkEQ(UnionSampleEnum.A, checkUnionEnumSample({prop: UnionSampleEnum.A}).prop)
+  checkEQ(UnionSampleEnum.B, checkUnionEnumSample({prop: UnionSampleEnum.B}).prop)
+  checkEQ(UnionSampleEnum.C, checkUnionEnumSample({prop: UnionSampleEnum.C}).prop)
+  checkEQ(UnionSampleEnum.D, checkUnionEnumSample({prop: UnionSampleEnum.D}).prop)
 
-  checkEQ(UnionSampleEnum.A, checkUnionSample({prop: UnionSampleEnum.A}).prop)
-  checkEQ(UnionSampleEnum.B, checkUnionSample({prop: UnionSampleEnum.B}).prop)
+  // Array union
+  checkEQ(false, checkUnionArraySample({prop: false}).prop)
+  checkEQ(true, checkUnionArraySample({prop: true}).prop)
+  checkEQ("abc", checkUnionArraySample({prop: "abc"}).prop)
 
-  checkEQ([true, false], checkUnionSample({prop: [true, false]}).prop)
-  // Fix for TS
-  // checkEQ([UnionSampleEnum.A, UnionSampleEnum.B], checkUnionSample({prop: [UnionSampleEnum.A, UnionSampleEnum.B]}).prop)
+  assertDoubleEQ(1.23, checkUnionArraySample({prop: 1.23}).prop as number)
+
+  checkEQ(UnionSampleEnum.A, checkUnionArraySample({prop: UnionSampleEnum.A}).prop)
+  checkEQ(UnionSampleEnum.B, checkUnionArraySample({prop: UnionSampleEnum.B}).prop)
+
+  checkEQ([true, false], checkUnionArraySample({prop: [true, false]}).prop)
+  checkEQ([UnionSampleEnum.A, UnionSampleEnum.B], checkUnionArraySample({prop: [UnionSampleEnum.A, UnionSampleEnum.B]}).prop)
+
+  // Number Array union
+  checkEQ(5, checkUnionNumberArraySample({ prop: 5 }).prop)
+  checkEQ([1, 2, 3], checkUnionNumberArraySample({ prop: [1, 2, 3] }).prop)
 }
 
 function checkStaticMaterialized() {
