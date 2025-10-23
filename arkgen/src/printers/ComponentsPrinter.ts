@@ -48,7 +48,6 @@ import {
     TargetFile,
     collectDeclItself,
     findComponentByDeclaration,
-    componentToStyleClass,
     allowNamedOverloads,
     peerGeneratorConfiguration,
 } from '@idlizer/libohos'
@@ -155,10 +154,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 if (!this.options.isDeclared)
                     imports.addFeature(generateArkComponentName(parentComponent.name), `./${parentGeneratedPath}`)
 
-                imports.addFeatures([
-                    componentToStyleClass(parentComponent.attributeDeclaration.name),
-                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                ], `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
                     let [parentRef] = parentComponent.attributeDeclaration.inheritance
                     parentDecl = this.library.resolveTypeReference(parentRef)
@@ -263,10 +258,6 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                     role: LayoutNodeRole.COMPONENT
                 })
 
-                hookImports.addFeatures([
-                    componentToStyleClass(parentComponent.attributeDeclaration.name),
-                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                ], `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
                     let [parentRef] = parentComponent.attributeDeclaration.inheritance
                     parentDecl = this.library.resolveTypeReference(parentRef)

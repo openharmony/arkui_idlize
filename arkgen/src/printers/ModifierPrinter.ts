@@ -204,6 +204,7 @@ class ModifiersFileVisitor {
         })
         importsCollector.addFeature(componentToPeerClass(component.name), `./${peerLocation}`)
         importsCollector.addFeatures(["int32"], "@koalaui/common")
+        importsCollector.addFeature("ModifierState", "./CommonModifier")
         collectDeclDependencies(this.library, component.attributeDeclaration, importsCollector)
         expandComponentWithSupers(this.library, component.attributeDeclaration).forEach(decl => {
             collectDeclItself(this.library, decl, importsCollector)
@@ -304,7 +305,7 @@ class ModifiersFileVisitor {
 
     generateHooksCall(hookName: string, params: LanguageExpression[], writer: LanguageWriter): LanguageExpression {
         const hookCall = writer.makeFunctionCall(hookName, [
-            writer.makeThis(), ...params
+            writer.makeString('peer'), ...params
         ])
         return hookCall;
     }
@@ -344,6 +345,7 @@ class ModifiersFileVisitor {
 
         printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
             writer.print("_instanceId: number = -1;")
+            writer.print("_state: ModifierState = new ModifierState")
 
             writer.writeMethodImplementation(new Method(
                 `setInstanceId`,
@@ -375,6 +377,7 @@ class ModifiersFileVisitor {
             writer.writeMethodImplementation(new Method('applyModifierPatch',
                 new MethodSignature(idl.IDLVoidType, [idl.createReferenceType("PeerNode")], [], [], [], ['node'])),
                 writer => {
+                    writer.print(`this._state.addRef()`);
                     if (parentSet) writer.print('super.applyModifierPatch(node)');
                     writer.print(`const peer = node as ${componentToPeerClass(component.name)};`)
                     const statements: IfStatement[] = []
@@ -397,6 +400,7 @@ class ModifiersFileVisitor {
                         if (hookRecord && hookRecord.replaceImplementation) {
                             collectedHooks.push(hookRecord.hookName)
                         }
+                        // hookCall in applyModifierPatch
                         const statement = (hookRecord && hookRecord.replaceImplementation) ? this.generateHooksCall(hookRecord.hookName, params, writer) : writer.makeMethodCall('peer', methodName, params)
                         const resetStatement = writer.makeMethodCall('peer', methodName, resetParams)
                         const switchPrinter = this.library.createLanguageWriter();
@@ -418,7 +422,13 @@ class ModifiersFileVisitor {
                         switchPrinter.print(`default: {`)
                         switchPrinter.pushIndent()
                         switchPrinter.print(`this.${this.generateFiledFlag(attribute)} = AttributeUpdaterFlag.INITIAL;`)
-                        if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
+                        if (attribute.isOptional) {
+                            if (hookRecord && hookRecord.replaceImplementation) {
+                                switchPrinter.print(`${switchPrinter.makeFunctionCall(hookRecord.hookName, [writer.makeString('peer'), ...resetParams]).asString()};`)
+                            } else {
+                                switchPrinter.print(`${resetStatement.asString()};`)
+                            }
+                        }
                         switchPrinter.popIndent()
                         switchPrinter.print(`}`)
                         switchPrinter.popIndent()
@@ -491,6 +501,7 @@ class ModifiersFileVisitor {
                     }
                     const hookMethod = getHookMethod(this.generateAttributeSetName(componentAttribute.name), attribute.method.method.name)
                     if (hookMethod) {
+                        // hook call for Modifier member function
                         this.printHookedMethodBody(attribute.method.method, hookMethod.hookName, writer)
                         collectedHooks.push(hookMethod.hookName)
                         writer.writeStatement(writer.makeReturn(writer.makeThis()))
@@ -514,6 +525,7 @@ class ModifiersFileVisitor {
                     attribute.argTypes.forEach((t, index) => {
                         thenStatements.push(writer.makeAssign(`this.${this.generateFiledName(attribute, index.toString())}`, t, writer.makeString(attribute.args[index]), false))
                     })
+                    thenStatements.push(writer.makeStatement(writer.makeString(`this._state.fireChange()`)))
                     const thenStatementBlock = writer.makeBlock(thenStatements)
                     const elseStatementBlock = writer.makeBlock([writer.makeAssign(`this.${this.generateFiledFlag(attribute)}`, undefined, writer.makeString(`AttributeUpdaterFlag.SKIP`), false)])
                     const condition = writer.makeCondition(equalNary, thenStatementBlock, elseStatementBlock)
