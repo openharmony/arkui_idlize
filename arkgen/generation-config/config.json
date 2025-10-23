@@ -856,6 +856,12 @@
                 "replaceImplementation": true
             }
         },
+        "TextPickerAttribute": {
+            "divider": {
+                "hookName": "hookTextPickerDivider",
+                "replaceImplementation": false
+            }
+        },
         "TextTimerAttribute": {
             "contentModifier": {
                 "hookName": "hookTextTimerContentModifier",
