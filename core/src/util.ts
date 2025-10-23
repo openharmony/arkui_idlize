@@ -483,3 +483,10 @@ export function scanInputDirs(
         return path.basename(a).localeCompare(path.basename(b))
     })
 }
+
+const printedWarnMessages = new Set<string>()
+export function consoleWarn(message: string) {
+    if (printedWarnMessages.has(message)) return
+    printedWarnMessages.add(message)
+    console.warn(message)
+}
