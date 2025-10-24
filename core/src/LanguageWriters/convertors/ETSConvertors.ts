@@ -14,10 +14,8 @@
  */
 
 import * as idl from "../../idl"
-import { Language } from "../../Language"
-import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor"
 import { LanguageWriter } from "../LanguageWriter"
-import { convertDeclaration, convertType, TypeConvertor } from "../nameConvertor"
+import { isInsideInstanceof } from "../nameConvertor"
 import { TSInteropArgConvertor, TSTypeNameConvertor } from "./TSConvertors"
 
 export class ETSTypeNameConvertor extends TSTypeNameConvertor {
@@ -36,12 +34,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
     }
     override convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case idl.IDLU8Type: return 'KUint8ArrayPtr'
-                case idl.IDLI32Type: return 'KInt32ArrayPtr'
-                case idl.IDLF32Type: return 'KFloat32ArrayPtr'
-            }
-            return `Array<${this.convert(type.elementType[0])}>`
+            return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
         return super.convertContainer(type)
     }

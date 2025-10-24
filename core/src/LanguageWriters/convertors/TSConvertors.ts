@@ -17,6 +17,7 @@ import * as idl from '../../idl'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
+import { isInsideInstanceof } from "../nameConvertor"
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
@@ -70,12 +71,7 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {
-            switch (type.elementType[0]) {
-                case idl.IDLU8Type: return 'Uint8Array' // should be changed to Array
-                case idl.IDLI32Type: return 'Int32Array' // should be changed to Array
-                case idl.IDLF32Type: return 'KFloat32ArrayPtr' // should be changed to Array
-                default: return `Array<${this.convert(type.elementType[0])}>`
-            }
+            return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
         if (idl.IDLContainerUtils.isRecord(type)) {
             return `Map<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
@@ -259,6 +255,11 @@ export class TSInteropArgConvertor implements TypeConvertor<string> {
         return convertType(this, type)
     }
     convertContainer(type: idl.IDLContainerType): string {
+        switch (type.elementType[0]) {
+            case idl.IDLU8Type: return 'KUint8ArrayPtr'
+            case idl.IDLI32Type: return 'KInt32ArrayPtr'
+            case idl.IDLF32Type: return 'KFloat32ArrayPtr'
+        }
         throw new Error(`Cannot pass container types through interop`)
     }
     convertImport(type: idl.IDLImport): string {
