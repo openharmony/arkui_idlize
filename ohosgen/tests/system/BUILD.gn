@@ -1,0 +1,309 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("${idlize.imports_prefix}/npm.gni")
+import("${idlize.imports_prefix}/node.gni")
+import("${idlize.imports_prefix}/bash.gni")
+
+template("system_test") {
+    test_case = target_name
+    test_case_uppercase = exec_script("${idlize.scripts_path}/to_upper.py", [ test_case ], "string")
+
+    assert(defined(invoker.target), "`target` argument must be set. Example: `target = \"arkts\"`")
+    target = invoker.target
+
+    assert(defined(invoker.input_type), "`input_type` argument must be set. Example: `input_type = \"idl\"`")
+    input_type = invoker.input_type
+
+    use_ost = invoker.use_ost
+
+    idl_path = "$root_gen_dir/ohosgen/tests/system/$test_case/idl"
+
+    if (input_type == "dts") {
+        node_cmd("$test_case:idl") {
+            script = rebase_path("../../../dtsgen")
+            args = [
+                "--dts2idl",
+                "--input-dir",
+                rebase_path("./$test_case/dts"),
+                "--output-dir",
+                rebase_path(idl_path)
+            ]
+            deps = [
+                "${idlize.root_path}/dtsgen:compile"
+            ]
+        }
+    } else {
+        cp("$test_case:idl") {
+            src = [ rebase_path("./$test_case/idl") ]
+            dest = rebase_path(idl_path)
+        }
+    }
+
+    gen_path = "$target_gen_dir/$test_case"
+
+    rm("$test_case:generate:clean") {
+        recursive = true
+        force = true
+        file = [ rebase_path("./$test_case/generated") ]
+    }
+
+    cp("$test_case:generate:cp") {
+        src = [ rebase_path("$target_gen_dir/$test_case/generated") ]
+        dest = rebase_path("./$test_case/generated")
+        deps = [
+            ":$test_case:generate:clean",
+            ":$test_case:generate:gen",
+        ]
+    }
+
+    node_cmd("$test_case:generate:gen") {
+        script = rebase_path("../..")
+        args = [
+            "--idl2peer",
+            "--language=$target",
+            "--input-dir",
+            rebase_path(idl_path),
+            "--output-dir",
+            rebase_path(gen_path),
+            "--options-file",
+            rebase_path("./$test_case/generation_config.json"),
+        ]
+        if (use_ost) {
+            args += [ "--use-ost" ]
+        }
+        outputs = [
+            "$gen_path/generated/native/${test_case}.cpp",
+            "$gen_path/generated/native/${test_case}ApiImpl_temp.cpp",
+        ]
+        deps = [
+            "${idlize.root_path}/ohosgen:compile",
+            ":$test_case:idl"
+        ]
+    }
+
+    group("$test_case:generate") {
+        deps = [
+            ":$test_case:generate:clean",
+            ":$test_case:generate:cp",
+            ":$test_case:generate:gen",
+        ]
+    }
+
+    bash_cmd("$test_case:build") {
+        script = rebase_path("./build-panda.sh")
+        args = [ test_case ]
+        deps = [
+            ":$test_case:generate",
+            "${koala_mr.libarkts_path}:libarkts_copy",
+        ]
+    }
+
+    shared_library("$test_case:build-native:build") {
+        test_case_package = "@" + string_replace(test_case, "_", "-")
+
+        output_name = "${test_case_uppercase}NativeModule"
+
+        cflags = []
+        include_dirs = []
+        sources = []
+        ldflags = []
+
+        interop_src = "${koala_mr.root_path}/interop/src/cpp"
+        include_dirs += [
+            "$interop_src/ani",
+            "$interop_src/ani/panda",
+            "$gen_path/generated/native",
+            "./$test_case/src/cpp",
+            interop_src,
+            "$interop_src/types",
+        ]
+        if (target_os == "win") {
+            cflags += [ "-DKOALA_WINDOWS" ]
+        }
+        if (target_os == "linux") {
+            cflags += [ "-DKOALA_LINUX" ]
+        }
+        if (target_os == "mac") {
+            cflags += [ "-DKOALA_MACOS" ]
+        }
+        cflags += [
+            "-Wall", "-Werror", "-Wno-unused-variable", "-Wno-unused-but-set-variable",
+            "-Wno-extern-c-compat", "-Wno-error=deprecated-declarations",
+            "-Wno-unknown-warning-option", "-Wno-parentheses-equality", "-Wno-unused-function", "-Wno-macro-redefined",
+            "-Wno-enum-compare", "-Wno-tautological-constant-out-of-range-compare",
+            "-DKOALA_LIBACE_LINKED",
+            "-DKOALA_USE_PANDA_VM",
+            "-DKOALA_ANI",
+            "-DINTEROP_LIBRARY_NAME=$output_name",
+            "-DETS_MODULE_CLASSPATH_PREFIX=${test_case_package}.generated.arkts.${test_case}.INTERNAL.",
+        ]
+        
+        ldflags += [
+            rebase_path("${koala_mr.root_path}/interop/build/libInteropNativeModule.so")
+        ]
+        sources += [
+            "$interop_src/ani/convertors-ani.cpp",
+            "$interop_src/types/signatures.cpp",
+            "$gen_path/generated/native/${test_case}.cpp",
+            "$gen_path/generated/native/${test_case}ApiImpl_temp.cpp",
+            "./$test_case/src/cpp/${test_case}Impl.cpp",
+            "$interop_src/common-interop.cpp",
+            "$interop_src/callback-resource.cpp",
+            "$interop_src/interop-logging.cpp",
+        ]
+        deps = [
+            ":$test_case:generate:gen",
+            "${koala_mr.root_path}/interop:interop_native:panda"
+        ]
+    }
+
+    cp("$test_case:build-native:cp") {
+        _output_name_prefix = ""
+        _output_extension = ""
+        if (target_os == "linux") {
+            _output_name_prefix = "lib"
+            _output_extension = "so"
+        }
+        if (target_os == "win") {
+            _output_extension = "dll"
+        }
+        full_output_name = "$_output_name_prefix${test_case_uppercase}NativeModule.$_output_extension"
+        src = [ rebase_path("$root_out_dir/$full_output_name") ]
+        dest = rebase_path("./$test_case/build/panda/$full_output_name")
+        deps = [
+            ":$test_case:build-native:build"
+        ]
+    }
+
+    group("$test_case:build-native") {
+        deps = [
+            ":$test_case:build-native:cp",
+            ":$test_case:build-native:build",
+        ]
+    }
+
+    bash_cmd("$test_case:exec") {
+        script = "./run-panda-golden.sh"
+        args = [ test_case ]
+        deps = [
+            ":$test_case:build",
+            ":$test_case:build-native",
+            "${koala_mr.root_path}/interop:interop_abc",
+            "${koala_mr.root_path}/incremental:incremental_abc",
+        ]
+    }
+
+    group(test_case) {
+        deps = [
+            ":$test_case:idl",
+            ":$test_case:generate",
+            ":$test_case:build",
+            ":$test_case:build-native",
+            ":$test_case:exec",
+        ]
+    }
+}
+
+test_cases = [
+    { name = "huks" },
+    { name = "huks_with_class" },
+    { name = "test_buffer" },
+    { name = "test_fqn"
+      use_ost = true },
+    { name = "test_generic_callback"
+      input_type = "dts" },
+    { name = "test_modules_multilevel"
+      input_type = "dts" },
+    { name = "test_modules_multilevel_property"
+      input_type = "dts" },
+    { name = "test_modules_simple"
+      input_type = "dts"
+      use_ost = true },
+    { name = "test_name_collision" },
+    { name = "test_package" },
+]
+
+foreach(conf, test_cases) {
+    system_test(conf.name) {
+        target = "arkts"
+        input_type = "idl"
+        if (defined(conf.input_type)) {
+            input_type = conf.input_type
+        }
+        use_ost = false
+        if (defined(conf.use_ost)) {
+            use_ost = conf.use_ost
+        }
+    }
+}
+
+group("all") {
+    deps = []
+    foreach(conf, test_cases) {
+        deps += [ ":${conf.name}" ]
+    }
+}
+
+# system_test("huks") {
+#     target = "arkts"
+#     input_type = "idl"
+# }
+
+# system_test("huks_with_class") {
+#     target = "arkts"
+#     input_type = "idl"
+# }
+
+# system_test("test_buffer") {
+#     target = "arkts"
+#     input_type = "idl"
+# }
+
+# system_test("test_generic_callback") {
+#     target = "arkts"
+#     input_type = "dts"
+# }
+
+# system_test("test_modules_multilevel") {
+#     target = "arkts"
+#     input_type = "dts"
+# }
+
+# system_test("test_modules_multilevel_property") {
+#     target = "arkts"
+#     input_type = "dts"
+# }
+
+# system_test("test_name_collision") {
+#     target = "arkts"
+#     input_type = "idl"
+# }
+
+# system_test("test_package") {
+#     target = "arkts"
+#     input_type = "idl"
+# }
+
+# group("all") {
+#     deps = [
+#         ":huks",
+#         ":huks_with_class",
+#         ":test_buffer",
+#         ":test_generic_callback",
+#         ":huks",
+#         ":huks",
+#         ":huks",
+#         ":huks",
+#     ]
+# }
