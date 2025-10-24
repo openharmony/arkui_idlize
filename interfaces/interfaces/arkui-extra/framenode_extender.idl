@@ -12,8 +12,8 @@ interface FrameNodeExtender {
   static pointer getDestroy();
   static void destroyPeer(FrameNode peer);
   static boolean isModifiable(pointer peer);
-  static void appendChild(FrameNode peer, FrameNode child);
-  static void insertChildAfter(pointer peer, pointer child, pointer sibling);
+  static double appendChild(FrameNode peer, FrameNode child);
+  static double insertChildAfter(pointer peer, pointer child, pointer sibling);
   static void removeChild(FrameNode peer, FrameNode child);
   static void clearChildren(FrameNode peer);
   static pointer getChild(FrameNode peer, number index, number expandMode);
@@ -50,7 +50,7 @@ interface FrameNodeExtender {
   static Position getPositionToScreenWithTransform(FrameNode peer);
   static pointer getFrameNodeByKey(String name);
   static number getIdByFrameNode(pointer node);
-  static void moveTo(FrameNode peer, FrameNode targetParent, number index);
+  static double moveTo(FrameNode peer, FrameNode targetParent, number index);
   static number getFirstChildIndexWithoutExpand(FrameNode peer);
   static number getLastChildIndexWithoutExpand(FrameNode peer);
   static pointer getAttachedFrameNodeById(String id);
@@ -67,4 +67,6 @@ interface FrameNodeExtender {
   static FrameNode unWrapRawPtr(FrameNode peer, pointer pointer);
   static UICommonEvent getCommonEvent(FrameNode peer);
   static pointer getRenderNode(pointer peer);
+  static double adoptChild(FrameNode peer, FrameNode child);
+  static double removeAdoptedChild(FrameNode peer, FrameNode child);
 };
