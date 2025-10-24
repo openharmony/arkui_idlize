@@ -615,7 +615,8 @@
             "GestureType",
             "TouchTestInfo",
             "TouchResult",
-            "WaterFlowSections"
+            "WaterFlowSections",
+            "Badge"
         ],
         "ignoreEntry": [
             "Optional",
