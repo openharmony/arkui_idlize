@@ -9,19 +9,6 @@ This folder contains collection of tools for analyzing and transformation of
 
 ### Peer generator
 
-Prerequisites:
-
-Add registry to the `.npmrc` file in the `$HOME` directory (`~/.npmrc`):
-```text
-registry=https://repo.huaweicloud.com/repository/npm/
-@ohos:registry=https://repo.harmonyos.com/npm/
-strict-ssl=false
-lockfile=false
-@idlizer:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-@koalaui:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-@panda:registry=https://nexus.cn.bz-openlab.ru:10443/repository/koala-npm/
-//nexus.cn.bz-openlab.ru:10443/repository/koala-npm/:_auth=a29hbGEtcHViOnkzdCFuMHRoZXJQ
-```
 Using:
 ```
 npx @idlizer/arkgen@next --dts2peer --input-dir <dir> --arkoala-destination <arkoala-path> --generate-interface <components> --generator-target arkoala --only-integrated
