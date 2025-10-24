@@ -808,7 +808,7 @@
             },
             "divider": {
                 "hookName": "hookSelectSetDividerMethod",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "SliderAttribute": {
