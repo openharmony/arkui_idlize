@@ -609,7 +609,8 @@
             "SwipeGestureHandler",
             "GestureType",
             "TouchTestInfo",
-            "TouchResult"
+            "TouchResult",
+            "Badge"
         ],
         "ignoreEntry": [
             "Optional",
