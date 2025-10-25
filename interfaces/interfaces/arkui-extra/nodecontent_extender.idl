@@ -19,6 +19,6 @@ package arkui.component.idlize;
 interface NodeContentExtender {
   static pointer constructorNodeContent();
   static pointer getDestroy();
-  static double addFrameNode(pointer content, pointer node);
+  static f64 addFrameNode(pointer content, pointer node);
   static boolean removeFrameNode(pointer content, pointer node);
 };
