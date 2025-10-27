@@ -61,6 +61,7 @@ import { createComponentsPrinter, printComponentsDeclarations } from "./printers
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { ARKGEN_ROOT } from "./config"
+import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter"
 
 const resolveExternal = () => {
     let postfix = '../external'
@@ -75,6 +76,18 @@ const resolveExternal = () => {
 }
 const resolveExternalStubs = () => path.join(resolveExternal(), "subset")
 const Subset = path.join(ARKGEN_ROOT, "external-subset")
+
+export function generateLibaceUnitTests(config: {
+    libaceDestination: string | undefined,
+    outDir: string,
+    aceTypes?: string,
+}, peerLibrary: PeerLibrary) {
+    const libace = config.libaceDestination ?
+        new LibaceInstall(config.libaceDestination, false) :
+        new LibaceInstall(config.outDir, true)
+
+    printUnitTestsAsMultipleFiles(peerLibrary, libace, config.aceTypes)
+}
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,

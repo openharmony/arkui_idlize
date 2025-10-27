@@ -48,7 +48,7 @@ import { loadPeerConfiguration,
     NativeModule,
     syntheticTransformer,
 } from "@idlizer/libohos"
-import { generateArkoalaFromIdl, generateLibaceFromIdl } from "./arkoala"
+import { generateArkoalaFromIdl, generateLibaceFromIdl, generateLibaceUnitTests } from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
@@ -85,7 +85,7 @@ export function arkgen(argv:string[]) {
         .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
         .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
         .option('--version')
-        .option('--generator-target <all|arkoala|libace|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
+        .option('--generator-target <all|arkoala|libace|libaceut|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
         .option('--arkoala-destination <path>', 'Location of arkoala repository')
         .option('--libace-destination <path>', 'Location of libace repository')
         .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
@@ -95,6 +95,7 @@ export function arkgen(argv:string[]) {
         .option('--no-commented-code', 'Do not generate commented code in modifiers')
         .option('--enable-log', 'Enable logging')
         .option('--options-file <path...>', 'Paths to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
+        .option('--options-file-unittest <file>', 'Path to file with Unit Test configuration')
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--arkts-extension <string> [.ts|.ets]', "Generated ArkTS language files extension.", ".ts")
         .option('--interop-bridges <string>', "Generate interop bridges macros")
@@ -208,6 +209,14 @@ export function arkgen(argv:string[]) {
                 libaceDestination: options.libaceDestination,
                 apiVersion: apiVersion,
                 commentedCode: options.commentedCode,
+            }, idlLibrary)
+        }
+        if (options.generatorTarget == "libaceut" ||
+            options.generatorTarget == "all") {
+            generateLibaceUnitTests({
+                libaceDestination: options.libaceDestination,
+                outDir: outDir,
+                aceTypes: options.optionsFileUnittest,
             }, idlLibrary)
         }
         if (options.generatorTarget == "tracker") {
