@@ -15,6 +15,7 @@
 
 import {
     capitalize,
+    createOptionalType,
     createParameter,
     createProperty,
     createReferenceType,
@@ -30,6 +31,7 @@ import {
     IDLVoidType,
     isInterface,
     isOptionalType,
+    isParameter,
     isPrimitiveType,
     isProperty,
     isReferenceType,
@@ -200,14 +202,15 @@ export class PeerPrinter {
             )
         }
 
-        methods.other.forEach(node => {
-            if (isGetter(node)) {
-                return this.printGetter(iface, node, writer)
-            }
-            if (isRegular(node)) {
-                return this.printRegular(iface, node, writer)
-            }
-        })
+        PeerPrinter.filterMethods(methods.other)
+            .forEach(method => {
+                if (isGetter(method)) {
+                    return this.printGetter(iface, method, writer)
+                }
+                if (isRegular(method)) {
+                    return this.printRegular(iface, method, writer)
+                }
+            })
     }
 
     private printFragment(iface: IDLInterface, writer: TSLanguageWriter): void {
@@ -222,11 +225,12 @@ export class PeerPrinter {
 
     private printGetter(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
         writer.writeMethodImplementation(
-            this.makeMethod2(
+            PeerPrinter.makeMethod2(
                 peerMethod(node.name),
                 node.returnType,
                 [],
-                [MethodModifier.GETTER]
+                [MethodModifier.GETTER],
+                this.isNullable.bind(this, iface, node)
             ),
             () => {
                 writer.writeStatement(
@@ -239,19 +243,25 @@ export class PeerPrinter {
     }
 
     public printFunction(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
+        const makeOptional = this.makeOptional.bind(this, iface, node)
         const returnTypeInner = innerTypeCommon(node.returnType)
         const nativeCall = this.wrapBindingCall(
             this.makeStaticBindingCall(undefined, node, writer),
-            node.returnType,
+            makeOptional(node.returnType),
             writer
         )
 
         writer.writeFunctionImplementation(
             pascalToCamel(node.name),
             makeSignature(
-                PeerPrinter.removeArrayLengthParam(PeerPrinter.removeContextParam(node.parameters)),
-                node.returnType
-            ),
+                PeerPrinter.removeArrayLengthParam(PeerPrinter.removeContextParam(node.parameters))
+                    .map(p => ({
+                        name: p.name,
+                        type: makeOptional(p),
+                        isOptional: p.isOptional
+                    })),
+                makeOptional(node.returnType)
+                ),
             () => {
                 writer.writeStatement(
                     isVoidType(node.returnType)
@@ -266,12 +276,13 @@ export class PeerPrinter {
             writer.makeString(`/** @deprecated */`)
         )
         writer.writeMethodImplementation(
-            this.makeMethod2(
+            PeerPrinter.makeMethod2(
                 peerMethod(node.name),
                 PeersConstructions.this.type,
                 node.parameters
                     .map(it => createParameter(it.name, it.type)),
-                []
+                [],
+                this.isNullable.bind(this, iface, node)
             ),
             () => {
                 writer.writeExpressionStatement(
@@ -305,9 +316,10 @@ export class PeerPrinter {
     }
 
     private makeReturnBindingCall(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): LanguageExpression {
+        const makeOptional = this.makeOptional.bind(this, iface, node)
         return this.wrapBindingCall(
             this.makePeerBindingCall(iface, node, writer),
-            node.returnType,
+            makeOptional(node.returnType),
             writer
         )
     }
@@ -432,12 +444,13 @@ export class PeerPrinter {
     private printCreateOrUpdate(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
         const extraParameters = PeerPrinter.makeExtraParameters(iface, this.config, this.typechecker)
         writer.writeMethodImplementation(
-            this.makeMethod2(
+            PeerPrinter.makeMethod2(
                 `${makeMethodName(node.name)}${iface.name}`,
                 node.returnType,
                 node.parameters
                     .concat(extraParameters),
-                [MethodModifier.STATIC]
+                [MethodModifier.STATIC],
+                this.isNullable.bind(this, iface, node)
             ),
             (writer: TSLanguageWriter) => {
                 const nativeCall = this.makeStaticBindingCall(iface, node, writer)
@@ -504,8 +517,58 @@ export class PeerPrinter {
             .map(it => writer.makeString(it))
     }
 
-    private makeMethod2( name: string, returnType: IDLType, parameters: IDLParameter[], modifiers?: MethodModifier[]): Method {
-        return makeMethod(name, PeerPrinter.filterParameters(parameters), returnType, modifiers)
+    private static makeMethod2(
+        name: string,
+        returnType: IDLType,
+        parameters: IDLParameter[],
+        modifiers: MethodModifier[],
+        isNullable: (param: IDLParameter|IDLType) => boolean
+    ): Method {
+        const params = PeerPrinter.filterParameters(parameters)
+        return makeMethod(
+            name,
+            params.map(p => ({
+                name: p.name,
+                type: this.makeOptionalType(p, isNullable),
+                isOptional: p.isOptional
+            })),
+            this.makeOptionalType(returnType, isNullable),
+            modifiers
+        );
+    }
+
+    public static makeOptionalType(
+        param: IDLParameter|IDLType,
+        isNullable: (param: IDLParameter|IDLType) => boolean
+    ): IDLType {
+        const type = isParameter(param) ? param.type : param
+        return isNullable(param) ? createOptionalType(type) : type
+    }
+
+    private makeOptional(
+        iface: IDLInterface,
+        method: IDLMethod,
+        param: IDLParameter|IDLType
+    ): IDLType {
+        return PeerPrinter.makeOptionalType(param, this.isNullable.bind(this, iface, method))
+    }
+
+    private isNullable(
+        iface: IDLInterface,
+        method: IDLMethod,
+        param: IDLParameter|IDLType
+    ): boolean {
+        const isParam = isParameter(param)
+        const type = isParam ? param.type : param
+        if (!isParam && isCreateOrUpdate(method.name)) return false
+        if (!isParam && this.config.nonNullable.isNonNullableReturnType(iface.name, method.name)) return false
+        if (isParam && this.config.nonNullable.isNonNullableParameter(iface.name, method.name, param.name)) return false;
+        return PeerPrinter.isNullableType(type, this.typechecker)
+    }
+
+    public static isNullableType(type: IDLType, typechecker: Typechecker): boolean {
+        return isReferenceType(type) &&
+            (typechecker.isPeer(type) || type.name === Config.astNodeCommonAncestor)
     }
 
     public static filterMoreSpecific(methods: IDLMethod[]): IDLMethod[] {
@@ -530,6 +593,21 @@ export class PeerPrinter {
 
     public static filterParameters(params: IDLParameter[]): IDLParameter[] {
         return PeerPrinter.removeArrayLengthParam(PeerPrinter.removeContextParam(params))
+    }
+
+    public static filterMethods(methods: IDLMethod[]): IDLMethod[] {
+        const names = new Set<string>(methods.map(m => m.name))
+        const others = methods
+            .filter(method =>
+                !method.name.endsWith(Config.constPostfix) ||
+                !names.has(method.name.slice(0, -Config.constPostfix.length))
+            )
+        return others
+    }
+
+    public static isOptional(param: IDLParameter, typechecker: Typechecker): boolean {
+        return isReferenceType(param.type) &&
+            (typechecker.isPeer(param.type) || param.type.name === Config.astNodeCommonAncestor)
     }
 
     public static isArrayLengthParam(param: IDLParameter): boolean {

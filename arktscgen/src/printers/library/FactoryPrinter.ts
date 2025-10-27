@@ -15,17 +15,19 @@
 
 import {
     createEmptyReferenceResolver,
+    createOptionalType,
     createParameter,
     createReferenceType,
     IDLFile,
     IDLInterface,
     IDLMethod,
     IDLParameter,
-    IDLProperty,
     IDLType,
     IndentedPrinter,
     isDefined,
     isOptionalType,
+    isReferenceType,
+    isParameter,
     Method,
     TSLanguageWriter
 } from "@idlizer/core"
@@ -91,7 +93,8 @@ export class FactoryPrinter extends SingleFilePrinter {
         }
 
         const params = PeerPrinter.filterParameters(universal.parameters)
-        const getters = this.gettersForParams(params, node.methods)
+        const methods = PeerPrinter.filterMethods(node.methods)
+        const getters = this.gettersForParams(params, methods)
         if (!getters) {
             return
         }
@@ -107,9 +110,17 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private printCreate(node: IDLInterface, universalName: string, parameters: IDLParameter[]): void {
+        const isNullable = (type: IDLType|IDLParameter) =>
+            PeerPrinter.isNullableType(isParameter(type) ? type.type : type, this.typechecker)
         const extraParameters = PeerPrinter.makeExtraParameters(node, this.config, this.typechecker)
         const signature = makeSignature(
-            parameters.concat(extraParameters),
+            parameters
+                .concat(extraParameters)
+                .map(p => ({
+                    name: p.name,
+                    type: PeerPrinter.makeOptionalType(p.type, isNullable),
+                    isOptional: p.isOptional
+                })),
             createReferenceType(node.name)
         )
 
@@ -132,6 +143,7 @@ export class FactoryPrinter extends SingleFilePrinter {
     }
 
     private printUpdate(node: IDLInterface, universalName: string, parameters: IDLParameter[], getters: IDLMethod[]): void {
+        const isNullable = (type: IDLType) => PeerPrinter.isNullableType(type, this.typechecker)
         const extraParameters = this.config.parameters.getParameters(node.name)
         const signature = makeSignature([{
                 name: FactoryConstructions.original,
@@ -141,7 +153,12 @@ export class FactoryPrinter extends SingleFilePrinter {
                 .concat(parameters)
                 .concat(extraParameters
                     .map(p => PeerPrinter.makeExtraParameter(p, node, this.typechecker))
-                ),
+                )
+                .map((p,i) => ({
+                    name: p.name,
+                    type: i && isNullable(p.type) ? createOptionalType(p.type) : p.type,
+                    isOptional: p.isOptional
+                })),
             createReferenceType(node.name),
         )
 
@@ -211,6 +228,7 @@ export class FactoryPrinter extends SingleFilePrinter {
         const mappedMethods: [string, IDLMethod][] = methods
             .map((m) => [toTypeName(m.returnType), m])
 
+
         const getters = params
             .map(param => {
                 const paramTypeName = toTypeName(param.type)
@@ -227,7 +245,7 @@ export class FactoryPrinter extends SingleFilePrinter {
 
                 if (sameNameMethods.length === 1) {
                     mappedMethods.splice(
-                        mappedMethods.findIndex(([_, m]) => m === sameTypeMethods[0]),
+                        mappedMethods.findIndex(([_, m]) => m === sameNameMethods[0]),
                         1
                     )
                     return sameNameMethods[0]

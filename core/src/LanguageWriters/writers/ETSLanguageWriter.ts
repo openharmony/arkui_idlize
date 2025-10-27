@@ -16,6 +16,7 @@
 import { IndentedPrinter } from "../../IndentedPrinter"
 import {
     BlockStatement,
+    EnumMember,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -47,7 +48,6 @@ import { convertDeclaration, IdlNameConvertor, withInsideInstanceof } from "../n
 import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor";
 import { Language } from "../../Language";
 import { RuntimeType } from "../common";
-import { throwException } from "../../util";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
 
 ////////////////////////////////////////////////////////////////
@@ -117,40 +117,30 @@ export class ArkTSEnumEntityStatement implements LanguageStatement {
     write(writer: LanguageWriter) {
         let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
         enumName = enumName.split('.').at(-1)!
-        const members
-            = this.enumEntity.elements
-            .flatMap((member, index) => {
-                const initText = member.initializer ?? index
-                const isTypeString = typeof initText !== "number"
-                const originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-                const res: {
-                    name: string,
-                    alias: string | undefined,
-                    stringId: string | undefined,
-                    numberId: number
-                }[] = [{
-                    name: member.name,
-                    alias: undefined,
-                    stringId: isTypeString ? initText : undefined,
-                    numberId: initText as number
-                }]
-                if (originalName !== undefined) {
-                    res.push({
-                        name: originalName,
-                        alias: undefined,
-                        stringId: isTypeString ? initText : undefined,
-                        numberId: initText as number
-                    })
-                    //TODO: enums do not support member aliases
-                    // res.push({
-                    //     name: originalName,
-                    //     alias: member.name,
-                    //     stringId: undefined,
-                    //     numberId: initText as number
-                    // })
-                }
-                return res
+        const correctStyleNames: EnumMember[] = []
+        const originalStyleNames: EnumMember[] = []
+        this.enumEntity.elements.forEach((member, index) => {
+            const initText = member.initializer ?? index
+            const isTypeString = typeof initText !== "number"
+            const originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
+            correctStyleNames.push({
+                name: originalName ? member.name : `${member.name}_DUMMY`,
+                alias: undefined,
+                stringId: isTypeString ? initText : undefined,
+                numberId: initText as number
             })
+            originalStyleNames.push({
+                name: originalName ?? member.name,
+                alias: undefined,
+                stringId: isTypeString ? initText : undefined,
+                numberId: initText as number
+            })
+        })
+
+        let members = originalStyleNames
+        if (this.enumEntity.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
+            members = members.concat(correctStyleNames)
+        }
 
         writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
     }
@@ -239,9 +229,18 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return this.makeString(`${value} as ${type}`)
     }
     i32FromEnum(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
-        return idl.isStringEnum(enumEntry)
-            ? this.makeMethodCall(value.asString(), 'getOrdinal', [])
-            : this.makeMethodCall(value.asString(), 'valueOf', [])
+        if (idl.isStringEnum(enumEntry)) {
+            let extractorStatement = this.makeMethodCall(value.asString(), 'getOrdinal', [])
+            if (enumEntry.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
+                extractorStatement = this.makeNaryOp('%', [
+                    extractorStatement,
+                    this.makeString(enumEntry.elements.length.toString())
+                ])
+            }
+            return extractorStatement
+        } else {
+            return this.makeMethodCall(value.asString(), 'valueOf', [])
+        }
     }
     enumFromI32(value: LanguageExpression, enumEntry: idl.IDLEnum): LanguageExpression {
         const enumName = this.getNodeName(enumEntry)

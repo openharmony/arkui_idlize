@@ -37,6 +37,8 @@ export {
     testDataClass, testDataInterface,
 } from '../../generated/ts'
 
+export { UnionSampleEnum, UnionSampleInterface, checkUnionSample } from "../../generated/ts"
+
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"
 
 export {
@@ -86,8 +88,26 @@ export function toBigInt(value: number): bigint {
 }
 
 export function checkEQ(value1: unknown, value2: unknown, comment?: string): void {
+    if (Array.isArray(value1) && Array.isArray(value2)) {
+        const arr1 = value1 as object[]
+        const arr2 = value2 as object[]
+        if (arr1.length != arr2.length) {
+            throw new UnitTestError(`Arrays size differ: ${comment}`)
+        }
+        for(let i = 0; i < arr1.length; i++) {
+            checkEQ(arr1[i], arr2[i], comment)
+        }
+        return;
+    }
     if (value1 !== value2) {
         console.log(`value ${value1} does not equal to the value ${value2}`)
+        throw new UnitTestError(comment)
+    }
+}
+
+export function assertDoubleEQ(value1: number, value2: number, absError: number = 0.001, comment?: string): void {
+    if (Math.abs(value2 - value1) > absError) {
+        console.log(`value ${value1} does not equal to the value ${value2} with absError: ${[absError]}`)
         throw new UnitTestError(comment)
     }
 }

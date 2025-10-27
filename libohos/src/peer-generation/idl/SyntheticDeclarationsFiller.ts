@@ -29,7 +29,7 @@ function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     const declarationsToDelete = new Array<idl.IDLEntry>()
     const referencesToReplace = new Map<string, string>()
     const syntheticDeclarations = new Array<idl.IDLEntry>()
-    const hackedSynthetics = new Map<string, string>()
+    const syntheticPossibleConflicts = new Set<string>()
     for (const file of files) {
         idl.forEachChild(file, node => {
             if (idl.isSyntheticEntry(node)) {
@@ -47,10 +47,37 @@ function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
                 }
             } else {
                 if (idl.isEnum(node) || idl.isInterface(node) || idl.isTypedef(node) || idl.isCallback(node)) {
-                    hackedSynthetics.set(`${SyntheticsPackageClause.join('.')}.${node.name}`, idl.getFQName(node))
+                    syntheticPossibleConflicts.add(node.name)
                 }
             }
         })
+    }
+
+    // for found conflicts with non-synthetic declarations mangle synthetics
+    for (let i = 0; i < syntheticDeclarations.length; i++) {
+        const decl = syntheticDeclarations[i]
+        if (syntheticPossibleConflicts.has(decl.name)) {
+            let mangledDecl: idl.IDLEntry
+            if (idl.isCallback(decl)) {
+                mangledDecl = idl.createCallback(
+                    `synthetic_${decl.name}`,
+                    decl.parameters,
+                    decl.returnType,
+                    idl.cloneNodeInitializer(decl),
+                    decl.typeParameters,
+                )
+            } else {
+                throw new Error(`Do not know how to mangle conflicting synthetic entry with kind ${decl.kind}`)
+            }
+            syntheticDeclarations[i] = mangledDecl
+            const syntheticFQN = `${SyntheticsPackageClause.join('.')}.${decl.name}`
+            const mangledSyntheticFQN = `${SyntheticsPackageClause.join('.')}.${mangledDecl.name}`
+            for (let [original, replacement] of referencesToReplace.entries()) {
+                if (replacement == syntheticFQN) {
+                    referencesToReplace.set(original, mangledSyntheticFQN)
+                }
+            }
+        }
     }
 
     const transformer = (node: idl.IDLNode): idl.IDLNode => {
@@ -73,14 +100,8 @@ function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
                 idl.cloneNodeInitializer(node),
             )
         }
-        if (idl.isNamedNode(node) && node.name === "arkui.component.Literal_Number_offset_span")
-            console.log("AAA")
         if (idl.isReferenceType(node) && referencesToReplace.has(node.name)) {
             let syntheticFQN = referencesToReplace.get(node.name)!
-            if (hackedSynthetics.has(syntheticFQN)) {
-                console.warn(`WARNING: can not use synthetic with name ${syntheticFQN}, name is already taken. Instead using ${hackedSynthetics.get(syntheticFQN)}`)
-                syntheticFQN = hackedSynthetics.get(syntheticFQN)!
-            }
 
             return idl.createReferenceType(
                 syntheticFQN,
@@ -101,12 +122,16 @@ function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     const library = createLibraryFromFiles(files)
     const structureNameConvertor = new StructureNameConvertor(library)
     const allContinuationTypes = new Array<idl.IDLType>()
-    const allCallbacksNames = new Map<string, string>()
+    const allCallbacksNames = new Set<string>()
+    const syntheticCallbacksNames = new Set<string>()
     for (const file of files) {
         idl.forEachChild(file, node => {
             if (idl.isCallback(node) && !node.typeParameters?.length) {
                 allContinuationTypes.push(node.returnType)
-                allCallbacksNames.set(node.name, idl.getFQName(node))
+                allCallbacksNames.add(node.name)
+            }
+            if (idl.isCallback(node) && idl.isSyntheticEntry(node)) {
+                syntheticCallbacksNames.add(node.name)
             }
             if (idl.isMethod(node)) {
                 const promise = idl.asPromise(node.returnType)
@@ -117,33 +142,33 @@ function continuationCallbacksTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     }
 
     const syntheticEntries = new Array<idl.IDLEntry>()
-    const syntheticNames = new Set<string>()
     for (const continuationType of allContinuationTypes) {
         const continuationParameters = createContinuationParameters(continuationType)
-        const syntheticName = generateSyntheticFunctionName(
+        const primarySyntheticName = generateSyntheticFunctionName(
             continuationParameters,
             idl.IDLVoidType,
             { nameConvertor: structureNameConvertor }
         )
-        if (!allCallbacksNames.has(syntheticName) && !syntheticNames.has(syntheticName)) {
-            syntheticNames.add(syntheticName)
+        const alternativeSyntheticName = `synthetic_${primarySyntheticName}`
+        let syntheticName: string
+        if (syntheticCallbacksNames.has(primarySyntheticName)) {
+            syntheticName = primarySyntheticName
+        } else if (syntheticCallbacksNames.has(alternativeSyntheticName)) {
+            syntheticName = alternativeSyntheticName
+        } else {
+            syntheticName = allCallbacksNames.has(primarySyntheticName)
+                ? alternativeSyntheticName
+                : primarySyntheticName
+        }
+
+        if (!syntheticCallbacksNames.has(syntheticName)) {
+            syntheticCallbacksNames.add(syntheticName)
             syntheticEntries.push(idl.createCallback(
                 syntheticName,
                 continuationParameters,
                 idl.IDLVoidType,
                 { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic }]},
             ))
-        } else if (allCallbacksNames.has(syntheticName) && !syntheticNames.has(syntheticName)) {
-            if (allCallbacksNames.get(syntheticName) !== `${SyntheticsPackageClause.join('.')}.${syntheticName}`) {
-                syntheticEntries.push(idl.createTypedef(
-                    syntheticName,
-                    idl.createReferenceType(allCallbacksNames.get(syntheticName)!),
-                    undefined,
-                    { extendedAttributes: [{ name: idl.IDLExtendedAttributes.Synthetic 
-
-                    }] }
-                ))
-            }
         }
     }
     return files.concat(idl.createFile(
@@ -222,8 +247,8 @@ function createLibraryFromFiles(files: idl.IDLFile[]): LibraryInterface {
         },
         layout: LayoutManager.Empty(),
         libraryPrefix: '',
-        resolveTypeReference: function (type: idl.IDLReferenceType, terminalImports?: boolean): idl.IDLEntry | undefined {
-            return resolver.resolveTypeReference(type, terminalImports)
+        resolveTypeReference: function (type: idl.IDLReferenceType, options?: { terminalImports?: boolean, unresolvedOk?: boolean }): idl.IDLEntry | undefined {
+            return resolver.resolveTypeReference(type, options)
         },
         toDeclaration: function (type: idl.IDLNode): idl.IDLNode {
             if (!idl.isType(type) && !idl.isEntry(type))

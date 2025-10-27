@@ -61,6 +61,7 @@
                 "test_return_buffer",
                 "test_props",
                 "test_force_context",
+                "test_union",
 
                 "idlize.stdlib",
                 "idlize.internal"

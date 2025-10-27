@@ -1,4 +1,4 @@
-import { PromiseTester, UnitTestsuite,  checkEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
+import { PromiseTester, UnitTestsuite,  checkEQ, assertDoubleEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
 
 import {
   toBigInt
@@ -47,6 +47,8 @@ import { CheckExceptionClass, CheckExceptionInterface } from '#compat'
 import {
   testLength
 } from '#compat'
+
+import { UnionSampleEnum, UnionSampleInterface, checkUnionSample} from '#compat'
 
 import { IDLCheckConstructor } from '#compat'
 
@@ -227,6 +229,21 @@ function checkDataInterfaces() {
 
   const r2 = testDataClass(dataClass)
   checkDataTestResult("class", dataIface, r2.propBoolean, r2.propNumber, r2.propString, r2.propObject)
+}
+
+function checkUnions() {
+  checkEQ(false, checkUnionSample({prop: false}).prop)
+  checkEQ(true, checkUnionSample({prop: true}).prop)
+  checkEQ("abc", checkUnionSample({prop: "abc"}).prop)
+
+  assertDoubleEQ(1.23, checkUnionSample({prop: 1.23}).prop as number)
+
+  checkEQ(UnionSampleEnum.A, checkUnionSample({prop: UnionSampleEnum.A}).prop)
+  checkEQ(UnionSampleEnum.B, checkUnionSample({prop: UnionSampleEnum.B}).prop)
+
+  checkEQ([true, false], checkUnionSample({prop: [true, false]}).prop)
+  // Fix for TS
+  // checkEQ([UnionSampleEnum.A, UnionSampleEnum.B], checkUnionSample({prop: [UnionSampleEnum.A, UnionSampleEnum.B]}).prop)
 }
 
 function checkStaticMaterialized() {
@@ -464,6 +481,7 @@ export function run() {
   suite.addTest("checkConstructors", checkConstructors)
   suite.addTest("checkClassWithComplexPropertyType", checkClassWithComplexPropertyType)
   suite.addTest("checkDataInterfaces", checkDataInterfaces)
+  suite.addTest("checkUnions", checkUnions)
   suite.addTest("checkStaticMaterialized", checkStaticMaterialized)
   suite.addTest("checkMaterialized", checkMaterialized)
   suite.addTest("checkAny", checkAny)

@@ -38,6 +38,8 @@ export {
     testDataClass, testDataInterface,
 } from '../../generated/arkts'
 
+export { UnionSampleEnum, UnionSampleInterface, checkUnionSample } from "../../generated/arkts"
+
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
 
 export { testLength } from "../../generated/arkts"
@@ -74,7 +76,18 @@ export function toBigInt(value: long): long {
 }
 
 export function checkEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
+    if (value1 instanceof Array && value2 instanceof Array) {
+        arktest.assertEQ(value1.length, value2.length, "Arrays length differ!")
+        for(let i = 0; i < value1.length; i++) {
+            arktest.assertEQ(value1[i], value2[i], comment)
+        }
+        return
+    }
     arktest.assertEQ(value1, value2, comment)
+}
+
+export function assertDoubleEQ(value1: number, value2: number, absError: number = 0.001, comment?: string): void {
+    arktest.assertDoubleEQ(value1, value2, absError, comment)
 }
 
 export function checkNotEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
