@@ -1,0 +1,30 @@
+package arkui.component.datebook;
+import arkui.stateManagement.runtime.memo as memo;
+import arkui.stateManagement.runtime.ComponentBuilder as ComponentBuilder;
+import arkui.component.common.CommonMethod as CommonMethod;
+dictionary DatebookType {
+    number EGYPTIAN = 0;
+    number ROMAN = 1;
+};
+interface DatebookOptions {
+    [Optional]
+    attribute DatebookType type;
+    [Optional]
+    attribute boolean effect;
+};
+[Component]
+interface DatebookAttribute: CommonMethod {
+    [CommonMethod]
+    attribute (DatebookType or undefined) type;
+    [CommonMethod]
+    attribute (String or undefined) text;
+    [CommonMethod]
+    attribute (any or undefined) forceOptCustomObject;
+};
+[Synthetic]
+callback Callback_Void = void ();
+[ComponentInterface]
+interface DatebookInterface {
+    [Annotations=memo, CallSignature]
+    DatebookAttribute invoke(DatebookOptions label);
+};

@@ -1,0 +1,55 @@
+{
+    "compilerOptions": {
+        "package": "arkui",
+        "baseUrl": "out/unit-arkts/generated/sig/arkoala-arkts/arkui/generated",
+        "outDir": "out/unit-arkts/abc",
+        "paths": {
+            "#components": [
+                "./framework/arkts"
+            ],
+            "#handwritten": [
+                "./handwritten"
+            ],
+            "global.resource": [
+                "../../../../../generated/modules/global/generated/arkts"
+            ],
+            "@arkoala/arkui": [
+                "./framework"
+            ],
+            "@koalaui/interop": [
+                "../../../../../../../../external/interop/src/arkts"
+            ],
+            "@koalaui/common": [
+                "../../../../../../../../external/common/src"
+            ],
+            "@koalaui/compat": [
+                "../../../../../../../../external/compat/src/arkts"
+            ],
+            "@koalaui/builderLambda": [
+                "./annotations"
+            ],
+            "@koalaui/runtime/annotations": [
+                "../../../../../../../../external/incremental/runtime/annotations"
+            ],
+
+            "arkui.stateManagement.memo.node": [
+                "../../../../../../../../external/incremental/runtime/src/memo/node"
+            ],
+            "arkui.stateManagement.memo.remember": [
+                "../../../../../../../../external/incremental/runtime/src/memo/remember"
+            ],
+            "arkui.stateManagement.runtime": [
+                "../../../../../../../../external/incremental/runtime/annotations"
+            ],
+            "arkui.stateManagement": [
+                "../../../../../../../../external/incremental/runtime/src"
+            ]
+        }
+    },
+    "include": [
+        "out/unit-arkts/generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
+    ],
+    "exclude": [
+        "out/unit-arkts/generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
+    ]
+}

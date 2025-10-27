@@ -1,0 +1,13 @@
+package arkui.Graphics;
+interface Size {
+    attribute number width;
+    attribute number height;
+};
+[Entity=Class]
+interface DrawContext {
+    constructor();
+    [Accessor=Getter]
+    attribute Size size;
+    [Accessor=Getter]
+    attribute Size sizeInPixel;
+};

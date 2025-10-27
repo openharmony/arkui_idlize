@@ -35,6 +35,24 @@ arkgen ArkTS subset:
     - build idlize
     - build external
 
+arkgen ArkTS unit:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    - npm run -C arkgen init:unit:arkts
+    - npm run -C arkgen gen:unit:arkts
+    - npm run -C arkgen build:unit:arkts
+    - npm run -C arkgen build-native:unit:arkts
+    - npm run -C arkgen exec:unit:arkts
+  needs:
+    - build idlize
+    - build external
+
 pg cj:run:
   allow_failure: true
   stage: test

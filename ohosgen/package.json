@@ -72,6 +72,7 @@
     "generate:modules-all:ts": "MODULE_LANG=ts MODULE_OUT=./out/modules-ts npm run generate:modules-all",
     "generate:modules-all:arkts": "MODULE_LANG=arkts MODULE_OUT=./out/modules-arkts npm run generate:modules-all",
     "generate:modules-all": "MODULE_NAME=global npm run generate:module && MODULE_NAME=image npm run generate:module",
+    "generate:modules-sdk": "MODULE_NAME=global npm run generate:module",
     "generate:module": "node . --idl2peer --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --implicit-predefined --language=${MODULE_LANG} --output-dir ${MODULE_OUT}/${MODULE_NAME} --options-file ../arkgen/generation-config/config.json ../arkgen/generation-config/config-arkui.json ./generation-config/config-${MODULE_NAME}.json",
     "generate-schema": "npm run compile && node . --show-config-schema > generation-config/schema.json",
     "generate:skoala:idl": "npm run compile && node ../dtsgen --dts2idl --output-dir ./tests/skoala/generated/idl --input-dir ./tests/skoala/dts/ --base-dir ./tests/skoala/dts/ --options-file ./generation-config/skoala-config.json",
