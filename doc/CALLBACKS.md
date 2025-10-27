@@ -509,7 +509,7 @@ void deserializeAndCallCallback(OH_Int32 kind, KSerializerBuffer thisArray, OH_I
 {
     // ...
 }
-KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))
+KOALA_EXECUTE(deserializeAndCallCallback, SetCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))
 
 ```
 
@@ -672,7 +672,7 @@ void deserializeAndCallCallback(OH_Int32 kind, KSerializerBuffer thisArray, OH_I
     }
     printf("Unknown callback kind\n");
 }
-KOALA_EXECUTE(deserializeAndCallCallback, setCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))
+KOALA_EXECUTE(deserializeAndCallCallback, SetCallbackCaller(static_cast<Callback_Caller_t>(deserializeAndCallCallback)))
 void deserializeAndCallCallbackSync(OH_OHOS_VMContext vmContext, OH_Int32 kind, KSerializerBuffer thisArray, OH_Int32 thisLength)
 {
     switch (kind) {

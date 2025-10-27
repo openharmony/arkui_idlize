@@ -121,7 +121,7 @@ elif is_kotlin
     library_name = 'OHOS_XMLNativeModule'
     platform_build_dir = 'build/kotlin'
 
-    cflags += ['-DKOALA_KOTLIN', '-DINTEROP_LIBRARY_NAME=' + library_name]
+    cflags += ['-DKOALA_LANG_KT', '-DINTEROP_LIBRARY_NAME=' + library_name]
     include_dirs += [
         external_interop_dir / 'kotlin',
     ]

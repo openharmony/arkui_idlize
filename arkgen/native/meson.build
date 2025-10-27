@@ -204,7 +204,7 @@ ani_sources = [
     external_interop_dir / 'types/signatures.cpp',
 ]
 
-kotlin_cflags = ['-DKOALA_USE_KOTLIN', '-DKOALA_KOTLIN', '-DINTEROP_LIBRARY_NAME=' + kotlin_library_name]
+kotlin_cflags = ['-DKOALA_USE_KOTLIN', '-DKOALA_LANG_KT', '-DINTEROP_LIBRARY_NAME=' + kotlin_library_name]
 kotlin_include_dirs = [
     external_interop_dir / 'kotlin',
 ]
