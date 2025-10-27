@@ -6,6 +6,20 @@ import arkui.Graphics;
 import arkui.FrameNode;
 import arkui.RenderNode;
 
+[Entity=Interface]
+interface NodeEdgesLengthMetrics {
+    attribute (LengthMetrics or undefined) top;
+    attribute (LengthMetrics or undefined) left;
+    attribute (LengthMetrics or undefined) bottom;
+    attribute (LengthMetrics or undefined) right;
+};
+
+[Entity=Interface]
+interface SizeTLengthMetrics {
+    attribute LengthMetrics width;
+    attribute LengthMetrics height;
+};
+
 [Entity=Class]
 interface FrameNodeExtender {
   static pointer constructorFrameNode();
@@ -23,10 +37,10 @@ interface FrameNodeExtender {
   static pointer getParent(FrameNode peer);
   static i32 getChildrenCount(FrameNode peer);
   static void dispose(FrameNode peer);
-  static Position getPositionToWindow(FrameNode peer);
-  static Position getPositionToParent(FrameNode peer);
+  static Vector2 getPositionToWindow(FrameNode peer);
+  static Vector2 getPositionToParent(FrameNode peer);
   static Size getMeasuredSize(FrameNode peer);
-  static Position getLayoutPosition(FrameNode peer);
+  static Vector2 getLayoutPosition(FrameNode peer);
   static String getId(FrameNode peer);
   static number getUniqueId(FrameNode peer);
   static String getNodeType(FrameNode peer);
@@ -40,14 +54,18 @@ interface FrameNodeExtender {
   static boolean setCrossLanguageOptions(FrameNode peer, boolean options);
   static boolean getCrossLanguageOptions(FrameNode peer);
   static void setMeasuredSize(FrameNode peer, Size size);
-  static void setLayoutPosition(FrameNode peer, Position position);
+  static void setLayoutPosition(FrameNode peer, Vector2 position);
   static void measure(FrameNode peer, LayoutConstraint constraint);
-  static void layout(FrameNode peer, Position position);
+  static void layout(FrameNode peer, Vector2 position);
   static void setNeedsLayout(FrameNode peer);
-  static Position getPositionToScreen(FrameNode peer);
-  static Position getPositionToWindowWithTransform(FrameNode peer);
-  static Position getPositionToParentWithTransform(FrameNode peer);
-  static Position getPositionToScreenWithTransform(FrameNode peer);
+  static Vector2 getPositionToScreen(FrameNode peer);
+  static Vector2 getPositionToWindowWithTransform(FrameNode peer);
+  static Vector2 getPositionToParentWithTransform(FrameNode peer);
+  static Vector2 getPositionToScreenWithTransform(FrameNode peer);
+  static NodeEdgesLengthMetrics getUserConfigBorderWidth(FrameNode peer);
+  static NodeEdgesLengthMetrics getUserConfigPadding(FrameNode peer);
+  static NodeEdgesLengthMetrics getUserConfigMargin(FrameNode peer);
+  static SizeTLengthMetrics getUserConfigSize(FrameNode peer);
   static pointer getFrameNodeByKey(String name);
   static number getIdByFrameNode(pointer node);
   static f64 moveTo(FrameNode peer, FrameNode targetParent, number index);
