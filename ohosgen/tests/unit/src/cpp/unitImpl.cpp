@@ -335,6 +335,9 @@ OH_UNIT_OrdinaryEnum GlobalScope_checkOrdinaryEnumsImpl(OH_UNIT_OrdinaryEnum val
     if (value1 != OH_UNIT_ORDINARY_ENUM_E1) {
         INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_ORDINARY_ENUM_E1: %d", value1, OH_UNIT_ORDINARY_ENUM_E1);
     }
+    if (value2 != OH_UNIT_ORDINARY_ENUM_E2) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_ORDINARY_ENUM_E2: %d", value2, OH_UNIT_ORDINARY_ENUM_E2);
+    }
     return OH_UNIT_ORDINARY_ENUM_E3;
 }
 
@@ -360,9 +363,19 @@ OH_UNIT_DuplicateIntEnum GlobalScope_checkDuplicateIntEnumsImpl(OH_UNIT_Duplicat
     return OH_UNIT_DUPLICATE_INT_ENUM_THIRD;
 }
 
+OH_UNIT_StringEnum GlobalScope_checkStringEnumOrdinalImpl(OH_UNIT_StringEnum value, OH_Int32 expectedOrdinal) {
+    if (value != expectedOrdinal) {
+        INTEROP_FATAL("Enum param value %d does not equal to expected ordinal value: %d", value, expectedOrdinal);
+    }
+    return value;
+}
+
 OH_UNIT_StringEnum GlobalScope_checkStringEnumsImpl(OH_UNIT_StringEnum value1, OH_UNIT_StringEnum value2) {
     if (value1 != OH_UNIT_STRING_ENUM_E1) {
         INTEROP_FATAL("Enum param value1 %d does not equal OH_UNIT_STRING_ENUM_E1: %d", value1, OH_UNIT_STRING_ENUM_E1);
+    }
+    if (value2 != OH_UNIT_STRING_ENUM_E2) {
+        INTEROP_FATAL("Enum param value2 %d does not equal OH_UNIT_STRING_ENUM_E2: %d", value2, OH_UNIT_STRING_ENUM_E2);
     }
     return OH_UNIT_STRING_ENUM_E3;
 }

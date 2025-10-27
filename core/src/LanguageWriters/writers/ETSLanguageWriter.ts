@@ -108,44 +108,6 @@ class ArkTSMapForEachStatement implements LanguageStatement {
     }
 }
 
-export class ArkTSEnumEntityStatement implements LanguageStatement {
-    constructor(
-        private readonly enumEntity: IDLEnum,
-        private readonly options: { isExport: boolean, isDeclare: boolean }
-    ) {}
-
-    write(writer: LanguageWriter) {
-        let enumName = convertDeclaration(createDeclarationNameConvertor(Language.ARKTS), this.enumEntity)
-        enumName = enumName.split('.').at(-1)!
-        const correctStyleNames: EnumMember[] = []
-        const originalStyleNames: EnumMember[] = []
-        this.enumEntity.elements.forEach((member, index) => {
-            const initText = member.initializer ?? index
-            const isTypeString = typeof initText !== "number"
-            const originalName = getExtAttribute(member, idl.IDLExtendedAttributes.OriginalEnumMemberName)
-            correctStyleNames.push({
-                name: originalName ? member.name : `${member.name}_DUMMY`,
-                alias: undefined,
-                stringId: isTypeString ? initText : undefined,
-                numberId: initText as number
-            })
-            originalStyleNames.push({
-                name: originalName ?? member.name,
-                alias: undefined,
-                stringId: isTypeString ? initText : undefined,
-                numberId: initText as number
-            })
-        })
-
-        let members = originalStyleNames
-        if (this.enumEntity.elements.some(it => idl.hasExtAttribute(it, idl.IDLExtendedAttributes.OriginalEnumMemberName))) {
-            members = members.concat(correctStyleNames)
-        }
-
-        writer.writeEnum(enumName, members, { isExport: this.options.isExport, isDeclare: this.options.isDeclare })
-    }
-}
-
 export class ETSLambdaExpression extends LambdaExpression {
     constructor(
         writer: LanguageWriter,
@@ -267,12 +229,6 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         return super.makeValueFromOption(value, destinationConvertor)
     }
 
-    makeEnumEntity(enumEntity: IDLEnum, options: { isExport: boolean, isDeclare?: boolean }): LanguageStatement {
-        return new ArkTSEnumEntityStatement(enumEntity, {
-            isExport: options?.isExport,
-            isDeclare: !!options?.isDeclare,
-        })
-    }
     writeMethodCall(receiver: string, method: string, params: string[], nullable: boolean = false) {
         // ArkTS does not support - 'this.?'
         super.writeMethodCall(receiver, method, params, nullable && receiver !== "this")
