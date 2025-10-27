@@ -17,14 +17,14 @@ import * as path from "path"
 import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter,
     PrinterLike, CppConvertor, LayoutManager, ETSLanguageWriter, wrapCurrentFileDescription } from '@idlizer/core'
 import {
-    dummyImplementations, gniFile, libraryCcDeclaration,
+    dummyImplementations, gniFile, libraryDeclaration,
     makeArkuiModule, makeCallbacksKinds,
     mesonBuildFile, tsCopyrightAndWarning,
     readLangTemplate,
     printRealAndDummyAccessors,
     printRealAndDummyModifiers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
-    printBridgeCcCustom, printBridgeCcGenerated,
+    printCustomBridge, printGeneratedBridge,
     printBridgeHeaderCustom, printBridgeHeaderGenerated, printKotlinCInteropDefFile,
     printDeclarations, printEnumsImpl, printManagedCaller,
     NativeModule, printArkUILibrariesLoader,
@@ -392,15 +392,15 @@ export function generateArkoalaFromIdl(config: {
 
     // native code
     writeFile(
-        path.join(arkoala.nativeDir, 'bridge_generated.cc'),
-        printBridgeCcGenerated(peerLibrary, config.callLog ?? false),
+        path.join(arkoala.nativeDir, 'bridge_generated.cpp'),
+        printGeneratedBridge(peerLibrary, config.callLog ?? false),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
         })
     writeFile(
-        path.join(arkoala.nativeDir, 'bridge_custom.cc'),
-        printBridgeCcCustom(peerLibrary, config.callLog ?? false),
+        path.join(arkoala.nativeDir, 'bridge_custom.cpp'),
+        printCustomBridge(peerLibrary, config.callLog ?? false),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
@@ -445,7 +445,7 @@ export function generateArkoalaFromIdl(config: {
     const accessors = printRealAndDummyAccessors(peerLibrary)
     const apiGenFile = "arkoala_api_generated"
     writeFile(
-        path.join(arkoala.nativeDir, 'dummy_impl.cc'),
+        path.join(arkoala.nativeDir, 'dummy_impl.cpp'),
         dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
@@ -453,14 +453,14 @@ export function generateArkoalaFromIdl(config: {
         }
     )
     writeFile(
-        path.join(arkoala.nativeDir, 'real_impl.cc'),
+        path.join(arkoala.nativeDir, 'real_impl.cpp'),
         dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
         }
     )
-    writeFile(path.join(arkoala.nativeDir, 'library.cc'), libraryCcDeclaration(),
+    writeFile(path.join(arkoala.nativeDir, 'library.cpp'), libraryDeclaration(),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
@@ -479,12 +479,12 @@ export function generateArkoalaFromIdl(config: {
         const content = generated instanceof LanguageWriter ? generated : generated.content
         deserializeAndCallCPPContent.concat(content)
     })
-    writeFile(path.join(arkoala.nativeDir, 'callback_deserialize_call.cc'), deserializeAndCallCPPContent.printer.getOutput().join("\n"),
+    writeFile(path.join(arkoala.nativeDir, 'callback_deserialize_call.cpp'), deserializeAndCallCPPContent.printer.getOutput().join("\n"),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
         })
-    writeFile(path.join(arkoala.nativeDir, 'callback_managed_caller.cc'), printManagedCaller('arkoala', peerLibrary).printToString(),
+    writeFile(path.join(arkoala.nativeDir, 'callback_managed_caller.cpp'), printManagedCaller('arkoala', peerLibrary).printToString(),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true

@@ -17,9 +17,9 @@ searchDir=$(readlink -m $searchDir)
 cd $rootDir
 searchDir=$(realpath -m --relative-to=$rootDir $searchDir)
 echo "Search paths: "$searchDir
-files=($(find $searchDir -type f -iname '*.h' -o -iname '*.cc'))
+files=($(find $searchDir -type f -iname '*.h' -o -iname '*.cpp'))
 
-# find idlize-copy/external/arkoala-arkts/ \( \( -iname '*.h' -or -iname '*.cc' \) -and -not -path "*/node_modules/*" -and -not -path "*/tools/*" \)
+# find idlize-copy/external/arkoala-arkts/ \( \( -iname '*.h' -or -iname '*.cpp' \) -and -not -path "*/node_modules/*" -and -not -path "*/tools/*" \)
 
 for file in ${files[*]}
 do 

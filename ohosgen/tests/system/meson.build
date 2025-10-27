@@ -28,12 +28,12 @@ include_dirs = [
 ]
 
 sources = [
-    f'./@cur_test_case@/generated/native/@cur_test_case@.cc',
-    f'./@cur_test_case@/generated/native/@cur_test_case@ApiImpl_temp.cc',
-    f'./@cur_test_case@/src/cpp/@cur_test_case@Impl.cc',
-    external_interop_dir / 'common-interop.cc',
-    external_interop_dir / 'callback-resource.cc',
-    external_interop_dir / 'interop-logging.cc',
+    f'./@cur_test_case@/generated/native/@cur_test_case@.cpp',
+    f'./@cur_test_case@/generated/native/@cur_test_case@ApiImpl_temp.cpp',
+    f'./@cur_test_case@/src/cpp/@cur_test_case@Impl.cpp',
+    external_interop_dir / 'common-interop.cpp',
+    external_interop_dir / 'callback-resource.cpp',
+    external_interop_dir / 'interop-logging.cpp',
 ]
 
 oses = { 'emscripten': 'wasm', 'darwin': 'macos' }  # rename meson default names to convienient ones
@@ -86,8 +86,8 @@ elif is_panda
         external_interop_dir / 'ani' / 'panda',
     ]
     sources += [
-        external_interop_dir / 'ani/convertors-ani.cc',
-        external_interop_dir / 'types/signatures.cc',
+        external_interop_dir / 'ani/convertors-ani.cpp',
+        external_interop_dir / 'types/signatures.cpp',
     ]
 elif is_cj
     # Not supported yet

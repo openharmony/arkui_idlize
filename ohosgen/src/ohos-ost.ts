@@ -39,7 +39,7 @@ import {
     getInteropRootPath,
     peerGeneratorConfiguration,
     readTemplate,
-    libraryCcDeclaration,
+    libraryDeclaration,
     C_API_PREFIX,
     BRIDGE_PREFIX,
     IMPL_PREFIX
@@ -114,10 +114,10 @@ function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, 
         .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${moduleName.toUpperCase()}_H`)
         .replaceAll("%LIBRARY_NAME%", moduleName.toUpperCase())
         .replaceAll("%API_KIND%", peerGeneratorConfiguration().ApiKind.toString())
-    const cc = [
-        readLangTemplate('api_impl_prologue.cc', Language.CPP),
-        libraryCcDeclaration({removeCopyright: true}),
-        readTemplate("api_getter.cc"),
+    const cpp = [
+        readLangTemplate('api_impl_prologue.cpp', Language.CPP),
+        libraryDeclaration({removeCopyright: true}),
+        readTemplate("api_getter.cpp"),
         processNPrintCXX(files.get(BRIDGE_PREFIX)!),
         ].join('\n')
         .replaceAll("%INTEROP_MODULE_NAME%", `${moduleName.toUpperCase()}NativeModule`)
@@ -130,13 +130,13 @@ function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, 
         `#include "common-interop.h"`,
         `#include "${moduleName.toLowerCase()}.h"`,
         processNPrintCXX(files.get(IMPL_PREFIX)!),
-        readLangTemplate('api_impl_epilogue.cc', Language.CPP)
+        readLangTemplate('api_impl_epilogue.cpp', Language.CPP)
         ].join('\n')
         .replaceAll("%LIBRARY_NAME%", moduleName.toUpperCase())
     return new Map([
         [new TargetFile(`${moduleName.toLowerCase()}.h`), h],
-        [new TargetFile(`${moduleName.toLowerCase()}.cc`), cc],
-        [new TargetFile(`${moduleName.toLowerCase()}Impl_temp.cc`), ''],
-        [new TargetFile(`${moduleName.toLowerCase()}ApiImpl_temp.cc`), apiImpl],
+        [new TargetFile(`${moduleName.toLowerCase()}.cpp`), cpp],
+        [new TargetFile(`${moduleName.toLowerCase()}Impl_temp.cpp`), ''],
+        [new TargetFile(`${moduleName.toLowerCase()}ApiImpl_temp.cpp`), apiImpl],
     ])
 }

@@ -43,37 +43,37 @@ include_dirs = [
 ]
 
 sources = [
-    arkoala_dir / 'bridge_custom.cc',
-    arkoala_dir / 'bridge_generated.cc',
-    arkoala_dir / 'custom.cc',
-    arkoala_dir / 'library.cc',
-    arkoala_dir / 'callback_deserialize_call.cc',
-    arkoala_dir / 'callback_managed_caller.cc',
-    external_interop_dir / 'common-interop.cc',
-    external_interop_dir / 'callback-resource.cc',
-    external_interop_dir / 'interop-logging.cc',
-    external_framework_dir / 'vsync.cc'
+    arkoala_dir / 'bridge_custom.cpp',
+    arkoala_dir / 'bridge_generated.cpp',
+    arkoala_dir / 'custom.cpp',
+    arkoala_dir / 'library.cpp',
+    arkoala_dir / 'callback_deserialize_call.cpp',
+    arkoala_dir / 'callback_managed_caller.cpp',
+    external_interop_dir / 'common-interop.cpp',
+    external_interop_dir / 'callback-resource.cpp',
+    external_interop_dir / 'interop-logging.cpp',
+    external_framework_dir / 'vsync.cpp'
 ]
 if compile_events_test
     sources += [
-        arkoala_dir / 'events_test.cc',
+        arkoala_dir / 'events_test.cpp',
     ]
 else
     sources += [
-        arkoala_dir / 'events_test_dummy.cc',
+        arkoala_dir / 'events_test_dummy.cpp',
     ]
 endif
 if compile_callbacks_test
     sources += [
-        arkoala_dir + '/callbacks_test.cc',
+        arkoala_dir + '/callbacks_test.cpp',
     ]
 else
     sources += [
-        arkoala_dir + '/callbacks_test_dummy.cc',
+        arkoala_dir + '/callbacks_test_dummy.cpp',
     ]
 endif
 sources += [
-    arkoala_dir + '/buffer_test.cc',
+    arkoala_dir + '/buffer_test.cpp',
 ]
 
 if is_ohos_demo
@@ -88,18 +88,18 @@ if is_ohos_demo
     ]
 
     sources = [
-        # arkoala_dir / 'all_events.cc',
-        # arkoala_dir / 'bridge_custom.cc',
-        # arkoala_dir / 'bridge_generated.cc',
-        # arkoala_dir / 'custom.cc',
-        # arkoala_dir / 'library.cc',
-        # arkoala_dir / 'callback_deserialize_call.cc',
-        # arkoala_dir / 'callback_managed_caller.cc',
-        external_interop_dir / 'common-interop.cc',
-        # external_interop_dir / 'callback-resource.cc',
-        # external_interop_dir / 'interop-logging.cc',
-        # external_framework_dir / 'events.cc',
-        # external_framework_dir / 'vsync.cc'
+        # arkoala_dir / 'all_events.cpp',
+        # arkoala_dir / 'bridge_custom.cpp',
+        # arkoala_dir / 'bridge_generated.cpp',
+        # arkoala_dir / 'custom.cpp',
+        # arkoala_dir / 'library.cpp',
+        # arkoala_dir / 'callback_deserialize_call.cpp',
+        # arkoala_dir / 'callback_managed_caller.cpp',
+        external_interop_dir / 'common-interop.cpp',
+        # external_interop_dir / 'callback-resource.cpp',
+        # external_interop_dir / 'interop-logging.cpp',
+        # external_framework_dir / 'events.cpp',
+        # external_framework_dir / 'vsync.cpp'
     ]
 endif
 
@@ -126,8 +126,8 @@ endif
 if use_libace
     libace_name = 'ace_compatible_mock'
     libace_sources = [
-        arkoala_dir + '/dummy_impl.cc',
-        external_interop_dir / 'interop-logging.cc',
+        arkoala_dir + '/dummy_impl.cpp',
+        external_interop_dir / 'interop-logging.cpp',
     ]
 endif
 
@@ -162,7 +162,7 @@ node_include_dirs = [
     external_interop_dir / 'napi'
 ]
 node_sources = [
-    external_interop_dir / 'napi/convertors-napi.cc'
+    external_interop_dir / 'napi/convertors-napi.cpp'
 ]
 cj_cflags = ['-DKOALA_CJ', '-DINTEROP_LIBRARY_NAME=' + cj_library_name]
 cj_include_dirs = [
@@ -170,7 +170,7 @@ cj_include_dirs = [
 ]
 if os == 'windows'
     cflags += ['-DKOALA_WINDOWS']
-    node_sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cc' ]
+    node_sources += [ external_interop_dir / 'napi' / 'win-dynamic-node.cpp' ]
     panda_ldflags = []
 endif
 if os == 'linux'
@@ -190,8 +190,8 @@ arkts_include_dirs = [
     external_interop_dir / 'ets',
 ]
 arkts_sources = [
-    external_interop_dir / 'ets/convertors-ets.cc',
-    external_interop_dir / 'types/signatures.cc',
+    external_interop_dir / 'ets/convertors-ets.cpp',
+    external_interop_dir / 'types/signatures.cpp',
 ]
 
 ani_cflags = ['-DKOALA_USE_PANDA_VM', '-DKOALA_ANI', '-DINTEROP_LIBRARY_NAME=' + ani_library_name]
@@ -200,8 +200,8 @@ ani_include_dirs = [
     external_interop_dir / 'ani' / 'panda',
 ]
 ani_sources = [
-    external_interop_dir / 'ani/convertors-ani.cc',
-    external_interop_dir / 'types/signatures.cc',
+    external_interop_dir / 'ani/convertors-ani.cpp',
+    external_interop_dir / 'types/signatures.cpp',
 ]
 
 kotlin_cflags = ['-DKOALA_USE_KOTLIN', '-DKOALA_KOTLIN', '-DINTEROP_LIBRARY_NAME=' + kotlin_library_name]
@@ -209,7 +209,7 @@ kotlin_include_dirs = [
     external_interop_dir / 'kotlin',
 ]
 kotlin_sources = [
-    external_interop_dir / 'kotlin/convertors-kotlin.cc',
+    external_interop_dir / 'kotlin/convertors-kotlin.cpp',
 ]
 
 cj_include_dirs = [
@@ -217,7 +217,7 @@ cj_include_dirs = [
     external_incremental_cj_dir / 'runtime/src/'
 ]
 cj_sources = [
-    external_interop_dir / 'cangjie/convertors-cj.cc',
+    external_interop_dir / 'cangjie/convertors-cj.cpp',
     external_interop_dir / 'cangjie/convertors-cj.h',
 ]
 
@@ -347,7 +347,7 @@ if is_ohos
     ]
 
     ohos_sources = [
-        external_interop_dir + '/node/convertors-node.cc'
+        external_interop_dir + '/node/convertors-node.cpp'
     ]
 
     shared_library(ohos_library_name,
@@ -389,12 +389,12 @@ if (os != 'windows') and (is_ohos_demo == false)
         include_directories: include_dirs
     )
     executable('test_arkoala_compat',
-        arkoala_dir / 'compat_test.cc',
+        arkoala_dir / 'compat_test.cpp',
         cpp_args: cflags,
         include_directories: include_dirs
     )
     executable('test_converter',
-        arkoala_dir / 'converter_test.cc',
+        arkoala_dir / 'converter_test.cpp',
         cpp_args: cflags,
         include_directories: include_dirs + [libace_dir + '/utility/generated']
     )
@@ -417,7 +417,7 @@ if is_arkts
         loader_ldflags += ['-ldl']
     endif
     shared_library('vmloader',
-        external_interop_dir / 'vmloader.cc',
+        external_interop_dir / 'vmloader.cpp',
         install: true,
         include_directories: loader_include_dirs,
         install_dir: meson.current_source_dir(),

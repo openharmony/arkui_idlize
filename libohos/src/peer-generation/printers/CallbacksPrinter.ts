@@ -534,9 +534,8 @@ class ManagedCallCallbackVisitor {
             ["vmContext", "resourceId", ...argsNames],
         )
         this.writer.writeFunctionImplementation(`CallManaged${callback.name}Sync`, signature, writer => {
-            writer.print('uint8_t dataBuffer[4096];')
             writer.writeStatement(writer.makeAssign(`argsSerializer`, idl.createReferenceType(`idlize.internal.SerializerBase`),
-                writer.makeString(`SerializerBase((KSerializerBuffer)&dataBuffer, sizeof(dataBuffer), nullptr)`), true, false))
+                writer.makeString(`SerializerBase(nullptr)`), true, false))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(peerGeneratorConfiguration().ApiKind.toString())]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(generateCallbackKindName(callback))]))
             writer.writeExpressionStatement(writer.makeMethodCall(`argsSerializer`, `writeInt32`, [writer.makeString(`resourceId`)]))
@@ -544,7 +543,9 @@ class ManagedCallCallbackVisitor {
                 const convertor = this.library.typeConvertor(argsNames[i], args[i], callback.parameters[i]?.isOptional)
                 writer.writeStatement(convertor.convertorSerialize(`args`, argsNames[i], writer))
             }
-            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, sizeof(dataBuffer), dataBuffer);`)
+            writer.print(`KInteropReturnBuffer callData = argsSerializer.toReturnBuffer();`)
+            writer.print(`KOALA_INTEROP_CALL_VOID(vmContext, 1, callData.length, callData.data);`)
+            writer.print(`callData.dispose(callData.data, callData.length);`)
         })
     }
 
@@ -611,7 +612,7 @@ export function createDeserializeAndCallPrinter(libraryName: string, language: L
 }
 
 export function printManagedCaller(libraryName:string, library: PeerLibrary): SourceFile {
-    const destFile = new CppSourceFile('callback_managed_caller.cc', library) // TODO combine with TargetFile
+    const destFile = new CppSourceFile('callback_managed_caller.cpp', library) // TODO combine with TargetFile
     const visitor = new ManagedCallCallbackVisitor(libraryName, library, destFile)
     visitor.visit()
     return destFile

@@ -16,7 +16,7 @@
 export class Language {
     public static TS = new Language("TS", ".ts")
     public static ARKTS = new Language("ArkTS", ".ts") // using .ts for ArkTS until we get rit of tsc preprocessing
-    public static CPP = new Language("C++", ".cc")
+    public static CPP = new Language("C++", ".cpp")
     public static CJ = new Language("CangJie", ".cj")
     public static KOTLIN = new Language("Kotlin", ".kt")
 

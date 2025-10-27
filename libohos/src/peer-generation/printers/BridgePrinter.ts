@@ -33,7 +33,7 @@ import {
 } from "@idlizer/core";
 import * as idl from "@idlizer/core";
 import { getHookMethod } from '../../DefaultConfiguration';
-import { bridgeCcCustomDeclaration, bridgeCcGeneratedDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
+import { customBridgeDeclaration, generatedBridgeDeclaration, bridgeHeaderCustomDeclaration, bridgeHeaderGeneratedDeclaration } from "../FileGenerators";
 import { ExpressionStatement } from "../LanguageWriters";
 import { forceAsNamedNode, IDLBooleanType, IDLNumberType, IDLVoidType } from '@idlizer/core/idl'
 import { createGlobalScopeLegacy } from "../GlobalScopeUtils";
@@ -61,7 +61,7 @@ export function peerReceiverType(library: PeerLibrary, context: idl.IDLEntry): s
     throw new Error(`Can not calculate receiver type for node ${context.name}`)
 }
 
-export class BridgeCcVisitor {
+export class BridgeVisitor {
     readonly generatedApi = this.library.createLanguageWriter(Language.CPP)
     readonly customApi = this.library.createLanguageWriter(Language.CPP)
     protected printImplementation = true
@@ -193,10 +193,10 @@ export class BridgeCcVisitor {
             let it = argConvertors[i]
             let name = this.generateApiArgument(it) // it.param + '_value'
             this.generatedApi.print(`_tmp = "", WriteToString(&_tmp, ${name});`)
-            varNames.push(`var${BridgeCcVisitor.varCnt}`)
+            varNames.push(`var${BridgeVisitor.varCnt}`)
             let ptrType = `const ${forceAsNamedNode(it.nativeType()).name}`
             this.generatedApi.print(`_logData.append("  ${ptrType} ${varNames[i]}_" + std::to_string(_num) + " = " + _tmp + ";\\n");`)
-            BridgeCcVisitor.varCnt += 1
+            BridgeVisitor.varCnt += 1
         }
 
         this.generatedApi.print(`_logData.append("  ${api}->${modifier}->${this.getPeerMethodName(method)}(");`)
@@ -370,7 +370,7 @@ export class BridgeCcVisitor {
     }
 }
 
-export class BridgeHeaderVisitor extends BridgeCcVisitor {
+export class BridgeHeaderVisitor extends BridgeVisitor {
     constructor(library: PeerLibrary) {
         super(library, false)
         this.printImplementation = false
@@ -390,20 +390,20 @@ export function printBridgeHeader(peerLibrary: PeerLibrary): BridgeApi {
     return { generated: visitor.generatedApi, custom: visitor.customApi }
 }
 
-export function printBridgeCc(peerLibrary: PeerLibrary, callLog: boolean): BridgeApi {
-    const visitor = new BridgeCcVisitor(peerLibrary, callLog)
+export function printBridge(peerLibrary: PeerLibrary, callLog: boolean): BridgeApi {
+    const visitor = new BridgeVisitor(peerLibrary, callLog)
     visitor.print()
     return { generated: visitor.generatedApi, custom: visitor.customApi }
 }
 
-export function printBridgeCcGenerated(peerLibrary: PeerLibrary, callLog: boolean): string {
-    const { generated } = printBridgeCc(peerLibrary, callLog)
-    return bridgeCcGeneratedDeclaration(generated.getOutput())
+export function printGeneratedBridge(peerLibrary: PeerLibrary, callLog: boolean): string {
+    const { generated } = printBridge(peerLibrary, callLog)
+    return generatedBridgeDeclaration(generated.getOutput())
 }
 
-export function printBridgeCcCustom(peerLibrary: PeerLibrary, callLog: boolean): string {
-    const { custom } = printBridgeCc(peerLibrary, callLog)
-    return bridgeCcCustomDeclaration(custom.getOutput())
+export function printCustomBridge(peerLibrary: PeerLibrary, callLog: boolean): string {
+    const { custom } = printBridge(peerLibrary, callLog)
+    return customBridgeDeclaration(custom.getOutput())
 }
 
 export function printBridgeHeaderGenerated(peerLibrary: PeerLibrary): string {
