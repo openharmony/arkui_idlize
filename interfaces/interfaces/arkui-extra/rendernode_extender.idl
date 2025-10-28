@@ -21,11 +21,18 @@ interface NodeEdgeStyles {
     attribute BorderStyle left;
 };
 [Entity=Interface]
-interface EdgeNumber {
-    attribute number top;
-    attribute number right;
-    attribute number bottom;
-    attribute number left;
+interface EdgeF64 {
+    attribute f64 top;
+    attribute f64 right;
+    attribute f64 bottom;
+    attribute f64 left;
+};
+[Entity=Interface]
+interface EdgeI32 {
+    attribute i32 top;
+    attribute i32 right;
+    attribute i32 bottom;
+    attribute i32 left;
 };
 
 
@@ -34,9 +41,9 @@ interface RenderNodeExtender {
   static pointer constructorRenderNode(i32 nodeId);
   static pointer getDestroy();
   static void destroyPeer(RenderNode peer);
-  static void setBackgroundColor(RenderNode peer, number backgroundColor);
+  static void setBackgroundColor(RenderNode peer, i32 backgroundColor);
   static void setClipToFrame(RenderNode peer, boolean clipToFrame);
-  static void setOpacity(RenderNode peer, number opacity);
+  static void setOpacity(RenderNode peer, f64 opacity);
   static void setSize(RenderNode peer, Size size, i32 unitValue);
   static void setPosition(RenderNode peer, Vector2 position, i32 unitValue);
   static void setPivot(RenderNode peer, Vector2 pivot);
@@ -44,15 +51,15 @@ interface RenderNodeExtender {
   static void setTranslation(RenderNode peer, Vector2 translation);
   static void setRotation(RenderNode peer, Vector3 rotation, i32 unitValue);
   static void setTransform(RenderNode peer, Matrix4 transform);
-  static void setShadowColor(RenderNode peer, number shadowColor);
+  static void setShadowColor(RenderNode peer, i32 shadowColor);
   static void setShadowOffset(RenderNode peer, Vector2 shadowOffset, i32 unitValue);
   static void setLabel(RenderNode peer, String label);
-  static void setShadowAlpha(RenderNode peer, number shadowAlpha);
-  static void setShadowElevation(RenderNode peer, number shadowElevation);
-  static void setShadowRadius(RenderNode peer, number shadowRadius);
+  static void setShadowAlpha(RenderNode peer, f64 shadowAlpha);
+  static void setShadowElevation(RenderNode peer, f64 shadowElevation);
+  static void setShadowRadius(RenderNode peer, f64 shadowRadius);
   static void setBorderStyle(RenderNode peer, NodeEdgeStyles borderStyle);
-  static void setBorderWidth(RenderNode peer, EdgeNumber borderWidth, i32 unitValue);
-  static void setBorderColor(RenderNode peer, EdgeNumber borderColor);
+  static void setBorderWidth(RenderNode peer, EdgeF64 borderWidth, i32 unitValue);
+  static void setBorderColor(RenderNode peer, EdgeI32 borderColor);
   static void setBorderRadius(RenderNode peer, BorderRadiuses_graphics borderRadius, i32 unitValue);
   static void setMarkNodeGroup(RenderNode peer, boolean markNodeGroup);
   static void setRectMask(RenderNode peer, Rect rect, number fillColor, number strokeColor, number strokeWidth);
