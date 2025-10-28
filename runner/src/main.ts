@@ -21,6 +21,7 @@ import { commands } from "./commands"
 import { join, resolve } from "node:path"
 import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
 import { formatArkts } from "./tools/formatArkts"
+import { installTemplate } from "./utils"
 
 /////////////////////////////////////////////////
 
@@ -49,12 +50,22 @@ function sdk2idl(sdkPath: string, options: M3Options) {
         const prepareResult = commands.prepareSdk({ sdkPath, installArktsConfig: true })
         sdkPath = prepareResult.sdkPath12
         configPath = prepareResult.configPath
+    } else {
+        configPath = join(WORKING_DIR, 'arkts.config.json')
+        installTemplate(
+            'panda.config.json',
+            configPath,
+            new Map([
+                ['PATCHED_SDK_PATH', sdkPath]
+            ])
+        )
     }
     return commands.ets2idl({ sdkPath, configPath })
 }
 
 function m3(sdkPath: string, installPath: string, options: M3Options) {
     setup()
+    sdkPath = resolve(process.cwd(), sdkPath)
     const { idlPaths } = sdk2idl(sdkPath, options)
     const { scrapedIDLs, arkuiConfig } = commands.scrape({
         idlDirectory: idlPaths,

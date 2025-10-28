@@ -84,7 +84,7 @@ function processFile(program: arkts.Program, outDir: string, baseDir: string, co
     const paths = configContent.compilerOptions.paths ?? {};
     const pathMap = new Map()
     for (const key in paths) {
-        pathMap.set(key, path.normalize(path.join(path.dirname(configPath), paths[key][0])))
+        pathMap.set(key, path.normalize(path.resolve(path.dirname(configPath), paths[key][0])))
     }
     let localStatus = new StatusTracker(status.enabled)
     let idlVisitor = new IDLVisitor(baseDir, file, pathMap, config, localStatus)

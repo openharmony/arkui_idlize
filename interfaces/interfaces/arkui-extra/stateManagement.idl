@@ -1,6 +1,6 @@
 package arkui.stateManagement.internal;
 
-import arkui.Storage.LayoutDirection as LayoutDirection;
+import arkui.stateManagement.storage.storageProperty.LayoutDirection as LayoutDirection;
 
 [Entity=Class]
 interface PersistentStorageBackend {

@@ -500,7 +500,9 @@
         "AlertDialog",
         "CanvasPattern",
         "WithThemeAttribute",
-        "ToolBarItemAttribute"
+        "ToolBarItemAttribute",
+        "SpanAttribute",
+        "SymbolSpanAttribute"
     ],
     "parameterized": [
         "Indicator",

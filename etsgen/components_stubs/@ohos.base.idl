@@ -2,7 +2,7 @@ package ohos.base;
 
 [TypeParameters="T"]
 callback Callback = void (T data);
-[TypeParameters="T", TypeParametersDefaults="BusinessError"]
+[TypeParameters="T", TypeParametersDefaults="ohos.base.BusinessError"]
 callback ErrorCallback = void (T err);
 [TypeParameters="T,E", TypeParametersDefaults="void"]
 callback AsyncCallback = void (([TypeArguments="E"] BusinessError or idlize.stdlib.Null) err, (T or undefined) data);
