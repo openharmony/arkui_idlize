@@ -883,6 +883,10 @@
             "size": {
                 "hookName": "hookCommonMethodModifierSize",
                 "replaceImplementation": true
+            },
+            "customProperty" : {
+                "hookName": "hookCommonMethodModifierCustomProperty",
+                "replaceImplementation": true
             }
         },
         "TabsAttribute": {

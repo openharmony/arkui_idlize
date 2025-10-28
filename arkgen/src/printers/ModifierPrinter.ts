@@ -475,7 +475,7 @@ class ModifiersFileVisitor {
                     switchPrinter.print(`}`)
                     switchPrinter.print(`default: {`)
                     switchPrinter.pushIndent()
-                    switchPrinter.print(`${resetStatement.asString()};`)
+                    if (attribute.isOptional) switchPrinter.print(`${resetStatement.asString()};`)
                     switchPrinter.popIndent()
                     switchPrinter.print(`}`)
                     switchPrinter.popIndent()
