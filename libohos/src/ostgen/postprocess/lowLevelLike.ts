@@ -33,7 +33,7 @@ class MakeOptional extends IdentityTransformer {
     override goStructureDeclaration(decl: lw.StructureDeclaration): lw.StructureDeclaration {
         decl.members.forEach(field => {
             if (field.modifiers?.includes(Md.optional()))
-                field.type = T.c('idlize.Opt', field.type)
+                field.type = Ts.optional(field.type)
         })
         return decl
     }
@@ -83,14 +83,14 @@ class MakeMono extends IdentityTransformer {
 
         // known special types
         this.index.set(
-            'idlize.Array',
+            std.names.types.array,
             DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Array', [
                 { name: 'length', type: Ts.prim.i32 },
                 { name: 'value', type: Ts.ptr(T.c('T')) }
             ])
         )
         this.index.set(
-            'idlize.Map',
+            std.names.types.map,
             DD({ generics: [{ name: 'K' }, { name: 'V' }] }).struct('synthetic.mono.Map', [
                 { name: 'length', type: Ts.prim.i32 },
                 { name: 'keys', type: Ts.ptr(T.c('K')) },
@@ -98,7 +98,7 @@ class MakeMono extends IdentityTransformer {
             ])
         )
         this.index.set(
-            'idlize.Opt',
+            std.names.types.optional,
             DD({ generics: [{ name: 'T' }] }).struct('synthetic.mono.Optional', [
                 { name: 'tag', type: Ts.prim.tag },
                 { name: 'value', type: T.c('T') },

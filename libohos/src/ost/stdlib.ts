@@ -58,6 +58,9 @@ const specialTypeNames = {
 
     union: '@UNION',
     intersection: '@INTERSECTION',
+    array: '@ARRAY',
+    map: '@MAP',
+    optional: '@OPTIONAL',
 
     auto: '@LW.AUTO',
 
@@ -180,4 +183,7 @@ export const Ts = {
 
     union: (types: LWType[]) => T.c(specialTypeNames.union, ...types),
     intersection: (types: LWType[]) => T.c(specialTypeNames.intersection, ...types),
+    optional: (type: LWType) => T.c(specialTypeNames.optional, type),
+    array: (elemType: LWType) => T.c(specialTypeNames.array, elemType),
+    map: (keyType: LWType, valueType: LWType) => T.c(specialTypeNames.map, keyType, valueType),
 }

@@ -14,10 +14,10 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Hs, E, lw, Op, S, std, T, Ts } from "../../../ost";
-import { AdvancedGeneratorContext, bridgeName } from "../common";
+import { Hs, E, lw, Op, S, std, Ts } from "../../../ost";
+import { AdvancedGeneratorContext } from "../common";
 import { Builders } from "../../../ost/builders";
-import { IfStatement, LWExpression, LWKind, LWType } from "../../../ost/lws";
+import { LWType } from "../../../ost/lws";
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type) {
@@ -125,7 +125,7 @@ export class ArgConvertor {
             if (!this.native && type === idl.IDLNumberType) // ugh
                 expr = Builders.cast(Ts.prim.number).valueExpr(expr).$()
             return [
-                [Builders.decl(name, this.convertType(type, this.native)).valueExpr(expr).$()],
+                [Builders.decl(name, this.convertType(type)).valueExpr(expr).$()],
                 E.v(name)
             ]
         }
@@ -140,24 +140,25 @@ export class ArgConvertor {
                         .static().$().$()
                     .args([this.sName]).$()
             return [
-                [Builders.decl(name, this.convertType(type, this.native)).valueExpr(call).$()],
+                [Builders.decl(name, this.convertType(type)).valueExpr(call).$()],
                 E.v(name)
             ]
         }
         if (idl.isContainerType(type)) {
             if (idl.IDLContainerUtils.isSequence(type)) {
-                const elemType = this.native
+                const serializer = this.native
                     ? this.ctx.useNativeSerializer(type.elementType[0])
                     : this.ctx.useManagedSerializer(type.elementType[0])
                 const lengthDecl = Builders.decl('length', Ts.prim.i32).value()
                     .call().receiverExpr(this.sName).functionName('readInt32').$().$().$()
-                const bufferDecl = Builders.decl('buffer', T.c('idlize.Array', elemType.reference())).value()///std name?
-                    .ctor().args([E.v('length')]).$().$().$()///pass type to ctor
+                const elemType = this.convertType(type.elementType[0]);
+                const bufferDecl = Builders.decl('buffer', Ts.array(elemType)).value()
+                    .ctor(std.names.types.array).typeArgs([elemType]).args([E.v('length')]).$().$().$()
                 const [reads, readValue] = this.read(name, type.elementType[0]);
                 const loop = Builders.loop()
-                    .init().decl('i', Ts.prim.i32).valueStr(0).$().$()
+                    .init().decl('i', Ts.prim.i32).mutable().valueStr(0).$().$()
                     .cond().binary(Op.lt).leftStr('i').rightStr('length').$().$()
-                    .step().binary(Op.postinc).leftStr('i').$().$()
+                    .step().unary(Op.postinc).valueStr('i').$().$()
                     .body().block()
                         .statements(reads)
                         .binary('=')
@@ -167,9 +168,9 @@ export class ArgConvertor {
             }
         }
         if (idl.isUnionType(type)) {
-            const selectorDecl = Builders.decl('selector', Ts.prim.i8)
+            const selectorDecl = Builders.decl('selector', Ts.prim.i32)
                 .value().call().receiverExpr(this.sName).functionName('readInt8').$().$().$()
-            const tmpDecl = Builders.decl('tmp', this.convertType(type, this.native)).$()
+            const tmpDecl = Builders.decl('tmp', this.convertType(type)).mutable().$()
             if (this.native)
                 tmpDecl.expression = E.c('{}')
             const ifs = type.types.map((ty, i) => {
@@ -181,7 +182,7 @@ export class ArgConvertor {
                         Builders.stmt().binary(Op.eq)
                             .left().access(E.v('tmp')).member('value' + i).$().$()
                             .rightExpr(readValue).$().$()]
-                    : [ Builders.stmt().binary(Op.eq).leftStr('tmp').rightExpr(readValue).$().$()]
+                    : [ Builders.stmt().binary('=').leftStr('tmp').rightExpr(readValue).$().$()]
                 return Builders.if()
                     .cond().binary(Op.eq).leftStr('selector').rightStr(i).$().$()
                     .then().block()
@@ -193,8 +194,8 @@ export class ArgConvertor {
         throw new Error(`Can not process "${idl.DebugUtils.debugPrintType(type)}"`)
     }
 
-    private convertType(type:idl.IDLType, native: boolean): LWType {
-        return native
+    private convertType(type:idl.IDLType): LWType {
+        return this.native
             ? this.ctx.useCApi(type).reference()
             : this.ctx.useManaged(type).reference()
     }

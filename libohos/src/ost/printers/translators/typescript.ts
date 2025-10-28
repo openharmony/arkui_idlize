@@ -62,8 +62,9 @@ export class ConvertTSTypes extends IdentityTransformer {
     if (type.args.length > 0) {
       type = super.goValueType(type) as lw.ValueType
       switch (type.name) {
-        case 'idlize.Array': return T.c('Array', ...type.args)
-        case 'idlize.Map': return T.c('Map', ...type.args)
+        case std.names.types.array:
+        case std.names.types.map:
+          return T.c(this.convertSpecialName(type.name), ...type.args)
       }
     }
     // strip local package from type name
@@ -72,11 +73,23 @@ export class ConvertTSTypes extends IdentityTransformer {
       return T.c(type.name.substring(localPrefix.length))
     return type
   }
+  override goConstructorExpression(expr: lw.ConstructorExpression): lw.ConstructorExpression {
+    const ret = super.goConstructorExpression(expr)
+    ret.name = this.convertSpecialName(ret.name)
+    return ret
+  }
   override goNamespaceDeclaration(decl: lw.NamespaceDeclaration): lw.NamespaceDeclaration {
     this.nameStack.push(decl.name)
     const ret = super.goNamespaceDeclaration(decl)
     this.nameStack.pop()
     return ret
+  }
+  private convertSpecialName(name: string): string {
+    switch (name) {
+      case std.names.types.array: return 'Array'
+      case std.names.types.map: return 'Map'
+    }
+    return name
   }
 }
 

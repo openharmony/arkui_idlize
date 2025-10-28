@@ -15,12 +15,13 @@
 
 import { D, T } from "../../../ost"
 import * as idl from "@idlizer/core/idl"
-import { cApiName, createSpecialProducer, roles } from "../common"
+import { createSpecialProducer, roles } from "../common"
+import { CppConvertor } from "@idlizer/core"
 
 export const unionProducer = createSpecialProducer(
   { is: idl.isUnionType, role: roles.cApi },
   (node, ctx) => {
-    const name = cApiName(idl.getFQName(node))
+    const name = new CppConvertor(ctx.base.library).convertUnion(node).text///
     return {
       artifact: {
         reference: T.c(name),

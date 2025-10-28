@@ -159,6 +159,7 @@ class ConstructorBuilder<P> {
         private _name?: string
     ) {}
     private _args: LWExpression[] = []
+    private _typeArgs: LWType[] = []
     private _hints: Hint[] = []
     asStruct() { this._hints.push(Hs.asStruct()); return this }
     stack() { this._hints.push(Hs.stackInstance()); return this }
@@ -169,8 +170,9 @@ class ConstructorBuilder<P> {
             return this
         }, value ? E.v(value) : undefined)
     }
+    typeArgs(args: LWType[]) { this._typeArgs.push(...args); return this }
     $(): P {
-        return this._cont(E.instance(this._name ?? 'CTOR_NAME', this._args, [], this._hints))
+        return this._cont(E.instance(this._name ?? 'CTOR_NAME_MISSING', this._args, this._typeArgs, this._hints))
     }
 }
 

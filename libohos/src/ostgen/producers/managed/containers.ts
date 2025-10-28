@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { T } from "../../../ost";
-import { createProducer } from "../../engine/context"
+import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl";
 import { createSpecialProducer } from "../common";
 
@@ -27,7 +26,7 @@ export const containerProducer = createSpecialProducer(
           const elemRef = ctx.useManaged(node.elementType[0]).reference()
           return {
             artifact: {
-              reference: T.c('idlize.Array', elemRef)
+              reference: Ts.array(elemRef)
             }
           }
         }
@@ -36,7 +35,7 @@ export const containerProducer = createSpecialProducer(
           const valRef = ctx.useManaged(node.elementType[1]).reference()
           return {
             artifact: {
-              reference: T.c('idlize.Map', keyRef, valRef)
+              reference: Ts.map(keyRef, valRef)
             }
           }
         }

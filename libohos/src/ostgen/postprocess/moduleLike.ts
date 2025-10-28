@@ -110,7 +110,7 @@ class RefSearcher extends IdentityTransformer {
 
     private goTypeName(name: string): string {
         if (name.startsWith('@'))
-            throw new Error('Unhandled builtin type: ' + name)
+            return name
         const record = this.registry.get(name)
         if (record) {
             let val = name
