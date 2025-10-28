@@ -50,26 +50,28 @@ export const functionBridgeProducer = createSpecialProducer(
           }
           const macroArity = macroArgs.length + (koalaReturnType ? 0 : 1)
           const apiCall = Builders.call().functionExpr(apiAccessor(method, funcName)).args(apiCallArgs).$()
-          const bridge = Builders.func(declName)
-            .parameters(params)
-            .returns(returnType)
-            .macro(`KOALA_INTEROP_${isDirect ? 'DIRECT_' : ''}${koalaReturnType ? '' : 'V'}${macroArity}`,
-              ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32)
-            .block()
-              .decl('deserializer', T.c('DeserializerBase')).value()
-                .ctor('DeserializerBase').stack().args([E.v('thisArray'), E.v('thisLength')]).$().$().$()
-              .statements(argReads.flatMap(([stmts, _]) => stmts))
+          const body = Builders.block()
+            .decl('deserializer', T.c('DeserializerBase')).value()
+              .ctor('DeserializerBase').stack().args([E.v('thisArray'), E.v('thisLength')]).$().$().$()
+            .statements(argReads.flatMap(([stmts, _]) => stmts))
           if (returnType === Ts.prim.returnBuffer) {
             const conv = new ArgConvertor(ctx, E.v('returnSerializer'), true)
-            bridge
+            body
               .decl('returnValue', T.c(std.names.types.auto)).valueExpr(apiCall).$()///make decl.type optional?
               .decl('returnSerializer', T.c('SerializerBase')).value().ctor().asStruct().$().$().$()
               .statements([conv.write(E.v('returnValue'), method.returnType)])
               .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
           } else {
-            bridge.return(returnType).valueExpr(apiCall).$()
+            body.return(returnType).valueExpr(apiCall).$()
           }
-          return [bridge.$().$()]
+          return [
+            Builders.func(declName)
+              .parameters(params)
+              .returns(returnType)
+              .body(body.$())
+              .macro(`KOALA_INTEROP_${isDirect ? 'DIRECT_' : ''}${koalaReturnType ? '' : 'V'}${macroArity}`,
+                ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+          ]
         }
       }
     }
@@ -130,13 +132,20 @@ export const materializedBridgeProducer = createSpecialProducer(
 
 function interopReturnType(
   type: idl.IDLType, ctx: AdvancedGeneratorContext
-): [returnType: LWType, koalaReturnType: string | undefined, isDirect:boolean] {
+): [returnType: LWType, koalaReturnType: string | undefined, isDirect: boolean] {
   const returnType = ctx.useCApi(type).reference()
   switch (type) {
-    case idl.IDLVoidType: return [returnType, undefined, true]
-    case idl.IDLNumberType: return [returnType, 'KInteropNumber', true]
-    case idl.IDLStringType: return [returnType, 'KStringPtr', true]
-    default: return [T.c('KInteropReturnBuffer'), 'KInteropReturnBuffer', false]
+    case idl.IDLVoidType:
+      return [returnType, undefined, true]
+    case idl.IDLNumberType:
+    case idl.IDLI8Type: case idl.IDLU8Type:
+    case idl.IDLI16Type: case idl.IDLU16Type: case idl.IDLF16Type:
+    case idl.IDLI32Type: case idl.IDLU32Type: case idl.IDLF32Type:
+      return [returnType, 'KInteropNumber', true]
+    case idl.IDLStringType:
+      return [returnType, 'KStringPtr', true]
+    default:
+      return [Ts.prim.returnBuffer, 'KInteropReturnBuffer', false]
   }
 }
 
