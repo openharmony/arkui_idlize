@@ -610,7 +610,8 @@
             "GestureType",
             "TouchTestInfo",
             "TouchResult",
-            "DrawModifier"
+            "DrawModifier",
+            "Badge"
         ],
         "ignoreEntry": [
             "Optional",
