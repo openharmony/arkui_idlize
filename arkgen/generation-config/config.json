@@ -957,7 +957,8 @@
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory",
         "arkui.component.idlize.RouterExtender.back",
-        "arkui.component.idlize.RouterExtender.runPage"
+        "arkui.component.idlize.RouterExtender.runPage",
+        "arkui.component.idlize.BuilderNodeOps.create"
     ],
     "constants": {
         "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
