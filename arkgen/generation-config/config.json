@@ -998,7 +998,8 @@
         "TestCallIntIntArraySum",
         "TestCallVoidIntArrayPrefixSum",
         "TestCallIntRecursiveCallback",
-        "TestCallIntMemory"
+        "TestCallIntMemory",
+        "arkui.component.idlize.BuilderNodeOps.create"
     ],
     "moduleName": "arkui",
     "modules": {
