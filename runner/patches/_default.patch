@@ -25,7 +25,7 @@ index 01238b37d..af871628d 100644
   * Class ThemeControl provides the Theme management for whole Ability and pages.
   *
 diff --git a/api/arkui/component/common.static.d.ets b/api/arkui/component/common.static.d.ets
-index 168d42dd7..375f5e334 100644
+index 4ff6f1fb1..ddb630fa5 100644
 --- a/api/arkui/component/common.static.d.ets
 +++ b/api/arkui/component/common.static.d.ets
 @@ -10463,13 +10463,13 @@ export declare interface BackgroundOptions {
@@ -86,7 +86,7 @@ index 6dfb46e9a..9225c6493 100644
       * Set the attribute modifier
       *
 diff --git a/api/arkui/component/sidebar.static.d.ets b/api/arkui/component/sidebar.static.d.ets
-index 361c6e519..52a2dad8a 100644
+index 32f92bc71..9216951c8 100644
 --- a/api/arkui/component/sidebar.static.d.ets
 +++ b/api/arkui/component/sidebar.static.d.ets
 @@ -22,7 +22,7 @@
