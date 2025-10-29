@@ -38,7 +38,7 @@ export function convertAndImport(importer: Importer, converter: BaseTypeConverto
             if (config.ignore.hasReexportReplacement(fqName(node))) {
                 importer.withReexportImport(dropPrefix(type.name, Config.dataClassPrefix))
             } else {
-                importer.withPeerImport(type)
+                importer.withPeerImport(result)
             }
         }
     }

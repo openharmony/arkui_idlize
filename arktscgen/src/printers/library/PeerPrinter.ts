@@ -89,11 +89,13 @@ export class PeerPrinter {
 
     private printPeer(iface: IDLInterface, writer: TSLanguageWriter): void {
         const _parent = iface.inheritance[0] ?? createReferenceType(Config.defaultAncestor)
+        const parentName = makeEnoughQualifiedName(_parent, this.typechecker.resolveReference.bind(this.typechecker))
+
         this.importer.addSeen(PeersConstructions.peerName(iface.name))
         writer.writeClass(
             PeersConstructions.peerName(iface.name), // XXX: Change peer name to iface.name
             (writer: TSLanguageWriter) => this.printBody(iface, writer),
-            this.importer.withPeerImport(_parent)
+            this.importer.withPeerImport(parentName)
         )
     }
 

@@ -44,8 +44,8 @@ import { Filter } from "../Filter"
 import { CommonGenerator } from "../Generator"
 
 export class FactoryPrinter extends SingleFilePrinter {
-    protected importer = new Importer(this.typechecker, `peers`)
-    protected converter = new LibraryTypeConvertor(this.typechecker)
+    protected importer = new Importer(`peers`)
+    protected converter = new LibraryTypeConvertor(this.typechecker, true /* fq names */)
 
     protected writer = new TSLanguageWriter(
         new IndentedPrinter(),

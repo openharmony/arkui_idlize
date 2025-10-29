@@ -88,7 +88,7 @@ export class AllPeersPrinter extends MultiFilePrinter {
         exports: string[],
         cb: (printer: PeerPrinter, writer: TSLanguageWriter) => void
     ): MultiFileOutput {
-        const importer = new Importer(this.typechecker, '.', name)
+        const importer = new Importer('.', name)
         const writer = this.makeWriter(importer)
         const printer = new PeerPrinter(this.config, this.typechecker, importer)
 

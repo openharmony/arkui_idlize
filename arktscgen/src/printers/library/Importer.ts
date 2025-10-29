@@ -13,24 +13,13 @@
  * limitations under the License.
  */
 
-import {
-    getFQName,
-    getNamespacesPathFor,
-    IDLNamedNode,
-    IDLNode,
-    IDLReferenceType,
-    throwException
-} from "@idlizer/core"
-import { createDefaultTypescriptWriter, makeEnoughQualifiedName } from "../../utils/idl"
+import { createDefaultTypescriptWriter } from "../../utils/idl"
 import { Config } from "../../general/Config"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
-import { Typechecker } from "../../general/Typechecker"
-import { dropPrefix } from "../../utils/string"
 import * as path from "node:path"
 
 export class Importer {
     constructor(
-        private typechecker: Typechecker,
         private dir: string,
         self?: string,
     ) {
@@ -46,14 +35,14 @@ export class Importer {
         Config.defaultAncestor, // TODO: handwritten
     ])
 
-    withPeerImport(ref: IDLReferenceType, context?: IDLNode): string {
-        const name = makeEnoughQualifiedName(ref, this.typechecker.resolveReference.bind(this.typechecker))
+    withPeerImport(name: string): string {
         const fq = name.split('.')
         // import namespace name for fq names
-        return this.withPeerImport2(fq.length > 1 ? fq.slice(0, -1).join('.') : name)
+        this.withPeerImport2(fq.length > 1 ? fq.slice(0, -1).join('.') : name)
+        return name;
     }
 
-    withPeerImport2(it: string): string {
+    private withPeerImport2(it: string): string {
         if (this.seen.has(it)) {
             return it
         }
