@@ -1,8 +1,8 @@
 {
     "compilerOptions": {
         "package": "arkui",
-        "baseUrl": "out/unit-arkts/generated/sig/arkoala-arkts/arkui/generated",
-        "outDir": "out/unit-arkts/abc",
+        "baseUrl": "generated/sig/arkoala-arkts/arkui/generated",
+        "outDir": "generated/abc",
         "paths": {
             "#components": [
                 "./framework/arkts"
@@ -47,9 +47,9 @@
         }
     },
     "include": [
-        "out/unit-arkts/generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
+        "generated/sig/arkoala-arkts/arkui/generated/**/*.ets"
     ],
     "exclude": [
-        "out/unit-arkts/generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
+        "generated/sig/arkoala-arkts/arkui/src/sdk/**/*"
     ]
 }

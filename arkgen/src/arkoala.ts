@@ -93,7 +93,8 @@ export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
     apiVersion: number,
     commentedCode: boolean,
-    outDir: string
+    outDir: string,
+    withSubset: boolean,
 }, peerLibrary: PeerLibrary) {
     peerLibrary.name = 'libace'
     const libace = config.libaceDestination ?
@@ -125,7 +126,9 @@ export function generateLibaceFromIdl(config: {
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
 
-    copyToLibace(fs.existsSync(Subset) ? Subset : resolveExternal(), libace)
+    if (config.withSubset) {
+        copyToLibace(fs.existsSync(Subset) ? Subset : resolveExternal(), libace)
+    }
 }
 
 function copyArkoalaFiles(config: {
@@ -179,6 +182,7 @@ export function generateArkoalaFromIdl(config: {
     callLog: boolean,
     verbose: boolean,
     attributeModifierHooks: boolean,
+    withSubset: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
@@ -503,7 +507,9 @@ export function generateArkoalaFromIdl(config: {
             integrated: true
         })
 
-    copyArkoalaFiles({ onlyIntegrated: config.onlyIntegrated }, arkoala)
+        if (config.withSubset) {
+            copyArkoalaFiles({ onlyIntegrated: config.onlyIntegrated }, arkoala)
+        }
 }
 
 function copyToLibace(from: string, libace: LibaceInstall) {

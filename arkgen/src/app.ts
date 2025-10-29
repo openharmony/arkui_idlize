@@ -104,6 +104,7 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
+        .option('--no-subset', "Do not copy the subset staff from the external repo or external-subset dir")
 
     const options = command
         .parse(argv, { from: 'user' })
@@ -199,7 +200,8 @@ export function arkgen(argv:string[]) {
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
-                attributeModifierHooks: options.attributeModifierHooks ?? false
+                attributeModifierHooks: options.attributeModifierHooks ?? false,
+                withSubset: options.subset,
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
@@ -209,6 +211,7 @@ export function arkgen(argv:string[]) {
                 libaceDestination: options.libaceDestination,
                 apiVersion: apiVersion,
                 commentedCode: options.commentedCode,
+                withSubset: options.subset
             }, idlLibrary)
         }
         if (options.generatorTarget == "libaceut" ||
