@@ -894,6 +894,12 @@
                 "hookName": "hookTabsApplyAttributesFinish",
                 "replaceImplementation": false
             }
+        },
+        "WebAttribute": {
+            "javaScriptProxy": {
+                "hookName": "hookJavaScriptProxy",
+                "replaceImplementation": true
+            }
         }
     },
     "materialized": {
@@ -962,7 +968,8 @@
         "TestCallIntMemory",
         "arkui.component.idlize.RouterExtender.back",
         "arkui.component.idlize.RouterExtender.runPage",
-        "arkui.component.idlize.BuilderNodeOps.create"
+        "arkui.component.idlize.BuilderNodeOps.create",
+        "arkui.component.idlize.WebInterface.setWebOptions"
     ],
     "constants": {
         "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
