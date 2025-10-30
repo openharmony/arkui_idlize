@@ -1,4 +1,12 @@
-import { PromiseTester, UnitTestsuite,  checkEQ, assertDoubleEQ, checkNotEQ, test_ret_B, test_return_types } from '#compat'
+import {
+  PromiseTester,
+  UnitTestsuite,
+  checkEQ,
+  assertDoubleEQ,
+  checkNotEQ,
+  test_return_types,
+  getHookInterface
+} from '#compat'
 
 import {
   toBigInt
@@ -62,7 +70,7 @@ import { IDLCheckConstructor } from '#compat'
 import { InternalModuleDataInterface, RenamedModuleDataInterface, DTSCheckInternalLib } from "#compat"
 
 import { ImportedHookValue } from "#compat"
-import { DTSHookClass, DTSHookValue, DTSHookInterfaceInternal } from "#compat"
+import { HookClass, HookValue } from "#compat"
 
 import { ExternalModuleDataInterface } from "@external.lib"
 
@@ -385,23 +393,24 @@ function checkNativeBuffer() {
 // }
 
 function checkHooks() {
-  const hookClass = new DTSHookClass()
-  hookClass.method({ count: 900 })
+
+  const hookInterface = getHookInterface()
+  hookInterface.method()
+  hookInterface.methodArg({ count: 701 })
+  const hookValue1 = hookInterface.methodReturn()
+  checkEQ(702, hookValue1.count)
+  hookInterface.methodImportedArg({ count: 703 })
+  const importedHookValue1 = hookInterface.methodImportedReturn()
+  checkEQ(704, importedHookValue1.count)
+
+  const hookClass = new HookClass()
+  hookClass.method()
   hookClass.methodArg({ count: 901 })
   const hookValue = hookClass.methodReturn()
-  console.log(`  hook return value: ${hookValue.count}`)
+  checkEQ(902, hookValue.count)
   hookClass.methodImportedArg({ count: 903 })
   const importedHookValue = hookClass.methodImportedReturn()
-  console.log(`  hook return value: ${importedHookValue.count}`)
-  
-  const hookInterface = new DTSHookInterfaceInternal()
-  hookInterface.method({ count: 900 })
-  hookInterface.methodArg({ count: 901 })
-  const hookInterfaceValue = hookInterface.methodReturn()
-  console.log(`  hook return value: ${hookInterfaceValue.count}`)
-  hookInterface.methodImportedArg({ count: 903 })
-  const importedHookInterfaceValue = hookInterface.methodImportedReturn()
-  console.log(`  hook return value: ${importedHookInterfaceValue.count}`)
+  checkEQ(904, importedHookValue.count)
 }
 
 function checkInternalLib() {

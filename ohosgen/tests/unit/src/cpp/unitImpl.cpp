@@ -974,52 +974,57 @@ OH_Boolean GlobalScope_testLengthImpl(const OH_Number* step, const OH_UNIT_Lengt
 }
 
 // Hooks
-class DTSHookClassPeer
+// TBD: Do not generate native methods for hooks with the replaceImplementation set to true
+class HookInterfacePeer
 {
 };
-OH_UNIT_DTSHookClassHandle DTSHookClass_constructImpl() {
-    return (OH_UNIT_DTSHookClassHandle) new DTSHookClassPeer();
-}
-void DTSHookClass_destructImpl(OH_UNIT_DTSHookClassHandle thisPtr) {
-}
-void DTSHookClass_methodImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
-    printf("[native] [0] call DTSHookClass_methodImpl, count: %d\n", value->count.i32);
-}
-// TBD: remove implementation for the hooked method
-void DTSHookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
-}
-OH_UNIT_DTSHookValue DTSHookClass_methodReturnImpl(OH_NativePointer thisPtr) {
-    return {};
-}
-void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+
+OH_UNIT_HookInterface GlobalScope_getHookInterfaceImpl() {
+    return (OH_UNIT_HookInterface) new HookInterfacePeer();
 }
 
-class DTSHookInterfacePeer
+OH_UNIT_HookInterfaceHandle HookInterface_constructImpl() {
+    return {};
+}
+void HookInterface_destructImpl(OH_UNIT_HookInterfaceHandle thisPtr) {
+}
+void HookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {
+}
+void HookInterface_methodImpl(OH_NativePointer thisPtr) {
+}
+void HookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+}
+OH_UNIT_ImportedHookValue HookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_UNIT_HookValue HookInterface_methodReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+
+class HookClassPeer
 {
 };
-OH_UNIT_DTSHookInterfaceHandle DTSHookInterface_constructImpl() {
-    return (OH_UNIT_DTSHookInterfaceHandle) new DTSHookInterfacePeer();
+OH_UNIT_HookClassHandle HookClass_constructImpl() {
+    return (OH_UNIT_HookClassHandle) new HookClassPeer();
 }
-void DTSHookInterface_destructImpl(OH_UNIT_DTSHookInterfaceHandle thisPtr) {
+void HookClass_destructImpl(OH_UNIT_HookClassHandle thisPtr) {
 }
-void DTSHookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+void HookClass_methodImpl(OH_NativePointer thisPtr) {
+    printf("[native] [0] call HookClass_methodImpl\n");
 }
-void DTSHookInterface_methodImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
-    printf("[native] [0] call DTSHookClass_methodImpl, count: %d\n", value->count.i32);
+// TBD: remove implementation for the hooked method
+void HookClass_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_HookValue* value) {
 }
-void DTSHookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
-}
-OH_UNIT_ImportedHookValue DTSHookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+OH_UNIT_HookValue HookClass_methodReturnImpl(OH_NativePointer thisPtr) {
     return {};
 }
-OH_UNIT_DTSHookValue DTSHookInterface_methodReturnImpl(OH_NativePointer thisPtr) {
-    return {};
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
 }
 
 // TBD: update
-void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
+void HookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
 }
-OH_UNIT_ImportedHookValue DTSHookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+OH_UNIT_ImportedHookValue HookClass_methodImportedReturnImpl(OH_NativePointer thisPtr) {
     return {};
 }
 

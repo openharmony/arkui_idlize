@@ -90,7 +90,7 @@
         "test_exception.CheckExceptionInterface",
         "test_generic_interface.GenericInterface",
         "test_materialized_classes.test_materialized_classes.MaterializedWithCreateMethod",
-        "test_hooks.DTSHookInterface"
+        "test_hooks.HookInterface"
     ],
     "forceResource": [
        "ContentModifier"
@@ -126,39 +126,47 @@
         "replaceThrowErrorReturn": []
     },
     "hooks": {
-        "DTSHookClass": {
+        "HookInterface": {
+            "method": {
+                "hookName": "customHookInterfaceMethod",
+                "replaceImplementation": true
+            },
             "methodArg": {
-                "hookName": "customHookDTSHookClassMethodArg",
+                "hookName": "customHookInterfaceMethodArg",
                 "replaceImplementation": true
             },
             "methodReturn": {
-                "hookName": "hookDTSHookClassMethodReturn",
+                "hookName": "hookHookInterfaceMethodReturn",
                 "replaceImplementation": true
             },
             "methodImportedArg": {
-                "hookName": "hookDTSHookClassImportedArg",
+                "hookName": "hookHookInterfaceImportedArg",
                 "replaceImplementation": true
             },
             "methodImportedReturn": {
-                "hookName": "customHookDTSHookClassMethodImportedReturn",
+                "hookName": "customHookInterfaceMethodImportedReturn",
                 "replaceImplementation": true
             }
         },
-        "DTSHookInterface": {
+        "HookClass": {
+            "method": {
+                "hookName": "customHookClassMethod",
+                "replaceImplementation": true
+            },
             "methodArg": {
-                "hookName": "customHookDTSHookInterfaceMethodArg",
+                "hookName": "customHookClassMethodArg",
                 "replaceImplementation": true
             },
             "methodReturn": {
-                "hookName": "hookDTSHookInterfaceMethodReturn",
+                "hookName": "hookHookClassMethodReturn",
                 "replaceImplementation": true
             },
             "methodImportedArg": {
-                "hookName": "hookDTSHookInterfaceImportedArg",
+                "hookName": "hookHookClassImportedArg",
                 "replaceImplementation": true
             },
             "methodImportedReturn": {
-                "hookName": "customHookDTSHookInterfaceMethodImportedReturn",
+                "hookName": "customHookClassMethodImportedReturn",
                 "replaceImplementation": true
             }
         }

@@ -1,0 +1,65 @@
+import { HookClass, HookValue, HookInterface } from "#compat"
+import { ImportedHookValue } from "@external.lib"
+
+// HookInterface
+export function customHookInterfaceMethod(receiver: HookInterface) {
+    console.log(`[managed] [0] call customHookClassMethodArg(receiver = ${receiver}`)
+}
+
+export function customHookInterfaceMethodArg(receiver: HookInterface, value: HookValue) {
+    console.log(`[managed] [1] call customHookClassMethodArg(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 701)
+}
+
+export function hookHookInterfaceMethodReturn(receiver: HookInterface): HookValue {
+    const value: HookValue = { count: 702 }
+    console.log(`[managed] [2] call hook_HookClass_methodReturn(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 702)
+    return value
+}
+
+export function hookHookInterfaceImportedArg(receiver: HookInterface, value: ImportedHookValue) {
+    console.log(`[managed] [3] call hook_HookClass_methodImportedArg(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 703)
+}
+
+export function customHookInterfaceMethodImportedReturn(receiver: HookInterface): ImportedHookValue {
+    const value: ImportedHookValue = { count: 704 }
+    console.log(`[managed] [4] call hook_HookClass_methodReturn(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 704)
+    return value
+}
+
+// HookClass
+
+export function customHookClassMethod(receiver: HookClass) {
+    console.log(`[managed] [1] call customHookClassMethodArg(receiver = ${receiver})`)
+}
+
+export function customHookClassMethodArg(receiver: HookClass, value: HookValue) {
+    console.log(`[managed] [1] call customHookClassMethodArg(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 901)
+}
+
+export function hookHookClassMethodReturn(receiver: HookClass): HookValue {
+    const value: HookValue = { count: 902 }
+    console.log(`[managed] [2] call hook_HookClass_methodReturn(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 902)
+    return value
+}
+
+export function hookHookClassImportedArg(receiver: HookClass, value: ImportedHookValue) {
+    console.log(`[managed] [3] call hook_HookClass_methodImportedArg(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 903)
+}
+
+export function customHookClassMethodImportedReturn(receiver: HookClass): ImportedHookValue {
+    const value: ImportedHookValue = { count: 904 }
+    console.log(`[managed] [4] call hook_HookClass_methodReturn(receiver = ${receiver}, value count = ${value.count})`)
+    checkValue(value, 904)
+    return value
+}
+
+function checkValue(hookValue: HookValue, count: number) {
+    if (hookValue.count != count) throw new Error(`HookValue ${hookValue.count} does not equal to ${count}`)
+}
