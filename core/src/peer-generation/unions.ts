@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import * as idl from '../idl'
+
 import { convertType, TypeConvertor } from "../LanguageWriters";
 import { IDLImport, IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
 import { collapseTypes } from "./idl/common"
@@ -87,11 +89,19 @@ export class UnionRuntimeTypeChecker {
             }
         })
     }
-    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter, type?: IDLType): LanguageExpression {
-        const convertor = this.convertors[convertorIndex]
-        if (this.conflictingConvertors.has(convertor) && writer.language === Language.TS) {
-            const discriminator = convertor.unionDiscriminator(value, convertorIndex, writer, this.duplicateMembers)
-            if (discriminator) return discriminator
+    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter, library: LibraryInterface, type?: IDLType): LanguageExpression {
+        var convertor = this.convertors[convertorIndex]
+
+        if (writer.language === Language.TS) {
+            const isArray = idl.IDLContainerUtils.isSequence(convertor.idlType)
+            if (isArray || this.conflictingConvertors.has(convertor)) {
+                // Check elements inside array
+                if (type && convertor.idlType != type) {
+                    convertor = library.typeConvertor("", type)
+                }
+                const discriminator = convertor.unionDiscriminator(value, convertorIndex, writer, this.duplicateMembers)
+                if (discriminator) return discriminator
+            }
         }
         return writer.makeString(
             writer.discriminate(value, convertorIndex, type ?? convertor.idlType, convertor.runtimeTypes)

@@ -404,6 +404,12 @@ export class TSLanguageWriter extends LanguageWriter {
     makeCast(value: LanguageExpression, node: idl.IDLNode, options?: MakeCastOptions): LanguageExpression {
         return new TSCastExpression(value, this.getNodeName(node), options?.unsafe ?? false)
     }
+    override instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return idl.IDLContainerUtils.isSequence(type)
+            ? this.makeString(`Array.isArray(${value})`)
+            : super.instanceOf(value, type)
+
+    }
     override typeInstanceOf(type: idl.IDLEntry, value: string, members?: string[]): LanguageExpression {
 
         if (idl.isInterface(type)) {

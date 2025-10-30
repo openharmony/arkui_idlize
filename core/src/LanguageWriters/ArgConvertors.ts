@@ -1039,15 +1039,16 @@ export class UnionConvertor extends BaseArgConvertor {
         return idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type)
     }
     isIndexedDiscriminator(writer: LanguageWriter) {
-        // TBD: make indexed descriminator only for TS
-        if (writer.language == Language.ARKTS) return false
-        return true
+        // Indexed discriminator is only used in CPP
+        // All other languages check the first array element type for arrays discrimination
+        if (writer.language == Language.CPP) return true
+        return false
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
         const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, it.idlType))
         if (this.isIndexedDiscriminator(printer))
             return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, printer, it)));
-        // Make array type descrimination
+        // Make arrays type descrimination
         return this.convertorSerializeMultiBranch(param, value, printer, convertorItems)
     }
     makeStoreSelector(param: string, index: number, printer: LanguageWriter): LanguageStatement {
@@ -1062,7 +1063,7 @@ export class UnionConvertor extends BaseArgConvertor {
         const convertor = convertorItem.convertor
         const index = convertorItem.index
         const type = convertorItem.type
-        const discriminator = this.unionChecker.makeDiscriminator(convertorItem.elemName ?? value, index, printer, type)
+        const discriminator = this.unionChecker.makeDiscriminator(convertorItem.elemName ?? value, index, printer, this.library, type)
         const statements: LanguageStatement[] = []
         statements.push(this.makeStoreSelector(param, index, printer))
         if (!(convertor instanceof UndefinedConvertor)) {
@@ -1077,27 +1078,27 @@ export class UnionConvertor extends BaseArgConvertor {
         const stmt = new BlockStatement(statements, false)
         return { expr: discriminator, stmt }
     }
-    makeArrayBranch(param: string, value: string, printer: LanguageWriter, arrayElemConvertors: ConvertorItem[]): BranchStatement[] {
-        if (arrayElemConvertors.length == 0) return []
+    makeArrayBranch(param: string, value: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
+        if (arrayConvertorItems.length == 0) return []
 
-        const arrayConvertor = arrayElemConvertors[0]
+        const arrayConvertorItem = arrayConvertorItems[0]
         const elemName = `${value}Elem`
         const elemAccess = printer.makeString(`${value}[0]`)
         const checkZeroArray = printer.makeCondition(
             printer.makeString(`${value}.length == 0`),
             new BlockStatement([
-                this.makeStoreSelector(param, arrayConvertor.index, printer),
+                this.makeStoreSelector(param, arrayConvertorItem.index, printer),
                 printer.makeStatement(
                     printer.makeMethodCall(`${param}Serializer`, "writeInt32", [printer.makeString("0")]))
             ], true, false),
             new BlockStatement([
                 printer.makeAssign(elemName, undefined, elemAccess, true, true),
-                this.convertorSerializeMultiBranch(param, value, printer, arrayElemConvertors.map(it =>
+                this.convertorSerializeMultiBranch(param, value, printer, arrayConvertorItems.map(it =>
                     new ConvertorItem(it.convertor, it.index, (it.type as idl.IDLContainerType).elementType[0], elemName)))
             ], true, false)
         )
         const arrayMultiBranch: BranchStatement = {
-            expr: this.unionChecker.makeDiscriminator(value, arrayElemConvertors[0].index, printer, arrayConvertor.type),
+            expr: this.unionChecker.makeDiscriminator(value, arrayConvertorItems[0].index, printer, this.library, arrayConvertorItem.type),
             stmt: checkZeroArray
         }
         return [arrayMultiBranch]
@@ -1154,7 +1155,7 @@ export class UnionConvertor extends BaseArgConvertor {
     }
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.makeNaryOp("||",
-            this.memberConvertors.map((_, n) => this.unionChecker.makeDiscriminator(value, n, writer)))
+            this.memberConvertors.map((_, n) => this.unionChecker.makeDiscriminator(value, n, writer, this.library)))
     }
 }
 

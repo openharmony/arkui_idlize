@@ -37,7 +37,12 @@ export {
     testDataClass, testDataInterface,
 } from '../../generated/ts'
 
-export { UnionSampleEnum, UnionSampleInterface, checkUnionSample } from "../../generated/ts"
+export {
+    UnionSampleEnum,
+    checkUnionEnumSample,
+    checkUnionArraySample,
+    checkUnionNumberArraySample,
+} from "../../generated/ts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"
 

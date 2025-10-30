@@ -323,4 +323,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
             return this.makeMethodCall(value.asString() + '!', `toFloat`, [])
         return new TSCastExpression(value, `${this.getNodeName(node)}`, options?.unsafe ?? false)
     }
+    override instanceOf(value: string, type: idl.IDLType): LanguageExpression {
+        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => this.getNodeName(type))}`)
+    }
 }

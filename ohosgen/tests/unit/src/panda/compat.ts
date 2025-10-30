@@ -38,7 +38,12 @@ export {
     testDataClass, testDataInterface,
 } from '../../generated/arkts'
 
-export { UnionSampleEnum, UnionSampleInterface, checkUnionSample } from "../../generated/arkts"
+export {
+    UnionSampleEnum,
+    checkUnionEnumSample,
+    checkUnionArraySample,
+    checkUnionNumberArraySample,
+} from "../../generated/arkts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
 
