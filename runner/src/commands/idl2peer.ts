@@ -25,17 +25,26 @@ export interface Idl2PeerConfig {
     trackerStatus?: string
 }
 
+export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
+    arkgen: string
+}
+
+export interface Idl2PeerOhosConfig extends Idl2PeerConfig {
+    ohosgen: string
+}
+
 export interface Idl2PeerResult {
     peersPath: string
 }
 
 export function idl2peer({
+    arkgen,
     target,
     language,
     idlPath,
     optionsFile,
     trackerStatus,
-}: Idl2PeerConfig): Idl2PeerResult {
+}: Idl2PeerArkuiConfig): Idl2PeerResult {
     const idlFiles = scan(idlPath)
 
     let arkgenTarget = ''

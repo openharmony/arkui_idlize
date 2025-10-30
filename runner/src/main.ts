@@ -35,8 +35,13 @@ function setup() {
 
 ///
 
-interface M3Options {
-    originalSdk?: boolean
+interface PrepareSdkOptions {
+    etsgen: string
+    sdkStage: string
+}
+
+interface ArkgenOptions extends PrepareSdkOptions {
+    arkgen: string
     target: string
     language: string
     componentNamedOverloads: boolean
@@ -60,6 +65,7 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
         configPath: options.scraperConfig ?? SCRAPER_CONFIG,
     })
     const { peersPath } = commands.idl2peer({
+        arkgen: options.arkgen,
         target: options.target,
         language: options.language,
         optionsFile: arkuiConfig,
@@ -87,6 +93,7 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
     setup()
 
     const { idlPaths } = commands.ets2idl({
+        etsgen: options.etsgen,
         sdkPath: sdkPathInput,
         configPath:  undefined,
         traceStatus: sdkStatus,
@@ -96,6 +103,7 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
         configPath: SCRAPER_CONFIG,
     })
     const { peersPath } = commands.idl2peer({
+        arkgen: options.arkgen,
         target: 'tracker',
         language: 'arkts',
         optionsFile: arkuiConfig,
@@ -147,14 +155,18 @@ function main(argv: string[]) {
 
     program.command('m3 <sdk-path> <install-path>')
         .description('generate using m3 pipeline')
+        .requiredOption('--sdk-stage <stage>', 'original | prepared | idl')
+        .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
+        .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--no-component-named-overloads')
         .option('--language <language>', 'ts | arkts', 'arkts')
-        .option('--original-sdk')
         .action(m3)
 
     program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
         .description('generate tracker report')
+        .option('--etsgen', 'etsgen executable', 'npx etsgen')
+        .option('--arkgen', 'arkgen executable', 'npx arkgen')
         .action(tracker)
 
     program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')

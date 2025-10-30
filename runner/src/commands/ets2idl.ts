@@ -13,12 +13,13 @@
  * limitations under the License.
  */
 
-import { etsgen } from "@idlizer/etsgen"
-import { flat, over, scan } from "../utils"
+import { flat, over, run, scan } from "../utils"
 import { join } from "node:path"
-import { ADDITIONAL_FILES, GENERATED_IDL_DIR } from "../shared"
+import { GENERATED_IDL_DIR } from "../shared"
+import { execSync } from "node:child_process"
 
 export interface Ets2IdlConfig {
+    etsgen: string
     sdkPath: string
     configPath?: string
     traceStatus?: string
@@ -27,22 +28,22 @@ export interface Ets2IdlResult {
     idlPaths:string
 }
 export function ets2idl({
+    etsgen,
     sdkPath,
     configPath,
     traceStatus,
 }: Ets2IdlConfig):Ets2IdlResult {
     const sdkApiPath = join(sdkPath, 'api')
     const files = scan(sdkApiPath).filter(it => it.endsWith(".d.ets"))
-    etsgen(
-        flat([
-            '--ets2idl',
-            ['--output-dir', GENERATED_IDL_DIR],
-            ['--base-dir', sdkApiPath],
-            ['--input-files', files],
-            over(configPath, path => ['--ets-config', path]),
-            over(traceStatus, st => ['--trace-status', st]),
-        ])
-    )
+    run(context => context.exec([
+        etsgen,
+        '--ets2idl',
+        ['--output-dir', GENERATED_IDL_DIR],
+        ['--base-dir', sdkApiPath],
+        ['--input-files', files],
+        over(configPath, path => ['--ets-config', path]),
+        over(traceStatus, st => ['--trace-status', st]),
+    ]))
     return {
         idlPaths: GENERATED_IDL_DIR
     }

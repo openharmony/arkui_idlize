@@ -100,7 +100,7 @@ export function arkgen(argv:string[]) {
         .option('--interop-bridges <string>', "Generate interop bridges macros")
         .option('--use-memo-m3', "Generate code with m3 @memo annotations and functions with @ComponentBuilder", false)
         .option('--use-component-optional', 'Make all component\'s properties nullable')
-        .option('--reference-names <string>', 'Provides reference mapping', path.resolve(__dirname, '..', 'generation-config', 'references', 'dts-sdk.refs.json'))
+        .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
         .option('--no-subset', "Do not copy the subset staff from the external repo or external-subset dir")
@@ -129,7 +129,7 @@ export function arkgen(argv:string[]) {
         ...(options.ignoreDefaultConfig ? [] : arkgenDefaultConfigurationPaths()),
         ...(options.optionsFile ?? [])
     ]))
-    loadKnownReferences(path.resolve(options.referenceNames))
+    loadKnownReferences(options.referenceNames)
 
     if (process.env.npm_package_version && !options.showConfigSchema) {
         console.log(`IDLize version ${findVersion()}`)
