@@ -14,5 +14,5 @@ test bundle:
     - cd bundle
     - node install.js ./unpacked
     - cd unpacked
-    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../generated
+    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../generated --sdk-stage prepared
     - cd ../..

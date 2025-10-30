@@ -3,6 +3,7 @@
   "version": "2.1.10+devel",
   "description": "",
   "main": "lib/cli.js",
+  "bin": "lib/cli.js",
   "exports": "./build/lib/src/index.js",
   "types": "./build/lib/src/index.d.ts",
   "files": [

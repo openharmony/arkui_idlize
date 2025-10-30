@@ -14,7 +14,6 @@
  */
 
 import { join, resolve } from "node:path"
-import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen"
 
 /////////////////////////////////////////////////
 // CONSTANTS
@@ -37,7 +36,6 @@ export const GENERATED_PEER_LIBACE = join(GENERATED_PEER_DIR, 'libace')
 export const ADDITIONAL_FILES = [
     ['global', 'resource.d.ets']
 ]
-export const REFERENCE_CONFIG_PATH = resolve(arkgenConfigPath(), 'references', 'ets-sdk.refs.json')
 export const SCRAPER_CWD = join(WORKING_DIR, 'scraper')
 export const SCRAPER_CONFIG = join(CONFIGS_DIR, 'scraper-config.json')
 export const CONFIG_RESULT_DIR = join(WORKING_DIR, 'configs')

@@ -13,11 +13,10 @@
  * limitations under the License.
  */
 
-import { arkgen } from "@idlizer/arkgen"
-import { ohosgen } from "@idlizer/ohosgen"
 import { libraries as predefs } from "@idlizer/interfaces"
-import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
-import { flat, scan, over } from "../utils"
+import { execSync } from "child_process"
+import { GENERATED_PEER_DIR } from "../shared"
+import { flat, scan, over, run } from "../utils"
 
 export interface Idl2PeerConfig {
     target: string
@@ -27,17 +26,26 @@ export interface Idl2PeerConfig {
     trackerStatus?: string
 }
 
+export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
+    arkgen: string
+}
+
+export interface Idl2PeerOhosConfig extends Idl2PeerConfig {
+    ohosgen: string
+}
+
 export interface Idl2PeerResult {
     peersPath: string
 }
 
 export function idl2peer({
+    arkgen,
     target,
     language,
     idlPath,
     optionsFile,
     trackerStatus,
-}: Idl2PeerConfig): Idl2PeerResult {
+}: Idl2PeerArkuiConfig): Idl2PeerResult {
     const idlFiles = scan(idlPath)
 
     let arkgenTarget = ''
@@ -51,46 +59,44 @@ export function idl2peer({
         arkgenTarget = 'tracker'
     }
 
-    arkgen(
-        flat([
-            '--idl2peer',
-            ['--reference-names', REFERENCE_CONFIG_PATH],
-            ['--input-files', flat(idlFiles).join(",")],
-            ['--output-dir', GENERATED_PEER_DIR],
-            ['--generator-target', arkgenTarget],
-            ['--language', language],
-            '--only-integrated',
-            '--use-memo-m3',
-            ['--arkts-extension', '.ets'],
-            optionsFile ? [`--options-file`, optionsFile] : [],
-            over(trackerStatus, st => ['--tracker-status', st]),
-        ])
-    )
+    run(context => context.exec([
+        arkgen,
+        '--idl2peer',
+        ['--reference-names', 'ets'],
+        ['--input-files', flat(idlFiles).join(",")],
+        ['--output-dir', GENERATED_PEER_DIR],
+        ['--generator-target', arkgenTarget],
+        ['--language', language],
+        '--only-integrated',
+        '--use-memo-m3',
+        ['--arkts-extension', '.ets'],
+        optionsFile ? [`--options-file`, optionsFile] : [],
+        over(trackerStatus, st => ['--tracker-status', st]),
+    ]))
     return {
         peersPath: GENERATED_PEER_DIR
     }
 }
 
 export function idl2ohos({
-    target,
+    ohosgen,
     language,
     idlPath,
     optionsFile,
-}: Idl2PeerConfig): Idl2PeerResult {
+}: Idl2PeerOhosConfig): Idl2PeerResult {
     const idlFiles = [
         ...scan(idlPath),
         ...scan(predefs.arkuiExtra)
     ]
-    ohosgen(
-        flat([
-            '--idl2peer',
-            ['--input-files', flat(idlFiles).join(",")],
-            ['--output-dir', GENERATED_PEER_DIR],
-            ['--language', language],
-            ['--arkts-extension', '.ets'],
-            optionsFile ? [`--options-file`, optionsFile] : [],
-        ])
-    )
+    run(context => context.exec([
+        ohosgen,
+        '--idl2peer',
+        ['--input-files', flat(idlFiles).join(",")],
+        ['--output-dir', GENERATED_PEER_DIR],
+        ['--language', language],
+        ['--arkts-extension', '.ets'],
+        optionsFile ? [`--options-file`, optionsFile] : [],
+    ]))
     return {
         peersPath: GENERATED_PEER_DIR
     }

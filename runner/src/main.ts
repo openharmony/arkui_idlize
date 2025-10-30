@@ -16,12 +16,11 @@
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
 import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CONFIG, SCRAPER_CWD, WORKING_DIR } from "./shared"
-import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen"
 import { commands } from "./commands"
 import { join, resolve } from "node:path"
 import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
 import { formatArkts } from "./tools/formatArkts"
-import { installTemplate } from "./utils"
+import { Ets2IdlResult } from "./commands/ets2idl"
 
 /////////////////////////////////////////////////
 
@@ -37,41 +36,53 @@ function setup() {
 
 ///
 
-interface M3Options {
-    originalSdk?: boolean
+interface PrepareSdkOptions {
+    etsgen: string
+    sdkStage: string
+}
+
+interface ArkgenOptions extends PrepareSdkOptions {
+    arkgen: string
     target: string
     language: string
     scraperConfig?: string
 }
 
-function sdk2idl(sdkPath: string, options: M3Options) {
+function sdk2idl(sdkPath: string, options: PrepareSdkOptions): Ets2IdlResult {
     let configPath: string | undefined = undefined
-    if (options.originalSdk) {
-        const prepareResult = commands.prepareSdk({ sdkPath, installArktsConfig: true })
-        sdkPath = prepareResult.sdkPath12
-        configPath = prepareResult.configPath
-    } else {
-        configPath = join(WORKING_DIR, 'arkts.config.json')
-        installTemplate(
-            'panda.config.json',
-            configPath,
-            new Map([
-                ['PATCHED_SDK_PATH', sdkPath]
-            ])
-        )
+    let idlPaths = sdkPath
+    switch (options.sdkStage) {
+        case "original": {
+            const prepareResult = commands.prepareSdk({ sdkPath, installArktsConfig: true })
+            sdkPath = prepareResult.sdkPath12
+            configPath = prepareResult.configPath
+        }
+        case "prepared": {
+            idlPaths = commands.ets2idl({
+                etsgen: options.etsgen,
+                sdkPath,
+                configPath,
+            }).idlPaths
+        }
+        case "idl": {
+            break;
+        }
+        default: {
+            throw new Error(`Unexpected --sdk-stage value ${options.sdkStage}`)
+        }
     }
-    return commands.ets2idl({ sdkPath, configPath })
+    return { idlPaths }
 }
 
-function m3(sdkPath: string, installPath: string, options: M3Options) {
+function m3(sdkPath: string, installPath: string, options: ArkgenOptions) {
     setup()
-    sdkPath = resolve(process.cwd(), sdkPath)
     const { idlPaths } = sdk2idl(sdkPath, options)
     const { scrapedIDLs, arkuiConfig } = commands.scrape({
         idlDirectory: idlPaths,
         configPath: options.scraperConfig ?? SCRAPER_CONFIG,
     })
     const { peersPath } = commands.idl2peer({
+        arkgen: options.arkgen,
         target: options.target,
         language: options.language,
         optionsFile: arkuiConfig,
@@ -95,22 +106,38 @@ function m3(sdkPath: string, installPath: string, options: M3Options) {
     commands.install({ sourceDir: installSourceDir, installPath })
 }
 
-function complete(sdkPath: string, installPath: string, options: M3Options) {
+interface OhosgenOptions extends PrepareSdkOptions {
+    ohosgen: string
+    ohosgenConfig: string
+    target: string
+    language: string
+    scraperConfig?: string
+}
+
+function complete(sdkPath: string, installPath: string, options: OhosgenOptions) {
     setup()
     const { idlPaths } = sdk2idl(sdkPath, options)
     const { peersPath } = commands.idl2ohos({
+        ohosgen: options.ohosgen,
         target: options.target,
         language: options.language,
-        optionsFile: resolve(arkgenConfigPath(), 'config.json'),
+        optionsFile: resolve(options.ohosgenConfig),
         idlPath: idlPaths
     })
     commands.install({ sourceDir: peersPath, installPath })
 }
 
-function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string, installPath: string) {
+interface TrackerOptions {
+    arkgen: string
+    ohosgen: string
+    etsgen: string
+}
+
+function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string, installPath: string, options: TrackerOptions) {
     setup()
 
     const { idlPaths } = commands.ets2idl({
+        etsgen: options.etsgen,
         sdkPath: sdkPathInput,
         configPath:  undefined,
         traceStatus: sdkStatus,
@@ -120,6 +147,7 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
         configPath: SCRAPER_CONFIG,
     })
     const { peersPath } = commands.idl2peer({
+        arkgen: options.arkgen,
         target: 'tracker',
         language: 'arkts',
         optionsFile: arkuiConfig,
@@ -171,19 +199,26 @@ function main(argv: string[]) {
 
     program.command('m3 <sdk-path> <install-path>')
         .description('generate using m3 pipeline')
+        .requiredOption('--sdk-stage <stage>', 'original | prepared | idl')
+        .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
+        .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
-        .option('--original-sdk')
         .action(m3)
 
     program.command('complete <sdk-path> <install-path>')
         .description('generate peers from complete sdk')
+        .requiredOption('--ohosgen-config', 'Path to configuration file for ohosgen')
+        .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
+        .option('--ohosgen <executable>', 'ohosgen executable', 'npx arkgen')
+        .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
-        .option('--original-sdk')
         .action(complete)
 
     program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
         .description('generate tracker report')
+        .option('--etsgen', 'etsgen executable', 'npx etsgen')
+        .option('--arkgen', 'arkgen executable', 'npx arkgen')
         .action(tracker)
 
     program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')
