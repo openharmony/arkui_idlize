@@ -312,7 +312,7 @@ export class OverloadsPrinter {
                 writer.print(`if (this.checkPriority('${collapsedMethod.name}')) {`)
                 this.printer.pushIndent()
             }
-            const hookMethod = getHookMethod(peer, collapsedMethod.name)
+            const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
             if (hookMethod) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
                 if (!hookMethod.replaceImplementation) {

@@ -62,7 +62,7 @@ import { IDLCheckConstructor } from '#compat'
 import { InternalModuleDataInterface, RenamedModuleDataInterface, DTSCheckInternalLib } from "#compat"
 
 import { ImportedHookValue } from "#compat"
-import { DTSHookClass, DTSHookValue } from "#compat"
+import { DTSHookClass, DTSHookValue, DTSHookInterfaceInternal } from "#compat"
 
 import { ExternalModuleDataInterface } from "@external.lib"
 
@@ -385,7 +385,6 @@ function checkNativeBuffer() {
 // }
 
 function checkHooks() {
-
   const hookClass = new DTSHookClass()
   hookClass.method({ count: 900 })
   hookClass.methodArg({ count: 901 })
@@ -394,6 +393,15 @@ function checkHooks() {
   hookClass.methodImportedArg({ count: 903 })
   const importedHookValue = hookClass.methodImportedReturn()
   console.log(`  hook return value: ${importedHookValue.count}`)
+  
+  const hookInterface = new DTSHookInterfaceInternal()
+  hookInterface.method({ count: 900 })
+  hookInterface.methodArg({ count: 901 })
+  const hookInterfaceValue = hookInterface.methodReturn()
+  console.log(`  hook return value: ${hookInterfaceValue.count}`)
+  hookInterface.methodImportedArg({ count: 903 })
+  const importedHookInterfaceValue = hookInterface.methodImportedReturn()
+  console.log(`  hook return value: ${importedHookInterfaceValue.count}`)
 }
 
 function checkInternalLib() {

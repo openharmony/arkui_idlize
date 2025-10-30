@@ -994,6 +994,28 @@ OH_UNIT_DTSHookValue DTSHookClass_methodReturnImpl(OH_NativePointer thisPtr) {
 void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
 }
 
+class DTSHookInterfacePeer
+{
+};
+OH_UNIT_DTSHookInterfaceHandle DTSHookInterface_constructImpl() {
+    return (OH_UNIT_DTSHookInterfaceHandle) new DTSHookInterfacePeer();
+}
+void DTSHookInterface_destructImpl(OH_UNIT_DTSHookInterfaceHandle thisPtr) {
+}
+void DTSHookInterface_methodArgImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+}
+void DTSHookInterface_methodImpl(OH_NativePointer thisPtr, const OH_UNIT_DTSHookValue* value) {
+    printf("[native] [0] call DTSHookClass_methodImpl, count: %d\n", value->count.i32);
+}
+void DTSHookInterface_methodImportedArgImpl(OH_NativePointer thisPtr, const OH_UNIT_ImportedHookValue* hookedValue) {
+}
+OH_UNIT_ImportedHookValue DTSHookInterface_methodImportedReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+OH_UNIT_DTSHookValue DTSHookInterface_methodReturnImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+
 // TBD: update
 void DTSHookClass_methodImportedArgImpl(OH_NativePointer thisPtr, OH_UNIT_ImportedHookValue hookedValue) {
 }

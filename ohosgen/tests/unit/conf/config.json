@@ -89,7 +89,8 @@
         "application.BaseContext.BaseContext",
         "test_exception.CheckExceptionInterface",
         "test_generic_interface.GenericInterface",
-        "test_materialized_classes.test_materialized_classes.MaterializedWithCreateMethod"
+        "test_materialized_classes.test_materialized_classes.MaterializedWithCreateMethod",
+        "test_hooks.DTSHookInterface"
     ],
     "forceResource": [
        "ContentModifier"
@@ -140,6 +141,24 @@
             },
             "methodImportedReturn": {
                 "hookName": "customHookDTSHookClassMethodImportedReturn",
+                "replaceImplementation": true
+            }
+        },
+        "DTSHookInterface": {
+            "methodArg": {
+                "hookName": "customHookDTSHookInterfaceMethodArg",
+                "replaceImplementation": true
+            },
+            "methodReturn": {
+                "hookName": "hookDTSHookInterfaceMethodReturn",
+                "replaceImplementation": true
+            },
+            "methodImportedArg": {
+                "hookName": "hookDTSHookInterfaceImportedArg",
+                "replaceImplementation": true
+            },
+            "methodImportedReturn": {
+                "hookName": "customHookDTSHookInterfaceMethodImportedReturn",
                 "replaceImplementation": true
             }
         }

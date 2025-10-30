@@ -12,3 +12,11 @@ interface DTSHookClass {
     void methodImportedArg(ImportedHookValue hookedValue);
     ImportedHookValue methodImportedReturn();
 };
+[Entity=Interface]
+interface DTSHookInterface {
+    void method(DTSHookValue value);
+    void methodArg(DTSHookValue value);
+    DTSHookValue methodReturn();
+    void methodImportedArg(ImportedHookValue hookedValue);
+    ImportedHookValue methodImportedReturn();
+};
