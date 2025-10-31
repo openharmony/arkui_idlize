@@ -51,7 +51,7 @@ export function checkResult(name: string, test: () => void, expected: string) {
     }
 }
 
-function checkDatebooke() {
+function checkDatebook() {
     let peer = ArkDatebookPeer.create()
     checkResult("type", () => peer.setTypeAttribute(DatebookType.EGYPTIAN), `setType({.tag=INTEROP_TAG_OBJECT, .value=Ark_DatebookType(0)})`)
     checkResult("text", () => peer.setTextAttribute("Hello, Datebook!"), `setText({.tag=INTEROP_TAG_OBJECT, .value={.chars="Hello, Datebook!", .length=16}})`)
@@ -64,7 +64,7 @@ export function main(): void {
     registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ani")
     registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ani")
 
-    checkDatebooke()
+    checkDatebook()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

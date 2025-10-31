@@ -12,14 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { KPointer } from "@koalaui/interop"
 import { AnimateParam } from '../framework'
-
-export function Routed(
-    /** @memo */
-    initial: () => void,
-    initialUrl?: string,
-): void {}
 
 export interface AttributeModifier<T> {
     isUpdater: () => boolean
@@ -40,9 +33,6 @@ export class AttributeUpdater<T> implements AttributeModifier<T> {
     get attribute(): T | undefined { return undefined }
     onComponentChanged(component: T): void {}
 }
-
-export function enterForeignContext(context: KPointer) {}
-export function leaveForeignContext() {}
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
 export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}

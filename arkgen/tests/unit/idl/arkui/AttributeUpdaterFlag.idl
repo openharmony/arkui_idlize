@@ -1,4 +1,6 @@
 package arkui.AttributeUpdaterFlag;
+
+// TBD: used in conf/ets-sdk.refs.json
 dictionary AttributeUpdaterFlag {
     number INITIAL = 0;
     number UPDATE = 1;

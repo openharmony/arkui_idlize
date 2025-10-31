@@ -1,13 +1,7 @@
 package arkui.Graphics;
-interface Size {
-    attribute number width;
-    attribute number height;
-};
+
+// TBD: required for CallDrawModifierCallbacks in dummy_impl.cpp
 [Entity=Class]
 interface DrawContext {
     constructor();
-    [Accessor=Getter]
-    attribute Size size;
-    [Accessor=Getter]
-    attribute Size sizeInPixel;
 };

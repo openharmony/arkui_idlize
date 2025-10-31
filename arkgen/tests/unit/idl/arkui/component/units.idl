@@ -1,5 +1,5 @@
 package arkui.component.units;
 import global.resource.Resource as _Resource;
+
 typedef Resource = _Resource;
 typedef Length = (String or number or Resource);
-typedef ResourceStr = (String or Resource);

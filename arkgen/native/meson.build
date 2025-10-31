@@ -16,6 +16,7 @@ is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin' or source_set == 'kotlin-subset')
 is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
+is_unit = (source_set == 'unit-arkts')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
@@ -102,6 +103,26 @@ if is_ohos_demo
         # external_interop_dir / 'interop-logging.cpp',
         # external_framework_dir / 'events.cpp',
         # external_framework_dir / 'vsync.cpp'
+    ]
+endif
+
+if is_unit
+    include_dirs = [
+        arkoala_dir,
+        external_interop_dir,
+        external_interop_dir / 'types',
+        external_framework_dir,
+    ]
+    sources = [
+        arkoala_dir / 'bridge_custom.cpp',
+        arkoala_dir / 'bridge_generated.cpp',
+        # arkoala_dir / 'custom.cpp',
+        arkoala_dir / 'library.cpp',
+        arkoala_dir / 'callback_deserialize_call.cpp',
+        arkoala_dir / 'callback_managed_caller.cpp',
+        external_interop_dir / 'common-interop.cpp',
+        external_interop_dir / 'callback-resource.cpp',
+        external_interop_dir / 'interop-logging.cpp',
     ]
 endif
 

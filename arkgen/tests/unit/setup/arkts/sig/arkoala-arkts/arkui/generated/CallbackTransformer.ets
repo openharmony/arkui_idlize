@@ -13,10 +13,7 @@
  * limitations under the License.
  */
 
-import { KPointer } from "@koalaui/interop"
 import { PeerNode } from "./PeerNode"
-import { CustomBuilder } from "./framework"
-import { ArkComponentRootPeer } from "./framework"
 
 // Improve: need invert dependency: createUiDetachedRoot should be imported from @koalaui/arkoala same as in TS
 export type UIDetachedRootCreator = (
@@ -38,23 +35,5 @@ export function setUIDetachedRootCreator(creator: UIDetachedRootCreator): void {
     createUiDetachedRoot = creator
 }
 
-function componentRootPeerFactory(): PeerNode {
-    return ArkComponentRootPeer.create()
-}
-
-export type CustomNodeBuilder = (parentNode: KPointer) => KPointer;
 export class CallbackTransformer {
-    static transformFromCustomBuilder(value: CustomBuilder): CustomNodeBuilder {
-        return (parentNodeId: KPointer): KPointer => {
-            const peer = createUiDetachedRoot(componentRootPeerFactory, value)
-            return peer.peer.ptr
-        }
-    }
-    static transformToCustomBuilder(value: CustomNodeBuilder): CustomBuilder {
-        throw new Error("Not implemented")
-    }
-    static transformToPeerFromCustomBuilder(value: CustomBuilder): KPointer {
-        const peer = createUiDetachedRoot(componentRootPeerFactory, value)
-        return peer.peer.ptr
-    }
 }

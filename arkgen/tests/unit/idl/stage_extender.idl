@@ -1,10 +1,13 @@
 package arkui.stage_extender;
 
+
+// TBD: Used in dummy_impl.cpp
 dictionary PageTransitionType {
     number ENTER = 0;
     number EXIT = 1;
 };
 
+// TBD: Used in dummy_impl.cpp
 dictionary RouteType {
     [OriginalEnumMemberName=None]
     number NONE = 0;
@@ -13,6 +16,8 @@ dictionary RouteType {
     [OriginalEnumMemberName=Pop]
     number POP = 2;
 };
+
+// TBD: Used in dummy_impl.cpp
 interface PageTransitionOptions {
     [Optional]
     attribute RouteType type;
@@ -23,6 +28,7 @@ interface PageTransitionOptions {
 };
 callback PageTransitionCallback = void (RouteType type, number progress);
 
+// TBD: Used in dummy_impl.cpp
 [Entity=Interface]
 interface TransitionParam {
     attribute PageTransitionOptions pageTransitionOptions;
@@ -35,6 +41,7 @@ interface TransitionParam {
     attribute PageTransitionCallback onProgress;
 };
 
+// TBD: Used in dummy_impl.cpp
 [Entity=Class]
 interface StageExtender {
   static void SetSrcPage(pointer node);
