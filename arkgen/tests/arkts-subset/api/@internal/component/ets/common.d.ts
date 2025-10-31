@@ -16455,7 +16455,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  outlineWidth(value: Dimension | EdgeOutlineWidths): T;
+  outlineWidth(value: Dimension): T;
 
   /**
    * Outline color
@@ -16503,7 +16503,7 @@ declare class CommonMethod<T> {
    * @atomicservice
    * @since 12
    */
-  outlineRadius(value: Dimension | OutlineRadiuses): T;
+  outlineRadius(value: Dimension): T;
 
   /**
    * Provides the general foreground color capability of UI components, and assigns color values

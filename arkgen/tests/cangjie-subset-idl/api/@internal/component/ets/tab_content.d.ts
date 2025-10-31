@@ -61,7 +61,7 @@ declare class SubTabBarStyle {
 
     labelStyle(value: LabelStyle): SubTabBarStyle;
 
-    padding(value: Padding | Dimension | LocalizedPadding): SubTabBarStyle;
+    padding(value: Padding | LocalizedPadding): SubTabBarStyle;
     
     id(value: string): SubTabBarStyle;
 }
@@ -74,7 +74,7 @@ declare class BottomTabBarStyle {
 
   labelStyle(value: LabelStyle): BottomTabBarStyle;
 
-  padding(value: Padding | Dimension | LocalizedPadding): BottomTabBarStyle;
+  padding(value: Padding | LocalizedPadding): BottomTabBarStyle;
 
   layoutMode(value: LayoutMode): BottomTabBarStyle;
 

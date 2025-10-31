@@ -21,7 +21,7 @@ declare enum ButtonType {
 
 declare interface LabelStyle {
     overflow?: TextOverflow;
-    maxLines?: number;
+    maxLines?: int;
     minFontSize?: number | ResourceStr;
     maxFontSize?: number | ResourceStr;
     heightAdaptivePolicy?: TextHeightAdaptivePolicy;

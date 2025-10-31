@@ -75,7 +75,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             ? annotations.map(a => peerGeneratorConfiguration().transformAnnotations.get(a) ?? a).map(a => { throw new Error("AAA")/*`@${a} `*/ }).join('')
             : ''
         const type = this.writer.getNodeName(node.type)
-        const typeParams = this.printTypeParameters(node.typeParameters)
+        const typeParams = this.printTypeParameters(node.typeParameters, idl.getExtAttributeTypesValue(node, idl.IDLExtendedAttributes.TypeParametersDefaults))
         this.writer.print(`export type ${node.name}${typeParams} = ${annotationsString}${type};`)
     }
 
@@ -322,6 +322,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             }
             return it
         })
+        const typeParametersDefaults = idl.getExtAttributeTypesValue(idlInterface, idl.IDLExtendedAttributes.TypeParametersDefaults)
 
         let superTypes = idlInterface.inheritance
         const extendsItems: string[] = []
@@ -348,7 +349,7 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         const extendsClause = extendsItems.length ? ` extends ${extendsItems.join(", ")}` : ""
         const implementsClause = implementsItems.length ? ` implements ${implementsItems.join(", ")}` : ""
         return [idlInterface.name,
-        `${this.printTypeParameters(typeParameters)}${extendsClause}${implementsClause}`,
+        `${this.printTypeParameters(typeParameters, typeParametersDefaults)}${extendsClause}${implementsClause}`,
         ].join("")
     }
 
@@ -456,13 +457,21 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         return `${dots}${idl.escapeIDLKeyword(variable.name!)}${optional}: ${type}${brackets}`
     }
 
-    protected printTypeParameters(typeParameters: string[] | undefined): string {
-        function addDefaultIfNeeded(typeParameter: string): string {
-            if (!typeParameter.includes('='))
-                return `${typeParameter} = void`
+    protected printTypeParameters(typeParameters: string[] | undefined, defaults: idl.IDLType[] | undefined): string {
+        if (!typeParameters?.length)
+            return ""
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
+        if (defaults?.some(it => !it))
+            console.log("AAA")
+        const defaultsPrinted = defaults?.map(it => nameConvertor.convert(it)) ?? []
+        const addDefaultIfNeeded = (typeParameter: string, index: number): string => {
+            const defaultValueIndex = index - (typeParameters.length - defaultsPrinted.length)
+            const defaultValue = defaultValueIndex >= 0 ? defaultsPrinted[defaultValueIndex] : undefined
+            if (defaultValue)
+                return `${typeParameter} = ${defaultValue}`
             return typeParameter
         }
-        return typeParameters?.length ? `<${typeParameters.map(addDefaultIfNeeded).join(",").replace("[]", "")}>` : ""
+        return `<${typeParameters.map(addDefaultIfNeeded).join(",").replace("[]", "")}>`
     }
 
     protected printTypeArguments(typeArguments: string[] | undefined): string {
@@ -500,7 +509,8 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
             : ``
         const paramsType = this.printParameters(parameters)
         const retType = this.convertType(returnType !== undefined ? returnType : idl.IDLVoidType)
-        return [`export type ${node.name}${this.printTypeParameters(node.typeParameters)} = ${this.printAnnotations(node)}${maybeMemo}(${paramsType}) => ${retType};`]
+        const typeParametersDefaults = idl.getExtAttributeTypesValue(node, idl.IDLExtendedAttributes.TypeParametersDefaults)
+        return [`export type ${node.name}${this.printTypeParameters(node.typeParameters, typeParametersDefaults)} = ${this.printAnnotations(node)}${maybeMemo}(${paramsType}) => ${retType};`]
     }
 
     private isCallback(node: idl.IDLInterface) {
@@ -655,10 +665,11 @@ export class ArkTSDeclConvertor extends TSDeclConvertor {
     protected printMethod(method: idl.IDLMethod): stringOrNone[] {
         const staticPrefix = method.isStatic ? "static " : ""
         const annotations = this.printAnnotations(method)
+        const typeParametersDefaults = idl.getExtAttributeTypesValue(method, idl.IDLExtendedAttributes.TypeParametersDefaults)
         return [
             ...this.printExtendedAttributes(method),
             annotations ? indentedBy(annotations, 1) : undefined,
-            indentedBy(`${this.printAnnotations(method)}${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
+            indentedBy(`${this.printAnnotations(method)}${staticPrefix}${method.name}${this.printTypeParameters(method.typeParameters, typeParametersDefaults)}(${this.printParameters(method.parameters)}): ${this.convertType(method.returnType)}`, 1)
         ]
     }
     override convertConstant(node: idl.IDLConstant): void {

@@ -6,8 +6,7 @@ declare enum CalendarAlign {
 }
 
 declare interface CalendarOptions {
-
-  hintRadius?: number | Resource;
+  hintRadius?: double | Resource;
   selected?: Date;
   start?: Date;
   end?: Date;

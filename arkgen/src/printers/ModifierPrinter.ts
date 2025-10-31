@@ -208,7 +208,7 @@ class ModifiersFileVisitor {
             role: LayoutNodeRole.COMPONENT,
         })
         importsCollector.addFeature(componentToPeerClass(component.name), `./${peerLocation}`)
-        importsCollector.addFeatures(["int32"], "@koalaui/common")
+        importsCollector.addFeatures(["int32", "int64"], "@koalaui/common")
         collectDeclDependencies(this.library, component.attributeDeclaration, importsCollector)
         expandComponentWithSupers(this.library, component.attributeDeclaration).forEach(decl => {
             collectDeclItself(this.library, decl, importsCollector)

@@ -194,7 +194,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
                 fileName: program.absoluteName
             })
         }
-    }, pluginContext, undefined, undefined)
+    }, pluginContext)
 
     if (traceStatus) {
         fs.writeFileSync(traceStatus, status.Print())
