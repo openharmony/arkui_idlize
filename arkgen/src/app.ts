@@ -48,7 +48,12 @@ import { loadPeerConfiguration,
     NativeModule,
     syntheticTransformer,
 } from "@idlizer/libohos"
-import { generateArkoalaFromIdl, generateLibaceFromIdl, generateLibaceUnitTests } from "./arkoala"
+import {
+    generateArkoalaFromIdl,
+    generateLibaceFromIdl,
+    generateLibaceUnitTests,
+    generateLibaceEndToEndTests,
+} from "./arkoala"
 import { ArkoalaPeerLibrary } from "./ArkoalaPeerLibrary"
 import { makeInteropBridges } from "./InteropBridges"
 import { loadKnownReferences } from "./knownReferences"
@@ -85,7 +90,7 @@ export function arkgen(argv:string[]) {
         .option('--api-prefix <string>', 'Cpp prefix to be compatible with manual arkoala implementation')
         .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
         .option('--version')
-        .option('--generator-target <all|arkoala|libace|libaceut|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
+        .option('--generator-target <all|arkoala|libace|libaceut|e2e-test-static|e2e-test-dynamic|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
         .option('--arkoala-destination <path>', 'Location of arkoala repository')
         .option('--libace-destination <path>', 'Location of libace repository')
         .option('--copy-peers-components <name...>', 'List of components to copy (omit to copy all)')
@@ -220,6 +225,15 @@ export function arkgen(argv:string[]) {
                 libaceDestination: options.libaceDestination,
                 outDir: outDir,
                 aceTypes: options.optionsFileUnittest,
+            }, idlLibrary)
+        }
+        if (options.generatorTarget == "e2e-test-static" ||
+            options.generatorTarget == "e2e-test-dynamic") {
+            generateLibaceEndToEndTests({
+                libaceDestination: options.libaceDestination,
+                outDir: outDir,
+                aceTypes: options.optionsFileUnittest,
+                static: options.generatorTarget == "e2e-test-static"
             }, idlLibrary)
         }
         if (options.generatorTarget == "tracker") {

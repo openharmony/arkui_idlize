@@ -62,6 +62,7 @@ import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { ARKGEN_ROOT } from "./config"
 import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter"
+import { printEndToEndTests, Target } from "./ut/E2EPrinter"
 
 const resolveExternal = () => {
     let postfix = '../external'
@@ -87,6 +88,19 @@ export function generateLibaceUnitTests(config: {
         new LibaceInstall(config.outDir, true)
 
     printUnitTestsAsMultipleFiles(peerLibrary, libace, config.aceTypes)
+}
+
+export function generateLibaceEndToEndTests(config: {
+    libaceDestination: string | undefined,
+    outDir: string,
+    aceTypes?: string,
+    static: boolean
+}, peerLibrary: PeerLibrary) {
+    const libace = config.libaceDestination ?
+        new LibaceInstall(config.libaceDestination, false) :
+        new LibaceInstall(config.outDir, true)
+
+    printEndToEndTests(peerLibrary, libace, config.static ? Target.ARK_TS_1_2 : Target.ETS, config.aceTypes)
 }
 
 export function generateLibaceFromIdl(config: {

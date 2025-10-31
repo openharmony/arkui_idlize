@@ -143,6 +143,10 @@ export function camelCaseToUpperSnakeCase(input: string) {
         .join('_')
 }
 
+export function camelCaseToLowerSnakeCase(input: string) {
+    return camelCaseToUpperSnakeCase(input).toLowerCase()
+}
+
 export function snakeToLowCamelNode(node: idl.IDLEntry): string {
     if (!node.fileName) {
         throw new Error("Invalid Convert")
