@@ -89,8 +89,8 @@ export class DynamicEmitter {
 
     private bridgesPrinter = new SingleFileEmitter(
         (idl: IDLFile) => new BridgesPrinter(this.config, idl).print(),
-        `libarkts/generated/native/bridges.cc`,
-        `bridges.cc`,
+        `libarkts/generated/native/bridges.cpp`,
+        `bridges.cpp`,
         true
     )
 
