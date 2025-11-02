@@ -28,7 +28,7 @@ interface FrameNodeExtender {
   static Size getMeasuredSize(FrameNode peer);
   static Position getLayoutPosition(FrameNode peer);
   static String getId(FrameNode peer);
-  static number getUniqueId(FrameNode peer);
+  static i32 getUniqueId(FrameNode peer);
   static String getNodeType(FrameNode peer);
   static number getOpacity(FrameNode peer);
   static boolean isVisible(FrameNode peer);
@@ -55,7 +55,7 @@ interface FrameNodeExtender {
   static number getLastChildIndexWithoutExpand(FrameNode peer);
   static pointer getAttachedFrameNodeById(String id);
   static pointer getFrameNodeById(number id);
-  static pointer getFrameNodeByUniqueId(number id);
+  static pointer getFrameNodeByUniqueId(i32 id);
   static void reuse(FrameNode peer);
   static void recycle(FrameNode peer);
   static pointer getFrameNodePtr(FrameNode node);
