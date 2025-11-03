@@ -26,8 +26,8 @@ interface FrameNodeExtender {
   static pointer getDestroy();
   static void destroyPeer(FrameNode peer);
   static boolean isModifiable(pointer peer);
-  static f64 appendChild(FrameNode peer, FrameNode child);
-  static f64 insertChildAfter(pointer peer, pointer child, pointer sibling);
+  static i32 appendChild(FrameNode peer, FrameNode child);
+  static i32 insertChildAfter(pointer peer, pointer child, pointer sibling);
   static void removeChild(FrameNode peer, FrameNode child);
   static void clearChildren(FrameNode peer);
   static pointer getChild(FrameNode peer, number index, number expandMode);
@@ -68,7 +68,7 @@ interface FrameNodeExtender {
   static SizeTLengthMetrics getUserConfigSize(FrameNode peer);
   static pointer getFrameNodeByKey(String name);
   static number getIdByFrameNode(pointer node);
-  static f64 moveTo(FrameNode peer, FrameNode targetParent, number index);
+  static i32 moveTo(FrameNode peer, FrameNode targetParent, number index);
   static number getFirstChildIndexWithoutExpand(FrameNode peer);
   static number getLastChildIndexWithoutExpand(FrameNode peer);
   static pointer getAttachedFrameNodeById(String id);
@@ -85,6 +85,6 @@ interface FrameNodeExtender {
   static pointer unWrapRawPtr(pointer ptr);
   static UICommonEvent getCommonEvent(FrameNode peer);
   static pointer getRenderNode(pointer peer);
-  static f64 adoptChild(FrameNode peer, FrameNode child);
-  static f64 removeAdoptedChild(FrameNode peer, FrameNode child);
+  static i32 adoptChild(FrameNode peer, FrameNode child);
+  static i32 removeAdoptedChild(FrameNode peer, FrameNode child);
 };
