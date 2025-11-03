@@ -616,7 +616,8 @@
             "TouchTestInfo",
             "TouchResult",
             "WaterFlowSections",
-            "Badge"
+            "Badge",
+            "ChildrenMainSize"
         ],
         "ignoreEntry": [
             "Optional",
@@ -764,6 +765,18 @@
         "ImageAttribute": {
             "setImageOptions": {
                 "hookName": "hookImageSetImageOptions",
+                "replaceImplementation": false
+            }
+        },
+        "ListAttribute": {
+            "childrenMainSize": {
+                "hookName": "hookListChildrenMainSizeImpl",
+                "replaceImplementation": false
+            }
+        },
+        "ListItemGroupAttribute": {
+            "childrenMainSize": {
+                "hookName": "hookListItemGroupChildrenMainSizeImpl",
                 "replaceImplementation": false
             }
         },
