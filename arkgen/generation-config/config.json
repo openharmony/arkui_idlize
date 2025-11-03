@@ -867,6 +867,24 @@
                 "replaceImplementation": false
             }
         },
+        "CanvasRenderingContext2D": {
+            "onAttach": {
+                "hookName": "registerAttach",
+                "replaceImplementation": false
+            },
+            "offAttach": {
+                "hookName": "unregisterAttach",
+                "replaceImplementation": false
+            },
+            "onDetach": {
+                "hookName": "registerDetach",
+                "replaceImplementation": false
+            },
+            "offDetach": {
+                "hookName": "unregisterDetach",
+                "replaceImplementation": false
+            }
+        },
         "XComponentAttribute": {
             "setXComponentOptions": {
                 "hookName": "hookSetXComponentOptions",
