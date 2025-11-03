@@ -449,6 +449,7 @@ class ModifiersFileVisitor {
             writer.pushIndent()
             {
                 if (parentSet) writer.print('super.mergeModifier(modifier)');
+                writer.print(`this._state = modifier._state;`);
                 const statements: IfStatement[] = []
                 attributeTypes.forEach(attribute => {
                     if (noNeedPrintModifier(attribute)) {
