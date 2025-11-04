@@ -470,7 +470,7 @@ class ModifiersFileVisitor {
                     switchPrinter.print(`case AttributeUpdaterFlag.UPDATE:`)
                     switchPrinter.print(`case AttributeUpdaterFlag.SKIP: {`)
                     switchPrinter.pushIndent()
-                    switchPrinter.print(`${statement.asString()};`)
+                    if (attribute.isOptional) switchPrinter.print(`${statement.asString()};`)
                     switchPrinter.print(`break;`)
                     switchPrinter.popIndent()
                     switchPrinter.print(`}`)
