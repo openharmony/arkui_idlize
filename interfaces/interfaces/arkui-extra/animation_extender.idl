@@ -32,6 +32,6 @@ interface AnimationExtender {
   static void CloseImplicitAnimationForAnimation(pointer node);
   static void StartDoubleAnimation(pointer node, DoubleAnimationParam param);
   static void AnimationTranslate(pointer node, TranslateOptions options);
-  static void AnimateToImmediatelyImpl(AnimateParam param, Callback_Void event);
+  static void AnimateToImmediatelyImpl(AnimateParam param, Callback_Void event, boolean immediately);
   static void KeyframeAnimationImpl(KeyframeAnimateParam param, sequence<KeyframeState> keyfames);
 };
