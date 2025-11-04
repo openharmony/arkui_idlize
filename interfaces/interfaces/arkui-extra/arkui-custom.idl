@@ -5,7 +5,7 @@ import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
 import global.resource.Resource as Resource; 
 
-callback Callback_RangeUpdate = void (i32 start, i32 end);
+callback Callback_RangeUpdate = void (i32 start, i32 end, i32 cacheStart, i32 cacheEnd, boolean isLoop);
 callback Callback_CreateItem = pointer (i32 index);
 callback Callback_OnMoveFromTo = void (i32 from, i32 to);
 
