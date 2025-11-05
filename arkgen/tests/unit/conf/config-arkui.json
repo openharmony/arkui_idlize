@@ -17,7 +17,8 @@
         "arkui": {
             "name": "arkui",
             "packages": [
-                "arkui"
+                "arkui",
+                "synthetic_types"
             ]
         }
     },

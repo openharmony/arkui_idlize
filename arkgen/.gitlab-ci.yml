@@ -44,11 +44,30 @@ arkgen ArkTS unit:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
-    - npm run -C arkgen init:unit:arkts
-    - npm run -C arkgen gen:unit:arkts
-    - npm run -C arkgen build:unit:arkts
-    - npm run -C arkgen build-native:unit:arkts
-    - npm run -C arkgen exec:unit:arkts
+    - npm run -C arkgen/tests/unit init:arkts
+    - npm run -C arkgen/tests/unit gen:arkts
+    - npm run -C arkgen/tests/unit build:arkts
+    - npm run -C arkgen/tests/unit build:arkts:native
+    - npm run -C arkgen/tests/unit exec:arkts
+  needs:
+    - build idlize
+    - build external
+
+arkgen Kotlin unit:
+  allow_failure: true
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    - npm run -C arkgen/tests/unit build:kt:interop
+    - npm run -C arkgen/tests/unit gen:kt
+    - npm run -C arkgen/tests/unit build:kt
+    - npm run -C arkgen/tests/unit build:kt:native
+    # - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
     - build external

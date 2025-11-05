@@ -16,13 +16,13 @@ is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
 is_kotlin = (source_set == 'kotlin' or source_set == 'kotlin-subset')
 is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
-is_unit = (source_set == 'unit-arkts')
+is_unit = (source_set == 'unit-arkts' or source_set == 'unit-kotlin')
 
 compile_events_test = get_option('events_test')
 compile_callbacks_test = get_option('callbacks_test')
 if ['ets-ts-peers', 'ets-arkts-peers', 'ts-peers', 'ts-subset', 'arkts-subset', 'arkts-peers', 'cangjie', 'cangjie-subset', 'kotlin', 'kotlin-subset', 'ts-ohos-context'].contains(source_set)
     gen_dir = '../out/' / source_set / 'generated'
-elif ['unit-arkts'].contains(source_set)
+elif is_unit
     gen_dir = '../tests/unit/generated'
 else
 endif
@@ -405,7 +405,7 @@ if is_ohos
 endif
 
 # TODO: fix on Windows as well
-if (os != 'windows') and (is_ohos_demo == false)
+if (os != 'windows') and (is_ohos_demo == false) and (is_unit == false)
     executable('test_arkoala_api',
         arkoala_dir / 'api_test.c',
         c_args: cflags,
