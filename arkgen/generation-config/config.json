@@ -611,7 +611,8 @@
             "TouchTestInfo",
             "TouchResult",
             "DrawModifier",
-            "Badge"
+            "Badge",
+            "WaterFlowSections"
         ],
         "ignoreEntry": [
             "Optional",
