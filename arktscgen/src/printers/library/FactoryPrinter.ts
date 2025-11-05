@@ -31,7 +31,7 @@ import {
     TSLanguageWriter
 } from "@idlizer/core"
 import { SingleFilePrinter } from "../SingleFilePrinter"
-import { makeSignature } from "../../utils/idl"
+import { makeFullyQualifiedName, makeSignature } from "../../utils/idl"
 import { isCreate, mangleIfKeyword, peerMethod } from "../../general/common"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { convertAndImport } from "../../type-convertors/top-level/ImporterTypeConvertor"
@@ -131,8 +131,9 @@ export class FactoryPrinter extends SingleFilePrinter {
             ),
             () => this.writer.writeStatement(
                 this.writer.makeReturn(
-                    this.writer.makeFunctionCall(
-                        this.callUniversalCreate(node, universalName),
+                    this.writer.makeStaticMethodCall(
+                        makeFullyQualifiedName(node),
+                        PeersConstructions.createOrUpdate(node.name, universalName),
                         signature.argNames!
                             .map(mangleIfKeyword)
                             .map(it => this.writer.makeString(it))
@@ -193,8 +194,9 @@ export class FactoryPrinter extends SingleFilePrinter {
                     )
                 }
 
-                const createCall = writer.makeFunctionCall(
-                    this.callUniversalCreate(node, universalName),
+                const createCall = writer.makeStaticMethodCall(
+                    makeFullyQualifiedName(node),
+                    PeersConstructions.createOrUpdate(node.name, universalName),
                     (parameters as { name: string }[])
                         .concat(extraParameters)
                         .map(p => expr(mangleIfKeyword(p.name)))
@@ -206,16 +208,6 @@ export class FactoryPrinter extends SingleFilePrinter {
                     ])
                 ))
             }
-        )
-    }
-
-    private callUniversalCreate(node: IDLInterface, name: string) {
-        return PeersConstructions.callPeerMethod(
-            node.name,
-            PeersConstructions.createOrUpdate(
-                node.name,
-                name
-            )
         )
     }
 

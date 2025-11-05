@@ -292,23 +292,29 @@ export function makePrettyName(name: string): string {
 }
 
 /**
- * A fully qualified of a type that reference points to.
+ * A fully qualified name of a type that reference points to.
  * @note 'ir' namespace is ignored and treated as global namespace.
  */
+export function makeFullyQualifiedName(ref: IDLNamedNode): string;
 export function makeFullyQualifiedName(
     ref: IDLReferenceType,
-    resolveReference: ReferenceResolver,
+    resolveReference: ReferenceResolver
+): string;
+export function makeFullyQualifiedName(
+    node: IDLReferenceType | IDLNamedNode,
+    resolveReference?: ReferenceResolver,
 ): string {
-    const decl = resolveReference(ref)
-    if (!decl) {
-        return ref.name
+    if (isReferenceType(node)) {
+        const decl = resolveReference!(node)
+        // No throw bc a lot of handwritten code may appear.
+        return  decl ? makeFullyQualifiedName(decl) : node.name
     }
 
-    return getNamespacesPathFor(decl)
+    return getNamespacesPathFor(node)
         .filter(n => n.name !== Config.irNamespace)
         .map(n => n.name)
-        .concat(decl.name)
-        .join('.');
+        .concat(dropPrefix(node.name, Config.dataClassPrefix))
+        .join('.')
 }
 
 /**
