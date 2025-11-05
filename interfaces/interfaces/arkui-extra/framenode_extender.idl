@@ -26,7 +26,7 @@ interface FrameNodeExtender {
   static Vector2 getPositionToWindow(FrameNode peer);
   static Position getPositionToParent(FrameNode peer);
   static Size getMeasuredSize(FrameNode peer);
-  static Position getLayoutPosition(FrameNode peer);
+  static Vector2 getLayoutPosition(FrameNode peer);
   static String getId(FrameNode peer);
   static i32 getUniqueId(FrameNode peer);
   static String getNodeType(FrameNode peer);
