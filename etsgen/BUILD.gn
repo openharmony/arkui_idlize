@@ -11,11 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
+import("../gn/import/npm.gni")
 
 npm_cmd("compile") {
     deps = [
-        "${idlize.root_path}/core:compile",
+        "../core:compile",
         "${koala_mr.libarkts_path}:libarkts_copy"
     ]
     project_path = rebase_path(".")
@@ -24,7 +24,7 @@ npm_cmd("compile") {
 
 npm_cmd("test") {
     deps = [
-        "${idlize.root_path}/etsgen:compile"
+        "../etsgen:compile"
     ]
     project_path = rebase_path(".")
     run_tasks = [ "test" ]

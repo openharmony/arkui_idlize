@@ -11,12 +11,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("./idlize_root.gni")
+
 template("npm_cmd") {
-    if (!defined(invoker.panda_sdk_path)) {
-        invoker.panda_sdk_path = rebase_path(idlize.panda_sdk_path)
-    }
     action("$target_name") {
-        script = "${idlize.scripts_path}/npm.py"
+        script = "$idlize_root/gn/script/npm.py"
         if (!defined(invoker.outputs)) {
             outputs = [
                 "$target_out_dir/$target_name"
@@ -30,7 +29,7 @@ template("npm_cmd") {
         deps = []
         if (!defined(invoker.install)) {
             deps += [
-                "${idlize.root_path}:npm_install_all(${host_toolchain})"
+                "$idlize_root:npm_install_all(${host_toolchain})"
             ]
         }
         if (defined(invoker.deps)) {

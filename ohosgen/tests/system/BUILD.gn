@@ -11,13 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
-import("${idlize.imports_prefix}/bash.gni")
+import("../../../gn/import/idlize_root.gni")
+import("${idlize_root}/gn/import/npm.gni")
+import("${idlize_root}/gn/import/node.gni")
+import("${idlize_root}/gn/import/bash.gni")
 
 template("system_test") {
     test_case = target_name
-    test_case_uppercase = exec_script("${idlize.scripts_path}/to_upper.py", [ test_case ], "string")
+    test_case_uppercase = exec_script("${idlize_root}/gn/script/to_upper.py", [ test_case ], "string")
 
     assert(defined(invoker.target), "`target` argument must be set. Example: `target = \"arkts\"`")
     target = invoker.target
@@ -40,7 +41,7 @@ template("system_test") {
                 rebase_path(idl_path)
             ]
             deps = [
-                "${idlize.root_path}/dtsgen:compile"
+                "${idlize_root}/dtsgen:compile"
             ]
         }
     } else {
@@ -87,7 +88,7 @@ template("system_test") {
             "$gen_path/generated/native/${test_case}ApiImpl_temp.cpp",
         ]
         deps = [
-            "${idlize.root_path}/ohosgen:compile",
+            "${idlize_root}/ohosgen:compile",
             ":$test_case:idl"
         ]
     }

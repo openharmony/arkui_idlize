@@ -11,13 +11,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
+import("../gn/import/npm.gni")
 
 npm_cmd("compile") {
     deps = [
-        "${idlize.root_path}/arkgen:compile",
-        "${idlize.root_path}/ohosgen:compile",
-        "${idlize.root_path}/etsgen:compile",
+        "../arkgen:compile",
+        "../ohosgen:compile",
+        "../etsgen:compile",
     ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]

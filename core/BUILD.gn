@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
+import("../gn/import/npm.gni")
 
 npm_cmd("compile") {
     project_path = rebase_path(".")

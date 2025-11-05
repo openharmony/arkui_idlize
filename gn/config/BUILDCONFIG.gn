@@ -54,12 +54,6 @@ koala_mr = {
     arkoala_arkts_path = "$root_path/arkoala-arkts"
     is_rri = true
 }
-idlize = {
-    root_path = "//."
-    scripts_path = "$root_path/gn/script"
-    imports_prefix = "$root_path/gn/import"
-    panda_sdk_path = "${koala_mr.root_path}/incremental/tools/panda/node_modules/@panda/sdk"
-}
 
 host_toolchain = "//gn/toolchain:clang"
 

@@ -11,6 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import("./idlize_root.gni")
+
 template("bash_cmd") {
   assert(defined(invoker.script), "bash_cmd requires 'script' parameter")
   
@@ -26,7 +28,7 @@ template("bash_cmd") {
     env_vars += invoker.env
   }
   
-  wrapper_script = "${idlize.scripts_path}/bash.py"
+  wrapper_script = "$idlize_root/gn/script/bash.py"
   
   action(target_name) {
     script = wrapper_script
@@ -45,7 +47,7 @@ template("bash_cmd") {
     }
 
     # Maybe must be removed, but actually installing packages often is required
-    deps = [ "${idlize.root_path}:npm_install_all" ]
+    deps = [ "$idlize_root:npm_install_all" ]
     if (defined(invoker.deps)) {
       deps += invoker.deps
     }
@@ -97,7 +99,7 @@ template("rm") {
   file = invoker.file
 
   bash_cmd(target_name) {
-    script = "${idlize.scripts_path}/rm.sh"
+    script = "$idlize_root/gn/script/rm.sh"
     args = []
     if (recursive) {
       args += [ "-r" ]
@@ -118,7 +120,7 @@ template("mkdir") {
   }
 
   bash_cmd(target_name) {
-    script = "${idlize.scripts_path}/mkdir.sh"
+    script = "$idlize_root/gn/script/mkdir.sh"
     args = []
     if (parents) {
       args += [ "-p" ]
@@ -148,7 +150,7 @@ template("cp") {
   }
 
   bash_cmd("$cp_target_name:cp") {
-    script = "${idlize.scripts_path}/cp.sh"
+    script = "$idlize_root/gn/script/cp.sh"
 
     args = []
     if (recursive) {

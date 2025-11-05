@@ -11,18 +11,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("${idlize.imports_prefix}/npm.gni")
-import("${idlize.imports_prefix}/node.gni")
+import("./gn/import/npm.gni")
+import("./gn/import/node.gni")
 
 if (current_toolchain == host_toolchain) {
     npm_install("npm_install_all") {
         deps = [
-            "external:npm_install_all"
+            "${koala_mr.root_path}:npm_install_all"
         ]
         outputs = [
             "$target_out_dir/npm_install_all"
         ]
-        project_path = rebase_path(idlize.root_path)
+        project_path = rebase_path(".")
     }
 }
 

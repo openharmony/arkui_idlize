@@ -1,0 +1,3 @@
+if (!defined(idlize_root)) {
+    idlize_root = get_path_info("../..", "abspath")
+}
