@@ -1000,7 +1000,21 @@
         "arkui.component.idlize.RouterExtender.back",
         "arkui.component.idlize.RouterExtender.runPage",
         "arkui.component.idlize.BuilderNodeOps.create",
-        "arkui.component.idlize.WebInterface.setWebOptions"
+        "arkui.component.idlize.WebInterface.setWebOptions",
+        "arkui.component.list.ListScroller.getItemRectInGroup",
+        "arkui.component.list.ListScroller.scrollToItemInGroup",
+        "arkui.component.list.ListScroller.closeAllSwipeActions",
+        "arkui.component.list.ListScroller.getVisibleListContentInfo",
+        "arkui.component.scroll.Scroller.scrollTo",
+        "arkui.component.scroll.Scroller.scrollEdge",
+        "arkui.component.scroll.Scroller.fling",
+        "arkui.component.scroll.Scroller.scrollPage",
+        "arkui.component.scroll.Scroller.currentOffset",
+        "arkui.component.scroll.Scroller.scrollToIndex",
+        "arkui.component.scroll.Scroller.scrollBy",
+        "arkui.component.scroll.Scroller.isAtEnd",
+        "arkui.component.scroll.Scroller.getItemRect",
+        "arkui.component.scroll.Scroller.getItemIndex"
     ],
     "constants": {
         "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
