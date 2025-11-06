@@ -38,6 +38,7 @@ import {
     IDLUnionType,
     IDLVoidType,
     isEnum,
+    isTypedef,
     throwException,
     TypeConvertor
 } from "@idlizer/core"
@@ -101,9 +102,14 @@ export abstract class BaseTypeConvertor<T> implements TypeConvertor<T> {
     }
 
     convertTypeReference(type: IDLReferenceType): T {
-        if (this.typechecker.isReferenceTo(type, isEnum)) {
+        const declaration = this.typechecker.resolveReference(type)
+        if (declaration && isEnum(declaration)) {
             return this.conversions.enum(type)
+
+        } else if (declaration && isTypedef(declaration)) {
+            return this.convertType(declaration.type)
         }
+
         return this.conversions.reference(type)
     }
 

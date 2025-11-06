@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { IDLContainerUtils, IDLType, isContainerType, isEnum, isInterface, isOptionalType, isReferenceType } from "@idlizer/core"
+import { IDLContainerUtils, IDLType, isContainerType, isEnum, isInterface, isOptionalType, isReferenceType, isTypedef } from "@idlizer/core"
 import { Config } from "../../general/Config"
 import { Importer } from "../../printers/library/Importer"
 import { fqName } from "../../utils/idl"
@@ -33,6 +33,9 @@ export function convertAndImport(importer: Importer, converter: BaseTypeConverto
         const node = converter.typechecker.resolveReference(type)
         if (node && isEnum(node)) {
             importer.withEnumImport(result)
+
+        } else if (node && isTypedef(node)) {
+            importer.withEnumImport(result) // typedefs print as enums
 
         } else if (node && isInterface(node) && converter.typechecker.isPeer(node)){
             if (config.ignore.hasReexportReplacement(fqName(node))) {

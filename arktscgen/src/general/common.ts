@@ -14,7 +14,7 @@
  */
 
 import { Config } from "./Config"
-import { IDLInterface, IDLMethod, IDLParameter, isReferenceType, isVoidType, throwException } from "@idlizer/core"
+import { capitalize, IDLInterface, IDLMethod, IDLParameter, isReferenceType, isVoidType, throwException } from "@idlizer/core"
 import { InteropConstructions } from "../constuctions/InteropConstructions"
 import { innerTypeCommon, nodeType, parent } from "../utils/idl"
 import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
@@ -111,7 +111,7 @@ export function isImplInterface(name: string): boolean {
 export function fixEnumPrefix(name: string): string {
     if (name.startsWith(`es2panda_`)) {
         name = dropPrefix(name, `es2panda_`)
-        name = `Es2panda${name}`
+        name = `Es2panda${capitalize(name)}`
     }
     return name
 }

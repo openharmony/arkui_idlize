@@ -59,7 +59,11 @@ export class AllPeersPrinter extends MultiFilePrinter {
             return []
         }
 
-        return [this.printFile(ns.name, [ns.name], (printer: PeerPrinter, writer: TSLanguageWriter): void => {
+        return [this.printFile(ns.name, [ns.name], (printer: PeerPrinter, writer: TSLanguageWriter, importer: Importer): void => {
+            ns.members
+                .filter(isInterface)
+                .forEach(iface => importer.addSeen(iface.name)) // Do not import classes from this namespace
+
             writer.pushNamespace(ns.name, { ident: false })
             members.forEach(m => printer.printInterface(m, writer))
             writer.popNamespace({ ident: false })
@@ -78,21 +82,22 @@ export class AllPeersPrinter extends MultiFilePrinter {
             })
         }
 
-        return this.printFile(iface.name, ['*'], (printer: PeerPrinter, writer: TSLanguageWriter) =>
+        return this.printFile(iface.name, ['*'], (printer: PeerPrinter, writer: TSLanguageWriter, importer: Importer) => {
+            importer.addSeen(PeersConstructions.peerName(iface.name))
             printer.printInterface(iface, writer)
-        )
+        })
     }
 
     private printFile(
         name: string,
         exports: string[],
-        cb: (printer: PeerPrinter, writer: TSLanguageWriter) => void
+        cb: (printer: PeerPrinter, writer: TSLanguageWriter, importer: Importer) => void
     ): MultiFileOutput {
         const importer = new Importer('.', name)
         const writer = this.makeWriter(importer)
         const printer = new PeerPrinter(this.config, this.typechecker, importer)
 
-        cb(printer, writer)
+        cb(printer, writer, importer)
 
         return {
             exports: exports,

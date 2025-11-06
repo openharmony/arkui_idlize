@@ -29,7 +29,9 @@ import {
     isNamespace,
     isPrimitiveType,
     isReferenceType,
-    resolveNamedNode
+    isTypedef,
+    resolveNamedNode,
+    throwException
 } from "@idlizer/core"
 import { Config } from "./Config"
 import { flatParentsImpl, fqName, nodeType } from "../utils/idl"
@@ -152,9 +154,17 @@ export class Typechecker {
     }
 
     isConstReturnValue(node: IDLMethod): boolean {
-        if (isPrimitiveType(node.returnType) || this.isReferenceTo(node.returnType, isEnum)) {
+        const isPrimitive = (returnType: IDLNode): boolean => {
+            const type = isReferenceType(returnType)
+                ? this.resolveReference(returnType) ?? throwException(`Unresolved type ${returnType.name}`)
+                : node.returnType
+            return isPrimitiveType(type) || isEnum(type) || (isTypedef(type) && isPrimitive(type.type))
+        }
+
+        if (isPrimitive(node.returnType)) {
             return false
         }
+
         return node.name.endsWith(Config.constPostfix)
     }
 

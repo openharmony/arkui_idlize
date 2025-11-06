@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
-import { createReferenceType, IDLContainerType, IDLEnum, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, isEnum, isEnumType } from "@idlizer/core"
+import { IDLContainerType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, isEnum, isTypedef } from "@idlizer/core"
 import { TopLevelTypeConvertor } from "./TopLevelTypeConvertor"
 import { Typechecker } from "../../general/Typechecker"
 import { fqName, innerType, makeEnoughQualifiedName, makeFullyQualifiedName } from "../../utils/idl"
 import { Config } from "../../general/Config"
+import { fixEnumPrefix } from "../../general/common"
 
 class _LibraryTypeConvertor extends TopLevelTypeConvertor<string> {
     constructor(
@@ -46,10 +47,10 @@ export class LibraryTypeConvertor extends _LibraryTypeConvertor {
 
     override convertTypeReference(type: IDLReferenceType): string {
         const node = this.typechecker.resolveReference(type)
-        if (node && isEnum(node)) {
+        if (node && (isEnum(node) || isTypedef(node))) {
             if (node.name.startsWith(Config.dataClassPrefix)) {
                 // TODO: support enums in namespace?
-                return `Es2panda${node.name.slice(Config.dataClassPrefix.length)}`
+                return fixEnumPrefix(node.name)
             }
         }
 
