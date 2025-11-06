@@ -132,6 +132,12 @@ class CallBuilder<P> {
     functionName(name: string) { this._function = name; return this }
     functionExpr(expr: LWExpression) { this._callee = expr; return this }
     args(args: LWExpression[]) { this._args.push(...args); return this }
+    receiver(): ExpressionBuilder<CallBuilder<P>> {
+        return new ExpressionBuilder(expr => {
+            this._receiver = expr
+            return this
+        })
+    }
     function(): ExpressionBuilder<CallBuilder<P>> {
         return new ExpressionBuilder(expr => {
             this._callee = expr
@@ -261,7 +267,7 @@ class ExpressionBuilder<P> {
 }
 
 class DeclarationBuilder<P> {
-    constructor(private _cont: (stmt: DeclarationStatement) => P, private _name: string, private _type: LWType) {}
+    constructor(private _cont: (stmt: DeclarationStatement) => P, private _name: string, private _type?: LWType) {}
     private _mutable: boolean = false
     private _static: boolean = false
     private _expression?: LWExpression
@@ -276,7 +282,8 @@ class DeclarationBuilder<P> {
         })
     }
     $(): P {
-        return this._cont(S.declaration(this._name, this._type, this._mutable, this._expression, this._static))
+        const type = this._type ?? T.c(std.names.types.auto)
+        return this._cont(S.declaration(this._name, type, this._mutable, this._expression, this._static))
     }
 }
 
@@ -439,7 +446,7 @@ class StatementBuilder<P> {
             return this
         })
     }
-    decl(name: string, type: LWType): DeclarationBuilder<StatementBuilder<P>> {
+    decl(name: string, type?: LWType): DeclarationBuilder<StatementBuilder<P>> {
         return new DeclarationBuilder(stmt => {
             this._stmt = stmt
             return this
@@ -497,7 +504,7 @@ class BlockBuilder<P> {
             return this
         })
     }
-    decl(name: string, type: LWType): DeclarationBuilder<BlockBuilder<P>> {
+    decl(name: string, type?: LWType): DeclarationBuilder<BlockBuilder<P>> {
         return new DeclarationBuilder(stmt => {
             this._stmts.push(stmt)
             return this
@@ -700,7 +707,7 @@ export class Builders {
     static ctor(name?: string): ConstructorBuilder<ConstructorExpression> { return new ConstructorBuilder(id, name) }
 
     static block(): BlockBuilder<LWStatement> { return new BlockBuilder(S.block) }
-    static decl(name: string, type: LWType): DeclarationBuilder<DeclarationStatement> { return new DeclarationBuilder(id, name, type) }
+    static decl(name: string, type?: LWType): DeclarationBuilder<DeclarationStatement> { return new DeclarationBuilder(id, name, type) }
     static if(): IfBuilder<IfStatement> { return new IfBuilder(id) }
     static loop(): LoopBuilder<LoopStatement> { return new LoopBuilder(id) }
     static return(type?: LWType): ReturnBuilder<LWStatement> { return new ReturnBuilder(id, type) }

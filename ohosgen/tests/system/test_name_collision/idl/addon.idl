@@ -1,9 +1,9 @@
-package test_name_collision;
+package addon;
 
-namespace window {
+namespace floating {
     interface Size {
-        attribute number height;
-        attribute number width;
+        attribute f32 height;
+        attribute f32 width;
     };
     interface Sized {
         attribute Size size;

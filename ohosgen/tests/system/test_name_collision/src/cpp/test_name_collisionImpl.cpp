@@ -3,19 +3,19 @@
 #include "oh_common.h"
 #include <iostream>
 
-void GlobalScope_resizeImpl(const OH_TEST_NAME_COLLISION_Size* size) {
-    std::cout << "resize(" << size->height << "x" << size->width << ")" << std::endl;
+void main_resizeImpl(const OH_TEST_NAME_COLLISION_main_Size* size) {
+    std::cout << "resize(" << DumpOHNumber(size->height) << "x" << DumpOHNumber(size->width) << ")" << std::endl;
 }
-void GlobalScope_image_resizeImpl(const OH_TEST_NAME_COLLISION_image_Size* size) {
-    std::cout << "image_resize(" << size->height << "x" << size->width << ")" << std::endl;
+void main_integer_resizeImpl(const OH_TEST_NAME_COLLISION_main_integer_Size* size) {
+    std::cout << "integer_resize(" << size->height << "x" << size->width << ")" << std::endl;
 }
-void GlobalScope_window_resizeImpl(const OH_TEST_NAME_COLLISION_window_Size* size) {
-    std::cout << "window_resize(" << DumpOHNumber(size->height) << "x" << DumpOHNumber(size->width) << ")" << std::endl;
+void addon_floating_resizeImpl(const OH_TEST_NAME_COLLISION_addon_floating_Size* size) {
+    std::cout << "floating_resize(" << size->height << "x" << size->width << ")" << std::endl;
 }
 
 // unused
 
-void GlobalScope_resizeImageImpl(const OH_TEST_NAME_COLLISION_image_Size* size) {
+void main_resizeIntegerImpl(const OH_TEST_NAME_COLLISION_main_integer_Size* size) {
 }
-void GlobalScope_resizeWindowImpl(const OH_TEST_NAME_COLLISION_window_Size* size) {
+void main_resizeFloatingImpl(const OH_TEST_NAME_COLLISION_addon_floating_Size* size) {
 }

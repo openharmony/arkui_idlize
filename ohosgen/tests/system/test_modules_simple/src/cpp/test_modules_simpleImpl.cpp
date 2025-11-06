@@ -27,7 +27,7 @@ struct MyFooInt {
 
 struct MyFooFloat {};
 
-OH_TEST_MODULES_SIMPLE_FooInt foo_FooInt_constructImpl(OH_Number* initialValue) {
+OH_TEST_MODULES_SIMPLE_FooInt foo_FooInt_constructImpl(const OH_Number* initialValue) {
     std::cout << "foo_FooInt_constructImpl(initialValue)" << std::endl;
     MyFooInt* result = new MyFooInt();
     result->value = *initialValue;
@@ -39,7 +39,7 @@ void foo_FooInt_destructImpl(OH_TEST_MODULES_SIMPLE_FooInt thiz) {
     delete reinterpret_cast<MyFooInt*>(thiz);
 }
 
-OH_Number foo_FooInt_getIntImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr, OH_Number* offset) {
+OH_Number foo_FooInt_getIntImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr, const OH_Number* offset) {
     auto* obj = reinterpret_cast<MyFooInt*>(thisPtr);
     std::cout << "foo_FooInt_getIntImpl(thisPtr, offset)"
               << "\n  thisPtr->value = " << DumpOHNumber(obj->value)
@@ -54,7 +54,7 @@ OH_Number foo_FooInt_getValueImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr) {
     return obj->value;
 }
 
-void foo_FooInt_setValueImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr, OH_Number* value) {
+void foo_FooInt_setValueImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr, const OH_Number* value) {
     auto* obj = reinterpret_cast<MyFooInt*>(thisPtr);
     std::cout << "foo_FooInt_setValueImpl(thisPtr, value)"
               << "\n  thisPtr->value = " << DumpOHNumber(obj->value)
@@ -62,9 +62,9 @@ void foo_FooInt_setValueImpl(OH_TEST_MODULES_SIMPLE_FooInt thisPtr, OH_Number* v
     obj->value = *value;
 }
 
-OH_Number bar_bar_getIntWithFooImpl(OH_TEST_MODULES_SIMPLE_FooInt* foo) {
+OH_Number bar_bar_getIntWithFooImpl(OH_TEST_MODULES_SIMPLE_FooInt foo) {
     std::cout << "bar_bar_getIntWithFooImpl(foo)" << std::endl;
-    MyFooInt* obj = reinterpret_cast<MyFooInt*>(*foo);
+    MyFooInt* obj = reinterpret_cast<MyFooInt*>(foo);
     std::cout << "foo->value = " << DumpOHNumber(obj->value) << std::endl;
     return obj->value;
 }

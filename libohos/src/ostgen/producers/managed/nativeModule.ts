@@ -15,9 +15,10 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Hs, E, Ts } from "../../../ost";
-import { createSpecialProducer, roles } from "../common";
+import { createSpecialProducer, isDirectInteropType, roles } from "../common";
 import { fqName, nativeModuleName } from "../../engine";
 import { Builders } from "../../../ost/builders";
+import { argConvertor } from "../components/argConvertor";
 
 export const nativeModuleMaterializedProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.nativeModule },
@@ -50,12 +51,15 @@ export const nativeModuleFunctionProducer = createSpecialProducer(
         reference: E.get(E.v(className, [Hs.isType()]), methodName),
         implementationGenerator: () => {
           ctx.useBridge(method)
+          const returnType = argConvertor(ctx, method.returnType).interopType(false)
           const nativeModule = Builders.class(className)
             .method(methodName)
-              .native().static().annotation('ani.unsafe.Direct')
+              .native().static()
+              ///no annotation for vmContext methods, see MethodUtils
+              .annotation(isDirectInteropType(returnType) ? 'ani.unsafe.Direct' : 'ani.unsafe.Quick')
               .param('buffer').type(Ts.prim.serializerBuffer).$()
               .param('length').type(Ts.prim.i32).$()
-              .returns(ctx.useManaged(method.returnType).reference()).$().$()
+              .returns(returnType).$().$()
           if (!method.isFree && !method.isStatic)
             nativeModule.methods[0].parameters.unshift(
               { name: 'ptr', type: Ts.prim.pointer })

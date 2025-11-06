@@ -15,6 +15,9 @@
 
 import * as idl from "@idlizer/core/idl"
 import { createProducer, GeneratorContext, MakeSelectorPattern, MakeSelectorQuery, ProducerBox, ProducerDescription } from "../engine/context"
+import { LWType } from "../../ost/lws"
+import { Ts } from "../../ost/stdlib"
+import { T } from "../../ost/builder"
 
 export const MANAGED_PREFIX = 'managed'
 export const C_API_PREFIX = 'capi'
@@ -93,3 +96,6 @@ export function createSpecialProducer<N extends idl.IDLNode>(pattern: MakeSelect
     })
 }
 
+export function isDirectInteropType(type: LWType) {
+    return type !== Ts.prim.interopReturnBuffer
+}

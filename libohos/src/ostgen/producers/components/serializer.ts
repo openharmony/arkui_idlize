@@ -16,10 +16,9 @@ import * as idl from "@idlizer/core/idl"
 import { AdvancedGeneratorContext, managedName, bridgeName } from "../common";
 import { ProducerDescription } from "../../engine/context";
 import { Hs, E, T, Ts } from "../../../ost";
-import { ArgConvertor } from "./argConvertor";
+import { argConvertor } from "./argConvertor";
 import { Builders } from "../../../ost/builders";
-import { LWExpression, LWKind, LWType, ValueType } from "../../../ost/lws";
-import { isMaterialized } from "@idlizer/core";
+import { LWType } from "../../../ost/lws";
 
 function makeSerializerName(node: idl.IDLInterface, native: boolean) {
   const name = idl.getFQName(node) + 'Serializer'
@@ -33,18 +32,18 @@ function makeSerializerName(node: idl.IDLInterface, native: boolean) {
  * Native needs forward class declaration + separate method implementations.
  */
 export function makeSerializer(
-  native: boolean,
+  ctx: AdvancedGeneratorContext,
   node: idl.IDLInterface,
-  ctx: AdvancedGeneratorContext
+  native: boolean
 ): ProducerDescription {
   return {
     artifact: {
       reference: E.v(makeSerializerName(node, native), [Hs.isType()]),
       implementationGenerator: () => {
         const valueType = (native ? ctx.useCApi(node) : ctx.useManaged(node)).reference()
-        const clazz = makeSerializerClass(native, node, valueType)
-        const write = makeSerializerWrite(native, node, valueType, ctx)
-        const read = makeSerializerRead(native, node, valueType, ctx)
+        const clazz = makeSerializerClass(node, valueType, native)
+        const write = makeSerializerWrite(ctx, node, valueType, native)
+        const read = makeSerializerRead(ctx, node, valueType, native)
         if (native) {
           return [clazz, write, read]
         } else {
@@ -57,7 +56,7 @@ export function makeSerializer(
   }
 }
 
-function makeSerializerClass(native: boolean, node: idl.IDLInterface, type: LWType) {
+function makeSerializerClass(node: idl.IDLInterface, type: LWType, native: boolean) {
   return Builders.class(makeSerializerName(node, native))
     .method('write')
       .static()
@@ -69,57 +68,25 @@ function makeSerializerClass(native: boolean, node: idl.IDLInterface, type: LWTy
       .returns(type).$().$()
 }
 
-function makeSerializerWrite(native: boolean, node: idl.IDLInterface, type: LWType, ctx: AdvancedGeneratorContext) {
-  const block = Builders.func(makeSerializerName(node, native) + '::write')
+function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
+  return Builders.func(makeSerializerName(node, native) + '::write')
     .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
     .block()
-  if (isMaterialized(node, ctx.base.library)) {
-    return block.call().receiverName('serializer').functionName('writePointer')
-      .args([materializedToPtr('value', native)]).$().$().$()
-  } else {
-    const conv = new ArgConvertor(ctx, E.v('serializer'), native)
-    return block.statements(node.properties.map(prop =>
-      conv.write(E.get(E.v('value'), prop.name), prop.type))).$().$()
-  }
+      .statements(node.properties.map(prop =>
+        argConvertor(ctx, prop.type)
+          .write(E.get(E.v('value'), prop.name), E.v('serializer'), native))).$().$()
 }
 
-function makeSerializerRead(native: boolean, node: idl.IDLInterface, type: LWType, ctx: AdvancedGeneratorContext) {
-  const block = Builders.func(makeSerializerName(node, native) + '::read')
+function makeSerializerRead(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
+  const reads = node.properties.map(prop =>
+    argConvertor(ctx, prop.type)
+      .read(prop.name, E.v('deserializer'), native))
+  return Builders.func(makeSerializerName(node, native) + '::read')
     .param('deserializer').type(Ts.ref(T.c('DeserializerBase'))).$()
     .returns(type)
     .block()
-  if (isMaterialized(node, ctx.base.library)) {
-    return block
-      .decl('ptr', Ts.prim.pointer).value()
-        .call().receiverName('deserializer').functionName('readPointer').$().$().$()
-      .return(type).valueExpr(ptrToMaterialized('ptr', type, native)).$().$().$()
-  } else {
-    const conv = new ArgConvertor(ctx, E.v('deserializer'), native)
-    const reads = node.properties.map(prop => conv.read(prop.name, prop.type))
-    return block
       .statements(reads.flatMap(([stmts, _]) => stmts))
-      .decl('value', type).value().ctor().asStruct().args(reads.map(([_, expr]) => expr)).$().$().$()
-      .return(type).valueStr('value').$().$().$()
-  }
-}
-
-function materializedToPtr(value: string, native: boolean): LWExpression {
-  return native
-      ? E.v(value)
-      : Builders.call().functionName('toPeerPtr').arg(value).$().$()
-}
-
-function ptrToMaterialized(value: string, type: LWType, native: boolean): LWExpression {
-  return native
-      ? {
-          kind: LWKind.CheckCastExpression,
-          op: 'cast',
-          expression: E.v(value),
-          type,
-          hints: [Hs.staticMethod()]
-      }
-      : Builders.call()
-          .receiverExpr(E.v((type as ValueType).name + 'Internal', [Hs.isType()]))
-          .functionName('fromPtr').arg(value).$().$()
+      .decl('retval', type).value().ctor().asStruct().args(reads.map(([_, expr]) => expr)).$().$().$()
+      .return(type).valueStr('retval').$().$().$()
 }

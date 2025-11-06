@@ -13,14 +13,14 @@
  * limitations under the License.
  */
 
-import { Hs, D, E, Md, T, Ts } from "../../../ost";
+import { Hs, D, E, Md, T, Ts, S } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { makePeerMethod } from "../components/peerMethod";
+import * as lw from "../../../ost/lws";
 import { AdvancedGeneratorContext, createSpecialProducer, managedName, roles } from "../common";
 import { capitalize, getSuperType, isMaterialized } from "@idlizer/core";
 import { fqName, ProducerDescription } from "../../engine";
-import { LWDeclaration } from "../../../ost/lws";
 import { Builders } from "../../../ost/builders";
+import { argConvertor } from "../components/argConvertor";
 
 export const structureProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.managed },
@@ -56,7 +56,8 @@ function makeTuple(node: idl.IDLInterface, ctx: AdvancedGeneratorContext): Produ
   }
 }
 
-function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): LWDeclaration[] {
+function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
+  node.methods.forEach(it => ctx.useManaged(it))
   const superType = getSuperType(node, ctx.base.library)
   return [D.class(name,
     node.properties.map(prop => {
@@ -71,13 +72,13 @@ function makeInterface(node: idl.IDLInterface, name: string, ctx: AdvancedGenera
         modifiers,
       }
     }),
-    node.methods.map(method => makePeerMethod(method, ctx)), {
+    [], {
     kind: idl.isClassSubkind(node) ? 'class' : 'interface',
     base: superType ? ctx.useManaged(superType).reference() : undefined
     })]
 }
 
-function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): LWDeclaration[] {
+function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGeneratorContext): lw.LWDeclaration[] {
   const syntheticMethods = [
     ...node.constructors.length ? [] : [idl.createConstructor([], undefined)],
     ...node.properties.flatMap(prop => [

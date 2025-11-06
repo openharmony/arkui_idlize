@@ -1,10 +1,10 @@
-import { init, resize, image, window } from "./compat";
+import { init, resize, integer, floating } from "./compat";
 
 function mainBody() {
     console.log('Starting demo: test_name_collision');
-    resize({ height: 8, width: 4 });
-    image.resize({ height: 64.8.toFloat(), width: 48.3.toFloat() });
-    window.resize({ height: 480, width: 320 });
+    resize({ height: 8, width: 4.4 });
+    integer.resize({ height: 8, width: 4 });
+    floating.resize({ height: 8.8.toFloat(), width: 4.4.toFloat() });
 }
 
 export function main() {

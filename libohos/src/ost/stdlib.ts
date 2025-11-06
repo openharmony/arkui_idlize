@@ -75,13 +75,16 @@ const specialTypeNames = {
     object: '@LW.Object',
     nativePointer: '@LW.NativePointer',
     number: '@LW.Number',
-    returnBuffer: '@LW.ReturnBuffer',
     serializerBuffer: '@LW.SerializerBuffer',
     string: '@LW.String',
     u8: '@LW.U8',
     u32: '@LW.U32',
     u64: '@LW.U64',
     void: '@LW.Void',
+
+    interopNumber: '@LW.InteropNumber',
+    interopString: '@LW.InteropString',
+    interopReturnBuffer: '@LW.InteropReturnBuffer',
 }
 
 export const std = {
@@ -164,13 +167,16 @@ const primitiveTypes = {
     tag: T.c(specialTypeNames.tag),
     object: T.c(specialTypeNames.object),
     number: T.c(specialTypeNames.number),
-    returnBuffer: T.c(specialTypeNames.returnBuffer),
     serializerBuffer: T.c(specialTypeNames.serializerBuffer),
     str: T.c(specialTypeNames.string),
     u8: T.c(specialTypeNames.u8),
     u32: T.c(specialTypeNames.u32),
     u64: T.c(specialTypeNames.u64),
     void: T.c(specialTypeNames.void),
+
+    interopNumber: T.c(specialTypeNames.interopNumber),
+    interopString: T.c(specialTypeNames.interopString),
+    interopReturnBuffer: T.c(specialTypeNames.interopReturnBuffer),
 }
 
 export const Ts = {

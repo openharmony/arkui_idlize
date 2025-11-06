@@ -51,9 +51,12 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.i64: return T.c('long')
       case std.names.types.object: return T.c('object')
       case std.names.types.nativePointer: return T.c('KPointer')
-      case std.names.types.number: return T.c('number')
+      case std.names.types.number:
+      case std.names.types.interopNumber: return T.c('number')
+      case std.names.types.interopReturnBuffer: return T.c('KInteropReturnBuffer')
       case std.names.types.serializerBuffer: return T.c('KSerializerBuffer')
-      case std.names.types.string: return T.c('string')
+      case std.names.types.string:
+      case std.names.types.interopString: return T.c('string')
       case std.names.types.u8: return T.c('byte')
       case std.names.types.u32: return T.c('int')
       case std.names.types.u64: return T.c('long')
@@ -300,8 +303,11 @@ export class TSPrinter {
       }
       case lw.LWKind.DeclarationStatement: {
         const specifier = statement.mutable ? 'let' : 'const'
-        this.p.put(specifier, ' ', statement.varName, ':', ' ')
-        this.printType(statement.varType)
+        this.p.put(specifier, ' ', statement.varName)
+        if (statement.varType.kind !== lw.LWKind.ValueType || statement.varType.name !== std.names.types.auto) {
+          this.p.put(':', ' ')
+          this.printType(statement.varType)
+        }
         if (statement.expression) {
           this.p.put(' ', '=', ' ')
           if (statement.expression.kind === lw.LWKind.ConstructorExpression &&

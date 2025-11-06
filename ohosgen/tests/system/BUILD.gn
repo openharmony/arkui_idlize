@@ -219,7 +219,8 @@ template("system_test") {
 test_cases = [
     { name = "huks" },
     { name = "huks_with_class" },
-    { name = "test_buffer" },
+    { name = "test_buffer"
+      use_ost = true },
     { name = "test_fqn"
       use_ost = true },
     { name = "test_generic_callback"
@@ -231,8 +232,10 @@ test_cases = [
     { name = "test_modules_simple"
       input_type = "dts"
       use_ost = true },
-    { name = "test_name_collision" },
-    { name = "test_package" },
+    { name = "test_name_collision"
+      use_ost = true },
+    { name = "test_package"
+      use_ost = true },
 ]
 
 foreach(conf, test_cases) {
