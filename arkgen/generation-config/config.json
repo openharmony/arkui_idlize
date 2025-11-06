@@ -1000,6 +1000,7 @@
         "arkui.component.idlize.RouterExtender.runPage",
         "arkui.component.idlize.BuilderNodeOps.create",
         "arkui.component.idlize.WebInterface.setWebOptions",
+        "arkui.component.idlize.NavExtender.syncStack",
         "arkui.component.list.ListScroller.getItemRectInGroup",
         "arkui.component.list.ListScroller.scrollToItemInGroup",
         "arkui.component.list.ListScroller.closeAllSwipeActions",
