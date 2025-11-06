@@ -32,7 +32,6 @@ import arkui.component.units.EdgeStyles as EdgeStyles;
 import arkui.component.enums.BorderStyle as BorderStyle;
 import arkui.Graphics.LengthMetrics as LengthMetrics;
 import ohos.promptAction.LevelMode as LevelMode;
-import ohos.promptAction.LevelOrder as LevelOrder;
 import ohos.promptAction.ImmersiveMode as ImmersiveMode;
 import arkui.component.actionSheet.DismissDialogAction as DismissDialogAction;
 
@@ -61,6 +60,12 @@ interface PromptActionExtender {
 [Entity=Class]
 interface AlertDialog {
   static void show((AlertDialogParamWithConfirm or AlertDialogParamWithButtons or AlertDialogParamWithOptions) options);
+};
+
+[Entity=Class]
+interface LevelOrderExtender {
+  static LevelOrderExtender clamp(number order);
+  number getOrder();
 };
 
 [Entity=Class]
@@ -146,7 +151,7 @@ interface CustomDialogControllerOptionsExtender {
   [Optional]
   attribute ImmersiveMode immersiveMode;
   [Optional]
-  attribute LevelOrder levelOrder;
+  attribute LevelOrderExtender levelOrderExtender;
   [Optional]
   attribute boolean focusable;
 };
