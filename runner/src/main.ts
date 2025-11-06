@@ -39,6 +39,7 @@ interface M3Options {
     originalSdk?: boolean
     target: string
     language: string
+    componentNamedOverloads: boolean
     scraperConfig?: string
 }
 
@@ -62,7 +63,8 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
         target: options.target,
         language: options.language,
         optionsFile: arkuiConfig,
-        idlPath: scrapedIDLs
+        idlPath: scrapedIDLs,
+        componentNamedOverloads: options.componentNamedOverloads,
     })
 
     if (formatArkts({
@@ -99,7 +101,8 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
         language: 'arkts',
         optionsFile: arkuiConfig,
         idlPath: scrapedIDLs,
-        trackerStatus: trackerStatus
+        trackerStatus: trackerStatus,
+        componentNamedOverloads: false,
     })
     commands.install({sourceDir: peersPath, installPath})
 }
@@ -147,6 +150,7 @@ function main(argv: string[]) {
     program.command('m3 <sdk-path> <install-path>')
         .description('generate using m3 pipeline')
         .option('--target <target>', 'sig | libace | all', 'sig')
+        .option('--no-component-named-overloads')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
         .action(m3)

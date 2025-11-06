@@ -59,6 +59,7 @@ export function idl2peer({
             ['--language', language],
             '--only-integrated',
             '--use-memo-m3',
+            '--no-component-named-overloads',
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],
             over(trackerStatus, st => ['--tracker-status', st]),
