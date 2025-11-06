@@ -15,11 +15,13 @@
 
 import {
     IDLContainerUtils,
+    IDLEnum,
     IDLInterface,
     IDLNamedNode,
     IDLType,
     isContainerType,
     isInterface,
+    isNamedNode,
     isOptionalType,
     isReferenceType,
     throwException
@@ -35,8 +37,10 @@ export function unpackWrapper(type: IDLType, typechecker: Typechecker): string |
         (isReferenceType(ref) || isInterface(ref)) && typechecker.isHeir(ref, Config.astNodeCommonAncestor)
 
     if (isContainerType(type)) {
-        if (IDLContainerUtils.isSequence(type)) {
-            return PeersConstructions.arrayOfPointersToArrayOfPeers
+        if (IDLContainerUtils.isSequence(type) && isReferenceType(type.elementType[0])) {
+            return isAstNode(type.elementType[0])
+                ? PeersConstructions.arrayOfPointersToArrayOfPeers
+                : PeersConstructions.arrayOfPointersToArrayOfObjects
         }
         throwException(`unexpected container of non-sequence type`)
 
@@ -84,3 +88,10 @@ export function typeHintArgument(type: IDLType, typechecker: Typechecker, import
 
     return undefined
 }
+
+export function hasFactoryArgument(wrapper: string): boolean {
+    return [
+        PeersConstructions.arrayOfPointersToArrayOfObjects,
+    ].includes(wrapper)
+}
+

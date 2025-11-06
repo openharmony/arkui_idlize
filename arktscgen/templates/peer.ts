@@ -25,6 +25,7 @@ import {
     unpackNonNullableNode,
     unpackNode,
     unpackNodeArray,
+    unpackNativeObjectArray,
     AstNode,
     KNativePointer,
     nodeByType,

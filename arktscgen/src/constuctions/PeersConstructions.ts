@@ -70,6 +70,10 @@ export class PeersConstructions {
         return `unpackNodeArray`
     }
 
+    static get arrayOfPointersToArrayOfObjects(): string {
+        return `unpackNativeObjectArray`
+    }
+
     static get receiveString(): string {
         return `unpackString`
     }

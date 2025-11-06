@@ -32,6 +32,7 @@ import {
     LanguageExpression,
     MethodModifier,
     MethodSignature,
+    NamedMethodSignature,
     throwException,
     TSLanguageWriter
 } from "@idlizer/core"
@@ -60,7 +61,7 @@ import { pascalToCamel } from "../../utils/string"
 import { PeersConstructions } from "../../constuctions/PeersConstructions"
 import { Typechecker } from "../../general/Typechecker"
 import { BindingParameterTypeConvertor } from "../../type-convertors/top-level/peers/BindingParameterTypeConvertor"
-import { unpackWrapper, hasTypeHintArgument, typeHintArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
+import { unpackWrapper, hasTypeHintArgument, typeHintArgument, hasFactoryArgument } from "../../type-convertors/top-level/peers/BindingReturnValueTypeConvertor"
 import { Config } from "../../general/Config"
 import { ExtraParameter } from "../../options/ExtraParameters"
 import { CommonGenerator } from "../Generator"
@@ -326,6 +327,9 @@ export class PeerPrinter {
 
         if (wrapper) {
             const args = [nativeCall]
+            if (hasFactoryArgument(wrapper) && isReferenceType(innerType)) {
+                args.push(this.makeNativeObjectFactory(innerType, writer));
+            }
             if (hasTypeHintArgument(wrapper)) {
                 const hint = typeHintArgument(innerType, this.typechecker, this.importer)
                 if (hint) {
@@ -340,6 +344,19 @@ export class PeerPrinter {
 
         return isOptionalType(returnType) && isReferenceType(innerType) ?
             writer.makeNewObject(convertName(innerType), [nativeCall]) : nativeCall
+    }
+
+    private makeNativeObjectFactory(type: IDLReferenceType, writer: TSLanguageWriter): LanguageExpression {
+        const args = [{ name: 'peer', type: IDLPointerType }];
+        const stmts = [
+            writer.makeReturn(
+                writer.makeNewObject(
+                    makeEnoughQualifiedName(type, this.typechecker.resolveReference.bind(this.typechecker)),
+                    args.map(a => writer.makeString(a.name))
+                )
+            )
+        ];
+        return writer.makeLambda(NamedMethodSignature.make(type, args), stmts);
     }
 
     private printCreateOrUpdate(iface: IDLInterface, node: IDLMethod, writer: TSLanguageWriter): void {
