@@ -28,6 +28,7 @@ export interface Idl2PeerConfig {
 
 export interface Idl2PeerArkuiConfig extends Idl2PeerConfig {
     arkgen: string
+    componentNamedOverloads: boolean
 }
 
 export interface Idl2PeerOhosConfig extends Idl2PeerConfig {
@@ -45,6 +46,7 @@ export function idl2peer({
     idlPath,
     optionsFile,
     trackerStatus,
+    componentNamedOverloads,
 }: Idl2PeerArkuiConfig): Idl2PeerResult {
     const idlFiles = scan(idlPath)
 
@@ -72,6 +74,7 @@ export function idl2peer({
         ['--arkts-extension', '.ets'],
         optionsFile ? [`--options-file`, optionsFile] : [],
         over(trackerStatus, st => ['--tracker-status', st]),
+        componentNamedOverloads ? [] : '--no-component-named-overloads'
     ]))
     return {
         peersPath: GENERATED_PEER_DIR
