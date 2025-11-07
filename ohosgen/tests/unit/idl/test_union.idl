@@ -13,6 +13,15 @@ interface UnionSampleTupleNumberString {
     attribute String value1;
 };
 
+interface <T> SingleGenericType {
+    readonly attribute T value;
+};
+
+interface <T, S> DoubleGenericType {
+    readonly attribute T valueT;
+    readonly attribute S valueS;
+};
+
 [Entity=Interface]
 interface UnionSampleEnumInterface {
 
@@ -37,7 +46,13 @@ interface UnionSampleTupleArrayInterface {
     attribute (number or String or UnionSampleTupleNumberString or sequence<UnionSampleTupleNumberString>) prop;
 };
 
+[Entity=Interface]
+interface UnionSampleGenericTypeInterface {
+    attribute (number or String or SingleGenericType<number> or SingleGenericType<String> or DoubleGenericType<boolean, number> or DoubleGenericType<number, String>) prop;
+};
+
 UnionSampleEnumInterface checkUnionEnumSample(UnionSampleEnumInterface value);
 UnionSampleArrayInterface checkUnionArraySample(UnionSampleArrayInterface value);
 UnionSampleNumberArrayInterface checkUnionNumberArraySample(UnionSampleNumberArrayInterface value);
 UnionSampleTupleArrayInterface checkUnionTupleArraySample(UnionSampleTupleArrayInterface value);
+UnionSampleGenericTypeInterface checkUnionGenericTypeSample(UnionSampleGenericTypeInterface value);

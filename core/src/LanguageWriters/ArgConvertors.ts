@@ -31,7 +31,7 @@ import {
 import { NativeModuleType, RuntimeType } from "./common";
 import { generatorConfiguration, generatorTypePrefix } from "../config"
 import { LibraryInterface } from "../LibraryInterface";
-import { capitalize, getExtractor, getTransformer, hashCodeFromString, throwException, warn } from "../util";
+import { capitalize, getExtractor, entryToFunctionName as entryToFunctionName, getTransformer, hashCodeFromString, throwException, warn } from "../util";
 import { UnionRuntimeTypeChecker } from "../peer-generation/unions";
 import { CppConvertor, CppNameConvertor } from "./convertors/CppConvertors";
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver";
@@ -39,9 +39,10 @@ import { PrimitiveTypesInstance } from "../peer-generation/PrimitiveType";
 import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { isInExternalModule } from "../peer-generation/modules";
+import { maybeRestoreGenerics } from "../transformers/GenericTransformer";
 
-export function getSerializerName(_library: LibraryInterface, _language: Language, declaration:idl.IDLEntry) {
-    return `${idl.getQualifiedName(declaration, "package.namespace.name").split('.').map(capitalize).join('')}SerializerImpl`;
+export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
+    return entryToFunctionName(_language, declaration, "", "SerializerImpl")
 }
 
 export interface ArgConvertor {
@@ -1075,8 +1076,9 @@ export class UnionConvertor extends BaseArgConvertor {
             statements.push(convertor.convertorSerialize(param, varName, printer))
         }
 
+        const genericDiscriminator = withGenericDiscriminator(this.library, this.memberConvertors, value, discriminator, type, printer)
         const stmt = new BlockStatement(statements, false)
-        return { expr: discriminator, stmt }
+        return { expr: genericDiscriminator, stmt }
     }
     makeArrayBranch(param: string, value: string, printer: LanguageWriter, arrayConvertorItems: ConvertorItem[]): BranchStatement[] {
         if (arrayConvertorItems.length == 0) return []
@@ -1607,4 +1609,34 @@ export function createOutArgConvertor(library: PeerLibrary, type: idl.IDLType|un
         return new PromiseOutArgConvertor(library, param(paramEntropy), type)
     }
     return undefined
+}
+
+function withGenericDiscriminator(
+    library: LibraryInterface,
+    convertors: ArgConvertor[],
+    value: string,
+    discriminator: LanguageExpression,
+    type: idl.IDLType,
+    writer: LanguageWriter,
+): LanguageExpression {
+
+    if (writer.language == Language.CPP) return discriminator
+    if (!idl.isReferenceType(type)) return discriminator
+
+    const mayBeGeneric = maybeRestoreGenerics(type, writer.resolver)
+    if (mayBeGeneric == undefined) return discriminator
+    const count = convertors
+        .map(it => it.idlType)
+        .filter(it => idl.isReferenceType(it))
+        .map(it => idl.isReferenceType(it) ? maybeRestoreGenerics(it, writer.resolver) : undefined)
+        .filter(it => it && idl.isReferenceType(it) && it.name == mayBeGeneric.name)
+        .length
+    if (count < 2) return discriminator
+    writer.addFeature("typechecks", library.layout.handwrittenPackage())
+    const decl = writer.resolver.resolveTypeReference(type)!
+    const checkGenericFunc = entryToFunctionName(writer.language, decl, "isGeneric_", "")
+    return writer.makeAnd(
+        discriminator,
+        writer.makeFunctionCall(`typechecks.${checkGenericFunc}`, [writer.makeString(value)])
+    )
 }

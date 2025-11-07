@@ -228,6 +228,10 @@ export function throwException(message: string): never {
     throw new Error(message)
 }
 
+export function entryToFunctionName(_language: Language, declaration: idl.IDLEntry, prefix: string, postfix: string) {
+    return `${prefix}${idl.getQualifiedName(declaration, "package.namespace.name").split('.').map(capitalize).join('')}${postfix}`;
+}
+
 /**
  * Add a prefix to an enum value which camel case name coincidence
  * with the the same upper case name for an another enum value

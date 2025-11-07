@@ -40,11 +40,14 @@ export {
 } from '../../generated/arkts'
 
 export {
+    SingleGenericType,
+    DoubleGenericType,
     UnionSampleEnum,
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
     checkUnionTupleArraySample,
+    checkUnionGenericTypeSample,
 } from "../../generated/arkts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"

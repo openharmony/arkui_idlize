@@ -18,6 +18,12 @@
  * @kit ArkUI
  */
 
+declare interface Bindable<T> {
+
+  readonly value: T;
+  // readonly onChange: Callback<T>;
+}
+
 /**
  * Defines the options of Component ClassDecorator.
  *

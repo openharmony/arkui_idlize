@@ -39,11 +39,14 @@ export {
 } from '../../generated/ts'
 
 export {
+    SingleGenericType,
+    DoubleGenericType,
     UnionSampleEnum,
     checkUnionEnumSample,
     checkUnionArraySample,
     checkUnionNumberArraySample,
     checkUnionTupleArraySample,
+    checkUnionGenericTypeSample,
 } from "../../generated/ts"
 
 export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"

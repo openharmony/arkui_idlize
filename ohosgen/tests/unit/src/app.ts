@@ -58,11 +58,14 @@ import {
 } from '#compat'
 
 import {
+  SingleGenericType,
+  DoubleGenericType,
   UnionSampleEnum,
   checkUnionEnumSample,
   checkUnionArraySample,
   checkUnionNumberArraySample,
   checkUnionTupleArraySample,
+  checkUnionGenericTypeSample,
 } from '#compat'
 
 import { IDLCheckConstructor } from '#compat'
@@ -292,6 +295,29 @@ function checkUnions() {
   // checkEQ(tuple, checkUnionTupleArraySample({ prop: tuple }).prop)
   // const tuples: [number, string][] = [[8, "eight"], [9, "nine"]]
   // checkEQ(tuples, checkUnionTupleArraySample({ prop: tuples }).prop)
+
+
+  // GenericType union
+  checkEQ(7, checkUnionGenericTypeSample({ prop: 7 }).prop)
+  checkEQ("seven", checkUnionGenericTypeSample({ prop: "seven" }).prop)
+
+  const valueNumber: SingleGenericType<number> = { value: 9 }
+  const resultNumber = checkUnionGenericTypeSample({ prop: valueNumber }).prop as SingleGenericType<number>
+  checkEQ(9, resultNumber.value)
+
+  const valueString: SingleGenericType<string> = { value: "nine" }
+  const resultString = checkUnionGenericTypeSample({ prop: valueString }).prop as SingleGenericType<string>
+  checkEQ("nine", resultString.value)
+
+  const valueBooleanNumber: DoubleGenericType<boolean, number> = { valueT: true, valueS: 11 }
+  const resultBooleanNumber = checkUnionGenericTypeSample({ prop: valueBooleanNumber }).prop as DoubleGenericType<boolean, number>
+  checkEQ(true, resultBooleanNumber.valueT)
+  checkEQ(11, resultBooleanNumber.valueS)
+
+  const valueNumberString: DoubleGenericType<number, string> = { valueT: 33, valueS: "thirty three" }
+  const resultNumberString = checkUnionGenericTypeSample({ prop: valueNumberString }).prop as DoubleGenericType<number, string>
+  checkEQ(33, resultNumberString.valueT)
+  checkEQ("thirty three", resultNumberString.valueS)
 }
 
 function checkStaticMaterialized() {

@@ -1144,3 +1144,6 @@ OH_UNIT_UnionSampleNumberArrayInterface GlobalScope_checkUnionNumberArraySampleI
 OH_UNIT_UnionSampleTupleArrayInterface GlobalScope_checkUnionTupleArraySampleImpl(const OH_UNIT_UnionSampleTupleArrayInterface* value) {
     return *value;
 }
+OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleImpl(const OH_UNIT_UnionSampleGenericTypeInterface* value) {
+    return *value;
+}

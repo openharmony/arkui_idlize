@@ -807,6 +807,12 @@ export abstract class LanguageWriter {
     makeNot(expr: LanguageExpression): LanguageExpression {
         return this.makeString(`!(${expr.asString()})`)
     }
+    makeAnd(...args: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp("&&", args)
+    }
+    makeOr(...args: LanguageExpression[]): LanguageExpression {
+        return this.makeNaryOp("||", args)
+    }
     makeSerializedBufferGetter(serializer: string): LanguageExpression {
         return this.makeMethodCall(serializer, `asBuffer`, [])
     }

@@ -33,6 +33,7 @@ interface SelectInterface {
 
 declare class SelectAttribute extends CommonMethod<SelectAttribute> {
 
+    // selected(numCount: int | Bindable<int> ): SelectAttribute;
     menuItemContentModifier(modifier: ContentModifier<MenuItemConfiguration>): SelectAttribute;
 }
 
