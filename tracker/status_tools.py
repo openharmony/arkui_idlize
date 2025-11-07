@@ -216,6 +216,9 @@ def Handwritten():
                 ns = 'backlog'
             if ns == 'testskipped':
                 ns = 'done'
+            pss = ''
+            if ps:
+                pss = ps.status if ps.status else 'backlog'
             def mrg(l, r):
                 return l if l == r else f'{l}/{r}'
             os = HandwrittenStatus('',
@@ -227,7 +230,7 @@ def Handwritten():
                 c_parent = cs.c_parent,
                 c_name = mrg(cs.c_name, ps.c_name) if ps else cs.c_name,
                 owner = mrg(cs.owner, ps.owner) if ps else cs.owner,
-                status = mrg(ns, ps.status) if ps else ns,
+                status = mrg(ns, pss) if ps else ns,
                 test_status = cs.test_status,
                 test_version = cs.test_version,
                 comment = mrg(cs.comment, ps.comment) if ps else cs.comment)

@@ -221,8 +221,8 @@ function main(argv: string[]) {
 
     program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
         .description('generate tracker report')
-        .option('--etsgen', 'etsgen executable', 'npx etsgen')
-        .option('--arkgen', 'arkgen executable', 'npx arkgen')
+        .option('--etsgen <executable>', 'etsgen executable', 'npx etsgen')
+        .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .action(tracker)
 
     program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')
