@@ -52,6 +52,7 @@
         "RotationGestureEvent",
         "SwipeGestureEvent",
         "TapGestureEvent",
+        "arkui.ComponentContent.ComponentContent",
         "ohos.animator.AnimatorOptions",
         "ohos.animator.AnimatorResult",
         "ohos.animator.SimpleAnimatorOptions",
@@ -445,7 +446,6 @@
     },
     "forceResource": [
         "ContentModifier",
-        "ComponentContent",
         "ComponentContentBase",
         "UserDataSpan"
     ],
