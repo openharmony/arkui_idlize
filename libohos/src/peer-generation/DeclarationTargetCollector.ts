@@ -187,6 +187,9 @@ export namespace DeclarationTargets {
                 if (idl.isReferenceType(it)) {
                     it = library.resolveTypeReference(it)!
                 }
+                if (!it) {
+                    return false
+                }
                 if (idl.isNamedNode(it) && peerGeneratorConfiguration().isResource(it.name)) return false
                 if (idl.isInterface(it) && peerGeneratorConfiguration().serializer.ignore.includes(it.name)) return false
                 return true
