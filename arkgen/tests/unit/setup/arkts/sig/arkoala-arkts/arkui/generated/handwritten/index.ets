@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 import { AnimateParam } from '../framework'
-import { ArkCheckHooksComponent } from '../framework'
+import { ArkCheckHooksComponent, ArkCheckHooksPeer } from '../framework'
 
 export interface AttributeModifier<T> {
     isUpdater: () => boolean
@@ -51,4 +51,13 @@ export function hookCheckHooksText(receiver: ArkCheckHooksComponent, text?: stri
 
 export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: boolean, count: number, text: string){
     receiver.checkHookResult(`Check hook method primitives: ${flag}, ${count}, ${text}`)
+}
+
+// Probably only one set of methods with Component or Peer are needed
+export function hookCheckHooksText(receiver: ArkCheckHooksPeer, text?: string){
+    receiver.setCheckHookResultAttribute(`Check hook text: ${text}`)
+}
+
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksPeer, flag: boolean, count: number, text: string){
+    receiver.setCheckHookResultAttribute(`Check hook method primitives: ${flag}, ${count}, ${text}`)
 }
