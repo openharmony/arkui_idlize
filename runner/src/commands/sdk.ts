@@ -47,7 +47,7 @@ export function prepareSdk({
         if (existsSync(maybeSpecificPatchFile)) {
             sdkPatchFile = maybeSpecificPatchFile
         }
-        r.exec(['git', 'apply', sdkPatchFile])
+        // r.exec(['git', 'apply', sdkPatchFile])
 
         const prepareSdkScriptFile = join(CLONED_SDK_DIR, 'build-tools', 'handleApiFiles.js')
         r.cd(CLONED_SDK_BUILD_TOOLS)

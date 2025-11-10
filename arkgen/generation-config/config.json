@@ -536,7 +536,9 @@
         "CommonTransition",
         "CalendarAttribute",
         "ContainerSpanAttribute",
-        "CustomLayoutRoot"
+        "CustomLayoutRoot",
+        "SymbolSpanAttribute",
+        "SpanAttribute"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
