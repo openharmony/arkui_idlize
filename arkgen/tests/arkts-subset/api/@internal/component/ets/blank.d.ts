@@ -200,7 +200,7 @@ declare class BlankAttribute extends CommonMethod<BlankAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Blank: BlankInterface;
+//declare constBlank: BlankInterface;
 
 /**
  * Defines Blank Component instance.
@@ -232,4 +232,4 @@ declare const Blank: BlankInterface;
  * @atomicservice
  * @since 11
  */
-declare const BlankInstance: BlankAttribute;
+//declare constBlankInstance: BlankAttribute;

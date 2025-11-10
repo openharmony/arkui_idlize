@@ -14,17 +14,19 @@
  */
 
 import { join, resolve } from "node:path"
-import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen/app"
+import { defaultConfigPath as arkgenConfigPath } from "@idlizer/arkgen"
 
 /////////////////////////////////////////////////
 // CONSTANTS
 
 export const WORKING_DIR = resolve(__dirname, '..', 'out')
+export const CONFIGS_DIR = resolve(__dirname, '..', 'configs')
 export const SDK_PATCH_DIR = join(__dirname, '..', 'patches')
 export const SDK_PATCH_FILE = resolve(SDK_PATCH_DIR, '_default.patch')
 export const GENERATED_IDL_DIR = join(WORKING_DIR, 'idl')
 export const CLONED_SDK_DIR = join(WORKING_DIR, 'original-sdk')
 export const CLONED_SDK_BUILD_TOOLS = join(CLONED_SDK_DIR, 'build-tools')
+export const ABSOLUTE_SDK_DIR = join(WORKING_DIR, 'absolute-sdk-patched-arkts')
 export const PREPARED_SDK_DIR_ARKTS = join(WORKING_DIR, 'patched-sdk-arkts')
 export const PREPARED_SDK_ARKTS_INTERNAL = join(PREPARED_SDK_DIR_ARKTS, 'api', '@internal', 'component', 'ets')
 export const PREPARED_SDK_ARKTS_ARKUI_COMPONENT = join(PREPARED_SDK_DIR_ARKTS, 'api', 'arkui', 'component')
@@ -36,3 +38,6 @@ export const ADDITIONAL_FILES = [
     ['global', 'resource.d.ets']
 ]
 export const REFERENCE_CONFIG_PATH = resolve(arkgenConfigPath(), 'references', 'ets-sdk.refs.json')
+export const SCRAPER_CWD = join(WORKING_DIR, 'scraper')
+export const SCRAPER_CONFIG = join(CONFIGS_DIR, 'scraper-config.json')
+export const CONFIG_RESULT_DIR = join(WORKING_DIR, 'configs')

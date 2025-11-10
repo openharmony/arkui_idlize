@@ -86,9 +86,11 @@ export function generateSyntheticFunctionParameterName(parameter:idl.IDLParamete
     return generateSyntheticIdlNodeName(parameter.type)
 }
 
-export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, isAsync: boolean = false): string {
-    let prefix = isAsync ? "AsyncCallback" : "Callback"
-    const names = parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
+export function generateSyntheticFunctionName(parameters: idl.IDLParameter[], returnType: idl.IDLType, options?: { isAsync?: boolean, nameConvertor?: IdlNameConvertor }): string {
+    let prefix = options?.isAsync ? "AsyncCallback" : "Callback"
+    const names = options?.nameConvertor !== undefined
+        ? parameters.map(it => options.nameConvertor!.convert(it.type)).concat(options.nameConvertor!.convert(returnType))
+        : parameters.map(generateSyntheticFunctionParameterName).concat(generateSyntheticIdlNodeName(returnType))
     return `${prefix}_${names.join("_").replaceAll(".", "_")}`
 }
 

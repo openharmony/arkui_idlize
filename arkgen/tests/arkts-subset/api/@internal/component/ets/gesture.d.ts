@@ -2944,7 +2944,7 @@ interface GestureGroupInterface {
  * @atomicservice
  * @since 11
  */
-declare const TapGesture: TapGestureInterface;
+//declare constTapGesture: TapGestureInterface;
 
 /**
  * Defines LongPressGesture Component.
@@ -2967,7 +2967,7 @@ declare const TapGesture: TapGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const LongPressGesture: LongPressGestureInterface;
+//declare constLongPressGesture: LongPressGestureInterface;
 
 /**
  * Defines PanGesture Component.
@@ -2990,7 +2990,7 @@ declare const LongPressGesture: LongPressGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const PanGesture: PanGestureInterface;
+//declare constPanGesture: PanGestureInterface;
 
 /**
  * Defines SwipeGesture Component.
@@ -3013,7 +3013,7 @@ declare const PanGesture: PanGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const SwipeGesture: SwipeGestureInterface;
+//declare constSwipeGesture: SwipeGestureInterface;
 
 /**
  * Defines PinchGesture Component.
@@ -3036,7 +3036,7 @@ declare const SwipeGesture: SwipeGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const PinchGesture: PinchGestureInterface;
+//declare constPinchGesture: PinchGestureInterface;
 
 /**
  * Defines RotationGesture Component.
@@ -3059,7 +3059,7 @@ declare const PinchGesture: PinchGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const RotationGesture: RotationGestureInterface;
+//declare constRotationGesture: RotationGestureInterface;
 
 /**
  * Defines GestureGroup Component.
@@ -3082,42 +3082,7 @@ declare const RotationGesture: RotationGestureInterface;
  * @atomicservice
  * @since 11
  */
-declare const GestureGroup: GestureGroupInterface;
-
-/**
- * Defines the gesture handler.
- *
- * @implements GestureInterface<T>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class GestureHandler<T> implements GestureInterface<T> {
-  /**
-   * Set the GestureHandler's tag.
-   *
-   * @param { string } tag
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  tag(tag: string): T;
-
-  /**
-   * Input source type for gesture response.
-   *
-   * @param { Array<SourceTool> } types - indicate the allowed input source for gesture to response
-   * @returns { T }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 14
-   */
-  allowedTypes(types: Array<SourceTool>): T;
-}
+//declare constGestureGroup: GestureGroupInterface;
 
 /**
  * Defines the TapGestureHandler options.
@@ -3151,39 +3116,6 @@ interface TapGestureHandlerOptions {
    * @since 12
    */
   fingers?: number;
-}
-
-/**
- * Defines the TapGesture handler.
- *
- * @extends GestureHandler<TapGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class TapGestureHandler extends GestureHandler<TapGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { TapGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: TapGestureHandlerOptions);
-  /**
-   * Tap gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { TapGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onAction(event: Callback<GestureEvent>): TapGestureHandler;
 }
 
 /**
@@ -3232,61 +3164,6 @@ interface LongPressGestureHandlerOptions {
 }
 
 /**
- * Defines the LongPressGesture handler.
- *
- * @extends GestureHandler<LongPressGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class LongPressGestureHandler extends GestureHandler<LongPressGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { LongPressGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: LongPressGestureHandlerOptions);
-  /**
-   * LongPress gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { LongPressGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onAction(event: Callback<GestureEvent>): LongPressGestureHandler;
-  /**
-   * The LongPress gesture is successfully recognized. When the finger is lifted, the callback is triggered.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { LongPressGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionEnd(event: Callback<GestureEvent>): LongPressGestureHandler;
-  /**
-   * The LongPress gesture is successfully recognized and a callback is triggered when the touch cancel event is received.
-   *
-   * @param { Callback<void> } event
-   * @returns { LongPressGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionCancel(event: Callback<void>): LongPressGestureHandler;
-}
-
-/**
  * Defines the PanGestureHandler options.
  *
  * @interface PanGestureHandlerOptions
@@ -3329,72 +3206,6 @@ interface PanGestureHandlerOptions {
    * @since 12
    */
   distance?: number;
-}
-
-/**
- * Defines the PanGesture handler.
- *
- * @extends GestureHandler<PanGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class PanGestureHandler extends GestureHandler<PanGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { PanGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: PanGestureHandlerOptions);
-  /**
-   * Pan gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PanGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionStart(event: Callback<GestureEvent>): PanGestureHandler;
-  /**
-   * Callback when the Pan gesture is moving.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PanGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionUpdate(event: Callback<GestureEvent>): PanGestureHandler;
-  /**
-   * The Pan gesture is successfully recognized. When the finger is lifted, the callback is triggered.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PanGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionEnd(event: Callback<GestureEvent>): PanGestureHandler;
-  /**
-   * The Pan gesture is successfully recognized and a callback is triggered when the touch cancel event is received.
-   *
-   * @param { Callback<void> } event
-   * @returns { PanGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionCancel(event: Callback<void>): PanGestureHandler;
 }
 
 /**
@@ -3443,39 +3254,6 @@ interface SwipeGestureHandlerOptions {
 }
 
 /**
- * Defines the SwipeGesture handler.
- *
- * @extends GestureHandler<SwipeGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class SwipeGestureHandler extends GestureHandler<SwipeGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { SwipeGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: SwipeGestureHandlerOptions);
-  /**
-   * Swipe gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { SwipeGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onAction(event: Callback<GestureEvent>): SwipeGestureHandler;
-}
-
-/**
  * Defines the PinchGestureHandler options.
  *
  * @interface PinchGestureHandlerOptions
@@ -3507,72 +3285,6 @@ interface PinchGestureHandlerOptions {
    * @since 12
    */
   distance?: number;
-}
-
-/**
- * Defines the PinchGesture handler.
- *
- * @extends GestureHandler<PinchGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class PinchGestureHandler extends GestureHandler<PinchGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { PinchGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: PinchGestureHandlerOptions);
-  /**
-   * Pinch gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PinchGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionStart(event: Callback<GestureEvent>): PinchGestureHandler;
-  /**
-   * Callback when the Pinch gesture is moving.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PinchGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionUpdate(event: Callback<GestureEvent>): PinchGestureHandler;
-  /**
-   * The Pinch gesture is successfully recognized. When the finger is lifted, the callback is triggered.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { PinchGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionEnd(event: Callback<GestureEvent>): PinchGestureHandler;
-  /**
-   * The Pinch gesture is successfully recognized and a callback is triggered when the touch cancel event is received.
-   *
-   * @param { Callback<void> } event
-   * @returns { PinchGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionCancel(event: Callback<void>): PinchGestureHandler;
 }
 
 /**
@@ -3610,72 +3322,6 @@ interface RotationGestureHandlerOptions {
 }
 
 /**
- * Defines the RotationGesture handler.
- *
- * @extends GestureHandler<RotationGestureHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class RotationGestureHandler extends GestureHandler<RotationGestureHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { RotationGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: RotationGestureHandlerOptions);
-  /**
-   * Rotation gesture recognition success callback.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { RotationGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionStart(event: Callback<GestureEvent>): RotationGestureHandler;
-  /**
-   * Callback when the Rotation gesture is moving.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { RotationGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionUpdate(event: Callback<GestureEvent>): RotationGestureHandler;
-  /**
-   * The Rotation gesture is successfully recognized. When the finger is lifted, the callback is triggered.
-   *
-   * @param { Callback<GestureEvent> } event
-   * @returns { RotationGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionEnd(event: Callback<GestureEvent>): RotationGestureHandler;
-  /**
-   * The Rotation gesture is successfully recognized and a callback is triggered when the touch cancel event is received.
-   *
-   * @param { Callback<void> } event
-   * @returns { RotationGestureHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onActionCancel(event: Callback<void>): RotationGestureHandler;
-}
-
-/**
  * Defines the GestureGroupGestureHandler options.
  *
  * @interface GestureGroupGestureHandlerOptions
@@ -3695,49 +3341,6 @@ interface GestureGroupGestureHandlerOptions {
    * @since 12
    */
   mode: GestureMode;
-  /**
-   * Indicates the gestures included in the gesture group.
-   *
-   * @type { GestureHandler<TapGestureHandler | LongPressGestureHandler | PanGestureHandler | SwipeGestureHandler | PinchGestureHandler | RotationGestureHandler | GestureGroupHandler>[] }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  gestures: GestureHandler<TapGestureHandler | LongPressGestureHandler | PanGestureHandler | SwipeGestureHandler | PinchGestureHandler | RotationGestureHandler | GestureGroupHandler>[];
-}
-
-/**
- * Defines the GestureGroup handler.
- *
- * @extends GestureHandler<GestureGroupHandler>
- * @syscap SystemCapability.ArkUI.ArkUI.Full
- * @crossplatform
- * @atomicservice
- * @since 12
- */
-declare class GestureGroupHandler extends GestureHandler<GestureGroupHandler> {
-  /**
-   * Constructor parameters.
-   *
-   * @param { GestureGroupGestureHandlerOptions } options
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  constructor(options?: GestureGroupGestureHandlerOptions);
-  /**
-   * The GestureGroup gesture is successfully recognized and a callback is triggered when the touch cancel event is received.
-   *
-   * @param { Callback<void> } event
-   * @returns { GestureGroupHandler }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  onCancel(event: Callback<void>): GestureGroupHandler;
 }
 
 /**

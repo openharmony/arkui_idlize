@@ -1,0 +1,5 @@
+dictionary Es2pandaScriptKind {
+    i32 SCRIPT_KIND_SCRIPT = 0;
+    i32 SCRIPT_KIND_MODULE = 1;
+    i32 SCRIPT_KIND_STDLIB = 2;
+};

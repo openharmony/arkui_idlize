@@ -298,7 +298,7 @@ declare class EllipseAttribute extends CommonShapeMethod<EllipseAttribute> {}
  * @atomicservice
  * @since 11
  */
-declare const Ellipse: EllipseInterface;
+//declare constEllipse: EllipseInterface;
 
 /**
  * Defines Ellipse Component instance.
@@ -330,4 +330,4 @@ declare const Ellipse: EllipseInterface;
  * @atomicservice
  * @since 11
  */
-declare const EllipseInstance: EllipseAttribute;
+//declare constEllipseInstance: EllipseAttribute;

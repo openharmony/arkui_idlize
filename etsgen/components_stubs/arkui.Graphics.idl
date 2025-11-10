@@ -52,14 +52,14 @@ interface Matrix4 {
     attribute number value14;
     attribute number value15;
 };
-typedef Vector2 Offset;
-typedef Vector2 Position;
-[TypeParameters="T = void"]
-typedef [TypeArguments="T"] Vector2T PositionT;
-typedef Vector2 Pivot;
-typedef Vector2 Scale;
-typedef Vector2 Translation;
-typedef Vector3 Rotation;
+typedef Offset = Vector2;
+typedef Position = Vector2;
+[TypeParametersDefaults="void"]
+typedef <T> PositionT = Vector2T<T>;
+typedef Pivot = Vector2;
+typedef Scale = Vector2;
+typedef Translation = Vector2;
+typedef Rotation = Vector3;
 interface Frame {
     attribute number x;
     attribute number y;
@@ -73,7 +73,7 @@ dictionary LengthUnit {
     number PERCENT = 3;
     number LPX = 4;
 };
-[TypeParameters="T = void"]
+[TypeParameters="T", TypeParametersDefaults="void"]
 interface SizeT {
     attribute number width;
     attribute number height;
@@ -113,7 +113,7 @@ interface Corners {
     attribute number bottomLeft;
     attribute number bottomRight;
 };
-typedef common2D.Rect Rect;
+typedef Rect = common2D.Rect;
 // fixme
 interface CornerRadius {};
 interface RoundRect {
@@ -149,6 +149,7 @@ interface ShapeClip {
     void setOvalShape(common2D.Rect oval);
     void setCommandPath(CommandPath path);
 };
+typedef Corners NodeBorderRadiuses;
 Edges edgeColors(number all);
 Edges edgeWidths(number all);
 Edges borderStyles(BorderStyle all);

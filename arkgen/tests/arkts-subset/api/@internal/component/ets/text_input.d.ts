@@ -2638,7 +2638,7 @@ declare class TextInputAttribute extends CommonMethod<TextInputAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const TextInput: TextInputInterface;
+//declare constTextInput: TextInputInterface;
 
 /**
  * Defines TextInput Component instance.
@@ -2661,4 +2661,4 @@ declare const TextInput: TextInputInterface;
  * @atomicservice
  * @since 11
  */
-declare const TextInputInstance: TextInputAttribute;
+//declare constTextInputInstance: TextInputAttribute;

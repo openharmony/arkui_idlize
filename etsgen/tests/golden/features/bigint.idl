@@ -1,0 +1,10 @@
+package bigint;
+interface InterfaceWithBigInt {
+    attribute BigInt prop;
+};
+[Entity=Class]
+interface ClassWithBigInt {
+    constructor();
+    attribute BigInt prop;
+    BigInt method(BigInt value);
+};

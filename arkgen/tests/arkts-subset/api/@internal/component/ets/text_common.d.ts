@@ -698,7 +698,8 @@ interface PositionWithAffinity {
  * @atomicservice
  * @since 12
  */
-declare type Affinity = import('../api/@ohos.graphics.text').default.Affinity;
+// declare type Affinity = import('../api/@ohos.graphics.text').default.Affinity;
+declare interface Affinity {}
 
 /**
  * Define the LineMetrics type.
@@ -709,7 +710,8 @@ declare type Affinity = import('../api/@ohos.graphics.text').default.Affinity;
  * @atomicservice
  * @since 12
  */
-declare type LineMetrics = import('../api/@ohos.graphics.text').default.LineMetrics; 
+// declare type LineMetrics = import('../api/@ohos.graphics.text').default.LineMetrics; 
+declare interface LineMetrics {}
 
 /**
  * Define the RectWidthStyle type.
@@ -720,7 +722,8 @@ declare type LineMetrics = import('../api/@ohos.graphics.text').default.LineMetr
  * @atomicservice
  * @since 14
  */
-declare type RectWidthStyle = import('../api/@ohos.graphics.text').default.RectWidthStyle;
+// declare type RectWidthStyle = import('../api/@ohos.graphics.text').default.RectWidthStyle;
+declare interface RectWidthStyle {}
 
 /**
  * Define the RectHeightStyle type.
@@ -731,7 +734,8 @@ declare type RectWidthStyle = import('../api/@ohos.graphics.text').default.RectW
  * @atomicservice
  * @since 14
  */
-declare type RectHeightStyle = import('../api/@ohos.graphics.text').default.RectHeightStyle;
+// declare type RectHeightStyle = import('../api/@ohos.graphics.text').default.RectHeightStyle;
+declare interface RectHeightStyle {}
 
 /**
  * Define the TextBox type.
@@ -742,7 +746,8 @@ declare type RectHeightStyle = import('../api/@ohos.graphics.text').default.Rect
  * @atomicservice
  * @since 14
  */
-declare type TextBox = import('../api/@ohos.graphics.text').default.TextBox;
+// declare type TextBox = import('../api/@ohos.graphics.text').default.TextBox;
+declare interface TextBox {}
 
 /**
  * Defines the cursor style

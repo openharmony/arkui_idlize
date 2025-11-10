@@ -14,7 +14,7 @@
  */
 
 import * as path from 'node:path'
-import { isMaterialized, Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
+import { Language, LayoutManagerStrategy, LayoutNodeRole, PeerLibrary } from '@idlizer/core'
 import * as idl from '@idlizer/core'
 import { isComponentDeclaration, NativeModule, peerGeneratorConfiguration } from '@idlizer/libohos'
 
@@ -26,7 +26,7 @@ export function HandwrittenModule(language: Language, isSdk = false) {
     // does this switch needed here?
     switch (language) {
         case Language.TS: return "./handwritten"
-        case Language.ARKTS: return isSdk ? './handwritten' : "#handwritten"
+        case Language.ARKTS: return isSdk ? './index' : "#handwritten"
         case Language.KOTLIN: return "./handwritten"
         default: throw new Error("Not implemented")
     }
@@ -126,7 +126,6 @@ export class TsLayout extends CommonLayoutBase {
 
 export class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
@@ -164,13 +163,13 @@ export class ArkTsLayout extends CommonLayoutBase {
         if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
             return HandwrittenModule(this.library.language, this.isSdk)
         }
-        const packageName = idl.getPackageName(target.node)
+        const packageName = idl.getPackageNameSafe(target.node)
 
         const moduleImport = getModuleImport(target.node, target.role, Language.ARKTS)
         if (moduleImport) return moduleImport
 
         let customPath: string | undefined
-        if (packageName && (customPath = customPathSuggestion(packageName))) {
+        if (packageName && idl.isInCurrentModule(target.node) && (customPath = customPathSuggestion(packageName))) {
             return customPath
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName
@@ -186,10 +185,6 @@ export class ArkTsLayout extends CommonLayoutBase {
 }
 
 export class ArkTSComponentsLayout extends ArkTsLayout {
-    protected arkTSInternalPaths = new Map<string, string>([
-        ["TSTypeChecker", getGeneratedFilePath("ts/type_check")],
-        ["ArkTSTypeChecker", getGeneratedFilePath("arkts/type_check")],
-    ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (target.node.name === NativeModule.Generated.name)
             return getGeneratedFilePath(`arkts/${NativeModule.Generated.name}`)
@@ -197,59 +192,8 @@ export class ArkTSComponentsLayout extends ArkTsLayout {
     }
 }
 
-export class JavaLayout extends CommonLayoutBase {
-    constructor(library: PeerLibrary, prefix: string, private packagePath: string) {
-        super(library, prefix)
-    }
-    private getPath(file:string):string {
-        return path.join(this.packagePath, file)
-    }
-    resolve({ node, role }: idl.LayoutTargetDescription): string {
-        switch (role) {
-            case LayoutNodeRole.SERIALIZER:
-            case LayoutNodeRole.INTERFACE: {
-                if (idl.isEntry(node)) {
-                    const ns = idl.getNamespaceName(node)
-                    if (ns !== '') {
-                        return this.getPath(`${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
-                    }
-                }
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`${this.prefix}${toFileName(node.name)}`)
-                    }
-                    if (isMaterialized(node, this.library)) {
-                        if (idl.isInterfaceSubkind(node)) {
-                            return this.getPath(node.name + 'Internal')
-                        }
-                        return this.getPath(node.name)
-                    }
-                    return this.getPath(`${this.prefix}${toFileName(node.name)}Interfaces`)
-                }
-                return this.getPath(`Common`)
-            }
-            case LayoutNodeRole.PEER: {
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`peers/${this.prefix}${toFileName(node.name)}Peer`)
-                    }
-                    return this.getPath(toFileName(node.name))
-                }
-                return this.getPath(`CommonPeer`)
-            }
-            case LayoutNodeRole.GLOBAL: {
-                return 'GlobalScope'
-            }
-            case LayoutNodeRole.COMPONENT: {
-                return 'Ark' + node.name
-            }
-        }
-    }
-}
-
 export class CJLayout extends CommonLayoutBase {
     protected CJInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
         ["Serializer", "Serializer"],
         ["Deserializer", "Deserializer"],
         ["CallbackKind", "CallbackKind"],
@@ -283,45 +227,22 @@ export class CJLayout extends CommonLayoutBase {
 
 export class KotlinLayout extends CommonLayoutBase {
     protected KotlinInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
-        ["Serializer", "Serializer"],
-        ["Deserializer", "Deserializer"],
-        ["CallbackKind", "CallbackKind"],
-        ["deserializeAndCallCallback", "CallbackDeserializeCall"],
-        ["checkArkoalaCallbacks", "./CallbacksChecker"],
-        ["CallbackTransformer", "./CallbackTransformer"],
+        ["SerializerBase", "koalaui.interop"],
+        ["DeserializerBase", "koalaui.interop"],
     ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (this.KotlinInternalPaths.has(target.node.name))
             return this.KotlinInternalPaths.get(target.node.name)!
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
-            return HandwrittenModule(this.library.language)
-        }
-        if (idl.isSyntheticEntry(target.node)) {
-            return SyntheticModule
-        }
-        if (idl.isTypedef(target.node)) {
-            return SyntheticModule
-        }
-        let pureFileName = idl.getFileFor(target.node)?.fileName
-            ?.replaceAll('.d.ts', '')
-            ?.replaceAll('.idl', '')
-            ?.replaceAll('@', '')
-        if (pureFileName) {
-            pureFileName = path.basename(pureFileName)
-        }
-        const entryName = pureFileName ?? target.node.name
-        return entryName
+        return "koalaui.arkoala"
     }
 }
 
 ////////////////////////////////////////////////////////
 
-export function arkoalaLayout(library: PeerLibrary, prefix: string = '', packagePath: string = ''): LayoutManagerStrategy {
+export function arkoalaLayout(library: PeerLibrary, prefix: string = ''): LayoutManagerStrategy {
     switch(library.language) {
         case idl.Language.TS: return new TsLayout(library, prefix)
         case idl.Language.ARKTS: return new ArkTsLayout(library, prefix)
-        case idl.Language.JAVA: return new JavaLayout(library, prefix, packagePath)
         case idl.Language.CJ: return new CJLayout(library, prefix)
         case idl.Language.KOTLIN: return new KotlinLayout(library, prefix)
     }

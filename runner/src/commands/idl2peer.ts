@@ -13,29 +13,40 @@
  * limitations under the License.
  */
 
-import { arkgen } from "@idlizer/arkgen/app"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
-import { flat, scan } from "../utils"
+import { arkgen } from "@idlizer/arkgen"
+import { GENERATED_PEER_DIR, REFERENCE_CONFIG_PATH } from "../shared"
+import { flat, scan, over } from "../utils"
 
 export interface Idl2PeerConfig {
-    target: string,
-    language: string,
-    optionsFile?: string,
+    target: string
+    language: string
+    idlPath: string
+    optionsFile?: string
+    trackerStatus?: string
+}
+
+export interface Idl2PeerResult {
+    peersPath: string
 }
 
 export function idl2peer({
     target,
     language,
+    idlPath,
     optionsFile,
-}: Idl2PeerConfig) {
-    const idlFiles = scan(GENERATED_IDL_DIR)
+    trackerStatus,
+}: Idl2PeerConfig): Idl2PeerResult {
+    const idlFiles = scan(idlPath)
 
     let arkgenTarget = ''
     if (target === 'sig') {
         arkgenTarget = 'arkoala'
     }
     if (target === 'libace') {
-        arkgenTarget = 'arkoala'
+        arkgenTarget = 'libace'
+    }
+    if (target === 'tracker') {
+        arkgenTarget = 'tracker'
     }
 
     arkgen(
@@ -50,6 +61,10 @@ export function idl2peer({
             '--use-memo-m3',
             ['--arkts-extension', '.ets'],
             optionsFile ? [`--options-file`, optionsFile] : [],
+            over(trackerStatus, st => ['--tracker-status', st]),
         ])
     )
+    return {
+        peersPath: GENERATED_PEER_DIR
+    }
 }

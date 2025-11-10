@@ -19,7 +19,6 @@ import { CppLanguageWriter } from "@idlizer/core";
 //////////////////////////////////////////////////////////////////
 // REEXPORTS
 
-export { generateTypeCheckerName, makeArrayTypeCheckCall } from '@idlizer/core'
 export {
     Field,
     FieldModifier,

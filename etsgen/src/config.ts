@@ -16,8 +16,9 @@
 import {
     ConfigTypeInfer,
     D,
+    parseConfigFiles,
 } from "@idlizer/core";
-import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 const T = {
     stringArray: () => D.array(D.string()),
@@ -36,8 +37,12 @@ export const ETSConfigScheme = D.object({
 })
 export type ETSVisitorConfig = ConfigTypeInfer<typeof ETSConfigScheme>
 
-export function readConfig(fileName:string): ETSVisitorConfig {
-    const text = readFileSync(fileName, 'utf-8')
-    const json = JSON.parse(text)
-    return ETSConfigScheme.validate(json).unwrap(`Not valid config: ${fileName}`)
+export function loadEtsgenConfiguration(configurationFiles: string[]) {
+    return parseConfigFiles(ETSConfigScheme, configurationFiles)
 }
+
+export function etsgenDefaultConfigurationPath(): string {
+    return join(ETSGEN_ROOT, 'generator-config.json')
+}
+
+export const ETSGEN_ROOT = join(dirname(require.resolve('@idlizer/etsgen')), '../../..')

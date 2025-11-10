@@ -15,18 +15,16 @@
 
 import * as idl from '@idlizer/core/idl'
 import {
-    ExpressionStatement,
     LanguageExpression,
     Method,
     MethodModifier,
-    NamedMethodSignature,
-    StringExpression
+    NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, getHookMethod, PeerMethodSignature, PeerClass, MaterializedClass } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
-import { ArgConvertor, UndefinedConvertor } from "@idlizer/core"
-import { ReferenceResolver, UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
-import { peerGeneratorConfiguration } from '../../DefaultConfiguration';
+import { UndefinedConvertor } from "@idlizer/core"
+import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
+import { getHookMethod, peerGeneratorConfiguration } from '../../DefaultConfiguration';
 import { injectPatch } from '../common';
 
 function collapseReturnTypes(types: idl.IDLType[], language?: Language) {
@@ -168,7 +166,6 @@ export function collapseIdlPeerMethods(library: PeerLibrary, overloads: PeerMeth
 export function allowsOverloads(language: Language): boolean {
     switch (language) {
         case Language.TS:
-        case Language.CJ:
             return false
         default:
             return true
@@ -312,10 +309,10 @@ export class OverloadsPrinter {
         this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             if (this.isComponent) {
-                writer.print(`if (this.checkPriority("${collapsedMethod.name}")) {`)
+                writer.print(`if (this.checkPriority('${collapsedMethod.name}')) {`)
                 this.printer.pushIndent()
             }
-            const hookMethod = getHookMethod(peer, collapsedMethod.name)
+            const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
             if (hookMethod) {
                 this.printHookedMethodBody(peer, collapsedMethod, hookMethod.hookName, writer)
                 if (!hookMethod.replaceImplementation) {
@@ -348,8 +345,8 @@ export class OverloadsPrinter {
         if (methods.length > 1) {
             const runtimeTypeCheckers = collapsedMethod.signature.args.map((_, argIndex) => {
                 const argName = collapsedMethod.signature.argName(argIndex)
-                this.printer.language == Language.JAVA ?
-                    this.printer.print(`final byte ${argName}_type = Ark_Object.getRuntimeType(${argName}).value;`) :
+                this.printer.language == Language.CJ ? 
+                    undefined :
                     this.printer.print(`const ${argName}_type = runtimeType(${argName})`)
                 return new UnionRuntimeTypeChecker(
                     methods.map(m => m.argConvertors(this.library)[argIndex] ?? OverloadsPrinter.undefinedConvertor))
@@ -383,7 +380,7 @@ export class OverloadsPrinter {
                         isNeedDiscriminator = resolved !== undefined && idl.isEnum(resolved)
                     }
                     if (isNeedDiscriminator) {
-                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer))
+                        argsConditions.push(runtimeTypeCheckers[argIndex].makeDiscriminator(collapsedMethod.signature.argName(argIndex), methodIndex, this.printer, this.library))
                     }
                 }
             )
@@ -412,10 +409,7 @@ export class OverloadsPrinter {
                 }
             } else if (this.printer.language == Language.KOTLIN) {
                 this.printer.makeAssign(castedArgName, castedType, this.printer.makeString(argName), true, true).write(this.printer)
-            } else if (this.printer.language == Language.JAVA) {
-                this.printer.print(`final ${this.printer.getNodeName(castedType)} ${castedArgName} = (${this.printer.getNodeName(castedType)})${argName};`)
-            }
-            else {
+            } else {
                 this.printer.print(`const ${castedArgName} = ${this.printer.escapeKeyword(argName)} as (${this.printer.getNodeName(castedType)})`)
             }
             return castedArgName
@@ -437,7 +431,7 @@ export class OverloadsPrinter {
             } else {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             }
-            if (collapsedMethod.name.startsWith('set') && collapsedMethod.name.endsWith('Options')) {
+            if (peerMethod.isCallSignature) {
                 this.printer.print(`this.applyOptionsFinish('${peer}');`)
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))

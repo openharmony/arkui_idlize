@@ -14,7 +14,8 @@
  */
 import * as fs from "fs"
 import * as path from "path"
-import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter, ReferenceResolver, Method, MethodSignature, PrintHint, PrinterLike, NamedMethodSignature, printMethodDeclaration, CppConvertor, PeerMethod, MethodModifier, NativeModuleType, LayoutManager, ETSLanguageWriter } from '@idlizer/core'
+import { Language, IndentedPrinter, PeerLibrary, CppLanguageWriter, createEmptyReferenceResolver, LanguageWriter,
+    PrinterLike, CppConvertor, LayoutManager, ETSLanguageWriter, wrapCurrentFileDescription } from '@idlizer/core'
 import {
     dummyImplementations, gniFile, libraryCcDeclaration,
     makeArkuiModule, makeCallbacksKinds,
@@ -23,15 +24,13 @@ import {
     printRealAndDummyAccessors,
     printRealAndDummyModifiers, createMaterializedPrinter,
     printGniSources, printMesonBuild,
-    ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH,
-    TargetFile, printBridgeCcCustom, printBridgeCcGenerated,
+    printBridgeCcCustom, printBridgeCcGenerated,
     printBridgeHeaderCustom, printBridgeHeaderGenerated, printKotlinCInteropDefFile,
     printDeclarations, printEnumsImpl, printManagedCaller,
     NativeModule, printArkUILibrariesLoader,
-    printCJArkUIGeneratedNativeFunctions, printCJPredefinedNativeFunctions,
+    printCJPredefinedNativeFunctions,
     printPredefinedNativeModule, printTSArkUIGeneratedEmptyNativeModule,
     printTSPredefinedEmptyNativeModule, printGlobal, writeFile, writeIntegratedFile, install,
-    copyDir,
     ModifierFileOptions,
     MultiFileModifiersVisitor,
     MultiFileModifiersVisitorState,
@@ -52,26 +51,30 @@ import {
     createSerializerPrinter,
     makeCSerializers,
     createDeserializeAndCallPrinter,
-    Printer,
-    printTSTypeChecker,
-    printArkTSTypeChecker,
-    ScopeLibrarayLayout,
     copyFile
 } from "@idlizer/libohos"
 import { createPeersPrinter } from "./printers/PeersPrinter"
 import { ArkoalaInstall, createArkoalaInstall, LibaceInstall } from "./ArkoalaInstall"
 import { ArkPrimitiveTypesInstance } from "./ArkPrimitiveType"
 import { createInterfacePrinter } from "./printers/ArkoalaInterfacePrinter"
-import { printComponents, printComponentsDeclarations } from "./printers/ComponentsPrinter"
-import { makeJavaArkComponents } from "./printers/JavaPrinter"
+import { createComponentsPrinter, printComponentsDeclarations } from "./printers/ComponentsPrinter"
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
-import { printETSDeclaration } from "./printers/StsComponentsPrinter"
-import { platform } from "node:os";
+import { ARKGEN_ROOT } from "./config"
 
-const External = path.join(__dirname, "../../external")
-const ExternalStubs = path.join(External, "subset")
-const Subset = path.join(__dirname, "../external-subset")
+const resolveExternal = () => {
+    let postfix = '../external'
+    while (!fs.existsSync(path.join(ARKGEN_ROOT, postfix))) {
+        let newPostfix = `../${postfix}`
+        if (path.join(ARKGEN_ROOT, postfix) === path.join(ARKGEN_ROOT, newPostfix)) {
+            break;
+        }
+        postfix = newPostfix
+    }
+    return path.join(ARKGEN_ROOT, postfix)
+}
+const resolveExternalStubs = () => path.join(resolveExternal(), "subset")
+const Subset = path.join(ARKGEN_ROOT, "external-subset")
 
 export function generateLibaceFromIdl(config: {
     libaceDestination: string | undefined,
@@ -109,13 +112,13 @@ export function generateLibaceFromIdl(config: {
         fs.writeFileSync(libace.mesonBuild, mesonBuildFile(mesonBuild))
     }
 
-    copyToLibace(fs.existsSync(Subset) ? Subset : External, libace)
+    copyToLibace(fs.existsSync(Subset) ? Subset : resolveExternal(), libace)
 }
 
 function copyArkoalaFiles(config: {
     onlyIntegrated: boolean | undefined
 }, arkoala: ArkoalaInstall) {
-    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : ExternalStubs, 'subset.json')
+    const subsetJson = path.join(fs.existsSync(Subset) ? Subset : resolveExternalStubs(), 'subset.json')
     const subsetData = JSON.parse(fs.readFileSync(subsetJson).toString())
     if (!subsetData) throw new Error(`Cannot parse ${subsetJson}`)
     const copyFiles = (files: string, ...fromFallbacks: string[]) => {
@@ -137,14 +140,14 @@ function copyArkoalaFiles(config: {
     }
 
     if (config.onlyIntegrated) {
-        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : ExternalStubs)
+        copyFiles(subsetData.generatedSubset, fs.existsSync(Subset) ? Subset : resolveExternalStubs())
         return
     }
 
     if (fs.existsSync(Subset)) {
         copyFiles(subsetData.subset, Subset)
     } else {
-        copyFiles(subsetData.subset, ExternalStubs, External)
+        copyFiles(subsetData.subset, resolveExternalStubs(), resolveExternal())
     }
 }
 
@@ -162,16 +165,15 @@ export function generateArkoalaFromIdl(config: {
     dumpSerialized: boolean,
     callLog: boolean,
     verbose: boolean,
-    useTypeChecker: boolean,
+    attributeModifierHooks: boolean,
 },
     peerLibrary: PeerLibrary) {
     const arkoala = config.arkoalaDestination ?
         createArkoalaInstall({ outDir: config.arkoalaDestination, lang: config.lang, test: false, useMemoM3: peerLibrary.useMemoM3 }) :
         createArkoalaInstall({ outDir: config.outDir, lang: config.lang, test: true, useMemoM3: peerLibrary.useMemoM3 })
-    // arkoala.createDirs([ARKOALA_PACKAGE_PATH, INTEROP_PACKAGE_PATH].map(dir => path.join(arkoala.javaDir, dir)))
 
     peerLibrary.name = 'arkoala'
-    peerLibrary.setFileLayout(arkoalaLayout(peerLibrary, 'Ark', ARKOALA_PACKAGE_PATH))
+    peerLibrary.setFileLayout(arkoalaLayout(peerLibrary, 'Ark'))
 
     const arkuiComponentsFiles: string[] = []
 
@@ -195,27 +197,25 @@ export function generateArkoalaFromIdl(config: {
             return data
         return []
     }
-    const installedFiles = ETSLanguageWriter.useTypeChecker(config.useTypeChecker, () => install(
+    const installedFiles = install(
         arkoala.managedDir,
         peerLibrary,
         [
             createMaterializedPrinter(config.dumpSerialized),
             createPeersPrinter(config.dumpSerialized),
             createInterfacePrinter(false),
-            printComponents,
+            createComponentsPrinter({attributeModifierHooks: config.attributeModifierHooks}),
             ...spreadIfNotLang([Language.KOTLIN],
                 printModifiers,
             ),
             printGlobal,
             createSerializerPrinter(peerLibrary.language, ""),
-            ...spreadIfNotLang([Language.JAVA],
-                createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
-            ),
+            createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
             ...spreadIfNotLang([Language.ARKTS],
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
             )
         ]
-    ))
+    )
 
     if (peerLibrary.language === Language.ARKTS) {
         install(
@@ -223,7 +223,6 @@ export function generateArkoalaFromIdl(config: {
             peerLibrary,
             [
                 createGeneratedNativeModulePrinter(NativeModule.Generated),
-                printArkTSTypeChecker,
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
@@ -350,20 +349,6 @@ export function generateArkoalaFromIdl(config: {
                 integrated: true
             }
         )
-    } else if (peerLibrary.language == Language.JAVA) {
-        writeIntegratedFile(
-            path.join(arkoala.managedDir, ARKOALA_PACKAGE_PATH, NativeModule.ArkUI.name + peerLibrary.language.extension),
-            printPredefinedNativeModule(peerLibrary, NativeModule.ArkUI).printToString(),
-        )
-        writeIntegratedFile(
-            path.join(arkoala.managedDir, ARKOALA_PACKAGE_PATH, NativeModule.Test.name + peerLibrary.language.extension),
-            printPredefinedNativeModule(peerLibrary, NativeModule.Test).printToString(),
-        )
-
-        const arkComponents = makeJavaArkComponents(peerLibrary)
-        arkComponents.writer.printTo(path.join(arkoala.managedDir,
-            arkComponents.targetFile.path ?? "",
-            arkComponents.targetFile.name + peerLibrary.language.extension))
     }
 
     if (peerLibrary.language == Language.CJ) {
@@ -461,7 +446,7 @@ export function generateArkoalaFromIdl(config: {
     const apiGenFile = "arkoala_api_generated"
     writeFile(
         path.join(arkoala.nativeDir, 'dummy_impl.cc'),
-        dummyImplementations(modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+        dummyImplementations(peerLibrary, modifiers.dummy, accessors.dummy, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true
@@ -469,7 +454,7 @@ export function generateArkoalaFromIdl(config: {
     )
     writeFile(
         path.join(arkoala.nativeDir, 'real_impl.cc'),
-        dummyImplementations(modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
+        dummyImplementations(peerLibrary, modifiers.real, accessors.real, 1, config.apiVersion, 6, apiGenFile).getOutput().join('\n'),
         {
             onlyIntegrated: config.onlyIntegrated,
             integrated: true,
@@ -489,7 +474,11 @@ export function generateArkoalaFromIdl(config: {
     const deserializeAndCallCPPContent = peerLibrary.createLanguageWriter(Language.CPP)
     deserializeAndCallCPPContent.writeLines(cStyleCopyright)
     deserializeAndCallCPPContent.print('#define KOALA_INTEROP_MODULE NotSpecifiedInteropModule')
-    createDeserializeAndCallPrinter(peerLibrary.name, Language.CPP)(peerLibrary).forEach(it => deserializeAndCallCPPContent.concat(it.content))
+    createDeserializeAndCallPrinter(peerLibrary.name, Language.CPP)(peerLibrary).forEach(it => {
+        const generated = wrapCurrentFileDescription(it.over, it.generate)
+        const content = generated instanceof LanguageWriter ? generated : generated.content
+        deserializeAndCallCPPContent.concat(content)
+    })
     writeFile(path.join(arkoala.nativeDir, 'callback_deserialize_call.cc'), deserializeAndCallCPPContent.printer.getOutput().join("\n"),
         {
             onlyIntegrated: config.onlyIntegrated,
@@ -514,25 +503,25 @@ class ArkoalaMultiFileModifiersVisitor extends MultiFileModifiersVisitor {
         const getterDeclarations = library.createLanguageWriter(Language.CPP)
 
         for (const [slug, state] of this.modifierStateByFile) {
-            printModifiersImplFile(libace.modifierCpp(slug), state, options)
+            printModifiersImplFile(this.library, libace.modifierCpp(slug), state, options)
             getterDeclarations.concat(state.getterDeclarations)
         }
         for (const [slug, state] of this.accessorStateByFile) {
-            printModifiersImplFile(libace.accessorCpp(slug), state, options)
+            printModifiersImplFile(this.library, libace.accessorCpp(slug), state, options)
             getterDeclarations.concat(state.getterDeclarations)
         }
 
         const commonFilePath = libace.allModifiers
         const commonFileContent = getterDeclarations
-            .concat(modifierStructList(this.modifierList))
-            .concat(accessorStructList(this.accessorList))
+            .concat(modifierStructList(library, this.modifierList))
+            .concat(accessorStructList(library, this.accessorList))
 
-        printModifiersCommonImplFile(commonFilePath, commonFileContent, options)
+        printModifiersCommonImplFile(this.library, commonFilePath, commonFileContent, options)
     }
 }
 
-function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+function printModifiersImplFile(library: PeerLibrary, filePath: string, state: MultiFileModifiersVisitorState, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
 
     writer.writeInclude(`core/components_ng/base/frame_node.h`)
@@ -556,8 +545,8 @@ function printModifiersImplFile(filePath: string, state: MultiFileModifiersVisit
     writer.printTo(filePath)
 }
 
-function printModifiersCommonImplFile(filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
-    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(createEmptyReferenceResolver()), ArkPrimitiveTypesInstance)
+function printModifiersCommonImplFile(library: PeerLibrary, filePath: string, content: LanguageWriter, options: ModifierFileOptions) {
+    const writer = new CppLanguageWriter(new IndentedPrinter(), createEmptyReferenceResolver(), new CppConvertor(library), ArkPrimitiveTypesInstance)
     writer.writeLines(cStyleCopyright)
     writer.writeMultilineCommentBlock(warning)
     writer.print("")
@@ -570,7 +559,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
     if (options.namespaces) {
         writer.pushNamespace(options.namespaces.base, { ident: false })
     }
-    writer.concat(appendModifiersCommonPrologue())
+    writer.concat(appendModifiersCommonPrologue(library))
 
     if (options.namespaces) {
         writer.popNamespace({ ident: false })
@@ -582,7 +571,7 @@ function printModifiersCommonImplFile(filePath: string, content: LanguageWriter,
         writer.pushNamespace(options.namespaces.generated, { ident: false })
     }
 
-    writer.concat(completeModifiersContent(content, options.basicVersion, options.fullVersion, options.extendedVersion))
+    writer.concat(completeModifiersContent(library, content, options.basicVersion, options.fullVersion, options.extendedVersion))
 
     if (options.namespaces) {
         writer.popNamespace({ ident: false })
@@ -609,7 +598,7 @@ function printUserConverter(headerPath: string, namespace: string, apiVersion: n
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, peerLibrary.createTypeNameConvertor(Language.CPP), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const converterHeader = makeConverterHeader(headerPath, namespace, peerLibrary).getOutput().join("\n")
@@ -628,7 +617,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): { api: 
     const visitor = new HeaderVisitor(peerLibrary, apiHeader, modifierList, accessorList, eventsList, nodeTypesList)
     visitor.printApiAndDeserializer()
 
-    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, new CppConvertor(peerLibrary), ArkPrimitiveTypesInstance)
+    const structs = new CppLanguageWriter(new IndentedPrinter(), peerLibrary, peerLibrary.createTypeNameConvertor(Language.CPP), ArkPrimitiveTypesInstance)
     const typedefs = new IndentedPrinter()
 
     const serializers = makeCSerializer(peerLibrary, structs, typedefs)
@@ -638,7 +627,7 @@ function printSerializers(apiVersion: number, peerLibrary: PeerLibrary): { api: 
 
 function makeConverterHeader(path: string, namespace: string, library: PeerLibrary): LanguageWriter {
     const converter = new CppLanguageWriter(new IndentedPrinter(), library,
-        new CppConvertor(library), ArkPrimitiveTypesInstance)
+        library.createTypeNameConvertor(Language.CPP), ArkPrimitiveTypesInstance)
     converter.writeLines(cStyleCopyright)
     converter.writeLines(`/*
  * ${warning}

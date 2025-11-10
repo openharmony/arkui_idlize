@@ -1,4 +1,5 @@
 {
-    "AttributeModifier": "AttributeModifier",
-    "AttributeUpdater": "AttributeUpdater"
+    "AttributeModifier": "arkui.component.AttributeModifier",
+    "AttributeUpdater": "arkui.component.AttributeUpdater",
+    "AttributeUpdaterFlag": "arkui.AttributeUpdaterFlag.AttributeUpdaterFlag"
 }

@@ -1,0 +1,11 @@
+
+interface <T> G {
+    attribute T g;
+};
+
+interface <A, B> F {
+    attribute A a;
+    attribute B b;
+};
+
+typedef S = F<String, G<i32>>;

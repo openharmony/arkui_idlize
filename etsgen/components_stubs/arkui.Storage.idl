@@ -1,0 +1,8 @@
+package arkui.Storage;
+
+dictionary LayoutDirection {
+    number LTR = 0;
+    number RTL = 1;
+    [OriginalEnumMemberName=Auto]
+    number AUTO = 2;
+};

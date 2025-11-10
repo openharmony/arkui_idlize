@@ -2,45 +2,40 @@
   "name": "@idlizer/etsgen",
   "version": "2.1.10+devel",
   "description": "",
-  "main": "lib/main.js",
-  "bin": "lib/main.js",
+  "main": "lib/cli.js",
+  "exports": "./build/lib/src/index.js",
+  "types": "./build/lib/src/index.d.ts",
   "files": [
-    "build/lib/src/app.d.ts",
+    "build/**/*.js",
+    "build/**/*.map",
+    "build/**/*.d.ts",
     "lib/*.js",
+    "lib/*.map",
     "generation-config/**/*",
     "config.json",
+    "generator-config.json",
     "components_stubs/**/*"
   ],
-  "exports": {
-    "./app": [
-      "./lib/library.js"
-    ]
-  },
-  "typesVersions": {
-    "*": {
-      "app": [
-        "./build/lib/src/app.d.ts"
-      ]
-    }
-  },
   "license": "Apache-2.0",
   "keywords": [],
   "dependencies": {
-    "@idlizer/core": "2.1.10+devel",
-    "@idlizer/libohos": "2.1.10+devel",
     "@koalaui/libarkts": "file:../external/ui2abc/libarkts",
+    "commander": "^10.0.0"
+  },
+  "devDependencies": {
+    "@idlizer/core": "2.1.10+devel",
     "@types/node": "^18.0.0",
-    "commander": "^10.0.0",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6"
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rimraf": "^6.0.1"
   },
   "scripts": {
-    "clean": "rimraf -g build",
-    "libarkts:reinstall:regenerate": "cd ../external/ui2abc/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
+    "clean": "rimraf -g build .rollup.cache lib out",
+    "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile:self": "tsc -b . && rollup -c",
-    "compile": "npm run -C ../core compile && npm run -C ../libohos compile && npm run compile:self",
+    "compile": "npm run -C ../core compile && npm run compile:self",
     "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
     "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
     "test": "npm run compile && npm run test:golden:features",

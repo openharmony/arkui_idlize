@@ -19,6 +19,7 @@
         "SwipeGestureHandler",
         "TapGestureHandler",
         "UIGestureEvent",
+        "MenuItemConfiguration",
         "TouchTestInfo",
         "TouchResult",
         "SectionOptions"
@@ -26,33 +27,33 @@
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
         "arkui.component.common.ContentModifier",
-        "arkui.component.ContentModifier"
+        "arkui.component.ContentModifier",
+        "arkui.component.builder.CustomBuilderT"
     ],
     "forceMaterialized": [
-        "TapGestureInterface",
-        "LongPressGestureInterface",
-        "PanGestureInterface",
-        "SwipeGestureInterface",
-        "PinchGestureInterface",
-        "RotationGestureInterface",
-        "GestureGroupInterface",
-        "BaseContext",
-        "ClickEvent",
-        "AccessibilityHoverEvent",
-        "BaseEvent",
-        "BaseGestureEvent",
-        "FocusAxisEvent",
-        "GestureEvent",
-        "HoverEvent",
-        "KeyEvent",
-        "LongPressGestureEvent",
-        "MouseEvent",
-        "PanGestureEvent",
-        "PinchGestureEvent",
-        "RotationGestureEvent",
-        "SwipeGestureEvent",
-        "TapGestureEvent",
-        "arkui.ComponentContent.ComponentContent",
+        "arkui.component.gesture.extra.TapGestureInterface",
+        "arkui.component.gesture.extra.LongPressGestureInterface",
+        "arkui.component.gesture.extra.PanGestureInterface",
+        "arkui.component.gesture.extra.SwipeGestureInterface",
+        "arkui.component.gesture.extra.PinchGestureInterface",
+        "arkui.component.gesture.extra.RotationGestureInterface",
+        "arkui.component.gesture.extra.GestureGroupInterface",
+        "application.BaseContext.BaseContext",
+        "arkui.component.common.ClickEvent",
+        "arkui.component.common.AccessibilityHoverEvent",
+        "arkui.component.common.BaseEvent",
+        "arkui.component.gesture.BaseGestureEvent",
+        "arkui.component.common.FocusAxisEvent",
+        "arkui.component.gesture.GestureEvent",
+        "arkui.component.common.HoverEvent",
+        "arkui.component.common.KeyEvent",
+        "arkui.component.gesture.LongPressGestureEvent",
+        "arkui.component.common.MouseEvent",
+        "arkui.component.gesture.PanGestureEvent",
+        "arkui.component.gesture.PinchGestureEvent",
+        "arkui.component.gesture.RotationGestureEvent",
+        "arkui.component.gesture.SwipeGestureEvent",
+        "arkui.component.gesture.TapGestureEvent",
         "ohos.animator.AnimatorOptions",
         "ohos.animator.AnimatorResult",
         "ohos.animator.SimpleAnimatorOptions",
@@ -427,6 +428,16 @@
         "ohos.arkui.uiExtension.AvoidAreaInfo",
         "ohos.arkui.uiExtension.WindowProxyProperties"
     ],
+    "transformOnSerialize": [
+        {
+            "from": "ohos.base.BusinessError",
+            "to": "arkui.component.idlize.BusinessErrorInterface"
+        },
+        {
+            "from": "arkui.component.builder.PageMapBuilder",
+            "to": "arkui.component.idlize.PageMapNodeBuilder"
+        }
+    ],
     "forceCallback": {
         "EditMenuOptions": [],
         "XComponentController": [
@@ -446,100 +457,44 @@
     },
     "forceResource": [
         "ContentModifier",
+        "ComponentContent",
         "ComponentContentBase",
-        "UserDataSpan"
+        "ImageModifier",
+        "ExtendableComponent",
+        "UserDataSpan",
+        "arkui.component.pluginComponent.RecordData",
+        "arkui.component.uiExtensionComponent.RecordData",
+        "ImageData",
+        "Gesture",
+        "GestureGroup",
+        "TapGesture",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "RotationGesture",
+        "SwipeGesture",
+        "GestureGroup",
+        "GestureHandler",
+        "LongPressGestureHandler",
+        "PanGestureHandler",
+        "PinchGestureHandler",
+        "TapGestureHandler",
+        "RotationGestureHandler",
+        "SwipeGestureHandler"
     ],
-    "boundProperties": {
-        "Checkbox": [
-            "select"
-        ],
-        "CheckboxGroup": [
-            "selectAll"
-        ],
-        "DatePicker": [
-            "selected"
-        ],
-        "TimePicker": [
-            "selected"
-        ],
-        "MenuItem": [
-            "selected"
-        ],
-        "Panel": [
-            "mode"
-        ],
-        "Radio": [
-            "checked"
-        ],
-        "Rating": [
-            "rating"
-        ],
-        "Search": [
-            "value"
-        ],
-        "SideBarContainer": [
-            "showSideBar"
-        ],
-        "Slider": [
-            "value"
-        ],
-        "Stepper": [
-            "index"
-        ],
-        "Swiper": [
-            "index"
-        ],
-        "Tabs": [
-            "index"
-        ],
-        "TextArea": [
-            "text"
-        ],
-        "TextInput": [
-            "text"
-        ],
-        "TextPicker": [
-            "selected",
-            "value"
-        ],
-        "Toggle": [
-            "isOn"
-        ],
-        "AlphabetIndexer": [
-            "selected"
-        ],
-        "Select": [
-            "selected",
-            "value"
-        ],
-        "BindSheet": [
-            "isShow"
-        ],
-        "BindContentCover": [
-            "isShow"
-        ],
-        "Refresh": [
-            "refreshing"
-        ],
-        "GridItem": [
-            "selected"
-        ],
-        "ListItem": [
-            "selected"
-        ]
-    },
     "rootComponents": [
         "Root",
         "ComponentRoot",
+        "RoutedPage",
         "CustomBuilderRoot",
         "CommonMethod",
         "SecurityComponentMethod",
-        "CommonTransition",
         "CalendarAttribute",
         "ContainerSpanAttribute",
+        "CustomLayoutRoot",
+        "ConditionScope",
         "SymbolSpanAttribute",
-        "SpanAttribute",
-        "CustomLayoutRoot"
+        "SpanAttribute"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
@@ -553,8 +508,6 @@
         "Indicator",
         "AttributeModifier",
         "AnimationRange",
-        "SizeT",
-        "PositionT",
         "Record"
     ],
     "builderClasses": [
@@ -570,6 +523,7 @@
             "SyncedPropertyTwoWay",
             "AttributeModifier",
             "AttributeUpdater",
+            "Initializer",
             "AbstractProperty",
             "SubscribaleAbstract",
             "IPropertySubscriber",
@@ -579,7 +533,6 @@
             "PageTransitionExitInterface",
             "CommonTransition",
             "wrapBuilder",
-            "DrawModifier",
             "ContentModifier",
             "CustomStyles",
             "applyStyles",
@@ -588,9 +541,15 @@
             "ItemGeneratorFunc",
             "KeyGeneratorFunc",
             "WrappedBuilder",
+            "ExtendableComponent",
+            "LifeCycle",
+            "makeBuilderParameterProxy",
+            "ComponentContent",
+            "ComponentContentBase",
             "TabContent",
             "ListItem",
             "ImageData",
+            "PeerNode",
             "Gesture",
             "TapGesture",
             "LongPressGesture",
@@ -605,13 +564,7 @@
             "PinchGestureHandler",
             "TapGestureHandler",
             "RotationGestureHandler",
-            "SwipeGestureHandler",
-            "GestureType",
-            "TouchTestInfo",
-            "TouchResult",
-            "WaterFlowSections",
-            "Badge",
-            "ChildrenMainSize"
+            "SwipeGestureHandler"
         ],
         "ignoreEntry": [
             "Optional",
@@ -625,8 +578,6 @@
             "LazyForEachInterface",
             "LocalStorage",
             "PersistentStorage",
-            "PositionT",
-            "SizeT",
             "Storage",
             "SubscribedAbstractProperty",
             "SyncedPropertyOneWay",
@@ -650,9 +601,7 @@
             "RectShape",
             "EllipseShape",
             "CircleShape",
-            "BusinessError",
             "Error",
-            "ErrorCallback",
             "getRectangleById",
             "edgeColors",
             "edgeWidths",
@@ -680,7 +629,7 @@
         ]
     },
     "hooks": {
-        "DragEventInternal":{
+        "DragEvent":{
             "startDataLoading": {
                 "hookName": "hookDragEventStartDataLoading",
                 "replaceImplementation": true
@@ -762,22 +711,6 @@
                 "replaceImplementation": false
             }
         },
-        "ListAttribute": {
-            "childrenMainSize": {
-                "hookName": "hookListChildrenMainSizeImpl",
-                "replaceImplementation": false
-            }
-        },
-        "ListItemGroupAttribute": {
-            "childrenMainSize": {
-                "hookName": "hookListItemGroupChildrenMainSizeImpl",
-                "replaceImplementation": false
-            },
-            "setListItemGroupOptions": {
-                "hookName": "hookListItemGroupOptionsImpl",
-                "replaceImplementation": false
-            }
-        },
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
@@ -791,6 +724,44 @@
             },
             "navDestination": {
                 "hookName": "hookSetNavDestination",
+                "replaceImplementation": true
+            }
+        },
+        "NavPathStack": {
+            "pushPath": {
+                "hookName": "hookPushPathMethod",
+                "replaceImplementation": true
+            },
+            "pushPathByName": {
+                "hookName": "hookPushPathByNameMethod",
+                "replaceImplementation": true
+            },
+            "replacePath": {
+                "hookName": "hookReplacePathMethod",
+                "replaceImplementation": true
+            },
+            "replacePathByName": {
+                "hookName": "hookReplacePathByNameMethod",
+                "replaceImplementation": true
+            },
+            "pop": {
+                "hookName": "hookPopMethod",
+                "replaceImplementation": true
+            },
+            "popToName": {
+                "hookName": "hookPopToNameMethod",
+                "replaceImplementation": true
+            },
+            "popToIndex": {
+                "hookName": "hookPopToIndexMethod",
+                "replaceImplementation": true
+            },
+            "getParamByIndex": {
+                "hookName": "hookGetParamByIndexMethod",
+                "replaceImplementation": true
+            },
+            "getParamByName": {
+                "hookName": "hookGetParamByNameMethod",
                 "replaceImplementation": true
             }
         },
@@ -819,7 +790,7 @@
             },
             "divider": {
                 "hookName": "hookSelectSetDividerMethod",
-                "replaceImplementation": true
+                "replaceImplementation": false
             }
         },
         "SliderAttribute": {
@@ -878,24 +849,6 @@
                 "replaceImplementation": false
             }
         },
-        "CanvasRenderingContext2D": {
-            "onAttach": {
-                "hookName": "registerAttach",
-                "replaceImplementation": false
-            },
-            "offAttach": {
-                "hookName": "unregisterAttach",
-                "replaceImplementation": false
-            },
-            "onDetach": {
-                "hookName": "registerDetach",
-                "replaceImplementation": false
-            },
-            "offDetach": {
-                "hookName": "unregisterDetach",
-                "replaceImplementation": false
-            }
-        },
         "XComponentAttribute": {
             "setXComponentOptions": {
                 "hookName": "hookSetXComponentOptions",
@@ -912,22 +865,12 @@
             "size": {
                 "hookName": "hookCommonMethodModifierSize",
                 "replaceImplementation": true
-            },
-            "customProperty" : {
-                "hookName": "hookCommonMethodModifierCustomProperty",
-                "replaceImplementation": true
             }
         },
         "TabsAttribute": {
             "pageFlipMode": {
                 "hookName": "hookTabsApplyAttributesFinish",
                 "replaceImplementation": false
-            }
-        },
-        "WebAttribute": {
-            "javaScriptProxy": {
-                "hookName": "hookJavaScriptProxy",
-                "replaceImplementation": true
             }
         }
     },
@@ -954,10 +897,10 @@
     "dummy": {
         "ignoreMethods": {
             "CommonMethod": [
-                "onClick",
-                "onClick0",
-                "onClick1",
-                "drawModifier"
+                "setOnClick",
+                "setOnClick0",
+                "setOnClick1",
+                "setDrawModifier"
             ],
             "EnvironmentBackend": [
                 "isAccessibilityEnabled",
@@ -981,45 +924,30 @@
                 "setDrawBehind_callback",
                 "setDrawContent_callback",
                 "setDrawFront_callback"
+            ],
+            "StageExtender" : [
+                "SetSrcPage",
+                "PushPage",
+                "PopPageAndSwitchTo",
+                "ResetTransitions",
+                "SetPageTransition"
             ]
         }
     },
     "patchMaterialized": {},
     "forceContext": [
-        "LoadUserView",
-        "MeasureLayoutAndDraw",
-        "MeasureNode",
-        "DrawNode",
-        "TestCallIntNoArgs",
-        "TestCallIntIntArraySum",
-        "TestCallVoidIntArrayPrefixSum",
-        "TestCallIntRecursiveCallback",
-        "TestCallIntMemory",
-        "arkui.component.idlize.RouterExtender.back",
-        "arkui.component.idlize.RouterExtender.runPage",
-        "arkui.component.idlize.BuilderNodeOps.create",
-        "arkui.component.idlize.WebInterface.setWebOptions",
-        "arkui.component.idlize.NavExtender.syncStack",
-        "arkui.component.list.ListScroller.getItemRectInGroup",
-        "arkui.component.list.ListScroller.scrollToItemInGroup",
-        "arkui.component.list.ListScroller.closeAllSwipeActions",
-        "arkui.component.list.ListScroller.getVisibleListContentInfo",
-        "arkui.component.scroll.Scroller.scrollTo",
-        "arkui.component.scroll.Scroller.scrollEdge",
-        "arkui.component.scroll.Scroller.fling",
-        "arkui.component.scroll.Scroller.scrollPage",
-        "arkui.component.scroll.Scroller.currentOffset",
-        "arkui.component.scroll.Scroller.scrollToIndex",
-        "arkui.component.scroll.Scroller.scrollBy",
-        "arkui.component.scroll.Scroller.isAtEnd",
-        "arkui.component.scroll.Scroller.getItemRect",
-        "arkui.component.scroll.Scroller.getItemIndex"
+        "idlize.internal.interop.NativeModuleNode.LoadUserView",
+        "idlize.internal.interop.NativeModuleNode.MeasureLayoutAndDraw",
+        "idlize.internal.interop.NativeModuleNode.MeasureNode",
+        "idlize.internal.interop.NativeModuleNode.DrawNode",
+        "idlize.internal.interop.Test.TestCallIntNoArgs",
+        "idlize.internal.interop.Test.TestCallIntIntArraySum",
+        "idlize.internal.interop.Test.TestCallVoidIntArrayPrefixSum",
+        "idlize.internal.interop.Test.TestCallIntRecursiveCallback",
+        "idlize.internal.interop.Test.TestCallIntMemory"
     ],
     "constants": {
-        "TouchTestInfo.rect": "{ x: 0, y: 0, width: 0, height: 0 }",
-        "TouchResult.strategy": "TouchTestStrategy.DEFAULT",
-        "TabBarSymbol.normal": "new SymbolGlyphModifier()"
-    },
+            },
     "moduleName": "arkui",
     "modules": {
         "arkui": {
@@ -1053,5 +981,8 @@
         "idlize.stdlib",
         "org.openharmony.idlize.predefined",
         "org.openharmony.arkui"
-    ]
+    ],
+    "transformAnnotations": {
+        "Builder": "memo"
+}
 }

@@ -26,5 +26,5 @@ declare class RowAttribute extends CommonMethod<RowAttribute> {
     pointLight(value: PointLightStyle): RowAttribute;
     reverse(isReversed: Optional<boolean>): RowAttribute;
 }
-declare const Row: RowInterface;
-declare const RowInstance: RowAttribute;
+//declare constRow: RowInterface;
+//declare constRowInstance: RowAttribute;

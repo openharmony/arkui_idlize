@@ -648,17 +648,6 @@ interface CancelButtonSymbolOptions {
    * @since 12
    */
   style?: CancelButtonStyle;
-
-  /**
-   * Set the CancelButton symbol icon
-   *
-   * @type { ?SymbolGlyphModifier }
-   * @syscap SystemCapability.ArkUI.ArkUI.Full
-   * @crossplatform
-   * @atomicservice
-   * @since 12
-   */
-  icon?: SymbolGlyphModifier;
 }
 
 /**
@@ -781,7 +770,7 @@ declare class SearchAttribute extends CommonMethod<SearchAttribute> {
    * @atomicservice
    * @since 12
    */
-  searchIcon(value: IconOptions | SymbolGlyphModifier): SearchAttribute;
+  searchIcon(value: IconOptions): SearchAttribute;
 
   /**
    * Set the cancel button style
@@ -1598,7 +1587,7 @@ declare class SearchAttribute extends CommonMethod<SearchAttribute> {
  * @atomicservice
  * @since 11
  */
-declare const Search: SearchInterface;
+//declare constSearch: SearchInterface;
 
 /**
  * Defines Search Component instance.
@@ -1621,4 +1610,4 @@ declare const Search: SearchInterface;
  * @atomicservice
  * @since 11
  */
-declare const SearchInstance: SearchAttribute;
+//declare constSearchInstance: SearchAttribute;

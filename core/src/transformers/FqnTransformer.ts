@@ -1,25 +1,35 @@
 import * as idl from "../idl"
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
+import { IdlTransformer } from "./IdlTransformer"
 
-export function inplaceFQN(
-    node: idl.IDLNode,
-    resolver: ReferenceResolver,
-): void {
-    if (idl.isReferenceType(node))
-        inplaceReferenceFQN(node, resolver)
-    idl.forEachChild(node, (child) => {
-        if (idl.isReferenceType(child))
-            inplaceReferenceFQN(child, resolver)
-    })
+export function fqnTransformer(corpus: idl.IDLFile[], resolver: ReferenceResolver): idl.IDLFile[] {
+    const transformer = new FqnTransformer(resolver)
+    return corpus.map(file => transformer.visit(file)).map(idl.linkParentBack)
 }
 
-function inplaceReferenceFQN(
-    ref: idl.IDLReferenceType,
-    resolver: ReferenceResolver,
-): void {
-    const resolved = resolver.resolveTypeReference(ref)
-    if (resolved === undefined) {
-        throw new Error("Can not expand FQN for " + ref.name)
+class FqnTransformer extends IdlTransformer {
+    constructor(protected resolver: ReferenceResolver) {
+        super()
     }
-    ref.name = idl.getFQName(resolved)
+
+    visit<T extends idl.IDLNode>(node: T): T
+    visit(node: idl.IDLNode): idl.IDLNode {
+        if (idl.isReferenceType(node)) {
+            const resolved = this.resolver.resolveTypeReference(node)
+            if (resolved === undefined) {
+                return idl.createReferenceType(
+                    node.name,
+                    node.typeArguments?.map(it => this.visit(it) as idl.IDLType),
+                    idl.cloneNodeInitializer(node),
+                )
+                // throw new Error("Can not expand FQN for " + idl.DebugUtils.debugPrintType(node))
+            }
+            return idl.createReferenceType(
+                idl.getFQName(resolved),
+                node.typeArguments?.map(it => this.visit(it) as idl.IDLType),
+                idl.cloneNodeInitializer(node),
+            )
+        }
+        return this.visitEachChild(node)
+    }
 }

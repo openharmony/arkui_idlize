@@ -5,8 +5,8 @@ arkgen TS subset:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
+    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
+    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:ts
     - npm run -C arkgen gen-idl:subset:ts
@@ -26,6 +26,7 @@ arkgen ArkTS subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
+    - npm run -C arkgen gen-idl:subset:arkts
     - npm run -C arkgen gen:subset:arkts
     - npm run -C arkgen build:subset:arkts
     - npm run -C arkgen build-native:subset:arkts
@@ -45,8 +46,22 @@ pg cj:run:
     - !reference [.panda, script]
     - cd $CI_PROJECT_DIR/arkgen
   script:
-    - env
-    - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run run:cj
+    - LD_LIBRARY_PATH=LD_LIBRARY_PATH=$CANGJIE_HOME/runtime/lib/linux_x86_64_llvm:$CANGJIE_HOME/tools/lib:$LD_LIBRARY_PATH npm run all:subset:cj
+
+arkgen Kotlin subset:
+  stage: test
+  tags:
+    - idlize-ci
+    - koala-ci
+  before_script:
+    - !reference [.npm, script]
+    - !reference [.panda, script]
+  script:
+    - npm run -C arkgen gen:kt:subset
+    - npm run -C arkgen compile:kt:interop
+    - npm run -C arkgen compile:kt:native:subset
+    - npm run -C arkgen compile:kt:subset
+    - npm run -C arkgen exec:kt:subset
 
 arkgen TS sdk:
   stage: test
@@ -56,8 +71,8 @@ arkgen TS sdk:
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
+    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
+    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:sdk:ts
     - npm run -C arkgen gen-idl:sdk:ts

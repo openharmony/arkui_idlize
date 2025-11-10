@@ -67,6 +67,9 @@
         "ForEach",
         "_r",
         "_rawfile",
+        "LazyGridLayoutAttribute",
+        "LazyVGridLayoutAttribute",
+        "LazyVGridLayoutInterface",
         "DynamicNode"
     ],
     "DeletedMembers": {
@@ -78,12 +81,7 @@
             "onDidScroll"
         ]
     },
-    "StubbedDeclarations": [
-        "OnWillScrollCallback",
-        "LayoutChild",
-        "ColumnOptionsV2",
-        "RowOptionsV2"
-    ],
+    "StubbedDeclarations": [],
     "Components": [
         "BaseSpan",
         "CommonMethod",

@@ -15,8 +15,11 @@
 
 import { existsSync, mkdirSync, rmSync } from "node:fs"
 import { Command } from "commander"
-import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, GENERATED_PEER_LIBACE, GENERATED_PEER_SIG, WORKING_DIR } from "./shared"
+import { GENERATED_IDL_DIR, GENERATED_PEER_DIR, SCRAPER_CONFIG, SCRAPER_CWD, WORKING_DIR } from "./shared"
 import { commands } from "./commands"
+import { join } from "node:path"
+import { transformBuilderFunctions } from "./tools/builderFuncsTransformer"
+import { formatArkts } from "./tools/formatArkts"
 
 /////////////////////////////////////////////////
 
@@ -24,6 +27,7 @@ function setup() {
     if (existsSync(WORKING_DIR)) {
         rmSync(WORKING_DIR, { recursive: true })
     }
+    mkdirSync(SCRAPER_CWD, { recursive: true })
     mkdirSync(WORKING_DIR, { recursive: true })
     mkdirSync(GENERATED_IDL_DIR, { recursive: true })
     mkdirSync(GENERATED_PEER_DIR, { recursive: true })
@@ -31,7 +35,14 @@ function setup() {
 
 ///
 
-function m3(sdkPathInput:string, installPath:string, options:any) {
+interface M3Options {
+    originalSdk?: boolean
+    target: string
+    language: string
+    scraperConfig?: string
+}
+
+function m3(sdkPathInput: string, installPath: string, options: M3Options) {
     setup()
 
     let sdkPath = sdkPathInput
@@ -42,40 +53,93 @@ function m3(sdkPathInput:string, installPath:string, options:any) {
         configPath = prepareResult.configPath
     }
 
-    commands.ets2idl({ sdkPath, configPath })
-    commands.idl2peer({ target: options.target, language: options.language, optionsFile: options.optionsFile})
+    const { idlPaths } = commands.ets2idl({ sdkPath, configPath })
+    const { scrapedIDLs, arkuiConfig } = commands.scrape({
+        idlDirectory: idlPaths,
+        configPath: options.scraperConfig ?? SCRAPER_CONFIG,
+    })
+    const { peersPath } = commands.idl2peer({
+        target: options.target,
+        language: options.language,
+        optionsFile: arkuiConfig,
+        idlPath: scrapedIDLs
+    })
 
-    let installSourceDir = GENERATED_PEER_DIR
+    if (formatArkts({
+        inputDir: peersPath,
+        outputDir: undefined,
+        inplace: true
+    }) < 0) {
+        console.error('ERROR: ArkTS formatting failed')
+    }
+
+    let installSourceDir = peersPath
     switch (options.target) {
-        case 'sig': { installSourceDir = GENERATED_PEER_SIG; break }
-        case 'libace': { installSourceDir = GENERATED_PEER_LIBACE; break }
-        case 'all': { installSourceDir = GENERATED_PEER_DIR; break }
+        case 'sig': { installSourceDir = join(installSourceDir, 'sig'); break }
+        case 'libace': { installSourceDir = join(installSourceDir, 'libace'); break }
+        case 'all': { break }
     }
     commands.install({ sourceDir: installSourceDir, installPath })
 }
 
+function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string, installPath: string) {
+    setup()
+
+    const { idlPaths } = commands.ets2idl({
+        sdkPath: sdkPathInput,
+        configPath:  undefined,
+        traceStatus: sdkStatus,
+    })
+    const { scrapedIDLs, arkuiConfig } = commands.scrape({
+        idlDirectory: idlPaths,
+        configPath: SCRAPER_CONFIG,
+    })
+    const { peersPath } = commands.idl2peer({
+        target: 'tracker',
+        language: 'arkts',
+        optionsFile: arkuiConfig,
+        idlPath: scrapedIDLs,
+        trackerStatus: trackerStatus
+    })
+    commands.install({sourceDir: peersPath, installPath})
+}
+
 ///
 
-function sdk(sdkPathInput:string, installPath12:string, installPath11:string) {
+function sdk(sdkPathInput: string, installPath12: string, installPath11: string) {
     setup()
 
     const { sdkPath11, sdkPath12 } = commands.prepareSdk({
         sdkPath: sdkPathInput,
-        installArktsConfig: false
+        installArktsConfig: false,
     })
     commands.install({ sourceDir: sdkPath12, installPath: installPath12 })
     commands.install({ sourceDir: sdkPath11, installPath: installPath11 })
 }
 
 ///
+interface AbsoluteSdkOptions {
+    originalSdk?: boolean,
+}
 
-function absoluteSdk(preparedSdk12: string, absolutePreparedSdk12: string) {
-    commands.absoluteSdk({ preparedSdk12, absolutePreparedSdk12 })
+function sdkM3(preparedSdk12: string, absolutePreparedSdk12: string, options: AbsoluteSdkOptions) {
+    if (options.originalSdk) {
+        const { sdkPath12 } = commands.prepareSdk({ sdkPath: preparedSdk12, installArktsConfig: false })
+        preparedSdk12 = sdkPath12
+    }
+    const { absoluteSdk } = commands.absoluteSdk({ preparedSdk12 })
+    commands.install({ sourceDir: absoluteSdk, installPath: absolutePreparedSdk12 })
+}
+
+///
+
+function sdkNewShape(path:string) {
+    transformBuilderFunctions(path)
 }
 
 /////////////////////////////////////////////////
 
-function main(argv:string[]) {
+function main(argv: string[]) {
 
     const program = new Command()
         .name("@idlizer/runner")
@@ -85,15 +149,24 @@ function main(argv:string[]) {
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .option('--original-sdk')
-        .option('--options-file <path>', 'Path to generator configuration options file (appends to defaults). Use --ignore-default-config to override default options.')
         .action(m3)
+
+    program.command('tracker <sdk-path> <sdk-status> <tracker-status> <out-dir>')
+        .description('generate tracker report')
+        .action(tracker)
+
+    program.command('m3-sdk <prepared-sdk-12> <absolute-prepared-sdk-12>')
+        .description('prepare sdk to link peers against')
+        .option('--original-sdk')
+        .action(sdkM3)
 
     program.command('sdk <sdk-path> <prepared-sdk-12> <prepared-sdk-11>')
         .description('prepares sdk')
         .action(sdk)
 
-    program.command('absolute-sdk <prepared-sdk-12> <absolute-prepared-sdk-12')
-        .action(absoluteSdk)
+    program.command('sdk-new-shape <path>')
+        .description('creates new sdk')
+        .action(sdkNewShape)
 
     program.parse(argv, { from: 'user' })
 }

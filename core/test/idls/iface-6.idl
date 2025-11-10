@@ -1,0 +1,9 @@
+interface DataInterface {
+    attribute boolean propBoolean;
+    attribute number propNumber;
+};
+
+interface DataClass: DataInterface {
+    attribute boolean propBoolean;
+    attribute number propNumber;
+};

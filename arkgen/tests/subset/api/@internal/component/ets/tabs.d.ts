@@ -29,4 +29,4 @@ declare class TabsAttribute extends CommonMethod<TabsAttribute> {
     barMode(value: BarMode): TabsAttribute;
 }
 
-declare const Tabs: TabsInterface
+//declare constTabs: TabsInterface

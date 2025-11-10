@@ -5,6 +5,9 @@
         "configSchema": {
             "additionalProperties": false,
             "properties": {
+                "ApiKind": {
+                    "type": "number"
+                },
                 "TypePrefix": {
                     "type": "string"
                 },
@@ -13,6 +16,25 @@
                 },
                 "OptionalPrefix": {
                     "type": "string"
+                },
+                "transformOnSerialize": {
+                    "type": "array",
+                    "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "from": {
+                                "type": "string"
+                            },
+                            "to": {
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "from",
+                            "to"
+                        ],
+                        "type": "object"
+                    }
                 },
                 "rootComponents": {
                     "type": "array",
@@ -121,6 +143,9 @@
                             },
                             "useFoldersLayout": {
                                 "type": "boolean"
+                            },
+                            "tsLikePackage": {
+                                "type": "string"
                             }
                         },
                         "required": [
@@ -148,23 +173,11 @@
                 "GenerateUnused": {
                     "type": "boolean"
                 },
-                "ApiKind": {
-                    "type": "number"
-                },
                 "ApiVersion": {
                     "type": "number"
                 },
                 "dumpSerialized": {
                     "type": "boolean"
-                },
-                "boundProperties": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "array",
-                        "items": {
-                            "type": "string"
-                        }
-                    }
                 },
                 "currentModulePackagesPaths": {
                     "type": "array",
@@ -209,12 +222,6 @@
                                 "type": "string"
                             }
                         },
-                        "ignoreTypeParameters": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
                         "invalidAttributes": {
                             "type": "array",
                             "items": {
@@ -228,12 +235,6 @@
                             }
                         },
                         "ignoreEntry": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "ignoreEntryJava": {
                             "type": "array",
                             "items": {
                                 "type": "string"
@@ -261,11 +262,9 @@
                     "required": [
                         "ignoreComponents",
                         "ignorePeerMethod",
-                        "ignoreTypeParameters",
                         "invalidAttributes",
                         "customNodeTypes",
                         "ignoreEntry",
-                        "ignoreEntryJava",
                         "custom",
                         "handWritten",
                         "replaceThrowErrorReturn"
@@ -335,64 +334,11 @@
                         }
                     }
                 },
-                "IDLVisitor": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "DeletedDeclarations": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "DeletedMethods": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "type": "string"
-                                }
-                            }
-                        },
-                        "StubbedDeclarations": {
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        },
-                        "NameReplacements": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "array",
-                                "items": {
-                                    "items": [
-                                        {
-                                            "type": "string"
-                                        },
-                                        {
-                                            "type": "string"
-                                        }
-                                    ]
-                                }
-                            }
-                        },
-                        "ForceDefaultExport": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        },
-                        "TypeReplacementsFilePath": {
-                            "type": "string"
-                        }
-                    },
-                    "required": [
-                        "DeletedDeclarations",
-                        "DeletedMethods",
-                        "StubbedDeclarations",
-                        "NameReplacements",
-                        "TypeReplacementsFilePath"
-                    ],
-                    "type": "object"
+                "transformAnnotations": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
                 },
                 "$schema": {
                     "type": "string",
@@ -400,9 +346,11 @@
                 }
             },
             "required": [
+                "ApiKind",
                 "TypePrefix",
                 "LibraryPrefix",
                 "OptionalPrefix",
+                "transformOnSerialize",
                 "rootComponents",
                 "standaloneComponents",
                 "parameterized",
@@ -418,16 +366,13 @@
                 "modules",
                 "globalPackages",
                 "GenerateUnused",
-                "ApiKind",
                 "ApiVersion",
                 "dumpSerialized",
-                "boundProperties",
                 "cppPrefix",
                 "components",
                 "dummy",
                 "materialized",
-                "serializer",
-                "IDLVisitor"
+                "serializer"
             ],
             "type": "object"
         }

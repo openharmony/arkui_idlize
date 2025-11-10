@@ -4,9 +4,17 @@ package idlize.stdlib;
 interface RuntimeType {};
 [TSType=Materialized, CPPType=Materialized]
 interface Materialized {};
+[TSType=MaterializedBaseTag, CPPType=MaterializedBaseTag]
+interface MaterializedBaseTag {};
 [TSType=CallbackResource, CPPType=CallbackResource]
 interface CallbackResource {};
 [CPPType=VMContext]
 interface VMContext {};
 [TSType=Null]
 interface Null {};
+
+namespace Intl {
+    interface Locale {};
+};
+interface Error {};
+interface Type {};

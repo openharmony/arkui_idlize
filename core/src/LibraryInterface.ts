@@ -11,7 +11,6 @@ export interface LibraryInterface extends ReferenceResolver {
     get files(): idl.IDLFile[]
     typeConvertor(param: string, type: idl.IDLType, isOptionalParam?: boolean): ArgConvertor
     declarationConvertor(param: string, type: idl.IDLReferenceType, declaration: idl.IDLEntry | undefined): ArgConvertor
-    getInteropName(node: idl.IDLNode): string
     createTypeNameConvertor(language: Language): IdlNameConvertor
     createContinuationCallbackReference(continuationType: idl.IDLType): idl.IDLReferenceType
     getCurrentContext(): string | undefined

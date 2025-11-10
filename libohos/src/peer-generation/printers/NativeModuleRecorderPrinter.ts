@@ -31,15 +31,11 @@ import { collectPeersForFile } from "../PeersCollector";
 
 class NativeModuleRecorderVisitor {
     readonly nativeModuleRecorder: LanguageWriter
-    private readonly interopConvertor: TypeConvertor<string>
-    private readonly interopRetConvertor: InteropReturnTypeConvertor
 
     constructor(
         protected readonly library: PeerLibrary,
     ) {
         this.nativeModuleRecorder = library.createLanguageWriter()
-        this.interopConvertor = createInteropArgConvertor(library.language)
-        this.interopRetConvertor = new InteropReturnTypeConvertor(this.library)
     }
 
     private printImports() {

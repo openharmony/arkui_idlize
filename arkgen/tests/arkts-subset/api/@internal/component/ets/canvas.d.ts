@@ -94,9 +94,9 @@ declare class RenderingContextSettings {
 
 declare class CanvasRenderingContext2D extends CanvasRenderer {
 
-  readonly height: number;
+  readonly height: double;
 
-  readonly width: number;
+  readonly width: double;
 
   stopImageAnalyzer(): void;
 
@@ -141,8 +141,8 @@ declare class CanvasAttribute extends CommonMethod<CanvasAttribute> {
   enableAnalyzer(enable: boolean): CanvasAttribute;
 }
 
-declare const Canvas: CanvasInterface;
+//declare constCanvas: CanvasInterface;
 
-declare const CanvasInstance: CanvasAttribute;
+//declare constCanvasInstance: CanvasAttribute;
 
 

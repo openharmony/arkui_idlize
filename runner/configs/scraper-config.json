@@ -1,0 +1,24 @@
+{
+    "target": [
+        "arkui.component",
+        "arkui.AttributeUpdater"
+    ],
+    "main": {
+        "additionalPackages": [
+            "arkui.component.idlize",
+            "arkui.component.navigator",
+            "api.internal.component.ets",
+            "arkui.stateManagement.internal",
+            "arkui.AttributeUpdaterFlag",
+            "arkui.PeerNode"
+        ]
+    },
+    "tsLikePackages": {
+        "arkui.RenderNode": "@arkui.RenderNode",
+        "arkui.FrameNode": "@arkui.FrameNode",
+        "arkui.NodeController": "@arkui.NodeController",
+        "arkui.ComponentContent": "@arkui.ComponentContent",
+        "arkui.Content": "@arkui.Content",
+        "arkui": "@ohos.arkui.component"
+    }
+}

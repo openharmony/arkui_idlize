@@ -1,0 +1,13 @@
+package arkui.component;
+
+interface Resource {
+};
+
+typedef Length = (String or number or Resource);
+[Entity=Interface]
+interface Position {
+    [Optional]
+    attribute Length x;
+    [Optional]
+    attribute Length y;
+};

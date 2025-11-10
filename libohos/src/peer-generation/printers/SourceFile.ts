@@ -30,8 +30,6 @@ export abstract class SourceFile {
             return new ArkTSSourceFile(name, resolver)
         } else if (language === Language.CJ) {
             return new CJSourceFile(name, resolver)
-        } else if (language === Language.JAVA) {
-            return new JavaSourceFile(name, resolver)
         } else if (language === Language.KOTLIN) {
             return new KotlinSourceFile(name, resolver)
         }else {
@@ -208,7 +206,9 @@ export class CJSourceFile extends SourceFile {
 }
 
 export class KotlinSourceFile extends SourceFile {
-    declare public readonly content: CJLanguageWriter
+    declare public readonly content: KotlinLanguageWriter
+
+    public readonly imports: ImportsCollector = new ImportsCollector()
 
     constructor(name: string, library: PeerLibrary) {
         super(name, Language.KOTLIN, library)
@@ -217,47 +217,23 @@ export class KotlinSourceFile extends SourceFile {
     public printToString(): string {
         let fileWriter = this.library.createLanguageWriter(this.language) as KotlinLanguageWriter
         fileWriter.print(cStyleCopyright)
+        fileWriter.print('\n')
+        fileWriter.print(`package ${this.name}\n`)
         this.printImports(fileWriter)
         fileWriter.concat(this.content)
         fileWriter.print('\n')
         return fileWriter.getOutput().join("\n")
     }
     public printImports(writer: LanguageWriter): void {
-        writer.print(`package idlize\n`)
-        writer.print(`import koalaui.interop.*\n`)
+        if (!this.supportsWriter(writer)) throw new TypeError("illegal language writer")
+        this.imports.print(writer, this.name)
     }
     protected onMerge(file: this): void {
-
+        this.imports.merge(file.imports)
     }
-}
-
-
-export class JavaSourceFile extends SourceFile {
-    declare public readonly content: CJLanguageWriter
-    public packageName: string = "org.koalaui.arkoala";
-
-    constructor(name: string, library: PeerLibrary) {
-        super(name, Language.JAVA, library)
+    protected supportsWriter(writer: LanguageWriter) {
+        return writer instanceof KotlinLanguageWriter
     }
-
-    public printToString(): string {
-        let printer = this.library.createLanguageWriter(Language.JAVA)
-        printer.print(cStyleCopyright)
-        printer.print(`package ${this.packageName};`)
-        printer.print('')
-        printer.concat(this.content)
-
-        return printer.getOutput().join('\n')
-    }
-
-    public printImports(writer: LanguageWriter): void {
-        // TODO implement
-    }
-
-    protected onMerge(file: this): void {
-        // todo implement
-    }
-
 }
 
 /** @deprecated Each destination language should have its own SourceFile implementation */

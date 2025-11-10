@@ -28,7 +28,7 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         }
         // TODO: Fix for 'TypeError: Type 'Function<R>' is generic but type argument were not provided.'
         if (typeName === "Function") {
-            return "Function<void>"
+            return isInsideInstanceof() ? "Function" : "Function<void>"
         }
         return typeName
     }
@@ -106,8 +106,15 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         if (typeArgs.length === 0) {
             typeArgs = [this.convert(idl.IDLVoidType)]
         }
-        return `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
+        return isInsideInstanceof() ? `Function${typeArgs.length - 1}` : `Function${typeArgs.length - 1}<${typeArgs.join(",")}>`
     }
 }
 
-export class ETSInteropArgConvertor extends TSInteropArgConvertor {}
+export class ETSInteropArgConvertor extends TSInteropArgConvertor {
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLBigintType: return 'long'
+        }
+        return super.convertPrimitiveType(type)
+    }
+}

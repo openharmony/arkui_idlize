@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { convertNode, convertType, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
+import { convertNode, convertType, isMaterialized, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
 import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
 
@@ -82,6 +82,8 @@ class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
         return []
     }
     convertInterface(node: idl.IDLInterface): idl.IDLNode[] {
+        if (isMaterialized(node, this.library))
+            return []
         return collectProperties(node, this.library).flatMap(it => this.toDeclarations(it.type, it.isOptional))
     }
     convertEnum(node: idl.IDLEnum): idl.IDLNode[] {
