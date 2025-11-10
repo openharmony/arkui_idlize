@@ -22,6 +22,7 @@ const KnownReferencesSchema = D.object({
     AttributeModifier: D.string(),
     AttributeUpdater: D.string(),
     AttributeUpdaterFlag: D.string(),
+    ModifierState: D.string(),
 })
 export type KnownReferencesType = ConfigTypeInfer<typeof KnownReferencesSchema>
 export let referenceNames: KnownReferencesType | undefined = undefined

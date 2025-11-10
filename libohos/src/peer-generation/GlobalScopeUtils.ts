@@ -46,7 +46,7 @@ function idlMethodToMaterializedMethod(method: IDLMethod): MaterializedMethod {
         GlobalScopePeerName,
         GlobalScopePeerName,
         method.returnType,
-        true,
+        false,
         mangledGlobalScopeName(method),
         new Method(
             mangledGlobalScopeName(method),

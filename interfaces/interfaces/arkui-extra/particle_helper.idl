@@ -1,0 +1,149 @@
+package arkui.component.idlize;
+import arkui.component.units.ResourceStr as ResourceStr;
+import arkui.component.units.Dimension as Dimension;
+import arkui.component.units.ResourceColor as ResourceColor;
+import arkui.component.common.CommonMethod as CommonMethod;
+import arkui.component.common.AttributeModifier as AttributeModifier;
+import arkui.component.common.ICurve as ICurve;
+import arkui.component.enums.Curve as Curve;
+import arkui.component.particle;
+import arkui.Graphics.LengthMetrics as LengthMetrics;
+
+interface SizeNumberInner {
+    attribute number width;
+    attribute number height;
+};
+interface PositionNumberInner {
+    attribute number x;
+    attribute number y;
+};
+interface PositionLengthMetricsInner {
+    attribute LengthMetrics x;
+    attribute LengthMetrics y;
+};
+[Entity=Tuple, Synthetic]
+interface Tuple_ResourceColor_ResourceColor {
+    attribute ResourceColor value0;
+    attribute ResourceColor value1;
+};
+interface ParticlePropertyAnimationNumberInner {
+    attribute number from;
+    attribute number to;
+    attribute number startMillis;
+    attribute number endMillis;
+    [Optional]
+    attribute (Curve or ICurve) curve;
+};
+interface ParticlePropertyAnimationColorInner {
+    attribute ResourceColor from;
+    attribute ResourceColor to;
+    attribute number startMillis;
+    attribute number endMillis;
+    [Optional]
+    attribute (Curve or ICurve) curve;
+};
+typedef (undefined or Tuple_Number_Number or sequence<ParticlePropertyAnimationNumberInner>) ParticlePropertyUpdaterConfigsInner;
+interface ParticleUpdaterOptionsInner {
+    attribute ParticleUpdater type;
+    attribute ParticlePropertyUpdaterConfigsInner config;
+};
+interface ParticlePropertyOptionsInner {
+    attribute Tuple_Number_Number range;
+    [Optional]
+    attribute ParticleUpdaterOptionsInner updater;
+};
+interface ParticleColorUpdaterOptionsInner {
+    attribute ParticleUpdater type;
+    attribute ParticleColorPropertyUpdaterConfigsInner config;
+};
+typedef (undefined or ParticleColorOptions or sequence<ParticlePropertyAnimationColorInner>) ParticleColorPropertyUpdaterConfigsInner;
+interface AccelerationOptionsInner {
+    [Optional]
+    attribute ParticlePropertyOptionsInner speed;
+    [Optional]
+    attribute ParticlePropertyOptionsInner angle;
+};
+interface ParticleOptionsInner {
+    attribute EmitterOptionsInner emitter;
+    [Optional]
+    attribute ParticleColorPropertyOptionsInner color;
+    [Optional]
+    attribute ParticlePropertyOptionsInner opacity;
+    [Optional]
+    attribute ParticlePropertyOptionsInner scale;
+    [Optional]
+    attribute VelocityOptions velocity;
+    [Optional]
+    attribute AccelerationOptionsInner acceleration;
+    [Optional]
+    attribute ParticlePropertyOptionsInner spin;
+};
+interface ParticleAnnulusRegionInner {
+    [Optional]
+    attribute PositionLengthMetricsInner center;
+    attribute LengthMetrics outerRadius;
+    attribute LengthMetrics innerRadius;
+    [Optional]
+    attribute number startAngle;
+    [Optional]
+    attribute number endAngle;
+};
+interface EmitterPropertyInner {
+    attribute number index;
+    [Optional]
+    attribute number emitRate;
+    [Optional]
+    attribute PositionNumberInner position;
+    [Optional]
+    attribute SizeNumberInner size;
+    [Optional]
+    attribute ParticleAnnulusRegionInner annulusRegion;
+};
+interface EmitterOptionsInner {
+    attribute EmitterParticleOptions particle;
+    [Optional]
+    attribute number emitRate;
+    [Optional]
+    attribute ParticleEmitterShape shape;
+    [Optional]
+    attribute Tuple_Dimension_Dimension position;
+    [Optional]
+    attribute Tuple_Dimension_Dimension size;
+    [Optional]
+    attribute ParticleAnnulusRegionInner annulusRegion;
+};
+interface ParticleColorPropertyOptionsInner {
+    attribute Tuple_ResourceColor_ResourceColor range;
+    [Optional]
+    attribute DistributionType distributionType;
+    [Optional]
+    attribute ParticleColorUpdaterOptionsInner updater;
+};
+interface ParticlesInner {
+    attribute sequence<ParticleOptionsInner> particles;
+};
+interface DisturbanceFieldOptionsInner {
+    [Optional]
+    attribute number strength;
+    [Optional]
+    attribute DisturbanceFieldShape shape;
+    [Optional]
+    attribute SizeNumberInner size;
+    [Optional]
+    attribute PositionNumberInner position;
+    [Optional]
+    attribute number feather;
+    [Optional]
+    attribute number noiseScale;
+    [Optional]
+    attribute number noiseFrequency;
+    [Optional]
+    attribute number noiseAmplitude;
+};
+[Entity=Class]
+interface ParticleHelper {
+    static void SetDisturbanceFields(pointer node, (sequence<DisturbanceFieldOptionsInner> or undefined) disturbanceFields);
+    static void SetEmitterProperty(pointer node, (sequence<EmitterPropertyInner> or undefined) emitter);
+    static pointer ParticleConstruct(i32 id, i32 flags);
+    static void SetParticleOptions(pointer node, ParticlesInner particles);
+};

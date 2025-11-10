@@ -45,12 +45,6 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-export function componentToStyleClass(component: string) {
-    if (component.endsWith("Attribute"))
-        component = component.substring(0, component.length - 9)
-    return `Ark${component}Style`
-}
-
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
 export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
@@ -70,6 +64,10 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         scopes.forEach(it => {
             writer.pushIndent()
         })
+        if (method.isCallSignature && [Language.ARKTS, Language.TS].includes(library.language)) {
+            writer.print(`ArkThemeScopeManager.getInstance().applyThemeScopeIdToNode(this.peer.ptr);`)
+            writer.addFeature(`ArkThemeScopeManager`, '#arktheme')
+        }
         let serializerCreated = false
         let returnValueFilledThroughOutArg = false
         argConvertors.forEach((it, index) => {

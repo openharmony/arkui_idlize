@@ -28,6 +28,8 @@ export class ComponentBase {
     protected checkPriority(name: string): boolean {
         return true
     }
+    public applyOptionsFinish(traceName: string): void {
+    }
     public applyAttributesFinish(): void {
         ArkUINativeModule._ApplyModifierFinish(this.peer!.peer.ptr)
     }

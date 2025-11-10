@@ -10,6 +10,9 @@
             "#handwritten": [
                 "./handwritten"
             ],
+            "#arktheme": [
+                "./ArkThemeScopeManager"
+            ],
             "global.resource": [
                 "../../../../../generated/modules/global/generated/arkts"
             ],

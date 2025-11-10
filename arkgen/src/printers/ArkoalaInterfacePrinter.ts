@@ -14,11 +14,11 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, componentToStyleClass, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
+import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
-import { componentToAttributesInterface, generateStyleParentClass } from "./PeersPrinter"
+import { componentToAttributesInterface } from "./PeersPrinter"
 
 function collectParentsPropertiesNames(int: idl.IDLInterface, resolver: ReferenceResolver): Set<string> {
     const result = new Set<string>()
@@ -46,9 +46,10 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
         if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
         const printer = this.peerLibrary.createLanguageWriter()
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
         const declaredPrefix = this.isDeclared && this.peerLibrary.language !== Language.ARKTS ? "declare " : ""
         const superType = getSuper(idlInterface, this.peerLibrary)
-        const extendsClause = superType ? `extends ${componentToAttributesInterface(superType.name)} ` : ""
+        const extendsClause = superType ? `extends ${nameConvertor.convert(superType)} ` : ""
         printer.print(`export ${declaredPrefix}interface ${componentToAttributesInterface(idlInterface.name)} ${extendsClause}{`)
         printer.pushIndent()
         const collapsedMethods = groupOverloads(peer!.methods, this.peerLibrary.language)
@@ -90,33 +91,7 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         printer.popIndent()
         printer.print('}')
-        const stylePrinter = this.peerLibrary.createLanguageWriter()
-        const parentStyle = generateStyleParentClass(peer)
-        stylePrinter.writeClass(componentToStyleClass(idlInterface.name), (writer) => {
-            for (const field of peer.attributesFields) {
-                writer.writeFieldDeclaration(
-                    field.name + "_value",
-                    field.type,
-                    [],
-                    true
-                )
-            }
-            collapsedMethods.forEach(method => {
-                // TODO: temporary hack
-                stylePrinter.writeMethodImplementation(method.method, (writer) => {
-                    if (method.method.signature.returnType == idl.IDLThisType) {
-                        writer.writeStatement(writer.makeReturn(writer.makeThis()))
-                    }
-                })
-            })
-            stylePrinter.writeMethodImplementation(new Method('attributeModifier', attributeModifierSignature, [MethodModifier.PUBLIC]), writer => {
-                writer.writeStatement(writer.makeThrowError("Not implemented"))
-            })
-            stylePrinter.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature, [MethodModifier.PUBLIC]), writer => {
-                writer.writeStatement(writer.makeThrowError("Not implemented"))
-            })
-        }, parentStyle, [componentToAttributesInterface(idlInterface.name)])
-        return printer.getOutput().concat(stylePrinter.getOutput())
+        return printer.getOutput()
     }
     private printNamedOverloadGroup(peer: PeerClass, printer: LanguageWriter): void {
         const overloads = new Map<string, string[]>()

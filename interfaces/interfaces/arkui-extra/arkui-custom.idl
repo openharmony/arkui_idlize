@@ -5,7 +5,7 @@ import arkui.component.common;
 import arkui.component.gesture;
 import arkui.Graphics.Frame as Frame;
 import arkui.Graphics.Size as Size;
-import global.resource.Resource as Resource;
+import global.resource.Resource as Resource; 
 
 callback Callback_RangeUpdate = void (i32 start, i32 end);
 callback Callback_CreateItem = pointer (i32 index);
@@ -13,6 +13,12 @@ callback Callback_OnMoveFromTo = void (i32 from, i32 to);
 callback Callback_OnFrame = void (number data);
 callback Custom_Callback_Void = void ();
 callback GestureCallback = void (GestureEvent data);
+
+[Entity=Class]
+interface ForEachOps {
+    static void SyncOnMoveOps(pointer node, sequence<pointer> additionalChild,
+        (OnMoveHandler or undefined) onMoveOps, (ItemDragEventHandler or undefined) onMoveDragEventOps);
+};
 
 [Entity=Class]
 interface LazyForEachOps {

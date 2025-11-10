@@ -10,6 +10,9 @@
             "#handwritten": [
                 "./handwritten"
             ],
+            "#arktheme": [
+                "./ArkThemeScopeManager"
+            ],
             "@arkoala/arkui": [
                 "./framework"
             ],

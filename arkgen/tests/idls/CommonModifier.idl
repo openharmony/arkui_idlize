@@ -1,0 +1,3 @@
+package arkui.CommonModifier;
+
+interface ModifierState {};

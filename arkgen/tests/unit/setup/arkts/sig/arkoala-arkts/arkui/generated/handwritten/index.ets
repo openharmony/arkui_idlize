@@ -33,6 +33,12 @@ export class AttributeUpdater<T> implements AttributeModifier<T> {
     get attribute(): T | undefined { return undefined }
     onComponentChanged(component: T): void {}
 }
+export class ModifierState {
+    addRef(): void {
+    }
+    fireChange(): void {
+    }
+}
 
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
 export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}

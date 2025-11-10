@@ -57,12 +57,6 @@ export function componentToPeerClass(component: string) {
     return `Ark${component}Peer`
 }
 
-export function componentToStyleClass(component: string) {
-    if (component.endsWith("Attribute"))
-        component = component.substring(0, component.length - 9)
-    return `Ark${component}Style`
-}
-
 export function componentToAttributesInterface(component: string) {
     return `${component}`
 }
@@ -324,9 +318,4 @@ class PeersVisitor {
 
 export function createPeersPrinter(dumpSerialized: boolean): PrinterFunction {
     return (library: PeerLibrary) => new PeersVisitor(library, dumpSerialized).printPeers()
-}
-
-export function generateStyleParentClass(peer: PeerClass): string | undefined {
-     if (!isHeir(peer.originalClassName!)) return undefined
-     return componentToStyleClass(peer.parentComponentName!)
 }

@@ -492,7 +492,9 @@
         "CalendarAttribute",
         "ContainerSpanAttribute",
         "CustomLayoutRoot",
-        "ConditionScope"
+        "ConditionScope",
+        "SymbolSpanAttribute",
+        "SpanAttribute"
     ],
     "standaloneComponents": [
         "TextPickerDialog",
@@ -564,7 +566,8 @@
             "PinchGestureHandler",
             "TapGestureHandler",
             "RotationGestureHandler",
-            "SwipeGestureHandler"
+            "SwipeGestureHandler",
+            "ModifierState"
         ],
         "ignoreEntry": [
             "Optional",
@@ -629,6 +632,16 @@
         ]
     },
     "hooks": {
+        "DragEvent":{
+            "startDataLoading": {
+                "hookName": "hookDragEventStartDataLoading",
+                "replaceImplementation": true
+            },
+            "getSummary": {
+                "hookName": "hookDragEventGetSummary",
+                "replaceImplementation": true
+            }
+        },
         "ButtonAttribute": {
             "contentModifier": {
                 "hookName": "hookButtonContentModifier",
@@ -667,6 +680,14 @@
             "drawModifier": {
                 "hookName": "hookDrawModifier",
                 "replaceImplementation": true
+            },
+            "allowDrop": {
+                "hookName": "hookAllowDrop",
+                "replaceImplementation": true
+            },
+            "dragPreviewOptions": {
+                "hookName": "hookDragPreviewOptions",
+                "replaceImplementation": true
             }
         },
         "CheckboxAttribute": {
@@ -696,6 +717,16 @@
         "LoadingProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookLoadingProgressContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "NavigationAttribute": {
+            "setNavigationOptions": {
+                "hookName": "hookSetNavigationOptions",
+                "replaceImplementation": true
+            },
+            "navDestination": {
+                "hookName": "hookSetNavDestination",
                 "replaceImplementation": true
             }
         },
@@ -759,6 +790,10 @@
             "menuItemContentModifier": {
                 "hookName": "hookSelectContentModifier",
                 "replaceImplementation": true
+            },
+            "divider": {
+                "hookName": "hookSelectSetDividerMethod",
+                "replaceImplementation": false
             }
         },
         "SliderAttribute": {
@@ -773,6 +808,12 @@
                 "replaceImplementation": true
             }
         },
+        "TextPickerAttribute": {
+            "divider": {
+                "hookName": "hookTextPickerDivider",
+                "replaceImplementation": false
+            }
+        },
         "TextTimerAttribute": {
             "contentModifier": {
                 "hookName": "hookTextTimerContentModifier",
@@ -782,6 +823,12 @@
         "ToggleAttribute": {
             "contentModifier": {
                 "hookName": "hookToggleContentModifier",
+                "replaceImplementation": true
+            }
+        },
+        "waterFlowAttribute": {
+            "setWaterFlowOptionsAttribute": {
+                "hookName": "hookWaterFlowOptionsImpl",
                 "replaceImplementation": true
             }
         },
@@ -815,6 +862,18 @@
             "setWithThemeOptions": {
                 "hookName": "hookWithThemeOptions",
                 "replaceImplementation": true
+            }
+        },
+        "CommonMethodModifier": {
+            "size": {
+                "hookName": "hookCommonMethodModifierSize",
+                "replaceImplementation": true
+            }
+        },
+        "TabsAttribute": {
+            "pageFlipMode": {
+                "hookName": "hookTabsApplyAttributesFinish",
+                "replaceImplementation": false
             }
         }
     },
@@ -891,7 +950,7 @@
         "idlize.internal.interop.Test.TestCallIntMemory"
     ],
     "constants": {
-    },
+            },
     "moduleName": "arkui",
     "modules": {
         "arkui": {
@@ -928,5 +987,5 @@
     ],
     "transformAnnotations": {
         "Builder": "memo"
-    }
+}
 }

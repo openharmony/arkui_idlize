@@ -43,7 +43,6 @@ import {
     TargetFile,
     collectDeclItself,
     findComponentByDeclaration,
-    componentToStyleClass,
     allowNamedOverloads,
     peerGeneratorConfiguration,
     PrinterFunction,
@@ -150,10 +149,6 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 if (!this.options.isDeclared)
                     imports.addFeature(generateArkComponentName(parentComponent.name), `./${parentGeneratedPath}`)
 
-                imports.addFeatures([
-                    componentToStyleClass(parentComponent.attributeDeclaration.name),
-                    componentToAttributesInterface(parentComponent.attributeDeclaration.name),
-                ], `./${parentGeneratedPath}`)
                 if (parentComponent.attributeDeclaration.inheritance.length) {
                     let [parentRef] = parentComponent.attributeDeclaration.inheritance
                     parentDecl = this.library.resolveTypeReference(parentRef)
@@ -203,6 +198,10 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 for (const grouped of groupOverloads(peer.methods, this.library.language))
                     this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
                 // todo stub until we can process AttributeModifier
+                const attributeModifierSignature = generateAttributeModifierSignature(this.library, component)
+                attributeModifierSignature.args.forEach(it => {
+                    collectDeclDependencies(this.library, it, imports)
+                })
                 writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
                     if (this.options.attributeModifierHooks)
                         writer.writeExpressionStatement(writer.makeFunctionCall(`hook${component.name}AttributeModifier`, [writer.makeThis(), writer.makeString(`value`)]))
@@ -214,6 +213,18 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                 writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                     writer.print('// we call this function outside of class, so need to make it public')
                     writer.writeMethodCall('super', applyAttributesFinish, [])
+                })
+                const optionsFinishSignature = new MethodSignature(
+                    IDLVoidType,
+                    [idl.IDLStringType],
+                    undefined,
+                    undefined,
+                    undefined,
+                    ['traceName']
+                )
+                const applyOptionsFinish = 'applyOptionsFinish'
+                writer.writeMethodImplementation(new Method(applyOptionsFinish, optionsFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                    writer.writeMethodCall('super', applyOptionsFinish, ['traceName'])
                 })
             }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
             return {

@@ -1,15 +1,13 @@
 package arkui.component.idlize;
 import ohos.base.AsyncCallback as AsyncCallback;
-import ohos.router.default.RouterOptions as RouterOptions;
-import ohos.router.default.RouterMode as RouterMode;
-import ohos.router.default.RouterState as RouterState;
+import ohos.router.default as router;
 
 callback RouterFinishCallback = void (pointer value);
 
 interface PageRouterOptions {
-  attribute RouterOptions options;
+  attribute router.RouterOptions options;
   [Optional]
-  attribute RouterMode mode;
+  attribute router.RouterMode mode;
 };
 
 [Entity=Class]
@@ -18,16 +16,16 @@ interface RouterExtender {
   static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
   static Promise<void> replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
   static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
-  static void back(optional RouterOptions options);
+  static void back(optional router.RouterOptions options);
   static void back(i32 index, optional Object params);
   static void runPage(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
   static void clear();
   static void showAlertBeforeBackPage(String message);
   static void hideAlertBeforeBackPage();
   static String getLength();
-  static RouterState getState();
-  static (RouterState or undefined) getStateByIndex(i32 index);
-  static sequence<RouterState> getStateByUrl(String url);
+  static router.RouterState getState();
+  static (router.RouterState or undefined) getStateByIndex(i32 index);
+  static sequence<router.RouterState> getStateByUrl(String url);
   static Object getParams();
   static Promise<void> pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
   static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
