@@ -188,8 +188,13 @@ export class ModifierVisitor {
             )
         )
         _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
+        const decl = method.decl
+        const withVMContext = decl && idl.isMethod(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Throws)
+        if (withVMContext) {
+            _.print(`out.append("VMContext");`)
+        }
         method.argAndOutConvertors(this.library).forEach((argConvertor, index) => {
-            if (index > 0) this.dummy.print(`out.append(", ");`)
+            if (index > 0 || withVMContext) this.dummy.print(`out.append(", ");`)
             _.print(`WriteToString(&out, ${argConvertor.param});`)
         })
         _.print(`out.append(") \\n");`)

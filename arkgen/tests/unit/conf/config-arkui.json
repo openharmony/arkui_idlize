@@ -55,7 +55,18 @@
             "drawFront"
         ]
     },
-    "hooks": {},
+    "hooks": {
+        "CheckHooksAttribute": {
+            "text": {
+                "hookName": "hookCheckHooksText",
+                "replaceImplementation": true
+            },
+            "methodPrimitives": {
+                "hookName": "hookCheckHooksMethodPrimitives",
+                "replaceImplementation": true
+            }
+        }
+    },
     "dummy": {
         "ignoreMethods": {
             "RenderServiceNode": [

@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 import { AnimateParam } from '../framework'
+import { ArkCheckHooksComponent } from '../framework'
 
 export interface AttributeModifier<T> {
     isUpdater: () => boolean
@@ -43,3 +44,11 @@ export class ModifierState {
 export function _animateTo(param: AnimateParam, event: (() => void)): void {}
 export function _animationStart(param: AnimateParam, isFirstBuild: boolean) {}
 export function _animationEnd(isFirstBuild: boolean, update: (() => void)): void {}
+
+export function hookCheckHooksText(receiver: ArkCheckHooksComponent, text?: string){
+    receiver.checkHookResult(`Check hook text: ${text}`)
+}
+
+export function hookCheckHooksMethodPrimitives(receiver: ArkCheckHooksComponent, flag: boolean, count: number, text: string){
+    receiver.checkHookResult(`Check hook method primitives: ${flag}, ${count}, ${text}`)
+}

@@ -15,8 +15,14 @@
 // import { ArkUINativeModule, TestNativeModule } from "#components"
 import { registerNativeModuleLibraryName, SerializerBase, DeserializerBase } from "@koalaui/interop"
 
-import { ArkDatebookPeer,
+import {
     DatebookType,
+    ArkDatebookPeer,
+    ArkDatebookComponent,
+    ArkCheckHooksPeer,
+    ArkCheckHooksComponent,
+    ArkCheckExceptionPeer,
+    ArkCheckExceptionComponent,
 } from "@arkoala/arkui"
 
 import { InteropNativeModule } from "@koalaui/interop"
@@ -37,7 +43,7 @@ export function getNativeLog(): string {
     return result.toString()
 }
 
-export function checkResult(name: string, test: () => void, expected: string) {
+export function checkResult<R>(name: string, test: () => R, expected: string) {
     InteropNativeModule._StartGroupedLog(1)
     test()
     InteropNativeModule._StopGroupedLog(1)
@@ -51,20 +57,47 @@ export function checkResult(name: string, test: () => void, expected: string) {
     }
 }
 
-function checkDatebook() {
-    let peer = ArkDatebookPeer.create()
-    checkResult("type", () => peer.setTypeAttribute(DatebookType.EGYPTIAN), `setType({.tag=INTEROP_TAG_OBJECT, .value=Ark_DatebookType(0)})`)
-    checkResult("text", () => peer.setTextAttribute("Hello, Datebook!"), `setText({.tag=INTEROP_TAG_OBJECT, .value={.chars="Hello, Datebook!", .length=16}})`)
-}
-
-export function main(): void {
-
+function initNatives() {
     registerNativeModuleLibraryName("InteropNativeModule", "ArkoalaNative_ani")
     registerNativeModuleLibraryName("TestNativeModule", "ArkoalaNative_ani")
     registerNativeModuleLibraryName("ArkUINativeModule", "ArkoalaNative_ani")
     registerNativeModuleLibraryName("ArkUIGeneratedNativeModule", "ArkoalaNative_ani")
+}
+
+function checkDatebook() {
+    let peer = ArkDatebookPeer.create()
+    const comp = new ArkDatebookComponent()
+    comp.setPeer(peer)
+    checkResult("type", () => comp.type(DatebookType.EGYPTIAN), `setType({.tag=INTEROP_TAG_OBJECT, .value=Ark_DatebookType(0)})`)
+    checkResult("text", () => comp.text("Hello, Datebook!"), `setText({.tag=INTEROP_TAG_OBJECT, .value={.chars="Hello, Datebook!", .length=16}})`)
+}
+
+function checkHooks() {
+    const peer = ArkCheckHooksPeer.create()
+    const comp = new ArkCheckHooksComponent()
+    comp.setPeer(peer)
+    checkResult("hook attribute text", () => comp.text(
+        "Pass text to the hook"),
+        `setCheckHookResult({.tag=INTEROP_TAG_OBJECT, .value={.chars="Check hook text: Pass text to the hook", .length=38}})`)
+    checkResult("hook method primitives", () => comp.methodPrimitives(
+        true, 123, "Pass text to method primitives"),
+        `setCheckHookResult({.tag=INTEROP_TAG_OBJECT, .value={.chars="Check hook method primitives: true, 123, Pass text to method primitives", .length=71}})`)
+}
+
+function checkExceptions() {
+    const peer = ArkCheckExceptionPeer.create()
+    const comp = new ArkCheckExceptionComponent()
+    comp.setPeer(peer)
+    checkResult("exception test", () => comp.methodThrowException(123),
+        `setMethodThrowException(VMContext, {.tag=102, .i32=123})`)
+}
+
+export function main(): void {
+    initNatives()
 
     checkDatebook()
+    checkHooks()
+    checkExceptions()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

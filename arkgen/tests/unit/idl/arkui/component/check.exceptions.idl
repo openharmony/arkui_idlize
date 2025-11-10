@@ -1,0 +1,8 @@
+package arkui.component.check.hooks;
+
+[Component]
+interface CheckExceptionAttribute: Root {
+
+    [CommonMethod, Throws]
+    this methodThrowException(number count);
+};
