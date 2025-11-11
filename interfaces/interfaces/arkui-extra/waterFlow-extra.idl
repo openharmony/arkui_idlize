@@ -1,0 +1,17 @@
+package arkui.component.idlize;
+
+import arkui.component.builder.CustomBuilder as CustomBuilder;
+import arkui.ComponentContent.ComponentContent as ComponentContent;
+import arkui.component.scroll.Scroller as Scroller;
+import arkui.component.waterFlow.WaterFlowLayoutMode as WaterFlowLayoutMode;
+
+interface WaterFlowOptionsInterop {
+    [Optional]
+    attribute CustomBuilder footer;
+    [Optional]
+    attribute ComponentContent footerContent;
+    [Optional]
+    attribute Scroller scroller;
+    [Optional]
+    attribute WaterFlowLayoutMode layoutMode;
+};
