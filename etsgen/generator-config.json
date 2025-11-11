@@ -70,7 +70,8 @@
         "LazyGridLayoutAttribute",
         "LazyVGridLayoutAttribute",
         "LazyVGridLayoutInterface",
-        "DynamicNode"
+        "DynamicNode",
+        "makeBuilderParameterProxy"
     ],
     "DeletedMembers": {
         "CommonMethod": [

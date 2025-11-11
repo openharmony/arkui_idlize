@@ -68,16 +68,16 @@ export function prepareSdk({
             ['--output', PREPARED_SDK_DIR_TS]
         ])
 
-        const arkuiTransformerDir = join(CLONED_SDK_DIR, 'build-tools', 'arkui_transformer')
-        r.cd(arkuiTransformerDir)
-        r.exec(['npm', 'ci'])
-        r.exec(['npm', 'run', 'compile:arkui'])
-        r.exec([
-            'node', '.',
-            ['--input-dir', PREPARED_SDK_ARKTS_INTERNAL],
-            ['--target-dir', PREPARED_SDK_ARKTS_ARKUI_COMPONENT],
-            ['--use-memo-m3']
-        ])
+        // const arkuiTransformerDir = join(CLONED_SDK_DIR, 'build-tools', 'arkui_transformer')
+        // r.cd(arkuiTransformerDir)
+        // r.exec(['npm', 'ci'])
+        // r.exec(['npm', 'run', 'compile:arkui'])
+        // r.exec([
+        //     'node', '.',
+        //     ['--input-dir', PREPARED_SDK_ARKTS_INTERNAL],
+        //     ['--target-dir', PREPARED_SDK_ARKTS_ARKUI_COMPONENT],
+        //     ['--use-memo-m3']
+        // ])
     })
 
     let configArktsDir: string | undefined = undefined
