@@ -28,6 +28,20 @@
         "arkui.component.common.ContentModifier",
         "arkui.component.ContentModifier"
     ],
+    "transformOnSerialize": [
+        {
+            "from": "ohos.base.BusinessError",
+            "to": "arkui.component.idlize.BusinessErrorInterface"
+        },
+        {
+            "from": "arkui.component.builder.PageMapBuilder",
+            "to": "arkui.component.idlize.PageMapNodeBuilder"
+        },
+        {
+            "from": "arkui.component.waterFlow.WaterFlowOptions",
+            "to": "arkui.component.idlize.WaterFlowOptionsInterop"
+        }
+    ],
     "forceMaterialized": [
         "TapGestureInterface",
         "LongPressGestureInterface",
@@ -447,7 +461,25 @@
     "forceResource": [
         "ContentModifier",
         "ComponentContentBase",
-        "UserDataSpan"
+        "UserDataSpan",
+        "Gesture",
+        "GestureGroup",
+        "TapGesture",
+        "LongPressGesture",
+        "PanGesture",
+        "PinchGesture",
+        "RotationGesture",
+        "SwipeGesture",
+        "GestureGroup",
+        "GestureHandler",
+        "LongPressGestureHandler",
+        "PanGestureHandler",
+        "PinchGestureHandler",
+        "TapGestureHandler",
+        "RotationGestureHandler",
+        "SwipeGestureHandler",
+        "TouchTestInfo",
+        "TouchResult"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -770,13 +802,13 @@
         "ListAttribute": {
             "childrenMainSize": {
                 "hookName": "hookListChildrenMainSizeImpl",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "ListItemGroupAttribute": {
             "childrenMainSize": {
                 "hookName": "hookListItemGroupChildrenMainSizeImpl",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "LoadingProgressAttribute": {
