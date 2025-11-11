@@ -283,14 +283,14 @@ function makeTestWithTestPlan(
         }
     }
     const initFixtures = getInitFixtures(validValueFixtures)
-    const argInfo = makeArgumentInfo(attributes)
+    const argInfo = makeArgumentInfo(attributes, testIndex)
     if (options) {
         const args = makeArguments(initFixtures, testIndex, argInfo, testPlanFixtures.imports, test.options)
-        addTypesToArguments(attributes, args)
+        addTypesToArguments(attributes, args, testIndex)
         test.options = args
     } else {
         const args = makeArguments(initFixtures, testIndex, argInfo, testPlanFixtures.imports)
-        addTypesToArguments(attributes, args)
+        addTypesToArguments(attributes, args, testIndex)
         test.methods = [{ name: methodName, args: args }]
         // Only if default options are not set.
         if (test.options === undefined) {
@@ -387,7 +387,7 @@ function makeChecks(attributes: readonly TestValue[], needDefault = true): TestC
     const checks: TestCheck[] = []
     for (const attr of attributes) {
         const attrNames = fillAttrs(attr)
-        if (attrNames) {
+        if (attrNames.length > 0) {
             checks.push({
                 attributes: attrNames,
                 expected: needDefault ? attr.defaultConst : undefined
@@ -397,11 +397,11 @@ function makeChecks(attributes: readonly TestValue[], needDefault = true): TestC
     return checks
 }
 
-function fillAttrs(attr: TestValue): string[]|undefined {
+function fillAttrs(attr: TestValue): string[] {
     const parent = attr.getParent()
     const attrs = parent ? fillAttrs(parent) : []
-    if (!attr.nameConst) return undefined
-    attrs?.push(attr.nameConst)
+    if (!attr.nameConst) return []
+    attrs.push(attr.nameConst)
     return attrs
 }
 
@@ -414,13 +414,6 @@ function makeImports(checks: readonly TestCheck[]): string[] {
         }
     }
     return [...imports]
-}
-
-interface ArgumentInfo {
-    name: string
-    index?: number
-    optional?: true
-    args: ArgumentInfo[]
 }
 
 function getMandatoryOptions(
@@ -445,16 +438,32 @@ function getMandatoryOptions(
     return result
 }
 
-function makeArgumentInfo(attributes: readonly TestValue[]): ArgumentInfo[] {
+// At the top level, it describes the argument of the function under test.
+// Describes the field of the object for nested elements.
+interface ArgumentInfo {
+    name: string // object's field or argument name
+    index?: number // an attribute index. It is used only for elements at the end.
+    optional?: true // Whether the object's field or argument is optional. It is used only for root elements.
+    args: ArgumentInfo[] // Describes the fields of objects.
+}
+
+// Converts information from attributes to ArgumentInfo structures.
+// For each argument of the function under test, its own ArgumentInfo is returned.
+// testIndex is used to resolve the conflict for the union types.
+function makeArgumentInfo(attributes: readonly TestValue[], testIndex = 0): ArgumentInfo[] {
     const args: ArgumentInfo[] = []
     const optionalArgName = new Set<string>()
+    const activeAttributes = splitAttributes(attributes, testIndex)
+    // Groups all attributes into objects with the Groups all attributes into objects with the relevant hierarchy.
     for (const [index, attr] of attributes.entries()) {
+        if (!activeAttributes[index]) continue
         const attrNames = attr.getFullTsName().split(".")
         attrNames[0] = attr.getArgIndex().toString() // Change first name to arg index for sort.
         if (attr.isArgOptional()) {
             optionalArgName.add(attrNames[0])
         }
         let infoList = args
+        // All attribute nodes will be joined to the existing ones or a new node will be created.
         for (const [i, name] of attrNames.entries()) {
             const info = findOrCreateArgumentInfo(name, infoList)
             if (i === attrNames.length - 1) {
@@ -471,6 +480,66 @@ function makeArgumentInfo(attributes: readonly TestValue[]): ArgumentInfo[] {
         }
     }
     return result
+}
+
+// A sign of its activity is returned for each attribute.
+// If an attribute is not compatible with the attribute under test, it is marked as false.
+function splitAttributes(attributes: readonly TestValue[], testIndex: number): boolean[] {
+    if (testIndex >= attributes.length) {
+        testIndex = 0
+    }
+    const active = attributes.map(() => false)
+    for (const arg of groupAttrsByArgs(attributes)) {
+        const mainTypes = [getAttrTypes(arg?.at(testIndex))]
+        attributes.forEach((attr, i) => active[i] ||= areTypesCompatible(mainTypes, getAttrTypes(attr)))
+    }
+    return active
+}
+
+// Groups attributes by arguments.
+// Returns an array of attributes for each argument while maintaining the original index.
+// Attributes of the other argument are undefined.
+function groupAttrsByArgs(attributes: readonly TestValue[]): (TestValue|undefined)[][] {
+    const attrsByArgs: (TestValue|undefined)[][] = []
+    for (const [attrIndex, attr] of attributes.entries()) {
+        const attrArgIndex = attr.getArgIndex()
+        if (attrsByArgs.at(attrArgIndex) === undefined) {
+            attrsByArgs[attrArgIndex] = []
+        }
+        attrsByArgs[attrArgIndex][attrIndex] = attr
+    }
+    return attrsByArgs
+}
+
+// An array of its types is returned for the attribute.
+// Where the first element is the type of the first parent. Where the last element is the type of the last parent.
+// The type of the attribute itself is not used.
+function getAttrTypes(attr?: TestValue): TypeHelper[] {
+    const getTypes = (v?: TestValue): TypeHelper[] => {
+        if (v) {
+            return [...getTypes(v.parent), v.type]
+        }
+        return []
+    }
+    return getTypes(attr).slice(0, -1) // The last item is not counted in the path.
+}
+
+// Checks whether the attribute is compatible with the main attributes.
+// If the attribute is compatible, it is added to the list of main attributes
+// so that the following attributes do not conflict with it too.
+function areTypesCompatible(mainTypes: TypeHelper[][], checkedTypes: TypeHelper[]): boolean {
+    for (const mainType of mainTypes) {
+        let isLastUnion = false
+        for (const [index, typeName] of mainType.entries()) {
+            if (typeName.getTypeName() === checkedTypes.at(index)?.getTypeName()) {
+                isLastUnion = typeName.isUnion()
+            } else if (isLastUnion) {
+                return false // There is a conflict.
+            }
+        }
+    }
+    mainTypes.push(checkedTypes)
+    return true
 }
 
 function findOrCreateArgumentInfo(attrName: string, mInfo: ArgumentInfo[]): ArgumentInfo {
@@ -540,10 +609,13 @@ function makeArguments(
     return args
 }
 
-function addTypesToArguments(attributes: readonly TestValue[], args: readonly Argument[]): void {
+function addTypesToArguments(attributes: readonly TestValue[], args: readonly Argument[], testIndex = 0): void {
     for (const [argIndex, arg] of args.entries()) {
         if (typeof arg === "object") {
-            arg.typeName = attributes.find(attr => attr.getArgIndex() === argIndex)?.getArgTsType()
+            const attr = attributes.at(testIndex)
+            arg.typeName = (
+                attr?.getArgIndex() === argIndex ? attr : attributes.find(it => it.getArgIndex() === argIndex)
+            )?.getArgTsType()
         }
     }
 }
