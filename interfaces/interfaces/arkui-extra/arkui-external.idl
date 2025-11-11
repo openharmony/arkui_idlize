@@ -117,14 +117,3 @@ interface BusinessErrorInterface {
 };
 
 callback PageMapNodeBuilder = pointer (pointer parentNode, String name, (Object or idlize.stdlib.Null or undefined) param);
-
-interface WaterFlowOptions {
-    [Optional]
-    attribute CustomBuilder footer;
-    [Optional]
-    attribute ComponentContent footerContent;
-    [Optional]
-    attribute Scroller scroller;
-    [Optional]
-    attribute WaterFlowLayoutMode layoutMode;
-};
