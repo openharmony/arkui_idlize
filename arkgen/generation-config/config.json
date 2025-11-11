@@ -908,6 +908,12 @@
                 "hookName": "hookTabsApplyAttributesFinish",
                 "replaceImplementation": false
             }
+        },
+        "WebAttribute": {
+            "javaScriptProxy": {
+                "hookName": "hookJavaScriptProxy",
+                "replaceImplementation": false
+            }
         }
     },
     "materialized": {
@@ -974,7 +980,8 @@
         "TestCallVoidIntArrayPrefixSum",
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory",
-        "arkui.component.idlize.BuilderNodeOps.create"
+        "arkui.component.idlize.BuilderNodeOps.create",
+        "arkui.component.idlize.WebInterface.setWebOptions"
     ],
     "moduleName": "arkui",
     "modules": {
