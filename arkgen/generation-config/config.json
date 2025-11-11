@@ -815,6 +815,14 @@
             "contentModifier": {
                 "hookName": "hookSliderContentModifier",
                 "replaceImplementation": true
+            },
+            "prefix": {
+                "hookName": "hookSliderSetPrefixMethod",
+                "replaceImplementation": true
+            },
+            "suffix": {
+                "hookName": "hookSliderSetSuffixMethod",
+                "replaceImplementation": true
             }
         },
         "TextClockAttribute": {
