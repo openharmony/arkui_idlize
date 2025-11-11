@@ -148,7 +148,7 @@ class PeerFileVisitor {
             [undefined, '0'],
             [[ArgumentModifier.OPTIONAL], undefined]
         )
-        writer.makeStaticBlock(() => {
+        writer.writeStaticEntitiesBlock(() => {
             writer.writeMethodImplementation(new Method('create', signature, [MethodModifier.STATIC, MethodModifier.PUBLIC]), (writer) => {
                 const peerId = 'peerId'
                 writer.writeStatement(

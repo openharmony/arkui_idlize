@@ -366,7 +366,8 @@ export enum MethodModifier {
     THROWS,
     FREE, // not a member of interface/class
     FORCE_CONTEXT, // If method implementation will need VM context, synthetic
-    OVERRIDE
+    OVERRIDE,
+    OPEN,
 }
 
 export enum ClassModifier {
@@ -607,12 +608,15 @@ export abstract class LanguageWriter {
     writeExpressionStatements(...statements: LanguageExpression[]) {
         statements.forEach(it => this.writeExpressionStatement(it))
     }
-    writeStaticBlock(op: (writer: this) => void) {
-        this.print("static {")
+    writePrefixedBlock(prefix: string, op: (writer: this) => void) {
+        this.print(`${prefix} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.print("}")
+    }
+    writeStaticInitBlock(op: (writer: this) => void) {
+        this.writePrefixedBlock("static", op)
     }
     makeRef(type: idl.IDLType, _options?: MakeRefOptions): idl.IDLType {
         return type
@@ -824,7 +828,7 @@ export abstract class LanguageWriter {
     makeCallIsObject(value: string): LanguageExpression {
         return this.makeString(`typeof ${value} === "object"`)
     }
-    makeStaticBlock(op: (writer: LanguageWriter) => void) {
+    writeStaticEntitiesBlock(op: (writer: LanguageWriter) => void) {
         op(this)
     }
     instanceOf(value: string, type: idl.IDLType): LanguageExpression {

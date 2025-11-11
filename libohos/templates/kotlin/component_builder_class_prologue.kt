@@ -1,0 +1,1 @@
+public open class ArkUIBuilderNode(val node: ComponentBase) {

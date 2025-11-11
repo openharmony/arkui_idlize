@@ -1,16 +1,13 @@
 package arkui.component;
 
-[Entity=Class]
-interface DrawContext {
-    void test();
-};
+interface DrawContext {};
 [Synthetic]
 callback Callback_DrawContext_Void = void (DrawContext drawContext);
 [Entity=Class]
 interface DrawModifier {
     [Optional]
     attribute Callback_DrawContext_Void drawBehind;
-    void test();
+    constructor();
 };
 
 dictionary ColorMode {

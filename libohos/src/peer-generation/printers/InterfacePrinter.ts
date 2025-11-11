@@ -1178,6 +1178,10 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             || (idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
+    protected getDeclConvertor(writer: LanguageWriter, seenInterfaceNames: Set<string>, library: PeerLibrary): KotlinDeclarationConvertor {
+        return new KotlinDeclarationConvertor(writer, seenInterfaceNames, library)
+    }
+
     printInterfaces(): PrinterResult[] {
         const moduleToEntries = new Map<string, idl.IDLEntry[]>()
         const moduleToTypes = new Map<string, idl.IDLUnionType[]>()
@@ -1230,7 +1234,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
 
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const printVisitor = new KotlinDeclarationConvertor(writer, seenNames, this.peerLibrary)
+                const printVisitor = this.getDeclConvertor(writer, seenNames, this.peerLibrary)
                 convertDeclaration(printVisitor, entry)
 
                 result.push({
@@ -1256,7 +1260,7 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
                 // TBD: add primitives like Buffer to the with the dependecy collector
                 imports.addFeature({ feature: "NativeBuffer", module: "koalaui.interop" })
 
-                const printVisitor = new KotlinDeclarationConvertor(writer, seenNames, this.peerLibrary)
+                const printVisitor = this.getDeclConvertor(writer, seenNames, this.peerLibrary)
                 printVisitor.makeUnion(writer, entry)
 
                 const unionTypedef = idl.createTypedef(nameConvertor.convert(entry), entry)
@@ -1298,7 +1302,7 @@ class KotlinSyntheticGenerator extends DependenciesCollector {
     }
 }
 
-class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
+export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     static seenSynteticUnions: Set<String> = new Set<String>()
     constructor(
         protected readonly writer: LanguageWriter,

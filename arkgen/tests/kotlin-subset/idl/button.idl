@@ -17,9 +17,9 @@ interface ButtonOptions {
 [Entity=Interface]
 interface ButtonInterface {
     [CallSignature]
-    ButtonAttribute invoke();
+    ButtonAttribute invoke(ResourceStr label, optional ButtonOptions options);
     [CallSignature]
-    ButtonAttribute invoke(ButtonOptions options);
+    ButtonAttribute invoke(optional ButtonOptions options);
 };
 [Entity=Class, Component="Button"]
 interface ButtonAttribute: [Extends, TypeArguments="ButtonAttribute"] CommonMethod {

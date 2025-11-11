@@ -436,7 +436,7 @@ export class OverloadsPrinter {
                 this.printer.writeMethodCall(receiver, methodName, argsNames, !isStatic)
             }
             if (peerMethod.isCallSignature) {
-                this.printer.print(`this.applyOptionsFinish('${peer}');`)
+                this.printer.writeMethodCall("this", "applyOptionsFinish", [`"${peer}"`])
             }
             this.printer.writeStatement(this.printer.makeReturn(this.printer.makeThis()))
         } else if (collapsedMethod.signature.returnType === idl.IDLVoidType) {

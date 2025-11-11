@@ -114,7 +114,7 @@ export class KotlinEnumWithGetter implements LanguageStatement {
         let mangledName = removePoints(idl.getQualifiedName(this.enumEntity, 'namespace.name'))
         writer.writeClass(mangledName, () => {
             const enumType = idl.createReferenceType(this.enumEntity)
-            writer.makeStaticBlock(() => {
+            writer.writeStaticEntitiesBlock(() => {
                 members.forEach(it => {
                     writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
                         writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
@@ -282,11 +282,11 @@ export class KotlinLanguageWriter extends LanguageWriter {
         isAbstract?: boolean
     ): void {
         let extendsClause = superClass ? `${superClass}` : undefined
-        let implementsClause = interfaces ? `${interfaces.join(' , ')}` : undefined
+        let implementsClause = interfaces ? `${interfaces.join(', ')}` : undefined
         let inheritancePart = [extendsClause, implementsClause]
             .filter(isDefined)
-            .join(' , ')
-        inheritancePart = inheritancePart.length != 0 ? ' : '.concat(inheritancePart) : ''
+            .join(', ')
+        inheritancePart = inheritancePart.length != 0 ? ': '.concat(inheritancePart) : ''
         this.printer.print(`public open class ${name}${inheritancePart} {`)
         this.pushIndent()
         op(this)
@@ -621,7 +621,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         throw new Error("Not implemented")
     }
     get supportedModifiers(): MethodModifier[] {
-        return [MethodModifier.PUBLIC, MethodModifier.PRIVATE, MethodModifier.OVERRIDE]
+        return [MethodModifier.PUBLIC, MethodModifier.PROTECTED, MethodModifier.PRIVATE, MethodModifier.OVERRIDE, MethodModifier.OPEN]
     }
     get supportedFieldModifiers(): FieldModifier[] {
         return [FieldModifier.PUBLIC, FieldModifier.PRIVATE, FieldModifier.PROTECTED, FieldModifier.READONLY, FieldModifier.OVERRIDE]
@@ -650,12 +650,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
     escapeKeyword(keyword: string): string {
         return keyword
     }
-    makeStaticBlock(op: (writer: LanguageWriter) => void) {
-        this.printer.print('companion object {')
-        this.printer.pushIndent()
-        op(this)
-        this.popIndent()
-        this.printer.print('}')
+    writeStaticEntitiesBlock(op: (writer: LanguageWriter) => void) {
+        this.writePrefixedBlock("companion object", op)
     }
     pushNamespace(namespace: string, options: NamespaceOptions) {}
     popNamespace(options: { ident: boolean }) {}

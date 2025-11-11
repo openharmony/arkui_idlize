@@ -2,8 +2,8 @@ package arkui.component;
 
 [Entity=Interface]
 interface BaseEvent {
+    constructor();
     attribute number timestamp;
-    void test();
 };
 [Entity=Interface]
 interface ClickEvent: BaseEvent {
@@ -19,4 +19,5 @@ interface CommonMethod {
     this height(Length value);
     this onClick(optional Callback_ClickEvent_Void event);
     this onClick(optional Callback_ClickEvent_Void event, optional f64 distanceThreshold);
+    this backgroundColor(optional (ResourceColor or ColorMetrics) color);
 };

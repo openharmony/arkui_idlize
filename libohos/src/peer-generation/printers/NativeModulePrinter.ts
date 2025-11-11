@@ -415,7 +415,7 @@ function printNativeModuleRegistration(language: Language, module: NativeModuleT
             })
             break
         case Language.ARKTS:
-            content.writeStaticBlock(writer => {
+            content.writeStaticInitBlock(writer => {
                 writer.print(`loadNativeModuleLibrary("${module.name}")`)
             })
             break
@@ -449,7 +449,7 @@ export function printPredefinedNativeModule(library: PeerLibrary, module: Native
     if (file instanceof TsSourceFile || file instanceof ArkTSSourceFile || file instanceof KotlinSourceFile)
         collectNativeModuleImports(module, file.imports, library)
     file.content.writeClass(module.name, writer => {
-        writer.makeStaticBlock((writer) => {
+        writer.writeStaticEntitiesBlock((writer) => {
             printNativeModuleRegistration(language, module, file.content)
             writer.concat(visitor.nativeModule)
             const maybeTemplate = maybeReadLangTemplate(`${module.name}_functions`, language)
@@ -499,7 +499,7 @@ export function createGeneratedNativeModulePrinter(module: NativeModuleType, mor
                 })
             }
             content.writeClass(module.name, writer => {
-                content.makeStaticBlock(() => {
+                content.writeStaticEntitiesBlock(() => {
                     printNativeModuleRegistration(library.language, module, content)
                     more?.(writer)
                     writer.concat(visitor.nativeModule)

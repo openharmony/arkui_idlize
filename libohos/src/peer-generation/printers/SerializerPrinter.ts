@@ -305,7 +305,7 @@ class SerializerPrinter {
                 writer.changeModeTo('detached')
             }
             writer.writeClass(className, writer => {
-                writer.makeStaticBlock(() => {
+                writer.writeStaticEntitiesBlock(() => {
                     if (idl.isInterface(target)) {
                         this.generateInterfaceSerializer(writer, imports, target)
                         this.generateInterfaceDeserializer(writer, imports, target)

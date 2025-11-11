@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
+import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinDeclarationConvertor, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
 import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
@@ -140,6 +140,44 @@ class ArkoalaArkTSInterfacesVisitor extends ArkTSInterfacesVisitor {
     }
 }
 
+class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
+    protected printComponent(idlInterface: idl.IDLInterface): stringOrNone[] {
+        const component = findComponentByDeclaration(this.peerLibrary, idlInterface)
+        if (idlInterface !== component?.attributeDeclaration)
+            return []
+        const peer = collectPeers(this.peerLibrary).find(it => it.componentName === component.name)
+        if (!peer) throw new Error(`Peer for component ${component.name} was not found`)
+
+        const printer = this.peerLibrary.createLanguageWriter()
+        const componentInterface = peer.originalClassName!
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
+        const superNames = idlInterface.inheritance
+        printer.writeInterface(componentInterface, writer => {
+            for (const peerMethod of peer.methods) {
+                const peerSig = peerMethod.method.signature as NamedMethodSignature
+                const returnType = peerSig.returnType === idl.IDLThisType ? idl.createReferenceType(peer.decl) : peerSig.returnType
+                const componentMethodSignature = new NamedMethodSignature(returnType, peerSig.args, peerSig.argsNames,
+                    peerSig.defaults, peerSig.argsModifiers, peerSig.printHints)
+                writer.writeMethodDeclaration(peerMethod.method.name, componentMethodSignature)
+            }
+        }, superNames ? superNames.map(it => nameConvertor.convert(it)) : undefined)
+        return printer.getOutput()
+    }
+    convertInterface(node: idl.IDLInterface) {
+        if (isComponentDeclaration(this.peerLibrary, node)) {
+            this.writer.writeLines(this.printComponent(node).join("\n"))
+            return
+        }
+        return super.convertInterface(node)
+    }
+}
+
+class ArkoalaKotlinInterfacesVisitor extends KotlinInterfacesVisitor {
+    protected override getDeclConvertor(writer: LanguageWriter, seenInterfaceNames: Set<string>, library: PeerLibrary): KotlinDeclarationConvertor {
+        return new ArkoalaKotlinDeclarationConvertor(writer, seenInterfaceNames, library)
+    }
+}
+
 function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): InterfacesVisitor {
     if (peerLibrary.language == Language.TS) {
         return new ArkoalaTSInterfacesVisitor(peerLibrary, true)
@@ -151,7 +189,7 @@ function getVisitor(peerLibrary: PeerLibrary, isDeclarations: boolean): Interfac
         return new CJInterfacesVisitor(peerLibrary)
     }
     if (peerLibrary.language == Language.KOTLIN) {
-        return new KotlinInterfacesVisitor(peerLibrary)
+        return new ArkoalaKotlinInterfacesVisitor(peerLibrary)
     }
     throw new Error(`Need to implement InterfacesVisitor for ${peerLibrary.language} language`)
 }

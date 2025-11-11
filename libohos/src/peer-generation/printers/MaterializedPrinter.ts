@@ -387,7 +387,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             superInterfaces = [superClassName]
         }
         writer.writeInterface(this.mangle(decl.name), () => {
-            writer.makeStaticBlock(() => {
+            writer.writeStaticEntitiesBlock(() => {
                 for (const p of decl.properties.filter(p => p.isStatic)) {
                     const modifiers: FieldModifier[] = []
                     if (p.isReadonly) modifiers.push(FieldModifier.READONLY)
@@ -487,7 +487,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             printer.writeClass(
                 getInternalClassName(clazz.className),
                 (writer) => {
-                    writer.makeStaticBlock(() => {
+                    writer.writeStaticEntitiesBlock(() => {
                         this.writeFromPtrMethod(clazz, writer, this.maxCtorParams, classTypeParameters)
                     })
                 },
@@ -527,7 +527,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 return method.isStatic
             }
             const nonStaticMethodsFilter: MethodFilter = method => !staticMethodsFilter(method)
-            writer.makeStaticBlock(() => {
+            writer.writeStaticEntitiesBlock(() => {
                 if (allowsOverloads(this.library.language)) {
                     for (const ctor of clazz.ctors) {
                         const pointerType = IDLPointerType
