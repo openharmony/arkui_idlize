@@ -872,12 +872,20 @@
             }
         },
         "CanvasRenderingContext2D": {
-            "on": {
-                "hookName": "hookOn",
+            "onAttach": {
+                "hookName": "registerAttach",
                 "replaceImplementation": false
             },
-            "off": {
-                "hookName": "hookOff",
+            "offAttach": {
+                "hookName": "unregisterAttach",
+                "replaceImplementation": false
+            },
+            "onDetach": {
+                "hookName": "registerDetach",
+                "replaceImplementation": false
+            },
+            "offDetach": {
+                "hookName": "unregisterDetach",
                 "replaceImplementation": false
             },
             "startImageAnalyzer": {
