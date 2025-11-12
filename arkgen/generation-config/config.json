@@ -981,7 +981,8 @@
         "TestCallIntRecursiveCallback",
         "TestCallIntMemory",
         "arkui.component.idlize.BuilderNodeOps.create",
-        "arkui.component.idlize.WebInterface.setWebOptions"
+        "arkui.component.idlize.AnimationExtender.AnimateToImmediatelyImpl",
+        "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl"
     ],
     "moduleName": "arkui",
     "modules": {
