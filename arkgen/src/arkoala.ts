@@ -226,29 +226,6 @@ export function generateArkoalaFromIdl(config: {
             ],
             { customLayout: new LayoutManager(new ArkTSComponentsLayout(peerLibrary)) }
         )
-        if (peerLibrary.useMemoM3) {
-            peerLibrary.withFileLayout(new ArkTsLayout(peerLibrary, 'Ark', true), () => {
-                const installed = install(
-                    arkoala.managedSdkDir,
-                    peerLibrary,
-                    [
-                        createInterfacePrinter(true),
-                        printComponentsDeclarations,
-                    ],
-                    {
-                        isDeclared: true,
-                    }
-                )
-                writeFile(
-                    path.join(arkoala.managedSdkDir, 'framework', 'index' + peerLibrary.language.extension),
-                    makeArkuiModule(installed, path.join(arkoala.managedSdkDir, 'framework')),
-                    {
-                        onlyIntegrated: config.onlyIntegrated,
-                        integrated: true
-                    }
-                )
-            })
-        }
     }
 
 

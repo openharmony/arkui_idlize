@@ -123,6 +123,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
         if (this.options.attributeModifierHooks)
             imports.addFeature(`hook${component.name}AttributeModifier`, HandwrittenModule(this.library.language))
+        collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('CommonMethod')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
         if (!this.options.isDeclared) {

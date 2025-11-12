@@ -64,7 +64,6 @@ function m3(sdkPathInput: string, installPath: string, options: M3Options) {
         language: options.language,
         optionsFile: arkuiConfig,
         idlPath: scrapedIDLs,
-        componentNamedOverloads: options.componentNamedOverloads,
     })
 
     if (formatArkts({
@@ -102,7 +101,6 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
         optionsFile: arkuiConfig,
         idlPath: scrapedIDLs,
         trackerStatus: trackerStatus,
-        componentNamedOverloads: false,
     })
     commands.install({sourceDir: peersPath, installPath})
 }
