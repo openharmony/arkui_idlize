@@ -239,7 +239,9 @@ interface NodeContainerOps {
     static void setOnAttach(pointer self, Callback_Void value);
     static void setOnDetach(pointer self, Callback_Void value);
     static void setOnDestoryEvent(pointer self, Callback_OnDestory_Void value);
+    static void setOnTouchEvent(pointer self, optional NodeContainerOpsOnTouchCallback value);
 };
+callback NodeContainerOpsOnTouchCallback = void (TouchEvent event);
 callback Callback_Size_Void = void (Size size);
 callback Callback_OnDestory_Void = void (i64 nodeId);
 

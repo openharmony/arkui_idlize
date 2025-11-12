@@ -16,7 +16,6 @@
     "tsLikePackages": {
         "arkui.RenderNode": "@arkui.RenderNode",
         "arkui.FrameNode": "@arkui.FrameNode",
-        "arkui.NodeController": "@arkui.NodeController",
         "arkui.ComponentContent": "@arkui.ComponentContent",
         "arkui.Content": "@arkui.Content",
         "arkui": "@ohos.arkui.component"
