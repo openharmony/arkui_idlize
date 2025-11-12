@@ -639,7 +639,11 @@ class IDLVisitor extends arkts.AbstractVisitor {
         let extendedAttributes = this.traceAttrs()
         let result = idl.createEnum(name, [], { extendedAttributes })
         let currentValue = 0
-        let enumNames = nameEnumValues(node.members.map(it => (it as arkts.TSEnumMember).name))
+        let enumNames = nameEnumValues(node.members
+            .map(it => (it as arkts.TSEnumMember).name)
+            // TBD: Woraround for Number enum member
+            .map(it => fixEnumMemberName(it))
+        )
         result.elements =
             node.members.map((it, index) => this.processNode((it, index) => {
                 let element = (it as arkts.TSEnumMember)
@@ -652,7 +656,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
                 }
                 let extendedAttributes: idl.IDLExtendedAttribute[] = this.traceAttrs()
                 if (enumNames[index] != element.name) {
-                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: element.name })
+                    extendedAttributes.push({ name: idl.IDLExtendedAttributes.OriginalEnumMemberName, value: fixEnumMemberName(element.name, true) })
                 }
                 return idl.createEnumMember(enumNames[index], result, type, value, { extendedAttributes })
             }, it, index))
@@ -1840,4 +1844,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
         console.error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
         return [idl.IDLAnyType, undefined]
     }
+}
+
+function fixEnumMemberName(name: string, original: boolean = false): string {
+    return name == "*ERROR_LITERAL*" ? (original ? "RenamedNumber" : "RENAMED_NUMBER") : name
 }

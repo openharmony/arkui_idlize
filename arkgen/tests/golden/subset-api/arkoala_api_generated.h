@@ -2869,7 +2869,7 @@ typedef struct Opt_ImageSpanAlignment {
 } Opt_ImageSpanAlignment;
 typedef enum Ark_InputType {
     ARK_INPUT_TYPE_NORMAL = 0,
-    ARK_INPUT_TYPE_NUMBER = 1,
+    ARK_INPUT_TYPE_RENAMED_NUMBER = 1,
     ARK_INPUT_TYPE_PHONE_NUMBER = 2,
     ARK_INPUT_TYPE_EMAIL = 3,
     ARK_INPUT_TYPE_PASSWORD = 4,

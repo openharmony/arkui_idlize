@@ -87,7 +87,9 @@ declare enum InputType {
    * @atomicservice
    * @since 11
    */
-  Number,
+  // Fix *ERROR_LITERAL* dring enum member Number parsing
+  // Number,
+  RenamedNumber,
 
   /**
    * Phone number entry mode.
