@@ -3,7 +3,8 @@ package arkui.component.idlize;
 import arkui.component.units;
 import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
-import global.resource.Resource as Resource; 
+import global.resource.Resource as Resource;
+import ohos.arkui.observer.default as observer;
 
 callback Callback_RangeUpdate = void (i32 start, i32 end);
 callback Callback_CreateItem = pointer (i32 index);
@@ -22,6 +23,12 @@ interface LazyForEachOps {
 interface LengthMetricsCustom {
     attribute number unit;
     attribute number value;
+};
+
+[Entity=Class]
+interface UIContextGetInfo {
+    static (observer.NavigationInfo or undefined) getNavigationInfoByUniqueId(i32 id);
+    static void enableSwipeBack((boolean or undefined) enabled);
 };
 
 [Entity=Class]
