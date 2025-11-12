@@ -16,7 +16,7 @@ import("../gn/import/npm.gni")
 npm_cmd("compile") {
     deps = [
         "../core:compile",
-        "${koala_mr.libarkts_path}:libarkts_copy"
+        "${koala_mr.root_path}/libarkts:libarkts"
     ]
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]

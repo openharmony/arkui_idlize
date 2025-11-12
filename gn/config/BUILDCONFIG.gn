@@ -42,16 +42,7 @@ set_default_toolchain("//gn/toolchain:clang")
 
 koala_mr = {
     root_path = "//external"
-    scripts_path = "$root_path/gn/script"
-    imports_prefix = "$root_path/gn/import"
-    ui2abc_path = "$root_path/ui2abc"
-    libarkts_path = "$root_path/libarkts"
-    fast_arktsc_path = "$root_path/fast-arktsc"
-    incremental_path = "$root_path/incremental"
-    panda_sdk_path = "$incremental_path/tools/panda/node_modules/@panda/sdk"
-    es2panda_path = "$panda_sdk_path/ohos_arm64/include/tools/es2panda"
-    interop_path = "$root_path/interop"
-    arkoala_arkts_path = "$root_path/arkoala-arkts"
+    panda_sdk_path = "$root_path/incremental/tools/panda/node_modules/@panda/sdk"
     is_rri = true
 }
 

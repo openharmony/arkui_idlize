@@ -288,6 +288,8 @@ export class CXXPrinter {
               this.p.put(' ', '=', ' ', '{')
               closer = '}'
             } else if (utils.hasHint(statement.expression, std.names.hints.stackInstance)) {
+              this.p.put(' ', '=', ' ')
+              this.printAbstractType(statement.varType)
               this.p.put('(')
               closer = ')'
             }

@@ -163,7 +163,6 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     ]).peer
     if (!arkts.global.configIsInitialized()) throw new Error(`Wrong config: path=${etsConfigPath}`);
     arkts.arktsGlobal.compilerContext = arkts.Context.createContextGenerateAbcForExternalSourceFiles(inputFiles)
-    arkts.global.isContextGenerateAbcForExternalSourceFiles = true;
     const options = arkts.Options.createOptions(new arkts.Config(arkts.global.config));
     arkts.global.arktsconfig = options.getArkTsConfig();
 

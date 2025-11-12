@@ -106,7 +106,7 @@ template("system_test") {
         args = [ test_case ]
         deps = [
             ":$test_case:generate",
-            "${koala_mr.libarkts_path}:libarkts_copy",
+            "${koala_mr.root_path}/libarkts:libarkts",
         ]
     }
 

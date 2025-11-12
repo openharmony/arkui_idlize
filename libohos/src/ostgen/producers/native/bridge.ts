@@ -67,7 +67,7 @@ export const functionBridgeProducer = createSpecialProducer(
           if (interopReturnType === Ts.prim.interopReturnBuffer) {
             body
               .decl('returnBuffer').valueExpr(apiCall).$()
-              .decl('returnSerializer', T.c('SerializerBase')).value().ctor().asStruct().$().$().$()
+              .decl('returnSerializer', T.c('SerializerBase')).value().ctor().stack().$().$().$()
               .statements([returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true)])
               .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
           } else {

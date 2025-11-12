@@ -15,7 +15,6 @@ workflow:
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  PANDA_SDK_VERSION: "next"
 
 default:
   cache:
