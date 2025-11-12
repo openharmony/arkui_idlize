@@ -308,6 +308,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const privateMethod = method.getPrivateMethod(true)
         returnType = returnType ?? privateMethod.tsReturnType()
+        returnType = returnType && idl.isTypeParameterType(returnType) ? idl.IDLVoidType : returnType
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
         writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
@@ -443,10 +444,12 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
         this.printImports()
 
-        let superClassName = generifiedTypeName(clazz.superClass, getSuperName(clazz, this.library))
-        if (!superClassName && printer.language == Language.JAVA) {
-            superClassName = clazz.isStaticMaterialized ? ARK_OBJECTBASE : ARK_MATERIALIZEDBASE
+        var superClassName: string | undefined = undefined
+        if (clazz.superClass) {
+            const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
+            superClassName = generifiedTypeName(clazz.superClass, nameConvertor, getSuperName(clazz, this.library))
         }
+
         const interfaces: string[] = clazz.isStaticMaterialized ? [] : ["MaterializedBase"]
         if (clazz.interfaces) {
             interfaces.push(

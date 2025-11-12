@@ -156,9 +156,9 @@ export class ModifierVisitor {
         private isDummy: boolean = false
     ) { }
 
-    printDummyImplFunctionBody(context: idl.IDLInterface, method: PeerMethod) {
+    printDummyImplFunctionBody(context: idl.IDLInterface, method: PeerMethod, returnType?: idl.IDLType) {
         let _ = this.dummy
-        const returnType = method.returnType
+        returnType = returnType ?? method.returnType
         const isVoid = this.returnTypeConvertor.isVoid(returnType)
         const returnValueConvertor = new ReturnValueConvertor(this.returnTypeConvertor, this.library)
         const returnValue = isVoid
@@ -185,15 +185,15 @@ export class ModifierVisitor {
         if (method.sig.name == PeerMethodSignature.CTOR) {
             _.writeStatement(this.makeConstructReturnStatement(_, context, method))
         } else {
-            this.printReturnStatement(this.dummy, method, true, returnValue)
+            this.printReturnStatement(this.dummy, method, returnType, true, returnValue)
         }
     }
 
-    printModifierImplFunctionBody(method: PeerMethod, clazz: PeerClass | undefined = undefined) {
+    printModifierImplFunctionBody(method: PeerMethod, returnType?: idl.IDLType, clazz: PeerClass | undefined = undefined) {
         if (!this.isDummy) {
             this.printBodyImplementation(this.real, method, clazz)
         }
-        this.printReturnStatement(this.real, method)
+        this.printReturnStatement(this.real, method, returnType)
     }
 
     private makeConstructReturnStatement(printer: LanguageWriter, context: idl.IDLInterface, method: PeerMethod): LanguageStatement {
@@ -205,8 +205,8 @@ export class ModifierVisitor {
         throw new Error("Unknown receiver type for constructor creation")
     }
 
-    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, isDummy?: boolean, returnValue: string | undefined = undefined) {
-        const isVoid = this.returnTypeConvertor.isVoid(method.returnType)
+    private printReturnStatement(printer: LanguageWriter, method: PeerMethod, returnType?: idl.IDLType, isDummy?: boolean, returnValue: string | undefined = undefined) {
+        const isVoid = this.returnTypeConvertor.isVoid(returnType ?? method.returnType)
         if (isDummy) {
             if (returnValue) {
                 printer.print(`return ${returnValue};`)
@@ -294,10 +294,10 @@ export class ModifierVisitor {
         }
     }
 
-    printMethodProlog(printer: LanguageWriter, method: PeerMethod) {
+    printMethodProlog(printer: LanguageWriter, method: PeerMethod, returnType?: idl.IDLType) {
         const apiParameters = generateCapiParameters(this.library, method,
             this.library.createTypeNameConvertor(Language.CPP))
-        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(method.returnType), peerImplName(method), apiParameters)
+        printMethodDeclaration(printer.printer, this.returnTypeConvertor.convert(returnType ?? method.returnType), peerImplName(method), apiParameters)
         printer.print("{")
         printer.pushIndent()
     }
@@ -316,7 +316,7 @@ export class ModifierVisitor {
         }
         this.modifiers.print(`${peerParentNamespaceName(this.library, context, method)}::${peerImplName(method)},`)
         this.printMethodProlog(this.real, method)
-        this.printModifierImplFunctionBody(method, clazz)
+        this.printModifierImplFunctionBody(method, method.returnType, clazz)
         this.printMethodEpilog(this.real)
         if (!peerGeneratorConfiguration().noDummyGeneration(clazz.componentName, method.sig.name)) {
             this.printMethodProlog(this.dummy, method)
@@ -428,10 +428,11 @@ class AccessorVisitor extends ModifierVisitor {
             if (hookMethod && hookMethod.replaceImplementation) {
                 return;
             }
+            const returnType = idl.isTypeParameterType(method.returnType) ? idl.IDLVoidType : method.returnType
             this.accessors.print(`${namespaceName}::${peerImplName(method)},`)
-            this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m))
+            this.printMaterializedMethod(this.real, method, m => this.printModifierImplFunctionBody(m, returnType), returnType)
             if (!peerGeneratorConfiguration().noDummyGeneration(clazz.className, method.sig.name)) {
-                this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m))
+                this.printMaterializedMethod(this.dummy, method, m => this.printDummyImplFunctionBody(clazz.decl, m, returnType), returnType)
             }
         })
         this.popNamespace(namespaceName, false)
@@ -462,8 +463,8 @@ class AccessorVisitor extends ModifierVisitor {
         this.getterDeclarations.print(`const ${accessorType}* Get${className}();`)
     }
 
-    printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void) {
-        this.printMethodProlog(printer, method)
+    printMaterializedMethod(printer: LanguageWriter, method: MaterializedMethod, printBody: (m: MaterializedMethod) => void, returnType?: idl.IDLType) {
+        this.printMethodProlog(printer, method, returnType)
         printBody(method)
         this.printMethodEpilog(printer)
     }

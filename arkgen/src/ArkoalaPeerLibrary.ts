@@ -25,7 +25,6 @@ import { ArgConvertor, CustomTypeConvertor, isMaterialized,
     ETSLanguageWriter,
     CJLanguageWriter,
     CJIDLTypeToForeignStringConvertor,
-    isBuilderClass,
     TSTypeNameConvertor,
     ETSTypeNameConvertor
 } from "@idlizer/core";
@@ -76,8 +75,7 @@ export class ArkoalaPeerLibrary extends PeerLibrary {
                 if (isMaterialized(declaration, this)) {
                     return new ArkoalaMaterializedClassConvertor(this, param, declaration)
                 }
-                if (!isBuilderClass(declaration) &&
-                    declaration.subkind === idl.IDLInterfaceSubkind.Interface)
+                if (declaration.subkind === idl.IDLInterfaceSubkind.Interface)
                 {
                     return new ArkoalaInterfaceConvertor(this, (declaration.name!), param, declaration)
                 }

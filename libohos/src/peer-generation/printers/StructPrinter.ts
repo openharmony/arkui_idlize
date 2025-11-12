@@ -19,7 +19,6 @@ import {
     Language,
     camelCaseToUpperSnakeCase,
     isMaterialized,
-    isBuilderClass,
     isImportAttr,
     isStringEnum,
     generatorConfiguration,
@@ -564,7 +563,6 @@ export function collectProperties(decl: idl.IDLInterface, library: LibraryInterf
     return [
         ...superProps,
         ...decl.properties,
-        ...collectBuilderProperties(decl, library)
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
 }
 
@@ -576,7 +574,6 @@ export function collectAllProperties(decl: idl.IDLInterface, library: LibraryInt
             [
                 ...(superDecls ? superDecls.map(decl => collectAllProperties(decl as idl.IDLInterface, library)).flat() : Array()),
                 ...decl.properties,
-                ...collectBuilderProperties(decl, library)
             ]
         )
     ].filter(it => !it.isStatic && !idl.hasExtAttribute(it, idl.IDLExtendedAttributes.CommonMethod))
@@ -605,30 +602,6 @@ function groupProps(properties: NameWithType[]): NameWithType[] {
         result.push(new NameWithType(name, type))
     }
     return result
-}
-
-function collectBuilderProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    if (!isBuilderClass(decl)) {
-        return []
-    }
-    return groupProps([
-        ...decl.constructors
-            .flatMap(cons =>
-                cons.parameters.map(param => new NameWithType(param.name, param.type!))),
-        ...decl.methods
-            .filter(m => !m.isStatic && m.parameters.length === 1)
-            .map(m => new NameWithType(m.name, m.parameters[0].type!))
-    ])
-        .map(it => {
-            return {
-                kind: idl.IDLKind.Property,
-                name: "_" + it.name,
-                type: it.type,
-                isReadonly: false,
-                isStatic: false,
-                isOptional: true
-            } as idl.IDLProperty
-        })
 }
 
 export function distinctValues<T>(arr: Array<T>) {
