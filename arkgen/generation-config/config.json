@@ -455,6 +455,8 @@
         ]
     },
     "forceResource": [
+        "ExtendableComponent",
+        "LifeCycle",
         "ComponentContent",
         "ContentModifier",
         "ComponentContentBase",
@@ -598,6 +600,7 @@
             "CustomNode"
         ],
         "handWritten": [
+            "LifeCycle",
             "ExtendableComponent",
             "ComponentContent",
             "LocalStorage",
