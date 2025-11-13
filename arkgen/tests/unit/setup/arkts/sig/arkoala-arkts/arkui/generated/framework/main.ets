@@ -23,6 +23,8 @@ import {
     ArkCheckHooksComponent,
     ArkCheckExceptionPeer,
     ArkCheckExceptionComponent,
+    ArkCheckOptionalPeer,
+    ArkCheckOptionalComponent,
 } from "@arkoala/arkui"
 
 import { InteropNativeModule } from "@koalaui/interop"
@@ -89,7 +91,53 @@ function checkExceptions() {
     const comp = new ArkCheckExceptionComponent()
     comp.setPeer(peer)
     checkResult("exception test", () => comp.methodThrowException(123),
-        `setMethodThrowException(VMContext, {.tag=102, .i32=123})`)
+        `setMethodThrowException(VMContext_Not_NULL, {.tag=102, .i32=123})`)
+}
+
+function checkOptional() {
+    const peer = ArkCheckOptionalPeer.create()
+    const comp = new ArkCheckOptionalComponent()
+    comp.setPeer(peer)
+
+    checkResult("boolean true", () => comp.propBoolean(true),
+        `setPropBoolean(true)`)
+    checkResult("boolean false", () => comp.propBoolean(false),
+        `setPropBoolean(false)`)
+    checkResult("optional boolean true", () => comp.propBooleanOptional(true),
+        `setPropBooleanOptional({.tag=INTEROP_TAG_OBJECT, .value=true})`)
+    checkResult("optional boolean false", () => comp.propBooleanOptional(false),
+        `setPropBooleanOptional({.tag=INTEROP_TAG_OBJECT, .value=false})`)
+    checkResult("optional boolean undefined", () => comp.propBooleanOptional(undefined),
+        `setPropBooleanOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
+
+
+    checkResult("number positive", () => comp.propNumber(111),
+        `setPropNumber({.tag=102, .i32=111})`)
+    checkResult("number negative", () => comp.propNumber(-111),
+        `setPropNumber({.tag=102, .i32=-111})`)
+    checkResult("optional number", () => comp.propNumberOptional(222),
+        `setPropNumberOptional({.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=222}})`)
+    checkResult("optional number undefined", () => comp.propNumberOptional(undefined),
+        `setPropNumberOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
+
+    checkResult("string", () => comp.propString("abc"),
+        `setPropString({.chars="abc", .length=3})`)
+    checkResult("string empty", () => comp.propString(""),
+        `setPropString({.chars="", .length=0})`)
+    checkResult("optional string", () => comp.propStringOptional("defgh"),
+        `setPropStringOptional({.tag=INTEROP_TAG_OBJECT, .value={.chars="defgh", .length=5}})`)
+    checkResult("optional string undefined", () => comp.propStringOptional(undefined),
+        `setPropStringOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
+
+    checkResult("method", () => comp.method(true, 555, "i"),
+        `setMethod(true, {.tag=102, .i32=555}, {.chars="i", .length=1})`)
+    checkResult("method ", () => comp.method(false, -555, "jk"),
+        `setMethod(false, {.tag=102, .i32=-555}, {.chars="jk", .length=2})`)
+    checkResult("method optional", () => comp.methodOptional(true, 777, "lmn"),
+        `setMethodOptional(true, {.tag=102, .i32=777}, {.chars="lmn", .length=3})`)
+    // TBD: fix optional method params
+    // checkResult("method optional undefined", () => comp.methodOptional(undefined, undefined, undefined),
+    //     ``)
 }
 
 export function main(): void {
@@ -98,6 +146,7 @@ export function main(): void {
     checkDatebook()
     checkHooks()
     checkExceptions()
+    checkOptional()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

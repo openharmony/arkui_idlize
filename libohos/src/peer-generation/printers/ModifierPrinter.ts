@@ -191,7 +191,7 @@ export class ModifierVisitor {
         const decl = method.decl
         const withVMContext = decl && idl.isMethod(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Throws)
         if (withVMContext) {
-            _.print(`out.append("VMContext");`)
+            _.print(`out.append(vmContext == NULL ? "VMContext_NULL" : "VMContext_Not_NULL");`)
         }
         method.argAndOutConvertors(this.library).forEach((argConvertor, index) => {
             if (index > 0 || withVMContext) this.dummy.print(`out.append(", ");`)

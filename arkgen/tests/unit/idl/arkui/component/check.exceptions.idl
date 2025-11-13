@@ -1,4 +1,4 @@
-package arkui.component.check.hooks;
+package arkui.component.check.exeception;
 
 [Component]
 interface CheckExceptionAttribute: Root {
