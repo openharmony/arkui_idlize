@@ -39,6 +39,10 @@ export class Config {
         return `Const`
     }
 
+    static get ptrPostfix(): string {
+        return `Ptr`
+    }
+
     static get nodeTypeAttribute(): string {
         return `Es2pandaAstNodeType`
     }

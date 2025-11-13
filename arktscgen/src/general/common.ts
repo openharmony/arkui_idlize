@@ -21,6 +21,7 @@ import { dropPostfix, dropPrefix, pascalToCamel } from "../utils/string"
 
 export function peerMethod(name: string): string {
     name = dropPostfix(name, Config.constPostfix)
+    name = dropPostfix(name, Config.ptrPostfix)
     name = dropPrefix(name, Config.uselessPrefix)
     name = pascalToCamel(name)
     return name
