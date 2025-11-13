@@ -25,7 +25,7 @@ import {
     IDLType,
     IDLUndefinedType,
     IDLVoidType,
-    isOptionalType,
+    isInterface,
     isParameter,
     isReferenceType,
     isVoidType,
@@ -341,9 +341,11 @@ export class PeerPrinter {
 
         const convertName = (ref: IDLReferenceType): string =>
             makeEnoughQualifiedName(ref, this.typechecker.resolveReference.bind(this.typechecker))
+        const resolvedType =
+            isReferenceType(innerType) ? this.typechecker.resolveRecursive(innerType) : innerType
 
-        return isOptionalType(returnType) && isReferenceType(innerType) ?
-            writer.makeNewObject(convertName(innerType), [nativeCall]) : nativeCall
+        return isReferenceType(innerType) && resolvedType && isInterface(resolvedType)
+            ? writer.makeNewObject(convertName(innerType), [nativeCall]) : nativeCall
     }
 
     private makeNativeObjectFactory(type: IDLReferenceType, writer: TSLanguageWriter): LanguageExpression {

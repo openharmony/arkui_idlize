@@ -24,6 +24,7 @@ import {
     IDLNode,
     IDLReferenceType,
     IDLType,
+    IDLTypedef,
     isEnum,
     isInterface,
     isNamespace,
@@ -79,6 +80,13 @@ export class Typechecker {
         }
 
         return entry
+    }
+
+    resolveRecursive(ref: IDLReferenceType): IDLNamedNode|undefined {
+        const decl = this.resolveReference(ref)
+        return decl && isTypedef(decl) && isReferenceType(decl.type)
+            ? this.resolveRecursive(decl.type)
+            : decl
     }
 
     flatParents(ref: IDLReferenceType | IDLInterface): IDLInterface[] {
