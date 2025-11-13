@@ -182,7 +182,7 @@ class GenericsTransformer extends IdlTransformer {
                 undefined,
                 idl.cloneNodeInitializer(ref)
             )
-            if (!this.resolver.resolveTypeReference(inplacedRef)) {
+            if (!this.resolver.resolveTypeReference(inplacedRef, { unresolvedOk: true })) {
                 const monomorphizedEntry = this.visit(this.monomorphizeEntry(resolved, ref.typeArguments)) as idl.IDLEntry
                 this.producer({ anchor: idl.getFQName(resolved), produced: monomorphizedEntry })
             }
