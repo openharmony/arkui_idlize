@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@idlizer/core": "2.1.10+devel",
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.19.127",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-terser": "^0.4.4",

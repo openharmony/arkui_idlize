@@ -3,7 +3,7 @@ include:
 
 .panda:
     script:
-    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
+    - PANDA_SDK_VERSION=1.5.0-dev.52462 npm run panda:sdk:install --prefix ./external/incremental/tools/panda
     - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
 
 build idlize:

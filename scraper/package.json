@@ -33,7 +33,7 @@
     "commander": "^10.0.0"
   },
   "devDependencies": {
-    "@types/node": "^18.0.0",
+    "@types/node": "^18.19.127",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@rollup/plugin-commonjs": "^26.0.1",
