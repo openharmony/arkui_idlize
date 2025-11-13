@@ -765,6 +765,10 @@
             "setImageOptions": {
                 "hookName": "hookImageSetImageOptions",
                 "replaceImplementation": false
+            },
+            "onError": {
+                "hookName": "hookImageOnError",
+                "replaceImplementation": false
             }
         },
         "LoadingProgressAttribute": {
