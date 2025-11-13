@@ -165,7 +165,7 @@ export class Typechecker {
         const isPrimitive = (returnType: IDLNode): boolean => {
             const type = isReferenceType(returnType)
                 ? this.resolveReference(returnType) ?? throwException(`Unresolved type ${returnType.name}`)
-                : node.returnType
+                : returnType
             return isPrimitiveType(type) || isEnum(type) || (isTypedef(type) && isPrimitive(type.type))
         }
 

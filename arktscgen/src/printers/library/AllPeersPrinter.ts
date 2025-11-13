@@ -60,12 +60,13 @@ export class AllPeersPrinter extends MultiFilePrinter {
         }
 
         return [this.printFile(ns.name, [ns.name], (printer: PeerPrinter, writer: TSLanguageWriter, importer: Importer): void => {
-            ns.members
+            ns.members // Is ns.* a typo or it really needed?
                 .filter(isInterface)
                 .forEach(iface => importer.addSeen(iface.name)) // Do not import classes from this namespace
 
             writer.pushNamespace(ns.name, { ident: false })
-            members.forEach(m => printer.printInterface(m, writer))
+            this.sortInterfaces(members)
+                .forEach(m => printer.printInterface(m, writer))
             writer.popNamespace({ ident: false })
         })]
     }
@@ -128,6 +129,23 @@ export class AllPeersPrinter extends MultiFilePrinter {
             return []
         }
         return visitInterfaces(this.idl)
+    }
+
+    /**
+     * Sort interfaces in order of inheritance.
+     */
+    sortInterfaces(ifaces: readonly IDLInterface[]): IDLInterface[] {
+        const sorted = [] as IDLInterface[]
+        ifaces.forEach((iface) => {
+            const parents = this.typechecker.flatParents(iface)
+            parents.reverse().forEach(p => {
+                const index = sorted.findIndex(ps => p.name === ps.name)
+                if (index === -1) {
+                    sorted.push(p)
+                }
+            })
+        })
+        return sorted
     }
 
     private makeWriter(importer: Importer): TSLanguageWriter {
