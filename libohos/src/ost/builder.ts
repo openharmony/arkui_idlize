@@ -124,13 +124,6 @@ interface DDOptions {
 }
 
 export const DD = ({ generics = [], modifiers = [] }: DDOptions) => ({
-  union: (name: string, variants: lw.UnionDeclaration['variants']): lw.UnionDeclaration => ({
-    kind: lw.LWKind.UnionDeclaration,
-    generics,
-    modifiers,
-    name,
-    variants,
-  }),
   enum: (name: string, members: lw.EnumDeclaration['members']): lw.EnumDeclaration => ({
     kind: lw.LWKind.EnumDeclaration,
     generics,

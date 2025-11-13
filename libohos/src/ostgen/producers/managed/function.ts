@@ -18,7 +18,7 @@ import { createSpecialProducer, managedName, roles } from "../common";
 import { E, S, T } from "../../../ost/builder";
 import { Builders } from "../../../ost/builders";
 import { argConvertor } from "../components/argConvertor";
-import { Md, Ts } from "../../../ost/stdlib";
+import { Md } from "../../../ost/stdlib";
 
 export const functionProducer = createSpecialProducer(
   { is: idl.isMethod, role: roles.managed },
@@ -43,8 +43,8 @@ export const functionProducer = createSpecialProducer(
           const body = [
             Builders.decl(serializerName, T.c('SerializerBase'))
               .value().call().receiverName('SerializerBase').functionName('hold').$().$().$(),
-            ...method.parameters.map(param =>
-              argConvertor(ctx, param.type).write(E.v(param.name), E.v(serializerName), false)),
+            ...method.parameters.flatMap(param =>
+              argConvertor(ctx, param.type, param.isOptional).write(E.v(param.name), E.v(serializerName), false)),
             method.returnType === idl.IDLVoidType
               ? S.e(nativeModuleCall)
               : Builders.decl('retval').valueExpr(nativeModuleCall).$(),
@@ -59,6 +59,8 @@ export const functionProducer = createSpecialProducer(
             case idl.IDLAccessorAttribute.Getter: funcDecl.modifiers.push(Md.getter()); break
             case idl.IDLAccessorAttribute.Setter: funcDecl.modifiers.push(Md.setter()); break
           }
+          if (method.isStatic)
+            funcDecl.modifiers.push(Md.static())
           if (!method.isFree) {
             const clazz = Builders.class(managedName(idl.getFQName(method.parent!))).$()
             clazz.methods = [funcDecl]

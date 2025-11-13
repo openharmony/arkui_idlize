@@ -253,9 +253,6 @@ export class CangjiePrinter {
   }
   printDeclaration(declaration: lw.LWDeclaration) {
     switch (declaration.kind) {
-      case lw.LWKind.UnionDeclaration: {
-        break
-      }
       case lw.LWKind.StructureDeclaration: {
         this.p.put('struct', ' ', declaration.name, ' ', ' {')
         this.p.inc().newline()

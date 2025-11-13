@@ -217,8 +217,10 @@ template("system_test") {
 }
 
 test_cases = [
-    { name = "huks" },
-    { name = "huks_with_class" },
+    { name = "huks"
+      use_ost = true },
+    { name = "huks_with_class"
+      use_ost = true },
     { name = "test_buffer"
       use_ost = true },
     { name = "test_fqn"
@@ -226,12 +228,14 @@ test_cases = [
     { name = "test_generic_callback"
       input_type = "dts" },
     { name = "test_modules_multilevel"
+      use_ost = true
       input_type = "dts" },
     { name = "test_modules_multilevel_property"
+      use_ost = true
       input_type = "dts" },
     { name = "test_modules_simple"
-      input_type = "dts"
-      use_ost = true },
+      use_ost = true
+      input_type = "dts" },
     { name = "test_name_collision"
       use_ost = true },
     { name = "test_package"

@@ -246,9 +246,6 @@ export class JavaPrinter {
   }
   printDeclaration(declaration: lw.LWDeclaration) {
     switch (declaration.kind) {
-      case lw.LWKind.UnionDeclaration: {
-        break
-      }
       case lw.LWKind.StructureDeclaration: {
         this.p.put('class', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()

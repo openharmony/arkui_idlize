@@ -18,11 +18,9 @@ import { enumProducer } from "./enum";
 import { constructorProducer, functionProducer } from "./function";
 import { serializerProducer } from "./serializer";
 import { structureProducer } from "./structure";
-import { unionProducer } from "./union";
 
 export const producers = {
     enumProducer,
-    unionProducer,
     structureProducer,
     functionProducer,
     constructorProducer,

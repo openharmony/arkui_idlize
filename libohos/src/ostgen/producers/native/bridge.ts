@@ -37,7 +37,7 @@ export const functionBridgeProducer = createSpecialProducer(
             { name: 'thisLength', type: Ts.prim.i32 },
           ]
           const argReads: [LWStatement[], LWExpression][] = method.parameters.map(it => {
-            const conv = argConvertor(ctx, it.type)
+            const conv = argConvertor(ctx, it.type, it.isOptional)
             const [stmts, expr] = conv.read(it.name, E.v('deserializer'), true)
             return [stmts, conv.isPointer() ? E.unary(Op.ref, expr) : expr]
           })
@@ -68,7 +68,7 @@ export const functionBridgeProducer = createSpecialProducer(
             body
               .decl('returnBuffer').valueExpr(apiCall).$()
               .decl('returnSerializer', T.c('SerializerBase')).value().ctor().stack().$().$().$()
-              .statements([returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true)])
+              .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
               .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
           } else {
             body.return(interopReturnType).valueExpr(apiCall).$()
@@ -97,7 +97,7 @@ export const constructorBridgeProducer = createSpecialProducer(
         reference: E.v(declName),
         implementationGenerator: () => {
           const funcName = (ctx.useCApi(ctor).name() as VariableExpression).name
-          const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type).interopType(true))
+          const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
           const callArgs = ctor.parameters.map(it =>
             Builders.cast(Ts.ptr(ctx.useCApi(it.type).reference())).value()
               .unary(Op.ref).valueStr(it.name).$().$().$());

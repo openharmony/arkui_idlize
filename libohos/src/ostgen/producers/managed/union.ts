@@ -15,17 +15,17 @@
 
 import { Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
-import { createSpecialProducer, roles } from "../common";
+import { createSpecialProducer } from "../common";
 
 export const unionProducer = createSpecialProducer(
-  { is: idl.isUnionType, role: roles.managed },
-  (union, ctx) => {
+  { is: idl.isUnionType },
+  (type, ctx, query) => {
     return {
       recursive: () => {
         return {
           artifact: {
             reference: Ts.union(
-              union.types.map(type => ctx.useManaged(type).reference()))
+              type.types.map(type => ctx.base.use({ node: type, role: query.role }).reference()))
           }
         }
       }

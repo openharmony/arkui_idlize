@@ -80,6 +80,7 @@ const specialTypeNames = {
     u8: '@LW.U8',
     u32: '@LW.U32',
     u64: '@LW.U64',
+    undefined: '@LW.Undefined',
     void: '@LW.Void',
 
     interopNumber: '@LW.InteropNumber',
@@ -150,6 +151,7 @@ const knownOperations = {
     dec: '--',
     postinc: '_++',
     postdec: '_--',
+    assert: '_!',
 }
 
 export const Op = knownOperations
@@ -172,6 +174,7 @@ const primitiveTypes = {
     u8: T.c(specialTypeNames.u8),
     u32: T.c(specialTypeNames.u32),
     u64: T.c(specialTypeNames.u64),
+    undefined: T.c(specialTypeNames.undefined),
     void: T.c(specialTypeNames.void),
 
     interopNumber: T.c(specialTypeNames.interopNumber),

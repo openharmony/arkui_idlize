@@ -73,14 +73,15 @@ function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterfa
     .param('serializer').type(Ts.ref(T.c('SerializerBase'))).$()
     .param('value').type(type).$()
     .block()
-      .statements(node.properties.map(prop =>
-        argConvertor(ctx, prop.type)
-          .write(E.get(E.v('value'), prop.name), E.v('serializer'), native))).$().$()
+      .statements(node.properties.flatMap(prop => [
+        Builders.decl(`${prop.name}Value`).value().access(E.v('value')).member(prop.name).$().$().$(),
+        ...argConvertor(ctx, prop.type, prop.isOptional).write(E.v(`${prop.name}Value`), E.v('serializer'), native)
+      ])).$().$()
 }
 
 function makeSerializerRead(ctx: AdvancedGeneratorContext, node: idl.IDLInterface, type: LWType, native: boolean) {
   const reads = node.properties.map(prop =>
-    argConvertor(ctx, prop.type)
+    argConvertor(ctx, prop.type, prop.isOptional)
       .read(prop.name, E.v('deserializer'), native))
   return Builders.func(makeSerializerName(node, native) + '::read')
     .param('deserializer').type(Ts.ref(T.c('DeserializerBase'))).$()

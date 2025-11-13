@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-import { D, lw } from "../../ost";
+import { D, lw, std } from "../../ost";
+import { C_API_PREFIX } from "../producers/common";
 
 export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const index = new Map<string, (lw.ClassDeclaration | lw.StructureDeclaration)[]>()
@@ -62,4 +63,31 @@ export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
             : D.struct(name, fields))
     })
     return [...merged, ...others]
+}
+
+export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string {
+    prefix += '.synthetic.mono.instance.'
+    if (type.kind === lw.LWKind.FunctionalType)
+        return [
+            prefix + 'Callback',
+            ...type.params.map(p => monoName(p.type)),
+            monoName(type.returnType)
+        ].join('_')
+    switch (type.name) {
+        case std.names.types.constant:
+        case std.names.types.pointer:
+        case std.names.types.reference:
+        case std.names.types.struct:
+            return monoName(type.args[0])
+        case std.names.types.array:
+            return [prefix + 'Array', monoName(type.args[0])].join('_')
+        case std.names.types.map:
+            return [prefix + 'Map', ...type.args.map(ty => monoName(ty))].join('_')
+        case std.names.types.optional:
+            return [prefix + 'Opt', monoName(type.args[0])].join('_')
+        case std.names.types.union:
+            return [prefix + 'Union', ...type.args.map(ty => monoName(ty))].join('_')
+        default:
+            return type.name.split('.').pop()!
+    }
 }

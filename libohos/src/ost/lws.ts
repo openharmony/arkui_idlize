@@ -14,7 +14,6 @@
  */
 
 export enum LWKind {
-  UnionDeclaration,
   EnumDeclaration,
   StructureDeclaration,
   ClassDeclaration,
@@ -87,16 +86,6 @@ export type Annotation =
 
 ////////////////////////////////////////////////////////
 
-/**
- * Should be emulated as tagged union
- */
-export interface UnionDeclaration {
-  kind: LWKind.UnionDeclaration
-  generics: GenericDescriptor[]
-  modifiers: Modifier[]
-  name: string
-  variants: LWType[]
-}
 export interface EnumDeclaration {
   kind: LWKind.EnumDeclaration
   generics: GenericDescriptor[]
@@ -162,7 +151,6 @@ export interface FunctionDeclaration {
   body?: LWStatement
 }
 export type LWDeclaration =
-    UnionDeclaration
   | EnumDeclaration
   | StructureDeclaration
   | ClassDeclaration

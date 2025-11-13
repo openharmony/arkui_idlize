@@ -233,7 +233,7 @@ function defaultImports(): ImportsCollector {
     imports.addFeatures([
         'SerializerBase', 'DeserializerBase', 'MaterializedBase',
         'Finalizable', 'KPointer', 'KInteropReturnBuffer', 'toPeerPtr',
-        'loadNativeModuleLibrary',
+        'loadNativeModuleLibrary', 'RuntimeType'
     ], '@koalaui/interop')
     return imports
 }

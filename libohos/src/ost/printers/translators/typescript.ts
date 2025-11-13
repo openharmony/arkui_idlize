@@ -60,6 +60,7 @@ export class ConvertTSTypes extends IdentityTransformer {
       case std.names.types.u8: return T.c('byte')
       case std.names.types.u32: return T.c('int')
       case std.names.types.u64: return T.c('long')
+      case std.names.types.undefined: return T.c('undefined')
       case std.names.types.void: return T.c('void')
     }
     if (type.args.length > 0) {
@@ -383,15 +384,6 @@ export class TSPrinter {
   }
   printDeclaration(declaration: lw.LWDeclaration) {
     switch (declaration.kind) {
-      case lw.LWKind.UnionDeclaration: {
-        this.p.put('export', ' ', 'type', ' ', declaration.name, ' ', '=', ' ')
-        declaration.variants.forEach((variant, i) => {
-          if (i > 0)
-            this.p.put(' | ')
-          this.printType(variant)
-        })
-        break
-      }
       case lw.LWKind.EnumDeclaration: {
         this.p.put('export', ' ', 'enum', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()

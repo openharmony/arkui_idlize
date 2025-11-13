@@ -14,8 +14,8 @@
  */
 
 import * as idl from "@idlizer/core/idl";
-import { Hs, E, lw, Op, S, std, Ts, T } from "../../../ost";
-import { AdvancedGeneratorContext, managedName } from "../common";
+import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
+import { AdvancedGeneratorContext, managedName, typeNameExpr } from "../common";
 import { Builders } from "../../../ost/builders";
 import { isMaterialized } from "@idlizer/core";
 import { LWExpression, LWStatement } from "../../../ost/lws";
@@ -53,7 +53,7 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     ) {}
 
     abstract interopType(native: boolean): lw.LWType
-    abstract write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement
+    abstract write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[]
     abstract read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression]
 
     isPointer(): boolean {
@@ -74,8 +74,10 @@ export abstract class ArgConvertor<T extends idl.IDLType> {
     }
 }
 
-export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType): ArgConvertor<idl.IDLType> {
-    ///what can we cache here?
+export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType, optional?: boolean): ArgConvertor<idl.IDLType> {
+    ///what can we cache here? Take optional props into account
+    if (optional)
+        return new OptionalConvertor(ctx, type)
     if (idl.isPrimitiveType(type))
         return new PrimitiveConvertor(ctx, type)
     if (idl.isContainerType(type) && idl.IDLContainerUtils.isSequence(type))
@@ -125,8 +127,12 @@ class PrimitiveConvertor extends ArgConvertor<idl.IDLPrimitiveType> {
             default: return super.returnFromInterop(resultVarName, native)
         }
     }
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
-        return S.e(E.call(E.get(serializerName, selectWriteName(this.type)), [accessor]))
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.stmt().call()
+            .receiverExpr(serializerName)
+            .functionName(selectWriteName(this.type))
+            .args([accessor]).$().$()
+        ]
     }
 
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
@@ -149,16 +155,17 @@ class EnumConvertor extends ArgConvertor<idl.IDLReferenceType> {
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return super.returnFromInterop(resultVarName, native)///toEnum()?
     }
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
-        return Builders.expr().call()
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.expr().call()
             .receiverExpr(serializerName)
             .functionName('writeInt32')
                 .arg().call().receiverExpr(accessor).functionName('valueOf').$().$().$().$stmt()
+        ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         return [
             [Builders.decl(name)
-                .value().call().receiverName(this.type.name).functionName('fromValue')
+                .value().call().receiverExpr(typeNameExpr(this.type.name)).functionName('fromValue')
                 .arg().call().receiverExpr(serializerName).functionName('readInt32').$().$().$().$().$()],
             E.v(name)
         ]
@@ -172,14 +179,15 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
     returnFromInterop(resultVarName: string, native: boolean): LWStatement[] {
         return [Builders.return().valueExpr(this.fromPtr(E.v(resultVarName), native)).$()]
     }
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
         const peerPtr = native
             ? accessor
             : Builders.call().functionName('toPeerPtr').args([accessor]).$()
-        return Builders.stmt().call()
+        return [Builders.stmt().call()
             .receiverExpr(serializerName)
             .functionName('writePointer')
             .args([peerPtr]).$().$()
+        ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         const peerPtr = Builders.call().receiverExpr(serializerName).functionName('readPointer').$()
@@ -192,7 +200,7 @@ class MaterializedConvertor extends ArgConvertor<idl.IDLReferenceType> {
         return native
             ? peerPtr
             : Builders.call()
-                .receiverExpr(E.v(managedName(this.type.name + 'Internal'), [Hs.isType()]))
+                .receiverExpr(typeNameExpr(this.type.name + 'Internal'))
                 .functionName('fromPtr')
                 .args([peerPtr]).$()
 
@@ -219,12 +227,13 @@ abstract class StructConvertor<T extends idl.IDLType> extends ArgConvertor<T> {
 }
 
 class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
-        return Builders.expr().call().function()
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [Builders.expr().call().function()
             .access(this.getSerializer(this.type, native).name())
             .member('write')
             .static().$().$()
             .args([serializerName, accessor]).$().$stmt()
+        ]
     }
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
         return [
@@ -240,47 +249,47 @@ class DataConvertor extends StructConvertor<idl.IDLReferenceType> {
 }
 
 class ArrayConvertor extends StructConvertor<idl.IDLContainerType> {
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
-        return Builders.block()
-            .call().receiverExpr(serializerName).functionName('writeInt32')
-                .arg().access(accessor).member('length').$().$().$()
-            .loop()
-                .init().decl('i', Ts.prim.i32).mutable().valueStr('0').$().$()
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call().receiverExpr(serializerName).functionName('writeInt32')
+                .arg().access(accessor).member('length').$().$().$().$(),
+            Builders.loop()
+                .init().decl('i').mutable().valueStr('0').$().$()
                 .cond().binary(Op.lt).leftStr('i').right().access(accessor).member('length').$().$().$().$()
                 .step().binary('=').leftStr('i').right().binary(Op.add).leftStr('i').rightStr(1).$().$().$().$()
-                .bodyStmt(
-                    argConvertor(this.ctx, this.type.elementType[0]).write(
+                .body().block()
+                    .statements(argConvertor(this.ctx, this.type.elementType[0]).write(
                         Builders.access(accessor).indexStr('i').$(),
                         serializerName,
-                        native))
-                .$().$()
+                        native)).$().$().$()
+        ]
     }
 
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const lengthDecl = Builders.decl('length').value()
+        const lengthDecl = Builders.decl(`${name}Length`).value()
             .call().receiverExpr(serializerName).functionName('readInt32').$().$().$()
         const elemType = this.convertType(this.type.elementType[0], native);
         const bufferDecl = Builders.decl(name).value()
-            .ctor(std.names.types.array).typeArgs([elemType]).args([E.v('length')]).$().$().$()
+            .ctor(std.names.types.array).typeArgs([elemType]).args([E.v(`${name}Length`)]).$().$().$()
         const [reads, readValue] = argConvertor(this.ctx, this.type.elementType[0])
             .read('tmp', serializerName, native);
         const loop = Builders.loop()
-            .init().decl('i', Ts.prim.i32).mutable().valueStr(0).$().$()
-            .cond().binary(Op.lt).leftStr('i').rightStr('length').$().$()
+            .init().decl('i').mutable().valueStr(0).$().$()
+            .cond().binary(Op.lt).leftStr('i').rightStr(`${name}Length`).$().$()
             .step().unary(Op.postinc).valueStr('i').$().$()
             .body().block()
                 .statements(reads)
                 .binary('=')
-                    .left().access(E.v('tmp')).indexStr('i').$().$()
+                    .left().access(E.v(name)).indexStr('i').$().$()
                     .rightExpr(readValue).$().$().$().$()
         return [[lengthDecl, bufferDecl, loop], E.v(name)]
     }
 }
 
 class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
-    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement {
-        return this.type.types
-            .map((ty, i) => {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            this.type.types.map((ty, i) => {
                 const cond = native
                     ? Builders.binary(Op.eq)
                         .left().access(accessor).member('selector').$().$()
@@ -293,15 +302,19 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     .condition(cond)
                     .then().block()
                         .call().receiverExpr(serializerName).functionName('writeInt8').args([E.c(i)]).$()
-                        .statements([argConvertor(this.ctx, ty).write(value, serializerName, native)]).$().$().$()
+                        .statements(argConvertor(this.ctx, ty).write(value, serializerName, native)).$().$().$()
             })
             .reduceRight((acc, cur) => {cur.elseBody = acc; return cur})
+        ]
     }
 
     read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
-        const selectorDecl = Builders.decl('selector')
+        const selectorDecl = Builders.decl(`${name}Selector`)
             .value().call().receiverExpr(serializerName).functionName('readInt8').$().$().$()
-        const tmpDecl = Builders.decl(name).mutable().$()
+        const tmpType = Ts.union([
+            ...(Ts.union(this.type.types.map(ty => this.convertType(ty, native)))).args,
+            Ts.prim.undefined])
+        const tmpDecl = Builders.decl(`${name}Value`, tmpType).mutable().$()
         if (native)
             tmpDecl.expression = E.c('{}')
         const ifs = this.type.types.map((ty, i) => {
@@ -313,13 +326,62 @@ class UnionConvertor extends StructConvertor<idl.IDLUnionType> {
                     Builders.stmt().binary(Op.eq)
                         .left().access(E.v(name)).member('value' + i).$().$()
                         .rightExpr(readValue).$().$()]
-                : [ Builders.stmt().binary('=').leftStr(name).rightExpr(readValue).$().$()]
+                : [ Builders.stmt().binary('=').leftStr(`${name}Value`).rightExpr(readValue).$().$()]
             return Builders.if()
-                .cond().binary(Op.eq).leftStr('selector').rightStr(i).$().$()
+                .cond().binary(Op.eq).leftStr(`${name}Selector`).rightStr(i).$().$()
                 .then().block()
                     .statements(reads)
                     .statements(assignments).$().$().$()
         })
-        return [ [selectorDecl, tmpDecl, ...ifs], E.v(name, [Hs.excl()])]
+        const assignment = Builders.decl(name)
+            .value().unary(Op.assert).valueStr(`${name}Value`).$().$().$()
+        return [ [selectorDecl, tmpDecl, ...ifs, assignment], E.v(name, [Hs.excl()])]
+    }
+}
+
+class OptionalConvertor extends StructConvertor<idl.IDLType> {
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        if (native) {
+            // TODO: implement
+            return [Builders.stmt().call()
+                .receiverExpr(serializerName).functionName('writeInt8').args([this.runtimeType('UNDEFINED', native)]).$().$()]
+        }
+        return [Builders.if()
+            .cond().unary(Op.not).valueExpr(accessor).$().$()
+            .then().block()
+                .call().receiverExpr(serializerName).functionName('writeInt8').args([this.runtimeType('UNDEFINED', native)]).$().$().$()
+            .else().block()
+                .call().receiverExpr(serializerName).functionName('writeInt8').args([this.runtimeType('OBJECT', native)]).$()
+                .statements(argConvertor(this.ctx, this.type).write(accessor, serializerName, native)).$().$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const type = this.convertType(this.type, native);
+        if (native) {
+            // TODO: implement
+            return [[
+                Builders.decl(name, Ts.optional(type)).$(),
+                Builders.decl(`${name}RuntimeType`).value().call().receiverExpr(serializerName).functionName('readInt8').$().$().$(),
+                Builders.stmt().binary('=')
+                    .left().access(E.v(name)).member('tag').$().$()
+                    .rightStr('INTEROP_TAG_UNDEFINED').$().$()
+            ], E.v(name)]
+        } else {
+            const [typeReads, typeValue] = argConvertor(this.ctx, this.type).read(`${name}Value`, serializerName, native)
+            return [[
+                Builders.decl(name, Ts.union([type, Ts.prim.undefined])).mutable().$(),
+                Builders.decl(`${name}RuntimeType`).value().call().receiverExpr(serializerName).functionName('readInt8').$().$().$(),
+                Builders.if()
+                    .cond().binary(Op.ne).leftStr(`${name}RuntimeType`).rightExpr(this.runtimeType('UNDEFINED', native)).$().$()
+                    .then().block()
+                        .statements(typeReads)
+                        .binary('=').leftStr(name).rightExpr(typeValue).$().$().$().$()
+            ], E.v(name)]
+        }
+    }
+    private runtimeType(name: string, native: boolean): lw.LWExpression {
+        return native
+            ? E.v(`INTEROP_RUNTIME_${name}`)
+            : Builders.access(E.v('RuntimeType')).member(name).$()
     }
 }

@@ -375,22 +375,6 @@ export class CXXPrinter {
         this.p.dec().newline()
         this.p.put('}', ' ', declaration.name, ';')
         break
-      case lw.LWKind.UnionDeclaration:
-        const TypePrefix = generatorConfiguration().TypePrefix///mv
-        this.p.put('typedef', ' ', 'struct', ' ', declaration.name, ' ', '{')
-        this.p.inc().newline()
-        this.p.put(TypePrefix, 'Int32', ' ', 'selector', ';').newline()
-        this.p.put('union', ' ', '{')
-        this.p.inc().newline()
-        declaration.variants.forEach((variant, i) => {
-          if (i > 0) this.p.newline()
-          this.printField('value' + i, variant)
-        })
-        this.p.dec().newline()
-        this.p.put('}', ';')
-        this.p.dec().newline()
-        this.p.put('}', ' ', declaration.name, ';')
-        break
       case lw.LWKind.StructureDeclaration: {
         this.p.put('struct', ' ', declaration.name, ' ', '{')
         this.p.inc().newline()

@@ -22,15 +22,6 @@ function over<T, U>(x:T|undefined, f:(x:T) => U): U|undefined {
 }
 
 export class IdentityTransformer {
-  goUnionDeclaration(decl:lw.UnionDeclaration): lw.UnionDeclaration {
-    return {
-      kind: decl.kind,
-      generics: decl.generics,
-      modifiers: decl.modifiers,
-      name: decl.name,
-      variants: decl.variants.map(v => this.goType(v))
-    }
-  }
   goEnumDeclaration(decl: lw.EnumDeclaration): lw.EnumDeclaration {
     return {
       kind: decl.kind,
@@ -108,7 +99,6 @@ export class IdentityTransformer {
   }
   goDeclaration(decl:lw.LWDeclaration): lw.LWDeclaration {
     switch (decl.kind) {
-      case lw.LWKind.UnionDeclaration: return this.goUnionDeclaration(decl)
       case lw.LWKind.EnumDeclaration: return this.goEnumDeclaration(decl)
       case lw.LWKind.StructureDeclaration: return this.goStructureDeclaration(decl)
       case lw.LWKind.ClassDeclaration: return this.goClassDeclaration(decl)
