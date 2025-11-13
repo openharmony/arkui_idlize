@@ -90,31 +90,13 @@ class ModifiersFileVisitor {
     }
 
     generateAttributeSetParentName(peer: PeerClass): string | undefined {
-        if (!isHeir(peer.originalClassName!)) return undefined;
-        return this.generateAttributeSetName(peer.parentComponentName!);
-    }
-
-    generateTopLevelAttributeSetParentName(peer: PeerClass): string | undefined {
         const component = findComponentByName(this.library, peer.componentName)!
-        const parent = this.generateAttributeSetParentName(peer)
-        let result: string | undefined = parent
-        let counter = 0
-        if (parent) {
-            let [parentRef] = component.attributeDeclaration.inheritance
-            let parentDecl = this.library.resolveTypeReference(parentRef)
-            while (parentDecl) {
-                counter++;
-                const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
-                result = this.generateAttributeSetName(parentComponent.name)
-                if (parentComponent.attributeDeclaration.inheritance.length) {
-                    let [parentRef] = parentComponent.attributeDeclaration.inheritance
-                    parentDecl = this.library.resolveTypeReference(parentRef)
-                } else {
-                    parentDecl = undefined
-                }
-            }
+        if (component.attributeDeclaration.inheritance.length) {
+            const [parentRef] = component.attributeDeclaration.inheritance
+            const parentDecl = this.library.resolveTypeReference(parentRef) as idl.IDLInterface
+            const parentComponent = findComponentByDeclaration(this.library, parentDecl)
+            return this.generateAttributeSetName(parentComponent!.name)
         }
-        return result;
     }
 
     generateAttributeSetName(name: string): string {
@@ -261,46 +243,45 @@ class ModifiersFileVisitor {
     }
 
 
-    collectAttributes(peer: PeerClass, attributeTypes: Array<AttributeType>, overloadCounter: Map<string, number>) {
-        const needCollect = this.needCollectParentMethods(peer)
-        let currentPeer: PeerClass | undefined = peer;
-        let collectDepth = 0;
-        while (currentPeer) {
-            collectDepth++;
-            groupOverloads(currentPeer.methods, this.library.language).forEach(m => {
-                const method = m[0]
-                if (method.isCallSignature) {
-                    return
+    collectAttributes(peer: PeerClass, attributeTypes: Array<AttributeType>) {
+        const parentTypesNames = new Array<string>()
+        const component = findComponentByName(this.library, peer.componentName)!
+        let parentRef = component.attributeDeclaration.inheritance.at(0)
+        while (parentRef) {
+            const parentDecl = this.library.resolveTypeReference(parentRef) as idl.IDLInterface
+            const parentPeer = findPeerByComponentDeclaration(this.library, findComponentByDeclaration(this.library, parentDecl)!)!
+            groupOverloads(parentPeer.methods, this.library.language).forEach(m => {
+                if (!m[0].isCallSignature) {
+                    parentTypesNames.push(m[0].method.name)
                 }
-                const args: string[] = []
-                let optional: boolean = true;
-                const types = method.argConvertors(this.library).map((conv, index) => {
-                    args.push(conv.param)
-                    const type = idl.maybeOptional(method.method.signature.args[index], method.method.signature.isArgOptional(index))
-                    if (!isOptionalType(type)) optional = false;
-                    return type
-                })
-                const functionName = method.method.name
-                let v = 0
-                if (overloadCounter.has(functionName) && collectDepth > 1) return;
-                if (overloadCounter.has(functionName)) v = overloadCounter.get(functionName)! + 1
-                overloadCounter.set(functionName, v)
-                attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
             })
-            if (!needCollect) {
-                break;
-            }
-            if (collectDepth >= 2) {
-                break;
-            }
-            const component = findComponentByName(this.library, currentPeer.componentName)!
-            const parent = this.generateAttributeSetParentName(currentPeer)
-            if (!parent) break;
-            let [parentRef] = component.attributeDeclaration.inheritance
-            let parentDecl = this.library.resolveTypeReference(parentRef)
-            const parentComponent = findComponentByDeclaration(this.library, parentDecl as idl.IDLInterface)!
-            currentPeer = findPeerByComponentDeclaration(this.library, parentComponent)
+            parentRef = parentDecl.inheritance.at(0)
         }
+        const overloadCounter = new Map<string, number>()
+        for (const parentTypeName of parentTypesNames) {
+            if (!overloadCounter.has(parentTypeName))
+                overloadCounter.set(parentTypeName, 0)
+            overloadCounter.set(parentTypeName, overloadCounter.get(parentTypeName)! + 1)
+        }
+        groupOverloads(peer.methods, this.library.language).forEach(m => {
+            const method = m[0]
+            if (method.isCallSignature) {
+                return
+            }
+            const args: string[] = []
+            let optional: boolean = true;
+            const types = method.argConvertors(this.library).map((conv, index) => {
+                args.push(conv.param)
+                const type = idl.maybeOptional(method.method.signature.args[index], method.method.signature.isArgOptional(index))
+                if (!isOptionalType(type)) optional = false;
+                return type
+            })
+            const functionName = method.method.name
+            let v = 0
+            if (overloadCounter.has(functionName)) v = overloadCounter.get(functionName)! + 1
+            overloadCounter.set(functionName, v)
+            attributeTypes.push({ method: method, args: args, argTypes: types, isOptional: optional, overloadIndex: v })
+        })
     }
 
     generateHooksCall(hookName: string, params: LanguageExpression[], writer: LanguageWriter): LanguageExpression {
@@ -334,17 +315,16 @@ class ModifiersFileVisitor {
             const printer = this.library.createLanguageWriter();
             const nameConvertor = this.library.createTypeNameConvertor(Language.ARKTS)
             const componentAttribute = component.attributeDeclaration;
-            const parentSet = this.generateTopLevelAttributeSetParentName(peer)
+            const parentSet = this.generateAttributeSetParentName(peer)
 
             const attributeTypes: Array<AttributeType> = new Array
-            const overloadCounter: Map<string, number> = new Map()
 
             const noNeedPrintModifier = (attribute: AttributeType) => {
                 // return attribute.method.method.signature.returnType !== idl.IDLThisType || !attribute.isOptional
                 return attribute.method.method.signature.returnType !== idl.IDLThisType
             }
 
-            this.collectAttributes(peer, attributeTypes, overloadCounter)
+            this.collectAttributes(peer, attributeTypes)
 
             let extendsInterface: string[] = []
             const collectedHooks: string[] = []
