@@ -1,2 +1,3 @@
 #!/bin/bash
-LD_LIBRARY_PATH=./build/native/cangjie/:$LD_LIBRARY_PATH && cjpm run
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+LD_LIBRARY_PATH="$SCRIPT_DIR/../build/native/cangjie/":$LD_LIBRARY_PATH && cjpm run

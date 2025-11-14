@@ -25,7 +25,9 @@ npm_cmd("compile") {
 
 group("all") {
     deps = [
+        "tests/dummy:all",
         "tests/system:all",
+        "tests/unit:all",
         ":compile",
     ]
 }

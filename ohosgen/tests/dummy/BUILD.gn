@@ -1,0 +1,293 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../gn/import/idlize_root.gni")
+import("${idlize_root}/gn/import/bash.gni")
+import("${idlize_root}/gn/import/node.gni")
+import("${idlize_root}/gn/import/npm.gni")
+
+template("dummy_test") {
+    test_target_name = target_name
+    language = "kotlin"
+    if (invoker.vm == "node") {
+        language = "ts"
+    } else if (invoker.vm == "panda") {
+        language = "arkts"
+    } else if (invoker.vm == "cangjie") {
+        language = "cj"
+    } else {
+        assert(false, "VM ${invoker.vm} is not supported")
+    }
+
+    rm("$test_target_name:clean") {
+        recursive = true
+        force = true
+        file = [
+            rebase_path("./generated"),
+            rebase_path("$target_gen_dir/$language")
+        ]
+    }
+
+    node_cmd("$test_target_name:generate:idl") {
+        script = rebase_path("../../../dtsgen")
+        args = [
+            "--dts2idl",
+            "--input-dir",
+            rebase_path("./dts"),
+            "--output-dir",
+            rebase_path("$target_gen_dir/$language/idl"),
+            "--options-file",
+            rebase_path("./conf/config.json")
+        ]
+        deps = [
+            ":$test_target_name:clean",
+            "${idlize_root}/dtsgen:compile",
+        ]
+    }
+
+    generated_idl = rebase_path("$target_gen_dir/$language/idl")
+    tests_idl = rebase_path("./idl")
+
+    node_cmd("$test_target_name:generate") {
+        script = rebase_path("../..")
+        args = [
+            "--idl2peer",
+            "--language=$language",
+            "--default-idl-package",
+            "dummy",
+            "--input-dir",
+            "$generated_idl,$tests_idl",
+            "--output-dir",
+            rebase_path("$target_gen_dir/$language"),
+            "--options-file",
+            rebase_path("conf/config.json")
+        ]
+        outputs = [
+            "$target_gen_dir/$language/generated/native/dummy.cpp",
+            "$target_gen_dir/$language/generated/native/dummyApiImpl_temp.cpp"
+        ]
+        deps = [
+            ":$test_target_name:clean",
+            ":$test_target_name:generate:idl",
+            "${idlize_root}/ohosgen:compile"
+        ]
+    }
+
+    mkdir("${test_target_name}:generate:mkdir") {
+        directories = [ rebase_path("./generated") ]
+        deps = [ ":${test_target_name}:clean" ]
+    }
+
+    cp("${test_target_name}:generate:cp") {
+        src = [ rebase_path("$target_gen_dir/$language/generated") ]
+        dest = rebase_path(".")
+        deps = [
+            ":$test_target_name:generate",
+            ":${test_target_name}:clean",
+            ":${test_target_name}:generate:mkdir"
+        ]
+    }
+
+    npm_cmd("$test_target_name:compile") {
+        _lang_short = language
+        if (_lang_short == "kotlin") {
+            _lang_short = "kt"
+        }
+        project_path = rebase_path(".")
+        run_tasks = [ "compile:${_lang_short}" ]
+        deps = [
+            ":$test_target_name:generate",
+            ":${test_target_name}:generate:cp",
+            "${koala_mr.root_path}/libarkts:libarkts",
+            "${koala_mr.root_path}/incremental:incremental_abc",
+        ]
+    }
+
+    _output_dir = "${target_out_dir}/${invoker.vm}"
+    lib_name = "DUMMYNativeModule"
+
+    shared_library("${test_target_name}:compile:native") {
+        _external_interop_dir = "${koala_mr.root_path}/interop/src/cpp"
+        sources = [
+            "$target_gen_dir/$language/generated/native/dummy.cpp",
+            "$target_gen_dir/$language/generated/native/dummyApiImpl_temp.cpp",
+            "src/cpp/dummyImpl.cpp",
+        ]
+        cflags = [ "-DKOALA_LIBACE_LINKED" ]
+        ldflags = []
+        include_dirs = [
+            "$target_gen_dir/$language/generated/native",
+            "src/cpp",
+            _external_interop_dir,
+            "$_external_interop_dir/types",
+        ]
+
+        if (target_os == "win") {
+            cflags += [ "-DKOALA_WINDOWS" ]
+        }
+        if (target_os == "linux") {
+            cflags += [ "-DKOALA_LINUX" ]
+        }
+        if (target_os == "mac") {
+            cflags += [ "-DKOALA_MACOS" ]
+        }
+
+        if (current_toolchain == "//gn/toolchain:clang") {
+            # TODO: remove all -Wno-* when generation is fixed.
+            cflags += [
+                "-Wall", "-Werror", "-Wno-unused-variable", "-Wno-unused-but-set-variable",
+                "-Wno-extern-c-compat", "-Wno-error=deprecated-declarations",
+                "-Wno-unknown-warning-option", "-Wno-unused-function", "-Wno-macro-redefined",
+                "-Wno-enum-compare", "-Wno-tautological-constant-out-of-range-compare"
+            ]
+        } else if (current_toolchain == "//gn/toolchain:msvc") {
+            # Avoid using COMDAT to not exceed COFF file limits, see https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/fatal-error-c1128?view=msvc-170
+            cflags += [ "/Gy-" ]
+        } else {
+            assert(false, "Compile flags for current toolchain $current_toolchain are not defined")
+        }
+
+        if (invoker.vm == "node") {
+            sources += [
+                "${_external_interop_dir}/napi/convertors-napi.cpp"
+            ]
+            if (target_os == "win") {
+                sources += [ "${_external_interop_dir}/napi/win-dynamic-node.cpp" ]
+            }
+
+            cflags += [
+                "-DKOALA_USE_NODE_VM",
+                "-DKOALA_NAPI",
+                "-DINTEROP_LIBRARY_NAME=${lib_name}"
+            ]
+            _external_interop_build_dir = "${koala_mr.root_path}/interop/build"
+            ldflags += [ rebase_path("${_external_interop_build_dir}/InteropNativeModule.node") ]
+            _node_api_headers = "${idlize_root}/node_modules/node-api-headers"
+            include_dirs += [
+                "${_node_api_headers}/include",
+                "${_external_interop_dir}/napi"
+            ]
+            output_extension = "node"
+        } else if (invoker.vm == "panda") {
+            sources += [
+                "${_external_interop_dir}/ani/convertors-ani.cpp",
+                "${_external_interop_dir}/types/signatures.cpp"
+            ]
+            cflags += [
+                "-DKOALA_USE_PANDA_VM",
+                "-DKOALA_ANI",
+                "-DINTEROP_LIBRARY_NAME=${lib_name}",
+                "-DETS_MODULE_CLASSPATH_PREFIX=@dummy.generated.arkts.dummy.INTERNAL.",
+            ]
+            _external_interop_build_dir = "${koala_mr.root_path}/interop/build"
+            ldflags += [ rebase_path("${_external_interop_build_dir}/libInteropNativeModule.so") ]
+            include_dirs += [
+                "${_external_interop_dir}/ani",
+                "${_external_interop_dir}/ani/panda",
+            ]
+        } else if (invoker.vm == "cangjie") {
+            sources += [
+                "${_external_interop_dir}/cangjie/convertors-cj.cpp",
+                "${_external_interop_dir}/types/signatures.cpp"
+            ]
+            cflags += [
+                "-DKOALA_CJ",
+                "-DINTEROP_LIBRARY_NAME=${lib_name}",
+            ]
+            include_dirs += [
+                "${_external_interop_dir}/cangjie",
+            ]
+        }
+        output_name = lib_name
+        output_dir = _output_dir
+        output_prefix_override = (invoker.vm == "node")
+        deps = [
+            "${koala_mr.root_path}/interop:interop_abc",
+            "${koala_mr.root_path}/interop:interop_compile",
+            ":$test_target_name:generate"
+        ]
+        if (invoker.vm == "node") {
+            deps += [ "${koala_mr.root_path}/interop:interop_native:node" ]
+        } else {
+            deps += [ "${koala_mr.root_path}/interop:interop_native:panda" ]
+        }
+    }
+    
+    cp("${test_target_name}:install:native") {
+        _platform_build_dir = "build"
+        if (invoker.vm == "node") {
+            _platform_build_dir += "/node"
+        } else if (invoker.vm == "panda") {
+            _platform_build_dir += "/panda"
+        } else if (invoker.vm == "cangjie") {
+            _platform_build_dir += "/cangjie"
+        }
+        _name_prefix = ""
+        if (invoker.vm != "node" && target_os != "win") {
+            _name_prefix = "lib"
+        }
+        _name_suffix = ".so"
+        if (invoker.vm == "node") {
+            _name_suffix = ".node"
+        } else if (target_os == "win") {
+            _name_suffix = ".dll"
+        } else if (target_os == "mac") {
+            _name_suffix = ".dylib"
+        }
+        _full_output_name = "${_name_prefix}${lib_name}${_name_suffix}"
+        src = [ rebase_path("${_output_dir}/${_full_output_name}") ]
+        dest = rebase_path("${_platform_build_dir}/${_full_output_name}")
+        deps = [
+            ":$test_target_name:generate",
+            ":${test_target_name}:compile:native"
+        ]
+    }
+
+    bash_cmd(test_target_name) {
+        script = "./scripts/"
+        if (invoker.vm == "node") {
+            script += "run-ts.sh"
+        } else if (invoker.vm == "panda") {
+            script += "run-panda.sh"
+        } else if (invoker.vm == "cangjie") {
+            script += "run-cj.sh"
+        } else {
+            script += "run-kt.sh"
+        }
+        script = rebase_path(script)
+        deps = [
+            ":${test_target_name}:compile",
+            ":${test_target_name}:compile:native",
+            ":${test_target_name}:install:native"
+        ]
+    }
+}
+
+vms = [
+    "node",
+    "panda"
+]
+
+target_names = []
+
+foreach(_vm, vms) {
+    test_name = "check:${_vm}"
+    dummy_test(test_name) {
+        vm = _vm
+    }
+    target_names += [ ":$test_name" ]
+}
+
+group("all") {
+    deps = target_names
+}

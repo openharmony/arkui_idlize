@@ -108,6 +108,10 @@ template("rm") {
       args += [ "-f" ]
     }
     args += file
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
   }
 }
 
@@ -126,6 +130,10 @@ template("mkdir") {
       args += [ "-p" ]
     }
     args += directories
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
   }
 }
 
