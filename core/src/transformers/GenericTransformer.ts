@@ -115,7 +115,7 @@ class DefaultGenericsTransformer extends IdlTransformer {
             if ((decl.typeParameters?.length ?? 0) > (node.typeArguments?.length ?? 0)) {
                 const defaults: (undefined | idl.IDLType)[] = decl.extendedAttributes
                     ?.find(it => it.name === idl.IDLExtendedAttributes.TypeParametersDefaults)
-                    ?.typesValue ?? []
+                    ?.typesValue?.slice() ?? []
                 while (defaults.length < decl.typeParameters!.length) {
                     defaults.unshift(undefined)
                 }
