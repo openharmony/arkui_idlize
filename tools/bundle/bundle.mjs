@@ -115,11 +115,16 @@ export function bundle(bundleVersion, bundleOut, options) {
         ...idlizer_dependencies,
     ]
     const bundlableDependencies = options.idlizerOnly ? idlizer_dependencies : allDependencies
-    const oldVersions = allDependencies.reduce((versions, dep) => {
+    const packageSnapshots = allDependencies.flatMap(dep => {
         const pkg = findPackage(dep)
-        versions[pkg.name()] = pkg.version().toString()
-        return versions
-    }, {})
+        if (!pkg) {
+            return []
+        }
+        return [{
+            snapshot: pkg.snapshot(),
+            package: pkg
+        }]
+    })
     const newVersions = allDependencies.reduce((versions, dep) => {
         const pkg = findPackage(dep)
         versions[pkg.name()] = (options.idlizerOnly && koalaui_dependencies.indexOf(dep) >= 0) ?
@@ -151,6 +156,8 @@ export function bundle(bundleVersion, bundleOut, options) {
 
         console.log(`All done! Bundle saved to ${bundleOut}`)
     } finally {
-        applyVersions(bundlableDependencies, oldVersions)
+        packageSnapshots.forEach(record => {
+            record.package.restore(record.snapshot)
+        })
     }
 }

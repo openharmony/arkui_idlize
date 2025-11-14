@@ -25,6 +25,13 @@ export class Package {
         return this.read("version")
     }
 
+    snapshot() {
+        return fs.readFileSync(this.package())
+    }
+    restore(snapshot) {
+        fs.writeFileSync(this.package(), snapshot)
+    }
+
     write(key, value, updater) {
         const json = JSON.parse(fs.readFileSync(this.package(), "utf-8"))
         json[key] = value
