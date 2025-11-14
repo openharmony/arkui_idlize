@@ -14,6 +14,16 @@ class FqnTransformer extends IdlTransformer {
 
     visit<T extends idl.IDLNode>(node: T): T
     visit(node: idl.IDLNode): idl.IDLNode {
+        const defaultGenericReferenceAttribute = node.extendedAttributes?.find(a => a.name === idl.IDLExtendedAttributes.TypeParametersDefaults)
+        if (defaultGenericReferenceAttribute && defaultGenericReferenceAttribute.typesValue) {
+            const fqVisited = defaultGenericReferenceAttribute.typesValue.map(type => {
+                const tmpType = idl.clone(type)
+                tmpType.parent = node
+                return this.visit(tmpType)
+            })
+            defaultGenericReferenceAttribute.typesValue = fqVisited
+            return this.visitEachChild(node)
+        }
         if (idl.isReferenceType(node)) {
             const resolved = this.resolver.resolveTypeReference(node)
             if (resolved === undefined) {
