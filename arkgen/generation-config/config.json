@@ -783,6 +783,12 @@
                 "replaceImplementation": true
             }
         },
+        "NavDestinationContextInternal": {
+            "getConfigInRouteMap": {
+                "hookName": "hookGetConfigInRouteMap",
+                "replaceImplementation": true
+            }
+        },
         "ProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookProgressContentModifier",

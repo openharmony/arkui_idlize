@@ -23,4 +23,5 @@ interface NavExtender {
   static void popToIndex(NavPathStack pathStack, i32 index, boolean animated);
   static number popToName(NavPathStack pathStack, String name, boolean animated);
   static pointer setCreateNavDestinationCallback(NavPathStack peer, NavExtender_CreateNavDestination callback);
+  static sequence<String> getRouteMapInConfig(pointer context);
 };
