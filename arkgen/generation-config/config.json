@@ -19,7 +19,6 @@
         "SwipeGestureHandler",
         "TapGestureHandler",
         "UIGestureEvent",
-        "MenuItemConfiguration",
         "TouchTestInfo",
         "TouchResult",
         "SectionOptions"
