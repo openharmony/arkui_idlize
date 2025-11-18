@@ -146,9 +146,10 @@ export class IDLWriter {
     printProperty(idl: IDLProperty): this {
         const staticMod = idl.isStatic ? "static " : ""
         const readonlyMod = idl.isReadonly ? "readonly " : ""
+        const optional = idl.isOptional ? "optional " : ""
 
         return this.printExtendedAttributes(idl)
-            .print(`${staticMod}${readonlyMod}attribute ${nameWithType(idl)};`)
+            .print(`${staticMod}${readonlyMod}${optional}attribute ${nameWithType(idl)};`)
     }
 
     printExtendedAttributes(idl: IDLNode): this {

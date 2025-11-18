@@ -134,10 +134,11 @@ function checkOptional() {
     checkResult("method ", () => comp.method(false, -555, "jk"),
         `setMethod(false, {.tag=102, .i32=-555}, {.chars="jk", .length=2})`)
     checkResult("method optional", () => comp.methodOptional(true, 777, "lmn"),
-        `setMethodOptional(true, {.tag=102, .i32=777}, {.chars="lmn", .length=3})`)
-    // TBD: fix optional method params
-    // checkResult("method optional undefined", () => comp.methodOptional(undefined, undefined, undefined),
-    //     ``)
+        `setMethodOptional({.tag=INTEROP_TAG_OBJECT, .value=true}, {.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=777}}, {.tag=INTEROP_TAG_OBJECT, .value={.chars="lmn", .length=3}})`)
+    checkResult("method optional", () => comp.methodOptional(false, -777, ""),
+        `setMethodOptional({.tag=INTEROP_TAG_OBJECT, .value=false}, {.tag=INTEROP_TAG_OBJECT, .value={.tag=102, .i32=-777}}, {.tag=INTEROP_TAG_OBJECT, .value={.chars="", .length=0}})`)
+    checkResult("method optional undefined", () => comp.methodOptional(undefined, undefined, undefined),
+        `setMethodOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
 }
 
 export function main(): void {

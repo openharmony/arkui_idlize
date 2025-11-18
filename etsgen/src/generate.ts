@@ -1288,7 +1288,6 @@ class IDLVisitor extends arkts.AbstractVisitor {
             prop.extendedAttributes.push(...this.traceAttrs())
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
                 prop.isOptional = true
-                prop.extendedAttributes.push({ name: idl.IDLExtendedAttributes.Optional })
             }
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_STATIC)) {
                 prop.isStatic = true

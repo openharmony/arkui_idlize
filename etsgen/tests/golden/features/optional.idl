@@ -1,0 +1,11 @@
+package optional;
+interface OptionalInterface {
+    attribute boolean propBoolean;
+    attribute number propNumber;
+    attribute String propString;
+    optional attribute boolean propBooleanOptional;
+    optional attribute number propNumberOptional;
+    optional attribute String propStringOptional;
+    void method(boolean paramBoolean, number paramNumber, String paramString);
+    void methodOptional(optional boolean paramBoolean, optional number paramNumber, optional String paramString);
+};
