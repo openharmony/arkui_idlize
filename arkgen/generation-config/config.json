@@ -999,7 +999,9 @@
         "TestCallIntMemory",
         "arkui.component.idlize.BuilderNodeOps.create",
         "arkui.component.idlize.AnimationExtender.AnimateToImmediatelyImpl",
-        "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl"
+        "arkui.component.idlize.AnimationExtender.KeyframeAnimationImpl",
+        "arkui.component.idlize.AnimationExtender.OpenImplicitAnimationForAnimation",
+        "arkui.component.idlize.AnimationExtender.CloseImplicitAnimationForAnimation"
     ],
     "moduleName": "arkui",
     "modules": {
