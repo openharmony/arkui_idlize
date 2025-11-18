@@ -47,7 +47,7 @@ export function splitCreateOrUpdate(fullName: string): { createOrUpdate: string,
 
 export function mangleIfKeyword(name: string): string {
     if (InteropConstructions.keywords.includes(name)) {
-        return `_${name}`
+        return `_${name}_`
     }
     return name
 }
