@@ -14,10 +14,6 @@
         ]
     },
     "tsLikePackages": {
-        "arkui.RenderNode": "@arkui.RenderNode",
-        "arkui.FrameNode": "@arkui.FrameNode",
-        "arkui.ComponentContent": "@arkui.ComponentContent",
-        "arkui.Content": "@arkui.Content",
         "arkui": "@ohos.arkui.component"
     }
 }

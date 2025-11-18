@@ -11,7 +11,7 @@ callback NavExtender_PageMapNodeBuilder = pointer (String url, optional Object p
 interface NavExtender {
   static void setNavigationOptions(pointer ptr, NavPathStack pathStack);
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
-  static void setNavDestinationBuilderCallback(pointer navigation, NavExtender_PageMapNodeBuilder callback);
+  static void setNavDestinationId(String id);
   static void syncStack(NavPathStack peer);
   static void pushPath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static void replacePath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);

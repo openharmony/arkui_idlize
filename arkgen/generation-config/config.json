@@ -721,7 +721,29 @@
         ]
     },
     "hooks": {
-        "DragEventInternal":{
+        "WaterFlowSections": {
+            "splice": {
+                "hookName": "hookWaterSectionsSplice",
+                "replaceImplementation": false
+            },
+            "push": {
+                "hookName": "hookWaterSectionsPush",
+                "replaceImplementation": false
+            },
+            "update": {
+                "hookName": "hookWaterSectionsUpdate",
+                "replaceImplementation": false
+            },
+            "values": {
+                "hookName": "hookWaterSectionsValues",
+                "replaceImplementation": false
+            },
+            "length": {
+                "hookName": "hookWaterSectionsLength",
+                "replaceImplementation": false
+            }
+        },
+        "DragEventInternal": {
             "startDataLoading": {
                 "hookName": "hookDragEventStartDataLoading",
                 "replaceImplementation": true
@@ -950,7 +972,7 @@
                 "hookName": "hookCommonMethodModifierSize",
                 "replaceImplementation": true
             },
-            "customProperty" : {
+            "customProperty": {
                 "hookName": "hookCommonMethodModifierCustomProperty",
                 "replaceImplementation": true
             }
