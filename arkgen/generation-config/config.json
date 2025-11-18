@@ -724,23 +724,23 @@
         "WaterFlowSections": {
             "splice": {
                 "hookName": "hookWaterSectionsSplice",
-                "replaceImplementation": false
+                "replaceImplementation": true
             },
             "push": {
                 "hookName": "hookWaterSectionsPush",
-                "replaceImplementation": false
+                "replaceImplementation": true
             },
             "update": {
                 "hookName": "hookWaterSectionsUpdate",
-                "replaceImplementation": false
+                "replaceImplementation": true
             },
             "values": {
                 "hookName": "hookWaterSectionsValues",
-                "replaceImplementation": false
+                "replaceImplementation": true
             },
             "length": {
                 "hookName": "hookWaterSectionsLength",
-                "replaceImplementation": false
+                "replaceImplementation": true
             }
         },
         "DragEventInternal": {
