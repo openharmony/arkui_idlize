@@ -3,7 +3,7 @@ include:
 
 .panda:
     script:
-    - PANDA_SDK_VERSION=1.5.0-dev.52462 npm run panda:sdk:install --prefix ./external/incremental/tools/panda
+    - npm run panda:sdk:install --prefix ./external/incremental/tools/panda
     - npm ls @panda/sdk --prefix ./external/incremental/tools/panda
 
 build idlize:
@@ -93,6 +93,7 @@ download sdk:
     - !reference [.npm, script]
     - !reference [.panda, script]
     - npm run download:sdk
+    - npm run absolute:sdk
     needs:
     - build idlize
     - build external
@@ -100,6 +101,7 @@ download sdk:
         paths:
         - sdk-patched
         - sdk-patched-arkts
+        - absolute-sdk-patched-arkts
         expire_in: 1 day
 
 download external sdk:

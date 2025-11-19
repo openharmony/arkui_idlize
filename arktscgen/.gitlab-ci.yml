@@ -8,7 +8,7 @@ test arktscgen:
   script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    - npm run -C external absolute:sdk
+    - npm run -C external sdk:all
     - npm run compile --prefix external/common
     - npm run compile --prefix external/compat
     - npm run compile --prefix external/interop

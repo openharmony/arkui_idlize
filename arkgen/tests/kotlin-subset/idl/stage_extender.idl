@@ -17,11 +17,11 @@ interface PageTransitionOptions {
     [Optional]
     attribute RouteType type;
     [Optional]
-    attribute number duration;
+    attribute i32 duration;
     [Optional]
-    attribute number delay;
+    attribute i32 delay;
 };
-callback PageTransitionCallback = void (RouteType type, number progress);
+callback PageTransitionCallback = void (RouteType type, f64 progress);
 
 [Entity=Interface]
 interface TransitionParam {

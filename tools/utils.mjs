@@ -50,9 +50,10 @@ export class Package {
             const script = "compile:release" in this.read("scripts")
                 ? "compile:release"
                 : "compile"
-            execSync(`npm run ${script}`)
+            execSync(`npm run ${script}`, { encoding: 'utf-8', stdio: 'inherit' })
         } catch(e) {
-            console.log(`cannot compile package: ${this.name()}`, e)
+            console.log(`cannot compile package: ${this.name()}`)
+            throw e
         }
     }
 

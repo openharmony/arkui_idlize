@@ -34,46 +34,49 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
-*/
+ */
 
 #ifndef _INTEROP_TYPES_H_
 #define _INTEROP_TYPES_H_
 
 #ifdef __cplusplus
-  #include <cstdint>
+#include <cstdint>
 #else
-  #include <stdint.h>
+#include <stdint.h>
 #endif
 
 #ifdef __cplusplus
-extern "C" [[noreturn]]
+extern "C" [[noreturn]] void InteropLogFatal(const char* format, ...);
 #endif
 void InteropLogFatal(const char* format, ...);
-#define INTEROP_FATAL(msg, ...) do { InteropLogFatal(msg, ##__VA_ARGS__); } while (0)
 
-typedef enum InteropTag
-{
-  INTEROP_TAG_UNDEFINED = 101,
-  INTEROP_TAG_INT32 = 102,
-  INTEROP_TAG_FLOAT32 = 103,
-  INTEROP_TAG_STRING = 104,
-  INTEROP_TAG_LENGTH = 105,
-  INTEROP_TAG_RESOURCE = 106,
-  INTEROP_TAG_OBJECT = 107,
+/* Ensure macro forms a single statement */
+#define INTEROP_FATAL(msg, ...)            \
+    InteropLogFatal((msg), ##__VA_ARGS__); \
+    while (0) {                            \
+    }
+
+typedef enum InteropTag {
+    INTEROP_TAG_UNDEFINED = 101,
+    INTEROP_TAG_INT32 = 102,
+    INTEROP_TAG_FLOAT32 = 103,
+    INTEROP_TAG_STRING = 104,
+    INTEROP_TAG_LENGTH = 105,
+    INTEROP_TAG_RESOURCE = 106,
+    INTEROP_TAG_OBJECT = 107,
 } InteropTag;
 
-typedef enum InteropRuntimeType
-{
-  INTEROP_RUNTIME_UNEXPECTED = -1,
-  INTEROP_RUNTIME_NUMBER = 1,
-  INTEROP_RUNTIME_STRING = 2,
-  INTEROP_RUNTIME_OBJECT = 3,
-  INTEROP_RUNTIME_BOOLEAN = 4,
-  INTEROP_RUNTIME_UNDEFINED = 5,
-  INTEROP_RUNTIME_BIGINT = 6,
-  INTEROP_RUNTIME_FUNCTION = 7,
-  INTEROP_RUNTIME_SYMBOL = 8,
-  INTEROP_RUNTIME_MATERIALIZED = 9,
+typedef enum InteropRuntimeType {
+    INTEROP_RUNTIME_UNEXPECTED = -1,
+    INTEROP_RUNTIME_NUMBER = 1,
+    INTEROP_RUNTIME_STRING = 2,
+    INTEROP_RUNTIME_OBJECT = 3,
+    INTEROP_RUNTIME_BOOLEAN = 4,
+    INTEROP_RUNTIME_UNDEFINED = 5,
+    INTEROP_RUNTIME_BIGINT = 6,
+    INTEROP_RUNTIME_FUNCTION = 7,
+    INTEROP_RUNTIME_SYMBOL = 8,
+    INTEROP_RUNTIME_MATERIALIZED = 9,
 } InteropRuntimeType;
 
 typedef float InteropFloat32;
@@ -106,82 +109,78 @@ typedef struct InteropDeferred {
 
 // Binary layout of InteropString must match that of KStringPtrImpl.
 typedef struct InteropString {
-  const char* chars;
-  InteropInt32 length;
+    const char* chars;
+    InteropInt32 length;
 } InteropString;
 
 typedef struct InteropEmpty {
-  InteropInt32 dummy; // Empty structs are forbidden in C.
+    InteropInt32 dummy; // Empty structs are forbidden in C.
 } InteropEmpty;
 
 typedef struct InteropNumber {
-  InteropInt8 tag;
-  union {
-    InteropFloat32 f32;
-    InteropInt32 i32;
-  };
+    InteropInt8 tag;
+    union {
+        InteropFloat32 f32;
+        InteropInt32 i32;
+    };
 } InteropNumber;
 
 typedef struct InteropCustomObject {
-  char kind[20];
-  InteropInt32 id;
-  // Data of custom object.
-  union {
-    InteropInt32 ints[4];
-    InteropFloat32 floats[4];
-    void* pointers[4];
-    InteropString string;
-  };
+    char kind[20];
+    InteropInt32 id;
+    // Data of custom object.
+    union {
+        InteropInt32 ints[4];
+        InteropFloat32 floats[4];
+        void* pointers[4];
+        InteropString string;
+    };
 } InteropCustomObject;
 
 typedef struct InteropUndefined {
-  InteropInt32 dummy; // Empty structs are forbidden in C.
+    InteropInt32 dummy; // Empty structs are forbidden in C.
 } InteropUndefined;
 
 typedef struct InteropVoid {
-  InteropInt32 dummy; // Empty structs are forbidden in C.
+    InteropInt32 dummy; // Empty structs are forbidden in C.
 } InteropVoid;
 
 typedef struct InteropFunction {
-  InteropInt32 id;
+    InteropInt32 id;
 } InteropFunction;
 typedef InteropFunction InteropCallback;
 typedef InteropFunction InteropErrorCallback;
 
 typedef struct InteropMaterialized {
-  InteropNativePointer ptr;
+    InteropNativePointer ptr;
 } InteropMaterialized;
 
 typedef struct InteropCallbackResource {
-  InteropInt32 resourceId;
-  void (*hold)(InteropInt32 resourceId);
-  void (*release)(InteropInt32 resourceId);
+    InteropInt32 resourceId;
+    void (*hold)(InteropInt32 resourceId);
+    void (*release)(InteropInt32 resourceId);
 } InteropCallbackResource;
 
 typedef struct InteropBuffer {
-  InteropCallbackResource resource;
-  InteropNativePointer data;
-  InteropInt64 length;
+    InteropCallbackResource resource;
+    InteropNativePointer data;
+    InteropInt64 length;
 } InteropBuffer;
 
 typedef struct InteropAsyncWork {
-  InteropNativePointer workId;
-  void (*queue)(InteropNativePointer workId);
-  void (*cancel)(InteropNativePointer workId);
+    InteropNativePointer workId;
+    void (*queue)(InteropNativePointer workId);
+    void (*cancel)(InteropNativePointer workId);
 } InteropAsyncWork;
 
 typedef struct InteropAsyncWorker {
-  InteropAsyncWork (*createWork)(
-    InteropVMContext context,
-    InteropNativePointer handle,
-    void (*execute)(InteropNativePointer handle),
-    void (*complete)(InteropNativePointer handle)
-  );
+    InteropAsyncWork (*createWork)(InteropVMContext context, InteropNativePointer handle,
+        void (*execute)(InteropNativePointer handle), void (*complete)(InteropNativePointer handle));
 } InteropAsyncWorker;
 typedef const InteropAsyncWorker* InteropAsyncWorkerPtr;
 
 typedef struct InteropObject {
-  InteropCallbackResource resource;
+    InteropCallbackResource resource;
 } InteropObject;
 
 #endif // _INTEROP_TYPES_H_
@@ -6854,8 +6853,8 @@ typedef struct Opt_OnTextSelectionChangeCallback {
 typedef struct PageTransitionCallback {
     /* kind: Callback */
     Ark_CallbackResource resource;
-    void (*call)(const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Number progress);
-    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Number progress);
+    void (*call)(const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Float64 progress);
+    void (*callSync)(Ark_VMContext vmContext, const Ark_Int32 resourceId, Ark_RouteType type, const Ark_Float64 progress);
 } PageTransitionCallback;
 typedef struct Opt_PageTransitionCallback {
     Ark_Tag tag;
@@ -7962,8 +7961,8 @@ typedef struct Opt_OverlayOffset {
 typedef struct Ark_PageTransitionOptions {
     /* kind: Interface */
     Opt_RouteType type;
-    Opt_Number duration;
-    Opt_Number delay;
+    Opt_Int32 duration;
+    Opt_Int32 delay;
 } Ark_PageTransitionOptions;
 typedef struct Opt_PageTransitionOptions {
     Ark_Tag tag;
