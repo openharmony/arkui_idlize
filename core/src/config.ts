@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-import * as fs from "fs"
-import * as path from "path"
-
-import { ConfigSchema, D, ConfigTypeInfer } from "./configDescriber"
-import { mergeJSONs } from "./configMerge";
+import { existsSync, readFileSync } from "node:fs"
+import { D, ConfigTypeInfer, ConfigSchema } from "./configDescriber"
+import { mergeJSONs } from "./configMerge"
+import { capitalize } from "./util"
+import { resolve } from "node:path"
 
 const T = {
     stringArray: () => D.array(D.string())
@@ -29,6 +29,11 @@ export const ModuleConfigurationSchema = D.object({
     packages: T.stringArray(),
     useFoldersLayout: D.maybe(D.boolean()),
     tsLikePackage: D.maybe(D.string()),
+})
+
+export const HookMethodSchema = D.object({
+    hookName: D.string(),
+    replaceImplementation: D.boolean()
 })
 
 export type ModuleConfiguration = ConfigTypeInfer<typeof ModuleConfigurationSchema>
@@ -43,12 +48,16 @@ export const CoreConfigurationSchema = D.object({
     standaloneComponents: T.stringArray(),
     parameterized: T.stringArray(),
     ignoreMaterialized: T.stringArray(),
+    ignoreGenerics: T.stringArray(),
     builderClasses: T.stringArray(),
     forceMaterialized: T.stringArray(),
     forceCallback: D.map(D.string(), T.stringArray()).onMerge('replace'),
     forceResource: T.stringArray(),
+    forceContext: T.stringArray(),
+    hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
     moduleName: D.string(),
     modules: D.map(D.string(), ModuleConfigurationSchema).onMerge('replace'),
+    libraryNameMapping: D.maybe(D.map(D.string(), D.map(D.string(), D.string())).onMerge('replace')),
 
     globalPackages: T.stringArray()
 })
@@ -65,12 +74,16 @@ export const defaultCoreConfiguration: CoreConfiguration = {
     standaloneComponents: [],
     parameterized: [],
     ignoreMaterialized: [],
+    ignoreGenerics: [],
     builderClasses: [],
     forceMaterialized: [],
     forceCallback: new Map<string, []>(),
     forceResource: [],
+    forceContext: [],
+    hooks: new Map<string, Map<string, HookMethod>>(),
     moduleName: "",
     modules: new Map<string, ModuleConfiguration>(),
+    libraryNameMapping: new Map<string, Map<string, string>>(),
 
     globalPackages: []
 }
@@ -94,12 +107,30 @@ export function generatorTypePrefix() {
     return `${conf.TypePrefix}${conf.LibraryPrefix}`
 }
 
-function parseConfigFile(configurationFile: string): any {
-    if (!fs.existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
+interface HookMethod {
+    hookName: string,
+    replaceImplementation: boolean
+}
 
-    const data = fs.readFileSync(path.resolve(configurationFile)).toString()
+export function getHookMethod(className: string, methodName: string): HookMethod | undefined {
+    const hookMethods = generatorConfiguration().hooks.get(className)
+    if (!hookMethods) return undefined
+    const hook = hookMethods.get(methodName)
+    if (!hook) return undefined
+    const method: HookMethod = {
+        hookName: hook.hookName ?? `hook${className}${capitalize(methodName)}`,
+        replaceImplementation: hook.replaceImplementation ?? true
+    }
+    return method
+}
+
+function parseConfigFile(configurationFile: string): any {
+    if (!existsSync(configurationFile)) throw new Error(`Configuration file ${configurationFile} does not exist!`)
+
+    const data = readFileSync(resolve(configurationFile)).toString()
     return JSON.parse(data)
 }
+
 
 export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles: string[]): T {
     const json = mergeJSONs(
@@ -112,3 +143,4 @@ export function parseConfigFiles<T>(schema: ConfigSchema<T>, configurationFiles:
     }
     return result.unwrap()
 }
+

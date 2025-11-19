@@ -1,15 +1,20 @@
 import * as path from "path"
-import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, MethodModifier, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
+import { ArgumentModifier, capitalize, getSuper, isDefined, LibraryInterface, Method, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethod, PeerMethodArg, PeerMethodSignature, warn } from "@idlizer/core";
 import * as idl from "@idlizer/core/idl"
 import { collectComponents, findComponentByDeclaration, findComponentByType, IdlComponentDeclaration } from "./ComponentsCollector";
 import { getMethodModifiers } from "./idl/IdlPeerGeneratorVisitor";
 import { peerGeneratorConfiguration } from "../DefaultConfiguration";
 
 const collectPeers_cache = new Map<LibraryInterface, PeerClass[]>()
+const componentPeers_cache = new Map<LibraryInterface, Map<IdlComponentDeclaration, PeerClass>>()
 export function collectPeers(library: PeerLibrary): PeerClass[] {
     if (!collectPeers_cache.has(library))
         collectPeers_cache.set(library, collectComponents(library).map(it => generatePeer(library, it)))
     return collectPeers_cache.get(library)!
+}
+
+export function findPeerByComponentDeclaration(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass | undefined {
+    return componentPeers_cache.get(library)?.get(component)
 }
 
 export function collectOrderedPeers(library: PeerLibrary): PeerClass[] {
@@ -57,7 +62,6 @@ function processMethodOrCallable(library: PeerLibrary, method: idl.IDLMethod | i
             signature.args.map((it, index) => new PeerMethodArg(signature.argName(index), idl.maybeOptional(it, signature.isArgOptional(index)))),
             signature.returnType,
             method.parent as idl.IDLInterface,
-            peerGeneratorConfiguration().forceContext.includes(idl.getFQName(method)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         originalParentName,
         realRetType,
@@ -92,7 +96,6 @@ function processProperty(library: PeerLibrary, prop: idl.IDLProperty, peer: Peer
             [new PeerMethodArg('value', idl.maybeOptional(prop.type, prop.isOptional))],
             idl.IDLVoidType,
             prop.parent as idl.IDLInterface,
-            peerGeneratorConfiguration().forceContext.includes(idl.getFQName(prop)) ? [MethodModifier.FORCE_CONTEXT] : undefined
         ),
         originalParentName,
         idl.IDLVoidType,
@@ -141,6 +144,13 @@ function fillClass(library: PeerLibrary, peer: PeerClass, clazz: idl.IDLInterfac
     createComponentAttributesDeclaration(clazz, peer)
 }
 
+function fillComponentPeersCache(library: PeerLibrary, component: IdlComponentDeclaration, peer: PeerClass) {
+    if (!componentPeers_cache.has(library)) {
+        componentPeers_cache.set(library, new Map<IdlComponentDeclaration, PeerClass>())
+    }
+    componentPeers_cache.get(library)!.set(component, peer)
+}
+
 function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration): PeerClass {
     if (!component.attributeDeclaration.fileName) {
         throw new Error("Expected parent of attributes to be a SourceFile, but fileName is undefined")
@@ -159,6 +169,7 @@ function generatePeer(library: PeerLibrary, component: IdlComponentDeclaration):
     }
 
     const peer = new PeerClass(component.attributeDeclaration, file, component.name, baseName)
+    fillComponentPeersCache(library, component, peer)
 
     if (component.interfaceDeclaration) {
         fillInterface(library, peer, component.interfaceDeclaration)

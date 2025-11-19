@@ -35,11 +35,6 @@ export const TransformOnSerializeSchema = D.object({
     to: D.string(),
 })
 
-export const HookMethodSchema = D.object({
-    hookName: D.string(),
-    replaceImplementation: D.boolean()
-})
-
 export const PeerGeneratorConfigurationSchema = D.combine(
     CoreConfigurationSchema,
     D.object({
@@ -82,10 +77,6 @@ export const PeerGeneratorConfigurationSchema = D.combine(
             new Map<string, string>()
         ),
         transformOnSerialize: D.array(TransformOnSerializeSchema),
-        ignoreGenerics: T.stringArray(),
-        forceContext: T.stringArray(),
-        hooks: D.map(D.string(), D.map(D.string(), HookMethodSchema)).onMerge('replace'),
-        libraryNameMapping: D.maybe(D.map(D.string(), D.map(D.string(), D.string())).onMerge('replace')),
     })
 )
 
