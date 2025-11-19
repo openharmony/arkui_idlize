@@ -1168,16 +1168,15 @@ namespace OHOS::Ace::NG::GeneratedModifier {
             appendGroupedLog(1, out);
 
             if (param->onProgress.tag != INTEROP_TAG_UNDEFINED) {
-                auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.delay.value.i32 : 0;
-                auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.duration.value.i32 : 0;
+                auto delay = param->pageTransitionOptions.delay.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.delay.value : 0;
+                auto duration = param->pageTransitionOptions.duration.tag != INTEROP_TAG_UNDEFINED ? param->pageTransitionOptions.duration.value : 0;
                 if (duration > 0) {
                     auto callback = param->onProgress.value;
                     auto routeType = param->routeType.tag != INTEROP_TAG_UNDEFINED ? param->routeType.value : ARK_ROUTE_TYPE_NONE;
                     callback.resource.hold(callback.resource.resourceId);
                     auto onProgress = [callback, routeType](double progress) {
                         if (callback.call) {
-                            Ark_Number ark_progress = { .tag = INTEROP_TAG_FLOAT32, .f32 = (InteropFloat32)progress };
-                            callback.call(callback.resource.resourceId, routeType, ark_progress);
+                            callback.call(callback.resource.resourceId, routeType, (InteropFloat32)progress);
                         }
                     };
 

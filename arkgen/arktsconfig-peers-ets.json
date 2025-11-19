@@ -38,18 +38,98 @@
                 "./annotations"
             ],
 
-
+            "arkui.incremental.annotation": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/incremental/annotation"
+            ],
+            "arkui.incremental.runtime.state": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/incremental/runtime/state"
+            ],
+            "arkui.stateManagement.animation.GlobalTimer": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/animation/GlobalTimer"
+            ],
+            "arkui.stateManagement.common": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/common"
+            ],
+            "arkui.stateManagement.decorator": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/decorator"
+            ],
+            "arkui.stateManagement.memo.bind": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/bind"
+            ],
+            "arkui.stateManagement.memo.changeListener": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/changeListener"
+            ],
+            "arkui.stateManagement.memo.contextLocal": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/contextLocal"
+            ],
+            "arkui.stateManagement.memo.entry": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/entry"
+            ],
             "arkui.stateManagement.memo.node": [
-                "../../../../../../../../external/incremental/runtime/src/memo/node"
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/node"
             ],
             "arkui.stateManagement.memo.remember": [
-                "../../../../../../../../external/incremental/runtime/src/memo/remember"
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/remember"
             ],
-            "arkui.stateManagement.runtime": [
-                "../../../../../../../../external/incremental/runtime/annotations"
+            "arkui.stateManagement.memo.repeat": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/repeat"
+            ],
+            "arkui.stateManagement.memo.testing": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memo/testing"
+            ],
+            "arkui.stateManagement.memorize.state": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/memorize/state"
+            ],
+            "arkui.stateManagement.states.Disposable": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/states/Disposable"
+            ],
+            "arkui.stateManagement.states.GlobalStateManager": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/states/GlobalStateManager"
+            ],
+            "arkui.stateManagement.states.State": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/states/State"
+            ],
+            "arkui.stateManagement.storage.appStorage": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/appStorage"
+            ],
+            "arkui.stateManagement.storage.appStorageV2": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/appStorageV2"
+            ],
+            "arkui.stateManagement.storage.environment": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/environment"
+            ],
+            "arkui.stateManagement.storage.localStorage": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/localStorage"
+            ],
+            "arkui.stateManagement.storage.persistenceV2": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/persistenceV2"
+            ],
+            "arkui.stateManagement.storage.persistentStorage": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/persistentStorage"
+            ],
+            "arkui.stateManagement.storage.storageProperty": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/storage/storageProperty"
+            ],
+            "arkui.stateManagement.tree.IncrementalNode": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/tree/IncrementalNode"
+            ],
+            "arkui.stateManagement.tree.PrimeNumbers": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/tree/PrimeNumbers"
+            ],
+            "arkui.stateManagement.tree.ReadonlyTreeNode": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/tree/ReadonlyTreeNode"
+            ],
+            "arkui.stateManagement.tree.TreeNode": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/tree/TreeNode"
+            ],
+            "arkui.stateManagement.tree.TreePath": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/tree/TreePath"
+            ],
+            "arkui.stateManagement.utils": [
+                "../../../../../../../../absolute-sdk-patched-arkts/api/arkui/stateManagement/utils"
             ],
             "arkui.stateManagement": [
-                "../../../../../../../../external/incremental/runtime/src"
+                "../../../../../../../../arkgen/runtime/arkts/incremental_runtime"
             ]
         }
     },

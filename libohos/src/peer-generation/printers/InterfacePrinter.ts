@@ -1654,8 +1654,8 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
         }
         if (options.useMemoM3 && language === Language.ARKTS) {
             imports.push(
-                { feature: "memo", module: "^arkui.stateManagement.runtime" },
-                { feature: "memo_stable", module: "^arkui.stateManagement.runtime" },
+                { feature: "memo", module: "^arkui.incremental.annotation" },
+                { feature: "memo_stable", module: "^arkui.incremental.annotation" },
                 { feature: "ComponentBuilder", module: "@koalaui/builderLambda" },
                 { feature: "Builder", module: "@koalaui/builderLambda" },
             )

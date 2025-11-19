@@ -324,7 +324,7 @@ class TSComponentFileVisitor extends TSLikeComponentFileVisitor {
 class ArkTsComponentFileVisitor extends TSLikeComponentFileVisitor {
     protected populateImports(imports: ImportsCollector) {
         if (this.library.useMemoM3) {
-            imports.addFeatures(['memo', 'memo_stable', 'memo_skip'], '^arkui.stateManagement.runtime')
+            imports.addFeatures(['memo', 'memo_stable', 'memo_skip'], '^arkui.incremental.annotation')
             imports.addFeatures(['ComponentBuilder'], '@koalaui/builderLambda')
         }
     }
