@@ -79,8 +79,8 @@ function validateIdl(paths: string[], options: { load: string[], features: strin
     }
 }
 
-function checkCompatDirs(baseDir: string, targetDir: string) {
-    checkCompat(listIdl(baseDir, "base"), listIdl(targetDir, "target"))
+function checkCompatDirs(baseDir: string, commitDir: string) {
+    checkCompat(listIdl(baseDir, "base"), listIdl(commitDir, "commit"))
     outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
     if (DiagnosticMessageGroup.collectedResults.hasErrors) {
         process.exit(2)
