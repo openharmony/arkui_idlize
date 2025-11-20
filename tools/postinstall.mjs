@@ -1,23 +1,9 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs'
-import { sep, join, dirname, resolve } from 'node:path'
+import { sep, join, dirname, resolve, relative } from 'node:path'
 import { execSync } from 'node:child_process'
 
-const LOCKFILE = './postinstall.lock'
-const FALLBACKS = {
-    '@koalaui/libarkts': [ join('external', 'libarkts') ]
-}
-
-function lock(cb) {
-    if (!existsSync(LOCKFILE)) {
-        try {
-            writeFileSync(LOCKFILE, '')
-            cb()
-        } catch (e) {
-            throw e
-        } finally {
-            rmSync(LOCKFILE)
-        }
-    }
+const ALTERNATIVES = {
+    "@koalaui/libarkts": [ "file:../../../developtools/ace_ets2bundle/ets1.2/libarkts", "file:external/libarkts" ]
 }
 
 function glob(path, allowFailure = false) {
@@ -45,18 +31,15 @@ function glob(path, allowFailure = false) {
 function install_dependencies(deps) {
     const depsCmd = []
     for (const depName in deps) {
-        if (deps[depName].startsWith('file:')) {
-            let path = deps[depName].slice(5)
-            if (!path.startsWith(`..${sep}`)) {
-                path = `./${path}`
-            }
-            depsCmd.push(path)
-        } else {
-            depsCmd.push(`${depName}@${deps[depName]}`)
-        }
+        depsCmd.push(`${depName}@${deps[depName]}`)
     }
     if (depsCmd.length > 0) {
-        const cmd = `npm i --no-save --ignore-scripts ${depsCmd.join(' ')}`
+        const registry = process.env.npm_config_registry
+        const cache = process.env.npm_config_cache
+        const npm = process.env.npm_execpath
+        const registryFlag = registry ? `--registry ${registry}` : ``
+        const cacheFlag = cache ? `--cache ${cache}` : ``
+        const cmd = `${npm} i --no-save --ignore-scripts ${registryFlag} ${cacheFlag} ${depsCmd.join(' ')}`
         console.log(`> ${cmd}`)
         execSync(cmd, { stdio: 'inherit' })
     }
@@ -76,31 +59,6 @@ function extract_version(packageFilename, version) {
         return _extract_file_version(version)
     }
     return version
-}
-
-function correct_file_dependencies(deps) {
-    const correctedDependencies = {}
-    for (const depName in deps) {
-        const version = deps[depName]
-        if (version.startsWith('file:')) {
-            const path = version.slice(5)
-            if (!existsSync(path)) {
-                console.log(`path '${path}' for dependency ${depName} does not exists, trying to use fallbacks...`)
-                const fallbacks = FALLBACKS[depName] ?? []
-                const validFallbacks = fallbacks.filter(it => existsSync(it) && statSync(it).isDirectory())
-                if (validFallbacks.length === 0) {
-                    throw new Error(`No fallback found for ${depName}. Tested ${fallbacks.map(it => `'${it}'`).join(`,`)}`)
-                }
-                const chosenFallback = validFallbacks[0]
-                if (validFallbacks.length > 1) {
-                    console.warn(`More that one fallbacks found for ${depName}: ${validFallbacks.map(it => `'${it}'`).join(`,`)}. Use '${chosenFallback}'`)
-                }
-                console.log(`Use fallback '${chosenFallback}' for dependency ${depName}`)
-                correctedDependencies[depName] = `file:${chosenFallback}`
-            }
-        }
-    }
-    return correctedDependencies
 }
 
 function collect_workspace_packages_filenames() {
@@ -123,11 +81,27 @@ function collect_workspaces_dependencies() {
     const collectedDependencies = {}
     const collectDependencies = (packageFilename, deps) => {
         for (const depName in deps) {
-            const version = extract_version(packageFilename, deps[depName])
-            if (depName in collectedDependencies && collectedDependencies[depName] !== version) {
-                throw new Error(`Dependency ${depName} has different version`)
+            const versionsAlternatives = deps[depName].split('||').map(it => it.trim())
+                .map(it => extract_version(packageFilename, it))
+                .concat(ALTERNATIVES[depName] ?? [])
+                .filter(it => {
+                    if (it.startsWith('file:')) {
+                        return existsSync(it.slice(5))
+                    }
+                    return true
+                })
+            let chosenAlternative = undefined
+            for (const version of versionsAlternatives) {
+                if (depName in collectedDependencies && collectedDependencies[depName] !== version) {
+                    continue
+                }
+                chosenAlternative = version
+                break;
             }
-            collectedDependencies[depName] = version
+            if (chosenAlternative === undefined) {
+                throw new Error(`Dependency ${depName} has different version: ${versionsAlternatives.join(" || ")}`)
+            }
+            collectedDependencies[depName] = chosenAlternative
         }
     }
     const workspacePackagesFilenames = collect_workspace_packages_filenames()
@@ -156,33 +130,62 @@ function emulate_workspaces() {
 
     console.log(`npm corresponding for node version ${process.versions.node} does not support workspaces, trying to emulate it with direct 'npm install'`)
     const collectedDependencies = collect_workspaces_dependencies()
-    install_dependencies(collectedDependencies)
+    const replaceDependenciesToCollected = (packageFilename, deps) => {
+        if (deps) {
+            for (const depName in deps) {
+                if (depName in collectedDependencies) {
+                    let version = collectedDependencies[depName]
+                    if (version.startsWith('file:')) {
+                        version = 'file:' + relative(dirname(packageFilename), version.slice(5))
+                    }
+                    deps[depName] = version
+                }
+            }
+        }
+    }
+    const workspacePackagesFilenames = collect_workspace_packages_filenames()
+    const savedPackages = new Map()
+    try {
+        for (const workspacePackageFilename of workspacePackagesFilenames) {
+            const workspacePackageContent = readFileSync(workspacePackageFilename, { encoding: 'utf-8' })
+            savedPackages.set(workspacePackageFilename, workspacePackageContent)
+            const workspacePackage = JSON.parse(workspacePackageContent)
+            replaceDependenciesToCollected(workspacePackageFilename, workspacePackage.dependencies)
+            replaceDependenciesToCollected(workspacePackageFilename, workspacePackage.devDependencies)
+            writeFileSync(workspacePackageFilename, JSON.stringify(workspacePackage), { encoding: 'utf-8' })
+        }
+        install_dependencies(collectedDependencies)
+    } finally {
+        for (const [ workspacePackageFilename, workspacePackageContent ] of savedPackages.entries()) {
+            writeFileSync(workspacePackageFilename, workspacePackageContent, { encoding: 'utf-8' })
+        }
+    }
     return true
 }
 
-let exitCode = 0
-
-lock(() => {
+function main() {
     try {
-        emulate_workspaces()
+        if (emulate_workspaces())
+            return 0
     } catch (e) {
         console.error('failed workspaces emulation: ', e)
-        exitCode = 1
-        return
+        return 1
     }
 
     try {
         const collectedDependencies = collect_workspaces_dependencies()
-        const dependenciesToCorrect = correct_file_dependencies(collectedDependencies)
-        if (Object.keys(dependenciesToCorrect).length > 0) {
-            console.log(`Correcting file dependencies`)
-            install_dependencies(dependenciesToCorrect)
+        const fileDependencies = {}
+        for (const depName in collectedDependencies) {
+            const version = collectedDependencies[depName]
+            if (version.startsWith('file:')) {
+                fileDependencies[depName] = version
+            }
         }
+        install_dependencies(fileDependencies)
     } catch (e) {
-        console.error('failed file dependencies correction: ', e)
-        exitCode = 1
-        return
+        console.error('failed files correction: ', e)
+        return 1
     }
-})
+}
 
-process.exit(exitCode)
+process.exit(main())

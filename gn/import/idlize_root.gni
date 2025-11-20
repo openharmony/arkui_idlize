@@ -1,3 +1,40 @@
 if (!defined(idlize_root)) {
     idlize_root = get_path_info("../..", "abspath")
 }
+
+if (!defined(idlize_ws)) {
+    if (idlize_root == "//") {
+        idlize_ws = "idlize"
+    } else if (idlize_root == "//foundation/arkui/arkui_idlize" || idlize_root == "//foundation/arkui/arkui_idlize/") {
+        idlize_ws = "ohos"
+    } else {
+        assert(false, "can not define idlize workspace for root ${idlize_root}")
+    }
+}
+
+if (!defined(koala_mr)) {
+    if (idlize_ws == "idlize") {
+        assert(false, "in `idlize` workspace koala_mr must be defined with BUILDCONFIG.gn file")
+    } else if (idlize_ws == "ohos") {
+        koala_mr = {
+            root_path = "//developtools/ace_ets2bundle/ets1.2"
+        }
+    } else {
+        assert(false, "can not process idlize workspace ${idlize_ws}")
+    }
+}
+
+if (idlize_ws == "idlize") {
+    # use default node
+} else if (idlize_ws == "ohos") {
+    node_version = "v18.20.1"
+    host_arch = "${host_os}-${host_cpu}"
+
+    if (host_os == "mac" && host_cpu == "arm64") {
+        host_arch = "darwin-x64"
+    }
+
+    koala_node_path = rebase_path("//prebuilts/build-tools/common/nodejs/node-${node_version}-${host_arch}/bin")
+} else {
+    assert(false, "can not process idlize workspace ${idlize_ws}")
+}

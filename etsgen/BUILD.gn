@@ -16,8 +16,15 @@ import("../gn/import/npm.gni")
 npm_cmd("compile") {
     deps = [
         "../core:compile",
-        "${koala_mr.root_path}/libarkts:libarkts"
     ]
+    if (idlize_ws == "idlize") {
+        deps += [ "${koala_mr.root_path}/libarkts:libarkts" ]
+    } else if (idlize_ws == "ohos") {
+        # compatibility with old libarkts. Must be changed to `${koala_mr.root_path}/libarkts:libarkts` after syncing newest libarkts version
+        deps += [ "${koala_mr.root_path}/libarkts:libarkts_copy" ]
+    } else {
+        assert(false, "can not process idlize workspace ${idlize_ws}")
+    }
     project_path = rebase_path(".")
     run_tasks = [ "compile:self" ]
 }

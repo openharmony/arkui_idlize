@@ -1,0 +1,34 @@
+{
+    "name": "@ohos/arkui_idlize",
+    "description": "",
+    "version": "1.0",
+    "license": "Apache License 2.0",
+    "segment": {
+        "destPath": "foundation/arkui/arkui_idlize"
+    },
+    "component": {
+        "name": "arkui_idlize",
+        "subsystem": "arkui",
+        "syscap": [],
+        "features": [],
+        "adapted_system_type": [
+            "standard"
+        ],
+        "rom": "",
+        "ram": "",
+        "deps": {
+            "components": [
+                "ace_ets2bundle"
+            ],
+            "third_party": []
+        },
+        "build": {
+            "sub_component": [],
+            "inner_kits": [
+                {
+                    "name": "//foundation/arkui/arkui_idlize:runner_compile"
+                }
+            ]
+        }
+    }
+}

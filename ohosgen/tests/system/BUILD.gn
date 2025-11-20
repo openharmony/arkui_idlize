@@ -216,113 +216,68 @@ template("system_test") {
     }
 }
 
-test_cases = [
-    { name = "huks"
-      name_uppercase = "HUKS"
-      use_ost = true },
-    { name = "huks_with_class"
-      name_uppercase = "HUKS_WITH_CLASS"
-      use_ost = true },
-    { name = "test_buffer"
-      name_uppercase = "TEST_BUFFER"
-      use_ost = true },
-    { name = "test_fqn"
-      name_uppercase = "TEST_FQN"
-      use_ost = true },
-    { name = "test_generic_callback"
-      name_uppercase = "TEST_GENERIC_CALLBACK"
-      input_type = "dts" },
-    { name = "test_modules_multilevel"
-      name_uppercase = "TEST_MODULES_MULTILEVEL"
-      use_ost = true
-      input_type = "dts" },
-    { name = "test_modules_multilevel_property"
-      name_uppercase = "TEST_MODULES_MULTILEVEL_PROPERTY"
-      use_ost = true
-      input_type = "dts" },
-    { name = "test_modules_simple"
-      name_uppercase = "TEST_MODULES_SIMPLE"
-      use_ost = true
-      input_type = "dts" },
-    { name = "test_name_collision"
-      name_uppercase = "TEST_NAME_COLLISION"
-      use_ost = true },
-    { name = "test_package"
-      name_uppercase = "TEST_PACKAGE"
-      use_ost = true },
-]
+if (idlize_ws == "idlize") {
+    test_cases = [
+        { name = "huks"
+        name_uppercase = "HUKS"
+        use_ost = true },
+        { name = "huks_with_class"
+        name_uppercase = "HUKS_WITH_CLASS"
+        use_ost = true },
+        { name = "test_buffer"
+        name_uppercase = "TEST_BUFFER"
+        use_ost = true },
+        { name = "test_fqn"
+        name_uppercase = "TEST_FQN"
+        use_ost = true },
+        { name = "test_generic_callback"
+        name_uppercase = "TEST_GENERIC_CALLBACK"
+        input_type = "dts" },
+        { name = "test_modules_multilevel"
+        name_uppercase = "TEST_MODULES_MULTILEVEL"
+        use_ost = true
+        input_type = "dts" },
+        { name = "test_modules_multilevel_property"
+        name_uppercase = "TEST_MODULES_MULTILEVEL_PROPERTY"
+        use_ost = true
+        input_type = "dts" },
+        { name = "test_modules_simple"
+        name_uppercase = "TEST_MODULES_SIMPLE"
+        use_ost = true
+        input_type = "dts" },
+        { name = "test_name_collision"
+        name_uppercase = "TEST_NAME_COLLISION"
+        use_ost = true },
+        { name = "test_package"
+        name_uppercase = "TEST_PACKAGE"
+        use_ost = true },
+    ]
 
-foreach(conf, test_cases) {
-    system_test(conf.name) {
-        name_uppercase = conf.name_uppercase
-        target = "arkts"
-        input_type = "idl"
-        if (defined(conf.input_type)) {
-            input_type = conf.input_type
-        }
-        use_ost = false
-        if (defined(conf.use_ost)) {
-            use_ost = conf.use_ost
-        }
-    }
-}
-
-group("all") {
-    deps = []
     foreach(conf, test_cases) {
-        deps += [ ":${conf.name}" ]
+        system_test(conf.name) {
+            name_uppercase = conf.name_uppercase
+            target = "arkts"
+            input_type = "idl"
+            if (defined(conf.input_type)) {
+                input_type = conf.input_type
+            }
+            use_ost = false
+            if (defined(conf.use_ost)) {
+                use_ost = conf.use_ost
+            }
+        }
     }
+
+    group("all") {
+        deps = []
+        foreach(conf, test_cases) {
+            deps += [ ":${conf.name}" ]
+        }
+    }
+} else if (idlize_ws == "ohos") {
+    group("all") {
+        # no system tests for ohos: missed incremental and interop dependencies
+    }
+} else {
+    assert(false, "can not process idlize workspace ${idlize_ws}")
 }
-
-# system_test("huks") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("huks_with_class") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_buffer") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_generic_callback") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_modules_multilevel") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_modules_multilevel_property") {
-#     target = "arkts"
-#     input_type = "dts"
-# }
-
-# system_test("test_name_collision") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# system_test("test_package") {
-#     target = "arkts"
-#     input_type = "idl"
-# }
-
-# group("all") {
-#     deps = [
-#         ":huks",
-#         ":huks_with_class",
-#         ":test_buffer",
-#         ":test_generic_callback",
-#         ":huks",
-#         ":huks",
-#         ":huks",
-#         ":huks",
-#     ]
-# }
