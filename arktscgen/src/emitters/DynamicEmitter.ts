@@ -68,7 +68,7 @@ export class DynamicEmitter {
                 fs.readFileSync(pandaJson).toString())?.version ?? `Unknown`
         }
 
-        const host = 'linux'
+        const host = process.platform
         const pandaBinary = path.join(sdkDir, `${host}_host_tools/bin/es2panda`)
         if (fs.existsSync(pandaBinary)) {
             const result = ps.spawnSync(pandaBinary, ['--version'], { encoding: 'utf-8' })
