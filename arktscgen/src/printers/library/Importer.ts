@@ -82,7 +82,7 @@ export class Importer {
                     name,
                     path.normalize(
                         path.join(this.dir, from)
-                    )
+                    ).replaceAll("\\", "/")
                 )
             )
         )
