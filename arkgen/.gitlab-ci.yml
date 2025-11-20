@@ -35,7 +35,6 @@ arkgen ArkTS subset:
   needs:
     - build idlize
     - build external
-    - download sdk # TODO remove after imports will be detached from SDK
 
 arkgen ArkTS unit:
   stage: test
@@ -54,7 +53,6 @@ arkgen ArkTS unit:
   needs:
     - build idlize
     - build external
-    - download sdk # TODO remove after imports will be detached from SDK
 
 arkgen Kotlin unit:
   allow_failure: true

@@ -13,9 +13,7 @@
  * limitations under the License.
  */
 
-import { int32 } from "@koalaui/common"
-import { pointer } from "@koalaui/interop"
-import { Finalizable } from "@koalaui/interop"
+import { pointer, int32, Finalizable } from "@koalaui/interop"
 import { ArkUINativeModule } from "#components"
 import { PeerNode } from "./PeerNode"
 

@@ -27,8 +27,8 @@ import { ArkButtonPeer,
     Font,
     TextOverflow,
     TextHeightAdaptivePolicy
-} from "@arkoala/arkui"
-import { CallbackKind } from "@arkoala/arkui/peers/CallbackKind"
+} from "./."
+import { CallbackKind } from "./peers/CallbackKind"
 import { ResourceId, InteropNativeModule } from "@koalaui/interop"
 import { int32, int8 } from "@koalaui/common"
 

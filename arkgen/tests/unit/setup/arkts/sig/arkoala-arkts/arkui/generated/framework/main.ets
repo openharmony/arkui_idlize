@@ -25,7 +25,7 @@ import {
     ArkCheckExceptionComponent,
     ArkCheckOptionalPeer,
     ArkCheckOptionalComponent,
-} from "@arkoala/arkui"
+} from "./."
 
 import { InteropNativeModule } from "@koalaui/interop"
 
