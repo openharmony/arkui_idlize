@@ -74,6 +74,7 @@ interface RenderNodeExtender {
   static void setPathClip(RenderNode peer, CommandPath path);
   static void appendChild(RenderNode peer, RenderNode node);
   static void insertChildAfter(RenderNode peer, RenderNode child, RenderNode sibling);
+  static void insertChild(RenderNode peer, RenderNode child);
   static void removeChild(RenderNode peer, RenderNode node);
   static void clearChildren(RenderNode peer);
   static void invalidate(RenderNode peer);
