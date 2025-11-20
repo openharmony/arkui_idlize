@@ -601,6 +601,9 @@
             "CustomNode"
         ],
         "handWritten": [
+            "NodeContainerAttribute",
+            "NodeContainer",
+            "NodeContainerImpl",
             "Initializer",
             "PeerNode",
             "LifeCycle",

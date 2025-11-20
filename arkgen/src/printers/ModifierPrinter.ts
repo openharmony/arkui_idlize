@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { getHookMethod, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
+import { getHookMethod, getSuper, IfStatement, isHeir, Language, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, Method, MethodModifier, MethodSignature, PeerClass, PeerLibrary, PeerMethod } from "@idlizer/core";
 import { collapseIdlPeerMethods, collectComponents, collectDeclDependencies, collectDeclItself, componentToPeerClass, findComponentByDeclaration, findComponentByName, groupOverloads, IdlComponentDeclaration, ImportsCollector, peerGeneratorConfiguration, PrinterResult } from "@idlizer/libohos";
 import { collectPeersForFile, findPeerByComponentDeclaration } from "@idlizer/libohos";
 import { expandComponentWithSupers, generateAttributeModifierSignature } from './ComponentsPrinter';
@@ -497,12 +497,23 @@ class ModifiersFileVisitor {
         }
     }
 
+    private hasHeirs(peer: PeerClass) {
+        const component = findComponentByName(this.library, peer.componentName)
+        if (!component) {
+            throw new Error(`Can not find component with name ${peer.componentName}`)
+        }
+        return collectComponents(this.library).some(it => {
+            return getSuper(it.attributeDeclaration, this.library) === component?.attributeDeclaration
+        })
+    }
+
     printModifiers(peer: PeerClass): PrinterResult[] {
 
         const component = findComponentByName(this.library, peer.componentName)!
         const generate: PrinterResult['generate'] = () => {
             const printer = this.library.createLanguageWriter();
             const componentAttribute = component.attributeDeclaration;
+            const nameConvertor = this.library.createTypeNameConvertor(Language.ARKTS)
             const parentSet = this.generateTopLevelAttributeSetParentName(peer)
 
             const attributeTypes: Array<AttributeType> = new Array
@@ -518,10 +529,10 @@ class ModifiersFileVisitor {
             let extendsInterface: string[] = []
             const collectedHooks: string[] = []
 
-            if (componentAttribute.name !== 'CommonMethod') {
-                extendsInterface = [`${componentAttribute.name}`, `AttributeModifier<${componentAttribute.name}>`]
+            if (!this.hasHeirs(peer)) {
+                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`, `AttributeModifier<${nameConvertor.convert(componentAttribute)}>`]
             } else {
-                extendsInterface = [`${componentAttribute.name}`]
+                extendsInterface = [`${nameConvertor.convert(componentAttribute)}`]
             }
 
             printer.writeClass(this.generateAttributeSetName(componentAttribute.name), (writer) => {
@@ -540,21 +551,19 @@ class ModifiersFileVisitor {
                 writer.writeMethodImplementation(new Method(
                     `setInstanceId`,
                     new MethodSignature(idl.IDLVoidType, [idl.IDLNumberType], [], [], [], ['instanceId'])),
-                    writer => {
+                    writer => { 
                         writer.writeStatement(writer.makeAssign('this._instanceId', undefined, writer.makeString('instanceId'), false))
                     }
                 )
 
                 writer.print(`isUpdater: () => boolean = () => false`)
 
-
-
-                if (componentAttribute.name !== 'CommonMethod') {
-                    writer.print(`applyNormalAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyPressedAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyFocusedAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applyDisabledAttribute(instance: ${componentAttribute.name}): void { }`)
-                    writer.print(`applySelectedAttribute(instance: ${componentAttribute.name}): void { }`)
+                if (!this.hasHeirs(peer)) {
+                    writer.print(`applyNormalAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyPressedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyFocusedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applyDisabledAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
+                    writer.print(`applySelectedAttribute(instance: ${nameConvertor.convert(componentAttribute)}): void { }`)
                 }
 
                 attributeTypes.forEach((attribute, index) => {
