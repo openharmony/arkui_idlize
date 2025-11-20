@@ -183,7 +183,10 @@ function makeImports(test: Test, target: Target, peerLibrary: PeerLibrary): ETSL
     if (test.type === "Invalid" && test.fatal !== true) {
         checkers.add("runTestAsync")
         if (fixtureImports.size > 0) {
-            fixtureImports.add(getInitFixtureName(test))
+            const validFixture = getInitFixtureName(test)
+            if (!validFixture.startsWith("unknown")) {
+                fixtureImports.add(validFixture)
+            }
         }
     } else {
        checkers.add("runTest")
@@ -237,8 +240,9 @@ function makeTestBlocks(test: Test, target: Target, peerLibrary: PeerLibrary) {
             const testPlanTypeName = `${test.testName}Plan`
             blocks.planValues.print(`readonly testPlanInputs: ${testPlanTypeName}[] = [`)
             blocks.planValues.pushIndent()
-            test.fixtureNames.forEach(fixture => blocks.planValues.print(`...${fixture}Inputs,`))
-
+            test.fixtureNames
+                .filter(fixture => !fixture.startsWith("~")) // The fixtures with the ~ marker are not added for use.
+                .forEach(fixture => blocks.planValues.print(`...${fixture}Inputs,`))
             const testPlanName = test.type === "Invalid" ? "testPlanState" : "testPlanInputs"
             const indexType = target === Target.ARK_TS_1_2 ? "int" : "number"
             blocks.build.print(`ForEach(this.${testPlanName}, (item: ${testPlanTypeName}, index: ${indexType}) => {`)
@@ -400,7 +404,7 @@ function makeStruct(
 function getInitFixtureName(test: Test): string {
     const invalidFixtureBaseName = (test.fixtureNames?.length ?? 0) > 0 ? test.fixtureNames![0] : ""
     return `${invalidFixtureBaseName.includes("Invalid")
-        ? invalidFixtureBaseName.replace("Invalid", "Valid")
+        ? invalidFixtureBaseName.replace("~", "").replace("Invalid", "Valid")
         : "unknownFixtureValid"
     }Inputs`
 }

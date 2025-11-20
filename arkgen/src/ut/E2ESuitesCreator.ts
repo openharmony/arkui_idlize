@@ -273,13 +273,29 @@ function makeTestWithTestPlan(
     const isValid = invalidValueFixtures === undefined
     const testFixtures = isValid ? validValueFixtures[testIndex] : invalidValueFixtures
     const testPlanFixtures = makeTestPlanFixtures(testFixtures, isValid, fixturesTs, enums)
+    // If there is no invalid fixture but we need to add undefined test then we need to find a valid fixture.
+    if (!isValid && testPlanFixtures.names.length === 0
+        && testPlanFixtures.types.length === 1 && testPlanFixtures.types[0] === "undefined"
+    ) {
+        const validFixtures = makeTestPlanFixtures(validValueFixtures[testIndex], true, fixturesTs, enums)
+        // We add a fake invalid fixture to import a valid fixture and use it for initialization.
+        if (validFixtures.names.length > 0) {
+            testPlanFixtures.names.push(`~${validFixtures.names[0].replace("Valid", "Invalid")}`) // Fake invalid fixture. Marked ~
+            testPlanFixtures.types.push(...validFixtures.types) // We add all types for initialization compatibility.
+            testPlanFixtures.imports.push(`${validFixtures.names[0]}Inputs`)
+        }
+    }
     test.fails = makeFixtureFails(testPlanFixtures.fails)
     test.fixtureNames = testPlanFixtures.names
     test.fixtureTypes = testPlanFixtures.types
     if (testPlanFixtures.names.length === 0) {
-        test.fatal = true
-        if (test.fails.length === 0) {
-            test.fails.push("There are no fixtures")
+        if (isValid) {
+            test.fatal = true
+            if (test.fails.length === 0) {
+                test.fails.push("There are no fixtures")
+            }
+        } else {
+            return // No need to test if there is no invalid fixtures.
         }
     }
     const initFixtures = getInitFixtures(validValueFixtures)
@@ -340,7 +356,9 @@ function makeTestPlanFixtures(
         } else if (fixture === OPTIONAL_FIXTURE || fixture === UNION_UNDEF_FIXTURE) {
             result.types.push("undefined")
         } else if (fixture.startsWith(":")) {
-            result.fails.push(fixture)
+            if (valid) {
+                result.fails.push(fixture)
+            }
         }
     }
     return result
@@ -397,11 +415,12 @@ function makeChecks(attributes: readonly TestValue[], needDefault = true): TestC
     return checks
 }
 
-function fillAttrs(attr: TestValue): string[] {
+function fillAttrs(attr: TestValue, root = true): string[] {
     const parent = attr.getParent()
-    const attrs = parent ? fillAttrs(parent) : []
-    if (!attr.nameConst) return []
-    attrs.push(attr.nameConst)
+    const attrs = parent ? fillAttrs(parent, false) : []
+    if (attr.nameConst && (!attr.type.isUnion() || root)) {
+        attrs.push(attr.nameConst)
+    }
     return attrs
 }
 
