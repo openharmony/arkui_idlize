@@ -13,9 +13,17 @@ interface SizeNumberInner {
     attribute number width;
     attribute number height;
 };
+interface SizeF64Inner {
+    attribute f64 width;
+    attribute f64 height;
+};
 interface PositionNumberInner {
     attribute number x;
     attribute number y;
+};
+interface PositionF64Inner {
+    attribute f64 x;
+    attribute f64 y;
 };
 interface PositionLengthMetricsInner {
     attribute LengthMetrics x;
@@ -26,29 +34,34 @@ interface Tuple_ResourceColor_ResourceColor {
     attribute ResourceColor value0;
     attribute ResourceColor value1;
 };
+[Entity=Tuple, Synthetic]
+interface Tuple_Double_Double {
+    attribute f64 value0;
+    attribute f64 value1;
+};
 interface ParticlePropertyAnimationNumberInner {
     attribute number from;
     attribute number to;
-    attribute number startMillis;
-    attribute number endMillis;
+    attribute i32 startMillis;
+    attribute i32 endMillis;
     [Optional]
     attribute (Curve or ICurve) curve;
 };
 interface ParticlePropertyAnimationColorInner {
     attribute ResourceColor from;
     attribute ResourceColor to;
-    attribute number startMillis;
-    attribute number endMillis;
+    attribute i32 startMillis;
+    attribute i32 endMillis;
     [Optional]
     attribute (Curve or ICurve) curve;
 };
-typedef (undefined or Tuple_Number_Number or sequence<ParticlePropertyAnimationNumberInner>) ParticlePropertyUpdaterConfigsInner;
+typedef (undefined or Tuple_Double_Double or sequence<ParticlePropertyAnimationNumberInner>) ParticlePropertyUpdaterConfigsInner;
 interface ParticleUpdaterOptionsInner {
     attribute ParticleUpdater type;
     attribute ParticlePropertyUpdaterConfigsInner config;
 };
 interface ParticlePropertyOptionsInner {
-    attribute Tuple_Number_Number range;
+    attribute Tuple_Double_Double range;
     [Optional]
     attribute ParticleUpdaterOptionsInner updater;
 };
@@ -84,25 +97,25 @@ interface ParticleAnnulusRegionInner {
     attribute LengthMetrics outerRadius;
     attribute LengthMetrics innerRadius;
     [Optional]
-    attribute number startAngle;
+    attribute f64 startAngle;
     [Optional]
-    attribute number endAngle;
+    attribute f64 endAngle;
 };
 interface EmitterPropertyInner {
-    attribute number index;
+    attribute i32 index;
     [Optional]
-    attribute number emitRate;
+    attribute i32 emitRate;
     [Optional]
-    attribute PositionNumberInner position;
+    attribute PositionF64Inner position;
     [Optional]
-    attribute SizeNumberInner size;
+    attribute SizeF64Inner size;
     [Optional]
     attribute ParticleAnnulusRegionInner annulusRegion;
 };
 interface EmitterOptionsInner {
     attribute EmitterParticleOptions particle;
     [Optional]
-    attribute number emitRate;
+    attribute i32 emitRate;
     [Optional]
     attribute ParticleEmitterShape shape;
     [Optional]
@@ -124,21 +137,21 @@ interface ParticlesInner {
 };
 interface DisturbanceFieldOptionsInner {
     [Optional]
-    attribute number strength;
+    attribute f64 strength;
     [Optional]
     attribute DisturbanceFieldShape shape;
     [Optional]
-    attribute SizeNumberInner size;
+    attribute SizeF64Inner size;
     [Optional]
-    attribute PositionNumberInner position;
+    attribute PositionF64Inner position;
     [Optional]
-    attribute number feather;
+    attribute i32 feather;
     [Optional]
-    attribute number noiseScale;
+    attribute f64 noiseScale;
     [Optional]
-    attribute number noiseFrequency;
+    attribute f64 noiseFrequency;
     [Optional]
-    attribute number noiseAmplitude;
+    attribute f64 noiseAmplitude;
 };
 [Entity=Class]
 interface ParticleHelper {
