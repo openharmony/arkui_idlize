@@ -77,7 +77,6 @@ export function arkgen(argv:string[]) {
         .option('--dump-serialized', "Dump serialized data")
         .option('--call-log', "Call log")
         .option('--language [ts|ts|cangjie|kotlin]', 'Output language')
-        .option('--only-integrated', 'Generate only thoose files that can be integrated to target', false)
         .option('--version')
         .option('--generator-target <all|arkoala|libace|libaceut|e2e-test-static|e2e-test-dynamic|none>', 'Copy peers to arkoala or libace (use with --dts2peer)', "all")
         .option('--arkoala-destination <path>', 'Location of arkoala repository')
@@ -93,7 +92,6 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
-        .option('--no-subset', "Do not copy the subset staff from the external repo or external-subset dir")
         .option('--no-component-named-overloads', "Disable components named overloads")
 
     const options = command
@@ -186,12 +184,10 @@ export function arkgen(argv:string[]) {
                 nativeBridgeFile: options.nativeBridgePath,
                 apiVersion: apiVersion,
                 verbose: options.verbose ?? false,
-                onlyIntegrated: options.onlyIntegrated ?? false,
                 dumpSerialized: options.dumpSerialized ?? false,
                 callLog: options.callLog ?? false,
                 lang: lang,
                 attributeModifierHooks: options.attributeModifierHooks ?? false,
-                withSubset: options.subset,
             }, idlLibrary)
         }
         if (options.generatorTarget == "libace" ||
@@ -201,7 +197,6 @@ export function arkgen(argv:string[]) {
                 libaceDestination: options.libaceDestination,
                 apiVersion: apiVersion,
                 commentedCode: options.commentedCode,
-                withSubset: options.subset
             }, idlLibrary)
         }
         if (options.generatorTarget == "libaceut" ||

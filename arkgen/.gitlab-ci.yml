@@ -26,6 +26,7 @@ arkgen ArkTS subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
+    - npm run -C arkgen setup:subset:arkts
     - npm run -C arkgen gen-idl:subset:arkts
     - npm run -C arkgen gen:subset:arkts
     - npm run -C arkgen build:subset:arkts
@@ -96,6 +97,7 @@ arkgen Kotlin subset:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
+    - npm run -C arkgen setup:subset:kt
     - npm run -C arkgen gen:kt:subset
     - npm run -C arkgen compile:kt:interop
     - npm run -C arkgen compile:kt:native:subset

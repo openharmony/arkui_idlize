@@ -15,12 +15,12 @@
 import * as path from "path"
 import { join } from "node:path"
 import * as idl from "@idlizer/core"
-import { writeIntegratedFile } from "./common"
 import { getNamespaceName, getNamespacesPathFor, Language, LanguageWriter, LayoutManager, LayoutTargetDescription, PeerLibrary, wrapCurrentFileDescription } from "@idlizer/core"
 import { ImportsCollector } from "./ImportsCollector"
 import { tsCopyrightAndWarning } from "./FileGenerators"
 import { peerGeneratorConfiguration } from "../DefaultConfiguration"
 import { collectDeclItself } from "./ImportsCollectorUtils"
+import { writeFile } from "./common"
 
 export interface PrinterResult {
     over: LayoutTargetDescription
@@ -153,7 +153,7 @@ export function installFiles(outDir: string, library: PeerLibrary, files: Map<st
         if (exported) {
             installedToExport.push(installPath)
         }
-        writeIntegratedFile(installPath, text, 'producing')
+        writeFile(installPath, text, { message: 'producing' })
     })
 
     return installedToExport

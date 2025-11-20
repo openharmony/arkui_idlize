@@ -26,7 +26,6 @@ import {
     isNamespace,
 } from "@idlizer/core";
 import {
-    writeIntegratedFile,
     createMaterializedPrinter,
     printGlobal,
     NativeModule,
@@ -37,6 +36,7 @@ import {
     createGeneratedNativeModulePrinter,
     createInterfacePrinter,
     TargetFile,
+    writeFile,
 } from '@idlizer/libohos'
 import {
     printFiles,
@@ -88,7 +88,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: b
     // managed-index
 
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
-        writeIntegratedFile(path.join(ohos.managedDir(), 'index.ts'),
+        writeFile(path.join(ohos.managedDir(), 'index.ts'),
             makeOhosModule(peerLibrary, ohos.managedDir(), installed)
         )
     }
@@ -98,7 +98,7 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: b
 
     nativeFiles ??= generateNativeOhos(peerLibrary)
     for (const [ file, content ] of nativeFiles) {
-        writeIntegratedFile(ohos.native(file), content)
+        writeFile(ohos.native(file), content)
     }
 
     setDefaultConfiguration(origGenConfig)

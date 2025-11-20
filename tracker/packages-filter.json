@@ -3,6 +3,7 @@
         "api.internal.component.ets",
         "arkui.AttributeUpdater",
         "arkui.AttributeUpdaterFlag",
+        "arkui.ModifierState",
         "arkui.component",
         "arkui.stateManagement.internal"
     ],

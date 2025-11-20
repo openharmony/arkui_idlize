@@ -319,7 +319,6 @@ export function runScraper(root: string, configPath:string):ScraperResult {
     startScript += '  --language arkts \\\n'
     startScript += '  --reference-names ../../arkgen/generation-config/references/ets-sdk.refs.json \\\n'
     startScript += '  --options-file main-config.json \\\n'
-    startScript += '  --only-integrated \\\n'
     startScript += `  --output-dir ${join(OUT_DIR, 'generated')} \\\n`
     startScript += `  --input-files $(find ${join(OUT_DIR, 'idl')} -type f | tr '\\n' ' ')\n`
 

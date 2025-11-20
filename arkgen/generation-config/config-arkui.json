@@ -18,6 +18,7 @@
                 "arkui",
                 "arkui.component",
                 "arkui.stateManagement.decorators",
+                "arkui.ModifierState",
                 "ohos.app.ability",
                 "ohos.arkui",
                 "ohos.base",
