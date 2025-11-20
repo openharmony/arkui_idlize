@@ -601,6 +601,9 @@
             "CustomNode"
         ],
         "handWritten": [
+            "EmbeddedComponentAttribute",
+            "EmbeddedComponent",
+            "EmbeddedComponentImpl",
             "NodeContainerAttribute",
             "NodeContainer",
             "NodeContainerImpl",
