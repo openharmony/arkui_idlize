@@ -314,7 +314,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
         // The explicit cast forces ui2abc to call valueOf on an int, which fails the compilation
         // TODO Fix this cast
         if (bitness === 8) 
-            return `(${value}).toChar()`
+            return `(${value}).toByte()`
         return `(${value}).toInt()` // FIXME: is there int8 in ARKTS?
     }
     override castToBoolean(value: string): string { return `${value} ? true : false` }
