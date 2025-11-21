@@ -33,6 +33,7 @@ import arkui.component.enums.BorderStyle as BorderStyle;
 import arkui.Graphics.LengthMetrics as LengthMetrics;
 import ohos.promptAction.LevelMode as LevelMode;
 import ohos.promptAction.ImmersiveMode as ImmersiveMode;
+import ohos.promptAction.promptAction.CommonState as PromptActionCommonState;
 import arkui.component.actionSheet.DismissDialogAction as DismissDialogAction;
 
 [Entity=Interface]
@@ -168,4 +169,5 @@ interface CustomDialogControllerExtender {
   void close();
   void setOwnerView(pointer content);
   CustomDialogControllerExternalOptionsExtender getExternalOptions();
+  PromptActionCommonState getState();
 };
