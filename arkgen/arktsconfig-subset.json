@@ -28,9 +28,6 @@
             "@koalaui/builderLambda": [
                 "./annotations"
             ],
-            "@koalaui/runtime/annotations": [
-                "../../../../../../../../external/incremental/runtime/annotations"
-            ],
             "arkui.incremental.annotation": [
                 "../../../../../../../tests-template/arkts/src/arkui.incremental.annotation"
             ],

@@ -92,7 +92,6 @@ export function arkgen(argv:string[]) {
         .option('--reference-names <string>', 'Provides reference mapping. Use `--reference-names=ets` or `--reference-names=dts` to select default arkts/ts references or provide path to your configuration', 'dts')
         .option('--no-implicit-predefined', "Removes predefined from the generator input")
         .option('--attribute-modifier-hooks', "Generate hooks for components attribute modifier methods", false)
-        .option('--no-component-named-overloads', "Disable components named overloads")
 
     const options = command
         .parse(argv, { from: 'user' })
@@ -159,7 +158,7 @@ export function arkgen(argv:string[]) {
         })
         files = syntheticTransformer(files)
 
-        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS, options.componentNamedOverloads)
+        const idlLibrary = new ArkoalaPeerLibrary(language, NativeModule.Interop, options.useMemoM3 && language === Language.ARKTS)
         idlLibrary.files = files
         new IdlPeerProcessor(idlLibrary).process()
 

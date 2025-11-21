@@ -5,8 +5,6 @@ arkgen TS subset:
     - koala-ci
   before_script:
     - !reference [.npm, script]
-    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:subset:ts
     - npm run -C arkgen gen-idl:subset:ts
@@ -110,8 +108,6 @@ arkgen TS sdk:
   before_script:
     - !reference [.npm, script]
     - !reference [.panda, script]
-    # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
-    # - npm i --prefix external/arkoala-arkts --prefer-offline --no-audit --no-fund
   script:
     - npm run -C arkgen setup:sdk:ts
     - npm run -C arkgen gen-idl:sdk:ts

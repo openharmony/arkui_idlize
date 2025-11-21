@@ -128,7 +128,6 @@ export class PeerLibrary implements LibraryInterface {
         public language: Language,
         public interopNativeModule: NativeModuleType,
         public readonly useMemoM3: boolean = false,
-        public readonly useComponentNamedOverloads: boolean = true,
     ) { }
 
     public name: string = ""

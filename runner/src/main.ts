@@ -45,7 +45,6 @@ interface ArkgenOptions extends PrepareSdkOptions {
     arkgen: string
     target: string
     language: string
-    componentNamedOverloads: boolean
     scraperConfig?: string
 }
 
@@ -88,7 +87,6 @@ function m3(sdkPath: string, installPath: string, options: ArkgenOptions) {
         language: options.language,
         optionsFile: arkuiConfig,
         idlPath: scrapedIDLs,
-        componentNamedOverloads: options.componentNamedOverloads,
     })
 
     if (formatArkts({
@@ -155,7 +153,6 @@ function tracker(sdkPathInput: string, sdkStatus: string, trackerStatus: string,
         optionsFile: arkuiConfig,
         idlPath: scrapedIDLs,
         trackerStatus: trackerStatus,
-        componentNamedOverloads: false,
     })
     commands.install({sourceDir: peersPath, installPath})
 }
@@ -206,7 +203,6 @@ function main(argv: string[]) {
         .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
         .option('--arkgen <executable>', 'arkgen executable', 'npx arkgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
-        .option('--no-component-named-overloads')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .action(m3)
 
