@@ -525,9 +525,9 @@ export abstract class LanguageWriter {
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void
     abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, generics?:string[]): void
-    abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
+    abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], thisOverride?: idl.IDLType): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]): void
-    abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
+    abstract writeMethodImplementation(method: Method, op: (writer: this) => void, thisOverride?: idl.IDLType): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
     abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void
@@ -651,6 +651,12 @@ export abstract class LanguageWriter {
     }
     makeMethodCall(receiver: string, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(receiver, method, params, nullable)
+    }
+    makeFunctionReference(name: string): LanguageExpression {
+        return this.makeString(name)
+    }
+    makeMethodReference(receiver: string, method: string): LanguageExpression {
+        return this.makeString(`${receiver}.${method}`)
     }
     // Deprecated
     // Use instead declarationCall parameter in writeConstructorImplementation(...) with DelegationType.THIS

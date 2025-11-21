@@ -232,7 +232,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             if (this.extraAssignCallbacks.length > 0) {
                 this.extraAssignCallbacks.map((item) => {
                     writer.writeStatement(
-                        writer.makeAssign(`this.${item.callback}`, undefined, writer.makeString(`this.${item.method}`), false)
+                        writer.makeAssign(`this.${item.callback}`, undefined, writer.makeMethodReference("this", item.method), false)
                     )
                 })
             }

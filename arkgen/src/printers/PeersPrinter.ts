@@ -102,9 +102,11 @@ class PeerFileVisitor {
             imports.addFeature('GestureComponent', './framework/shared/generated-utils')
         }
 
-        if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
+        if ([Language.TS, Language.ARKTS, Language.KOTLIN].includes(this.library.language)) {
+            if ([Language.TS, Language.ARKTS].includes(this.library.language)) {
+                imports.addFeature('CallbackTransformer', './CallbackTransformer')
+            }
             collectDeclItself(this.library, idl.createReferenceType("idlize.internal.CallbackKind"), imports)
-            imports.addFeature('CallbackTransformer', './CallbackTransformer')
             collectDeclItself(this.library, idl.createReferenceType(`idlize.internal.${NativeModule.Generated.name}`), imports)
 
             const hookClassName = peer.componentName == "CommonMethod"
@@ -121,8 +123,13 @@ class PeerFileVisitor {
         if (this.library.language == Language.TS) {
             imports.addFeature("unsafeCast", "@koalaui/common")
         }
-        imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
-        // collectMaterializedImports(imports, this.library)
+        if (this.library.language === Language.TS || this.library.language === Language.ARKTS) {
+            imports.addFeatures(["MaterializedBase", "toPeerPtr"], "@koalaui/interop")
+            // collectMaterializedImports(imports, this.library)
+        }
+        else {
+            imports.addFeatures(["MaterializedBase", "toPeerPtr"], "koalaui.interop")
+        }
     }
 
     protected printPeerConstructor(peer: PeerClass, printer: LanguageWriter): void {
@@ -282,13 +289,18 @@ class KotlinPeerFileVisitor extends PeerFileVisitor {
                     role: LayoutNodeRole.PEER,
                 },
                 generate: () => {
-                    const printer = this.library.createLanguageWriter()
-                    this.printPeer(peer, printer)
-                    return printer
-                },
-                collector: new ImportsCollector()
+                    const imports = new ImportsCollector()
+                    const content = this.library.createLanguageWriter(this.library.language)
+                    this.printImports(peer, imports)
+                    this.printPeer(peer, content)
+                    return { imports, content }
+                }
             }
         })
+    }
+
+    protected getDefaultPeerImports(lang: Language, imports: ImportsCollector) {
+        imports.addFeatures(["nullptr", "KPointer", "KInt", "KBoolean", "KStringPtr", "RuntimeType"], "koalaui.interop")
     }
 }
 

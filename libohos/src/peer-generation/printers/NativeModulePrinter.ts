@@ -37,7 +37,7 @@ import { getHookMethod, peerGeneratorConfiguration } from "../../DefaultConfigur
 import { isDirectMethod, isVMContextMethod } from './MethodUtils'
 
 class NativeModulePrinterBase {
-    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language, this.library))
+    readonly nativeModule: LanguageWriter = createLanguageWriter(this.language, this.library, createInteropArgConvertor(this.language))
 
     constructor(
         protected readonly library: PeerLibrary,
@@ -116,7 +116,7 @@ class NativeModulePredefinedVisitor extends NativeModulePrinterBase {
 }
 
 class NativeModuleArkUIGeneratedVisitor extends NativeModulePrinterBase {
-    private readonly interopConvertor = createInteropArgConvertor(this.language, this.library)
+    private readonly interopConvertor = createInteropArgConvertor(this.language)
     private readonly interopRetConvertor = new InteropReturnTypeConvertor(this.library)
 
     constructor(
@@ -373,6 +373,8 @@ function collectNativeModuleImports(module: NativeModuleType, imports: ImportsCo
             "KNativePointer",
             "pointer",
             "KUint8ArrayPtr",
+            "KInt32ArrayPtr",
+            "KFloat32ArrayPtr",
             "KInteropReturnBuffer",
             "KSerializerBuffer",
         ], "koalaui.interop")
@@ -618,7 +620,7 @@ function makeInteropMethodInner(
         interopReturnConvertor?: InteropReturnTypeConvertor,
     },
 ): Method {
-    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language, library)
+    const interopConvertor = options.interopConvertor ?? createInteropArgConvertor(library.language)
     const interopReturnConvertor = options.interopReturnConvertor ?? new InteropReturnTypeConvertor(library)
     const interopParameters: ({name: string, type: idl.IDLType})[] = options.hasReceiver
         ? [{ name: 'ptr', type: idl.IDLPointerType }] : []

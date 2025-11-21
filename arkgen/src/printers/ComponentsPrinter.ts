@@ -201,7 +201,7 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
                     )
                 )
                 for (const grouped of groupOverloads(peer.methods, this.library.language))
-                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
+                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped, peer.decl)
                 // todo stub until we can process AttributeModifier
                 const attributeModifierSignature = generateAttributeModifierSignature(this.library, component)
                 attributeModifierSignature.args.forEach(it => {
@@ -393,7 +393,7 @@ class CJComponentFileVisitor implements ComponentFileVisitor {
                 )
                 // for (const grouped of groupOverloads(filteredMethods))
                 for (const grouped of peer.methods)
-                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [grouped])
+                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [grouped], peer.decl)
                 // todo stub until we can process AttributeModifier
                 if (isCommonMethod(peer.originalClassName!) || peer.originalClassName == "ContainerSpanAttribute")
                     writer.print(`public func attributeModifier(modifier: AttributeModifier<Object>) { throw Exception("not implemented") }`)
@@ -476,7 +476,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
         return new OverloadsPrinter(this.library, printer, this.library.language, true, false)
     }
 
-    private printImports(peer: PeerClass, component:IdlComponentDeclaration): ImportsCollector {
+    private printImports(peer: PeerClass, component: IdlComponentDeclaration): ImportsCollector {
         const imports = new ImportsCollector()
         return imports
     }
@@ -513,18 +513,7 @@ class KotlinComponentFileVisitor implements ComponentFileVisitor {
                 )
 
                 for (const peerMethod of peer.methods) {
-                    const peerSig = peerMethod.method.signature as NamedMethodSignature
-                    const returnType = peerSig.returnType === idl.IDLThisType ? idl.createReferenceType(peer.decl) : peerSig.returnType
-                    const componentMethodSignature = new NamedMethodSignature(returnType, peerSig.args, peerSig.argsNames,
-                        peerSig.defaults, peerSig.argsModifiers, peerSig.printHints)
-                    const componentMethod = new Method(
-                        peerMethod.method.name,
-                        componentMethodSignature,
-                        modifiers,
-                    )
-                    writer.writeMethodImplementation(componentMethod, () => {
-                        this.overloadsPrinter(writer).printPeerCallAndReturn(peerClassName, peerMethod.method, peerMethod)
-                    })
+                    this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, [peerMethod], peer.decl)
                 }
 
                 const attributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])

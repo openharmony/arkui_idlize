@@ -11,7 +11,7 @@ build idlize:
     tags:
     - idlize-ci
     - koala-ci
-    before_script:
+    # before_script:
     # - npm i --prefix external/incremental --prefer-offline --no-audit --no-fund
     script:
     - !reference [.npm, script]

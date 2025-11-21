@@ -16,14 +16,38 @@
 import * as idl from '../../idl'
 import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
-import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 import { removePoints } from '../../util'
-import { InteropReturnTypeConvertor } from './InteropConvertors'
+import { InteropArgConvertor, InteropReturnTypeConvertor } from './InteropConvertors'
+import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
+import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
+import { Language } from '../../Language'
+import { LibraryInterface } from '../../LibraryInterface'
 
+const KBoolean = "KBoolean"
+const KByte = "KByte"
+const KShort = "KShort"
+const KUShort = "KUShort"
+const KInt = "KInt"
+const KUInt = "KUInt"
+const KLong = "KLong"
+const KULong = "KULong"
+const KFloat = "KFloat"
+const KDouble = "KDouble"
+const KNativePointer = "KNativePointer"
+const KStringPtr = "KStringPtr"
+const KInteropReturnBuffer = "KInteropReturnBuffer"
+const KInteropBuffer = "KInteropBuffer"
+const KSerializerBuffer = "KSerializerBuffer"
+const KUint8ArrayPtr = "KUint8ArrayPtr"
+const KInt32ArrayPtr = "KInt32ArrayPtr"
+const KFloat32ArrayPtr = "KFloat32ArrayPtr"
+const Unit = "Unit"
+
+// used for Kotlin code
 export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
 
-    constructor(protected resolver: ReferenceResolver) { }
+    constructor(protected library: LibraryInterface) { }
 
     convert(node: idl.IDLNode): string {
         return convertNode(this, node)
@@ -33,18 +57,22 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         return node.name
     }
     convertInterface(node: idl.IDLInterface): string {
-        return removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertEnum(node: idl.IDLEnum): string {
-        return removePoints(idl.getQualifiedName(node, 'namespace.name'))
+        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertTypedef(node: idl.IDLTypedef): string {
-        return node.name
+        if (idl.isSyntheticEntry(node)) {
+            return this.convert(node.type)
+        }
+        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertCallback(node: idl.IDLCallback): string {
-        const params = node.parameters.map(it =>
-            `${it.name}: ${this.convert(it.type!)}${it.isOptional ? "?" : ""}`)
-        return `(${params.join(", ")}) -> ${this.convert(node.returnType)}`
+        if (idl.isSyntheticEntry(node)) {
+            return this.mapCallback(node)
+        }
+        return this.mangleTopLevel(node) ?? removePoints(idl.getQualifiedName(node, 'namespace.name'))
     }
     convertMethod(node: idl.IDLMethod): string {
         return node.name
@@ -83,14 +111,17 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         throw new Error("Not implemented")
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        const decl = this.resolver.resolveTypeReference(type)
-        if (decl && idl.isSyntheticEntry(decl)) {
-            if (idl.isCallback(decl)) {
-                return this.callbackType(decl)
-            }
-        }
+        const decl = this.library.resolveTypeReference(type)
         if (decl) {
-            return removePoints(idl.getQualifiedName(decl, 'namespace.name'))
+            if (idl.isSyntheticEntry(decl)) {
+                if (idl.isCallback(decl)) {
+                    return this.mapCallback(decl)
+                }
+                if (idl.isTypedef(decl)) {
+                    return this.convert(decl.type)
+                }
+            }
+            return this.mangleTopLevel(decl) ?? removePoints(idl.getQualifiedName(decl, 'namespace.name'))
         }
         return this.convert(idl.IDLCustomObjectType)
     }
@@ -109,9 +140,8 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             case idl.IDLUndefinedType: return 'Nothing?'
             case idl.IDLPointerType: return 'KPointer'
             case idl.IDLSerializerBuffer: return 'KSerializerBuffer'
-            case idl.IDLVoidType: return 'Unit'
+            case idl.IDLVoidType: return Unit
             case idl.IDLBooleanType: return 'Boolean'
-
             
             case idl.IDLI8Type: return 'Byte'
             case idl.IDLU8Type: return 'UByte'
@@ -138,44 +168,86 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                 return 'NativeBuffer'
 
             case idl.IDLInteropReturnBufferType:
-                return `KInteropReturnBuffer`
+                return KInteropReturnBuffer
         }
         throw new Error(`Unmapped primitive type ${idl.DebugUtils.debugPrintType(type)}`)
     }
 
-    private callbackType(decl: idl.IDLCallback): string {
+    private mangleTopLevel(decl: idl.IDLEntry): string | undefined {
+        if (!isDeclaredInCurrentFile(this.library.layout, { node: decl, role: LayoutNodeRole.INTERFACE }) && isTopLevelConflicted(this.library, Language.KOTLIN, decl)) {
+            const namespaces = idl.getNamespacesPathFor(decl)
+            if (namespaces.length === 0) {
+                return idl.getQualifiedName(decl, "package.namespace.name").replaceAll('.', '_')
+            }
+            const [rootNamespace, ...otherNamespaces] = idl.getNamespacesPathFor(decl)
+            const mangledRoot = idl.getQualifiedName(rootNamespace, "package.namespace.name").replaceAll('.', '_')
+            return [mangledRoot, ...otherNamespaces, decl.name].join(".")
+        }
+        return undefined
+    }
+
+    private mapCallback(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it =>
-            `${it.name}: ${this.convert(it.type!)}`)
+            `${it.name}: ${this.convert(it.type!)}${it.isOptional ? "?" : ""}`)
         return `((${params.join(", ")}) -> ${this.convert(decl.returnType)})`
     }
 }
 
-const KBoolean = "KBoolean"
-const KInt = "KInt"
-const KLong = "KLong"
-const KFloat = "KFloat"
-const KDouble = "KDouble"
-const KNativePointer = "KNativePointer"
-const KStringPtr = "KStringPtr"
-const KInteropReturnBuffer = "KInteropReturnBuffer"
-const KInteropBuffer = "KInteropBuffer"
-const KSerializerBuffer = "KSerializerBuffer"
+// used for Kotlin code
+export class KotlinInteropArgConvertor extends InteropArgConvertor {
+    convertContainer(type: idl.IDLContainerType): string {
+        switch (type.elementType[0]) {
+            case idl.IDLU8Type: return KUint8ArrayPtr
+            case idl.IDLI32Type: return KInt32ArrayPtr
+            case idl.IDLF32Type: return KFloat32ArrayPtr
+        }
+        throw new Error(`Cannot pass container types through interop`)
+    }
+    convertPrimitiveType(type: idl.IDLPrimitiveType): string {
+        switch (type) {
+            case idl.IDLI8Type: return KByte
+            case idl.IDLU8Type: return KByte
+            case idl.IDLI16Type: return KShort
+            case idl.IDLU16Type: return KUShort
+            case idl.IDLI32Type: return KInt
+            case idl.IDLU32Type: return KUInt
+            case idl.IDLI64Type: return KLong
+            case idl.IDLU64Type: return KULong
+            case idl.IDLF32Type: return KFloat
+            case idl.IDLF64Type: return KDouble
+            case idl.IDLNumberType: return KDouble
+            case idl.IDLBooleanType: {
+                // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
+                return "Boolean"
+            }
+            case idl.IDLBigintType: return KLong
+            case idl.IDLSerializerBuffer: return KSerializerBuffer
+            case idl.IDLFunctionType: return KInt
+            case idl.IDLStringType: return KStringPtr
+            case idl.IDLBufferType: return KInteropBuffer
+            case idl.IDLInteropReturnBufferType: return KInteropReturnBuffer
+            case idl.IDLDate: return KLong
+            case idl.IDLVoidType: return Unit
+            case idl.IDLPointerType: return KNativePointer
+        }
+        throw new Error(`Cannot pass primitive type ${type.name} through interop`)
+    }
+}
 
-
+// used for C code
 export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConvertor {
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLI8Type:
-            case idl.IDLU8Type:
-            case idl.IDLI16Type:
-            case idl.IDLU16Type:
-            case idl.IDLI32Type:
-            case idl.IDLU32Type:
-            case idl.IDLI64Type:
-            case idl.IDLU64Type:
-            case idl.IDLF16Type:
-            case idl.IDLF32Type:
-            case idl.IDLF64Type: return KInt
+            case idl.IDLI8Type: return KByte
+            case idl.IDLU8Type: return KByte
+            case idl.IDLI16Type: return KShort
+            case idl.IDLU16Type: return KShort
+            case idl.IDLI32Type: return KInt
+            case idl.IDLU32Type: return KInt
+            case idl.IDLI64Type: return KLong
+            case idl.IDLU64Type: return KLong
+            case idl.IDLF32Type: return KFloat
+            case idl.IDLF64Type: return KDouble
             case idl.IDLNumberType: return KDouble
             case idl.IDLBooleanType: return KBoolean
             case idl.IDLBigintType: return KLong
@@ -186,22 +258,20 @@ export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConverto
             case idl.IDLObjectType:
             case idl.IDLVoidType: return idl.IDLVoidType.name
             case idl.IDLBufferType: return KInteropReturnBuffer
+            case idl.IDLInteropReturnBufferType: return KInteropReturnBuffer
             case idl.IDLStringType: return KStringPtr
             case idl.IDLPointerType: return KNativePointer
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)
     }
     convertTypeReference(type: idl.IDLReferenceType): string {
-        if (this.resolver != undefined && idl.isCallback(this.resolver.toDeclaration(type))) {
-            return KNativePointer
-        }
         if (type.name.endsWith("Attribute"))
             return idl.IDLVoidType.name
         const decl = this.resolver.resolveTypeReference(type)
         if (decl) {
             // Callbacks and array types return by value
             if (idl.isCallback(this.resolver.toDeclaration(type))) {
-                return type.name
+                return KInteropReturnBuffer
             }
             if (idl.isInterface(decl)) {
                 if (isMaterialized(decl, this.resolver)) {
@@ -217,6 +287,7 @@ export class KotlinCInteropReturnTypeConvertor extends InteropReturnTypeConverto
     }
 }
 
+// used for C code
 export class KotlinCInteropArgConvertor implements TypeConvertor<string> {
     convert(type: idl.IDLType): string {
         return convertType(this, type)
@@ -235,22 +306,24 @@ export class KotlinCInteropArgConvertor implements TypeConvertor<string> {
     }
     convertPrimitiveType(type: idl.IDLPrimitiveType): string {
         switch (type) {
-            case idl.IDLI64Type: return KLong
-            case idl.IDLU64Type: return KLong
+            case idl.IDLI8Type: return KByte
+            case idl.IDLU8Type: return KByte
+            case idl.IDLI16Type: return KShort
+            case idl.IDLU16Type: return KShort
             case idl.IDLI32Type: return KInt
             case idl.IDLU32Type: return KInt
+            case idl.IDLI64Type: return KLong
+            case idl.IDLU64Type: return KLong
             case idl.IDLF32Type: return KFloat
             case idl.IDLF64Type: return KDouble
             case idl.IDLNumberType: return KDouble
+            case idl.IDLBooleanType: return KBoolean
             case idl.IDLBigintType: return KLong
             case idl.IDLSerializerBuffer: return KSerializerBuffer
-            case idl.IDLBooleanType:
             case idl.IDLFunctionType: return KInt
             case idl.IDLStringType: return KStringPtr
             case idl.IDLBufferType: return KInteropBuffer
             case idl.IDLDate: return KLong
-            case idl.IDLUndefinedType:
-            case idl.IDLVoidType:
             case idl.IDLPointerType: return KNativePointer
         }
         throw new Error(`Cannot pass primitive type ${type.name} through interop`)

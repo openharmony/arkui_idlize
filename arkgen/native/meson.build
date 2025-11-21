@@ -13,7 +13,7 @@ use_libace = true
 is_node = true
 is_arkts = false
 is_cj = (source_set == 'cangjie' or source_set == 'cangjie-subset')
-is_kotlin = (source_set == 'kotlin' or source_set == 'kotlin-subset')
+is_kotlin = (source_set == 'kotlin' or source_set == 'kotlin-subset' or source_set == 'unit-kotlin')
 is_ani = true
 is_ohos_demo = (source_set == 'ts-ohos-context')
 is_unit = (source_set == 'unit-arkts' or source_set == 'unit-kotlin')

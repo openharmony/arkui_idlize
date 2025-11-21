@@ -111,13 +111,13 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     ) { }
 
     handwrittenPackage(): string {
-        return "#handwritten"
+        return "handwritten"
     }
 
     protected readonly interopObjects = [
-        'SerializerBase', 
-        'DeserializerBase',
-        'Finalizable'
+        "SerializerBase", 
+        "DeserializerBase",
+        "Finalizable",
     ]
 
     private selectInteropPath() {

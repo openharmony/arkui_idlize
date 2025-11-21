@@ -34,6 +34,7 @@ import {
     isInplacedGeneric,
     maybeRestoreGenerics,
     getInitializerDefaultValue,
+    getSyntheticTypesFileName,
 } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -1178,47 +1179,42 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
             || (idl.isInterface(entry) && [idl.IDLInterfaceSubkind.Interface, idl.IDLInterfaceSubkind.Tuple].includes(entry.subkind)) && idl.isSyntheticEntry(entry)
     }
 
-    protected getDeclConvertor(writer: LanguageWriter, seenInterfaceNames: Set<string>, library: PeerLibrary): KotlinDeclarationConvertor {
-        return new KotlinDeclarationConvertor(writer, seenInterfaceNames, library)
+    protected getDeclConvertor(writer: LanguageWriter, library: PeerLibrary): KotlinDeclarationConvertor {
+        return new KotlinDeclarationConvertor(writer, library)
     }
 
     printInterfaces(): PrinterResult[] {
-        const moduleToEntries = new Map<string, idl.IDLEntry[]>()
-        const moduleToTypes = new Map<string, idl.IDLUnionType[]>()
+        const entriesToPrint = new Map<string, idl.IDLEntry>()
+        const unionsToPrint = new Map<string, idl.IDLUnionType>()
 
         const registerEntry = (entry: idl.IDLEntry) => {
             if (this.shouldNotPrint(entry)) {
                 return
             }
-            const module = convertDeclToFeature(this.peerLibrary, entry).module
-            if (!moduleToEntries.has(module))
-                moduleToEntries.set(module, [])
-            if (moduleToEntries.get(module)!.some(it => idl.isEqualByQualifedName(it, entry, "namespace.name")))
-                return
-            moduleToEntries.get(module)!.push(entry)
+            const key = idl.getFQName(entry)
+            if (!entriesToPrint.has(key)) {
+                entriesToPrint.set(key, entry)
+            }
         }
-
         const registerUnion = (entry: idl.IDLUnionType) => {
-            const module = './SyntheticModule'
-            if (!moduleToTypes.has(module))
-                moduleToTypes.set(module, [])
-            if (moduleToTypes.get(module)!.some(it => it.name == entry.name))
-                return
-            moduleToTypes.get(module)!.push(entry)
+            const key = entry.name
+            if (!unionsToPrint.has(key)) {
+                unionsToPrint.set(key, entry)
+            }
         }
 
-        const syntheticGenerator = new KotlinSyntheticGenerator(this.peerLibrary, (entry) => {
-            registerEntry(entry)
-        }, (union) => { registerUnion(union) })
+        const syntheticGenerator = new KotlinSyntheticGenerator(this.peerLibrary, registerEntry, registerUnion)
         for (const file of this.peerLibrary.files) {
             if (!isInCurrentModule(file))
                 continue
             for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
-                if (idl.isImport(entry) ||
-                    idl.isNamespace(entry) ||
+                if (idl.isNamespace(entry) ||
+                    idl.isImport(entry) ||
                     isInIdlizeInternal(entry) ||
-                    idl.isHandwritten(entry) ||
-                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language))
+                    idl.isHandwritten(entry) || peerGeneratorConfiguration().isHandWritten(entry.name) ||
+                    peerGeneratorConfiguration().ignoreEntry(entry.name, this.peerLibrary.language) ||
+                    isInIdlizeStdlib(entry)
+                )
                     continue
                 syntheticGenerator.convert(entry)
                 registerEntry(entry)
@@ -1226,62 +1222,65 @@ export class KotlinInterfacesVisitor implements InterfacesVisitor {
         }
 
         const result: PrinterResult[] = []
-        for (const entries of moduleToEntries.values()) {
-            const seenNames = new Set<string>()
-            for (const entry of entries) {
+        for (const entry of entriesToPrint.values()) {
+            const generate = () => {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
 
                 collectDeclDependencies(this.peerLibrary, entry, imports)
 
-                const printVisitor = this.getDeclConvertor(writer, seenNames, this.peerLibrary)
+                const printVisitor = this.getDeclConvertor(writer, this.peerLibrary)
                 convertDeclaration(printVisitor, entry)
-
-                result.push({
-                    generate: () => writer,
-                    over: {
-                        node: entry,
-                        role: LayoutNodeRole.INTERFACE
-                    }
-                })
+                return { content: writer, imports }
             }
+
+            result.push({
+                generate,
+                over: {
+                    node: entry,
+                    role: LayoutNodeRole.INTERFACE,
+                    hint: idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.ComponentModifier)
+                        ? 'component.modifier'
+                        : undefined
+                }
+            })
         }
-        // Kotlin collector which collects imports for union elements
-        // Default Kotlin collector treats unions as synthetic class
-        // and do not traverse union types
-        const collector = new KotlinDependenciesCollector(this.peerLibrary, false)
-        for (const entries of moduleToTypes.values()) {
-            const nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.KOTLIN)
-            const seenNames = new Set<string>()
-            for (const entry of entries) {
+
+        const collector = new KotlinDependenciesCollector(this.peerLibrary)
+        const nameConvertor = this.peerLibrary.createTypeNameConvertor(Language.KOTLIN)
+        for (const entry of unionsToPrint.values()) {
+            const unionTypedef = idl.createTypedef(nameConvertor.convert(entry), entry)
+            const packageName = getSyntheticTypesFileName()
+            const file = idl.createFile([unionTypedef], packageName, [packageName])
+            idl.linkParentBack(file)
+
+            const generate = () => {
                 const imports = new ImportsCollector()
                 const writer = this.peerLibrary.createLanguageWriter(this.peerLibrary.language)
-                collectDeclDependencies(this.peerLibrary, entry, imports, {}, collector)
-                // TBD: add primitives like Buffer to the with the dependecy collector
-                imports.addFeature({ feature: "NativeBuffer", module: "koalaui.interop" })
 
-                const printVisitor = this.getDeclConvertor(writer, seenNames, this.peerLibrary)
+                getCommonImports(writer.language, { isDeclared: false, useMemoM3: false, libraryName: this.peerLibrary.name })
+                    .forEach(it => imports.addFeature(it.feature, it.module))
+                collectDeclDependencies(this.peerLibrary, entry, imports, {}, collector)
+
+                const printVisitor = this.getDeclConvertor(writer, this.peerLibrary)
                 printVisitor.makeUnion(writer, entry)
 
-                const unionTypedef = idl.createTypedef(nameConvertor.convert(entry), entry)
-                unionTypedef.parent = entry.parent
-
-                result.push({
-                    generate: () => { return { content: writer, imports } },
-                    over: {
-                        node: unionTypedef,
-                        role: LayoutNodeRole.INTERFACE
-                    }
-                })
+                return { content: writer, imports }
             }
+
+            result.push({
+                generate,
+                over: {
+                    node: unionTypedef,
+                    role: LayoutNodeRole.INTERFACE
+                }
+            })
         }
         return result
     }
 }
 
 class KotlinSyntheticGenerator extends DependenciesCollector {
-    private readonly nameConvertor = this.library.createTypeNameConvertor(Language.KOTLIN)
-
     constructor(
         library: PeerLibrary,
         private readonly onSyntheticDeclaration: (entry: idl.IDLEntry) => void,
@@ -1303,10 +1302,8 @@ class KotlinSyntheticGenerator extends DependenciesCollector {
 }
 
 export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
-    static seenSynteticUnions: Set<String> = new Set<String>()
     constructor(
         protected readonly writer: LanguageWriter,
-        protected readonly seenInterfaceNames: Set<string>,
         readonly peerLibrary: PeerLibrary
     ) { }
 
@@ -1332,13 +1329,6 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Import))
             return
         const type = this.writer.getNodeName(node.type)
-        // Workaround for idl declaration
-        // "typedef DrawContext = _DrawContext;"
-        // which is generated by Kotlin as
-        // "public typealias DrawContext = DrawContext"
-        // but probably should be
-        // "public typealias _DrawContext = DrawContext"
-        if (node.name == type) return
         const typeParams = this.printTypeParameters(node.typeParameters)
         this.writer.print(`public typealias ${node.name}${typeParams} = ${type}`)
     }
@@ -1349,16 +1339,13 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
         throw new Error("Internal error: namespaces are not allowed on the Kotlin layer")
     }
     convertInterface(node: idl.IDLInterface): void {
-        if (['RuntimeType', 'CallbackResource', 'Materialized', 'VMContext'].includes(node.name))
+        if (['RuntimeType', 'CallbackResource', 'Materialized', 'VMContext'].includes(node.name)) {
             return
-        if (this.seenInterfaceNames.has(node.name)) {
-            console.log(`interface name: '${node.name}' already exists`)
-            return;
         }
-        this.seenInterfaceNames.add(node.name)
         if (node.subkind === idl.IDLInterfaceSubkind.Tuple) {
             this.makeTuple(this.writer, node)
-        } else {
+        }
+        else {
             this.makeInterface(this.writer, node)
         }
     }
@@ -1387,11 +1374,6 @@ export class KotlinDeclarationConvertor implements DeclarationConvertor<void> {
     }
     makeUnion(writer: LanguageWriter, type: idl.IDLUnionType): void {
         const name = this.writer.getNodeName(type)
-        if (KotlinDeclarationConvertor.seenSynteticUnions.has(name)) {
-            return;
-        }
-        KotlinDeclarationConvertor.seenSynteticUnions.add(name)
-
         const members = type.types.map(it => it)
         writer.writeClass(name, () => {
             const intType = idl.IDLI32Type
@@ -1660,6 +1642,13 @@ export function getCommonImports(language: Language, options: { isDeclared: bool
                 { feature: "Builder", module: "@koalaui/builderLambda" },
             )
         }
+    }
+    if (language === Language.KOTLIN) {
+        imports.push({ feature: "KInt", module: "koalaui.interop" })
+        imports.push({ feature: "KPointer", module: "koalaui.interop" })
+        imports.push({ feature: "KBoolean", module: "koalaui.interop" })
+        imports.push({ feature: "NativeBuffer", module: "koalaui.interop" })
+        imports.push({ feature: "KStringPtr", module: "koalaui.interop" })
     }
     return imports
 }

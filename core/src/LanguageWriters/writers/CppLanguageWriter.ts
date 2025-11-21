@@ -519,6 +519,10 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
         }
         return this.getNodeName(type)
     }
+    makeMethodReference(receiver: string, method: string): LanguageExpression {
+        return this.makeString(`${receiver}::${method}`)
+    }
+
 
     override discriminate(value: string, index: number, type: idl.IDLType, runtimeTypes: RuntimeType[]): string {
         return `${value}.selector == ${index}`

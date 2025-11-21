@@ -55,7 +55,6 @@ arkgen ArkTS unit:
     - build external
 
 arkgen Kotlin unit:
-  allow_failure: true
   stage: test
   tags:
     - idlize-ci
@@ -64,11 +63,12 @@ arkgen Kotlin unit:
     - !reference [.npm, script]
     - !reference [.panda, script]
   script:
-    - npm run -C arkgen/tests/unit build:kt:interop
+    - npm run -C arkgen/tests/unit init:kt
     - npm run -C arkgen/tests/unit gen:kt
-    - npm run -C arkgen/tests/unit build:kt
+    - npm run -C arkgen/tests/unit build:kt:interop
     - npm run -C arkgen/tests/unit build:kt:native
-    # - npm run -C arkgen/tests/unit exec:kt
+    - npm run -C arkgen/tests/unit build:kt
+    - npm run -C arkgen/tests/unit exec:kt
   needs:
     - build idlize
     - build external

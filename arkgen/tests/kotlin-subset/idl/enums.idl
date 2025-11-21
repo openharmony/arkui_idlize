@@ -1,3 +1,5 @@
+package arkui.component;
+
 dictionary Color {
     [OriginalEnumMemberName=White]
     number WHITE = 0;

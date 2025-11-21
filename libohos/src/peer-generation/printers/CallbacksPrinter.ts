@@ -152,7 +152,6 @@ class DeserializeCallbacksVisitor {
             }
         }
 
-
         if (this.writer.language === Language.KOTLIN) {
             this.imports.addFeatures([
                 "ResourceHolder", "KInt", "KStringPtr",

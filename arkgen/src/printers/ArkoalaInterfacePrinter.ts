@@ -173,8 +173,8 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
 }
 
 class ArkoalaKotlinInterfacesVisitor extends KotlinInterfacesVisitor {
-    protected override getDeclConvertor(writer: LanguageWriter, seenInterfaceNames: Set<string>, library: PeerLibrary): KotlinDeclarationConvertor {
-        return new ArkoalaKotlinDeclarationConvertor(writer, seenInterfaceNames, library)
+    protected override getDeclConvertor(writer: LanguageWriter, library: PeerLibrary): KotlinDeclarationConvertor {
+        return new ArkoalaKotlinDeclarationConvertor(writer, library)
     }
 }
 

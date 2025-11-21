@@ -116,14 +116,15 @@ export class KotlinEnumWithGetter implements LanguageStatement {
             const enumType = idl.createReferenceType(this.enumEntity)
             writer.writeStaticEntitiesBlock(() => {
                 members.forEach(it => {
-                    writer.writeFieldDeclaration(it.name, enumType, [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.FINAL], false,
+                    writer.writeFieldDeclaration(it.name, enumType,
+                        [FieldModifier.PUBLIC, FieldModifier.STATIC, FieldModifier.READONLY], false,
                         writer.makeString(`${mangledName}(${it.stringId ? `\"${it.stringId}\"` : it.numberId})`)
                     )
                 })
             })
 
             const value = 'value'
-            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC], true, writer.makeNull())
+            writer.writeFieldDeclaration(value, idl.IDLI32Type, [FieldModifier.PUBLIC, FieldModifier.READONLY], true)
 
             const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLI32Type])
             writer.writeConstructorImplementation('constructor', signature, () => {
@@ -133,7 +134,7 @@ export class KotlinEnumWithGetter implements LanguageStatement {
             })
             if (isStringEnum) {
                 const stringValue = 'stringValue'
-                writer.writeFieldDeclaration(stringValue, idl.IDLStringType, [FieldModifier.PUBLIC], true, writer.makeNull())
+                writer.writeFieldDeclaration(stringValue, idl.IDLStringType, [FieldModifier.PUBLIC, FieldModifier.READONLY], true)
     
                 const signature = new MethodSignature(idl.IDLVoidType, [idl.IDLStringType])
                 writer.writeConstructorImplementation('constructor', signature, () => {
@@ -318,7 +319,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
         throw new Error("Try to avoid writeEnum")
     }
-    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
+    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[], thisOverride?: idl.IDLType) {
         let prefix = !modifiers ? undefined : this.supportedModifiers
             .filter(it => modifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
@@ -333,7 +334,12 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
-        this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${needReturn ? ": " + this.getNodeName(signature.returnType) : ""}${needBracket ? " {" : ""}`)
+        const realReturnType = signature.returnType === idl.IDLThisType ? (thisOverride ?? signature.returnType) : signature.returnType
+        if (needReturn && realReturnType === idl.IDLThisType) {
+            throw new Error(`Must pass non-null thisOverride to print method '${name}' returning 'this' in Kotlin`)
+        }
+        const returnTypePart = needReturn ? ": " + this.getNodeName(realReturnType) : ""
+        this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${returnTypePart}${needBracket ? " {" : ""}`)
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
         const init = initExpr != undefined ? ` = ${initExpr.asString()}` : ``
@@ -395,24 +401,25 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
-            case "UByteArray":
-            case "IntArray":
-            case "FloatArray": expr = `${varName}Pinned.addressOf(0)`; break
-            case "KPointer":
+            case "KUint8ArrayPtr":
+            case "KInt32ArrayPtr":
+            case "KFloat32ArrayPtr": expr = `${varName}Pinned.addressOf(0)`; break
             case "KNativePointer":
             case "KSerializerBuffer": expr = `${varName}.toCPointer<CPointed>()!!`; break
-            case "BigInteger":
+            case "KByte":
+            case "KShort":
+            case "KUShort":
             case "KInt":
+            case "KUInt":
             case "KLong":
+            case "KULong":
             case "KFloat":
             case "KDouble":
-            case "String":
-            case "KStringPtr":
-            case "KBoolean":
-            case "Float":
-            case "Double":
-            case "UInt":
-            case "Int": expr = varName; break
+            case "KStringPtr": expr = varName; break
+            case "Boolean": {
+                // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
+                expr = `${varName}.toByte()`; break
+            }
             default: throw new Error(`Unexpected type ${realInteropType} in interop with Kotlin`)
         }
         return this.makeString(expr)
@@ -421,44 +428,47 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const realInteropType = this.getNodeName(type)
         let expr: string
         switch (realInteropType) {
-            case "KNativePointer":
-            case "KPointer": expr = `${varName}.toLong()`; break
+            case "KNativePointer": expr = `${varName}.toLong()`; break
+            case "KByte":
+            case "KShort":
+            case "KUShort":
             case "KInt":
+            case "KUInt":
             case "KLong":
-            case "BigInteger":
-            case "Float":
-            case "Double":
-            case "Long":
-            case "Int": expr = varName; break
-            case "String":
+            case "KULong":
+            case "KFloat":
+            case "KDouble": expr = varName; break
             case "KStringPtr": expr = `${varName}?.toKString() ?: ""`; break
-            case "Boolean":
-            case "KBoolean": expr = `${varName} != 0.toByte()`; break
+            case "Boolean": {
+                // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
+                expr = `${varName} != 0.toByte()`; break
+            }
             case "KInteropReturnBuffer": expr = `${varName}.useContents { KInteropReturnBuffer(length, data.toLong()) }`; break
             default: throw new Error(`Unexpected type ${realInteropType} in interop with Kotlin`)
         }
         return this.makeString(expr)
     }
-    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
-        this.writeDeclaration(name, signature, true, false, modifiers)
+    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], thisOverride?: idl.IDLType): void {
+        this.writeDeclaration(name, signature, true, false, modifiers, [], thisOverride)
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
         const delegationType = (delegationCall?.delegationType == DelegationType.THIS) ? "this" : "super"
         const superInvocation = delegationCall
-        ? ` : ${delegationType}(${delegationCall.delegationArgs.map(it => it.asString()).join(", ")})`
-        : ""
+            ? ` : ${delegationType}(${delegationCall.delegationArgs.map(it => it.asString()).join(", ")})`
+            : ``
         const argList = signature.args.map((it, index) => {
             const maybeDefault = signature.defaults?.[index] ? ` = ${signature.defaults![index]}` : ""
             return `${signature.argName(index)}: ${this.getNodeName(it)}${maybeDefault}`
-        }).join(", ");
-        this.print(`constructor(${argList})${superInvocation} {`)
+        }).join(", ")
+        const modifierList = modifiers ? modifiers.map((it) => MethodModifier[it].toLowerCase()).join(" ") + " " : ""
+        this.print(`${modifierList}constructor(${argList})${superInvocation} {`)
         this.pushIndent()
         op(this)
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeMethodImplementation(method: Method, op: (writer: this) => void) {
-        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics)
+    writeMethodImplementation(method: Method, op: (writer: this) => void, thisOverride?: idl.IDLType) {
+        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics, thisOverride)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -636,7 +646,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         return new KotlinEnumWithGetter(enumEntity, options.isExport)
     }
     castToBoolean(value: string): string {
-        return `if (${value}) { 1 } else { 0 }`
+        return value
     }
     castToInt(value: string, bitness: 8|32): string {
         return `${this.escapeKeyword(value)}.${bitness == 8 ? 'toByte()' : 'toInt()'}`
@@ -646,6 +656,12 @@ export class KotlinLanguageWriter extends LanguageWriter {
     }
     makeNewObject(objectName: string, params: LanguageExpression[] = []): LanguageExpression {
         return new KotlinNewObjectExpression(objectName, params)
+    }
+    makeFunctionReference(name: string): LanguageExpression {
+        return this.makeString(`::${name}`)
+    }
+    makeMethodReference(receiver: string, method: string): LanguageExpression {
+        return this.makeString(`${receiver}::${method}`)
     }
     escapeKeyword(keyword: string): string {
         return keyword

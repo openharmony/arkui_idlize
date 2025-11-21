@@ -12,7 +12,8 @@ cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generate
     -compiler-option -I$external_dir/interop/src/cpp \
     -o $out_dir/bin/idlize_cinterop
 
-konanc tests/kotlin-$build_type/app/Main.kt \
+konanc \
+    tests/kotlin-$build_type/app/*.kt \
     $out_dir/generated/sig/arkoala-kotlin/framework/src/*.kt \
     -l $out_dir/bin/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \

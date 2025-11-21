@@ -196,21 +196,16 @@ class CJDependenciesCollector extends DependenciesCollector {
 }
 
 export class KotlinDependenciesCollector extends DependenciesCollector {
-
-    constructor(library: PeerLibrary, private unionsToInterfaces: boolean = true) {
-        super(library)
-    }
     convertUnion(type: idl.IDLUnionType): idl.IDLEntry[] {
-        if (this.unionsToInterfaces) {
-            const unionEntry = this.synthesizeUnionEntry(type)
-            return [unionEntry]
-        }
-        return super.convertUnion(type)
+        const result = super.convertUnion(type)
+        const unionEntry = this.synthesizeUnionEntry(type)
+        result.push(unionEntry)
+        return result
     }
     private synthesizeUnionEntry(type: idl.IDLUnionType): idl.IDLEntry {
         // TBD: Synthesize unions for Kotlin in a unified way in one place
         const entry = idl.createInterface(type.name, idl.IDLInterfaceSubkind.Interface)
-        const packageName = getSyntheticTypesFileName();
+        const packageName = getSyntheticTypesFileName()
         const file = idl.createFile([entry], packageName, [packageName])
         idl.linkParentBack(file)
         return entry
