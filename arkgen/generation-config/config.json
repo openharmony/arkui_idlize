@@ -852,6 +852,10 @@
             "analyzerConfig": {
                 "hookName": "hookVideoAnalyzerConfig",
                 "replaceImplementation": true
+            },
+            "onError": {
+                "hookName": "hookVideoOnError",
+                "replaceImplementation": true
             }
         },
         "waterFlowAttribute": {
