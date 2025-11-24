@@ -5,14 +5,16 @@ import arkui.component.navigation.NavPathStack as NavPathStack;
 import arkui.component.navigation.NavigationOptions as NavigationOptions;
 
 callback NavExtender_OnUpdateStack = void ();
-callback NavExtender_PageMapNodeBuilder = pointer (String url, optional Object params);
+callback NavExtender_CreateNavDestination = pointer (i32 index);
 
 [Entity=Class]
 interface NavExtender {
   static void setNavigationOptions(pointer ptr, NavPathStack pathStack);
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
-  static void setNavDestinationId(pointer ptr, (String or undefined) id);
   static void syncStack(NavPathStack peer);
+  static void setNavDestinationId(pointer ptr, (String or undefined) id);
+  static boolean checkNeedCreate(pointer navigation, i32 index);
+  static void setNavDestinationNode(NavPathStack peer, i32 index, pointer node);
   static void pushPath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static void replacePath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static String pop(NavPathStack pathStack, boolean animated);
@@ -21,4 +23,6 @@ interface NavExtender {
   static sequence<String> getIdByName(NavPathStack pathStack, String name);
   static void popToIndex(NavPathStack pathStack, i32 index, boolean animated);
   static number popToName(NavPathStack pathStack, String name, boolean animated);
+  static pointer setCreateNavDestinationCallback(NavPathStack peer, NavExtender_CreateNavDestination callback);
+  static sequence<String> getRouteMapInConfig(pointer context);
 };
