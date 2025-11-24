@@ -6,6 +6,5 @@ interface CheckHooksAttribute: Root {
     attribute (String or undefined) text;
     attribute (String or undefined) checkHookResult;
 
-    [CommonMethod]
     this methodPrimitives(boolean flag, number count, String value);
 };

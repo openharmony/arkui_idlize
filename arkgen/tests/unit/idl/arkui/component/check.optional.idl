@@ -11,8 +11,6 @@ interface CheckOptionalAttribute: Root {
     optional attribute number propNumberOptional;
     optional attribute String propStringOptional;
 
-    [CommonMethod]
     this method(boolean paramBoolean, number paramNumber, String paramString);
-    [CommonMethod]
     this methodOptional(optional boolean paramBoolean, optional number paramNumber, optional String paramString);
 };

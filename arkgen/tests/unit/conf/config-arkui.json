@@ -20,6 +20,12 @@
                 "arkui",
                 "synthetic_types"
             ]
+        },
+        "unit": {
+            "name": "unit",
+            "packages": [
+                "unit"
+            ]
         }
     },
     "libraryNameMapping": {
@@ -77,19 +83,6 @@
             ],
             "EventEmulator": [
                 "emitClickEvent"
-            ],
-            "DrawModifier": [
-                "invalidate",
-                "setDrawBehind_callback",
-                "setDrawContent_callback",
-                "setDrawFront_callback"
-            ],
-            "StageExtender" : [
-                "SetSrcPage",
-                "PushPage",
-                "PopPageAndSwitchTo",
-                "ResetTransitions",
-                "SetPageTransition"
             ]
         }
     }

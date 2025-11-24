@@ -3,6 +3,6 @@ package arkui.component.check.exeception;
 [Component]
 interface CheckExceptionAttribute: Root {
 
-    [CommonMethod, Throws]
+    [Throws]
     this methodThrowException(number count);
 };
