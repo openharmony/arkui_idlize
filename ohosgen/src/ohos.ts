@@ -56,47 +56,42 @@ export function generateOhos(outDir: string, peerLibrary: PeerLibrary, useOst: b
 
     const ohos = new OhosInstall(outDir, peerLibrary.language)
 
-    // MANAGED
-    /////////////////////////////////////////
-
-    // install managed part
-    const spread = <T>(cond: boolean, ...data: T[]): T[] => {
-        return cond ? data : []
-    }
-    let printedFiles = printFiles(
-        peerLibrary,
-        [
-            createCallbackKindPrinter(peerLibrary.language),
-            ...spread(!useOst,
-                createMaterializedPrinter(false),
-                createInterfacePrinter(false, false),
-                printDataClasses,
-                printGlobal,
-                createSerializerPrinter(peerLibrary.language, ""),
-                createGeneratedNativeModulePrinter(NativeModule.Generated)),
-            createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
-        ]
-    )
+    let managedFiles: Map<string, OutputFile>
     let nativeFiles: Map<TargetFile, string> | undefined
+
     if (useOst) {
-        const [tsFiles, cFiles] = printOstFiles(peerLibrary)
-        printedFiles = mergeOutputFiles(printedFiles, tsFiles)
-        nativeFiles = cFiles
+        [managedFiles, nativeFiles] = printOstFiles(peerLibrary)
+    } else {
+        // MANAGED
+        /////////////////////////////////////////
+
+        // install managed part
+        managedFiles = printFiles(peerLibrary, [
+            createCallbackKindPrinter(peerLibrary.language),
+            createMaterializedPrinter(false),
+            createInterfacePrinter(false, false),
+            printDataClasses,
+            printGlobal,
+            createSerializerPrinter(peerLibrary.language, ""),
+            createGeneratedNativeModulePrinter(NativeModule.Generated),
+            createDeserializeAndCallPrinter(peerLibrary.name, peerLibrary.language),
+        ])
+
+        // NATIVE
+        /////////////////////////////////////////
+
+        nativeFiles = generateNativeOhos(peerLibrary)
     }
-    const installed = installFiles(ohos.managedDir(), peerLibrary, printedFiles)
+
+    const installed = installFiles(ohos.managedDir(), peerLibrary, managedFiles)
 
     // managed-index
-
     if ([Language.TS, Language.ARKTS].includes(peerLibrary.language)) {
         writeFile(path.join(ohos.managedDir(), 'index.ts'),
             makeOhosModule(peerLibrary, ohos.managedDir(), installed)
         )
     }
 
-    // NATIVE
-    /////////////////////////////////////////
-
-    nativeFiles ??= generateNativeOhos(peerLibrary)
     for (const [ file, content ] of nativeFiles) {
         writeFile(ohos.native(file), content)
     }
@@ -125,20 +120,4 @@ function makeOhosModule(library: PeerLibrary, root:string, componentsFiles: stri
         return `export * from "./${fileNameNoExt}"`
     }).sort()
     return defaultExports.concat(exports).join("\n")
-}
-
-function mergeOutputFiles(files0: Map<string, OutputFile>, files1: Map<string, OutputFile>): Map<string, OutputFile> {
-    for (const [file, output] of files1) {
-        /// probably need to take useFoldersLayout and moduleName into account somewhere else
-        const output0 = files0.get(file)
-        if (output0) { // ignore unknown files
-            console.log('[ merged ]', file)
-            output0.imports.merge(output.imports)
-            output0.content.push(...output.content)
-        } else {
-            console.log('[ ostgen ]', file)
-            files0.set(file, output)
-        }
-    }
-    return files0
 }

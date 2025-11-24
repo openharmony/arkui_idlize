@@ -14,6 +14,7 @@
  */
 
 import { constructorBridgeProducer, functionBridgeProducer, materializedBridgeProducer } from "./bridge";
+import { callbackProducer } from "./callback";
 import { enumProducer } from "./enum";
 import { constructorProducer, functionProducer } from "./function";
 import { serializerProducer } from "./serializer";
@@ -22,6 +23,7 @@ import { structureProducer } from "./structure";
 export const producers = {
     enumProducer,
     structureProducer,
+    callbackProducer,
     functionProducer,
     constructorProducer,
     functionBridgeProducer,

@@ -153,6 +153,17 @@ export class IdentityTransformer {
       elseBody: over(stmt.elseBody, eb => this.goStatement(eb))
     }
   }
+  goSwitchStatement(stmt: lw.SwitchStatement): lw.SwitchStatement {
+    return {
+      kind: stmt.kind,
+      selector: this.goExpression(stmt.selector),
+      cases: stmt.cases.map(c => ({
+        value: this.goConstantExpression(c.value),
+        body: c.body.map(s => this.goStatement(s))
+      })),
+      default: stmt.default.map(s => this.goStatement(s))
+    }
+  }
   goNoneStatement(stmt:lw.NoneStatement): lw.NoneStatement {
     return {
       kind: stmt.kind,
@@ -166,6 +177,7 @@ export class IdentityTransformer {
       case lw.LWKind.ReturnStatement: return this.goReturnStatement(stmt)
       case lw.LWKind.LoopStatement: return this.goLoopStatement(stmt)
       case lw.LWKind.IfStatement: return this.goIfStatement(stmt)
+      case lw.LWKind.SwitchStatement: return this.goSwitchStatement(stmt)
       case lw.LWKind.NoneStatement: return this.goNoneStatement(stmt)
     }
   }

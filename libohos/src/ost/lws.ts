@@ -27,6 +27,7 @@ export enum LWKind {
   ReturnStatement,
   LoopStatement,
   IfStatement,
+  SwitchStatement,
   NoneStatement,
 
   VariableExpression,
@@ -191,6 +192,12 @@ export interface IfStatement {
   thenBody: LWStatement
   elseBody?: LWStatement
 }
+export interface SwitchStatement {
+  kind: LWKind.SwitchStatement
+  selector: LWExpression
+  cases: { value: ConstantExpression, body: LWStatement[] }[]
+  default: LWStatement[]
+}
 export interface NoneStatement {
   kind: LWKind.NoneStatement
 }
@@ -201,6 +208,7 @@ export type LWStatement =
   | ReturnStatement
   | LoopStatement
   | IfStatement
+  | SwitchStatement
   | NoneStatement
 
 export interface VariableExpression {

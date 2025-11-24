@@ -19,6 +19,7 @@ import { std } from "../../stdlib";
 import { IdentityTransformer } from "../../visitors/identity";
 import { T, utils } from "../../builder";
 import { peerGeneratorConfiguration } from "../../../DefaultConfiguration";
+import { stat } from "fs";
 
 const varMapping = new Map([
   [std.names.vars.base, 'super'],
@@ -339,6 +340,24 @@ export class TSPrinter {
         }
         break
       }
+      case lw.LWKind.SwitchStatement:
+        this.p.put('switch', ' ', '(')
+        this.printExpression(statement.selector)
+        this.p.put(')', ' ', '{').inc().newline()
+        statement.cases.forEach(({value, body}) => {
+          this.p.put('case', ' ')
+          this.printExpression(value)
+          this.p.put(':').inc().newline()
+          body.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        })
+        if (statement.default.length) {
+          this.p.put('default:').inc().newline()
+          statement.default.forEach(stmt => this.printStatement(stmt))
+          this.p.dec().newline()
+        }
+        this.p.dec().put('}')
+        break;
       case lw.LWKind.LoopStatement: {
         this.p.put('for', ' ', '(')
         if (statement.init)

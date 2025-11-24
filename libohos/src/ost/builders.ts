@@ -14,7 +14,7 @@
  */
 
 import { D, DD, E, S, T } from "./builder"
-import { AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration, ConstructorExpression, DeclarationStatement, ExpressionStatement, FunctionDeclaration, IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier, StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation, UnaryExpression, CheckCastExpression, FunctionalType } from "./lws"
+import { AccessorExpression, Hint, BinaryExpression, CallExpression, ClassDeclaration, ConstructorExpression, DeclarationStatement, ExpressionStatement, FunctionDeclaration, IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier, StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation, UnaryExpression, CheckCastExpression, FunctionalType, TypedefDeclaration, EnumDeclaration, SwitchStatement } from "./lws"
 import { Hs, Md, std, Ts } from "./stdlib";
 
 const id = <T>(it: T) => it
@@ -115,6 +115,12 @@ class ArgBuilder<P> {
             return this
         })
     }
+    cast(type: LWType): CheckCastBuilder<ArgBuilder<P>> {
+        return new CheckCastBuilder(arg => {
+            this._arg = arg
+            return this
+        }, 'cast', type)
+    }
     $(): P {
         check("Arg", this._arg)
         return this._cont(this._arg!)
@@ -214,6 +220,8 @@ class CheckCastBuilder<P> {
 class ExpressionBuilder<P> {
     constructor(private _cont: (expr: LWExpression) => P) {}
     private _expr?: LWExpression
+    const(value: string | number ): ExpressionBuilder<P> { this._expr = E.c(value); return this }
+    var(name: string): ExpressionBuilder<P> { this._expr = E.v(name); return this }
     access(object?: LWExpression): AccessorBuilder<ExpressionBuilder<P>> {
         return new AccessorBuilder(expr => {
             this._expr = expr
@@ -381,6 +389,24 @@ class IfBuilder<P> {
     }
 }
 
+class SwitchBuilder<P> {
+    constructor(private _cont: (stmt: SwitchStatement) => P) {}
+    private _selector?: LWExpression
+    private _cases: SwitchStatement['cases'] = []
+    private _default: LWStatement[] = []
+    cases(cases: SwitchStatement['cases']) { this._cases.push(...cases); return this }
+    default(stmts: LWStatement[]) { this._default.push(...stmts); return this }
+    selector(): ExpressionBuilder<SwitchBuilder<P>> {
+        return new ExpressionBuilder(expr => { this._selector = expr; return this })
+    }
+    $(): P { return this._cont({
+        kind: LWKind.SwitchStatement,
+        selector: this._selector!,
+        cases: this._cases,
+        default: this._default
+    }); }
+}
+
 class LoopBuilder<P> {
     constructor(private _cont: (stmt: LoopStatement) => P) {}
     private _init?: LWStatement
@@ -458,6 +484,12 @@ class StatementBuilder<P> {
             return this
         })
     }
+    switch(): SwitchBuilder<StatementBuilder<P>> {
+        return new SwitchBuilder(stmt => {
+            this._stmt = stmt
+            return this
+        })
+    }
     loop(): LoopBuilder<StatementBuilder<P>> {
         return new LoopBuilder(stmt => {
             this._stmt = stmt
@@ -512,6 +544,12 @@ class BlockBuilder<P> {
     }
     if(): IfBuilder<BlockBuilder<P>> {
         return new IfBuilder(stmt => {
+            this._stmts.push(stmt)
+            return this
+        })
+    }
+    switch(): SwitchBuilder<BlockBuilder<P>> {
+        return new SwitchBuilder(stmt => {
             this._stmts.push(stmt)
             return this
         })
@@ -654,7 +692,7 @@ class StructBuilder {
     }
     $(): StructureDeclaration {
         check("Struct", this._name)
-        return D.struct(this._name!, this._fields)
+        return D.struct(this._name, this._fields)
     }
 }
 
@@ -691,12 +729,39 @@ class ClassBuilder {///extend StructB
     }
 }
 
+class EnumBuilder {
+    constructor(private _name: string) {}
+    private _members: EnumDeclaration['members'] = []
+    member(name: string, value?: number | string) { this._members.push({name, value}); return this }
+    members(members: EnumDeclaration['members']) { this._members.push(...members); return this; }
+    $(): EnumDeclaration {
+        return D.enum(this._name, this._members)
+    }
+}
+
+class TypedefBuilder {
+    constructor(private _name: string) {}
+    private _type?: LWType
+    funcType(): FunctionTypeBuilder<TypedefBuilder> {
+        return new FunctionTypeBuilder(type => {
+            this._type = type
+            return this
+        })
+    }
+    $(): TypedefDeclaration {
+        check("Type", this._type)
+        return D.type(this._name, this._type!)
+    }
+}
+
 export class Builders {
     static expr(): ExpressionBuilder<LWExpression> { return new ExpressionBuilder(id) }
     static stmt(): StatementBuilder<LWStatement> { return new StatementBuilder(id) }
     static func(name: string): FunctionBuilder<FunctionDeclaration> { return new FunctionBuilder(id, name) }
     static struct(name: string): StructBuilder { return new StructBuilder(name) }
     static class(name: string): ClassBuilder { return new ClassBuilder(name) }
+    static enum(name: string): EnumBuilder { return new EnumBuilder(name) }
+    static type(name: string): TypedefBuilder { return new TypedefBuilder(name) }
 
     static access(object?: LWExpression): AccessorBuilder<AccessorExpression> { return new AccessorBuilder(id, object) }
     static binary(op: string): BinaryBuilder<BinaryExpression> { return new BinaryBuilder(id, op) }
@@ -709,6 +774,7 @@ export class Builders {
     static block(): BlockBuilder<LWStatement> { return new BlockBuilder(S.block) }
     static decl(name: string, type?: LWType): DeclarationBuilder<DeclarationStatement> { return new DeclarationBuilder(id, name, type) }
     static if(): IfBuilder<IfStatement> { return new IfBuilder(id) }
+    static switch(): SwitchBuilder<SwitchStatement> { return new SwitchBuilder(id) }
     static loop(): LoopBuilder<LoopStatement> { return new LoopBuilder(id) }
     static return(type?: LWType): ReturnBuilder<LWStatement> { return new ReturnBuilder(id, type) }
 }

@@ -13,9 +13,11 @@
  * limitations under the License.
  */
 
-import { D, T } from "../../../ost";
+import { E, T } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
 import { createSpecialProducer, managedName, roles } from "../common";
+import { Builders } from "../../../ost/builders";
+import { argConvertor } from "../components/argConvertor";
 
 export const callbackProducer = createSpecialProducer(
   { is: idl.isCallback, role: roles.managed },
@@ -25,11 +27,22 @@ export const callbackProducer = createSpecialProducer(
       artifact: {
         reference: T.c(generatedDeclName),
         implementationGenerator: () => {
-          return [D.type(
-            generatedDeclName,
-            T.fn(
-              callback.parameters.map(it => [it.name, ctx.useManaged(it.type).reference()]),
-              ctx.useManaged(callback.returnType).reference()))]
+          const reads = callback.parameters.map(p => argConvertor(ctx, p.type).read(p.name, E.v('deserializer'), false))
+          return [
+            Builders.type(generatedDeclName).funcType()
+              .parameters(callback.parameters.map(it => [it.name, ctx.useManaged(it.type).reference()]))
+              .returns(ctx.useManaged(callback.returnType).reference()).$().$(),
+            Builders.func(managedName('engine.deserializeAndCall' + callback.name))
+              .param('deserializer').typeStr('DeserializerBase').$()
+              .block()
+                .decl('resourceId').value().call().receiverName('deserializer').functionName('readInt32').$().$().$()
+                .decl('call').value().cast(T.c(generatedDeclName)).value().call()
+                  .receiver().call().receiverName('ResourceHolder').functionName('instance').$().$()
+                  .functionName('get')
+                  .arg('resourceId').$().$().$().$().$().$()
+                .statements(reads.flatMap(it => it[0]))
+                .call().functionName('call').args(reads.map(it => it[1])).$().$().$()
+          ]
         }
       }
     }

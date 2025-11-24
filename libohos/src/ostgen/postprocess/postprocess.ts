@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+import { hashCodeFromString } from "@idlizer/core";
 import { D, lw, std } from "../../ost";
+import { Builders } from "../../ost/builders";
 import { C_API_PREFIX } from "../producers/common";
 
 export function mergeStructs(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
@@ -90,4 +92,11 @@ export function monoName(type: lw.LWType, prefix: string = C_API_PREFIX): string
         default:
             return type.name.split('.').pop()!
     }
+}
+
+export function callbackKindDeclaration(callers: string[], nameFunc: (base: string) => string) {
+    return Builders.enum(nameFunc('CallbackKind'))
+        .members(callers.map(it => {
+            const name = 'KIND_' + it.toUpperCase();
+            return {name, value: hashCodeFromString(name)}})).$()
 }

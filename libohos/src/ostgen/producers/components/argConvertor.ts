@@ -15,10 +15,11 @@
 
 import * as idl from "@idlizer/core/idl";
 import { Hs, E, lw, Op, S, std, Ts, T, Vs } from "../../../ost";
-import { AdvancedGeneratorContext, managedName, typeNameExpr } from "../common";
+import { AdvancedGeneratorContext, cApiName, managedName, typeNameExpr } from "../common";
 import { Builders } from "../../../ost/builders";
 import { isMaterialized } from "@idlizer/core";
-import { LWExpression, LWStatement } from "../../../ost/lws";
+import { LWExpression, LWStatement, LWType } from "../../../ost/lws";
+import { monoName } from "../../postprocess/postprocess";
 
 function selectPrimitiveTypeName(type: idl.IDLPrimitiveType): string {
     switch (type) {
@@ -87,13 +88,15 @@ export function argConvertor(ctx: AdvancedGeneratorContext, type: idl.IDLType, o
     if (idl.isReferenceType(type)) {
         const decl = ctx.base.resolver.toDeclaration(type)
         if (decl) {
-            if (idl.isEnum(decl))
-                return new EnumConvertor(ctx, type)
             if (idl.isInterface(decl)) {
                 return isMaterialized(decl, ctx.base.library)
                     ? new MaterializedConvertor(ctx, type)
                     : new DataConvertor(ctx, type)
             }
+            if (idl.isEnum(decl))
+                return new EnumConvertor(ctx, type)
+            if (idl.isCallback(decl))
+                return new CallbackConvertor(ctx, type, decl)
         }
     }
     throw new Error(`No convertor exists for "${idl.DebugUtils.debugPrintType(type)}"`)
@@ -360,7 +363,7 @@ class OptionalConvertor extends StructConvertor<idl.IDLType> {
         if (native) {
             // TODO: implement
             return [[
-                Builders.decl(name, Ts.optional(type)).$(),
+                Builders.decl(name, Ts.optional(type)).mutable().$(),
                 Builders.decl(`${name}RuntimeType`).value().call().receiverExpr(serializerName).functionName('readInt8').$().$().$(),
                 Builders.stmt().binary('=')
                     .left().access(E.v(name)).member('tag').$().$()
@@ -383,5 +386,43 @@ class OptionalConvertor extends StructConvertor<idl.IDLType> {
         return native
             ? E.v(`INTEROP_RUNTIME_${name}`)
             : Builders.access(E.v('RuntimeType')).member(name).$()
+    }
+}
+
+class CallbackConvertor extends ArgConvertor<idl.IDLReferenceType> {
+    constructor(ctx: AdvancedGeneratorContext, type: idl.IDLReferenceType, private decl: idl.IDLCallback) {
+        super(ctx, type);
+    }
+    interopType(native: boolean): lw.LWType {
+        return this.convertType(this.type, native)
+    }
+    isPointer(): boolean {
+        return true
+    }
+    write(accessor: lw.LWExpression, serializerName: lw.LWExpression, native: boolean): lw.LWStatement[] {
+        return [
+            Builders.stmt().call()
+                .receiverExpr(serializerName).functionName('holdAndWriteCallback').args([accessor]).$().$()
+        ]
+    }
+    read(name: string, serializerName: lw.LWExpression, native: boolean): [lw.LWStatement[], lw.LWExpression] {
+        const callbackName = monoName(this.convertType(this.type, native))
+        const kindName = E.v(`KIND_${callbackName.toUpperCase()}`)
+        const callbackParams: [string, LWType][] = this.decl.parameters.map(p => [p.name, this.convertType(p.type, native)])
+        const asyncParams: [string, LWType][] = [['resourceId', Ts.prim.i32], ...callbackParams]
+        const syncParams: [string, LWType][] = [['vmContext', T.c(cApiName('VMContext'))], ...asyncParams]
+        return [[
+            Builders.decl(name, this.ctx.useCApi(this.type).reference()).value()
+                .ctor().asStruct()
+                    .arg().call().receiverExpr(serializerName).functionName('readCallbackResource').$().$()
+                    .arg().cast(T.fn(asyncParams, Ts.prim.void)).value()
+                        .call().receiverExpr(serializerName).functionName('readPointerOrDefault')
+                            .arg().call().functionName('getManagedCallbackCaller')
+                                .args([kindName]).$().$().$().$().$().$()
+                    .arg().cast(T.fn(syncParams, Ts.prim.void)).value()
+                        .call().receiverExpr(serializerName).functionName('readPointerOrDefault')
+                            .arg().call().functionName('getManagedCallbackCallerSync')
+                                .args([kindName]).$().$().$().$().$().$().$().$().$()
+        ], E.v(name)]
     }
 }

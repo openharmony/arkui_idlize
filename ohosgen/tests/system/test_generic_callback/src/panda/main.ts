@@ -1,13 +1,12 @@
-import { pullEvents, init, Foo, Callback } from "./compat";
-// import { Callback } from "../../dts/interfaces/callback";
+import { pullEvents, init, Foo } from "./compat";
 
 function mainBody() {
     console.log('Starting demo: test_generic_callback');
-    const cb: Callback<number> = (x: number) => {
+    const cb = (x: number) => {
         console.log(`Callback invoked From TS: x = ${x}`);
     };
-    const cbVoid: Callback<void> = (x: undefined) => {
-        console.log(`Void callback invoked From TS: x = ${x}`);
+    const cbVoid = () => {
+        console.log(`Void callback invoked From TS`);
     };
     const foo = new Foo();
     console.log(`foo.getX() = ${foo.getX()}`);

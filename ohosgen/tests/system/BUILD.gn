@@ -26,8 +26,6 @@ template("system_test") {
     assert(defined(invoker.input_type), "`input_type` argument must be set. Example: `input_type = \"idl\"`")
     input_type = invoker.input_type
 
-    use_ost = invoker.use_ost
-
     idl_path = "$root_gen_dir/ohosgen/tests/system/$test_case/idl"
 
     if (input_type == "dts") {
@@ -72,6 +70,7 @@ template("system_test") {
         script = rebase_path("../..")
         args = [
             "--idl2peer",
+            "--use-ost",
             "--language=$target",
             "--input-dir",
             rebase_path(idl_path),
@@ -80,9 +79,6 @@ template("system_test") {
             "--options-file",
             rebase_path("./$test_case/generation_config.json"),
         ]
-        if (use_ost) {
-            args += [ "--use-ost" ]
-        }
         outputs = [
             "$gen_path/generated/native/${test_case}.cpp",
             "$gen_path/generated/native/${test_case}ApiImpl_temp.cpp",
@@ -219,38 +215,29 @@ template("system_test") {
 if (idlize_ws == "idlize") {
     test_cases = [
         { name = "huks"
-        name_uppercase = "HUKS"
-        use_ost = true },
+          name_uppercase = "HUKS" },
         { name = "huks_with_class"
-        name_uppercase = "HUKS_WITH_CLASS"
-        use_ost = true },
+          name_uppercase = "HUKS_WITH_CLASS" },
         { name = "test_buffer"
-        name_uppercase = "TEST_BUFFER"
-        use_ost = true },
+          name_uppercase = "TEST_BUFFER" },
         { name = "test_fqn"
-        name_uppercase = "TEST_FQN"
-        use_ost = true },
+          name_uppercase = "TEST_FQN" },
         { name = "test_generic_callback"
-        name_uppercase = "TEST_GENERIC_CALLBACK"
-        input_type = "dts" },
+          name_uppercase = "TEST_GENERIC_CALLBACK"
+          input_type = "dts" },
         { name = "test_modules_multilevel"
-        name_uppercase = "TEST_MODULES_MULTILEVEL"
-        use_ost = true
-        input_type = "dts" },
+          name_uppercase = "TEST_MODULES_MULTILEVEL"
+          input_type = "dts" },
         { name = "test_modules_multilevel_property"
-        name_uppercase = "TEST_MODULES_MULTILEVEL_PROPERTY"
-        use_ost = true
-        input_type = "dts" },
+          name_uppercase = "TEST_MODULES_MULTILEVEL_PROPERTY"
+          input_type = "dts" },
         { name = "test_modules_simple"
-        name_uppercase = "TEST_MODULES_SIMPLE"
-        use_ost = true
-        input_type = "dts" },
+          name_uppercase = "TEST_MODULES_SIMPLE"
+          input_type = "dts" },
         { name = "test_name_collision"
-        name_uppercase = "TEST_NAME_COLLISION"
-        use_ost = true },
+          name_uppercase = "TEST_NAME_COLLISION" },
         { name = "test_package"
-        name_uppercase = "TEST_PACKAGE"
-        use_ost = true },
+          name_uppercase = "TEST_PACKAGE" },
     ]
 
     foreach(conf, test_cases) {
@@ -260,10 +247,6 @@ if (idlize_ws == "idlize") {
             input_type = "idl"
             if (defined(conf.input_type)) {
                 input_type = conf.input_type
-            }
-            use_ost = false
-            if (defined(conf.use_ost)) {
-                use_ost = conf.use_ost
             }
         }
     }

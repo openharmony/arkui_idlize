@@ -15,13 +15,14 @@
 
 import { Hs, D, DD, E, IdentityTransformer, lw, Op, std, T, Ts, utils } from "../../ost";
 import { generatorConfiguration, zipStrip } from "@idlizer/core";
-import { mergeStructs, monoName } from "./postprocess";
+import { callbackKindDeclaration, mergeStructs, monoName } from "./postprocess";
 import { Builders } from "../../ost/builders";
-import { cApiName, implName } from "../producers/common";
+import { bridgeName, cApiName, implName } from "../producers/common";
 
 export function postprocess(decls: lw.LWDeclaration[]): Map<string, lw.LWDeclaration[]> {
     decls = mergeStructs(decls)
     decls = introduceOptionalTypes(decls)
+    decls = introduceCallbackCaller(decls)
     decls = monomorphizeGenerics(decls)
     decls = monomorphizeAlgebraicTypes(decls)
     decls = makeApis(decls)
@@ -44,6 +45,38 @@ class MakeOptional extends IdentityTransformer {
 
 function introduceOptionalTypes(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     return new MakeOptional().go(decls)
+}
+
+function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
+    const callers = decls
+        .filter(it => it.name.startsWith(bridgeName('CallManaged')))
+        .map(it => it.name.replace(/^.*CallManaged/, '')) ///where to take callback name from?
+    if (callers.length) {
+        const callbackKindEnum = callbackKindDeclaration(callers, bridgeName)
+        const caller = Builders.func(bridgeName('getManagedCallbackCaller'))
+            .param('kind').typeStr('CallbackKind').$()
+            .returns(Ts.prim.pointer)
+            .block()
+                .switch().selector().var('kind').$()
+                    .cases(callers.map(it => { return {
+                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        body: [Builders.return().cast(Ts.prim.pointer).valueStr('CallManaged' + it).$().$()]
+                    }})).$()
+                .return().valueStr('nullptr').$().$().$()
+        const syncCaller = Builders.func(bridgeName('getManagedCallbackCallerSync'))
+            .param('kind').typeStr('CallbackKind').$()
+            .returns(Ts.prim.pointer)
+            .block()
+                .switch().selector().var('kind').$()
+                    .cases(callers.map(it => { return {
+                        value: E.c(`KIND_${it.toUpperCase()}`),
+                        body: [Builders.return().cast(Ts.prim.pointer).valueStr('SyncCallManaged' + it).$().$()]
+                    }})).$()
+                .return().valueStr('nullptr').$().$().$()
+        decls.push(callbackKindEnum, caller, syncCaller);
+    }
+    // TODO: Implement callback caller introduction
+    return decls;
 }
 
 class MakeInstance extends IdentityTransformer {

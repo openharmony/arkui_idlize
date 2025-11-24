@@ -50,16 +50,11 @@ export function printOstFiles(peerLibrary: PeerLibrary): [Map<string, OutputFile
     for (const p of [...Object.values(producers.managed), ...Object.values(producers.native)])
         selector.register(p as any)
 
-    /// fallback producers
-    selector.register(createProducer(
-        { is: idl.isConstant, role: roles.managed },
-        (constant, ctx) => {
-            return { artifact: { reference: T.c("///managed.constant.fallback")}}
-        }))
-
     const ctx = new GeneratorContext(peerLibrary, selector)
-    // don't process predefined files
-    const files = peerLibrary.files.filter(file => file.packageClause[0] !== 'idlize')
+    // ignore predefined / synthetic files
+    const files = peerLibrary.files.filter(file =>
+        file.packageClause.length &&
+        !['idlize', 'synthetic'].includes(file.packageClause[0]))
     const declarations = ctx.generate(files)
 
     const SPECIAL_PACKAGES = [MANAGED_PREFIX + '.engine']
@@ -114,17 +109,20 @@ function dumpCLike(decls: LWDeclaration[], moduleName: string): Map<TargetFile, 
         .replaceAll("%INCLUDE_GUARD_DEFINE%", `OH_${moduleName.toUpperCase()}_H`)
         .replaceAll("%LIBRARY_NAME%", moduleName.toUpperCase())
         .replaceAll("%API_KIND%", peerGeneratorConfiguration().ApiKind.toString())
+
+    const bridgeDecls = files.get(BRIDGE_PREFIX)!
+    const callbackKindEnum = bridgeDecls.find(it => it.name === 'CallbackKind')
     const cpp = [
         readLangTemplate('api_impl_prologue.cpp', Language.CPP),
         libraryDeclaration({removeCopyright: true}),
         readTemplate("api_getter.cpp"),
-        processNPrintCXX(files.get(BRIDGE_PREFIX)!),
+        processNPrintCXX(bridgeDecls.filter(it => it !== callbackKindEnum)),
         ].join('\n')
         .replaceAll("%INTEROP_MODULE_NAME%", `${moduleName.toUpperCase()}NativeModule`)
         .replaceAll("%API_HEADER_PATH%", `${moduleName.toLowerCase()}.h`)
         .replaceAll("%API_KIND%", `OH_${moduleName}_APIKind::OH_${moduleName}_API_KIND`)
         .replaceAll("%API_NAME%", `OH_${moduleName}_API`)
-        .replaceAll("%CALLBACK_KINDS%", 'typedef enum CallbackKind {\n} CallbackKind;') ///
+        .replaceAll("%CALLBACK_KINDS%", callbackKindEnum ? processNPrintCXX([callbackKindEnum]) : 'enum CallbackKind {};')
         .replaceAll("%LIBRARY_NAME%", moduleName.toUpperCase())
     const apiImpl = [
         `#include "common-interop.h"`,

@@ -61,13 +61,13 @@ export const functionBridgeProducer = createSpecialProducer(
 
           const apiCall = Builders.call().functionExpr(apiAccessor(method, funcName)).args(apiCallArgs).$()
           const body = Builders.block()
-            .decl('deserializer', T.c('DeserializerBase')).value()
+            .decl('deserializer', T.c('DeserializerBase')).mutable().value()
               .ctor('DeserializerBase').stack().args([E.v('thisArray'), E.v('thisLength')]).$().$().$()
             .statements(argReads.flatMap(([stmts, _]) => stmts))
           if (interopReturnType === Ts.prim.interopReturnBuffer) {
             body
               .decl('returnBuffer').valueExpr(apiCall).$()
-              .decl('returnSerializer', T.c('SerializerBase')).value().ctor().stack().$().$().$()
+              .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
               .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
               .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
           } else {
