@@ -105,25 +105,24 @@ function makeMaterialized(node: idl.IDLInterface, name: string, ctx: AdvancedGen
     .method('fromPtr').static()
       .returns(thisType)
       .param('ptr').type(Ts.prim.pointer).$().block()
-        .return(thisType).ctor(name).args([E.v('ptr')]).$().$().$().$().$()
+        .return(thisType).ctor(name).arg('ptr').$().$().$().$().$()
   const matClass = Builders.class(name).implements(T.c('MaterializedBase'))
     // peer
     .field('peer').type(peerType).$()
     .method('getPeer').returns(peerType).block()
-      .return(peerType).access(E.v('this')).member('peer').$().$().$().$()
+      .return(peerType).access('peer').receiver('this').$().$().$().$()
     .method('setPeer').private().param('peerPtr').type(Ts.prim.pointer).$().block()
       .binary('=')
-        .left().access(E.v('this')).member('peer').$().$()
+        .left().access('peer').receiver('this').$().$()
         .right().ctor('Finalizable')
-          .arg('peerPtr').$()
-          .arg().call().receiverExpr(E.v(name, [Hs.isType()])).functionName('getFinalizer').$().$().$().$().$().$().$()
+          .arg('peerPtr')
+          .arg().call('getFinalizer').receiver(E.v(name, [Hs.isType()])).$().$().$().$().$().$().$()
     // getFinalizer
     .method('getFinalizer').static().returns(Ts.prim.pointer).block()
-      .return(Ts.prim.pointer).call().function()
-        .access(ctx.useManagedNativeModule(node).name())
-        .member(fqName(node, '_', '_getFinalizer')).$().$().$().$().$().$()
+      .return(Ts.prim.pointer).call(fqName(node, '_', '_getFinalizer'))
+        .receiver(ctx.useManagedNativeModule(node).name()).$().$().$().$()
     // default constructor
     .ctor().param('ptr').type(Ts.prim.pointer).$().block()
-      .call().receiverExpr(E.v('this')).functionName('setPeer').arg('ptr').$().$().$().$().$()
+      .call('setPeer').receiver('this').arg('ptr').$().$().$().$()
   return [intClass, matClass]
 }

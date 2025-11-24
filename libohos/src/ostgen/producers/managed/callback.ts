@@ -35,13 +35,12 @@ export const callbackProducer = createSpecialProducer(
             Builders.func(managedName('engine.deserializeAndCall' + callback.name))
               .param('deserializer').typeStr('DeserializerBase').$()
               .block()
-                .decl('resourceId').value().call().receiverName('deserializer').functionName('readInt32').$().$().$()
-                .decl('call').value().cast(T.c(generatedDeclName)).value().call()
-                  .receiver().call().receiverName('ResourceHolder').functionName('instance').$().$()
-                  .functionName('get')
-                  .arg('resourceId').$().$().$().$().$().$()
+                .decl('resourceId').value().call('readInt32').receiver('deserializer').$().$().$()
+                .decl('call').value().cast(T.c(generatedDeclName)).value().call('get')
+                  .receiver().call('instance').receiver('ResourceHolder').$().$()
+                  .arg('resourceId').$().$().$().$().$()
                 .statements(reads.flatMap(it => it[0]))
-                .call().functionName('call').args(reads.map(it => it[1])).$().$().$()
+                .call('call').args(reads.map(it => it[1])).$().$().$()
           ]
         }
       }

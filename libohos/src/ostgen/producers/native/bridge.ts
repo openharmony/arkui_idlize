@@ -59,19 +59,19 @@ export const functionBridgeProducer = createSpecialProducer(
           }
           macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
 
-          const apiCall = Builders.call().functionExpr(apiAccessor(method, funcName)).args(apiCallArgs).$()
+          const apiCall = Builders.call(apiAccessor(method, funcName)).args(apiCallArgs).$()
           const body = Builders.block()
             .decl('deserializer', T.c('DeserializerBase')).mutable().value()
-              .ctor('DeserializerBase').stack().args([E.v('thisArray'), E.v('thisLength')]).$().$().$()
+              .ctor('DeserializerBase').stack().arg('thisArray').arg('thisLength').$().$().$()
             .statements(argReads.flatMap(([stmts, _]) => stmts))
           if (interopReturnType === Ts.prim.interopReturnBuffer) {
             body
-              .decl('returnBuffer').valueExpr(apiCall).$()
+              .decl('returnBuffer').value(apiCall).$()
               .decl('returnSerializer', T.c('SerializerBase')).mutable().value().ctor().stack().$().$().$()
               .statements(returnConv.write(E.v('returnBuffer'), E.v('returnSerializer'), true))
-              .return().call().receiverName('returnSerializer').functionName('toReturnBuffer').$().$()
+              .return().call('toReturnBuffer').receiver('returnSerializer').$().$()
           } else {
-            body.return(interopReturnType).valueExpr(apiCall).$()
+            body.return(interopReturnType).value(apiCall).$()
           }
           return [
             Builders.func(declName)
@@ -100,13 +100,13 @@ export const constructorBridgeProducer = createSpecialProducer(
           const interopParamTypes = ctor.parameters.map(it => argConvertor(ctx, it.type, it.isOptional).interopType(true))
           const callArgs = ctor.parameters.map(it =>
             Builders.cast(Ts.ptr(ctx.useCApi(it.type).reference())).value()
-              .unary(Op.ref).valueStr(it.name).$().$().$());
+              .unary(Op.ref).value(it.name).$().$().$());
           return [Builders.func(declName)
             .parameters(ctor.parameters.map((p, i) => ({ name: p.name, type: interopParamTypes[i] })))
             .returns(Ts.prim.pointer)
             .block()
               .return(Ts.prim.pointer)
-                .call().functionExpr(apiAccessor(ctor, funcName))
+                .call(apiAccessor(ctor, funcName))
                 .args(callArgs).$().$().$()
             .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`,
               funcName, 'OH_NativePointer', ...interopParamTypes)
@@ -121,7 +121,7 @@ export const constructorBridgeProducer = createSpecialProducer(
 
 export const materializedBridgeProducer = createSpecialProducer(
   { is: idl.isInterface, role: roles.bridge },
-  (node, ctx) => {
+  node => {
     const fqn = fqName(node)
     const finalizerName = fqn + '_getFinalizer'
     const declName = bridgeName('modifier.impl_' + finalizerName)
@@ -131,7 +131,7 @@ export const materializedBridgeProducer = createSpecialProducer(
         implementationGenerator: () => [
           Builders.func(declName).returns(Ts.prim.pointer).block()
             .return(Ts.prim.pointer)
-              .cast(Ts.prim.pointer).valueExpr(apiAccessor(node, fqn + '_destruct')).$().$().$()
+              .cast(Ts.prim.pointer).value(apiAccessor(node, fqn + '_destruct')).$().$().$()
             .macro('KOALA_INTEROP_DIRECT_0', finalizerName, Ts.prim.pointer).$()
           ]
       }
@@ -140,12 +140,8 @@ export const materializedBridgeProducer = createSpecialProducer(
 )
 
 function apiAccessor(node: idl.IDLInterface | idl.IDLMethod | idl.IDLConstructor, modifierName: string): LWExpression {
-  return Builders.access()
-    .object().call().function().access()
-      .object()
-        .call()
-          .functionName(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
-          .arg(moduleName('_API_VERSION')).$().$().$()
-      .member(modifierClassName(node)).ptr().$().$().$().$()
-    .member(modifierName).ptr().$()
+  return Builders
+    .access(modifierName).ptr().receiver().call().function()
+      .access(modifierClassName(node)).ptr().receiver().call(('Get' + generatorConfiguration().TypePrefix + moduleName('_API')))
+        .arg(moduleName('_API_VERSION')).$().$().$().$().$().$().$()
 }

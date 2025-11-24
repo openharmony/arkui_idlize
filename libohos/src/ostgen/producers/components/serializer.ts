@@ -74,7 +74,7 @@ function makeSerializerWrite(ctx: AdvancedGeneratorContext, node: idl.IDLInterfa
     .param('value').type(type).$()
     .block()
       .statements(node.properties.flatMap(prop => [
-        Builders.decl(`${prop.name}Value`).value().access(E.v('value')).member(prop.name).$().$().$(),
+        Builders.decl(`${prop.name}Value`).value().access(prop.name).receiver('value').$().$().$(),
         ...argConvertor(ctx, prop.type, prop.isOptional).write(E.v(`${prop.name}Value`), E.v('serializer'), native)
       ])).$().$()
 }
@@ -89,5 +89,5 @@ function makeSerializerRead(ctx: AdvancedGeneratorContext, node: idl.IDLInterfac
     .block()
       .statements(reads.flatMap(([stmts, _]) => stmts))
       .decl('retval', type).value().ctor().asStruct().args(reads.map(([_, expr]) => expr)).$().$().$()
-      .return(type).valueStr('retval').$().$().$()
+      .return(type).value('retval').$().$().$()
 }

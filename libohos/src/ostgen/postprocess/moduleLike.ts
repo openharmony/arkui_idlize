@@ -39,23 +39,22 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
     const caller = Builders.func(managedName('engine.deserializeAndCallCallback'))
         .param('deserializer').typeStr('DeserializerBase').$()
         .block()
-            .decl('kind').value().call().receiverName('deserializer').functionName('readInt32').$().$().$()
+            .decl('kind').value().call('readInt32').receiver('deserializer').$().$().$()
             .switch()
-                .selector().call().receiverName('CallbackKind').functionName('fromValue').args([E.v('kind')]).$().$()
+                .selector().call('fromValue').receiver('CallbackKind').arg('kind').$().$()
                 .cases(callers.map(it => { return {
                     value: E.c(`CallbackKind.KIND_${it.toUpperCase()}`),
                     body: [
-                        Builders.return().call()
-                            .functionExpr(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$().$()
+                        Builders.return().call(E.v('deserializeAndCall' + it, [Hs.isType()])).arg('deserializer').$().$()
                     ]
                 }})).$().$().$()
             // TODO: throw new Error('Unknown callback kind')
     const camelCaseModuleName = snakeCaseToCamelCase(peerGeneratorConfiguration().moduleName.split(".").join("_"))
     const register = Builders.func(managedName(`engine.register${camelCaseModuleName}ApiHandler`))
         .block()
-            .call().functionName('registerApiEventHandler')
-                .arg('0').$()
-                .arg('deserializeAndCallCallback').$().$().$().$()
+            .call('registerApiEventHandler')
+                .arg('0')
+                .arg('deserializeAndCallCallback').$().$().$()
     decls.push(callbackKindEnum, caller, register)
     return decls
 }
@@ -70,7 +69,7 @@ function loadNativeModule(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
     const nativeModule = decls.find(it => it.name == name) as lw.ClassDeclaration
     nativeModule.methods.unshift(
         Builders.func('').static().block()
-            .call().functionName('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$().$())
+            .call('loadNativeModuleLibrary').arg(`"${moduleName('NativeModule')}"`).$().$().$())
     return decls
 }
 

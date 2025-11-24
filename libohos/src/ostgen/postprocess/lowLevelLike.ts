@@ -60,9 +60,9 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
                 .switch().selector().var('kind').$()
                     .cases(callers.map(it => { return {
                         value: E.c(`KIND_${it.toUpperCase()}`),
-                        body: [Builders.return().cast(Ts.prim.pointer).valueStr('CallManaged' + it).$().$()]
+                        body: [Builders.return().cast(Ts.prim.pointer).value('CallManaged' + it).$().$()]
                     }})).$()
-                .return().valueStr('nullptr').$().$().$()
+                .return().value('nullptr').$().$().$()
         const syncCaller = Builders.func(bridgeName('getManagedCallbackCallerSync'))
             .param('kind').typeStr('CallbackKind').$()
             .returns(Ts.prim.pointer)
@@ -70,9 +70,9 @@ function introduceCallbackCaller(decls: lw.LWDeclaration[]): lw.LWDeclaration[] 
                 .switch().selector().var('kind').$()
                     .cases(callers.map(it => { return {
                         value: E.c(`KIND_${it.toUpperCase()}`),
-                        body: [Builders.return().cast(Ts.prim.pointer).valueStr('SyncCallManaged' + it).$().$()]
+                        body: [Builders.return().cast(Ts.prim.pointer).value('SyncCallManaged' + it).$().$()]
                     }})).$()
-                .return().valueStr('nullptr').$().$().$()
+                .return().value('nullptr').$().$().$()
         decls.push(callbackKindEnum, caller, syncCaller);
     }
     // TODO: Implement callback caller introduction
@@ -224,7 +224,7 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
                 .decl('instance', T.c(decl.name)).static().value()
                     .ctor().asStruct().args(
                         decl.members.map(it => E.unary(Op.ref, E.v(it.name + 'Impl')))).$().$().$()
-                .return().valueExpr(E.unary(Op.ref, E.v('instance'))).$().$().$()
+                .return().value(E.unary(Op.ref, E.v('instance'))).$().$().$()
         modifierImpls.push(modifierImpl)
         // modifier implementation pointer in the API implementation struct
         apiImpls.push(E.unary(Op.ref, E.v(modifierImplName, [Hs.isType()])))
@@ -236,11 +236,11 @@ function makeApis(decls: lw.LWDeclaration[]): lw.LWDeclaration[] {
         ///extern "C"
         .block()
             .decl('api', T.c(apiStructName)).static().value()
-                .ctor().asStruct().args([E.c(1), ...apiImpls]).$().$().$()
+                .ctor().asStruct().arg(1).args(apiImpls).$().$().$()
             .if()
-                .cond().binary(Op.ne).leftStr('version').right().access(E.v('api')).member('version').$().$().$().$()
-                .then().return().valueStr('nullptr').$().$().$()
-            .return().valueExpr(E.unary(Op.ref, E.v('api'))).$().$().$()
+                .cond().binary(Op.ne).left('version').right().access('version').receiver('api').$().$().$().$()
+                .then().return().value('nullptr').$().$().$()
+            .return().value(E.unary(Op.ref, E.v('api'))).$().$().$()
     return [...decls, apiStruct.$(), ...modifierImpls, apiImpl]
 }
 
