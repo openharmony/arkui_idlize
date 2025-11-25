@@ -1,5 +1,6 @@
 package arkui.component.idlize;
 import arkui.component.common.KeyEvent as KeyEvent;
+import arkui.component.Scroller as Scroller;
 
 [Entity=Class]
 interface IUIContext {
@@ -9,4 +10,8 @@ interface IUIContext {
     static async void openBindSheet(pointer bindSheetContent, optional SheetOptions sheetOptions, optional i32 targetId);
     static async void updateBindSheet(pointer bindSheetContent, SheetOptions sheetOptions, optional boolean partialUpdate);
     static async void closeBindSheet(pointer bindSheetContent);
+    static void bindTabsToScrollable(TabsController tabsController, Scroller scroller);
+    static void unbindTabsFromScrollable(TabsController tabsController, Scroller scroller);
+    static void bindTabsToNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller scrollerchildScroller);
+    static void unbindTabsFromNestedScrollable(TabsController tabsController, Scroller parentScroller, Scroller childScroller);
 };
