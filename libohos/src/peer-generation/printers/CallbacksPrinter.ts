@@ -211,6 +211,7 @@ class DeserializeCallbacksVisitor {
                 writer.writeStatement(writer.makeAssign(callName, undefined, callReadExpr, true))
                 writer.writeStatement(writer.makeStatement(writer.makeMethodCall(`thisDeserializer`, `readPointer`, [])))
             } else if (writer.language === Language.KOTLIN) {
+                writer.writeExpressionStatement(writer.makeString(`@Suppress("UNCHECKED_CAST")`))
                 writer.writeStatement(writer.makeAssign(callName, undefined, writer.makeCast(
                     writer.makeMethodCall(`ResourceHolder`, `get`, [writer.makeString(resourceIdName)]),
                     callback), true))

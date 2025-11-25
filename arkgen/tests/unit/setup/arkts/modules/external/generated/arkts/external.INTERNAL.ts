@@ -16,20 +16,20 @@
 
 // WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!
 
-import { int32 } from '@koalaui/common'
-import { loadNativeModuleLibrary, registerApiEventHandler, DeserializerBase } from '@koalaui/interop'
+import { int32, float32, int64 } from '@koalaui/common'
+import { KInt, KLong, KBoolean, KFloat, KDouble, KUInt, KStringPtr, KPointer, KNativePointer, KInt32ArrayPtr, KUint8ArrayPtr, KFloat32ArrayPtr, pointer, KInteropReturnBuffer, KSerializerBuffer, loadNativeModuleLibrary, NativeBuffer, registerApiEventHandler, ResourceHolder, wrapSystemCallback, DeserializerBase, SerializerBase, CallbackResource, InteropNativeModule, RuntimeType } from '@koalaui/interop'
 export enum CallbackKind {
     Kind_EMPTY_Callback = -1
 }
-export class GLOBAL_RESOURCENativeModule {
+export class EXTERNALNativeModule {
     static {
-        loadNativeModuleLibrary("GLOBAL_RESOURCENativeModule")
+        loadNativeModuleLibrary("EXTERNALNativeModule")
     }
 }
 export function deserializeAndCallCallback(thisDeserializer: DeserializerBase): void {
     const kind: int32 = thisDeserializer.readInt32()
     throw new Error('Unknown callback kind')
 }
-export function registerGlobalResourceApiHandler(): void {
-    registerApiEventHandler(10, deserializeAndCallCallback)
+export function registerExternalApiHandler(): void {
+    registerApiEventHandler(0, deserializeAndCallCallback)
 }

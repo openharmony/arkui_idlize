@@ -13,8 +13,8 @@
             "#arktheme": [
                 "./ArkThemeScopeManager"
             ],
-            "global.resource": [
-                "../../../../../generated/modules/global/generated/arkts"
+            "external": [
+                "../../../../../generated/modules/external/generated/arkts"
             ],
             "@koalaui/interop": [
                 "../../../../../../../../external/interop/src/arkts"

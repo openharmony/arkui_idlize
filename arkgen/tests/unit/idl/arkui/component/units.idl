@@ -1,5 +1,5 @@
 package arkui.component.units;
-import global.resource.Resource as _Resource;
+import external.ExternalInterface as _ExternalInterface;
 
-typedef Resource = _Resource;
-typedef Length = (String or number or Resource);
+typedef ExternalInterface = _ExternalInterface;
+typedef Length = (String or number or ExternalInterface);

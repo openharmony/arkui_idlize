@@ -10,9 +10,9 @@
 
     "moduleName": "arkui",
     "modules": {
-        "global.resource": {
-            "name": "global.resource",
-            "packages": ["global.resource"]
+        "external": {
+            "name": "external",
+            "packages": ["external"]
         },
         "arkui": {
             "name": "arkui",
@@ -29,9 +29,9 @@
         }
     },
     "libraryNameMapping": {
-        "global.resource": {
-            "TS": "global.resource",
-            "ArkTS": "global.resource"
+        "external": {
+            "TS": "external",
+            "ArkTS": "external"
         }
     },
     "rootComponents": [

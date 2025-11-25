@@ -14,8 +14,8 @@ cinterop \
     -o $generated_dir/bin/idlize_cinterop
 
 konanc \
-    $generated_dir/sig/arkoala-kotlin/framework/src/*.kt \
-    $generated_dir/modules/global/generated/kotlin/*.kt \
+    $generated_dir/sig/arkoala-kotlin/framework/src/**/*.kt \
+    $generated_dir/modules/external/generated/kotlin/**/*.kt \
     -l $generated_dir/bin/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \
