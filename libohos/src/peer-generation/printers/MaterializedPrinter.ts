@@ -300,10 +300,10 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
     printMethod(method: MaterializedMethod, postfix: string = "", returnType?: idl.IDLType) {
         const useProtected = this.printer.supportedModifiers.includes(MethodModifier.PROTECTED)
         const privateMethod = method.getPrivateMethod(useProtected)
-        returnType = returnType ?? privateMethod.tsReturnType()
-        returnType = returnType && idl.isTypeParameterType(returnType) ? idl.IDLVoidType : returnType
         this.library.setCurrentContext(`${privateMethod.originalParentName}.${privateMethod.sig.name}`)
-        writePeerMethod(this.library, this.printer, privateMethod, true, this.dumpSerialized, `${postfix}`,
+        returnType = returnType ?? method.sig.returnType
+        returnType = idl.isTypeParameterType(method.sig.returnType) ? idl.IDLVoidType : returnType
+        writePeerMethod(this.library, this.printer, privateMethod, this.dumpSerialized, `${postfix}`,
             this.printer.language == Language.CJ ?
                 "if (let Some(peer) <- this.peer) { peer.ptr } else {throw Exception(\"\")}" :
                 this.printer.language == Language.KOTLIN ?
@@ -532,7 +532,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     for (const ctor of clazz.ctors) {
                         const pointerType = IDLPointerType
                         this.library.setCurrentContext(`${clazz.className}.constructor`)
-                        writePeerMethod(this.library, this.printer, ctor, true, this.dumpSerialized, "", "", pointerType)
+                        writePeerMethod(this.library, this.printer, ctor, this.dumpSerialized, "", "", pointerType)
                         this.library.setCurrentContext(undefined)
                     }
                 }

@@ -19,6 +19,7 @@ import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
+import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
 import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
@@ -123,6 +124,11 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
                     const isTuple = entity === idl.IDLEntity.Tuple
                     return this.productType(decl as idl.IDLInterface, type.typeArguments, isTuple, !isTuple)
                 }
+            }
+
+            let restoredThrow: idl.IDLType | undefined
+            if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
+                return this.convert(restoredThrow)
             }
 
             // FIXME: isEnumMember is not TYPE!

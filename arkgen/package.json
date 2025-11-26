@@ -29,8 +29,8 @@
   },
   "devDependencies": {
     "node-api-headers": "^1.1.0",
-    "@koalaui/interop": "1.7.11",
-    "@koalaui/fast-arktsc": "1.7.11",
+    "@koalaui/interop": "1.7.12",
+    "@koalaui/fast-arktsc": "1.7.12",
     "@rollup/plugin-commonjs": "^26.0.1",
     "@rollup/plugin-node-resolve": "^15.3.0",
     "@rollup/plugin-replace": "^5.0.7",
@@ -46,7 +46,6 @@
   "scripts": {
     "--todo": "remove '--types chai' it is used just because tsc cli does not allow specifying empty types array with console flags",
     "NPM": "#----------------------------",
-    "prepack": "node tools/external-subset.mjs",
     "switch:develop": "node tools/devenv.mjs on",
     "switch:release": "node tools/devenv.mjs off",
     "upload": "npm run compile && node tools/publish.mjs --tag next",
@@ -94,7 +93,7 @@
     "exec:subset:ts": "node out/ts-subset/lib/main.js",
     "all:subset:ts": "npm run compile && npm run compile -C ../dtsgen && npm run setup:subset:ts && npm run gen-idl:subset:ts && npm run gen:subset:ts && npm run build:subset:ts && npm run build-native:subset:ts && npm run exec:subset:ts",
     "TESTS": "#--------------------------",
-    "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ets-ts-peers/generated/sig/arkoala/arkui-types/index-full.d.ts ../external/subset/arkoala/arkui/src/stub.d.ts",
+    "check:index-full:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ets-ts-peers/generated/sig/arkoala/arkui-types/index-full.d.ts ./tests-template/sig/arkoala/arkui/src/stub.d.ts",
     "check:index-full:subset:ts": "tsc --target esnext --lib esnext --types chai --noEmit out/ts-subset/generated/sig/arkoala/arkui-types/index-full.d.ts",
     "test:subset-api": "npm run gen-idl:subset:arkts && npm run gen:subset:arkts && mkdir -p out/test-subset-api && cp -r out/arkts-subset/generated/libace/generated/interface/arkoala_api_generated.h ./out/test-subset-api/arkoala_api_generated.h && node ../tools/golden.mjs --input-dir ./out/test-subset-api --golden-dir ./tests/golden/subset-api",
     "test:core": "mocha ../core/test",

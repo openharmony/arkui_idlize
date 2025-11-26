@@ -19,6 +19,7 @@ import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { PeerMethod } from '../../peer-generation/PeerMethod'
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
 import { convertType, IdlNameConvertor, TypeConvertor } from '../nameConvertor'
 
 const KInteropReturnBuffer = 'KInteropReturnBuffer'
@@ -90,6 +91,9 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
         if (decl) {
             // Callbacks and array types return by value
             if (idl.isCallback(this.resolver.toDeclaration(type))) {
+                return KInteropReturnBuffer
+            }
+            if (maybeRestoreThrows(decl, this.resolver)) {
                 return KInteropReturnBuffer
             }
             if (idl.isInterface(decl)) {

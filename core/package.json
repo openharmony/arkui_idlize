@@ -31,7 +31,7 @@
   },
   "keywords": [],
   "devDependencies": {
-    "@koalaui/harness": "1.7.11",
+    "@koalaui/harness": "1.7.12",
     "@koalaui/ets-tsc": "4.9.5-r5",
     "mocha": "^9.2.2",
     "ts-node": "^10.9.2",

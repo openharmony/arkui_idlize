@@ -17,6 +17,7 @@ import * as idl from '../../idl'
 import { CJKeywords } from '../../languageSpecificKeywords'
 import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
+import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
 import { removePoints } from '../../util'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import { InteropArgConvertor } from './InteropConvertors'
@@ -101,6 +102,10 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             return "KPointer"
         // resolve synthetic types
         const decl = this.resolver.resolveTypeReference(type)!
+        let restoredThrow: idl.IDLType | undefined
+        if (restoredThrow = maybeRestoreThrows(decl, this.resolver)) {
+            return this.convert(restoredThrow)
+        }
         if (decl && idl.isSyntheticEntry(decl)) {
             if (idl.isCallback(decl)) {
                 return this.callbackType(decl)

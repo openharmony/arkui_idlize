@@ -29,6 +29,7 @@ import {
     nullsTransformer,
     transformOnSerializeTransformer,
     genericsTransformer,
+    throwsTransformer,
 } from "@idlizer/core"
 import {
     getFQName,
@@ -152,6 +153,7 @@ export function arkgen(argv:string[]) {
             return transformation?.to
         })
         files = nullsTransformer(files)
+        files = throwsTransformer(files)
         files = genericsTransformer(files, {
             ignore: [ignoreComponentRule],
             ignoreGenerics: peerGeneratorConfiguration().ignoreGenerics,

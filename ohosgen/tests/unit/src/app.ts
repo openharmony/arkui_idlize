@@ -512,8 +512,7 @@ function checkReturnTypes() {
   }
 }
 
-function checkThrowException() {
-
+async function checkThrowException() {
   let catchException = false
   const checkExceptionClass = new CheckExceptionClass()
 
@@ -529,7 +528,6 @@ function checkThrowException() {
   assertEQ(true, catchException, "Exception has not been thrown!")
 
   catchException = false
-
   try {
     const checkExceptionInterface = checkExceptionClass.getInterface()
     checkExceptionInterface.checkException()
@@ -539,14 +537,35 @@ function checkThrowException() {
     console.log(`error: ${errObj.message}`)
     assertEQ("Exception from CheckExceptionInterface", `${errObj.message}`)
   }
+  assertEQ(true, catchException, "Exception has not been thrown!")
 
+  catchException = false
+  try {
+    await checkExceptionClass.getPromiseInterface()
+  } catch (error) {
+    let errObj = error as Error
+    catchException = true
+    console.log(`promise error: ${errObj.message}`)
+    assertEQ("(Test passed) Promise for @throw annotated method was rejected", `${errObj.message}`)
+  }
+  assertEQ(true, catchException, "Exception has not been thrown!")
+
+  catchException = false
+  try {
+    checkExceptionClass.getThis()
+  } catch (error) {
+    let errObj = error as Error
+    catchException = true
+    console.log(`promise error: ${errObj.message}`)
+    assertEQ("(Test passed) Promise for @throw annotated method with `this` return type was rejected", `${errObj.message}`)
+  }
   assertEQ(true, catchException, "Exception has not been thrown!")
 }
 
 function checkPromiseRejected() {
-  PromiseTester.wait(200)
+  return PromiseTester.wait(200)
     .then(() => assertEQ(false, true, "Should not be called"))
-    .catch((e:object) => { console.log(e.toString()) })
+    .catch((e:object): void => { console.log(e.toString()) })
 }
 
 export function run() {
@@ -570,12 +589,12 @@ export function run() {
   suite.addTest("checkAny", checkAny)
   suite.addTest("checkReturnTypes", checkReturnTypes)
   suite.addTest("checkNativeBuffer", checkNativeBuffer)
-  suite.addTest("checkThrowException", checkThrowException)
+  suite.addAsyncTest("checkThrowException", checkThrowException)
   // suite.addTest("checkHandwritten", checkHandwritten)
   suite.addTest("checkHooks", checkHooks)
   suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
-  suite.addTest("checkPromiseRejected", checkPromiseRejected)
+  suite.addAsyncTest("checkPromiseRejected", checkPromiseRejected)
 
   return suite.run()
 }

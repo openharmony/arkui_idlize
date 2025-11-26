@@ -23,6 +23,7 @@ import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarati
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
+import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
 
 const KBoolean = "KBoolean"
 const KByte = "KByte"
@@ -120,6 +121,10 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
                 if (idl.isTypedef(decl)) {
                     return this.convert(decl.type)
                 }
+            }
+            let restoredThrow: idl.IDLType | undefined
+            if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
+                return this.convert(restoredThrow)
             }
             return this.mangleTopLevel(decl) ?? removePoints(idl.getQualifiedName(decl, 'namespace.name'))
         }

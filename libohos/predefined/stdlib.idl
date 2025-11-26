@@ -12,6 +12,9 @@ interface CallbackResource {};
 interface VMContext {};
 [TSType=Null]
 interface Null {};
+interface <T> Throws {
+    attribute T value;
+};
 
 namespace Intl {
     interface Locale {};

@@ -65,9 +65,9 @@ export class CLikeExpressionStatement extends ExpressionStatement {
 }
 
 class CLikeThrowErrorStatement implements LanguageStatement {
-    constructor(public message: string) { }
+    constructor(public exception: LanguageExpression) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw new Error("${this.message}");`)
+        writer.print(`throw ${this.exception.asString()};`)
     }
 }
 
@@ -85,7 +85,9 @@ export abstract class CLikeLanguageWriter extends LanguageWriter {
     writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void): void {
         this.writeMethodImplementation(new Method(name, signature), op)
     }
-    makeThrowError(message: string): LanguageStatement {
+    makeThrowError(message: string | LanguageExpression): LanguageStatement {
+        if (typeof message === 'string')
+            message = this.makeString(`new Error("${message}")`)
         return new CLikeThrowErrorStatement(message)
     }
     makeEquals(args: LanguageExpression[]): LanguageExpression {

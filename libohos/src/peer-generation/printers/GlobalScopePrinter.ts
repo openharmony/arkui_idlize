@@ -148,11 +148,9 @@ export function printGlobal(library: PeerLibrary): PrinterResult[] {
                                 library,
                                 realizationWriter,
                                 peerMethod,
-                                true,
                                 false,
                                 '_serialize',
                                 '',
-                                peerMethod.returnType,
                             )
                         })
                     })

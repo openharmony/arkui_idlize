@@ -137,7 +137,7 @@ export function checkNotEQ(value1: unknown, value2: unknown, comment?: string): 
 class Test {
     constructor(
         public readonly name: string,
-        public readonly test: () => void
+        public readonly test: () => Promise<void> | void
     ) {}
 }
 
@@ -151,11 +151,15 @@ export class UnitTestsuite {
         this.tests.push(new Test(testName, test))
     }
 
-    run(): void {
+    addAsyncTest(testName: string, test: () => Promise<void>): void {
+        this.tests.push(new Test(testName, test))
+    }
+
+    async run() {
         const failedTests: string[] = []
         for (const t of this.tests) {
             try {
-                t.test()
+                await t.test()
                 console.log('[ \x1b[32m%s\x1b[0m ] %s', 'PASSED', t.name);
             } catch (ex) {
                 if (ex instanceof UnitTestError) {

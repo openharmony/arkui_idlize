@@ -188,7 +188,7 @@ class PeerFileVisitor {
 
     protected printPeerMethod(method: PeerMethod, printer: LanguageWriter) {
         this.library.setCurrentContext(`${method.originalParentName}.${method.sig.name}`)
-        writePeerMethod(this.library, printer, method, true, this.dumpSerialized, "Attribute", "this.peer.ptr")
+        writePeerMethod(this.library, printer, method, this.dumpSerialized, "Attribute", "this.peer.ptr")
         this.library.setCurrentContext(undefined)
     }
 

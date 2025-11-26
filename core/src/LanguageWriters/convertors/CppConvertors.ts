@@ -25,6 +25,7 @@ import { isInIdlizeInternal } from '../../idl'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { Language } from '../../Language'
+import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
 
 function isSubtypeTopLevelConflicted(library: LibraryInterface, node: idl.IDLType) {
     let hasConflicts = false
@@ -64,6 +65,12 @@ export class GenericCppConvertor implements NodeConvertor<ConvertResult> {
     }
 
     convertInterface(node: idl.IDLInterface): ConvertResult {
+        let restoredThrow: idl.IDLType | undefined
+        if (restoredThrow = maybeRestoreThrows(node, this.library)) {
+            if (restoredThrow === idl.IDLThisType)
+                restoredThrow = idl.IDLVoidType
+            return this.make(`Throws_${this.convertNode(restoredThrow).text}`, idl.createReferenceType(node), true)
+        }
         switch (node.subkind) {
             case idl.IDLInterfaceSubkind.AnonymousInterface:
                 return node.name

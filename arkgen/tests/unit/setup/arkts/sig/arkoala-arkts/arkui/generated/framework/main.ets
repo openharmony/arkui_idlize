@@ -91,7 +91,7 @@ function checkExceptions() {
     const comp = new ArkCheckExceptionComponent()
     comp.setPeer(peer)
     checkResult("exception test", () => comp.methodThrowException(123),
-        `setMethodThrowException(VMContext_Not_NULL, {.tag=102, .i32=123})`)
+        `setMethodThrowException({.tag=102, .i32=123})[return {.hasException=false}]`)
 }
 
 function checkOptional() {

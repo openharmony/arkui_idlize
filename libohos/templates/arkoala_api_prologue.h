@@ -70,6 +70,7 @@ typedef InteropAsyncWork Ark_AsyncWork;
 typedef InteropAsyncWorker Ark_AsyncWorker;
 typedef InteropAsyncWorkerPtr Ark_AsyncWorkerPtr;
 typedef InteropObject Ark_Object;
+typedef InteropException Ark_Exception;
 
 // Improve: generate!
 typedef struct Opt_Ark_Callback {

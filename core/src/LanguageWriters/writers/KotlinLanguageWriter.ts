@@ -159,9 +159,9 @@ class KotlinMapForEachStatement implements LanguageStatement {
 }
 
 export class KotlinThrowErrorStatement implements LanguageStatement {
-    constructor(public message: string) { }
+    constructor(public exception: LanguageExpression) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw Error("${this.message}")`)
+        writer.print(`throw ${this.exception.asString()}`)
     }
 }
 
@@ -319,7 +319,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
     writeEnum(name: string, members: { name: string, alias?: string | undefined, stringId: string | undefined, numberId: number }[], options: { isDeclare?: boolean, isExport: boolean }): void {
         throw new Error("Try to avoid writeEnum")
     }
-    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[], thisOverride?: idl.IDLType) {
+    private writeDeclaration(name: string, signature: MethodSignature, needReturn: boolean, needBracket: boolean, modifiers?: MethodModifier[], generics?: string[]) {
         let prefix = !modifiers ? undefined : this.supportedModifiers
             .filter(it => modifiers.includes(it))
             .map(it => this.mapMethodModifier(it)).join(" ")
@@ -334,11 +334,7 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
-        const realReturnType = signature.returnType === idl.IDLThisType ? (thisOverride ?? signature.returnType) : signature.returnType
-        if (needReturn && realReturnType === idl.IDLThisType) {
-            throw new Error(`Must pass non-null thisOverride to print method '${name}' returning 'this' in Kotlin`)
-        }
-        const returnTypePart = needReturn ? ": " + this.getNodeName(realReturnType) : ""
+        const returnTypePart = needReturn ? ": " + this.getNodeName(signature.returnType) : ""
         this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${returnTypePart}${needBracket ? " {" : ""}`)
     }
     writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void {
@@ -448,8 +444,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         }
         return this.makeString(expr)
     }
-    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], thisOverride?: idl.IDLType): void {
-        this.writeDeclaration(name, signature, true, false, modifiers, [], thisOverride)
+    writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void {
+        this.writeDeclaration(name, signature, true, false, modifiers, [])
     }
     writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]) {
         const delegationType = (delegationCall?.delegationType == DelegationType.THIS) ? "this" : "super"
@@ -467,8 +463,8 @@ export class KotlinLanguageWriter extends LanguageWriter {
         this.popIndent()
         this.printer.print(`}`)
     }
-    writeMethodImplementation(method: Method, op: (writer: this) => void, thisOverride?: idl.IDLType) {
-        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics, thisOverride)
+    writeMethodImplementation(method: Method, op: (writer: this) => void) {
+        this.writeDeclaration(method.name, method.signature, true, true, method.modifiers, method.generics)
         this.pushIndent()
         op(this)
         this.popIndent()
@@ -533,7 +529,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new KotlinLambdaExpression(this, signature, this.resolver, body)
     }
-    makeThrowError(message: string): LanguageStatement {
+    makeThrowError(message: string | LanguageExpression): LanguageStatement {
+        if (typeof message === 'string')
+            message = this.makeString(`Error("${message}")`)
         return new KotlinThrowErrorStatement(message)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {

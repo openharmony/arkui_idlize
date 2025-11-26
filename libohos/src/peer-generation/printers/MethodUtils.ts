@@ -63,7 +63,6 @@ function isDirectConvertedType(originalType: idl.IDLType|undefined, library: Pee
 export function isVMContextMethod(method: Method | PeerMethodSignature): boolean {
     const isPromise = !!idl.asPromise(method instanceof PeerMethodSignature ? method.returnType : method.signature.returnType)
     return isPromise ||
-        !!method.modifiers?.includes(MethodModifier.THROWS) ||
         !!method.modifiers?.includes(MethodModifier.FORCE_CONTEXT)
 }
 

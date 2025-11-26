@@ -525,16 +525,16 @@ export abstract class LanguageWriter {
     abstract writeFieldDeclaration(name: string, type: idl.IDLType, modifiers: FieldModifier[]|undefined, optional: boolean, initExpr?: LanguageExpression): void
     abstract writeFunctionDeclaration(name: string, signature: MethodSignature, generics?:string[]): void
     abstract writeFunctionImplementation(name: string, signature: MethodSignature, op: (writer: this) => void, generics?:string[]): void
-    abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[], thisOverride?: idl.IDLType): void
+    abstract writeMethodDeclaration(name: string, signature: MethodSignature, modifiers?: MethodModifier[]): void
     abstract writeConstructorImplementation(className: string, signature: MethodSignature, op: (writer: this) => void, delegationCall?: DelegationCall, modifiers?: MethodModifier[]): void
-    abstract writeMethodImplementation(method: Method, op: (writer: this) => void, thisOverride?: idl.IDLType): void
+    abstract writeMethodImplementation(method: Method, op: (writer: this) => void): void
     abstract writeProperty(propName: string, propType: idl.IDLType, modifiers: FieldModifier[], getter?: { method: Method, op?: () => void }, setter?: { method: Method, op: () => void }, initExpr?: LanguageExpression): void
     abstract writeTypeDeclaration(decl: idl.IDLTypedef): void
     abstract writeConstant(constName: string, constType: idl.IDLType, constVal?: string): void
     abstract writeImports(moduleName: string, importedFeatures: string[], aliases: string[]): void
     abstract makeAssign(variableName: string, type: idl.IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean, isConst?: boolean, options?:MakeAssignOptions): LanguageStatement
     abstract makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression
-    abstract makeThrowError(message: string): LanguageStatement
+    abstract makeThrowError(message: string | LanguageExpression): LanguageStatement
     abstract makeReturn(expr?: LanguageExpression): LanguageStatement
     abstract makeRuntimeType(rt: RuntimeType): LanguageExpression
     abstract /*  */getObjectAccessor(convertor: ArgConvertor, value: string, args?: ObjectArgs): string

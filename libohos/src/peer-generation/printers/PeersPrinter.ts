@@ -27,7 +27,8 @@ import {
     isPrimitiveType,
     LayoutNodeRole,
     PeerMethodSignature,
-    getExtractor
+    getExtractor,
+    maybeRestoreThrows
 } from '@idlizer/core'
 import { getHookMethod } from '../../DefaultConfiguration'
 import {
@@ -47,9 +48,13 @@ export function componentToPeerClass(component: string) {
 
 const returnValName = "retval"  // make sure this doesn't collide with parameter names!
 
-export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, isIDL: boolean, dumpSerialized: boolean,
-    methodPostfix: string, ptr: string, returnType: IDLType = IDLVoidType, generics?: string[]
+export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, method: PeerMethod, dumpSerialized: boolean,
+    methodPostfix: string, ptr: string, returnTypeOverride?: IDLType
 ) {
+    let returnType = returnTypeOverride ?? method.sig.returnType
+    if (returnType === idl.IDLThisType) {
+        returnType = idl.IDLVoidType
+    }
     const hookMethod = getHookMethod(method.originalParentName, method.method.name)
     if (hookMethod && hookMethod.replaceImplementation) return
     const signature = method.method.signature as NamedMethodSignature
@@ -58,6 +63,9 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
         new NamedMethodSignature(returnType, signature.args, signature.argsNames, signature.defaults, signature.argsModifiers),
         method.method.modifiers, method.method.generics
     )
+    if (maybeRestoreThrows(returnType, library) === idl.IDLThisType) {
+        peerMethod.signature.returnType = idl.IDLVoidType
+    }
     const argConvertors = method.argAndOutConvertors(library)
     printer.writeMethodImplementation(peerMethod, (writer) => {
         let scopes = argConvertors.filter(it => it.isScoped)
@@ -141,7 +149,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 // keep result
             } else if (returnsThis(method, returnType)) {
                 result = [writer.makeReturn(writer.makeString("this"))]
-            } else if (method instanceof MaterializedMethod && method.sig.name !== PeerMethodSignature.CTOR) {
+            } else if (method.sig.name !== PeerMethodSignature.CTOR) {
                 if (isNamedNode(returnType)
                     && (returnType.name === method.originalParentName || isMaterializedType(returnType, writer.resolver))) {
                     result = [
@@ -191,6 +199,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
 
 function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, returnType: IDLType): LanguageStatement[] {
     const deserializerName = `${returnValName}Deserializer`
+    writer.addFeature(idl.createReferenceType('idlize.internal.DeserializerBase'))
     writer.writeStatement(
         writer.makeAssign(
             deserializerName,
@@ -203,15 +212,13 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
-    const returnResultValName = "returnResult"
     return [
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
-            (expr) => writer.makeAssign(returnResultValName, returnType, expr, true),
+            (expr) => writer.makeReturn(expr),
             writer
         ),
-        writer.makeReturn(writer.makeString(returnResultValName))
     ]
 }
 

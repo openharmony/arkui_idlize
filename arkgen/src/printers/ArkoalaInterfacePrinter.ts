@@ -16,7 +16,7 @@
 import * as idl from "@idlizer/core/idl"
 import { allowNamedOverloads, collapseIdlPeerMethods, collectPeers, findComponentByDeclaration, findComponentByName, groupOverloads, isComponentDeclaration, KotlinDeclarationConvertor, KotlinInterfacesVisitor, PrinterFunction } from "@idlizer/libohos"
 import { ArkTSInterfacesVisitor, CJInterfacesVisitor, InterfacesVisitor, TSDeclConvertor, TSInterfacesVisitor } from "@idlizer/libohos"
-import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
+import { DeclarationConvertor, getSuper, indentedBy, Language, LanguageWriter, maybeRestoreThrows, Method, MethodModifier, MethodSignature, NamedMethodSignature, PeerClass, PeerLibrary, PeerMethodSignature, ReferenceResolver, stringOrNone } from "@idlizer/core"
 import { generateAttributeModifierSignature } from "./ComponentsPrinter"
 import { componentToAttributesInterface } from "./PeersPrinter"
 
@@ -155,7 +155,9 @@ class ArkoalaKotlinDeclarationConvertor extends KotlinDeclarationConvertor {
         printer.writeInterface(componentInterface, writer => {
             for (const peerMethod of peer.methods) {
                 const peerSig = peerMethod.method.signature as NamedMethodSignature
-                const returnType = peerSig.returnType === idl.IDLThisType ? idl.createReferenceType(peer.decl) : peerSig.returnType
+                const returnType = peerSig.returnType === idl.IDLThisType || maybeRestoreThrows(peerSig.returnType, this.peerLibrary) === idl.IDLThisType
+                    ? idl.createReferenceType(peer.decl)
+                    : peerSig.returnType
                 const componentMethodSignature = new NamedMethodSignature(returnType, peerSig.args, peerSig.argsNames,
                     peerSig.defaults, peerSig.argsModifiers, peerSig.printHints)
                 writer.writeMethodDeclaration(peerMethod.method.name, componentMethodSignature)

@@ -57,7 +57,7 @@ fun checkExceptions() {
     val comp = ArkCheckExceptionComponent()
     comp.setPeer(peer)
     checkResult("exception test", { comp.methodThrowException(123.0) },
-        "setMethodThrowException(VMContext_NULL, {.tag=102, .i32=123})")
+        "setMethodThrowException({.tag=102, .i32=123})[return {.hasException=false}]")
 }
 
 fun checkOptional() {

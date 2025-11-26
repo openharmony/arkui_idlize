@@ -241,9 +241,9 @@ export class CJEnumEntityStatement implements LanguageStatement {
 }
 
 class CJThrowErrorStatement implements LanguageStatement {
-    constructor(public message: string) { }
+    constructor(public exception: LanguageExpression) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw Exception("${this.message}")`)
+        writer.print(`throw ${this.exception.asString()}`)
     }
 }
 
@@ -495,7 +495,9 @@ export class CJLanguageWriter extends LanguageWriter {
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new CJLambdaExpression(this, signature, this.resolver, body)
     }
-    makeThrowError(message: string): LanguageStatement {
+    makeThrowError(message: string | LanguageExpression): LanguageStatement {
+        if (typeof message === 'string')
+            message = this.makeString(`Exception("${message}")`)
         return new CJThrowErrorStatement(message)
     }
     makeTernary(condition: LanguageExpression, trueExpression: LanguageExpression, falseExpression: LanguageExpression): LanguageExpression {

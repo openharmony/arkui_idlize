@@ -14,7 +14,7 @@
  */
 
 import * as idl from '@idlizer/core/idl'
-import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, InterfaceConvertor, ProxyConvertor, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription } from '@idlizer/core'
+import { Language, isMaterialized, throwException, LanguageExpression, isInIdlizeInternal, getExtractor, getSerializerName, PrintHint, CppLanguageWriter, isInCurrentModule, isInExternalModule, capitalize, wrapCurrentFileDescription, maybeRestoreThrows } from '@idlizer/core'
 import { Method, NamedMethodSignature } from "../LanguageWriters"
 import { LanguageWriter, PeerLibrary } from "@idlizer/core"
 import { peerGeneratorConfiguration } from '../../DefaultConfiguration'
@@ -389,6 +389,7 @@ export function getSerializerDeclarations(library: PeerLibrary, dependencyFilter
         .filter(it => !it.typeParameters?.length
             || it.typeParameters.every(it => it.includes('='))
             || idl.isInterface(it) && isMaterialized(it, library))
+        .filter(it => !maybeRestoreThrows(it, library))
         .filter(it => {
             const fullName = nameConvertor.convert(it)
             const seen = seenNames.has(fullName)

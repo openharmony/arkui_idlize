@@ -28,7 +28,8 @@ import {
     PrimitiveTypesInstance,
     PrimitiveTypeList,
     getSuper,
-    maybeRestoreGenerics
+    maybeRestoreGenerics,
+    maybeRestoreThrows
 } from "@idlizer/core"
 import { RuntimeType } from "@idlizer/core"
 import { LanguageExpression, Method, MethodModifier, NamedMethodSignature } from "../LanguageWriters"
@@ -154,7 +155,17 @@ export class StructPrinter {
                 forwardDeclarations.print(`typedef struct ${nameAssigned} ${nameAssigned};`)
                 this.printStructsCHead(nameAssigned, target, concreteDeclarations)
                 concreteDeclarations.print(`/* kind: ${idl.IDLKind[target.kind]} */`)
-                if (idl.isUnionType(target)) {
+                let restoredThrows: idl.IDLType | undefined
+                if (restoredThrows = maybeRestoreThrows(target, this.library)) {
+                    concreteDeclarations.print(`${structs.getNodeName(idl.IDLBooleanType)} hasException;`)
+                    concreteDeclarations.print("union {")
+                    concreteDeclarations.pushIndent()
+                    concreteDeclarations.print(`${generatorConfiguration().TypePrefix}Exception exception;`)
+                    if (restoredThrows !== idl.IDLVoidType && restoredThrows !== idl.IDLThisType)
+                        concreteDeclarations.print(`${structs.getNodeName(restoredThrows)} value;`)
+                    concreteDeclarations.popIndent()
+                    concreteDeclarations.print("};")
+                } else if (idl.isUnionType(target)) {
                     concreteDeclarations.print(`${generatorConfiguration().TypePrefix}Int32 selector;`)
                     concreteDeclarations.print("union {")
                     concreteDeclarations.pushIndent()
@@ -466,7 +477,27 @@ inline void WriteToString(std::string* result, const ${name}* value) {
             printer.print(`inline void WriteToString(std::string* result, const ${name}${isPointer ? "*" : ""} value) {`)
             printer.pushIndent()
 
-            if (idl.isUnionType(target)) {
+            let restoredThrow: idl.IDLType | undefined
+            if (restoredThrow = maybeRestoreThrows(target, this.library)) {
+                printer.print(`result->append("{");`)
+                printer.print(`result->append(".hasException=");`)
+                printer.print(`result->append(std::to_string(value${access}hasException));`)
+                printer.print(`result->append(", ");`)
+                printer.print(`if (value${access}hasException) {`)
+                printer.pushIndent()
+                printer.print(`result->append(".exception=");`)
+                printer.print(`WriteToString(result, &value${access}exception);`)
+                printer.popIndent()
+                if (restoredThrow != idl.IDLVoidType && restoredThrow != idl.IDLThisType) {
+                    printer.print(`} else {`)
+                    printer.pushIndent()
+                    printer.print(`result->append(".value=");`)
+                    const isPointerType = this.isPointerDeclaration(this.library.toDeclaration(restoredThrow))
+                    printer.print(`WriteToString(result, ${isPointerType ? "&" : ""}value${access}value);`)
+                    printer.popIndent()
+                }
+                printer.print("}")
+            } else if (idl.isUnionType(target)) {
                 printer.print(`result->append("{");`);
                 printer.print(`result->append(".selector=");`)
                 printer.print(`result->append(std::to_string(value->selector));`);

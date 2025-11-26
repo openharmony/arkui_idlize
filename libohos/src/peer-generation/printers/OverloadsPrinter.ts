@@ -20,7 +20,7 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature, maybeRestoreThrows, copyMethod } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -298,8 +298,9 @@ export class OverloadsPrinter {
 
     private printCollapsedOverloads(peer: string, methods: PeerMethod[], interfaceDeclaration?: idl.IDLInterface) {
         const collapsedMethod = collapseSameNamedMethods(methods.map(it => it.method), undefined, this.language, this.posfix)
+        let collapsedMethodToPrint = collapsedMethod
         const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
-        let thisTypeOverride: idl.IDLType | undefined = undefined
+            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
         if (methodReturnsThis && this.printer.language == Language.CJ) {
             // compiler clashes on memo methods returning this
             collapsedMethod.signature.returnType = idl.IDLVoidType
@@ -314,14 +315,23 @@ export class OverloadsPrinter {
                 if (!interfaceDeclaration) {
                     throw new Error(`Non-null interfaceDeclaration must be passed to print methods with 'this' return type in Kotlin`)
                 }
-                thisTypeOverride = idl.createReferenceType(interfaceDeclaration)
+                collapsedMethodToPrint = copyMethod(collapsedMethodToPrint, {
+                    signature: new NamedMethodSignature(
+                        idl.createReferenceType(interfaceDeclaration),
+                        collapsedMethodToPrint.signature.args,
+                        collapsedMethodToPrint.signature.args.map((_, index) => collapsedMethodToPrint.signature.argName(index)),
+                        collapsedMethodToPrint.signature.defaults,
+                        collapsedMethodToPrint.signature.argsModifiers,
+                        collapsedMethodToPrint.signature.printHints,
+                    )
+                })
             }
         }
         if (allowNamedOverloads(this.language)) {
             collapsedMethod.name = methods[0].uniqueOverloadName
         }
         const key = peer + '.' + collapsedMethod.name
-        this.printer.writeMethodImplementation(collapsedMethod, (writer) => {
+        this.printer.writeMethodImplementation(collapsedMethodToPrint, (writer) => {
             injectPatch(this.printer, key, peerGeneratorConfiguration().patchMaterialized)
             const hookMethod = getHookMethod(methods[0].originalParentName, collapsedMethod.name)
             if (hookMethod) {
@@ -337,7 +347,7 @@ export class OverloadsPrinter {
             } else {
                 this.printCollapsedOverloadsMethodBody(peer, collapsedMethod, methods, writer)
             }
-        }, thisTypeOverride)
+        })
     }
 
     printHookedMethodBody(peer: string, method: Method, hookName: string, writer: LanguageWriter) {
@@ -435,7 +445,9 @@ export class OverloadsPrinter {
             : this.isComponent ? `this.getPeer()` : `this`
         const namePostifx = this.isComponent ? "Attribute" : `${this.posfix}_serialize`
         const methodName = `${peerMethod.sig.name}${namePostifx}`
-        if (collapsedMethod.signature.returnType === idl.IDLThisType) {
+        const methodReturnsThis = collapsedMethod.signature.returnType == idl.IDLThisType
+            || maybeRestoreThrows(collapsedMethod.signature.returnType, this.library) === idl.IDLThisType
+        if (methodReturnsThis) {
             if (this.printer.language == Language.CJ) {
                 if (isStatic) {
                     this.printer.writeMethodCall(receiver, methodName, argsNames, false)

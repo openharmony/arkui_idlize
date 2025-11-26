@@ -40,6 +40,7 @@ import { PeerLibrary } from "../peer-generation/PeerLibrary";
 import { LayoutNodeRole } from "../peer-generation/LayoutManager";
 import { isInExternalModule } from "../peer-generation/modules";
 import { maybeRestoreGenerics } from "../transformers/GenericTransformer";
+import { maybeRestoreThrows } from "../transformers/ThrowsTransformer";
 
 export function getSerializerName(_library: LibraryInterface, _language: Language, declaration: idl.IDLEntry) {
     return entryToFunctionName(_language, declaration, "", "SerializerImpl")
@@ -1158,6 +1159,61 @@ export class UnionConvertor extends BaseArgConvertor {
     override unionDiscriminator(value: string, index: number, writer: LanguageWriter, duplicates: Set<string>): LanguageExpression | undefined {
         return writer.makeNaryOp("||",
             this.memberConvertors.map((_, n) => this.unionChecker.makeDiscriminator(value, n, writer, this.library)))
+    }
+}
+
+export class ThrowsConvertor extends BaseArgConvertor {
+    private convertor: ArgConvertor | undefined
+
+    constructor(private library: LibraryInterface, param: string, private decl: idl.IDLInterface) {
+        super(idl.createReferenceType(decl), [RuntimeType.OBJECT], false, true, param)
+        const restoredThrow = maybeRestoreThrows(decl, library)!
+        this.convertor = restoredThrow !== idl.IDLVoidType && restoredThrow !== idl.IDLThisType ? library.typeConvertor(param, restoredThrow) : undefined
+    }
+
+    convertorArg(param: string, writer: LanguageWriter): string {
+        throw new Error("Method not implemented.");
+    }
+    convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            return writer.makeBlock([
+                writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeBoolean', [writer.makeString(`${value}.hasException`)])),
+                writer.makeCondition(
+                    writer.makeString(`${value}.hasException`),
+                    writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeException', [writer.makeString(`${value}.exception`)])),
+                    !this.convertor ? undefined : writer.makeBlock([
+                        writer.makeAssign(`${value}Value`, undefined, writer.makeString(`${value}.value`), true),
+                        this.convertor?.convertorSerialize(param, `${value}Value`, writer),
+                    ]),
+                )
+            ])
+        } else {
+            throw new Error("Not expected to serialize exceptions in managed, currently they're only one directional from native to managed")
+        }
+    }
+    convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
+        if (writer.language === Language.CPP) {
+            throw new Error("Not expected to deserialize exceptions in CPP, currently they're only one directional from native to managed")
+        } else {
+            return writer.makeCondition(
+                writer.makeMethodCall(deserializerName, 'readBoolean', []),
+                writer.makeBlock([
+                    writer.makeThrowError(writer.makeMethodCall(deserializerName, 'readException', [])),
+                ]),
+                !this.convertor ? undefined : writer.makeBlock([
+                    this.convertor?.convertorDeserialize(bufferName, deserializerName, assigneer, writer),
+                ]),
+            )
+        }
+    }
+    nativeType(): idl.IDLType {
+        return idl.createReferenceType(this.decl)
+    }
+    interopType(): idl.IDLType {
+        throw new Error("ThrowsConvertor")
+    }
+    isPointerType(): boolean {
+        return true
     }
 }
 

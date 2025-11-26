@@ -171,9 +171,9 @@ class CppEnumEntityStatement implements LanguageStatement {
     }
 }
 class CPPThrowErrorStatement implements LanguageStatement {
-    constructor(public message: string) { }
+    constructor(public exception: LanguageExpression) { }
     write(writer: LanguageWriter): void {
-        writer.print(`INTEROP_FATAL("${this.message}");`)
+        writer.print(`${this.exception.asString()};`)
     }
 }
 
@@ -319,7 +319,9 @@ export class CppLanguageWriter extends CLikeLanguageWriter {
     override makeValueFromOption(value: string): LanguageExpression {
         return this.makeString(`${value}.value`)
     }
-    override makeThrowError(message: string): LanguageStatement {
+    override makeThrowError(message: string | LanguageExpression): LanguageStatement {
+        if (typeof message === 'string')
+            message = this.makeString(`INTEROP_FATAL("${message}")`)
         return new CPPThrowErrorStatement(message)
     }
     makeAssign(variableName: string, type: IDLType | undefined, expr: LanguageExpression | undefined, isDeclared: boolean = true, isConst: boolean = true, options?:MakeAssignOptions): LanguageStatement {

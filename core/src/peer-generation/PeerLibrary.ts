@@ -26,6 +26,7 @@ import {
     ArgConvertor, BooleanConvertor, EnumConvertor, UndefinedConvertor, VoidConvertor, ImportTypeConvertor, InterfaceConvertor, BigIntToU64Convertor,
     ObjectConvertor,
     TransformOnSerializeConvertor,
+    ThrowsConvertor,
 } from "../LanguageWriters/ArgConvertors"
 import { CppNameConvertor, StructureNameConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { CJTypeNameConvertor } from '../LanguageWriters/convertors/CJConvertors'
@@ -46,6 +47,7 @@ import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
 import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
 import { toDeclaration } from './toDeclaration'
+import { maybeRestoreThrows } from '../transformers/ThrowsTransformer'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -311,6 +313,9 @@ export class PeerLibrary implements LibraryInterface {
             return new TypeAliasConvertor(this, param, declaration)
         }
         if (idl.isInterface(declaration)) {
+            if (maybeRestoreThrows(declaration, this)) {
+                return new ThrowsConvertor(this, param, declaration)
+            }
             if (generatorConfiguration().forceResource.includes(declaration.name)) {
                 return new ObjectConvertor(param, type)
             }

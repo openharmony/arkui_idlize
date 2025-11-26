@@ -97,9 +97,9 @@ class TSUnwrapOptionalExpression implements LanguageExpression {
 ////////////////////////////////////////////////////////////////
 
 class TSThrowErrorStatement implements LanguageStatement {
-    constructor(public message: string) { }
+    constructor(public exception: LanguageExpression) { }
     write(writer: LanguageWriter): void {
-        writer.print(`throw new Error('${this.message}')`)
+        writer.print(`throw ${this.exception.asString()}`)
     }
 }
 export class TSReturnStatement extends ReturnStatement {
@@ -383,7 +383,9 @@ export class TSLanguageWriter extends LanguageWriter {
     makeLambda(signature: MethodSignature, body?: LanguageStatement[]): LanguageExpression {
         return new TSLambdaExpression(this, this.typeConvertor, signature, this.resolver, body)
     }
-    makeThrowError(message: string): LanguageStatement {
+    makeThrowError(message: string | LanguageExpression): LanguageStatement {
+        if (typeof message === 'string')
+            message = this.makeString(`new Error('${message}')`)
         return new TSThrowErrorStatement(message)
     }
     makeReturn(expr: LanguageExpression): LanguageStatement {

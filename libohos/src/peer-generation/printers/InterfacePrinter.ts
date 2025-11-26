@@ -462,8 +462,6 @@ export class TSDeclConvertor implements DeclarationConvertor<void> {
         if (!typeParameters?.length)
             return ""
         const nameConvertor = this.peerLibrary.createTypeNameConvertor(this.peerLibrary.language)
-        if (defaults?.some(it => !it))
-            console.log("AAA")
         const defaultsPrinted = defaults?.map(it => nameConvertor.convert(it)) ?? []
         const addDefaultIfNeeded = (typeParameter: string, index: number): string => {
             const defaultValueIndex = index - (typeParameters.length - defaultsPrinted.length)

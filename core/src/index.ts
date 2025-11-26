@@ -66,6 +66,7 @@ export * from "./peer-generation/toDeclaration"
 export * from "./transformers/FqnTransformer"
 export * from "./transformers/GenericTransformer"
 export * from "./transformers/NullTransformer"
+export * from "./transformers/ThrowsTransformer"
 export * from "./transformers/OnSerializeTransformer"
 export * from "./transformers/IdlTransformer"
 

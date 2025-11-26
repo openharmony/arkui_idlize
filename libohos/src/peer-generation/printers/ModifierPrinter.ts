@@ -31,6 +31,7 @@ import { createDestroyPeerMethod, MaterializedClass, MaterializedMethod,
     capitalize,
     qualifiedName,
     LibraryInterface,
+    maybeRestoreThrows,
 } from '@idlizer/core'
 import { LanguageStatement, printMethodDeclaration } from "../LanguageWriters";
 import { IDLImport, IDLAnyType, IDLBooleanType, IDLBufferType, IDLContainerType, IDLContainerUtils,
@@ -45,6 +46,7 @@ import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
 import { generateCapiParameters } from "./HeaderPrinter";
 import { collectProperties } from "./StructPrinter";
+import { isVMContextMethod } from "./MethodUtils";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))
@@ -117,6 +119,12 @@ class ReturnValueConvertor implements TypeConvertor<string | undefined> {
         if (idl.isType(decl)) {
             return convertType(this, decl)
         }
+        let restoredThrow: idl.IDLType | undefined
+        if (restoredThrow = maybeRestoreThrows(decl, this.resolver)) {
+            if (restoredThrow === idl.IDLVoidType || restoredThrow === idl.IDLThisType)
+                return `{.hasException=false}`
+            return `{.hasException=false, .value=${this.convert(restoredThrow)}}`
+        }
         if (decl && isInterface(decl)) {
             if (isMaterialized(decl, this.resolver)) {
                 return `reinterpret_cast<${this.retTypeConverter.convert(type)}>(300)`
@@ -188,8 +196,7 @@ export class ModifierVisitor {
             )
         )
         _.print(`string out("${peerToOutString(this.library, context, method)}(");`)
-        const decl = method.decl
-        const withVMContext = decl && idl.isMethod(decl) && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.Throws)
+        const withVMContext = isVMContextMethod(method.sig)
         if (withVMContext) {
             _.print(`out.append(vmContext == NULL ? "VMContext_NULL" : "VMContext_Not_NULL");`)
         }

@@ -906,9 +906,21 @@ OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl() {
 }
 void CheckExceptionInterface_destructImpl(OH_UNIT_CheckExceptionInterfaceHandle thisPtr) {
 }
-void CheckExceptionInterface_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("CheckExceptionInterface checkException vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    KOALA_INTEROP_THROW_STRING(vmContext, "Exception from CheckExceptionInterface");
+Throws_Array_I32 CheckExceptionClass_getArrayImpl(OH_NativePointer thisPtr) {
+    return {};
+}
+Throws_void CheckExceptionInterface_checkExceptionImpl(OH_NativePointer thisPtr) {
+    const char *message = "Exception from CheckExceptionInterface";
+    return {
+        .hasException=true,
+        .exception={
+            .code=1,
+            .message={
+                .chars=message,
+                .length=static_cast<InteropInt32>(strlen(message)),
+            }
+        }
+    };
 }
 
 OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl() {
@@ -918,14 +930,56 @@ OH_UNIT_CheckExceptionClassHandle CheckExceptionClass_constructImpl() {
 }
 void CheckExceptionClass_destructImpl(OH_UNIT_CheckExceptionClassHandle thisPtr) {
 }
-void CheckExceptionClass_checkExceptionImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("OH_UNIT_CheckExceptionClass checkException vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    KOALA_INTEROP_THROW_STRING(vmContext, "Exception from CheckExceptionClass");
+Throws_void CheckExceptionClass_checkExceptionImpl(OH_NativePointer thisPtr) {
+    const char *message = "Exception from CheckExceptionClass";
+    return {
+        .hasException=true,
+        .exception={
+            .code=1,
+            .message={
+                .chars=message,
+                .length=static_cast<InteropInt32>(strlen(message)),
+            }
+        }
+    };
 }
 
-OH_UNIT_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr) {
-    printf("OH_UNIT_CheckExceptionClass getInterface vmContext: %p, thisPtr: %p\n", vmContext, thisPtr);
-    return (OH_UNIT_CheckExceptionInterface) new OH_UNIT_CheckExceptionInterfacePeer();
+Throws_CheckExceptionInterface CheckExceptionClass_getInterfaceImpl(OH_NativePointer thisPtr) {
+    printf("OH_UNIT_CheckExceptionClass getInterface thisPtr: %p\n", thisPtr);
+    return {
+        .hasException=false,
+        .value=(OH_UNIT_CheckExceptionInterface)(new OH_UNIT_CheckExceptionInterfacePeer()),
+    };
+}
+
+void CheckExceptionClass_getPromiseInterfaceImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, OH_NativePointer thisPtr, const UNIT_Callback_Opt_CheckExceptionInterface_Opt_Array_String_Void* outputArgumentForReturningPromise) {
+    auto const resource = outputArgumentForReturningPromise->resource;
+    const char *message = "(Test passed) Promise for @throw annotated method was rejected";
+    OH_String* errors = new OH_String[2];
+    errors[0].length = strlen("1");
+    errors[0].chars = "1";
+    errors[1].length = strlen(message);
+    errors[1].chars = message;
+    outputArgumentForReturningPromise->callSync(vmContext, resource.resourceId, { .tag=INTEROP_TAG_UNDEFINED }, {
+        .tag=INTEROP_TAG_OBJECT,
+        .value={
+            .array=errors,
+            .length=2,
+        }
+    });
+}
+Throws_void CheckExceptionClass_getThisImpl(OH_NativePointer thisPtr) {
+    const char *message = "(Test passed) Promise for @throw annotated method with `this` return type was rejected";
+    return {
+        .hasException=true,
+        .exception={
+            .code=1,
+            .message={
+                .chars=message,
+                .length=static_cast<InteropInt32>(strlen(message)),
+            }
+        }
+    };
 }
 
 OH_UNIT_generics_XHandle generics_X_constructImpl() {
@@ -1091,14 +1145,17 @@ void DTSCheckExternalLib_checkSubNSExternalTypeImpl(OH_NativePointer thisPtr, OH
 // }
 
 
-const char* ERROR_MSG = "(Test passed) Promise was rejected";
+static const char* ERROR_MSG = "(Test passed) Promise was rejected";
 void PromiseTester_waitImpl(OH_UNIT_VMContext vmContext, OH_UNIT_AsyncWorkerPtr asyncWorker, const OH_Number* ms, const UNIT_Callback_Opt_Array_String_Void* outputArgumentForReturningPromise) {
-    OH_String* errors = new OH_String[1];
-    errors[0].length = strlen(ERROR_MSG);
-    errors[0].chars = ERROR_MSG;
-    outputArgumentForReturningPromise->call(
+    OH_String* errors = new OH_String[2];
+    errors[0].length = strlen("1");
+    errors[0].chars = "1";
+    errors[1].length = strlen(ERROR_MSG);
+    errors[1].chars = ERROR_MSG;
+    outputArgumentForReturningPromise->callSync(
+        vmContext,
         outputArgumentForReturningPromise->resource.resourceId,
-        (Opt_Array_String){ INTEROP_TAG_OBJECT, { errors, 1 } }
+        { INTEROP_TAG_OBJECT, { errors, 2 } }
     );
 }
 

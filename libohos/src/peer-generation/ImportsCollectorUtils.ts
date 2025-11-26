@@ -14,7 +14,7 @@
  */
 
 import * as idl from "@idlizer/core/idl"
-import { toIdlType } from "@idlizer/core"
+import { isThrows, toIdlType } from "@idlizer/core"
 import { Language, LayoutNodeRole, isStaticMaterialized, maybeRestoreGenerics, isInExternalModule, isInStdlibModule, isTopLevelConflicted, getInitializerFeature, lib } from "@idlizer/core"
 import { ImportFeature, ImportsCollector } from "./ImportsCollector"
 import { createDependenciesCollector, DependenciesCollector } from "./idl/IdlDependenciesCollector"
@@ -79,6 +79,8 @@ export function collectDeclItself(
         if (library.language === Language.KOTLIN && idl.isCallback(node))
             return
     }
+    if (isThrows(node, library))
+        return
     if ([Language.TS, Language.ARKTS].includes(library.language)) {
         node = maybeRestoreGenerics(node, library) ?? node
         if (idl.isReferenceType(node)) {
