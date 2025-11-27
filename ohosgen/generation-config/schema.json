@@ -363,6 +363,12 @@
                     ],
                     "type": "object"
                 },
+                "handwrittenDeserializers": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "$schema": {
                     "type": "string",
                     "description": "The schema to verify this document against."

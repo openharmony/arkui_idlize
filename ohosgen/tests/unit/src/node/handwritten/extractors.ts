@@ -76,8 +76,6 @@ export namespace extractors {
         const result: SDKExternalType = { sdkNativePointer: ptr }
         return result
     }
-<<<<<<< HEAD
-=======
 
     export function deserialize_test_inheritance_BaseGesture(ptr: KPointer): BaseGesture {
         const gestureType = getBaseGestureType(ptr)
@@ -133,5 +131,4 @@ export namespace extractors {
         }
         return result
     }
->>>>>>> 23934c01c (!2842 Update transformOnSerialize serialization)
 }

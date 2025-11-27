@@ -46,6 +46,13 @@ interface MaterializedFileVisitor {
 
 type MethodFilter = (method: MaterializedMethod | idl.IDLMethod) => boolean
 
+function getDeserializer(classFQName: string): { receiver: string, method: string } {
+    return {
+        receiver: "extractors",
+        method: `deserialize_${classFQName.replaceAll('.', '_')}`
+    }
+}
+
 abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     protected readonly collector = new ImportsCollector()
@@ -283,11 +290,21 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             : idl.createReferenceType(clazz.decl, clazz.generics?.map(it => idl.createTypeParameterReference(it)))
         const fromPtrSig = new NamedMethodSignature(clazzRefType, [idl.IDLPointerType], ["ptr"])
         writer.writeMethodImplementation(new Method("fromPtr", fromPtrSig, [MethodModifier.PUBLIC, MethodModifier.STATIC], classTypeParameters), writer => {
-            const defaultArgs = allowsOverloads(this.library.language)
-                ? [writer.makeString(MATERIALIZED_TAG)]
-                : Array(maxCtorParams).fill(writer.makeUndefined())
-            const args = [...defaultArgs, writer.makeString("ptr")]
-            writer.writeStatement(writer.makeReturn(writer.makeNewObject(writer.getNodeName(clazzRefType), args)))
+            var returnedExpr: LanguageExpression | undefined = undefined
+            const classFQName = idl.getFQName(clazz.decl)
+            if (peerGeneratorConfiguration().handwrittenDeserializers.find(
+                name => name == classFQName)) {
+                const deserializerInfo = getDeserializer(classFQName)
+                const args = [ writer.makeString("ptr") ]
+                returnedExpr = writer.makeMethodCall(deserializerInfo.receiver, deserializerInfo.method, args)
+            } else {
+                const defaultArgs = allowsOverloads(this.library.language)
+                    ? [writer.makeString(MATERIALIZED_TAG)]
+                    : Array(maxCtorParams).fill(writer.makeUndefined())
+                const args = [...defaultArgs, writer.makeString("ptr")]
+                returnedExpr = writer.makeNewObject(writer.getNodeName(clazzRefType), args)
+            }
+            writer.writeStatement(writer.makeReturn(returnedExpr))
         })
     }
 
@@ -586,6 +603,10 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 })
             }
         })
+        if (peerGeneratorConfiguration().handwrittenDeserializers.find(
+            name => name == idl.getFQName(decl))) {
+            this.collector.addFeature("extractors", this.library.layout.handwrittenPackage())
+        }
     }
 
     override printImports() {
