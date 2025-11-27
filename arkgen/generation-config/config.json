@@ -987,5 +987,5 @@
     ],
     "transformAnnotations": {
         "Builder": "memo"
-}
+    }
 }

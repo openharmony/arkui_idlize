@@ -73,6 +73,8 @@ export { DTSCheckExternalLib, InternalType } from "../../generated/arkts"
 
 export { PromiseTester } from "../../generated/arkts"
 
+export { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "../../generated/arkts"
+
 export type OHBuffer = NativeBuffer
 export type OHAny = object
 

@@ -1,0 +1,22 @@
+package test_inheritance;
+
+dictionary GestureType {
+    number First;
+    number Second;
+};
+
+[Entity=Class]
+interface BaseGesture {
+    GestureType getType();
+    static BaseGesture createGesture2();
+};
+
+[Entity=Class]
+interface DerivedGesture1: [Extends] BaseGesture {
+};
+
+[Entity=Class]
+interface DerivedGesture2: [Extends] BaseGesture {
+};
+
+GestureType getBaseGestureType(pointer ptr);

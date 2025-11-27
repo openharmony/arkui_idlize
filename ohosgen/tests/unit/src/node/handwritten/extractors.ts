@@ -4,6 +4,8 @@ import { KPointer } from "@koalaui/interop"
 import { ExternalType, hookns, ImportedHookValue, ExternalClass } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
 
+import { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "#compat"
+
 
 class ExternalClassImpl implements ExternalClass {
 
@@ -65,5 +67,13 @@ export namespace extractors {
     export function fromSDKExternalTypePtr(ptr: KPointer): SDKExternalType {
         const result: SDKExternalType = { sdkNativePointer: ptr }
         return result
+    }
+
+    export function deserialize_test_inheritance_BaseGesture(ptr: KPointer): BaseGesture {
+        const gestureType = getBaseGestureType(ptr)
+        switch (gestureType) {
+            case GestureType.First: return new DerivedGesture1(ptr)
+            default: return new DerivedGesture2(ptr)
+        }
     }
 }

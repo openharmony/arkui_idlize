@@ -81,6 +81,8 @@ import { ExternalType, hookns } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
+import { BaseGesture, DerivedGesture2, GestureType } from "#compat"
+
 export function assertEQ<T1, T2>(value1: T1, value2: T2, comment?: string): void {
   checkEQ(value1, value2, comment)
 }
@@ -568,6 +570,12 @@ function checkPromiseRejected() {
     .catch((e:object): void => { console.log(e.toString()) })
 }
 
+function checkHandwrittenDeserializer() {
+  const gesture = BaseGesture.createGesture2()
+  assertEQ(gesture.getType(), GestureType.Second)
+  assertEQ(gesture instanceof DerivedGesture2, true)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -595,6 +603,7 @@ export function run() {
   suite.addTest("checkInternalLib", checkInternalLib)
   suite.addTest("checkExternalTypes", checkExternalTypes)
   suite.addAsyncTest("checkPromiseRejected", checkPromiseRejected)
+  suite.addTest("checkHandwrittenDeserializer", checkHandwrittenDeserializer)
 
   return suite.run()
 }

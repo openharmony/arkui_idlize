@@ -60,8 +60,3 @@ typedef InteropException OH_Exception;
 typedef enum OH_%LIBRARY_NAME%_APIKind {
     OH_%LIBRARY_NAME%_API_KIND = %API_KIND%
 } OH_%LIBRARY_NAME%_APIKind;
-
-typedef struct Opt_NativePointer {
-    OH_Tag tag;
-    OH_NativePointer value;
-} Opt_NativePointer;
