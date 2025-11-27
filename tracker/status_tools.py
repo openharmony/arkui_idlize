@@ -58,6 +58,7 @@ class HandwrittenStatus:
     type: str
     c_parent: str
     c_name: str
+    ii: str
 
 def GetConfig():
     with open(JSON_FILE) as f:
@@ -185,6 +186,8 @@ def ReadHandwritten(fname):
                 if len(cols) > 9 and cols[1].strip().startswith('-'):
                     skip = False
                 continue
+            if len(cols) < 14:
+                cols.append('')
             st = HandwrittenStatus(*map(str.strip,cols))
             result.append(st)
     return result
@@ -233,7 +236,8 @@ def Handwritten():
                 status = mrg(ns, pss) if ps else ns,
                 test_status = cs.test_status,
                 test_version = cs.test_version,
-                comment = mrg(cs.comment, ps.comment) if ps else cs.comment)
+                comment = mrg(cs.comment, ps.comment) if ps else cs.comment,
+                ii = '')
             result.append(os)
             continue
         if s.type in ['interface', 'field', 'enum_class', 'enum_instance', 'namespace']:
@@ -250,7 +254,8 @@ def Handwritten():
             status = 'backlog',
             test_status = '',
             test_version = '',
-            comment = '')
+            comment = '',
+            ii = '')
         result.append(os)
     stats = {}
     snames = set()
