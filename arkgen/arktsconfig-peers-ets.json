@@ -37,14 +37,14 @@
             "arkui.incremental.annotation": [
                 "../../../../../../../tests-template/arkts/src/arkui.incremental.annotation"
             ],
-            "arkui.stateManagement.memo.node": [
-                "../../../../../../../tests-template/arkts/src/arkui.stateManagement.memo.node"
+            "arkui.incremental.runtime.memo.node": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.node"
             ],
-            "arkui.stateManagement.memo.remember": [
-                "../../../../../../../tests-template/arkts/src/arkui.stateManagement.memo.remember"
+            "arkui.incremental.runtime.memo.remember": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.memo.remember"
             ],
-            "arkui.stateManagement.tree.IncrementalNode": [
-                "../../../../../../../tests-template/arkts/src/arkui.stateManagement.tree.IncrementalNode"
+            "arkui.incremental.runtime.tree.IncrementalNode": [
+                "../../../../../../../tests-template/arkts/src/arkui.incremental.runtime.tree.IncrementalNode"
             ]
         }
     },

@@ -131,8 +131,8 @@ class TSLikeComponentFileVisitor implements ComponentFileVisitor {
         if (!this.options.isDeclared) {
             imports.addFeature("RuntimeType", "@koalaui/interop")
             if (this.library.language === Language.ARKTS) {
-                imports.addFeatures(["NodeAttach"], "^arkui.stateManagement.memo.node")
-                imports.addFeatures(["remember"], "^arkui.stateManagement.memo.remember")
+                imports.addFeatures(["NodeAttach"], "^arkui.incremental.runtime.memo.node")
+                imports.addFeatures(["remember"], "^arkui.incremental.runtime.memo.remember")
             } else {
                 imports.addFeatures(["NodeAttach", "remember"], "@koalaui/runtime")
             }
