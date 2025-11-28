@@ -23,6 +23,7 @@ import { cliOptions } from "./options/cli-options"
 import { NonNullableOptions } from "./options/NonNullableOptions"
 import { CodeFragmentOptions } from "./options/CodeFragmentOptions"
 import { ExtraParameters } from "./options/ExtraParameters"
+import { gCoverage } from "./general/Coverage"
 
 const pandaSdkIdlFilePath = `ohos_arm64/include/tools/es2panda/generated/es2panda_lib/es2panda_lib.idl`
 
@@ -52,6 +53,8 @@ function main() {
         ),
         options.debug
     ).emit()
+
+    gCoverage.dump()
 }
 
 main()
