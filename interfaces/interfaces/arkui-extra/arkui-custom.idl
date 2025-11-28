@@ -37,6 +37,8 @@ interface UIContextGetInfo {
     static void enableSwipeBack((boolean or undefined) enabled);
 };
 
+callback Callback_Long_Void = void (i64 value);
+
 [Entity=Class]
 interface SystemOps {
     static pointer StartFrame();
@@ -45,7 +47,7 @@ interface SystemOps {
     static void restoreInstanceId();
     static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
     static void resourceManagerReset();
-    static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
+    static void setFrameCallback(Callback_Long_Void onFrameCallback, Callback_Long_Void onIdleCallback, i64 delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
     static LengthMetricsCustom resourceToLengthMetrics(Resource res);
     static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
