@@ -14,9 +14,10 @@
  */
 
 import { libraries as predefs } from "@idlizer/interfaces"
-import { execSync } from "child_process"
 import { GENERATED_PEER_DIR } from "../shared"
 import { flat, scan, over, run } from "../utils"
+import { basename, join, parse } from "node:path"
+import { writeFileSync } from "node:fs"
 
 export interface Idl2PeerConfig {
     target: string
@@ -96,7 +97,37 @@ export function idl2ohos({
         ['--arkts-extension', '.ets'],
         optionsFile ? [`--options-file`, optionsFile] : [],
     ]))
+    writeArktsConfig()
     return {
         peersPath: GENERATED_PEER_DIR
     }
+}
+
+function writeArktsConfig() {
+    const generatedArkts = './generated/arkts'
+    const generatedArktsDir = join(GENERATED_PEER_DIR, generatedArkts)
+    const arktsconfig: any = {
+        'compilerOptions': {
+            'baseUrl': generatedArkts,
+            'outDir': './build/panda',
+            'paths': {
+                '@koalaui/interop': ['../../../../../external/interop/src/arkts'],
+                '@koalaui/common': ['../../../../../external/common/src'],
+                '@koalaui/compat': ['../../../../../external/compat/src/arkts'],
+                '@koalaui/runtime': ['../../../../../external/incremental/runtime/src']
+            }
+        },
+        'include': [generatedArkts + '/**/*.ets']
+    }
+    scan(generatedArktsDir)
+        .filter(file => basename(file).startsWith('@'))
+        .forEach(file => {
+            const pkg = parse(file).name
+            arktsconfig['compilerOptions']['paths'][pkg] = [join(generatedArktsDir, pkg)]
+        })
+    writeFileSync(
+        join(GENERATED_PEER_DIR, 'arktsconfig.json'),
+        JSON.stringify(arktsconfig, undefined, 4),
+        'utf-8'
+    )
 }

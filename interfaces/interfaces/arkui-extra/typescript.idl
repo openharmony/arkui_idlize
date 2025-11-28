@@ -1,6 +1,3 @@
-package idlize.internal;
-
-interface ESObject {};
 interface Int8Array {};
 interface Int16Array {};
 interface Int32Array {};
@@ -12,27 +9,6 @@ interface DataView {};
 
 namespace Intl {
     interface NumberFormat {};
-
-    interface Locale {
-        attribute String baseName;
-        attribute String language;
-        [Optional]
-        attribute String calendar;
-        [Optional]
-        attribute String caseFirst;
-        [Optional]
-        attribute String collation;
-        [Optional]
-        attribute String hourCycle;
-        [Optional]
-        attribute String numberingSystem;
-        [Optional]
-        attribute boolean numeric;
-        [Optional]
-        attribute String region;
-        [Optional]
-        attribute String script;
-    };
 };
 
 namespace jsonx {

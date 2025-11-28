@@ -114,17 +114,16 @@ interface OhosgenOptions extends PrepareSdkOptions {
     scraperConfig?: string
 }
 
-function complete(sdkPath: string, installPath: string, options: OhosgenOptions) {
+function complete(sdkPath: string, options: OhosgenOptions) {
     setup()
     const { idlPaths } = sdk2idl(sdkPath, options)
-    const { peersPath } = commands.idl2ohos({
+    commands.idl2ohos({
         ohosgen: options.ohosgen,
         target: options.target,
         language: options.language,
         optionsFile: resolve(options.ohosgenConfig),
         idlPath: idlPaths
     })
-    commands.install({ sourceDir: peersPath, installPath })
 }
 
 interface TrackerOptions {
@@ -206,11 +205,12 @@ function main(argv: string[]) {
         .option('--language <language>', 'ts | arkts', 'arkts')
         .action(m3)
 
-    program.command('complete <sdk-path> <install-path>')
+    program.command('complete <sdk-path>')
         .description('generate peers from complete sdk')
-        .requiredOption('--ohosgen-config', 'Path to configuration file for ohosgen')
+        .requiredOption('--ohosgen-config <config-file>', 'Path to configuration file for ohosgen')
+        .requiredOption('--sdk-stage <stage>', 'original | prepared | idl')
         .option('--etsgen <executable>', 'etsgen executable. Not used if --sdk-stage=idl', 'npx etsgen')
-        .option('--ohosgen <executable>', 'ohosgen executable', 'npx arkgen')
+        .option('--ohosgen <executable>', 'ohosgen executable', 'npx ohosgen')
         .option('--target <target>', 'sig | libace | all', 'sig')
         .option('--language <language>', 'ts | arkts', 'arkts')
         .action(complete)

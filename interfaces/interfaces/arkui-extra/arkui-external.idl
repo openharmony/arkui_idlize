@@ -107,8 +107,7 @@ interface IndicatorStyle {
     [Optional, Deprecated] attribute boolean mask;
 };
 
-[TypeParameters="T"]
-interface BusinessErrorInterface {
+interface <T> BusinessErrorInterface {
     attribute String name;
     attribute String message;
     [Optional]

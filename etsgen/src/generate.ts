@@ -240,7 +240,7 @@ function adjustExports(library: IDLSuperFile[], config: ETSVisitorConfig): void 
             }
             adjustFileExports(reexportedFile)
             for (const entry of reexportedFile.file.entries) {
-                if (idl.isTypedef(entry) || idl.isInterface(entry) || idl.isNamespace(entry)) {
+                if (idl.isTypedef(entry) || idl.isInterface(entry) || idl.isEnum(entry) || idl.isCallback(entry) || idl.isNamespace(entry)) {
                     file.exports.set(entry.name, reexportedFile.file.packageClause.concat(entry.name).join("."))
                 }
             }

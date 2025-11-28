@@ -42,7 +42,7 @@ interface ParticlePropertyAnimationColorInner {
     [Optional]
     attribute (Curve or ICurve) curve;
 };
-typedef (undefined or Tuple_Number_Number or sequence<ParticlePropertyAnimationNumberInner>) ParticlePropertyUpdaterConfigsInner;
+typedef ParticlePropertyUpdaterConfigsInner = (undefined or Tuple_Number_Number or sequence<ParticlePropertyAnimationNumberInner>);
 interface ParticleUpdaterOptionsInner {
     attribute ParticleUpdater type;
     attribute ParticlePropertyUpdaterConfigsInner config;
@@ -56,7 +56,7 @@ interface ParticleColorUpdaterOptionsInner {
     attribute ParticleUpdater type;
     attribute ParticleColorPropertyUpdaterConfigsInner config;
 };
-typedef (undefined or ParticleColorOptions or sequence<ParticlePropertyAnimationColorInner>) ParticleColorPropertyUpdaterConfigsInner;
+typedef ParticleColorPropertyUpdaterConfigsInner = (undefined or ParticleColorOptions or sequence<ParticlePropertyAnimationColorInner>);
 interface AccelerationOptionsInner {
     [Optional]
     attribute ParticlePropertyOptionsInner speed;

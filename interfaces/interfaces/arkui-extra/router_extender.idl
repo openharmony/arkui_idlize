@@ -13,9 +13,9 @@ interface PageRouterOptions {
 [Entity=Class]
 interface RouterExtender {
   static Promise<void> push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
-  static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static void push(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional AsyncCallback<void> callback_);
   static Promise<void> replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
-  static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static void replace(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional AsyncCallback<void> callback_);
   static void back(optional router.RouterOptions options);
   static void back(i32 index, optional Object params);
   static void runPage(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
@@ -28,7 +28,7 @@ interface RouterExtender {
   static sequence<router.RouterState> getStateByUrl(String url);
   static Object getParams();
   static Promise<void> pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback);
-  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static void pushNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional AsyncCallback<void> callback_);
   static Promise<void> replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback enterFinishCallback);
-  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional [TypeArguments="void"] AsyncCallback callback_);
+  static void replaceNamedRoute(pointer jsView, PageRouterOptions options, optional RouterFinishCallback finishCallback, optional AsyncCallback<void> callback_);
 };
