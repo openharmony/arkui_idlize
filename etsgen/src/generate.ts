@@ -32,6 +32,7 @@ import * as idl from "@idlizer/core/idl"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import { ETSVisitorConfig } from "./config"
+import { PlotVisitor } from "./plot"
 
 const MaxSyntheticTypeLength = 60
 
@@ -125,9 +126,10 @@ export interface GenerateFromSTSContext {
     etsConfigPath: string
     config: ETSVisitorConfig
     traceStatus: string
+    plotDeps?: boolean
 }
 
-export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config, traceStatus }: GenerateFromSTSContext): PeerLibrary {
+export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, config, traceStatus, plotDeps }: GenerateFromSTSContext): PeerLibrary {
     if (!process.env.PANDA_SDK_PATH) {
         process.env.PANDA_SDK_PATH = path.resolve(__dirname, "../../external/incremental/tools/panda/node_modules/@panda/sdk")
     }
@@ -169,6 +171,15 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
     arkts.proceedToState(arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED)
     const pluginContext = new arkts.PluginContextImpl()
     const program = arkts.arktsGlobal.compilerContext!.program
+
+    if (plotDeps) {
+        const visitor = new PlotVisitor(baseDir)
+        arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
+            visitor.process(program.ast)
+        }, pluginContext, undefined, undefined)
+        visitor.dump(path.join(outDir, "./deps.dot"))
+        process.exit(0)
+    }
     arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
         if (!inputFiles.includes(program.absoluteName))
             return

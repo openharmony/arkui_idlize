@@ -40,6 +40,7 @@ export function etsgen(argv:string[]) {
         .option('--ignore-default-config', 'Use with --options-file to override default generator configuration options.', false)
         .option('--ets-config <path>', 'Path to ets config file', join(ETSGEN_ROOT, "config.json"))
         .option('--trace-status <filename>', 'Add trace information to generated IDL and save status in specified file')
+        .option('--plot-deps')
     const options = program
         .parse(argv, { from: 'user' })
         .opts()
@@ -81,6 +82,22 @@ export function etsgen(argv:string[]) {
         }
        return
     }
+
+    if (options.plotDeps) {
+        generateFromSts({
+            inputFiles: detsInputFiles.map(it => resolve(it)),
+            baseDir: resolve(options.baseDir),
+            outDir: resolve(options.outputDir),
+            etsConfigPath: options.etsConfig,
+            traceStatus: options.traceStatus,
+            config: loadEtsgenConfiguration([
+                ...(options.ignoreDefaultConfig ? [] : [etsgenDefaultConfigurationPath()]),
+                ...(options.optionsFile ?? [])
+            ]),
+            plotDeps: true
+        })
+    }
+
 
     if (options.idl2sts) {
         throw new Error("Not yet implemented")

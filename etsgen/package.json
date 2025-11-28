@@ -37,6 +37,8 @@
     "libarkts:reinstall:regenerate": "cd ../external/libarkts && npm run reinstall:regenerate && npm run compile && npm run compile:plugins",
     "compile:self": "tsc -b . && rollup -c",
     "compile": "npm run -C ../core compile && npm run compile:self",
+    "plot:deps": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api && dot -T svg ./out/idl/deps.dot -o ./out/deps.svg",
+    "plot:deps:noplot": "npm run compile && node . --plot-deps --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
     "run:sdk:trace": "npm run run:sdk -- --trace-status ../doc/SDK_STATUS.md",
     "run:sdk": "rimraf ./out && npm run compile && node . --ets2idl --output-dir ./out/idl --base-dir ../sdk-patched-arkts/api --input-dir ../sdk-patched-arkts/api",
     "test": "npm run compile && npm run test:golden:features",
