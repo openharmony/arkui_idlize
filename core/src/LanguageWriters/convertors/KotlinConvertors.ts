@@ -225,6 +225,10 @@ export class KotlinInteropArgConvertor extends InteropArgConvertor {
                 // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
                 return "Boolean"
             }
+            case idl.IDLObjectType: {
+                // unsupported case for now, implementation returns Unit (analogue of void) instead of a real object
+                return "Any"
+            }
             case idl.IDLBigintType: return KLong
             case idl.IDLSerializerBuffer: return KSerializerBuffer
             case idl.IDLFunctionType: return KInt

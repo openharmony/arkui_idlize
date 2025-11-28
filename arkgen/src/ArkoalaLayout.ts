@@ -232,7 +232,7 @@ export class KotlinLayout extends CommonLayoutBase {
         if (idl.isSyntheticEntry(target.node)) {
             return getSyntheticTypesFileName()
         }
-        const packageName = idl.getPackageName(target.node)
+        const packageName = idl.getPackageNameSafe(target.node) ?? "idlize"
         const arkuiPackages = ["arkui.component", "idlize"]
         for (const pkg of arkuiPackages) {
             if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {

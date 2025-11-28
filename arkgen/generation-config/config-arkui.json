@@ -37,7 +37,8 @@
                 "graphics3d.Scene",
 
                 "idlize.stdlib",
-                "idlize.internal"
+                "idlize.internal",
+                "synthetic_types"
             ]
         }
     },

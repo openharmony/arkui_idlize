@@ -6,6 +6,9 @@ build_type=$1
 external_dir=../external
 out_dir=out/kotlin-$build_type
 
+mkdir -p $out_dir/generated/modules
+touch $out_dir/generated/modules/stub.kt
+
 cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generated/interop.def \
     -pkg koalaui.arkoala \
     -compiler-option -I$out_dir/generated/sig/arkoala-arkts/framework/native/src/generated \
@@ -15,6 +18,7 @@ cinterop -def $out_dir/generated/sig/arkoala-arkts/framework/native/src/generate
 konanc \
     tests/kotlin-$build_type/app/*.kt \
     $out_dir/generated/sig/arkoala-kotlin/framework/src/*.kt \
+    $out_dir/generated/modules/**/*.kt \
     -l $out_dir/bin/idlize_cinterop.klib \
     -l $external_dir/interop/build/kotlin-interop/interop.klib \
     -l $external_dir/interop/build/kotlin-interop/cinterop.interop_native_module.klib \

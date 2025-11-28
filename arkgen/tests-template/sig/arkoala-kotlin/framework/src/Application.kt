@@ -14,7 +14,6 @@
  */
 package koalaui.arkoala
 
-import arkui.stage_extender.StageExtender
 import koalaui.interop.*
 
 typealias UserViewFactory = (appUrl: String) -> UserView

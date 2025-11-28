@@ -431,11 +431,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                 this.writeNamedOverloadsGroups(decl.methods, writer)
             }
         }, superInterfaces, clazz.generics?.map(sanitizeGenerics))
-        if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
-            writer.writeLines([
-                `export default ${decl.name}`
-            ])
-        }
+        this.printDefaultExport(decl, writer)
     }
 
     protected writeNamedOverloadsGroups(methods: idl.IDLMethod[], writer: LanguageWriter): void {
@@ -549,7 +545,7 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     for (const ctor of clazz.ctors) {
                         const pointerType = IDLPointerType
                         this.library.setCurrentContext(`${clazz.className}.constructor`)
-                        writePeerMethod(this.library, this.printer, ctor, this.dumpSerialized, "", "", pointerType)
+                        writePeerMethod(this.library, printer, ctor, this.dumpSerialized, "", "", pointerType)
                         this.library.setCurrentContext(undefined)
                     }
                 }
@@ -566,12 +562,11 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
             this.printMethods(clazz, nonStaticMethodsFilter)
         }, superClassName, interfaces.length === 0 ? undefined : interfaces, classTypeParameters)
 
-        if (idl.isClassSubkind(clazz.decl) && idl.hasExtAttribute(clazz.decl, idl.IDLExtendedAttributes.DefaultExport)) {
-            printer.writeLines([
-                `export default ${clazz.decl.name}`
-            ])
+        if (idl.isClassSubkind(clazz.decl)) {
+            this.printDefaultExport(clazz.decl, printer)
         }
     }
+    protected printDefaultExport(decl: idl.IDLInterface, writer: LanguageWriter): void {}
 }
 
 function printPeerFinalizer(clazz: MaterializedClass, writer: LanguageWriter): void {
@@ -652,6 +647,15 @@ class TSMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 this.collector.addFeatures(['GestureName', 'GestureComponent'], './framework/shared/generated-utils')
             }
         }
+    }
+
+    protected override printDefaultExport(decl: idl.IDLInterface, writer: LanguageWriter): void {
+        if (idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.DefaultExport)) {
+            writer.writeLines([
+                `export default ${decl.name}`
+            ])
+        }
+
     }
 
     private calcClassWeight() {
@@ -789,10 +793,17 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
                 method.method.modifiers!.push(MethodModifier.PUBLIC)
                 if (clazz.isInterface) method.method.modifiers!.push(MethodModifier.OVERRIDE)
             }
+            if (method.method.signature.returnType === idl.IDLThisType) {
+                method.method.signature.returnType = idl.createReferenceType(clazz.decl)
+            }
             this.printer.writeMethodImplementation(method.method, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), method.method, method)
+                this.overloadsPrinter.printPeerCallAndReturn(this.getImplementationName(clazz), method.method, method)
             })
         }
+    }
+
+    override printFieldsInitialization(clazz: MaterializedClass) {
+        // initialization not needed, because getters are defined
     }
 
     visit(): PrinterResult {

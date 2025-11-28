@@ -120,13 +120,21 @@
     "build-native:sdk:cj": "cd ./native && meson setup -Dsource_set=cangjie build-cangjie-native-dummy && meson compile --verbose -C build-cangjie-native-dummy && meson install -C build-cangjie-native-dummy",
     "exec:sdk:cj": "LD_LIBRARY_PATH=./native/build-cangjie-native-dummy:./../external/incremental-cj/runtime/callsitekey:$LD_LIBRARY_PATH && ACE_LIBRARY_PATH=./native/build-cangjie-native-dummy ./build/cj/release/bin/main",
     "all:sdk:cj": "npm run compile && npm run compile -C ../dtsgen && npm run compile -C ../ohosgen && npm run setup:sdk:cj && npm run gen-idl:sdk:cj && npm run gen:sdk:cj && npm run gen-modules:sdk:cj && npm run build:sdk:cj && npm run build-native:sdk:cj && npm run exec:sdk:cj",    
-    "KOTLIN": "#-------------------------",
+    "KOTLIN SUBSET": "#-------------------------",
     "setup:subset:kt": "node tools/copy.mjs tests-template/sig out/kotlin-subset/generated/sig",
     "compile:kt:interop": "npm run compile:kotlin:interop -C ../external/interop",
     "gen:kt:subset": "node . --no-implicit-predefined --api-version 99 --idl2peer --input-dir ./tests/kotlin-subset/idl --output-dir ./out/kotlin-subset/generated --language kotlin",
     "compile:kt:native:subset": "cd ./native && meson setup -Dsource_set=kotlin-subset build-subset-kotlin && meson compile --verbose -C build-subset-kotlin && meson install -C build-subset-kotlin",
     "compile:kt:subset": "bash scripts/compile-kotlin.sh subset",
     "exec:kt:subset": "LD_LIBRARY_PATH=./native ACE_LIBRARY_PATH=./native ./out/kotlin-subset/bin/idlize_test.kexe",
-    "all:kt:subset": "npm run compile && npm run setup:subset:kt && npm run gen:kt:subset && npm run compile:kt:interop && npm run compile:kt:native:subset && npm run compile:kt:subset && npm run exec:kt:subset"
+    "all:kt:subset": "npm run compile && npm run setup:subset:kt && npm run gen:kt:subset && npm run compile:kt:interop && npm run compile:kt:native:subset && npm run compile:kt:subset && npm run exec:kt:subset",
+    "KOTLIN SDK": "#-------------------------",
+    "setup:sdk:kt": "node tools/copy.mjs tests-template/sig out/kotlin-peers/generated/sig",
+    "gen:sdk:kt": "node . --idl2peer --reference-names generation-config/references/ets-sdk.refs.json --input-files $(find ../etsgen/out/idl -type f | tr '\\n' ' ') --output-dir out/kotlin-peers/generated --language kotlin --options-file ./generation-config/config-arkui.json",
+    "gen-modules:sdk:kt": "MODULE_LANG=kotlin MODULE_OUT=../arkgen/out/kotlin-peers/generated/modules npm run generate:modules-all -C ../ohosgen",
+    "build:sdk:kt": "bash scripts/compile-kotlin.sh peers",
+    "build-native:sdk:kt": "cd ./native && meson setup -Dsource_set=kotlin-peers build-sdk-kotlin && meson compile --verbose -C build-sdk-kotlin && meson install -C build-sdk-kotlin",
+    "exec:sdk:kt": "LD_LIBRARY_PATH=./native ACE_LIBRARY_PATH=./native ./out/kotlin-peers/bin/idlize_test.kexe",
+    "all:sdk:kt": "npm run compile && npm run compile -C ../etsgen && npm run compile -C ../ohosgen && npm run setup:sdk:kt && npm run etsgen:sdk && npm run gen:sdk:kt && npm run gen-modules:sdk:kt && npm run compile:kt:interop && npm run build-native:sdk:kt && npm run build:sdk:kt && npm run exec:sdk:kt"
   }
 }

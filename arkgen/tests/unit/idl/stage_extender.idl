@@ -1,4 +1,4 @@
-package arkui.stage_extender;
+package arkui.component.stage_extender;
 
 
 // TBD: Used in dummy_impl.cpp

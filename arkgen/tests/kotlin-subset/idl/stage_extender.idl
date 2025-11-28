@@ -1,4 +1,4 @@
-package arkui.stage_extender;
+package arkui.component.stage_extender;
 
 dictionary PageTransitionType {
     number ENTER = 0;

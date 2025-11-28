@@ -334,6 +334,9 @@ export class KotlinLanguageWriter extends LanguageWriter {
         const normalizedArgs = signature.args.map((it, i) =>
             idl.isOptionalType(it) && signature.isArgOptional(i) ? idl.maybeUnwrapOptionalType(it) : it
         )
+        if (signature.returnType === idl.IDLThisType) {
+            throw new Error(`Return type 'this' must be substituted when generating for Kotlin`)
+        }
         const returnTypePart = needReturn ? ": " + this.getNodeName(signature.returnType) : ""
         this.printer.print(`${prefix}fun ${name}${typeParams}(${normalizedArgs.map((it, index) => `${signature.argName(index)}: ${this.getNodeName(it)}${signature.isArgOptional(index) ? "?" : ``}${signature.argDefault(index) ? ' = ' + signature.argDefault(index) : ""}`).join(", ")})${returnTypePart}${needBracket ? " {" : ""}`)
     }
@@ -438,6 +441,10 @@ export class KotlinLanguageWriter extends LanguageWriter {
             case "Boolean": {
                 // small trick to hide all casts Boolean <=> KBoolean in a NativeModule
                 expr = `${varName} != 0.toByte()`; break
+            }
+            case "Any": {
+                // unsupported case for now, implementation returns Unit (analogue of void) instead of a real object
+                expr = varName; break
             }
             case "KInteropReturnBuffer": expr = `${varName}.useContents { KInteropReturnBuffer(length, data.toLong()) }`; break
             default: throw new Error(`Unexpected type ${realInteropType} in interop with Kotlin`)

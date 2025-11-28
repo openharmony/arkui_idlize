@@ -125,6 +125,16 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
     }
 
     protected selectInterface(node: idl.IDLEntry): string {
+        const packageName = idl.getPackageNameSafe(node)
+        const arkuiPackages = ["arkui.component"]
+        if (packageName) {
+            for (const pkg of arkuiPackages) {
+                if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {
+                    return "koalaui.arkoala"
+                }
+            }
+        }
+
         if (isInIdlize(node)) {
             if (this.interopObjects.includes(node.name)) {
                 return this.selectInteropPath()
@@ -138,12 +148,6 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
             return getSyntheticTypesFileName()
         }
         if (isInCurrentModule(node)) {
-            if (canCropCurrentModulePrefix()) {
-                const cropped = cropCurrentModulePrefix(idl.getPackageName(node))
-                return currentModule().useFoldersLayout
-                    ? cropped.split('.').join("/") || 'synthetic'
-                    : cropped
-            }
             return currentModule().useFoldersLayout
                 ? idl.getPackageClause(node).join("/") || 'synthetic'
                 : idl.getPackageName(node)
