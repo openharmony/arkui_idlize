@@ -103,7 +103,6 @@
         "test_force_context.NS.ForceContextNS.method_",
         "test_force_context.NS.ForceContextNS.static_method"
     ],
-    "boundProperties": {},
     "rootComponents": [],
     "standaloneComponents": [],
     "parameterized": [],
@@ -116,14 +115,8 @@
             "IdlHandwrittenComponent"
         ],
         "ignoreEntry": [],
-        "ignoreEntryJava": [],
         "ignoreComponents": [],
-        "ignoreTypeParameters": [
-            "ContentModifier",
-            "CommonConfiguration"
-	],
         "ignorePeerMethod": [],
-        "ignoreMethodArkts": [],
         "invalidAttributes": [],
         "replaceThrowErrorReturn": []
     },

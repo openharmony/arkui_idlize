@@ -11,7 +11,7 @@
     "forceMaterialized": [
         "application.BaseContext.BaseContext"
     ],
-    "forceCallback": [],
+    "forceCallback": {},
     "forceResource": [],
     "rootComponents": [],
     "standaloneComponents": [],
@@ -22,10 +22,8 @@
         "customNodeTypes": [],
         "handWritten": [],
         "ignoreEntry": [],
-        "ignoreEntryJava": [],
         "ignoreComponents": [],
         "ignorePeerMethod": [],
-        "ignoreMethodArkts": [],
         "invalidAttributes": [],
         "replaceThrowErrorReturn": []
     },

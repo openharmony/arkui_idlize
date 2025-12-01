@@ -16,25 +16,19 @@ import("${idlize_root}/gn/import/bash.gni")
 import("${idlize_root}/gn/import/node.gni")
 import("${idlize_root}/gn/import/npm.gni")
 
+
 template("unit_test") {
     test_target_name = target_name
-    language = "kotlin"
-    if (invoker.vm == "node") {
-        language = "ts"
-    } else if (invoker.vm == "panda") {
-        language = "arkts"
-    } else if (invoker.vm == "cangjie") {
-        language = "cj"
-    } else {
-        assert(false, "VM ${invoker.vm} is not supported")
-    }
+    vm_data = invoker.vm
+    test_vm = vm_data.vm
+    language = vm_data.language
 
     rm("$test_target_name:clean") {
         recursive = true
         force = true
         file = [
-            rebase_path("./generated"),
-            "$target_gen_dir/$language"
+            rebase_path("./generated/$language"),
+            rebase_path("$target_gen_dir/$language")
         ]
         deps = [ "${idlize_root}/ohosgen:compile" ]
     }
@@ -64,18 +58,11 @@ template("unit_test") {
         ]
     }
 
-    mkdir("${test_target_name}:generate:mkdir") {
-        directories = [ rebase_path("./generated") ]
-        deps = [ ":${test_target_name}:clean" ]
-    }
-
     cp("${test_target_name}:generate:cp") {
-        src = [ rebase_path("$target_gen_dir/$language/generated") ]
-        dest = rebase_path(".")
+        src = [ rebase_path("$target_gen_dir/$language/generated/$language") ]
+        dest = rebase_path("./generated/")
         deps = [
             ":$test_target_name:generate",
-            ":${test_target_name}:clean",
-            ":${test_target_name}:generate:mkdir"
         ]
     }
 
@@ -94,7 +81,7 @@ template("unit_test") {
         ]
     }
 
-    _output_dir = "${target_out_dir}/${invoker.vm}"
+    _output_dir = "$target_out_dir/$test_vm"
     lib_name = "UNITNativeModule"
 
     shared_library("${test_target_name}:compile:native") {
@@ -138,7 +125,7 @@ template("unit_test") {
             assert(false, "Compile flags for current toolchain $current_toolchain are not defined")
         }
 
-        if (invoker.vm == "node") {
+        if (test_vm == "node") {
             sources += [
                 "${_external_interop_dir}/napi/convertors-napi.cpp"
             ]
@@ -159,7 +146,7 @@ template("unit_test") {
                 "${_external_interop_dir}/napi"
             ]
             output_extension = "node"
-        } else if (invoker.vm == "panda") {
+        } else if (test_vm == "panda") {
             sources += [
                 "${_external_interop_dir}/ani/convertors-ani.cpp",
                 "${_external_interop_dir}/types/signatures.cpp"
@@ -176,7 +163,7 @@ template("unit_test") {
                 "${_external_interop_dir}/ani",
                 "${_external_interop_dir}/ani/panda",
             ]
-        } else if (invoker.vm == "cangjie") {
+        } else if (test_vm == "cangjie") {
             sources += [
                 "${_external_interop_dir}/cangjie/convertors-cj.cpp",
                 "${_external_interop_dir}/types/signatures.cpp"
@@ -191,13 +178,13 @@ template("unit_test") {
         }
         output_name = lib_name
         output_dir = _output_dir
-        output_prefix_override = (invoker.vm == "node")
+        output_prefix_override = (test_vm == "node")
         deps = [
             "${koala_mr.root_path}/interop:interop_abc",
             "${koala_mr.root_path}/interop:interop_compile",
             ":$test_target_name:generate"
         ]
-        if (invoker.vm == "node") {
+        if (test_vm == "node") {
             deps += [ "${koala_mr.root_path}/interop:interop_native:node" ]
         } else {
             deps += [ "${koala_mr.root_path}/interop:interop_native:panda" ]
@@ -206,19 +193,19 @@ template("unit_test") {
     
     cp("${test_target_name}:install:native") {
         _platform_build_dir = "build"
-        if (invoker.vm == "node") {
+        if (test_vm == "node") {
             _platform_build_dir += "/node"
-        } else if (invoker.vm == "panda") {
+        } else if (test_vm == "panda") {
             _platform_build_dir += "/panda"
-        } else if (invoker.vm == "cangjie") {
+        } else if (test_vm == "cangjie") {
             _platform_build_dir += "/cangjie"
         }
         _name_prefix = ""
-        if (invoker.vm != "node" && target_os != "win") {
+        if (test_vm != "node" && target_os != "win") {
             _name_prefix = "lib"
         }
         _name_suffix = ".so"
-        if (invoker.vm == "node") {
+        if (test_vm == "node") {
             _name_suffix = ".node"
         } else if (target_os == "win") {
             _name_suffix = ".dll"
@@ -229,18 +216,17 @@ template("unit_test") {
         src = [ rebase_path("${_output_dir}/${_full_output_name}") ]
         dest = rebase_path("${_platform_build_dir}/${_full_output_name}")
         deps = [
-            ":$test_target_name:generate",
-            ":${test_target_name}:compile:native"
+            ":${test_target_name}:compile:native",
         ]
     }
 
     bash_cmd(test_target_name) {
         script = "./scripts/"
-        if (invoker.vm == "node") {
+        if (test_vm == "node") {
             script += "run-ts.sh"
-        } else if (invoker.vm == "panda") {
+        } else if (test_vm == "panda") {
             script += "run-panda.sh"
-        } else if (invoker.vm == "cangjie") {
+        } else if (test_vm == "cangjie") {
             script += "run-cj.sh"
         } else {
             script += "run-kt.sh"
@@ -255,14 +241,16 @@ template("unit_test") {
 }
 
 vms = [
-    "node",
-    "panda"
+    { vm = "node"
+      language = "ts" },
+    { vm = "panda"
+      language = "arkts" },
 ]
 
 target_names = []
 
 foreach(_vm, vms) {
-    test_name = "check:${_vm}"
+    test_name = "check:${_vm.vm}"
     unit_test(test_name) {
         vm = _vm
     }

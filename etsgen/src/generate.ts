@@ -176,7 +176,7 @@ export function generateFromSts({ inputFiles, baseDir, outDir, etsConfigPath, co
         const visitor = new PlotVisitor(baseDir)
         arkts.runTransformer(program, arkts.Es2pandaContextState.ES2PANDA_STATE_PARSED, (program, pluginContext, context) => {
             visitor.process(program.ast)
-        }, pluginContext, undefined, undefined)
+        }, pluginContext)
         visitor.dump(path.join(outDir, "./deps.dot"))
         process.exit(0)
     }

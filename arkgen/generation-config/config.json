@@ -587,29 +587,6 @@
             "SyncedPropertyTwoWay",
             "IMonitorValue"
         ],
-        "ignoreEntryJava": [
-            "AnimationRange",
-            "EventTargetInfo",
-            "GestureRecognizer",
-            "GestureRecognizerJudgeBeginCallback",
-            "Matrix2D",
-            "ScrollAnimationOptions",
-            "SheetDismiss",
-            "SubTabBarStyle",
-            "TextPickerDialog",
-            "Dimension",
-            "ScaleSymbolEffect",
-            "ReplaceSymbolEffect",
-            "BaseShape",
-            "RectShape",
-            "EllipseShape",
-            "CircleShape",
-            "Error",
-            "getRectangleById",
-            "edgeColors",
-            "edgeWidths",
-            "borderRadiuses"
-        ],
         "ignoreComponents": [
             "Particle",
             "ForEach",
@@ -618,11 +595,6 @@
         ],
         "ignorePeerMethod": [
             "attributeModifier"
-        ],
-        "ignoreMethodArkts": [
-            "testTupleNumberStringEnum",
-            "testTupleOptional",
-            "testTupleUnion"
         ],
         "invalidAttributes": [
             "ScrollableCommonMethod"

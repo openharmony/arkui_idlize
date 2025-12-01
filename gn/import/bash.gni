@@ -155,6 +155,10 @@ template("cp") {
 
   mkdir("$cp_target_name:mkdir") {
     directories = [ get_path_info(dest, "dir") ]
+    deps = []
+    if (defined(invoker.deps)) {
+      deps += invoker.deps
+    }
   }
 
   bash_cmd("$cp_target_name:cp") {
