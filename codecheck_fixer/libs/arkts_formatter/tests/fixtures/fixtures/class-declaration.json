@@ -1,0 +1,37 @@
+{
+  "equivalent": [
+    {
+      "description": "class implements wraps",
+      "original": "class MyComponent extends BaseComponent implements IClickable, IFocusable, IResizable, IDraggable, IDisposable {",
+      "expected": "class MyComponent extends BaseComponent\n  implements\n    IClickable,\n    IFocusable,\n    IResizable,\n    IDraggable,\n    IDisposable {"
+    },
+    {
+      "description": "class with generics",
+      "original": "class DataStore<T extends BaseEntity, K extends keyof T, V extends T[K]> implements IStore<T, K, V> {",
+      "expected": "class DataStore<\n  T extends BaseEntity,\n  K extends keyof T,\n  V extends T[K]\n> implements IStore<T, K, V> {"
+    },
+    {
+      "description": "abstract class extends + implements",
+      "original": "abstract class AbstractRepository<T extends Entity> extends BaseRepository implements IRepository, IQueryable, ICacheable {",
+      "expected": "abstract class AbstractRepository<T extends Entity>\n  extends BaseRepository\n  implements IRepository, IQueryable, ICacheable {"
+    },
+    {
+      "description": "decorated class",
+      "original": "@Injectable() @Singleton() @LogExecutionTime() class UserService extends BaseService implements IUserService {",
+      "expected": "@Injectable()\n@Singleton()\n@LogExecutionTime()\nclass UserService extends BaseService implements IUserService {"
+    },
+    {
+      "description": "exported class",
+      "original": "export class VeryLongComponentName extends VeryLongBaseClassName implements FirstInterface, SecondInterface, ThirdInterface {",
+      "expected": "export class VeryLongComponentName\n  extends VeryLongBaseClassName\n  implements FirstInterface, SecondInterface, ThirdInterface {"
+    },
+    {
+      "description": "class with long constructor signature",
+      "original": "class Builder { constructor(private readonly config: Configuration, private logger: Logger, private validator: Validator) {} }",
+      "expected": "class Builder {\n  constructor(\n    private readonly config: Configuration,\n    private logger: Logger,\n    private validator: Validator\n  ) {}\n}"
+    }
+  ],
+  "notEquivalent": []
+}
+
+

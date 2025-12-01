@@ -1,0 +1,25 @@
+{
+    "repo_path": ".",
+    "paths_for_check": {
+        "ets": [
+            "tests/fixtures/CallbackDeserializeCall.ets",
+            "tests/fixtures/richEditor.ets",
+            "tests/fixtures/radio.ets",
+            "tests/fixtures/navigation.ets",
+            "tests/fixtures/lazyGridLayout.ets",
+            "tests/fixtures/ListModifier.ets",
+            "tests/fixtures/test_for_debug.ets",
+            "tests/fixtures/select.ets",
+            "tests/fixtures/persistenceV2.ts",
+            "tests/fixtures/observeWrappedArray.ts"
+        ]
+    },
+    "analysis": {
+        "maxFileSize": 1048576
+    },
+    "formatting": {
+        "tabSize": 4,
+        "useTabs": false,
+        "maxLineLength": 120
+    }
+}

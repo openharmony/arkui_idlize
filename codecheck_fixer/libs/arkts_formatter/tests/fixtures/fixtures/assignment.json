@@ -1,0 +1,37 @@
+{
+  "equivalent": [
+    {
+      "description": "simple assignment wrapping",
+      "original": "const result = firstValue + secondValue + thirdValue + fourthValue + fifthValue + sixthValue + seventhValue;",
+      "expected": "const result =\n  firstValue +\n  secondValue +\n  thirdValue +\n  fourthValue +\n  fifthValue +\n  sixthValue +\n  seventhValue;"
+    },
+    {
+      "description": "object destructuring",
+      "original": "const { firstName, lastName, email, phoneNumber, address, city, country, postalCode } = user;",
+      "expected": "const {\n  firstName,\n  lastName,\n  email,\n  phoneNumber,\n  address,\n  city,\n  country,\n  postalCode\n} = user;"
+    },
+    {
+      "description": "destructuring with renaming",
+      "original": "const { firstName: first, lastName: last, emailAddress: email, phoneNumber: phone } = userProfile;",
+      "expected": "const {\n  firstName: first,\n  lastName: last,\n  emailAddress: email,\n  phoneNumber: phone\n} = userProfile;"
+    },
+    {
+      "description": "array destructuring",
+      "original": "const [firstElement, secondElement, thirdElement, fourthElement, fifthElement, ...remainingElements] = array;",
+      "expected": "const [\n  firstElement,\n  secondElement,\n  thirdElement,\n  fourthElement,\n  fifthElement,\n  ...remainingElements\n] = array;"
+    },
+    {
+      "description": "multiple assignment",
+      "original": "let variable1 = value1, variable2 = value2, variable3 = value3, variable4 = value4, variable5 = value5;",
+      "expected": "let variable1 = value1,\n  variable2 = value2,\n  variable3 = value3,\n  variable4 = value4,\n  variable5 = value5;"
+    },
+    {
+      "description": "assignment with calculations",
+      "original": "const total = item.price * item.quantity + (item.price * item.quantity * taxRate) - discountAmount + shippingCost;",
+      "expected": "const total =\n  item.price * item.quantity +\n  (item.price * item.quantity * taxRate) -\n  discountAmount +\n  shippingCost;"
+    }
+  ],
+  "notEquivalent": []
+}
+
+

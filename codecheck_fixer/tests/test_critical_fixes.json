@@ -1,0 +1,16 @@
+{
+  "description": "Тестовая конфигурация для проверки критических исправлений",
+  "repo_path": "/data/home/mlobakh/projects/codecheck_fixer",
+  "paths_for_check": {
+    "ets": ["tests/fixtures/test-critical-fixes.ets"]
+  },
+  "analysis": {
+    "maxFileSize": 1048576
+},
+"formatting": {
+    "tabSize": 4,
+    "useTabs": false,
+    "maxLineLength": 120
+  }
+}
+

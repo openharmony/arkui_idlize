@@ -1,0 +1,37 @@
+{
+  "equivalent": [
+    {
+      "description": "simple template literal (no formatting)",
+      "original": "const message = `Hello ${user.firstName} ${user.lastName}, your order #${order.id} has been shipped to ${order.address}`;",
+      "expected": "const message = `Hello ${user.firstName} ${user.lastName}, your order #${order.id} has been shipped to ${order.address}`;"
+    },
+    {
+      "description": "template literal with expression",
+      "original": "const text = `Total: ${items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}`;",
+      "expected": "const text = `Total: ${items.reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2)}`;"
+    },
+    {
+      "description": "tagged template",
+      "original": "const query = sql`SELECT * FROM users WHERE id = ${userId} AND status = ${status} AND role = ${role}`;",
+      "expected": "const query = sql`SELECT * FROM users WHERE id = ${userId} AND status = ${status} AND role = ${role}`;"
+    },
+    {
+      "description": "multiline template literal",
+      "original": "const html = `\n  <div class=\"user\">\n    <h1>${user.name}</h1>\n    <p>${user.email}</p>\n  </div>\n`;",
+      "expected": "const html = `\n  <div class=\"user\">\n    <h1>${user.name}</h1>\n    <p>${user.email}</p>\n  </div>\n`;"
+    },
+    {
+      "description": "nested template expressions",
+      "original": "const result = `Result: ${data.map(item => `${item.name}: ${item.value}`).join(', ')}`;",
+      "expected": "const result = `Result: ${data.map(item => `${item.name}: ${item.value}`).join(', ')}`;"
+    },
+    {
+      "description": "styled-components tagged template",
+      "original": "const Button = styled.button`\n  background: ${props => props.primary ? 'blue' : 'gray'};\n  color: ${props => props.primary ? 'white' : 'black'};\n  padding: ${props => props.size === 'large' ? '20px' : '10px'};\n`;",
+      "expected": "const Button = styled.button`\n  background: ${props => props.primary ? 'blue' : 'gray'};\n  color: ${props => props.primary ? 'white' : 'black'};\n  padding: ${props => props.size === 'large' ? '20px' : '10px'};\n`;"
+    }
+  ],
+  "notEquivalent": []
+}
+
+

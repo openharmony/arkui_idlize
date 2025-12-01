@@ -1,0 +1,32 @@
+{
+  "equivalent": [
+    {
+      "description": "object literal properties wrap",
+      "original": "const user = { firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com', age: 30, address: '123 Main St' };",
+      "expected": "const user = {\n  firstName: 'John',\n  lastName: 'Doe',\n  email: 'john.doe@example.com',\n  age: 30,\n  address: '123 Main St'\n};"
+    },
+    {
+      "description": "nested objects",
+      "original": "const config = { database: { host: 'localhost', port: 5432, credentials: { username: 'admin', password: 'secret' } }, cache: { ttl: 3600 } };",
+      "expected": "const config = {\n  database: {\n    host: 'localhost',\n    port: 5432,\n    credentials: { username: 'admin', password: 'secret' }\n  },\n  cache: { ttl: 3600 }\n};"
+    },
+    {
+      "description": "object with methods",
+      "original": "const calculator = { add: (a, b) => a + b, subtract: (a, b) => a - b, multiply: (a, b) => a * b, divide: (a, b) => a / b };",
+      "expected": "const calculator = {\n  add: (a, b) => a + b,\n  subtract: (a, b) => a - b,\n  multiply: (a, b) => a * b,\n  divide: (a, b) => a / b\n};"
+    },
+    {
+      "description": "computed properties",
+      "original": "const obj = { [key1]: value1, [key2]: value2, normalKey: normalValue, [computedKey()]: computedValue() };",
+      "expected": "const obj = {\n  [key1]: value1,\n  [key2]: value2,\n  normalKey: normalValue,\n  [computedKey()]: computedValue()\n};"
+    },
+    {
+      "description": "object spread",
+      "original": "const merged = { ...defaultConfig, ...userConfig, override: true, timestamp: Date.now(), version: '1.0.0' };",
+      "expected": "const merged = {\n  ...defaultConfig,\n  ...userConfig,\n  override: true,\n  timestamp: Date.now(),\n  version: '1.0.0'\n};"
+    }
+  ],
+  "notEquivalent": []
+}
+
+
