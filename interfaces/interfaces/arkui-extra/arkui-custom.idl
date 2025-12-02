@@ -37,7 +37,7 @@ interface UIContextGetInfo {
     static void enableSwipeBack((boolean or undefined) enabled);
 };
 
-callback Callback_Long_Void = void (i64 value);
+callback FrameCallbackHandler = void (i64 arg);
 
 [Entity=Class]
 interface SystemOps {
@@ -47,11 +47,13 @@ interface SystemOps {
     static void restoreInstanceId();
     static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
     static void resourceManagerReset();
-    static void setFrameCallback(Callback_Long_Void onFrameCallback, Callback_Long_Void onIdleCallback, i64 delayTime);
+    static void setFrameCallback(FrameCallbackHandler onFrameCallback, FrameCallbackHandler onIdleCallback, i64 delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
     static LengthMetricsCustom resourceToLengthMetrics(Resource res);
     static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
 };
+
+callback GestureEventHandler = void (GestureEvent event);
 
 [Entity=Class]
 interface GestureOps {
@@ -63,11 +65,11 @@ interface GestureOps {
     static pointer createRotationGesture(number fingers, number angle, boolean isFingerCountLimited);
     static pointer createSwipeGesture(number fingers, SwipeDirection direction, number speed, boolean isFingerCountLimited);
     static pointer createGestureGroup(GestureMode mode);
-    static void setOnAction(pointer gesture, Callback_GestureEvent_Void  onAction);
-    static void setOnActionStart(pointer gesture, Callback_GestureEvent_Void  onActionStart);
-    static void setOnActionUpdate(pointer gesture, Callback_GestureEvent_Void  onActionUpdate);
-    static void setOnActionEnd(pointer gesture, Callback_GestureEvent_Void  onActionEnd);
-    static void setOnActionCancel(pointer gesture, Callback_GestureEvent_Void  onActionCancel);
+    static void setOnAction(pointer gesture, GestureEventHandler onAction);
+    static void setOnActionStart(pointer gesture, GestureEventHandler onActionStart);
+    static void setOnActionUpdate(pointer gesture, GestureEventHandler onActionUpdate);
+    static void setOnActionEnd(pointer gesture, GestureEventHandler onActionEnd);
+    static void setOnActionCancel(pointer gesture, GestureEventHandler onActionCancel);
     static void setOnCancel(pointer gesture, Callback_Void onCancel);
     static void setGestureTag(pointer gesture, String tag);
     static void setAllowedTypes(pointer gesture, sequence<SourceTool> types);
