@@ -74,9 +74,9 @@ interface BaseShape {
 
 [Entity=Class]
 interface GlobalScope_ohos_font {
-    static void registerFont(FontOptions options);
+    static void registerFont(font.FontOptions options);
     static sequence<String> getSystemFontList();
-    static FontInfo getFontByName(String fontName);
+    static font.FontInfo getFontByName(String fontName);
     static font.UIFontConfig getUIFontConfig();
 };
 
