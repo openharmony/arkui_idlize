@@ -260,7 +260,6 @@ export class JavaLayout extends CommonLayoutBase {
 
 export class CJLayout extends CommonLayoutBase {
     protected CJInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
         ["Serializer", "Serializer"],
         ["Deserializer", "Deserializer"],
         ["CallbackKind", "CallbackKind"],
@@ -275,15 +274,10 @@ export class CJLayout extends CommonLayoutBase {
             return HandwrittenModule(this.library.language)
         }
         if (idl.isSyntheticEntry(target.node)) {
-            return SyntheticModule
+            return idl.getSyntheticTypesFileName()
         }
         if (idl.isTypedef(target.node)) {
-            return SyntheticModule
-        }
-        if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
-            if (idl.isBuilderClass(target.node)) {
-                return `${this.prefix}${toFileName(target.node.name)}Builder`
-            }
+            return idl.getSyntheticTypesFileName()
         }
         let pureFileName = idl.getFileFor(target.node)?.fileName
             ?.replaceAll('.d.ts', '')
