@@ -477,9 +477,7 @@
         "PinchGestureHandler",
         "TapGestureHandler",
         "RotationGestureHandler",
-        "SwipeGestureHandler",
-        "TouchTestInfo",
-        "TouchResult"
+        "SwipeGestureHandler"
     ],
     "boundProperties": {
         "Checkbox": [
@@ -655,8 +653,6 @@
             "RotationGestureHandler",
             "SwipeGestureHandler",
             "GestureType",
-            "TouchTestInfo",
-            "TouchResult",
             "Badge",
             "ChildrenMainSize"
         ],
