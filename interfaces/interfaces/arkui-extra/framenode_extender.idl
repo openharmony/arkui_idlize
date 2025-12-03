@@ -88,4 +88,5 @@ interface FrameNodeExtender {
   static i32 adoptChild(FrameNode peer, FrameNode child);
   static i32 removeAdoptedChild(FrameNode peer, FrameNode child);
   static boolean isOnRenderTree(FrameNode peer);
+  static boolean isOnMainTree(FrameNode peer);
 };
