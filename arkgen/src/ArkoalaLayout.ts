@@ -205,59 +205,6 @@ export class ArkTSComponentsLayout extends ArkTsLayout {
     }
 }
 
-export class JavaLayout extends CommonLayoutBase {
-    constructor(library: PeerLibrary, prefix: string, private packagePath: string) {
-        super(library, prefix)
-    }
-    private getPath(file:string):string {
-        return path.join(this.packagePath, file)
-    }
-    resolve({ node, role }: idl.LayoutTargetDescription): string {
-        switch (role) {
-            case LayoutNodeRole.SERIALIZER:
-            case LayoutNodeRole.INTERFACE: {
-                if (idl.isEntry(node)) {
-                    const ns = idl.getNamespaceName(node)
-                    if (ns !== '') {
-                        return this.getPath(`${this.prefix}${ns.split('.').map(it => idl.capitalize(it)).join('')}Namespace`)
-                    }
-                }
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`${this.prefix}${toFileName(node.name)}`)
-                    }
-                    if (idl.isBuilderClass(node)) {
-                        return this.getPath(`${this.prefix}${toFileName(node.name)}Builder`)
-                    }
-                    if (isMaterialized(node, this.library)) {
-                        if (idl.isInterfaceSubkind(node)) {
-                            return this.getPath(node.name + 'Internal')
-                        }
-                        return this.getPath(node.name)
-                    }
-                    return this.getPath(`${this.prefix}${toFileName(node.name)}Interfaces`)
-                }
-                return this.getPath(`Common`)
-            }
-            case LayoutNodeRole.PEER: {
-                if (idl.isInterface(node)) {
-                    if (isComponentDeclaration(this.library, node)) {
-                        return this.getPath(`peers/${this.prefix}${toFileName(node.name)}Peer`)
-                    }
-                    return this.getPath(toFileName(node.name))
-                }
-                return this.getPath(`CommonPeer`)
-            }
-            case LayoutNodeRole.GLOBAL: {
-                return 'GlobalScope'
-            }
-            case LayoutNodeRole.COMPONENT: {
-                return 'Ark' + node.name
-            }
-        }
-    }
-}
-
 export class CJLayout extends CommonLayoutBase {
     protected CJInternalPaths = new Map<string, string>([
         ["Serializer", "Serializer"],
@@ -336,7 +283,6 @@ export function arkoalaLayout(library: PeerLibrary, prefix: string = '', package
     switch(library.language) {
         case idl.Language.TS: return new TsLayout(library, prefix)
         case idl.Language.ARKTS: return new ArkTsLayout(library, prefix)
-        case idl.Language.JAVA: return new JavaLayout(library, prefix, packagePath)
         case idl.Language.CJ: return new CJLayout(library, prefix)
         case idl.Language.KOTLIN: return new KotlinLayout(library, prefix)
     }
