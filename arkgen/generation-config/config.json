@@ -748,6 +748,12 @@
                 "replaceImplementation": true
             }
         },
+        "CheckboxGroupAttribute": {
+            "contentModifier": {
+                "hookName": "hookCheckBoxGroupContentModifier",
+                "replaceImplementation": true
+            }
+        },
         "DataPanelAttribute": {
             "contentModifier": {
                 "hookName": "hookDataPanelContentModifier",

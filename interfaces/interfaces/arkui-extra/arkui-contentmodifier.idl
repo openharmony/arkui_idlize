@@ -26,6 +26,8 @@ callback TextClockModifierBuilder = pointer (pointer parentNode, TextClockConfig
 callback TextTimerModifierBuilder = pointer (pointer parentNode, TextTimerConfiguration config);
 [Synthetic]
 callback ToggleModifierBuilder = pointer (pointer parentNode, ToggleConfiguration config);
+[Synthetic]
+callback CheckBoxGroupModifierBuilder = pointer (pointer parentNode, CheckBoxGroupConfiguration config);
 
 [Entity=Class]
 interface ContentModifierHelper {
@@ -55,4 +57,6 @@ interface ContentModifierHelper {
     static void resetContentModifierTextTimer(pointer node);
     static void contentModifierToggle(pointer node, [TypeArguments="ToggleConfiguration"] ContentModifier contentModifier, ToggleModifierBuilder builder);
     static void resetContentModifierToggle(pointer node);
+    static void contentModifierCheckBoxGroup(pointer node, [TypeArguments="CheckBoxGroupConfiguration"] ContentModifier contentModifier, CheckBoxGroupModifierBuilder builder);
+    static void resetContentModifierCheckBoxGroup(pointer node);
 };
