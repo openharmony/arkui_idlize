@@ -2,5 +2,5 @@ package arkui.component.idlize;
 
 [Entity=Class]
 interface TabsExtender {
-    static void ApplyAttributesFinish(Object node);
+    static void ApplyAttributesFinish(pointer node);
 };
