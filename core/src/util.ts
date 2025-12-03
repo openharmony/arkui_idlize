@@ -769,3 +769,7 @@ export function getExtractor(target: idl.IDLInterface, lang: Language, toPtr: bo
     const method = toPtr ? `to${extractorClass}Ptr` : `from${extractorClass}Ptr`
     return { receiver, method }
 }
+
+export function getSyntheticTypesFileName(): string {
+    return "synthetic_types"
+}
