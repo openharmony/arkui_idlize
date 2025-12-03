@@ -101,6 +101,9 @@ export class InteropReturnTypeConvertor implements TypeConvertor<string> {
             if (idl.isEnum(decl)) {
                 return PrimitiveTypesInstance.Int32.getText()
             }
+            if (idl.isTypedef(decl)) {
+                return this.convert(decl.type)
+            }
         }
         return "void"
     }
