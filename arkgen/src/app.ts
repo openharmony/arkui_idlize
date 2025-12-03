@@ -80,7 +80,6 @@ export function arkgen(argv:string[]) {
         .option('--test-interface <name>', 'Interfaces to test (comma separated)')
         .option('--test-method <name>', 'Methods to test (comma separated)')
         .option('--test-property <name>', 'Properties to test (comma separated)')
-        .option('--generate-interface <name>', 'Interfaces to generate (comma separated)')
         .option('--disable-enum-initializers', "Don't include enum member initializers in the interface")
         .option('--native-bridge-path <name>', "Path to native bridge")
         .option('--api-version <version>', "API version for generated peers")
