@@ -45,8 +45,8 @@ import { getAccessorName, getDeclarationUniqueName } from "./NativeUtils";
 import * as idl from "@idlizer/core/idl"
 import { findComponentByDeclaration, findComponentByName, isComponentDeclaration } from "../ComponentsCollector";
 import { generateCapiParameters } from "./HeaderPrinter";
-import { collectProperties } from "./StructPrinter";
 import { isVMContextMethod } from "./MethodUtils";
+import { collectProperties } from "../propertyCollectors";
 
 function peerToOutString(library: PeerLibrary, context: idl.IDLInterface, method: PeerMethod): string {
     if (isComponentDeclaration(library, context))

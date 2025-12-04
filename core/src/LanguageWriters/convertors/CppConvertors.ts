@@ -14,18 +14,17 @@
  */
 
 import * as idl from '../../idl'
-import { generatorConfiguration, generatorTypePrefix } from "../../config"
+import { generatorConfiguration } from "../../config"
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from "../nameConvertor"
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { InteropArgConvertor } from './InteropConvertors'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeTransformManagedCallback } from '../ArgConvertors'
 import { qualifiedName } from '../../peer-generation/idl/common'
 import { isInIdlizeInternal } from '../../idl'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { Language } from '../../Language'
-import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
+import { maybeRestoreThrows, maybeTransformManagedCallback } from '../../transformers/transformUtils'
 
 function isSubtypeTopLevelConflicted(library: LibraryInterface, node: idl.IDLType) {
     let hasConflicts = false

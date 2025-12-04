@@ -13,17 +13,12 @@
  * limitations under the License.
  */
 
-import { generatorConfiguration } from '../config'
 import * as idl from '../idl'
-import { Language } from '../Language'
-import { ArgConvertor, VoidConvertor } from '../LanguageWriters/ArgConvertors'
-import { CppReturnTypeConvertor } from '../LanguageWriters/convertors/CppConvertors'
+import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
 import { copyMethod, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
-import { capitalize } from '../util'
-import { qualifiedName } from './idl/common'
+import { getInternalClassName } from './isMaterialized'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod'
-import { ReferenceResolver } from './ReferenceResolver'
 
 export class MaterializedField {
     constructor(
@@ -189,17 +184,4 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
                 )
             )
         )
-}
-
-export function getInternalClassName(name: string): string {
-    return `${name}Internal`
-}
-
-export function getInternalClassQualifiedName(target: idl.IDLEntry, pattern: idl.QNPattern = "package.namespace.name", language?: Language): string {
-    return getInternalClassName(qualifiedName(target, language ?? ".", pattern))
-}
-
-export function getMaterializedFileName(name:string): string {
-    const pascalCase = name.split('_').map(x => capitalize(x)).join('')
-    return `Ark${pascalCase}Materialized`
 }

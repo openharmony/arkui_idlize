@@ -42,7 +42,7 @@ import { isComponentDeclaration } from '../ComponentsCollector'
 import { DependenciesCollector, KotlinDependenciesCollector } from '../idl/IdlDependenciesCollector'
 import { ImportsCollector, ImportFeature } from '../ImportsCollector'
 import { convertDeclToFeature, collectDeclDependencies } from '../ImportsCollectorUtils'
-import { collectAllProperties } from './StructPrinter'
+import { collectAllProperties } from '../propertyCollectors'
 export interface InterfacesVisitor {
     printInterfaces(): PrinterResult[]
 }

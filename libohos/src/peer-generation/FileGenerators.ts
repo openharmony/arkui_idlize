@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as fs from "fs"
-import * as path from "path"
+import * as fs from "node:fs"
+import * as path from "node:path"
 import { IndentedPrinter, Language, PeerLibrary, createLanguageWriter, LibraryInterface } from "@idlizer/core"
 import { PrinterLike } from "./LanguageWriters"
 import { LanguageWriter } from "@idlizer/core";
@@ -22,46 +22,9 @@ import { printCallbacksKinds, printCallbacksKindsImports } from "./printers/Call
 import { generateStructs } from "./printers/StructPrinter"
 import { createCSerializerPrinter } from "./printers/SerializerPrinter";
 import { collectPeersForFile } from "./PeersCollector";
+import { cStyleCopyright, sharpCopyright } from "./FileGeneratorsUtils";
 
 export const warning = "WARNING! THIS FILE IS AUTO-GENERATED, DO NOT MAKE CHANGES, THEY WILL BE LOST ON NEXT GENERATION!"
-
-function dateChunk(): string {
-    const currentYear = (new Date()).getFullYear()
-    if (currentYear > 2024) return `2024-${currentYear}`
-    return `${currentYear}`
-}
-
-export const cStyleCopyright =
-`/*
- * Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-`
-
-export const sharpCopyright =
-`# Copyright (c) ${dateChunk()} Huawei Device Co., Ltd.
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-`
 
 const importTsInteropTypes = `
 import {
@@ -376,11 +339,6 @@ return `${sharpCopyright}
 
 ${content}
 `
-}
-
-export function makeIncludeGuardDefine(filePath: string) {
-    let basename = path.basename(filePath);
-    return basename.replace(/[.\- ]/g, "_").toUpperCase()
 }
 
 export function makeFileNameFromClassName(className: string) {

@@ -15,9 +15,8 @@
 
 import * as idl from '../../idl'
 import { CJKeywords } from '../../languageSpecificKeywords'
-import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
+import { maybeRestoreThrows } from '../../transformers/transformUtils'
 import { removePoints } from '../../util'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor } from '../nameConvertor'
 import { InteropArgConvertor } from './InteropConvertors'
@@ -42,7 +41,7 @@ export class CJTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
         return `Option<${this.convert(type.type)}>`
     }
     convertUnion(type: idl.IDLUnionType): string {
-        return "Union_" + type.types.map(it => generateSyntheticIdlNodeName(it)).join("_")
+        return "Union_" + type.types.map(it => idl.generateSyntheticIdlNodeName(it)).join("_")
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {

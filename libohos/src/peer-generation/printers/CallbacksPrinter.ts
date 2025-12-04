@@ -18,7 +18,7 @@ import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
 import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
-import { Language, LibraryInterface, CallbackConvertor } from  '@idlizer/core'
+import { Language, LibraryInterface } from  '@idlizer/core'
 import { CallbackKind, generateCallbackAPIArguments, generateCallbackKindAccess, generateCallbackKindName, generateCallbackKindValue } from "@idlizer/core";
 import { PrintHint } from "@idlizer/core";
 import { CppSourceFile, SourceFile } from "./SourceFile";

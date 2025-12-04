@@ -13,13 +13,13 @@
  * limitations under the License.
  */
 
-import { stringOrNone } from "../util"
-import { createOptionalType, createContainerType, createReferenceType } from "./builders"
-import { isNamedNode, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute } from "./discriminators"
-import { printType } from "./dump"
+import { basename } from "node:path"
+import { capitalize, stringOrNone } from "../util"
+import { createOptionalType, createContainerType, createReferenceType, IDLVoidType, IDLStringType } from "./builders"
+import { isNamedNode, QNPattern, getQualifiedName, getFQName, isOptionalType, isContainerType, IDLContainerUtils, isNamespace, isInPackage, isType, isEntry, isTypeParameterType, isInterface, isTypedef, isCallback, isMethod, isCallable, getExtAttribute, hasExtAttribute, getNamespacesPathFor, getPackageName } from "./discriminators"
 import { IDLNode, IDLNamedNode, IDLKind, IDLExtendedAttributes, IDLType, IDLEntry, IDLReferenceType, IDLContainerType, IDLSignature, IDLParameter, IDLEnum, IDLFile } from "./node"
-import { IDLVoidType, IDLStringType } from "./stdlib"
 import { forEachChild, forEachFunction } from "./visitors"
+import { Language } from "../Language"
 
 export function entityToType(entity: IDLNode): IDLType {
     if (isType(entity)) {
@@ -91,16 +91,6 @@ export function maybeOptional(type: IDLType, optional = false): IDLType {
         return createOptionalType(type)
     }
     return type
-}
-
-export const DebugUtils = {
-    debugPrintType: (type: IDLType): string => {
-        const filename = type.fileName ? `, fileName: '${type.fileName}'` : ""
-        if (isContainerType(type)) {
-            return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]${filename}]`
-        }
-        return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}'${filename}]`
-    },
 }
 
 export function asPromise(type?: IDLType): IDLContainerType | undefined {
@@ -232,4 +222,29 @@ export function isGeneric(entry: IDLEntry): entry is IDLEntry & { typeParameters
         || isCallback(entry)
         || isMethod(entry)
         || isCallable(entry)
+}
+
+export function snakeToLowCamelNode(node: IDLEntry): string {
+    if (!node.fileName) {
+        throw new Error("Invalid Convert")
+    }
+    const classname = basename(node.fileName).replace(".idl", "").replace(".d.ts", "")
+    return classname
+        .split('_')
+        .filter(word => word !== '')
+        .map((word, index) => {
+            if (index === 0) {
+                return word.toLowerCase();
+            }
+            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join('');
+}
+
+export function entryToFunctionName(_language: Language, declaration: IDLEntry, prefix: string, postfix: string) {
+    return `${prefix}${getQualifiedName(declaration, "package.namespace.name").split('.').map(capitalize).join('')}${postfix}`;
+}
+
+export function isInNamespace(node: IDLEntry): boolean {
+    return getNamespacesPathFor(node).length > 0
 }

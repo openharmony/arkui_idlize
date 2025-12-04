@@ -15,8 +15,8 @@
 
 import * as idl from '@idlizer/core/idl'
 import { convertNode, isMaterialized, Language, LibraryInterface, NodeConvertor, ReferenceResolver, sorted } from "@idlizer/core";
-import { collectProperties } from "../printers/StructPrinter";
 import { flattenUnionType, maybeTransformManagedCallback } from "@idlizer/core";
+import { collectProperties } from '../propertyCollectors';
 
 class SorterDependenciesCollector implements NodeConvertor<idl.IDLNode[]> {
     constructor(

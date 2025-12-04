@@ -16,7 +16,6 @@ import * as idl from '../idl'
 import { IDLType } from "../idl"
 import { ArgConvertor, createOutArgConvertor } from "../LanguageWriters/ArgConvertors"
 import { Method, MethodModifier } from "../LanguageWriters/LanguageWriter"
-import { isDefined } from "../util"
 import { PeerLibrary } from './PeerLibrary'
 
 export class PeerMethodArg {

@@ -23,7 +23,6 @@ import {
     ArkTSBuiltTypesDependencyFilter,
     DependencyFilter,
 } from '../idl/IdlPeerGeneratorVisitor'
-import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../printers/StructPrinter'
 import { MethodModifier } from '@idlizer/core'
 import { IDLEntry } from "@idlizer/core/idl"
 import { LayoutNodeRole } from '@idlizer/core'
@@ -32,6 +31,7 @@ import { collectDeclarationTargets } from '../DeclarationTargetCollector'
 import { flattenUnionType } from '@idlizer/core'
 import { PrinterFunction, PrinterResult } from '../LayoutManager'
 import { isComponentDeclaration } from '../ComponentsCollector'
+import { collectAllProperties, collectMeaninglessProperties, collectProperties } from '../propertyCollectors'
 
 type SerializableTarget = idl.IDLInterface | idl.IDLCallback
 

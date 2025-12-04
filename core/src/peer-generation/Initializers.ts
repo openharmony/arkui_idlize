@@ -12,12 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as idl from "../idl"
 
-export abstract class IdlTransformer {
-    abstract visit(node: idl.IDLNode): idl.IDLNode
+import { getFQName, IDLEntry, isProperty } from "../idl"
+import { Language } from "../Language"
 
-    visitEachChild(node: idl.IDLNode): idl.IDLNode {
-        return idl.visitChildren(node, this.visit.bind(this))
-    }
+export function getInitializerFeature(lang: Language): string {
+    // TBD: update code for KT and CJ
+    return "initializers"
 }
+
+export function getInitializerDefaultValue(decl: IDLEntry, lang: Language): string {
+    const parent = decl.parent
+    const fqn = parent && isProperty(decl)
+        ? `${getFQName(parent)}NS.${decl.name}`
+        : getFQName(decl)
+    // TBD: update code for KT and CJ
+    return `${getInitializerFeature(lang)}.${fqn}`
+}
+

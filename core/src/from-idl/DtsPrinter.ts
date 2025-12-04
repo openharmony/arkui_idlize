@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { indentedBy, isInNamespace, stringOrNone, throwException } from "../util"
+import { indentedBy, stringOrNone } from "../util"
 import {
     IDLCallback,
     IDLConstructor,
@@ -94,17 +94,16 @@ import {
     IDLDate,
     IDLFunctionType,
     getQualifiedName,
-    isType,
     IDLObjectType,
     isConstant,
+    isInNamespace,
 } from "../idl"
-import { resolveSyntheticType, parseIDLFile } from "./deserialize"
+import { parseIDLFile } from "./deserialize"
 import { Language } from "../Language"
 import { warn } from "../util"
 import { isInIdlize } from "../idl"
-import { generatorConfiguration } from "../config"
-import { maybeRestoreThrows } from "../transformers/ThrowsTransformer"
 import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
+import { maybeRestoreThrows } from "../transformers/transformUtils"
 
 export class CustomPrintVisitor {
     output: string[] = []

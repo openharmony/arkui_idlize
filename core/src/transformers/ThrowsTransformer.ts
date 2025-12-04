@@ -1,34 +1,24 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import * as idl from "../idl"
-import { ReferenceResolver } from "../peer-generation/ReferenceResolver"
-import { maybeRestoreGenerics } from "./GenericTransformer"
 import { IdlTransformer } from "./IdlTransformer"
 
 export function throwsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
     assertNoThrowsReferences(files)
     const transformer = new ThrowsTransformer()
     return files.map(it => transformer.visit(it)).map(idl.linkParentBack)
-}
-
-export function isThrows(node: idl.IDLNode, resolver: ReferenceResolver): boolean {
-    if (idl.isReferenceType(node)) {
-        const resolved = resolver.resolveTypeReference(node)
-        return resolved ? isThrows(resolved, resolver) : false
-    }
-    return !!maybeRestoreThrows(node, resolver) ||
-        idl.isEntry(node) && idl.getFQName(node) === idl.IDLThrowsTypeName
-}
-
-export function maybeRestoreThrows(node: idl.IDLNode, resolver: ReferenceResolver): idl.IDLType | undefined {
-    if (idl.isReferenceType(node)) {
-        const resolved = resolver.resolveTypeReference(node)
-        return resolved ? maybeRestoreThrows(resolved, resolver) : undefined
-    }
-    if (idl.isEntry(node)) {
-        const restored = maybeRestoreGenerics(node, resolver)
-        if (restored && restored.name === idl.IDLThrowsTypeName)
-            return restored.typeArguments![0]
-    }
-    return undefined
 }
 
 function assertNoThrowsReferences(files: idl.IDLFile[]): void {

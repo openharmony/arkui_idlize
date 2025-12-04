@@ -14,106 +14,12 @@
  */
 
 import * as idl from '../idl'
-
 import { convertType, TypeConvertor } from "../LanguageWriters";
 import { IDLImport, IDLContainerType, IDLCustomObjectType, IDLOptionalType, IDLPrimitiveType, IDLReferenceType, IDLType, IDLTypeParameterType, IDLUndefinedType, IDLUnionType, isType, isUnionType } from '../idl'
 import { collapseTypes } from "./idl/common"
 import { LanguageExpression, LanguageWriter } from "../LanguageWriters/LanguageWriter";
-import { ArgConvertor, CustomTypeConvertor } from "../LanguageWriters/ArgConvertors";
+import { ArgConvertor } from "../LanguageWriters/ArgConvertors";
 import { RuntimeType } from "../LanguageWriters/common";
 import { LibraryInterface } from "../LibraryInterface";
 import { ReferenceResolver } from "./ReferenceResolver";
 import { Language } from "../Language";
-
-export class UnionFlattener implements TypeConvertor<IDLType[]> {
-    constructor(private resolver: ReferenceResolver) {}
-
-    convertImport(type: IDLImport): IDLType[] {
-        console.warn("Imports are not implemented yet")
-        return []
-    }
-    convertUnion(type: IDLUnionType): IDLType[] {
-        return type.types.flatMap(it => convertType(this, it))
-    }
-    convertTypeReference(type: IDLReferenceType): IDLType[] {
-        const decl = this.resolver.toDeclaration(type)
-        return isType(decl) && decl !== IDLCustomObjectType ? convertType(this, decl) : [type]
-    }
-    convertOptional(type: IDLOptionalType): IDLType[] {
-        return [type.type, IDLUndefinedType]
-    }
-    convertContainer(type: IDLContainerType): IDLType[] {
-        return [type]
-    }
-    convertTypeReferenceAsImport(type: IDLReferenceType, importClause: string): IDLType[] {
-        return [type]
-    }
-    convertPrimitiveType(type: IDLPrimitiveType): IDLType[] {
-        return [type]
-    }
-    convertTypeParameter(type: IDLTypeParameterType): IDLType[] {
-        return [type]
-    }
-}
-
-export class UnionRuntimeTypeChecker {
-    private conflictingConvertors: Set<ArgConvertor> = new Set()
-    private duplicateMembers: Set<string> = new Set()
-
-    constructor(private convertors: ArgConvertor[]) {
-        this.checkConflicts()
-    }
-    private checkConflicts() {
-        const runtimeTypeConflicts: Map<RuntimeType, ArgConvertor[]> = new Map()
-        this.convertors.forEach(conv => {
-            conv.runtimeTypes.forEach(rtType => {
-                const convertors = runtimeTypeConflicts.get(rtType)
-                if (convertors) convertors.push(conv)
-                else runtimeTypeConflicts.set(rtType, [conv])
-            })
-        })
-        runtimeTypeConflicts.forEach((convertors, rtType) => {
-            if (convertors.length > 1) {
-                const allMembers: Set<string> = new Set()
-                if (rtType === RuntimeType.OBJECT) {
-                    convertors.forEach(convertor => {
-                        convertor.getMembers().forEach(member => {
-                            if (allMembers.has(member)) this.duplicateMembers.add(member)
-                            allMembers.add(member)
-                        })
-                    })
-                }
-                convertors.forEach(convertor => {
-                    this.conflictingConvertors.add(convertor)
-                })
-            }
-        })
-    }
-    makeDiscriminator(value: string, convertorIndex: number, writer: LanguageWriter, library: LibraryInterface, type?: IDLType): LanguageExpression {
-        let convertor = this.convertors[convertorIndex]
-        if (writer.language === Language.TS) {
-            const isArray = idl.IDLContainerUtils.isSequence(convertor.idlType)
-            if (isArray || this.conflictingConvertors.has(convertor)) {
-                // Check elements inside array
-                if (type && convertor.idlType != type) {
-                    convertor = library.typeConvertor("", type)
-                }
-                const discriminator = convertor.unionDiscriminator(value, convertorIndex, writer, this.duplicateMembers)
-                if (discriminator) return discriminator
-            }
-        }
-        return writer.makeString(
-            writer.discriminate(value, convertorIndex, type ?? convertor.idlType, convertor.runtimeTypes)
-        )
-    }
-}
-
-export function flattenUnionType(library: LibraryInterface, type: IDLType): IDLType {
-    if (isUnionType(type)) {
-        const unionFlattener = new UnionFlattener(library)
-        const allTypes = type.types.flatMap(it => convertType(unionFlattener, it))
-        const uniqueTypes = new Set(allTypes)
-        return uniqueTypes.size === allTypes.length ? type : collapseTypes(Array.from(uniqueTypes))
-    }
-    return type
-}

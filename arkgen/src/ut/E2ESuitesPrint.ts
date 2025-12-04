@@ -19,9 +19,9 @@ import { ETSLanguageWriter, PeerLibrary } from '@idlizer/core'
 import { cStyleCopyright } from '@idlizer/libohos'
 import { LibaceInstall } from '../ArkoalaInstall'
 import { AceTypesTs } from './AceTypes'
-import { Target } from './E2EPrinter'
 import { Argument, ArgumentObj, E2ESuitesCreator, Enum, Suite, Test } from './E2ESuitesCreator'
 import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils'
+import { Target } from './E2EFixturesPrinter'
 
 export function printTsSuites(
     aceTypes: AceTypesTs, peerLibrary: PeerLibrary, libace: LibaceInstall, target: Target

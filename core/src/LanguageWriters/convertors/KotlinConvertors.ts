@@ -14,7 +14,6 @@
  */
 
 import * as idl from '../../idl'
-import { generateSyntheticIdlNodeName } from '../../peer-generation/idl/common'
 import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { convertNode, convertType, IdlNameConvertor, NodeConvertor, TypeConvertor } from '../nameConvertor'
 import { removePoints } from '../../util'
@@ -23,7 +22,7 @@ import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarati
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
-import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
+import { maybeRestoreThrows } from '../../transformers/transformUtils'
 
 const KBoolean = "KBoolean"
 const KByte = "KByte"
@@ -85,7 +84,7 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
         return `${this.convert(type.type)}?`
     }
     convertUnion(type: idl.IDLUnionType): string {
-        return "Union_" + type.types.map(it => generateSyntheticIdlNodeName(it)).join("_")
+        return "Union_" + type.types.map(it => idl.generateSyntheticIdlNodeName(it)).join("_")
     }
     convertContainer(type: idl.IDLContainerType): string {
         if (idl.IDLContainerUtils.isSequence(type)) {

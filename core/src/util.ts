@@ -13,13 +13,9 @@
  * limitations under the License.
  */
 
-import * as path from 'path'
-import * as fs from "fs"
-import * as idl from "./idl"
+import * as path from 'node:path'
+import * as fs from "node:fs"
 import { Language } from './Language'
-import { getModuleFor, isInExternalModule } from './peer-generation/modules'
-import { getInternalClassName, getInternalClassQualifiedName } from './peer-generation/Materialized'
-import { LibraryInterface } from './LibraryInterface'
 
 export function arrayAt<T>(array: T[] | undefined, index: number): T | undefined {
     return array ? array[index >= 0 ? index : array.length + index] : undefined
@@ -147,23 +143,6 @@ export function camelCaseToLowerSnakeCase(input: string) {
     return camelCaseToUpperSnakeCase(input).toLowerCase()
 }
 
-export function snakeToLowCamelNode(node: idl.IDLEntry): string {
-    if (!node.fileName) {
-        throw new Error("Invalid Convert")
-    }
-    const classname = path.basename(node.fileName).replace(".idl", "").replace(".d.ts", "")
-    return classname
-        .split('_')
-        .filter(word => word !== '')
-        .map((word, index) => {
-            if (index === 0) {
-                return word.toLowerCase();
-            }
-            return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-        })
-        .join('');
-}
-
 export function renameDtsToPeer(fileName: string, language: Language, withFileExtension: boolean = true) {
     const renamed = "Ark"
         .concat(snakeCaseToCamelCase(fileName))
@@ -226,10 +205,6 @@ export function renameClassToMaterialized(className: string, language: Language,
 
 export function throwException(message: string): never {
     throw new Error(message)
-}
-
-export function entryToFunctionName(_language: Language, declaration: idl.IDLEntry, prefix: string, postfix: string) {
-    return `${prefix}${idl.getQualifiedName(declaration, "package.namespace.name").split('.').map(capitalize).join('')}${postfix}`;
 }
 
 /**
@@ -353,10 +328,6 @@ export function lazy<T>(factory: () => T): Lazy<T> {
     return new Lazy(factory)
 }
 
-export function isInNamespace(node: idl.IDLEntry): boolean {
-    return idl.getNamespacesPathFor(node).length > 0
-}
-
 export function rightmostIndexOf<T>(array: T[], predicate: (value: T) => boolean): number {
     let result = -1
     array.forEach((it, index) => {
@@ -383,63 +354,8 @@ export function sorted<T, N extends keyof StringProperties<T>>(array: T[], key: 
         .sort((a, b) => comparator.compare(a[key] as string, b[key] as string))
 }
 
-export function mapLibraryName(node: idl.IDLEntry, lang: Language, mapping?: Map<string, Map<string, string>>, prefix: string = "@"): string {
-    const module = getModuleFor(node)
-    if (module.tsLikePackage !== undefined) {
-        return `^` + module.tsLikePackage
-    }
-    const packageName = idl.getPackageName(node)
-    return `^` + (mapping?.get(packageName)?.get(lang.name) ?? `${prefix}${packageName}`)
-}
-
-function getExtractorClass(target: idl.IDLInterface, toPtr: boolean = true): string {
-    if (isInExternalModule(target)) {
-        const qualifiedName = idl.getQualifiedName(target, "namespace.name")
-        const name = qualifiedName.split(`.`).map(it => capitalize(it)).join("")
-        return name
-    }
-    return toPtr ? "Peer" : ""
-}
-
-export function getExtractor(target: idl.IDLInterface, lang: Language, toPtr: boolean = true): { receiver?: string, method: string } {
-
-    const receiver = isInExternalModule(target)
-        ? `extractors`
-        : toPtr
-            ? undefined // TBD: update to MaterializedBase when import is updated
-            : (lang == Language.CJ || lang == Language.KOTLIN)
-                ? getInternalClassName(target.name)
-                : getInternalClassQualifiedName(target, "namespace.name", lang)
-
-    const extractorClass = getExtractorClass(target, toPtr)
-    const method = toPtr ? `to${extractorClass}Ptr` : `from${extractorClass}Ptr`
-    return { receiver, method }
-}
-
-export function getInitializerFeature(lang: Language): string {
-    // TBD: update code for KT and CJ
-    return "initializers"
-}
-
-export function getInitializerDefaultValue(decl: idl.IDLEntry, lang: Language): string {
-    const parent = decl.parent
-    const fqn = parent && idl.isProperty(decl)
-        ? `${idl.getFQName(parent)}NS.${decl.name}`
-        : idl.getFQName(decl)
-    // TBD: update code for KT and CJ
-    return `${getInitializerFeature(lang)}.${fqn}`
-}
-
 export function getSyntheticTypesFileName(): string {
     return "synthetic_types"
-}
-
-export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
-    const convertor = library.createTypeNameConvertor(Language.CPP)
-    return {
-        receiver: "extractors",
-        method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
-    }
 }
 
 export function removePoints(s: string) {

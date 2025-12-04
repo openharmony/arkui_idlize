@@ -37,10 +37,16 @@
     "ts-node": "^10.9.2",
     "typescript": "4.9.5",
     "@types/node": "^18.19.127",
-    "rimraf": "^6.0.1"
+    "rimraf": "^6.0.1",
+    "@rollup/plugin-commonjs": "^26.0.1",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-replace": "^5.0.7",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.24.4"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "rollup -c && mocha",
     "clean": "rimraf -g build",
     "compile:self": "tsc -b .",
     "compile": "npm run compile:self"

@@ -3,6 +3,7 @@ import { Language } from "./Language";
 import { IdlNameConvertor } from "./LanguageWriters";
 import { ArgConvertor } from "./LanguageWriters/ArgConvertors";
 import { LayoutManager } from "./peer-generation/LayoutManager";
+import { getModuleFor } from "./peer-generation/modules";
 import { ReferenceResolver } from "./peer-generation/ReferenceResolver";
 
 // todo: TypeProcessor? LibraryBase?
@@ -20,3 +21,21 @@ export interface LibraryInterface extends ReferenceResolver {
      */
     libraryPrefix: string
 }
+
+export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
+    const convertor = library.createTypeNameConvertor(Language.CPP)
+    return {
+        receiver: "extractors",
+        method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
+    }
+}
+
+export function mapLibraryName(node: idl.IDLEntry, lang: Language, mapping?: Map<string, Map<string, string>>, prefix: string = "@"): string {
+    const module = getModuleFor(node)
+    if (module.tsLikePackage !== undefined) {
+        return `^` + module.tsLikePackage
+    }
+    const packageName = idl.getPackageName(node)
+    return `^` + (mapping?.get(packageName)?.get(lang.name) ?? `${prefix}${packageName}`)
+}
+

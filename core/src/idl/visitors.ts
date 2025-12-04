@@ -13,8 +13,7 @@
  * limitations under the License.
  */
 
-import { generateSyntheticUnionName } from "../peer-generation/idl/common"
-import { IDLNodeInitializer, createInterface, createFile, createNamespace, createMethod, createCallable, createCallback, createConstructor, createUnionType, createOptionalType, createConstant, createEnum, createEnumMember, createProperty, createParameter, createTypedef, createContainerType, createReferenceType, createImport, createTypeParameterReference, createVersion } from "./builders"
+import { IDLNodeInitializer, createInterface, createFile, createNamespace, createMethod, createCallable, createCallback, createConstructor, createUnionType, createOptionalType, createConstant, createEnum, createEnumMember, createProperty, createParameter, createTypedef, createContainerType, createReferenceType, createImport, createTypeParameterReference, createVersion, generateSyntheticUnionName } from "./builders"
 import { isType, isNamespace, isInterface, isMethod, isCallback, isTypedef, isEnum, isImport, isVersion, isConstant, isConstructor, isProperty, isCallable, isFile, isReferenceType, isParameter, isUnionType, isOptionalType, isEnumMember, isPrimitiveType, isContainerType, isTypeParameterType } from "./discriminators"
 import { IDLNode, IDLKind, IDLFile, IDLNamespace, IDLInterface, IDLSignature, IDLUnionType, IDLOptionalType, IDLConstant, IDLEnum, IDLProperty, IDLParameter, IDLTypedef, IDLContainerType, IDLReferenceType, IDLEntry, IDLConstructor, IDLMethod, IDLCallable, IDLType, IDLEnumMember, IDLCallback, IDLImport, IDLTypeParameterType, IDLVersion, IDLFunction } from "./node"
 

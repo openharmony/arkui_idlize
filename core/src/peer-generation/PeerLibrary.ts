@@ -15,7 +15,6 @@
 
 import { warn } from 'console'
 import * as idl from '../idl'
-import { getPov, resolveNamedNode } from '../resolveNamedNode'
 import { Language } from '../Language'
 import { LanguageWriter } from '../LanguageWriters/LanguageWriter'
 import { createLanguageWriter, IdlNameConvertor } from '../LanguageWriters'
@@ -34,20 +33,18 @@ import { CppConvertor } from '../LanguageWriters/convertors/CppConvertors'
 import { ETSTypeNameConvertor } from '../LanguageWriters/convertors/ETSConvertors'
 import { TSTypeNameConvertor } from '../LanguageWriters/convertors/TSConvertors'
 import { LibraryInterface } from '../LibraryInterface'
-import { generateSyntheticFunctionName, isImportAttr, qualifiedName } from './idl/common'
+import { generateSyntheticFunctionName, isImportAttr } from './idl/common'
 import { MaterializedClass } from './Materialized'
 import { LayoutManager, LayoutManagerStrategy } from './LayoutManager'
 import { IDLLibrary, lib, query } from '../library'
 import { isMaterialized } from './isMaterialized'
-import { isInIdlizeInternal } from '../idl'
 import { isInCurrentModule } from './modules'
 import { generatorConfiguration } from '../config'
 import { KotlinTypeNameConvertor } from '../LanguageWriters/convertors/KotlinConvertors'
 import { NativeModuleType } from '../LanguageWriters/common'
 import { toIdlType } from '../from-idl/deserialize'
 import { createCachedReferenceResolver, ReferenceResolver } from './ReferenceResolver'
-import { toDeclaration } from './toDeclaration'
-import { maybeRestoreThrows } from '../transformers/ThrowsTransformer'
+import { maybeRestoreThrows } from '../transformers/transformUtils'
 
 export interface GlobalScopeDeclarations {
     methods: idl.IDLMethod[]
@@ -392,4 +389,52 @@ function isCyclicTypeDef(resolver: ReferenceResolver, decl: idl.IDLTypedef): boo
             foundCycle = true
     })
     return foundCycle
+}
+
+export function toDeclaration(type: idl.IDLType | idl.IDLEntry, resolver: ReferenceResolver): idl.IDLEntry | idl.IDLType {
+    switch (type) {
+        case idl.IDLAnyType: return ArkCustomObject
+        case idl.IDLVoidType: return idl.IDLVoidType
+        case idl.IDLUndefinedType: return idl.IDLUndefinedType
+        case idl.IDLUnknownType: return ArkCustomObject
+        // case idl.IDLObjectType: return ArkCustomObject
+    }
+    const typeName = idl.isNamedNode(type) ? type.name : undefined
+    switch (typeName) {
+        case "object":
+        case "Object": return idl.IDLObjectType
+    }
+    if (idl.isReferenceType(type)) {
+        // TODO: remove all this!
+        if (type.name === 'Date') {
+            return ArkDate
+        }
+        if (type.name === 'AnimationRange') {
+            return ArkCustomObject
+        }
+        if (type.name === 'Function') {
+            return ArkFunction
+        }
+        if (type.name === 'Optional') {
+            return toDeclaration((type as idl.IDLReferenceType).typeArguments![0], resolver)
+        }
+        const decl = resolver.resolveTypeReference(type)
+        if (!decl) {
+            warn(`undeclared type ${idl.DebugUtils.debugPrintType(type)}`)
+        }
+        if (decl && idl.isTypedef(decl) && forceTypedefAsResource(resolver, type, decl)) {
+            return idl.IDLObjectType
+        }
+        if (decl && idl.hasExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)) {
+            const type = toIdlType("", idl.getExtAttribute(decl, idl.IDLExtendedAttributes.TransformOnSerialize)!)
+            return toDeclaration(type, resolver)
+        }
+        return !decl ? ArkCustomObject  // assume some builtin type
+            : idl.isTypedef(decl) ? toDeclaration(decl.type, resolver)
+                : decl
+    }
+    if (isImportAttr(type)) {
+        return ArkCustomObject
+    }
+    return type
 }

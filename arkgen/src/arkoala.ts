@@ -61,7 +61,8 @@ import { createComponentsPrinter, printComponentsDeclarations } from "./printers
 import { printModifiers } from "./printers/ModifierPrinter"
 import { arkoalaLayout, ArkTSComponentsLayout, ArkTsLayout } from "./ArkoalaLayout"
 import { printUnitTestsAsMultipleFiles } from "./ut/UnittestPrinter"
-import { printEndToEndTests, Target } from "./ut/E2EPrinter"
+import { printEndToEndTests } from "./ut/E2EPrinter"
+import { Target } from "./ut/E2EFixturesPrinter"
 
 export function generateLibaceUnitTests(config: {
     libaceDestination: string | undefined,

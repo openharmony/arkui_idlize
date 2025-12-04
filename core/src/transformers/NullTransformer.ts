@@ -1,5 +1,18 @@
+/*
+ * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import * as idl from "../idl"
-import { generateSyntheticUnionName } from "../peer-generation/idl/common"
 import { IdlTransformer } from "./IdlTransformer"
 
 export function nullsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
@@ -14,7 +27,7 @@ class NullsTransformer extends IdlTransformer {
         if (idl.isOptionalType(node)) {
             if (idl.isUnionType(node.type) && node.type.types.some(isNullReference)) {
                 const unionTypes = node.type.types.filter(it => !isNullReference(it)).map(it => this.visit(it))
-                const unionName = generateSyntheticUnionName(unionTypes)
+                const unionName = idl.generateSyntheticUnionName(unionTypes)
                 const extendedAttributes = (node.extendedAttributes ?? [])
                     .concat({ name: idl.IDLExtendedAttributes.UnionWithNull })
                 return idl.createOptionalType(
@@ -31,7 +44,7 @@ class NullsTransformer extends IdlTransformer {
         } else if (idl.isUnionType(node)) {
             if (node.types.some(isNullReference)) {
                 const unionTypes = node.types.filter(it => !isNullReference(it)).map(it => this.visit(it))
-                const unionName = generateSyntheticUnionName(unionTypes)
+                const unionName = idl.generateSyntheticUnionName(unionTypes)
                 return idl.createOptionalType(
                     unionTypes.length === 1 ? unionTypes[0] : idl.createUnionType(
                         unionTypes,

@@ -19,8 +19,8 @@ import { isMaterialized } from '../../peer-generation/isMaterialized'
 import { PeerMethod } from '../../peer-generation/PeerMethod'
 import { PrimitiveTypesInstance } from '../../peer-generation/PrimitiveType'
 import { ReferenceResolver } from '../../peer-generation/ReferenceResolver'
-import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
-import { convertType, IdlNameConvertor, TypeConvertor } from '../nameConvertor'
+import { maybeRestoreThrows } from '../../transformers/transformUtils'
+import { convertType, TypeConvertor } from '../nameConvertor'
 
 const KInteropReturnBuffer = 'KInteropReturnBuffer'
 export class InteropReturnTypeConvertor implements TypeConvertor<string> {

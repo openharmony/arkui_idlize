@@ -15,10 +15,10 @@
 
 import { IndentedPrinter } from "../IndentedPrinter"
 import { stringOrNone } from "../util"
+import { IDLNullTypeName, IDLStringType, IDLUndefinedType } from "./builders"
 import { isInterface, isOptionalType, isPrimitiveType, isContainerType, isReferenceType, isUnionType, isTypeParameterType, hasExtAttribute } from "./discriminators"
 import { IDLKeywords } from "./keywords"
 import { IDLType, IDLInterface, IDLExtendedAttributes, IDLKind, IDLParameter, IDLConstructor, IDLVariable, IDLConstant, IDLProperty, IDLNode, IDLSignature, IDLTypedef, IDLReferenceType, IDLExtendedAttribute, IDLFunction, IDLMethod, IDLFile, IDLImport, IDLNamespace, IDLCallback, IDLEntry, IDLEnumMember, IDLEnum } from "./node"
-import { IDLNullTypeName, IDLUndefinedType, IDLStringType } from "./stdlib"
 
 export function escapeIDLKeyword(name: string): string {
     return name + (IDLKeywords.has(name) ? "_" : "")
@@ -100,7 +100,7 @@ export function quoteAttributeValues(attributes?: IDLExtendedAttribute[]): strin
 }
 
 export class IDLWriter {
-    constructor(protected printer: IndentedPrinter) {}
+    constructor(protected printer: IndentedPrinter) { }
 
     print(line: stringOrNone): this {
         this.printer.print(line)
@@ -203,7 +203,7 @@ export class IDLWriter {
         return this
     }
 
-    printSpacedTypeParameters(params:string[] | undefined): string {
+    printSpacedTypeParameters(params: string[] | undefined): string {
         return params && params.length
             ? '<' + params.join(', ') + '> '
             : ''
@@ -215,8 +215,8 @@ export class IDLWriter {
             return this
         }
         return this.printExtendedAttributes(idl)
-            .print(`${idl.isAsync ? "async " : ""}` + 
-                `${this.printReturnType(idl.returnType)} ${idl.name}` + 
+            .print(`${idl.isAsync ? "async " : ""}` +
+                `${this.printReturnType(idl.returnType)} ${idl.name}` +
                 `(${this.printParameters(idl.parameters)});`)
     }
 
@@ -226,9 +226,9 @@ export class IDLWriter {
             return this
         }
         return this.printExtendedAttributes(idl)
-            .print(`${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}` + 
-                `${this.printSpacedTypeParameters(idl.typeParameters)}` + 
-                `${this.printReturnType(idl.returnType)} ${idl.name}` + 
+            .print(`${idl.isStatic ? "static " : ""}${idl.isAsync ? "async " : ""}` +
+                `${this.printSpacedTypeParameters(idl.typeParameters)}` +
+                `${this.printReturnType(idl.returnType)} ${idl.name}` +
                 `(${this.printParameters(idl.parameters)});`)
     }
 
@@ -255,8 +255,8 @@ export class IDLWriter {
 
     printCallback(idl: IDLCallback): this {
         return this.printExtendedAttributes(idl)
-            .print(`callback ${this.printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ` + 
-            `${this.printReturnType(idl.returnType)} (${this.printParameters(idl.parameters)});`)
+            .print(`callback ${this.printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ` +
+                `${this.printReturnType(idl.returnType)} (${this.printParameters(idl.parameters)});`)
     }
 
     printScoped(idl: IDLEntry): this {
@@ -298,7 +298,7 @@ export class IDLWriter {
             : ' = ' + (type === IDLStringType.name
                 ? `"${String(idl.initializer).replaceAll('"', "'")}"`
                 : idl.initializer)
-        
+
         return this.print(idl.documentation)
             .printExtendedAttributes(idl)
             .print(`${type} ${idl.name}${initializer};`)
@@ -310,7 +310,7 @@ export class IDLWriter {
         if (skipInitializers) {
             this.print(`enum ${idl.name!} {`)
                 .pushIndent()
-            idl.elements.forEach(it => 
+            idl.elements.forEach(it =>
                 this.print(`${it.name} ${(it.initializer !== undefined ? " /* " + it.initializer + " */" : "")}`))
             return this.popIndent().print("};")
         } else {
@@ -324,7 +324,7 @@ export class IDLWriter {
     printTypedef(idl: IDLTypedef): this {
         return this.print(idl.documentation)
             .printExtendedAttributes(idl)
-            .print(`typedef ${this.printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ` + 
+            .print(`typedef ${this.printSpacedTypeParameters(idl.typeParameters)}${idl.name} = ` +
                 `${printType(idl.type)};`)
     }
 
@@ -354,9 +354,19 @@ export interface IDLPrintOptions {
 
 export function toIDLString(file: IDLFile, options: Partial<IDLPrintOptions>): string {
     const writer = new IDLWriter(new IndentedPrinter())
-    
+
     writer.printPackage(file)
     file.entries.forEach(it => writer.printIDL(it, options))
-    
+
     return writer.getOutput().join("\n")
+}
+
+export const DebugUtils = {
+    debugPrintType: (type: IDLType): string => {
+        const filename = type.fileName ? `, fileName: '${type.fileName}'` : ""
+        if (isContainerType(type)) {
+            return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}', elements: [${type.elementType.map(DebugUtils.debugPrintType).join(', ')}]${filename}]`
+        }
+        return `[IDLType, name: '${printType(type)}', kind: '${IDLKind[type.kind]}'${filename}]`
+    },
 }

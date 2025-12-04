@@ -16,7 +16,6 @@
 import { IndentedPrinter } from "../../IndentedPrinter"
 import {
     BlockStatement,
-    EnumMember,
     LambdaExpression,
     LanguageExpression,
     LanguageStatement,
@@ -26,26 +25,15 @@ import {
     Method,
     MethodModifier,
     MethodSignature,
-    NamedMethodSignature,
-    NamespaceOptions,
-    ObjectArgs
 } from "../LanguageWriter"
 import { TSCastExpression, TSLanguageWriter } from "./TsLanguageWriter"
-import { getExtAttribute, IDLEnum, IDLI32Type, IDLThisType, IDLType, IDLVoidType } from '../../idl'
+import { IDLThisType, IDLType } from '../../idl'
 import {
     ArgConvertor,
-    AggregateConvertor,
-    ArrayConvertor,
-    CustomTypeConvertor,
-    InterfaceConvertor,
-    MaterializedClassConvertor,
-    OptionConvertor,
-    UnionConvertor,
-    BufferConvertor
+    makeETSDiscriminatorFromFields,
 } from "../ArgConvertors"
 import * as idl from '../../idl'
-import { convertDeclaration, IdlNameConvertor, withInsideInstanceof } from "../nameConvertor"
-import { createDeclarationNameConvertor } from "../../peer-generation/idl/IdlNameConvertor";
+import { IdlNameConvertor, withInsideInstanceof } from "../nameConvertor"
 import { Language } from "../../Language";
 import { RuntimeType } from "../common";
 import { ReferenceResolver } from "../../peer-generation/ReferenceResolver";
@@ -214,13 +202,7 @@ export class ETSLanguageWriter extends TSLanguageWriter {
                                 value: string,
                                 accessors: string[],
                                 duplicates: Set<string>): LanguageExpression {
-        if (convertor instanceof AggregateConvertor
-            || convertor instanceof InterfaceConvertor
-            || convertor instanceof MaterializedClassConvertor
-            || convertor instanceof CustomTypeConvertor) {
-            return this.instanceOf(value, convertor.idlType)
-        }
-        return this.makeString(`${value} instanceof ${withInsideInstanceof(true, () => convertor.targetType(this))}`)
+        return makeETSDiscriminatorFromFields(this, convertor, value, accessors, duplicates)
     }
     makeValueFromOption(value: string, destinationConvertor: ArgConvertor): LanguageExpression {
         if (idl.isEnum(this.resolver.toDeclaration(destinationConvertor.nativeType()))) {

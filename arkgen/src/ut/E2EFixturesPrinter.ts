@@ -18,9 +18,10 @@ import { camelCaseToLowerSnakeCase, ETSLanguageWriter, PeerLibrary } from '@idli
 import { cStyleCopyright } from '@idlizer/libohos'
 import { LibaceInstall } from '../ArkoalaInstall'
 import { AceTypesTs, Fixture, Import } from './AceTypes'
-import { Target } from './E2EPrinter'
 import { Enum } from './E2ESuitesCreator'
 import { createEtsWriter, makeTsImports, printEtsResource, quoted1 } from './PrinterUtils'
+
+export enum Target { ETS, ARK_TS_1_2 }
 
 export function printTsFixtures(
     aceTypes: AceTypesTs, enums: readonly Enum[], peerLibrary: PeerLibrary, libace: LibaceInstall, target: Target

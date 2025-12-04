@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGenerators"
+import { cStyleCopyright, makeIncludeGuardDefine } from "../FileGeneratorsUtils"
 import { ImportsCollector } from "../ImportsCollector"
 import { CppLanguageWriter } from "../LanguageWriters"
 import { Language, LanguageWriter, CJLanguageWriter, ETSLanguageWriter, TSLanguageWriter, KotlinLanguageWriter, PeerLibrary } from "@idlizer/core"

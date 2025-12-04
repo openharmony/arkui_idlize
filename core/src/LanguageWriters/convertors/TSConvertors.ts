@@ -18,8 +18,7 @@ import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
-import { maybeRestoreGenerics } from '../../transformers/GenericTransformer'
-import { maybeRestoreThrows } from '../../transformers/ThrowsTransformer'
+import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
 import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {

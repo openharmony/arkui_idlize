@@ -16,7 +16,7 @@
 import { PeerLibrary } from '@idlizer/core'
 import { LibaceInstall } from '../ArkoalaInstall'
 import { AceTypesTs } from './AceTypes'
-import { printTsFixtures } from './E2EFixturesPrinter'
+import { printTsFixtures, Target } from './E2EFixturesPrinter'
 import { printTsSuites } from './E2ESuitesPrint'
 
 export function printEndToEndTests(
@@ -27,5 +27,3 @@ export function printEndToEndTests(
     const enums = printTsSuites(aceTypes, peerLibrary, libace, target)
     printTsFixtures(aceTypes, enums, peerLibrary, libace, target)
 }
-
-export enum Target { ETS, ARK_TS_1_2 }
