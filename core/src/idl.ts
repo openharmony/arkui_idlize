@@ -755,6 +755,13 @@ export function getPackageName(node: IDLNode): string {
     return getPackageClause(node).join(".")
 }
 
+export function getPackageNameSafe(node: IDLNode): string | undefined {
+    try {
+        return getPackageName(node)
+    } catch (_) {
+        return undefined
+    }
+}
 
 export function isInPackage(entry: IDLEntry | IDLFile, packageName: string, exactMatch = false) {
     const entryPackageName = getPackageName(entry)

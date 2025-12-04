@@ -240,40 +240,24 @@ export class CJLayout extends CommonLayoutBase {
 
 export class KotlinLayout extends CommonLayoutBase {
     protected KotlinInternalPaths = new Map<string, string>([
-        ["TypeChecker", "#components"],
-        ["Serializer", "Serializer"],
-        ["Deserializer", "Deserializer"],
-        ["CallbackKind", "CallbackKind"],
-        ["deserializeAndCallCallback", "CallbackDeserializeCall"],
-        ["checkArkoalaCallbacks", "./CallbacksChecker"],
-        ["CallbackTransformer", "./CallbackTransformer"],
+        ["SerializerBase", "koalaui.interop"],
+        ["DeserializerBase", "koalaui.interop"],
+        ["resourceFinalizerRegister", "koalaui.interop"],
     ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (this.KotlinInternalPaths.has(target.node.name))
             return this.KotlinInternalPaths.get(target.node.name)!
-        if (idl.isHandwritten(target.node) || peerGeneratorConfiguration().isHandWritten(target.node.name)) {
-            return HandwrittenModule(this.library.language)
-        }
         if (idl.isSyntheticEntry(target.node)) {
-            return SyntheticModule
+            return idl.getSyntheticTypesFileName()
         }
-        if (idl.isTypedef(target.node)) {
-            return SyntheticModule
-        }
-        if (idl.isInterface(target.node) && !isComponentDeclaration(this.library, target.node)) {
-            if (idl.isBuilderClass(target.node)) {
-                return `${this.prefix}${toFileName(target.node.name)}Builder`
+        const packageName = idl.getPackageNameSafe(target.node) ?? "idlize"
+        const arkuiPackages = ["arkui.component", "idlize"]
+        for (const pkg of arkuiPackages) {
+            if (packageName === pkg || packageName.startsWith(`${pkg}.`)) {
+                return "koalaui.arkoala"
             }
         }
-        let pureFileName = idl.getFileFor(target.node)?.fileName
-            ?.replaceAll('.d.ts', '')
-            ?.replaceAll('.idl', '')
-            ?.replaceAll('@', '')
-        if (pureFileName) {
-            pureFileName = path.basename(pureFileName)
-        }
-        const entryName = pureFileName ?? target.node.name
-        return entryName
+        return packageName
     }
 }
 
