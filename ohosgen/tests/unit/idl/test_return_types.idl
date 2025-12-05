@@ -1,0 +1,36 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package test_return_types;
+interface test_ret_A {
+    attribute number field;
+};
+interface test_ret_B {
+    number action();
+};
+callback test_ret_Callback = void ();
+namespace test_return_types {
+    void returnNothing();
+    number returnNumber();
+    boolean returnBoolean();
+    bigint returnBitInt();
+    String returnString();
+    test_ret_A returnInterface();
+    test_ret_B returnMaterialized();
+    sequence<number> returnNumberArray();
+    sequence<String> returnStringArray();
+    sequence<test_ret_A> returnInterfaceArray();
+    sequence<test_ret_B> returnMaterializedArray();
+    test_ret_Callback returnCallback();
+};

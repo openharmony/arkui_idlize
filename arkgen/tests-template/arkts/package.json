@@ -1,0 +1,9 @@
+{
+
+    "name": "@idlizer/arkgen-tests-template-arkts",
+    "private": true,
+    "scripts": {
+        "clean": "rimraf out",
+        "build": "fast-arktsc --config ./ui2abcconfig.json --link-name ./out/all.abc --compiler ../../../external/incremental/tools/panda/arkts/ui2abc --simultaneous && ninja -C ./out -f build.ninja"
+    }
+}
