@@ -798,6 +798,12 @@
                 "replaceImplementation": true
             }
         },
+        "PasteButtonAttribute": {
+            "onClick": {
+                "hookName": "hookPasteButtonOnClickImpl",
+                "replaceImplementation": false
+            }
+        },
         "ProgressAttribute": {
             "contentModifier": {
                 "hookName": "hookProgressContentModifier",
@@ -814,6 +820,12 @@
             "contentModifier": {
                 "hookName": "hookRatingContentModifier",
                 "replaceImplementation": true
+            }
+        },
+        "SaveButtonAttribute": {
+            "onClick": {
+                "hookName": "hookSaveButtonOnClickImpl",
+                "replaceImplementation": false
             }
         },
         "SelectAttribute": {
