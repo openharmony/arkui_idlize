@@ -27,8 +27,7 @@
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
         "arkui.component.common.ContentModifier",
-        "arkui.component.ContentModifier",
-        "arkui.component.builder.CustomBuilderT"
+        "arkui.component.ContentModifier"
     ],
     "forceMaterialized": [
         "arkui.component.gesture.extra.TapGestureInterface",
@@ -436,6 +435,10 @@
         {
             "from": "arkui.component.builder.PageMapBuilder",
             "to": "arkui.component.idlize.PageMapNodeBuilder"
+        },
+        {
+            "from": "arkui.component.builder.CustomBuilderT",
+            "to": "arkui.component.idlize.CustomNodeBuilderT"
         }
     ],
     "forceCallback": {

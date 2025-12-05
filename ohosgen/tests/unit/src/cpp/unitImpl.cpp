@@ -1256,6 +1256,8 @@ OH_UNIT_UnionSampleTupleArrayInterface GlobalScope_checkUnionTupleArraySampleImp
 OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleImpl(const OH_UNIT_UnionSampleGenericTypeInterface* value) {
     return *value;
 }
+void GlobalScope_generics_callWithDefaultsBImpl(const OH_UNIT_generics_WithDefaultsB_generics_WithDefaultsA_Number* value) {
+}
 
 OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr) {
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);

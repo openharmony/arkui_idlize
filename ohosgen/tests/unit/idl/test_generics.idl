@@ -8,4 +8,15 @@ namespace generics {
     interface X: [TypeArguments="A,B"] Y {
         C foo(A x, B y);
     };
+
+    [TypeParametersDefaults="number"]
+    interface <T> WithDefaultsA {
+        attribute T value;
+    };
+    // validate that generics default are also applied to TypeParametersDefaults items
+    [TypeParametersDefaults="WithDefaultsA"]
+    interface <T> WithDefaultsB {
+        attribute T value;
+    };
+    void callWithDefaultsB(WithDefaultsB value);
 };

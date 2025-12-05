@@ -115,6 +115,7 @@ class DefaultGenericsTransformer extends IdlTransformer {
     }
 
     visit(node: idl.IDLFile): idl.IDLFile
+    visit(node: idl.IDLType): idl.IDLType
     visit(node: idl.IDLNode): idl.IDLNode {
         if (idl.isReferenceType(node)) {
             const decl = this.resolver.resolveTypeReference(node)
@@ -128,7 +129,8 @@ class DefaultGenericsTransformer extends IdlTransformer {
             if ((decl.typeParameters?.length ?? 0) > (node.typeArguments?.length ?? 0)) {
                 const defaults: (undefined | idl.IDLType)[] = decl.extendedAttributes
                     ?.find(it => it.name === idl.IDLExtendedAttributes.TypeParametersDefaults)
-                    ?.typesValue?.slice() ?? []
+                    ?.typesValue?.slice()
+                    ?.map(it => this.visit(it)) ?? []
                 while (defaults.length < decl.typeParameters!.length) {
                     defaults.unshift(undefined)
                 }
