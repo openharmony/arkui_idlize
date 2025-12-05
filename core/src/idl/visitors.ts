@@ -211,7 +211,7 @@ export function updateEachChild(node: IDLNode, op: (node: IDLNode) => IDLNode, c
 export function cloneNodeInitializer(other: IDLNodeInitializer): IDLNodeInitializer {
     return {
         documentation: other.documentation,
-        extendedAttributes: other.extendedAttributes,
+        extendedAttributes: other.extendedAttributes?.map(it => { return { ...it } }),
         fileName: other.fileName,
         nameLocation: other.nameLocation,
         nodeLocation: other.nodeLocation,
@@ -527,11 +527,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.methods.map(clone),
                     entry.callables.map(clone),
                     entry.typeParameters?.map(it => it),
-                    {
-                        documentation: node.documentation,
-                        extendedAttributes: node.extendedAttributes?.slice(),
-                        fileName: node.fileName
-                    }
+                    cloneNodeInitializer(node),
                 )
             )
         }
@@ -541,11 +537,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createImport(
                     entry.clause,
                     entry.name,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -556,11 +548,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.name,
                     entry.parameters.map(clone),
                     clone(entry.returnType),
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    },
+                    cloneNodeInitializer(entry),
                     entry.typeParameters
                 )
             )
@@ -572,11 +560,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.name,
                     clone(entry.type),
                     entry.value,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -589,11 +573,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.isReadonly,
                     entry.isStatic,
                     entry.isOptional,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -605,11 +585,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     clone(entry.type),
                     entry.isOptional,
                     entry.isVariadic,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -626,11 +602,7 @@ export function clone<T extends IDLNode>(node: T): T {
                         isOptional: entry.isOptional,
                         isStatic: entry.isStatic
                     },
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    },
+                    cloneNodeInitializer(entry),
                     entry.typeParameters
                 )
             )
@@ -646,11 +618,7 @@ export function clone<T extends IDLNode>(node: T): T {
                         isAsync: entry.isAsync,
                         isStatic: entry.isStatic
                     },
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.documentation
-                    },
+                    cloneNodeInitializer(entry),
                     entry.typeParameters
                 )
             )
@@ -661,11 +629,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createConstructor(
                     entry.parameters.map(clone),
                     entry.returnType ? clone(entry.returnType) : undefined,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -674,11 +638,7 @@ export function clone<T extends IDLNode>(node: T): T {
             const cloned = createEnum(
                 entry.name,
                 entry.elements.map(clone),
-                {
-                    documentation: entry.documentation,
-                    extendedAttributes: entry.extendedAttributes?.slice(),
-                    fileName: entry.fileName
-                }
+                cloneNodeInitializer(entry),
             )
             cloned.elements.forEach(it => {
                 it.parent = cloned
@@ -693,11 +653,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.parent,
                     clone(entry.type),
                     entry.initializer,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -708,11 +664,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     entry.name,
                     clone(entry.type),
                     entry.typeParameters,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -725,11 +677,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createContainerType(
                     type.containerKind,
                     type.elementType.map(clone),
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
+                    cloneNodeInitializer(type),
                 )
             )
         }
@@ -739,11 +687,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createReferenceType(
                     type.name,
                     type.typeArguments?.map(clone),
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
+                    cloneNodeInitializer(type),
                 )
             )
         }
@@ -753,11 +697,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createUnionType(
                     type.types.map(clone),
                     type.name,
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
+                    cloneNodeInitializer(type),
                 )
             )
         }
@@ -766,11 +706,7 @@ export function clone<T extends IDLNode>(node: T): T {
             return make(
                 createTypeParameterReference(
                     type.name,
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
+                    cloneNodeInitializer(type),
                 )
             )
         }
@@ -779,11 +715,7 @@ export function clone<T extends IDLNode>(node: T): T {
             return make(
                 createOptionalType(
                     clone(type.type),
-                    {
-                        documentation: type.documentation,
-                        extendedAttributes: type.extendedAttributes?.slice(),
-                        fileName: type.fileName
-                    }
+                    cloneNodeInitializer(type),
                 )
             )
         }
@@ -792,11 +724,7 @@ export function clone<T extends IDLNode>(node: T): T {
             return make(
                 createVersion(
                     entry.value,
-                    {
-                        documentation: entry.documentation,
-                        extendedAttributes: entry.extendedAttributes?.slice(),
-                        fileName: entry.fileName
-                    }
+                    cloneNodeInitializer(entry),
                 )
             )
         }
@@ -806,11 +734,7 @@ export function clone<T extends IDLNode>(node: T): T {
                 createNamespace(
                     ns.name,
                     ns.members.map(clone),
-                    {
-                        documentation: ns.documentation,
-                        extendedAttributes: ns.extendedAttributes?.slice(),
-                        fileName: ns.fileName
-                    }
+                    cloneNodeInitializer(ns),
                 )
             )
         }
@@ -821,11 +745,7 @@ export function clone<T extends IDLNode>(node: T): T {
                     file.entries.map(clone),
                     file.fileName,
                     file.packageClause,
-                    {
-                        documentation: file.documentation,
-                        extendedAttributes: file.extendedAttributes?.slice(),
-                        fileName: file.fileName
-                    }
+                    cloneNodeInitializer(file),
                 )
             )
         }
