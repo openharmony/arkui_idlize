@@ -493,15 +493,19 @@ export class CXXPrinter {
           this.p.put(';')
         }
         declaration.annotations.forEach(ann => {
-          if (ann.kind === lw.DecoratorKind.MacroCall) {
+          if (ann.kind === lw.DecoratorKind.MacroInvocation) {
             this.p.newline()
             this.p.put(ann.name, '(')
             ann.args.forEach((arg, i) => {
               if (i > 0) {
                 this.p.put(',', ' ')
               }
-              if (typeof arg === 'string') this.p.put(arg)
-              else this.printAbstractType(arg)
+              if (typeof arg === 'string')
+                this.p.put(arg)
+              else if (arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType)
+                this.printAbstractType(arg)
+              else
+                this.printExpression(arg)
             })
             this.p.put(')')
           }

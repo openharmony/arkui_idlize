@@ -28,30 +28,30 @@ struct FooObject {
     }
 };
 
-OH_NativePointer foo_Foo_constructImpl() {
+OH_TEST_GENERIC_CALLBACK_FooHandle Foo_constructImpl() {
     std::cout << "Foo_constructImpl()" << std::endl;
-    return new FooObject();
+    return reinterpret_cast<OH_TEST_GENERIC_CALLBACK_FooHandle>(new FooObject());
 }
 
-void foo_Foo_destructImpl(OH_NativePointer thisPtr) {
-    std::cout << "Foo_destructImpl(thisPtr)" << std::endl;
-    delete reinterpret_cast<FooObject*>(thisPtr);
+void Foo_destructImpl(OH_TEST_GENERIC_CALLBACK_FooHandle thiz) {
+    std::cout << "Foo_destructImpl(thiz)" << std::endl;
+    delete reinterpret_cast<FooObject*>(thiz);
 }
 
-OH_Number foo_Foo_getXImpl(OH_NativePointer thisPtr) {
+OH_Number Foo_getXImpl(OH_NativePointer thisPtr) {
     std::cout << "Foo_getXImpl(thisPtr)" << std::endl;
     return reinterpret_cast<FooObject*>(thisPtr)->value;
 }
 
-void foo_Foo_callCBImpl(OH_NativePointer thisPtr, const OH_Number* y,
-                    const OH_TEST_GENERIC_CALLBACK_Callback_Number* cb) {
+void Foo_callCBImpl(OH_NativePointer thisPtr, const OH_Number* y,
+                    const TEST_GENERIC_CALLBACK_Callback_Number* cb) {
     std::cout << "Foo_callCBImpl(thisPtr, y, cb)"
               << "\n  y = " << DumpOHNumber(*y) << std::endl;
     OH_Number sum = addOHNumber(reinterpret_cast<FooObject*>(thisPtr)->value, *y);
     cb->call(cb->resource.resourceId, sum);
 }
 
-void foo_Foo_callCBVoidImpl(OH_NativePointer thisPtr, const OH_TEST_GENERIC_CALLBACK_Callback_Void* cb) {
+void Foo_callCBVoidImpl(OH_NativePointer thisPtr, const TEST_GENERIC_CALLBACK_Callback_Void* cb) {
     std::cout << "Foo_callCBVoidImpl(thisPtr, cb)" << std::endl;
     cb->call(cb->resource.resourceId);
 }

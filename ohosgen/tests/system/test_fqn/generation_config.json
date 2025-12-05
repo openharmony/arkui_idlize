@@ -1,9 +1,0 @@
-{
-    "moduleName": "test_fqn",
-    "modules": {
-        "test_fqn": {
-            "name": "test_fqn",
-            "packages": ["main", "deps", "ohos.base"]
-        }
-    }
-}

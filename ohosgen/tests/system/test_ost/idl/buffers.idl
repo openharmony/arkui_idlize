@@ -1,0 +1,13 @@
+package buffers;
+
+[Entity=Interface]
+interface Result {
+    attribute number index;
+    attribute buffer data;
+};
+
+[Entity=Class]
+interface Buffers {
+    buffer getData();
+    Result getResult();
+};

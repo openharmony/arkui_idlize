@@ -36,7 +36,8 @@ for c in test_cases:
     case_temp_dir = os.path.join(TEMP_DIR, case_name)
     os.mkdir(case_temp_dir)
 
-    prefix_str = f"TEST_CASE={case_name} INPUT_TYPE={c['inputType']}"
+    useOst = '--use-ost' if 'useOst' in c and c['useOst'] else ''
+    prefix_str = f"TEST_CASE={case_name} INPUT_TYPE={c['inputType']} USE_OST={useOst}"
     pre_start_ret_code = \
         os.system(f"{prefix_str} npm run pre-start:arkts >{os.path.join(case_temp_dir, 'build.log')}")
     if pre_start_ret_code != 0:

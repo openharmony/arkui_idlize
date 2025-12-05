@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-import { E, T, Ts } from "../../../ost";
+import { E, Op, T, Ts } from "../../../ost";
 import * as idl from "@idlizer/core/idl"
 import { bridgeName, cApiName, createSpecialProducer, roles } from "../common";
 import { Builders } from "../../../ost/builders";
@@ -49,16 +49,17 @@ export const callbackProducer = createSpecialProducer(
                   .ctor().asStruct().arg('resourceId').arg('holdManagedCallbackResource').arg('releaseManagedCallbackResource').$().$().$()
                 .call('holdCallbackResource')
                   .receiver().access('resourceHolder').receiver('callbackBuffer').$().$()
-                  .arg('&callbackResourceSelf').$()///
+                  .arg().unary(Op.ref).value('callbackResourceSelf').$().$().$()
                 .decl('argsSerializer', T.c('SerializerBase')).mutable().value()
                   .ctor().stack()
-                    .arg().cast(T.c('KSerializerBuffer')).value('&callbackBuffer.buffer').$().$()
+                    .arg().cast(T.c('KSerializerBuffer')).value()
+                      .unary(Op.ref).value().access('buffer').receiver('callbackBuffer').$().$().$().$().$().$()
                     .arg().call('sizeof').arg().access('buffer').receiver('callbackBuffer').$().$().$().$()
-                    .arg('&callbackBuffer.resourceHolder').$().$().$()
+                    .arg().unary(Op.ref).value().access('resourceHolder').receiver('callbackBuffer').$().$().$().$().$().$().$()
                 .call('writeInt32').receiver('argsSerializer').arg(`KIND_${callback.name.toUpperCase()}`).$()
                 .call('writeInt32').receiver('argsSerializer').arg('resourceId').$()
                 .statements(callbackParamWrites)
-                .call('enqueueCallback').arg('0').arg('&callbackBuffer').$().$().$(),
+                .call('enqueueCallback').arg('0').arg().unary(Op.ref).value('callbackBuffer').$().$().$().$().$(),
             Builders.func(bridgeName(`SyncCallManaged${callback.name}`))
               .parameters(syncParams)
               .block()

@@ -32,17 +32,17 @@ struct FooObject {
     }
 };
 
-OH_NativePointer test_buffer_Foo_constructImpl() {
+OH_TEST_BUFFER_FooHandle Foo_constructImpl() {
     std::cout << "Foo_constructImpl()" << std::endl;
-    return reinterpret_cast<OH_NativePointer>(new FooObject());
+    return reinterpret_cast<OH_TEST_BUFFER_FooHandle>(new FooObject());
 }
 
-void test_buffer_Foo_destructImpl(OH_NativePointer thisPtr) {
+void Foo_destructImpl(OH_TEST_BUFFER_FooHandle thiz) {
     std::cout << "Foo_destructImpl(thisPtr)" << std::endl;
-    delete reinterpret_cast<FooObject*>(thisPtr);
+    delete reinterpret_cast<FooObject*>(thiz);
 }
 
-OH_Buffer test_buffer_Foo_getInDataImpl(OH_NativePointer thisPtr) {
+OH_Buffer Foo_getInDataImpl(OH_NativePointer thisPtr) {
     std::cout << "Foo_getInDataImpl(thisPtr)" << std::endl;
     uint64_t data[4];
     std::fill_n(data, std::size(data), 0x0123'4567'89AB'CDEF);
@@ -51,7 +51,7 @@ OH_Buffer test_buffer_Foo_getInDataImpl(OH_NativePointer thisPtr) {
     return res;
 }
 
-OH_TEST_BUFFER_FooResult test_buffer_Foo_getResultImpl(OH_NativePointer thisPtr) {
+OH_TEST_BUFFER_FooResult Foo_getResultImpl(OH_NativePointer thisPtr) {
     static int counter = 0;
     counter += 100;
     std::cout << "Foo_getResultImpl(thisPtr)" << std::endl;

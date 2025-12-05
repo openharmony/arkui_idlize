@@ -1,0 +1,18 @@
+package fqnMain;
+
+import fqnDeps.Size as IntSize;
+
+interface Size {
+    attribute number numHeight;
+    attribute number numWidth;
+};
+
+interface Sizes {
+    attribute Size numSize;
+    attribute IntSize intSize;
+    attribute fqnDeps.fp.Size floatSize;
+};
+
+void resize(Size size);
+void resizeAll(Sizes sizes);
+void resize3(Size numSize, IntSize intSize, fqnDeps.fp.Size floatSize);

@@ -2,15 +2,19 @@
 [loadLibraries] Loading InteropNativeModule [TEST_MODULES_SIMPLENativeModule]
 Starting demo: test_modules
 [loadLibraries] Loading TEST_MODULES_SIMPLENativeModule [TEST_MODULES_SIMPLENativeModule]
-foo_FooInt_constructImpl(initialValue)
-bar_bar_getIntWithFooImpl(foo)
+FooInt_constructImpl(initialValue)
+FooInt_getValueImpl(thisPtr)
+  thisPtr->value = 42 (int32)
+FooInt_getValueImpl(thisPtr)
+  thisPtr->value = 42 (int32)
+GlobalScope_bar_getIntWithFooImpl(foo)
 foo->value = 42 (int32)
 getNumberWithFoo(foo) = 42
-foo_FooInt_getIntImpl(thisPtr, offset)
+FooInt_getIntImpl(thisPtr, offset)
   thisPtr->value = 42 (int32)
   offset = 1 (int32)
 getNumber(1) = 43
-foo_FooInt_getIntImpl(thisPtr, offset)
+FooInt_getIntImpl(thisPtr, offset)
   thisPtr->value = 42 (int32)
   offset = 2.25 (float32)
 getNumber(2.25) = 44.25

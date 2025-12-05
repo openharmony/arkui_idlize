@@ -57,7 +57,7 @@ export enum DecoratorKind {
   Modifier = "Modifier",
 
   SimpleAnnotation = "Annotation",
-  MacroCall = "MacroCall",
+  MacroInvocation = "MacroInvocation",
 }
 
 export interface Hint {
@@ -77,9 +77,9 @@ export interface SimpleAnnotation {
   value?: string
 }
 export interface MacroInvocation {
-  kind: DecoratorKind.MacroCall,
+  kind: DecoratorKind.MacroInvocation,
   name: string
-  args: (string | LWType)[]
+  args: (string | LWExpression | LWType)[]
 }
 export type Annotation =
     SimpleAnnotation

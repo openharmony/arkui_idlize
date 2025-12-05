@@ -19,41 +19,41 @@
 #include "oh_common.h"
 
 namespace {
-    int dummy = 0;
+int dummy = 0;
 }
 
-OH_NativePointer huks_with_class_HuksClass_constructImpl() {
+OH_HUKS_WITH_CLASS_HuksClassHandle HuksClass_constructImpl() {
     std::cout << "HuksClass_constructImpl()" << std::endl;
-    return &dummy;
+    return reinterpret_cast<OH_HUKS_WITH_CLASS_HuksClassHandle>(&dummy);
 }
 
-void huks_with_class_HuksClass_destructImpl(OH_NativePointer thisPtr) {
-    std::cout << "HuksClass_destructImpl(thisPtr)" << std::endl;
+void HuksClass_destructImpl(OH_HUKS_WITH_CLASS_HuksClassHandle thiz) {
+    std::cout << "HuksClass_destructImpl(thiz)" << std::endl;
 }
 
-void huks_with_class_HuksClass_fooVoidVoidImpl(OH_NativePointer thisPtr) {
+void HuksClass_fooVoidVoidImpl(OH_NativePointer thisPtr) {
     std::cout << "HuksClass_fooVoidVoidImpl(thisPtr)" << std::endl;
 }
 
-void huks_with_class_HuksClass_fooVoidNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
+void HuksClass_fooVoidNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
     std::cout << "HuksClass_fooVoidNumberImpl(thisPtr, arg)"
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
 }
 
-OH_Number huks_with_class_HuksClass_fooNumberVoidImpl(OH_NativePointer thisPtr) {
+OH_Number HuksClass_fooNumberVoidImpl(OH_NativePointer thisPtr) {
     static int counter = 0;
     std::cout << "HuksClass_fooNumberVoidImpl(thisPtr)" << std::endl;
     return OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
 }
 
-OH_Number huks_with_class_HuksClass_fooNumberNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
+OH_Number HuksClass_fooNumberNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
     static int counter = 0;
     std::cout << "HuksClass_fooNumberNumberImpl(thisPtr, arg)"
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
     return addOHNumber(OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter}, *arg);
 }
 
-OH_HUKS_WITH_CLASS_HuksResult huks_with_class_HuksClass_fooResultNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
+OH_HUKS_WITH_CLASS_HuksResult HuksClass_fooResultNumberImpl(OH_NativePointer thisPtr, const OH_Number* arg) {
     static int counter = 0;
     std::cout << "HuksClass_fooResultNumberImpl(thisPtr, arg)"
               << "\n  arg = " << DumpOHNumber(*arg) << std::endl;
@@ -65,13 +65,13 @@ OH_HUKS_WITH_CLASS_HuksResult huks_with_class_HuksClass_fooResultNumberImpl(OH_N
     return result;
 }
 
-OH_Number huks_with_class_HuksClass_fooNumberOptionsImpl(OH_NativePointer thisPtr, const OH_HUKS_WITH_CLASS_HuksOptions* options) {
+OH_Number HuksClass_fooNumberOptionsImpl(OH_NativePointer thisPtr, const OH_HUKS_WITH_CLASS_HuksOptions* options) {
     static int counter = 0;
     std::cout << "HuksClass_fooNumberOptionsImpl(thisPtr, options)" << std::endl;
     return OH_Number{.tag = INTEROP_TAG_INT32, .i32 = ++counter};
 }
 
-OH_HUKS_WITH_CLASS_HuksResult huks_with_class_HuksClass_generateKeyItemSyncImpl(const OH_String* keyAlias, const OH_HUKS_WITH_CLASS_HuksOptions* options) {
+OH_HUKS_WITH_CLASS_HuksResult HuksClass_generateKeyItemSyncImpl(const OH_String* keyAlias, const OH_HUKS_WITH_CLASS_HuksOptions* options) {
     static int counter = 0;
     std::cout << "HuksClass_generateKeyItemSyncImpl(thisPtr, keyAlias, options)"
               << "\n  keyAlias = " << DumpOHString(*keyAlias) << std::endl;

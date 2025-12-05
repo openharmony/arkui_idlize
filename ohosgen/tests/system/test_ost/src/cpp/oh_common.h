@@ -13,24 +13,66 @@
  * limitations under the License.
  */
 
-#ifndef OH_TEST_FQN_OH_COMMON_H_
-#define OH_TEST_FQN_OH_COMMON_H_
+#ifndef OH_TEST_OST_OH_COMMON_H_
+#define OH_TEST_OST_OH_COMMON_H_
 
 #include <cmath>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
+#include <vector>
+#include <unordered_map>
 
-struct DumpPointer {
-    const void* pointer;
-    DumpPointer(const void* p): pointer(p) {}
+struct AllocationManager {
+    static inline std::vector<void*> allocated;
 
-    friend std::ostream& operator << (std::ostream& out, DumpPointer dp) {
-        std::ios::fmtflags flags = out.flags();
-        out << "0x" << std::hex << std::setw(16) << std::setfill('0') << reinterpret_cast<uintptr_t>(dp.pointer);
-        out.flags(flags); // Restores IO flags
-        return out;
+    static std::pair<void*, size_t> Allocate(size_t sizeBytes) {
+        std::cout << "AllocationManager::Allocate(sizeBytes=" << sizeBytes << ")" << std::endl;
+        void* cur = std::malloc(sizeBytes);
+        size_t index = allocated.size();
+        allocated.push_back(cur);
+        return {cur, index};
+    }
+
+    static void Deallocate(size_t index) {
+        std::cout << "AllocationManager::Deallocate(index=" << index << ")" << std::endl;
+        std::free(allocated[index]);
     }
 };
+
+inline InteropCallbackResource MakeInteropCallbackResource(size_t sizeBytes, InteropNativePointer* data)
+{
+    static std::unordered_map<InteropInt32, int32_t> resources {};
+    InteropCallbackResource res{};
+    auto [allocated, index] = AllocationManager::Allocate(sizeBytes);
+    InteropInt32 castedIndex = static_cast<InteropInt32>(index);
+    resources[castedIndex] = 1;
+    if (data != nullptr) {
+        *data = allocated;
+    }
+    res.resourceId = index;
+    res.hold = [](InteropInt32 resourceId) {
+        std::cout << "InteropCallbackResource.hold called with resourceId = " << resourceId << std::endl;
+        resources[resourceId] += 1;
+
+    };
+    res.release = [](InteropInt32 resourceId) {
+        std::cout << "InteropCallbackResource.release called with resourceId = " << resourceId << std::endl;
+        resources[resourceId] -= 1;
+        if (resources[resourceId] <= 0) {
+            AllocationManager::Deallocate(resourceId);
+        }
+    };
+    return res;
+}
+
+inline OH_Buffer MakeOHBuffer(size_t sizeBytes)
+{
+    OH_Buffer res;
+    res.resource = MakeInteropCallbackResource(sizeBytes, &res.data);
+    res.length = sizeBytes;
+    return res;
+}
 
 struct DumpOHNumber {
     OH_Number value;
@@ -78,4 +120,4 @@ inline OH_Number addOHNumber(OH_Number x, OH_Number y) {
     return res;
 }
 
-#endif // OH_TEST_FQN_OH_COMMON_H_
+#endif // OH_TEST_OST_OH_COMMON_H_

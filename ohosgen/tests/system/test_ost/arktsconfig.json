@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "package": "@test-fqn",
+        "package": "@test-ost",
         "baseUrl": ".",
         "outDir": "build/panda/out",
         "paths": {

@@ -523,7 +523,7 @@ class FunctionBuilder<P> {
     }
     macro(name: string, ...args: (string | LWType)[]) {
         const annotation: MacroInvocation = {
-            kind: DecoratorKind.MacroCall,
+            kind: DecoratorKind.MacroInvocation,
             name,
             args,
         }
@@ -563,24 +563,25 @@ class FieldBuilder<P> {
     }
 }
 
-class StructBuilder {
-    constructor(private _name: string) {}
-    private _fields: { name: string, type: LWType, modifiers?: Modifier[] }[] = []
-    field(name: string): FieldBuilder<StructBuilder> {
+class StructLikeBuilder {
+    constructor(protected _name: string) {}
+    protected _fields: { name: string, type: LWType, modifiers?: Modifier[] }[] = []
+    field(name: string): FieldBuilder<this> {
         return new FieldBuilder((name, type, modifiers) => {
             this._fields.push({name, type, modifiers})
             return this
         }, name)
     }
+}
+
+class StructBuilder extends StructLikeBuilder {
     $(): StructureDeclaration {
         check("Struct", this._name)
         return D.struct(this._name, this._fields)
     }
 }
 
-class ClassBuilder {///extend StructB
-    constructor(private _name: string) {}
-    private _fields: { name: string, type: LWType, modifiers?: Modifier[] }[] = []
+class ClassBuilder extends StructLikeBuilder {
     private _methods: FunctionDeclaration[] = []
     private _oop: ClassDeclaration['oop'] = {
         kind: 'class',
@@ -590,12 +591,6 @@ class ClassBuilder {///extend StructB
     extends(type: LWType) { this._oop!.base = type; return this }
     implements(type: LWType) { this._oop!.implementations?.push(type); return this }
     interface() { this._oop!.kind = 'interface'; return this }
-    field(name: string): FieldBuilder<ClassBuilder> {
-        return new FieldBuilder((name, type, modifiers) => {
-            this._fields.push({name, type, modifiers})
-            return this
-        }, name)
-    }
     method(name: string): FunctionBuilder<ClassBuilder> {
         return new FunctionBuilder(func => {
             this._methods.push(func)

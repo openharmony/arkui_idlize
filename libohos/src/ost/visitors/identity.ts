@@ -294,12 +294,21 @@ export class IdentityTransformer {
   }
   goAnnotation(annotation:lw.Annotation): lw.Annotation {
     switch (annotation.kind) {
-      case lw.DecoratorKind.SimpleAnnotation: return annotation
-      case lw.DecoratorKind.MacroCall: return {
-        kind: annotation.kind,
-        name: annotation.name,
-        args: annotation.args.map(arg => typeof arg === 'string' ? arg : this.goType(arg))
-      }
+      case lw.DecoratorKind.SimpleAnnotation: return this.goSimpleAnnotation(annotation)
+      case lw.DecoratorKind.MacroInvocation: return this.goMacroInvocation(annotation)
+    }
+  }
+  goSimpleAnnotation(annotation: lw.SimpleAnnotation): lw.SimpleAnnotation {
+    return annotation
+  }
+  goMacroInvocation(annotation: lw.MacroInvocation): lw.MacroInvocation {
+    return {
+      kind: annotation.kind,
+      name: annotation.name,
+      args: annotation.args.map(arg =>
+        typeof arg === 'string' ? arg
+        : arg.kind === lw.LWKind.ValueType || arg.kind === lw.LWKind.FunctionalType ? this.goType(arg)
+        : this.goExpression(arg))
     }
   }
 }

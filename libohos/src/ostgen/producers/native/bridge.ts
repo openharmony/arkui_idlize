@@ -55,7 +55,7 @@ export const functionBridgeProducer = createSpecialProducer(
           if (!method.isFree && !method.isStatic) {
             params.unshift({ name: 'thisPtr', type: Ts.prim.pointer })
             apiCallArgs.unshift(E.v('thisPtr'))
-            macroArgs.push('OH_NativePointer')
+            macroArgs.push(Ts.prim.pointer)
           }
           macroName.push((macroArgs.length + (interopReturnType === Ts.prim.void ? 1 : 0)).toString())
 
@@ -78,8 +78,7 @@ export const functionBridgeProducer = createSpecialProducer(
               .parameters(params)
               .returns(interopReturnType)
               .body(body.$())
-              .macro(macroName.join(''),
-                ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
+              .macro(macroName.join(''), ...macroArgs, Ts.prim.serializerBuffer, Ts.prim.i32).$()
           ]
         }
       }
@@ -108,8 +107,7 @@ export const constructorBridgeProducer = createSpecialProducer(
               .return(Ts.prim.pointer)
                 .call(apiAccessor(ctor, funcName))
                 .args(callArgs).$().$().$()
-            .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`,
-              funcName, 'OH_NativePointer', ...interopParamTypes)
+            .macro(`KOALA_INTEROP_DIRECT_${callArgs.length}`, funcName, Ts.prim.pointer, ...interopParamTypes)
             .$()
           ]
         }

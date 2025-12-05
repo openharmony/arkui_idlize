@@ -2,20 +2,20 @@
 [loadLibraries] Loading InteropNativeModule [HUKSNativeModule]
 Starting demo: huks
 [loadLibraries] Loading HUKSNativeModule [HUKSNativeModule]
-huks_fooVoidVoidImpl()
-huks_fooVoidNumberImpl(arg)
+GlobalScope_fooVoidVoidImpl()
+GlobalScope_fooVoidNumberImpl(arg)
   arg = 100 (int32)
-huks_fooNumberVoidImpl()
+GlobalScope_fooNumberVoidImpl()
 fooNumberVoid() = 1
-huks_fooNumberNumberImpl(arg)
+GlobalScope_fooNumberNumberImpl(arg)
   arg = 200 (int32)
 fooNumberNumber(200) = 201
 ---- Begin: fooResultNumber(300) ----
-huks_fooResultNumberImpl(arg)
+GlobalScope_fooResultNumberImpl(arg)
   arg = 300 (int32)
 ---- Begin: fooNumberOptions({}) ----
-huks_fooNumberOptionsImpl(options)
+GlobalScope_fooNumberOptionsImpl(options)
 ---- Begin: generateKeyItemSync("ASDF", {}) ----
-huks_generateKeyItemSyncImpl(keyAlias, options)
+GlobalScope_generateKeyItemSyncImpl(keyAlias, options)
   keyAlias = ASDF
 All cases done.

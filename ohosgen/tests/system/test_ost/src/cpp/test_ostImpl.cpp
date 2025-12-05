@@ -1,0 +1,112 @@
+#include "test_ost.h"
+#include "oh_common.h"
+#include <iostream>
+
+struct Counted {
+    OH_Number index;
+
+    Counted() {
+        static int counter = 0;
+        index = {.tag = INTEROP_TAG_INT32, .i32 = ++counter};
+        std::cout << "  new Counted(" << index.i32 << ")" << std::endl;
+    }
+    ~Counted() {
+        std::cout << "  delete Counted(" << index.i32 << ")" << std::endl;
+    }
+};
+
+// Buffers
+OH_NativePointer buffers_Buffers_constructImpl() {
+    std::cout << "Buffers_ConstructImpl()" << std::endl;
+    return new Counted();
+}
+
+void buffers_Buffers_destructImpl(OH_NativePointer thisPtr) {
+    std::cout << "Buffers_destructImpl()" << std::endl;
+    delete reinterpret_cast<Counted*>(thisPtr);
+}
+
+OH_Buffer buffers_Buffers_getDataImpl(OH_NativePointer thisPtr) {
+    std::cout << "Buffers_getDataImpl()" << std::endl;
+    uint64_t data[4];
+    std::fill_n(data, std::size(data), 0x0123'4567'89AB'CDEF);
+    OH_Buffer res = MakeOHBuffer(sizeof(data));
+    std::memcpy(res.data, data, sizeof(data));
+    return res;
+}
+
+OH_TEST_OST_Result buffers_Buffers_getResultImpl(OH_NativePointer thisPtr) {
+    static int counter = 0;
+    counter += 100;
+    std::cout << "Buffers_getResultImpl()" << std::endl;
+    OH_TEST_OST_Result res;
+    res.index = {.tag = INTEROP_TAG_INT32, .i32 = counter};
+    uint32_t data[16];
+    std::fill_n(data, std::size(data), 0x1234'5678);
+    res.data = MakeOHBuffer(sizeof(data));
+    std::memcpy(res.data.data, data, sizeof(data));
+    return res;
+}
+
+// Callbacks
+OH_NativePointer callbacks_Callbacks_constructImpl() {
+    std::cout << "Callbacks_ConstructImpl()" << std::endl;
+    return new Counted();
+}
+
+void callbacks_Callbacks_destructImpl(OH_NativePointer thisPtr) {
+    std::cout << "Callbacks_destructImpl()" << std::endl;
+    delete reinterpret_cast<Counted*>(thisPtr);
+}
+
+OH_Number callbacks_Callbacks_getXImpl(OH_NativePointer thisPtr) {
+    std::cout << "Callbacks_getXImpl()" << std::endl;
+    return reinterpret_cast<Counted*>(thisPtr)->index;
+}
+
+void callbacks_Callbacks_callNumberImpl(OH_NativePointer thisPtr, const OH_Number* y, const OH_TEST_OST_Callback_Number* cb) {
+    std::cout << "Callbacks_callNumberImpl(thisPtr, y, cb)"
+              << "\n  y = " << DumpOHNumber(*y) << std::endl;
+    OH_Number sum = addOHNumber(reinterpret_cast<Counted*>(thisPtr)->index, *y);
+    cb->call(cb->resource.resourceId, sum);
+}
+
+void callbacks_Callbacks_callVoidImpl(OH_NativePointer thisPtr, const OH_TEST_OST_Callback_Void* cb) {
+    std::cout << "Callbacks_callVoidImpl(thisPtr, cb)" << std::endl;
+    cb->call(cb->resource.resourceId);
+}
+
+// FQN
+void fqnDeps_resizeImpl(const OH_TEST_OST_fqnDeps_Size* arg) {
+    std::cout << "resize(intSize="
+        << arg->intWidth << "x" << arg->intHeight
+        << ")" << std::endl;
+}
+
+void fqnDeps_fp_resizeImpl(const OH_TEST_OST_fqnDeps_fp_Size* arg) {
+    std::cout << "resize(floatSize="
+        << arg->floatWidth << "x" << arg->floatHeight
+        << ")" << std::endl;
+}
+
+void fqnMain_resizeImpl(const OH_TEST_OST_fqnMain_Size* arg) {
+    std::cout << "resize(numSize="
+        << DumpOHNumber(arg->numWidth) << "x" << DumpOHNumber(arg->numHeight)
+        << ")" << std::endl;
+}
+
+void fqnMain_resizeAllImpl(const OH_TEST_OST_Sizes* arg) {
+    fqnMain_resizeImpl(&arg->numSize);
+    fqnDeps_resizeImpl(&arg->intSize);
+    fqnDeps_fp_resizeImpl(&arg->floatSize);
+}
+
+void fqnMain_resize3Impl(
+    const OH_TEST_OST_fqnMain_Size* numSize,
+    const OH_TEST_OST_fqnDeps_Size* intSize,
+    const OH_TEST_OST_fqnDeps_fp_Size* floatSize
+) {
+    fqnMain_resizeImpl(numSize);
+    fqnDeps_resizeImpl(intSize);
+    fqnDeps_fp_resizeImpl(floatSize);
+}
