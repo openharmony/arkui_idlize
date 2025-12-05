@@ -59,6 +59,11 @@
                 "test_constructor",
                 "test_materialized_interfaces",
                 "test_return_buffer",
+                "test_props",
+                "test_force_context",
+                "test_inheritance",
+                "test_transform",
+                "test_union",
 
                 "idlize.stdlib",
                 "idlize.internal"
@@ -77,7 +82,13 @@
     "OptionalPrefix": "Opt_",
     "GenerateUnused": false,
     "dumpSerialized": false,
-    "ignoreMaterialized": [],
+    "ignoreMaterialized": [
+        "DataClass",
+        "ClassWithPrimitivePropertyType",
+        "ClassWithComplexPropertyType",
+        "TransformSrcC",
+        "TransformDstC"
+    ],
     "forceMaterialized": [
         "BaseContext",
         "CheckExceptionInterface",
@@ -101,7 +112,8 @@
         "customNodeTypes": [],
         "handWritten": [
             "HandwrittenComponent",
-            "IdlHandwrittenComponent"
+            "IdlHandwrittenComponent",
+            "TransformSrcCallbackC"
         ],
         "ignoreEntry": [],
         "ignoreEntryJava": [],
@@ -135,6 +147,24 @@
             }
         }
     },
+    "transformOnSerialize": [
+        {
+            "from": "test_transform.TransformSrcI",
+            "to": "test_transform.TransformDstI"
+        },
+        {
+            "from": "test_transform.TransformSrcC",
+            "to": "test_transform.TransformDstC"
+        },
+        {
+            "from": "test_transform.TransformSrcCallbackI",
+            "to": "test_transform.TransformDstCallbackI"
+        },
+        {
+            "from": "test_transform.TransformSrcCallbackC",
+            "to": "test_transform.TransformDstCallbackC"
+        }
+    ],
     "materialized": {
         "ignoreReturnTypes": []
     },

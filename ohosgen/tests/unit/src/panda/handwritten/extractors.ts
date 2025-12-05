@@ -2,6 +2,17 @@
 import { ExternalType, hookns, ImportedHookValue, ExternalClass } from "@external.lib"
 import { SDKExternalType } from "@external.lib.sdk"
 
+import {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+} from "#compat"
+
 class ExternalClassImpl implements ExternalClass {
 
     ptr: long

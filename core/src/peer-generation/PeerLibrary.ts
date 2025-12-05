@@ -295,8 +295,9 @@ export class PeerLibrary implements LibraryInterface {
             throw new Error(`Unexpected declaration ${declaration.kind}`)
         }
         if (idl.hasExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)) {
-            const targetRef = idl.createReferenceType(idl.getExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)!)
-            return new TransformOnSerializeConvertor(param, this, declaration, targetRef)
+            const sourceType = type
+            const targetType = toIdlType("", idl.getExtAttribute(declaration, idl.IDLExtendedAttributes.TransformOnSerialize)!)
+            return new TransformOnSerializeConvertor(param, this, declaration, sourceType, targetType)
         }
         if (idl.isEnum(declaration)) {
             return new EnumConvertor(param, declaration)

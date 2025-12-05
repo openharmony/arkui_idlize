@@ -426,14 +426,6 @@ export function getSyntheticTypesFileName(): string {
     return "synthetic_types"
 }
 
-export function getTransformer(library: LibraryInterface, from: idl.IDLNode, to: idl.IDLNode): { receiver?: string, method: string } {
-    const convertor = library.createTypeNameConvertor(Language.CPP)
-    return {
-        receiver: "extractors",
-        method: `transform_${convertor.convert(from)}_to_${convertor.convert(to)}`
-    }
-}
-
 export function removePoints(s: string) {
     return s.split(/[\.\-]/g).join('_')
 }
