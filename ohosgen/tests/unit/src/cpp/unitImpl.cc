@@ -727,6 +727,9 @@ OH_Number GlobalScope_test_return_types_returnNumberImpl() {
 OH_Boolean GlobalScope_test_return_types_returnBooleanImpl() {
     return 1;
 }
+UNIT_test_ret_Callback GlobalScope_test_return_types_returnCallbackImpl() {
+    return {};
+}
 OH_UInt64 GlobalScope_test_return_types_returnBitIntImpl() {
     return 100;
 }

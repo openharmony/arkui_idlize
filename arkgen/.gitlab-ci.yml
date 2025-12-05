@@ -30,6 +30,7 @@ arkgen ArkTS subset:
     - npm run -C arkgen gen:subset:arkts
     - npm run -C arkgen build:subset:arkts
     - npm run -C arkgen build-native:subset:arkts
+    - npm run -C arkgen/tests-template/arkts build
     - npm run -C arkgen exec:subset:arkts
   needs:
     - build idlize

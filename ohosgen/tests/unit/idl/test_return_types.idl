@@ -1,0 +1,22 @@
+package test_return_types;
+interface test_ret_A {
+    attribute number field;
+};
+interface test_ret_B {
+    number action();
+};
+callback test_ret_Callback = void ();
+namespace test_return_types {
+    void returnNothing();
+    number returnNumber();
+    boolean returnBoolean();
+    bigint returnBitInt();
+    String returnString();
+    test_ret_A returnInterface();
+    test_ret_B returnMaterialized();
+    sequence<number> returnNumberArray();
+    sequence<String> returnStringArray();
+    sequence<test_ret_A> returnInterfaceArray();
+    sequence<test_ret_B> returnMaterializedArray();
+    test_ret_Callback returnCallback();
+};
