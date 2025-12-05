@@ -36,6 +36,9 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
         if (idl.IDLContainerUtils.isSequence(type)) {
             return isInsideInstanceof() ? `Array` : `Array<${this.convert(type.elementType[0])}>`
         }
+        if (idl.IDLContainerUtils.isRecord(type) && idl.hasExtAttribute(type, idl.IDLExtendedAttributes.AsRecord)) {
+            return isInsideInstanceof() ? 'Record' : `Record<${this.convert(type.elementType[0])}, ${this.convert(type.elementType[1])}>`
+        }
         return super.convertContainer(type)
     }
     override convertPrimitiveType(type: idl.IDLPrimitiveType): string {

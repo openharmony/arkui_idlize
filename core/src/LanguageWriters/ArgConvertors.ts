@@ -747,9 +747,7 @@ export class MapConvertor extends BaseArgConvertor {
     valueConvertor: ArgConvertor
     constructor(private library: LibraryInterface, param: string, type: idl.IDLType, public keyType: idl.IDLType, public valueType: idl.IDLType) {
         super(
-            idl.createContainerType(
-                'record', [keyType, valueType]
-            ),
+            idl.createContainerType('record', [keyType, valueType], { extendedAttributes: type.extendedAttributes }),
             [RuntimeType.OBJECT],
             false,
             true,
