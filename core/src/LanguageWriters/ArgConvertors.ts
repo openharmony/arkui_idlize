@@ -1459,7 +1459,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                 }),
             ]
         }
-        const result = writer.makeLambda(callbackSignature, [
+        const closure = writer.makeLambda(callbackSignature, [
             writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('idlize.internal.SerializerBase'), writer.makeMethodCall('SerializerBase', 'hold', []), true),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `writeInt32`,
                 [writer.makeString(`${resourceName}.resourceId`)])),
@@ -1498,9 +1498,17 @@ export class CallbackConvertor extends BaseArgConvertor {
                     this.decl.returnType)
                 : undefined),
         ])
+        writer.addFeature(idl.createReferenceType('idlize.internal.resourceFinalizerRegister'))
+        statements.push(
+            writer.makeAssign(`${bufferName}Closure`, undefined, closure, true),
+            writer.makeStatement(writer.makeFunctionCall(`resourceFinalizerRegister`, [
+                writer.makeString(`${bufferName}Closure`),
+                writer.makeString(resourceName)
+            ])),
+        )
         return writer.makeBlock([
             ...statements,
-            assigneer(result)
+            assigneer(writer.makeString(`${bufferName}Closure`))
         ], false)
     }
     nativeType(): idl.IDLType {

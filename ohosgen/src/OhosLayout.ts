@@ -47,7 +47,8 @@ export class OhosTsLayout implements LayoutManagerStrategy {
     protected readonly interopObjects = [
         'SerializerBase', 
         'DeserializerBase',
-        'Finalizable'
+        'Finalizable',
+        'resourceFinalizerRegister'
     ]
 
     protected selectInterface(node: idl.IDLEntry): string {
@@ -118,6 +119,7 @@ export class OhosKotlinLayout implements LayoutManagerStrategy {
         "SerializerBase", 
         "DeserializerBase",
         "Finalizable",
+        "resourceFinalizerRegister"
     ]
 
     private selectInteropPath() {

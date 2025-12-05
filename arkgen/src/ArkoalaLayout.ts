@@ -91,6 +91,7 @@ export class TsLayout extends CommonLayoutBase {
     private tsInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["CallbackTransformer", "./CallbackTransformer"],
@@ -124,6 +125,7 @@ export class ArkTsLayout extends CommonLayoutBase {
     protected arkTSInternalPaths = new Map<string, string>([
         ["SerializerBase", "@koalaui/interop"],
         ["DeserializerBase", "@koalaui/interop"],
+        ["resourceFinalizerRegister", "@koalaui/interop"],
         ["CallbackKind", getGeneratedFilePath("peers/CallbackKind")],
         ["deserializeAndCallCallback", getGeneratedFilePath("peers/CallbackDeserializeCall")],
         ["checkArkoalaCallbacks", "./CallbacksChecker"],
@@ -225,6 +227,7 @@ export class KotlinLayout extends CommonLayoutBase {
     protected KotlinInternalPaths = new Map<string, string>([
         ["SerializerBase", "koalaui.interop"],
         ["DeserializerBase", "koalaui.interop"],
+        ["resourceFinalizerRegister", "koalaui.interop"],
     ])
     resolve(target: idl.LayoutTargetDescription): string {
         if (this.KotlinInternalPaths.has(target.node.name))

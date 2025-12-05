@@ -5,6 +5,7 @@
   "description": "idlize hash of head: acf352e",
   "workspaces": [
     "arkgen",
+    "arkgen/tests-template/arkts",
     "ohosgen/demos/*",
     "ohosgen/tests/*",
     "ohosgen",

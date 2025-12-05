@@ -71,7 +71,7 @@ build external:
         - external/ui2abc/fast-arktsc/lib
         - external/ui2abc/memo-plugin-ng/lib
         - external/ui2abc/ui-plugins-ng/lib
-        - external/common/build/lib
+        - external/common/build
         - external/compat/build
         - external/incremental/runtime/build/lib
         - external/incremental/runtime/build/incremental.abc

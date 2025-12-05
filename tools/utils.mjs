@@ -53,8 +53,7 @@ export class Package {
             execSync(`npm run ${script}`, { encoding: 'utf-8', stdio: 'inherit' })
         } catch(e) {
             console.log(`cannot compile package: ${this.name()}`, e)
-            // TODO uncomment when crosscompilation will be established on CI
-            // throw e
+            throw e
         }
     }
 

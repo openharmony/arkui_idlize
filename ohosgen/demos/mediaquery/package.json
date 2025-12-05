@@ -2,7 +2,7 @@
     "name": "demo-mediaquery",
     "private": true,
     "devDependencies": {
-        "@koalaui/fast-arktsc": "1.7.12",
+        "@koalaui/fast-arktsc": "1.7.13",
         "@rollup/plugin-inject": "^5.0.5",
         "@rollup/plugin-node-resolve": "^15.3.0",
         "@rollup/plugin-typescript": "^11.1.6",
