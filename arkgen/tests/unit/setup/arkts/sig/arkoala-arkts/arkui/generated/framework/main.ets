@@ -25,6 +25,8 @@ import {
     ArkCheckExceptionComponent,
     ArkCheckOptionalPeer,
     ArkCheckOptionalComponent,
+    ArkCheckTransformPeer,
+    ArkCheckTransformComponent,
 } from "./."
 
 import { InteropNativeModule } from "@koalaui/interop"
@@ -141,6 +143,16 @@ function checkOptional() {
         `setMethodOptional({.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}}, {.tag=INTEROP_TAG_UNDEFINED, .value={}})`)
 }
 
+function checkTransformOnSerialize() {
+    let peer = ArkCheckTransformPeer.create()
+    const comp = new ArkCheckTransformComponent()
+    comp.setPeer(peer)
+    checkResult("sample", () => comp.sample({flag: true}), `setSample({.flag=true})`)
+    checkResult("sampleTransform", () => comp.sampleTransform({text: "abc"}), `setSampleTransform({.length={.tag=102, .i32=3}})`)
+    checkResult("sampleUnionTransform", () => comp.sampleUnionTransform({flag: true}), `setSampleUnionTransform({.selector=0, .value0={.flag=true}})`)
+    checkResult("sampleUnionTransform", () => comp.sampleUnionTransform({text: "defgh"}), `setSampleUnionTransform({.selector=1, .value1={.length={.tag=102, .i32=5}}})`)
+}
+
 export function main(): void {
     initNatives()
 
@@ -148,6 +160,7 @@ export function main(): void {
     checkHooks()
     checkExceptions()
     checkOptional()
+    checkTransformOnSerialize()
 
     if (hasTestErrors) {
         throw new Error("Tests failed!")

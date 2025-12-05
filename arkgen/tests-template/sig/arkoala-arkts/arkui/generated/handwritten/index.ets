@@ -34,6 +34,8 @@ import { BusinessErrorInterface, PageMapNodeBuilder } from "../framework"
 import { BusinessError } from "../framework/ohos.base"
 import { pointer } from "@koalaui/interop"
 
+import { CustomNodeBuilder } from "../CallbackTransformer"
+
 // Imports for Initializers
 import { SymbolGlyphModifier, RectResult, TouchTestStrategy } from "../framework"
 
@@ -242,6 +244,14 @@ export namespace extractors {
     export function transform_PageMapBuilder_to_PageMapNodeBuilder(from: PageMapBuilder): PageMapNodeBuilder {
         throw new Error("Not implemented")
     }
+
+    export function transform_Ark_ExtendableComponent_to_CustomNodeBuilder(comp: ExtendableComponent): CustomNodeBuilder {
+        return (parentNode) => { return 123 }
+    }
+
+    export function transform_CustomNodeBuilder_to_Ark_ExtendableComponent(builder: CustomNodeBuilder): ExtendableComponent {
+        return new ExtendableComponentImpl()
+    }
 }
 
 export namespace typechecks {
@@ -297,6 +307,11 @@ export interface LifeCycle {
     build(): void
 }
 export abstract class ExtendableComponent implements LifeCycle {}
+
+class ExtendableComponentImpl extends ExtendableComponent {
+    override build(): void {
+    }
+}
 
 export interface CustomDialogControllerOptions {}
 export class CustomDialogController {

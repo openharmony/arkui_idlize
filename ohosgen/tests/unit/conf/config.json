@@ -63,6 +63,7 @@
                 "test_props",
                 "test_force_context",
                 "test_inheritance",
+                "test_transform",
                 "test_union",
 
                 "idlize.stdlib",
@@ -85,7 +86,9 @@
     "ignoreMaterialized": [
         "DataClass",
         "ClassWithPrimitivePropertyType",
-        "ClassWithComplexPropertyType"
+        "ClassWithComplexPropertyType",
+        "TransformSrcC",
+        "TransformDstC"
     ],
     "forceMaterialized": [
         "application.BaseContext.BaseContext",
@@ -112,7 +115,8 @@
         "customNodeTypes": [],
         "handWritten": [
             "HandwrittenComponent",
-            "IdlHandwrittenComponent"
+            "IdlHandwrittenComponent",
+            "TransformSrcCallbackC"
         ],
         "ignoreEntry": [],
         "ignoreComponents": [],
@@ -166,6 +170,24 @@
             }
         }
     },
+    "transformOnSerialize": [
+        {
+            "from": "test_transform.TransformSrcI",
+            "to": "test_transform.TransformDstI"
+        },
+        {
+            "from": "test_transform.TransformSrcC",
+            "to": "test_transform.TransformDstC"
+        },
+        {
+            "from": "test_transform.TransformSrcCallbackI",
+            "to": "test_transform.TransformDstCallbackI"
+        },
+        {
+            "from": "test_transform.TransformSrcCallbackC",
+            "to": "test_transform.TransformDstCallbackC"
+        }
+    ],
     "materialized": {
         "ignoreReturnTypes": []
     },

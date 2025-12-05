@@ -1255,6 +1255,7 @@ OH_UNIT_UnionSampleTupleArrayInterface GlobalScope_checkUnionTupleArraySampleImp
 }
 OH_UNIT_UnionSampleGenericTypeInterface GlobalScope_checkUnionGenericTypeSampleImpl(const OH_UNIT_UnionSampleGenericTypeInterface* value) {
     return *value;
+
 }
 void GlobalScope_generics_callWithDefaultsBImpl(const OH_UNIT_generics_WithDefaultsB_generics_WithDefaultsA_Number* value) {
 }
@@ -1262,4 +1263,37 @@ void GlobalScope_generics_callWithDefaultsBImpl(const OH_UNIT_generics_WithDefau
 OH_UNIT_GestureType GlobalScope_getBaseGestureTypeImpl(OH_NativePointer ptr) {
     BaseGesture* gesturePtr = reinterpret_cast<BaseGesture*>(ptr);
     return gesturePtr->getType();
+}
+
+void checkTransformFlagToState(OH_Boolean flag, InteropNumber state) {
+    if (state.tag != INTEROP_TAG_INT32) {
+        INTEROP_FATAL("Check transform value state %d does not equal to %d\n", state.tag, INTEROP_TAG_INT32)
+    }
+    if (!flag && state.i32 != 0) {
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 0)
+    }
+    if (flag && state.i32 != 1) {
+        INTEROP_FATAL("Check transform value %d does not equal to %d\n", state.i32, 1)
+    }
+}
+
+// Transform on serialize
+OH_UNIT_TransformDstC GlobalScope_checkTransformDstCImpl(const OH_UNIT_TransformDstC* value, OH_Boolean flag) {
+    checkTransformFlagToState(flag, value->state);
+    return *value;
+}
+
+OH_UNIT_TransformDstI GlobalScope_checkTransformDstIImpl(const OH_UNIT_TransformDstI* value, OH_Boolean flag) {
+    checkTransformFlagToState(flag, value->state);
+    return *value;
+}
+
+UNIT_TransformDstCallbackI GlobalScope_checkTransformSrcIToCallbackImpl(const UNIT_TransformDstCallbackI* value, OH_Boolean flag) {
+    value->resource.hold(value->resource.resourceId);
+    return *value;
+}
+
+UNIT_TransformDstCallbackC GlobalScope_checkTransformSrcCToCallbackImpl(const UNIT_TransformDstCallbackC* value, OH_Boolean flag) {
+    value->resource.hold(value->resource.resourceId);
+    return *value;
 }

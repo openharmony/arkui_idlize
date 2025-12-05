@@ -1055,7 +1055,7 @@ export class UnionConvertor extends BaseArgConvertor {
         return false
     }
     convertorSerialize(param: string, value: string, printer: LanguageWriter): LanguageStatement {
-        const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, it.idlType))
+        const convertorItems = this.memberConvertors.map((it, index) => new ConvertorItem(it, index, getSourceType(it)))
         if (this.isIndexedDiscriminator(printer))
             return printer.makeMultiBranchCondition(convertorItems.map(it => this.makeBranch(param, value, printer, it)));
         // Make arrays type descrimination
@@ -1080,7 +1080,7 @@ export class UnionConvertor extends BaseArgConvertor {
             const varName = `${value}ForIdx${index}`
             statements.push(
                 printer.makeAssign(varName, undefined,
-                    printer.makeUnionVariantCast(convertor.getObjectAccessor(printer.language, value), printer.getNodeName(convertor.idlType), convertor, index), true)
+                    printer.makeUnionVariantCast(convertor.getObjectAccessor(printer.language, value), printer.getNodeName(getSourceType(convertor)), convertor, index), true)
             )
             statements.push(convertor.convertorSerialize(param, varName, printer))
         }
@@ -1610,10 +1610,16 @@ class PromiseOutArgConvertor extends BaseArgConvertor {
 
 export class TransformOnSerializeConvertor extends BaseArgConvertor {
     private targetConvertor: ArgConvertor
-    constructor(param: string, protected library: PeerLibrary, protected managedDeclaration: idl.IDLEntry, protected target: idl.IDLType) {
+    constructor(param: string, protected library: PeerLibrary, protected managedDeclaration: idl.IDLEntry, protected source: idl.IDLType, protected target: idl.IDLType) {
         const targetConvertor = library.typeConvertor(param, target)
         super(target, targetConvertor.runtimeTypes, false, targetConvertor.useArray, param)
         this.targetConvertor = targetConvertor
+    }
+    getSourceType(): idl.IDLType {
+        return this.source
+    }
+    getTargetType(): idl.IDLType {
+        return this.target
     }
     isPointerType(): boolean {
         return this.targetConvertor.isPointerType()
@@ -1624,6 +1630,11 @@ export class TransformOnSerializeConvertor extends BaseArgConvertor {
     convertorArg(param: string, writer: LanguageWriter): string {
         throw new Error("Method not implemented.");
     }
+    addImport(transformerInfo: { module: string, ns?: string, method: string }, writer: LanguageWriter) {
+        transformerInfo.ns
+            ? writer.addFeature(transformerInfo.ns, transformerInfo.module)
+            : writer.addFeature(transformerInfo.method, transformerInfo.module)
+    }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
         if (writer.language === Language.CPP) {
             return this.targetConvertor.convertorSerialize(param, value, writer)
@@ -1632,8 +1643,9 @@ export class TransformOnSerializeConvertor extends BaseArgConvertor {
             writer.addFeature(this.target)
         }
         const transformerInfo = getTransformer(this.library, this.managedDeclaration, this.target)
-        const transformCallExpression = transformerInfo.receiver
-            ? writer.makeMethodCall(transformerInfo.receiver, transformerInfo.method, [writer.makeString(value)])
+        this.addImport(transformerInfo, writer)
+        const transformCallExpression = transformerInfo.ns
+            ? writer.makeMethodCall(transformerInfo.ns, transformerInfo.method, [writer.makeString(value)])
             : writer.makeFunctionCall(transformerInfo.method, [writer.makeString(value)])
         const statements = [
             writer.makeAssign(`${value}Transformed`, this.target, transformCallExpression, true),
@@ -1655,8 +1667,9 @@ export class TransformOnSerializeConvertor extends BaseArgConvertor {
             writer,
         )
         const transformerInfo = getTransformer(this.library, this.target, this.managedDeclaration)
-        const transformCallExpression = transformerInfo.receiver
-            ? writer.makeMethodCall(transformerInfo.receiver, transformerInfo.method, [writer.makeString(`${bufferName}Deserialized`)])
+        this.addImport(transformerInfo, writer)
+        const transformCallExpression = transformerInfo.ns
+            ? writer.makeMethodCall(transformerInfo.ns, transformerInfo.method, [writer.makeString(`${bufferName}Deserialized`)])
             : writer.makeFunctionCall(transformerInfo.method, [writer.makeString(`${bufferName}Deserialized`)])
         return writer.makeBlock([
             targetDeserialize,
@@ -1799,3 +1812,9 @@ export function flattenUnionType(library: LibraryInterface, type: idl.IDLType): 
     return type
 }
 
+function getSourceType(convertor: ArgConvertor): idl.IDLType {
+    if (convertor instanceof TransformOnSerializeConvertor) {
+        return convertor.getSourceType()
+    }
+    return convertor.idlType
+}

@@ -6,6 +6,16 @@ import { SDKExternalType } from "@external.lib.sdk"
 
 import { BaseGesture, DerivedGesture1, DerivedGesture2, GestureType, getBaseGestureType } from "#compat"
 
+import {
+    TransformSrcI,
+    TransformDstI,
+    TransformSrcC,
+    TransformDstC,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
+    TransformSrcCallbackC,
+    TransformDstCallbackC,
+} from "#compat"
 
 class ExternalClassImpl implements ExternalClass {
 
@@ -75,5 +85,52 @@ export namespace extractors {
             case GestureType.First: return new DerivedGesture1(ptr)
             default: return new DerivedGesture2(ptr)
         }
+    }
+
+    export function transform_OH_UNIT_TransformSrcI_to_OH_UNIT_TransformDstI(fromI: TransformSrcI): TransformDstI {
+        const result: TransformDstI = {
+            state: fromI.flag ? 1 : 0
+        }
+        return result
+    }
+
+    export function transform_OH_UNIT_TransformDstI_to_OH_UNIT_TransformSrcI(toI: TransformDstI): TransformSrcI {
+        const result: TransformSrcI = {
+            flag: toI.state > 0
+        }
+        return result
+    }
+
+    export function transform_OH_UNIT_TransformSrcC_to_OH_UNIT_TransformDstC(fromC: TransformSrcC): TransformDstC {
+        const result = new TransformDstC();
+        result.state = fromC.flag ? 1 : 0
+        return result
+    }
+
+    export function transform_OH_UNIT_TransformDstC_to_OH_UNIT_TransformSrcC(toC: TransformDstC): TransformSrcC {
+        const result = new TransformSrcC()
+        result.flag = toC.state > 0
+        return result
+    }
+    export function transform_OH_UNIT_TransformSrcCallbackI_to_UNIT_TransformDstCallbackI(comp: TransformSrcCallbackI): TransformDstCallbackI {
+        return comp.flag ? (value: boolean) => { return !value } : (value: boolean) => { return value }
+    }
+
+    export function transform_UNIT_TransformDstCallbackI_to_OH_UNIT_TransformSrcCallbackI(callback: TransformDstCallbackI): TransformSrcCallbackI {
+        const result: TransformSrcCallbackI = {
+            flag: callback(true)
+        }
+        return result
+    }
+
+    export function transform_OH_UNIT_TransformSrcCallbackC_to_UNIT_TransformDstCallbackC(comp: TransformSrcCallbackC): TransformDstCallbackC {
+        return comp.flag ? (value: boolean) => { return !value } : (value: boolean) => { return value }
+    }
+
+    export function transform_UNIT_TransformDstCallbackC_to_OH_UNIT_TransformSrcCallbackC(callback: TransformDstCallbackC): TransformSrcCallbackC {
+        const result: TransformSrcCallbackC = {
+            flag: callback(true)
+        }
+        return result
     }
 }

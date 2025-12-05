@@ -39,7 +39,8 @@ export function collectDeclarationTargetsUncached(library: LibraryInterface, opt
         for (const entry of idl.linearizeNamespaceMembers(file.entries)) {
             if (peerGeneratorConfiguration().ignoreEntry(entry.name, library.language) ||
                 isInIdlize(entry) ||
-                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation)
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.HandWrittenImplementation) ||
+                idl.hasExtAttribute(entry, idl.IDLExtendedAttributes.TransformOnSerialize)
                 )
                 continue
             if (idl.isInterface(entry)) {

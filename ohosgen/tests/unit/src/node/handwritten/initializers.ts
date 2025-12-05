@@ -29,4 +29,16 @@ export namespace initializers {
             export const propObject = [false, 0, "value"]
         }
     }
+
+    export namespace test_transform {
+        export namespace TransformSrcCNS {
+            export const flag = true
+        }
+        export namespace TransformDstCNS {
+            export const state = 1
+        }
+        export namespace TransformSrcCallbackCNS {
+            export const flag = true
+        }
+    }
 }

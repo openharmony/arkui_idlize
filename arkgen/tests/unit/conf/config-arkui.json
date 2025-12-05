@@ -73,6 +73,12 @@
             }
         }
     },
+    "transformOnSerialize": [
+        {
+            "from": "arkui.component.check.transform.SampleTransformSrcI",
+            "to": "arkui.component.check.transform.SampleTransformDstI"
+        }
+    ],
     "dummy": {
         "ignoreMethods": {
             "RenderServiceNode": [

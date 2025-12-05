@@ -20,6 +20,8 @@ import { image } from "@ohos.multimedia.image"
 import { BusinessErrorInterface, PageMapNodeBuilder, PageMapBuilder } from "../framework"
 import { BusinessError } from "../framework/ohos.base"
 
+import { CustomNodeBuilder } from "../framework"
+
 export interface PageTransitionExitInterface {}
 export interface CommonTransition {}
 export interface NavigationAttribute {}
@@ -172,6 +174,14 @@ export namespace extractors {
     export function transform_PageMapBuilder_to_PageMapNodeBuilder(from: PageMapBuilder): PageMapNodeBuilder {
         throw new Error("Not implemented")
     }
+
+    export function transform_Ark_ExtendableComponent_to_CustomNodeBuilder(comp: ExtendableComponent): CustomNodeBuilder {
+        return (parentNode) => { return 123 }
+    }
+
+    export function transform_CustomNodeBuilder_to_Ark_ExtendableComponent(builder: CustomNodeBuilder): ExtendableComponent {
+        return new ExtendableComponentImpl()
+    }
 }
 
 export function hookButtonContentModifier(receiver: object, value?: ContentModifier<object>) {}
@@ -201,6 +211,11 @@ export interface LifeCycle {
 }
 export abstract class ExtendableComponent implements LifeCycle {
     abstract build(): void
+}
+
+class ExtendableComponentImpl extends ExtendableComponent {
+    override build(): void {
+    }
 }
 
 export interface CustomDialogControllerOptions {}

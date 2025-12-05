@@ -8,6 +8,7 @@
     "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [
+        "ExtendableComponent",
         "AnimatableArithmetic",
         "CustomLayoutRoot",
         "DynamicNode",
@@ -439,6 +440,10 @@
         {
             "from": "arkui.component.builder.CustomBuilderT",
             "to": "arkui.component.idlize.CustomNodeBuilderT"
+        },
+        {
+            "from": "arkui.component.extendableComponent.ExtendableComponent",
+            "to": "arkui.component.idlize.CustomNodeBuilder"
         }
     ],
     "forceCallback": {
@@ -463,7 +468,6 @@
         "ComponentContent",
         "ComponentContentBase",
         "ImageModifier",
-        "ExtendableComponent",
         "UserDataSpan",
         "arkui.component.pluginComponent.RecordData",
         "arkui.component.uiExtensionComponent.RecordData",
@@ -522,6 +526,7 @@
             "CustomNode"
         ],
         "handWritten": [
+            "ExtendableComponent",
             "LocalStorage",
             "SyncedPropertyOneWay",
             "SubscribedAbstractProperty",
