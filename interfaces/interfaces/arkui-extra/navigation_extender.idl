@@ -6,14 +6,14 @@ import arkui.component.navigation.NavigationOptions as NavigationOptions;
 
 callback NavExtender_OnUpdateStack = void ();
 callback NavExtender_CreateNavDestination = pointer (i32 index);
+callback NavExtender_PageMapNodeBuilder = pointer (String url, optional Object params);
 
 [Entity=Class]
 interface NavExtender {
   static void setNavigationOptions(pointer ptr, NavPathStack pathStack);
   static void setUpdateStackCallback(NavPathStack peer, NavExtender_OnUpdateStack callback);
+  static void setNavDestinationBuilderCallback(pointer navigation, NavExtender_PageMapNodeBuilder callback);
   static void syncStack(NavPathStack peer);
-  static boolean checkNeedCreate(pointer navigation, i32 index);
-  static void setNavDestinationNode(NavPathStack peer, i32 index, pointer node);
   static void pushPath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static void replacePath(NavPathStack pathStack, NavPathInfo info, NavigationOptions options);
   static String pop(NavPathStack pathStack, boolean animated);
