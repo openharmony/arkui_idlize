@@ -40,6 +40,10 @@
         {
             "from": "arkui.component.builder.CustomBuilderT",
             "to": "arkui.component.idlize.CustomNodeBuilderT"
+        },
+        {
+            "from": "arkui.component.waterFlow.WaterFlowSections",
+            "to": "arkui.component.idlize.WaterFlowSectionsInterface"
         }
     ],
     "forceMaterialized": [
@@ -603,6 +607,9 @@
             "CustomNode"
         ],
         "handWritten": [
+            "CustomDialogControllerOptions",
+            "CustomDialogControllerExternalOptions",
+            "CustomDialogController",
             "EmbeddedComponentAttribute",
             "EmbeddedComponent",
             "EmbeddedComponentImpl",
@@ -658,7 +665,8 @@
             "SwipeGestureHandler",
             "GestureType",
             "Badge",
-            "ChildrenMainSize"
+            "ChildrenMainSize",
+            "WaterFlowSections"
         ],
         "ignoreEntry": [
             "Optional",
@@ -727,28 +735,6 @@
         ]
     },
     "hooks": {
-        "WaterFlowSections": {
-            "splice": {
-                "hookName": "hookWaterSectionsSplice",
-                "replaceImplementation": true
-            },
-            "push": {
-                "hookName": "hookWaterSectionsPush",
-                "replaceImplementation": true
-            },
-            "update": {
-                "hookName": "hookWaterSectionsUpdate",
-                "replaceImplementation": true
-            },
-            "values": {
-                "hookName": "hookWaterSectionsValues",
-                "replaceImplementation": true
-            },
-            "length": {
-                "hookName": "hookWaterSectionsLength",
-                "replaceImplementation": true
-            }
-        },
         "DragEventInternal": {
             "startDataLoading": {
                 "hookName": "hookDragEventStartDataLoading",
