@@ -128,7 +128,9 @@ export namespace extractors {
     }
 
     export function transform_OH_UNIT_TransformSrcCallbackC_to_UNIT_TransformDstCallbackC(comp: TransformSrcCallbackC): TransformDstCallbackC {
-        return comp.flag ? (value: boolean) => { return !value } : (value: boolean) => { return value }
+        return comp.flag
+            ? (value: boolean) => { return !value }
+            : (value: boolean) => { return value }
     }
 
     export function transform_UNIT_TransformDstCallbackC_to_OH_UNIT_TransformSrcCallbackC(callback: TransformDstCallbackC): TransformSrcCallbackC {

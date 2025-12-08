@@ -148,9 +148,10 @@ function checkTransformOnSerialize() {
     const comp = new ArkCheckTransformComponent()
     comp.setPeer(peer)
     checkResult("sample", () => comp.sample({flag: true}), `setSample({.flag=true})`)
-    checkResult("sampleTransform", () => comp.sampleTransform({text: "abc"}), `setSampleTransform({.length={.tag=102, .i32=3}})`)
-    checkResult("sampleUnionTransform", () => comp.sampleUnionTransform({flag: true}), `setSampleUnionTransform({.selector=0, .value0={.flag=true}})`)
-    checkResult("sampleUnionTransform", () => comp.sampleUnionTransform({text: "defgh"}), `setSampleUnionTransform({.selector=1, .value1={.length={.tag=102, .i32=5}}})`)
+    checkResult("sampleTransformI", () => comp.sampleTransformI({text: "abc"}), `setSampleTransformI({.length={.tag=102, .i32=3}})`)
+    checkResult("sampleTransformCallback", () => comp.sampleTransformCallback({flag: true }), `setSampleTransformCallback({.resource={.resourceId=100, .hold=0, .release=0}, .call=0})`)
+    checkResult("sampleTransformUnion", () => comp.sampleTransformUnion({flag: true}), `setSampleTransformUnion({.selector=0, .value0={.flag=true}})`)
+    checkResult("sampleTransformUnion", () => comp.sampleTransformUnion({text: "defgh"}), `setSampleTransformUnion({.selector=1, .value1={.length={.tag=102, .i32=5}}})`)
 }
 
 export function main(): void {

@@ -18,9 +18,16 @@ package handwritten.extractors
 import koalaui.arkoala.SampleTransformSrcI
 import koalaui.arkoala.SampleTransformDstI
 
+import koalaui.arkoala.TransformSrcCallbackI
+import koalaui.arkoala.TransformDstCallbackI
+
 class SampleTransformDstIImpl(public override var length: Double) : SampleTransformDstI {
 }
 
 fun transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(value: SampleTransformSrcI): SampleTransformDstI {
     return SampleTransformDstIImpl(value.text.length.toDouble())
+}
+
+fun transform_Ark_TransformSrcCallbackI_to_TransformDstCallbackI(src: TransformSrcCallbackI): TransformDstCallbackI {
+    return { value: Boolean ->  !value }
 }

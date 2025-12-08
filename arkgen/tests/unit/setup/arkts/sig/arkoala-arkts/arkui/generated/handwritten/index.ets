@@ -17,6 +17,8 @@ import { ArkCheckHooksComponent, ArkCheckHooksPeer } from '../framework'
 import {
     SampleTransformSrcI,
     SampleTransformDstI,
+    TransformSrcCallbackI,
+    TransformDstCallbackI,
 } from '../framework'
 
 export interface AttributeModifier<T> {
@@ -70,5 +72,11 @@ export namespace extractors {
     export function transform_Ark_SampleTransformSrcI_to_Ark_SampleTransformDstI(src: SampleTransformSrcI): SampleTransformDstI {
         const result: SampleTransformDstI = { length: src.text.length }
         return result
+    }
+
+    export function transform_Ark_TransformSrcCallbackI_to_TransformDstCallbackI(src: TransformSrcCallbackI): TransformDstCallbackI {
+        return src.flag
+            ? (value: boolean) => { return !value }
+            : (value: boolean) => { return value }
     }
 }

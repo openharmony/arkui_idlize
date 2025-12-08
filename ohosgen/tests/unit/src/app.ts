@@ -618,14 +618,14 @@ function checkTransformOnSerialize() {
   assertEQ(false, resultTransformSrcCallbackI.flag)
 
   // TBD: fix ArkTS
-  // let transformSrcCallbackC: TransformSrcCallbackC = new TransformSrcCallbackC()
-  // transformSrcCallbackC.flag = false
-  // let resultTransformSrcCallbackC: TransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, false)
-  // assertEQ(true, resultTransformSrcCallbackC.flag)
+  let transformSrcCallbackC: TransformSrcCallbackC = new TransformSrcCallbackC()
+  transformSrcCallbackC.flag = false
+  let resultTransformSrcCallbackC: TransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, false)
+  assertEQ(true, resultTransformSrcCallbackC.flag)
 
-  // transformSrcCallbackC.flag = true
-  // resultTransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, true)
-  // assertEQ(false, resultTransformSrcCallbackC.flag)
+  transformSrcCallbackC.flag = true
+  resultTransformSrcCallbackC = checkTransformSrcCToCallback(transformSrcCallbackC, true)
+  assertEQ(false, resultTransformSrcCallbackC.flag)
 }
 
 export function run() {

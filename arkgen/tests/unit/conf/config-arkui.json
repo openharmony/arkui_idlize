@@ -77,6 +77,10 @@
         {
             "from": "arkui.component.check.transform.SampleTransformSrcI",
             "to": "arkui.component.check.transform.SampleTransformDstI"
+        },
+        {
+            "from": "arkui.component.check.transform.TransformSrcCallbackI",
+            "to": "arkui.component.check.transform.TransformDstCallbackI"
         }
     ],
     "dummy": {
