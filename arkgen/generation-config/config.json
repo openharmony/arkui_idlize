@@ -8,7 +8,6 @@
     "ApiVersion": 9999,
     "dumpSerialized": false,
     "ignoreMaterialized": [
-        "ExtendableComponent",
         "AnimatableArithmetic",
         "CustomLayoutRoot",
         "DynamicNode",
