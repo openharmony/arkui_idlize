@@ -3,7 +3,7 @@ package arkui.component.idlize;
 import arkui.component.units;
 import arkui.component.common;
 import arkui.Graphics.Frame as Frame;
-import global.resource.Resource as Resource;
+import global.resource.Resource as Resource; 
 import ohos.arkui.observer.default as observer;
 
 callback Callback_RangeUpdate = void (i32 start, i32 end, i32 cacheStart, i32 cacheEnd, boolean isLoop);
@@ -37,6 +37,8 @@ interface UIContextGetInfo {
     static void enableSwipeBack((boolean or undefined) enabled);
 };
 
+callback Callback_Long_Void = void (i64 value);
+
 [Entity=Class]
 interface SystemOps {
     static pointer StartFrame();
@@ -45,7 +47,7 @@ interface SystemOps {
     static void restoreInstanceId();
     static i32 getResourceId(String bundleName, String moduleName, sequence<String> params);
     static void resourceManagerReset();
-    static void setFrameCallback(Callback_Number_Void onFrameCallback, Callback_Number_Void onIdleCallback, number delayTime);
+    static void setFrameCallback(Callback_Long_Void onFrameCallback, Callback_Long_Void onIdleCallback, i64 delayTime);
     static sequence<number> colorMetricsResourceColor(Resource color);
     static LengthMetricsCustom resourceToLengthMetrics(Resource res);
     static sequence<number> blendColorByColorMetrics(number color, number overlayColor);
@@ -236,7 +238,6 @@ interface NodeContainerOps {
     static void setAboutToResize(pointer self, Callback_Size_Void value);
     static void setOnAttach(pointer self, Callback_Void value);
     static void setOnDetach(pointer self, Callback_Void value);
-    static void setOnTouchEvent(pointer self, optional Callback_TouchEvent_Void value);
     static void setOnDestoryEvent(pointer self, Callback_OnDestory_Void value);
 };
 callback Callback_Size_Void = void (Size size);
