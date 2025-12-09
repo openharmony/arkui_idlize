@@ -264,9 +264,16 @@ export class BridgeCcVisitor {
 
     // stub
     private mapToKTypes(type:idl.IDLType): string | undefined {
-        switch (type) {
-            case idl.IDLStringType: return 'KStringPtr'
-            case idl.IDLNumberType: return 'KInteropNumber'
+        let resolvedType = type
+        if (idl.isReferenceType(type)) {
+            const found = this.library.resolveTypeReference(type)
+            if (found && idl.isTypedef(found)) {
+                resolvedType = found.type
+            }
+        }
+        switch (resolvedType) {
+            case idl.IDLStringType: return 'KInteropReturnBuffer'
+            case idl.IDLNumberType: return 'KInteropNumber';
         }
         return undefined
     }

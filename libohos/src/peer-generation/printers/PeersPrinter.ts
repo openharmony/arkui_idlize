@@ -152,7 +152,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                     // Read as resource
                     // Change any return type to the serializer buffer in NativeModule
                     // result = makeDeserializedReturn(library, printer, returnType)
-                } else if (!isPrimitiveType(returnType)) {
+                } else if (!isPrimitiveType(returnType) || idl.IDLStringType) {
                     const returnTypeConvertor = new InteropReturnTypeConvertor(library)
                     if ((idl.IDLContainerUtils.isSequence(returnType) || idl.IDLContainerUtils.isRecord(returnType))) {
                         result = makeDeserializedReturn(library, printer, returnType)
