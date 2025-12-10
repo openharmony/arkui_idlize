@@ -88,6 +88,7 @@ export {
     checkTransformSrcIToCallback,
     checkTransformSrcCToCallback,
 } from "../../generated/arkts"
+export { getSomeClassInstance, SomeClass } from "../../generated/arkts"
 
 export type OHBuffer = NativeBuffer
 export type OHAny = object

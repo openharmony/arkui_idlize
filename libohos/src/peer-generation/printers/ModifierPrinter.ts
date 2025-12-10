@@ -252,7 +252,15 @@ export class ModifierVisitor {
             const implClassName = `${method.originalParentName}PeerImpl`
             printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
             printer.print(`if (peerImpl) {`)
-            printer.print(`    delete peerImpl;`)
+            printer.print(`    if (GetRefCounter().release(peerImpl) == 0) {`)
+            printer.print(`        delete peerImpl;`)
+            printer.print(`    }`)
+            printer.print(`}`)
+        } else if (method.method.name === PeerMethodSignature.CALL_HOLDER) {
+            const implClassName = `${method.originalParentName}PeerImpl`
+            printer.print(`auto peerImpl = reinterpret_cast<${implClassName} *>(peer);`)
+            printer.print(`if (peerImpl) {`)
+            printer.print(`    GetRefCounter().hold(peerImpl);`)
             printer.print(`}`)
         }
         else if (!isVoid) {
@@ -442,7 +450,8 @@ class AccessorVisitor extends ModifierVisitor {
         // so take the first one.
         const mDestroyPeer = createDestroyPeerMethod(clazz)
         const ctor = clazz.ctors.length > 0 ? clazz.ctors[0] : undefined
-        const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? clazz.methods[0] ?? throwException("Class should not be printed!"))
+        const randomMethod = (mDestroyPeer ?? ctor ?? clazz.finalizer ?? 
+            clazz.methods[0] ?? throwException("Class should not be printed!"))
         const namespaceName = peerParentNamespaceName(this.library, clazz.decl, randomMethod)
         this.pushNamespace(namespaceName, false);
         [mDestroyPeer, ...clazz.ctors, clazz.finalizer].concat(clazz.methods).forEach(method => {

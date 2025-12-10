@@ -32,6 +32,10 @@ struct BarObject {
     FooObject foo;
 };
 
+void BarObject_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "BarObject_callHolderImpl(thisPtr)" << std::endl;
+}
+
 OH_TEST_PACKAGE_BarObjectHandle BarObject_constructImpl() {
     std::cout << "BarObject_constructImpl()" << std::endl;
     BarObject* bar = new BarObject();
@@ -62,6 +66,10 @@ OH_TEST_PACKAGE_FooObject BarObject_getFooObjImpl(OH_NativePointer thisPtr) {
 void BarObject_setFooObjImpl(OH_NativePointer thisPtr, OH_TEST_PACKAGE_FooObject value) {
     std::cout << "BarObject_setFooObjImpl(thisPtr, value)" << std::endl;
     reinterpret_cast<BarObject*>(thisPtr)->foo = *reinterpret_cast<FooObject*>(value);
+}
+
+void FooObject_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "FooObject_callHolderImpl(thisPtr)" << std::endl;
 }
 
 OH_TEST_PACKAGE_FooObjectHandle FooObject_constructImpl() {

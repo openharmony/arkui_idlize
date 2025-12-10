@@ -18,6 +18,7 @@ import { Finalizable } from "./Finalizable"
 
 export declare class Bitmap extends Finalizable {
     constructor(ptr: pointer)
+    static callHolder(): KNativePointer
     static getFinalizer(): KNativePointer
     static make(): Bitmap
     makeClone(): Bitmap;

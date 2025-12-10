@@ -221,6 +221,12 @@ OH_OHOS_XML_Point GlobalScope_xml_getPointImpl() {
     };
 }
 
+void xml_MapTest_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_ParseInfo_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlDynamicSerializer_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlPullParser_callHolderImpl(OH_NativePointer thisPtr) {}
+void xml_XmlSerializer_callHolderImpl(OH_NativePointer thisPtr) {}
+
 
 class ClassStub {};
 

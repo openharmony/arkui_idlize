@@ -63,6 +63,7 @@
                 "test_props",
                 "test_force_context",
                 "test_inheritance",
+                "test_multiple_instances",
                 "test_transform",
                 "test_union",
 

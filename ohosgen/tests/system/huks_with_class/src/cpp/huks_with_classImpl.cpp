@@ -22,6 +22,10 @@ namespace {
 int dummy = 0;
 }
 
+void HuksClass_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "HuksClass_callHolderImpl(thisPtr)" << std::endl;
+}
+
 OH_HUKS_WITH_CLASS_HuksClassHandle HuksClass_constructImpl() {
     std::cout << "HuksClass_constructImpl()" << std::endl;
     return reinterpret_cast<OH_HUKS_WITH_CLASS_HuksClassHandle>(&dummy);

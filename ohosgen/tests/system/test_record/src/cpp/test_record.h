@@ -263,6 +263,7 @@ struct OH_TEST_RECORD_FooHandleOpaque;
 typedef struct OH_TEST_RECORD_FooHandleOpaque* OH_TEST_RECORD_FooHandle;
 typedef struct OH_TEST_RECORD_FooModifier {
     OH_TEST_RECORD_FooHandle (*construct)();
+    void (*callHolder)(OH_NativePointer thiz);
     void (*destruct)(OH_TEST_RECORD_FooHandle thiz);
     Map_String_Number (*getProps)(OH_NativePointer thisPtr);
     OH_TEST_RECORD_FooResult (*getResult)(OH_NativePointer thisPtr);

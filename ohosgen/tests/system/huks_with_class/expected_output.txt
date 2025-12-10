@@ -3,6 +3,7 @@
 Starting demo: huks
 [loadLibraries] Loading HUKS_WITH_CLASSNativeModule [HUKS_WITH_CLASSNativeModule]
 HuksClass_constructImpl()
+HuksClass_callHolderImpl(thisPtr)
 HuksClass_fooVoidVoidImpl(thisPtr)
 HuksClass_fooVoidNumberImpl(thisPtr, arg)
   arg = 100 (int32)

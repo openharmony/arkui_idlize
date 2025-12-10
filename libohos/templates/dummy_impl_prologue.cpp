@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,8 @@
 #include <future>
 #include <thread>
 #include <map>
+#include <sstream>
+#include <unordered_map>
 
 #include "Serializers.h"
 #include "interop-logging.h"
@@ -815,4 +817,32 @@ void SetVsyncCallback(Ark_PipelineContext pipelineContext, Ark_VsyncCallback cal
 void SetChildTotalCount(Ark_NodeHandle node, Ark_Int32 totalCount) {}
 void ShowCrash(Ark_CharPtr message) {}
 }
+}
+
+class RefCounter {
+public:
+    RefCounter() {}
+    void hold(const void* const ptr) {
+        ++counters_[ptr];
+    }
+    size_t release(const void* const ptr) {
+        auto it = counters_.find(ptr);
+        if (it == counters_.end()) {
+            return 0;
+        }
+        std::size_t& cnt = it->second;
+        if (cnt < 2) {
+            counters_.erase(it);
+            return 0;
+        }
+        --cnt;
+        return cnt;
+    }
+private:
+    std::unordered_map<const void*, std::size_t> counters_;
+};
+
+RefCounter& GetRefCounter() {
+    static RefCounter counter;
+    return counter;
 }

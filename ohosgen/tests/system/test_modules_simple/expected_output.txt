@@ -3,6 +3,7 @@
 Starting demo: test_modules
 [loadLibraries] Loading TEST_MODULES_SIMPLENativeModule [TEST_MODULES_SIMPLENativeModule]
 FooInt_constructImpl(initialValue)
+FooInt_callHolderImpl(thisPtr)
 FooInt_getValueImpl(thisPtr)
   thisPtr->value = 42 (int32)
 FooInt_getValueImpl(thisPtr)

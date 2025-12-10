@@ -3,6 +3,7 @@
 Starting demo: test_generic_callback
 [loadLibraries] Loading TEST_GENERIC_CALLBACKNativeModule [TEST_GENERIC_CALLBACKNativeModule]
 Foo_constructImpl()
+Foo_callHolderImpl(thisPtr)
 Foo_getXImpl(thisPtr)
 foo.getX() = 1
 Foo_callCBImpl(thisPtr, y, cb)

@@ -212,6 +212,13 @@ class OHOSNativeVisitor {
                 _c.print(`&${destructName},`)
                 this.impls.push({ name: destructName, signature: { params, returnType: 'void' } })
             }
+            {
+                let implName = `${className}_callHolderImpl`
+                let params = [new NameType("thisPtr", PrimitiveTypesInstance.NativePointer.toString())]
+                _h.print(`void (*${PeerMethodSignature.CALL_HOLDER})(${params.map(it => `${it.type} ${it.name}`).join(", ")});`)
+                _c.print(`&${implName},`)
+                this.impls.push({ name: implName, signature: { params, returnType: 'void' } })
+            }
         }
         generatePostfixForOverloads(clazz.methods).forEach(({ method, overloadPostfix }) => {
             const adjustedSignature = adjustSignature(this.library, method.parameters, method.returnType)

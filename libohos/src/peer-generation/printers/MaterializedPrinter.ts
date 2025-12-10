@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,7 +18,8 @@ import { capitalize, stringOrNone, Language, generifiedTypeName, sanitizeGeneric
     getSuper, ReferenceResolver, MaterializedMethod, DelegationType, LanguageExpression,
     DelegationCall, getInternalClassName, LanguageWriter, LayoutNodeRole, MaterializedClass, MaterializedField,
     qualifiedName, PeerMethodSignature, removePoints, maybeRestoreGenerics,
-    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary } from '@idlizer/core'
+    PACKAGE_IDLIZE_INTERNAL, isMaterialized, PeerLibrary, 
+    copyMethod} from '@idlizer/core'
 import { writePeerMethod } from "./PeersPrinter"
 import {
     FieldModifier,
@@ -94,7 +95,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
 
     assignFinalizable(className: string, peerPtr: string, isRefCounted: boolean, /*peerType: idl.IDLReferenceType, createFinalizer: boolean,*/ writer: LanguageWriter) {
         const nameConvertor = this.library.createTypeNameConvertor(this.library.language)
-        const params = isRefCounted ? [writer.makeString(peerPtr)] : [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]
+        const params = isRefCounted ?
+            [writer.makeString(peerPtr)] :
+            [writer.makeString(peerPtr), writer.makeString(`${className}.getFinalizer()`)]
         const peerType = isRefCounted ? RefCountedType : FinalizableType
         writer.writeStatement(
             writer.makeAssign(
@@ -105,6 +108,9 @@ abstract class MaterializedFileVisitorBase implements MaterializedFileVisitor {
                     params
                 ), false
             )
+        )
+        writer.writeExpressionStatement(
+            writer.makeMethodCall('this', PeerMethodSignature.CALL_HOLDER, [])
         )
     }
 
@@ -702,10 +708,13 @@ class CJMaterializedFileVisitor extends MaterializedFileVisitorBase {
 
     override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
         for (let method of clazz.methods.filter(filter)) {
-            if (!method.method.modifiers?.includes(MethodModifier.PRIVATE))
-                method.method.modifiers!.push(MethodModifier.PUBLIC)
-            this.printer.writeMethodImplementation(method.method, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), method.method, method)
+            let methodCopy = copyMethod(method.method, {})
+            if (!methodCopy.modifiers?.includes(MethodModifier.PRIVATE) &&
+                !methodCopy.modifiers?.includes(MethodModifier.PUBLIC)) {
+                methodCopy.modifiers!.push(MethodModifier.PUBLIC)
+            }
+            this.printer.writeMethodImplementation(methodCopy, (writer) => {
+                this.overloadsPrinter.printPeerCallAndReturn(clazz.getImplementationName(), methodCopy, method)
             })
         }
     }
@@ -788,16 +797,29 @@ class KotlinMaterializedFileVisitor extends MaterializedFileVisitorBase {
     }
 
     override printOverloads(clazz: MaterializedClass, filter: MethodFilter) {
-        for (let method of clazz.methods.filter(filter)) {
-            if (!method.method.modifiers?.includes(MethodModifier.PRIVATE)) {
-                method.method.modifiers!.push(MethodModifier.PUBLIC)
-                if (clazz.isInterface) method.method.modifiers!.push(MethodModifier.OVERRIDE)
+        for (const method of clazz.methods.filter(filter)) {
+            let methodCopy = copyMethod(method.method, {})
+            if (!methodCopy.modifiers?.includes(MethodModifier.PRIVATE)) {
+                if (!methodCopy.modifiers?.includes(MethodModifier.PUBLIC) &&
+                    !methodCopy.modifiers?.includes(MethodModifier.PROTECTED)) {
+                    methodCopy.modifiers!.push(MethodModifier.PUBLIC)
+                }
+                if (method.sig.name === PeerMethodSignature.CALL_HOLDER) {
+                    let ancestor = getSuper(clazz.decl, this.library)
+                    if (ancestor && isMaterialized(ancestor, this.library)) {
+                        methodCopy.modifiers!.push(MethodModifier.OVERRIDE)
+                    } else {
+                        methodCopy.modifiers!.push(MethodModifier.OPEN)
+                    }
+                } else if (clazz.isInterface) {
+                    methodCopy.modifiers!.push(MethodModifier.OVERRIDE)
+                }
             }
-            if (method.method.signature.returnType === idl.IDLThisType) {
-                method.method.signature.returnType = idl.createReferenceType(clazz.decl)
+            if (methodCopy.signature.returnType === idl.IDLThisType) {
+                methodCopy.signature.returnType = idl.createReferenceType(clazz.decl)
             }
-            this.printer.writeMethodImplementation(method.method, (writer) => {
-                this.overloadsPrinter.printPeerCallAndReturn(this.getImplementationName(clazz), method.method, method)
+            this.printer.writeMethodImplementation(methodCopy, (writer) => {
+                this.overloadsPrinter.printPeerCallAndReturn(this.getImplementationName(clazz), methodCopy, method)
             })
         }
     }

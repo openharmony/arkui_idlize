@@ -18,6 +18,8 @@
 #include "unit.h"
 
 #include <iostream>
+#include <sstream>
+#include <unordered_map>
 #include <string.h>
 
 #define CALLBACK_HOLD(instance, callback) instance.callback.resource.hold(instance.callback.resource.resourceId);
@@ -921,7 +923,6 @@ public:
         return OH_UNIT_GestureType::OH_UNIT_GESTURE_TYPE_Second;
     }
 };
-
 OH_UNIT_BaseGestureHandle BaseGesture_constructImpl() {
     BaseGesture* ptr = new DerivedGesture2();
     return reinterpret_cast<OH_UNIT_BaseGestureHandle>(ptr);
@@ -938,7 +939,6 @@ OH_UNIT_BaseGesture BaseGesture_createGesture2Impl() {
     BaseGesture* ptr = new DerivedGesture2();
     return reinterpret_cast<OH_UNIT_BaseGesture>(ptr);
 }
-
 OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl() {
     return {};
 }
@@ -949,6 +949,109 @@ OH_UNIT_DerivedGesture2Handle DerivedGesture2_constructImpl() {
     return {};
 }
 void DerivedGesture2_destructImpl(OH_UNIT_DerivedGesture2Handle thisPtr) {
+}
+
+void BaseGesture_callHolderImpl(OH_NativePointer thisPtr) {}
+void DerivedGesture1_callHolderImpl(OH_NativePointer thisPtr) {}
+void DerivedGesture2_callHolderImpl(OH_NativePointer thisPtr) {}
+void CheckExceptionClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void CheckExceptionInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void DTSCheckExternalLib_callHolderImpl(OH_NativePointer thisPtr) {}
+void DTSCheckInternalLib_callHolderImpl(OH_NativePointer thisPtr) {}
+void Example_callHolderImpl(OH_NativePointer thisPtr) {}
+void ForceCallbackClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void ForceContext_callHolderImpl(OH_NativePointer thisPtr) {}
+void GenericInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void generics_X_callHolderImpl(OH_NativePointer thisPtr) {}
+void generics_Y_callHolderImpl(OH_NativePointer thisPtr) {}
+void Hello_callHolderImpl(OH_NativePointer thisPtr) {}
+void HookClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void HookInterface_callHolderImpl(OH_NativePointer thisPtr) {}
+void IDLCheckConstructor_callHolderImpl(OH_NativePointer thisPtr) {}
+void IDLCheckProps_callHolderImpl(OH_NativePointer thisPtr) {}
+void InterfaceWithMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void MaterializedDataClass_callHolderImpl(OH_NativePointer thisPtr) {}
+void MyPersonHandler_callHolderImpl(OH_NativePointer thisPtr) {}
+void NS_ForceContextNS_callHolderImpl(OH_NativePointer thisPtr) {}
+void PersonInfo_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_enums_Test_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedComplexArguments_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedMoreOverloadedMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedOverloadedMethods_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedWithConstructorAndFields_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_MaterializedWithCreateMethod_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_materialized_classes_StaticMaterialized_callHolderImpl(OH_NativePointer thisPtr) {}
+void test_ret_B_callHolderImpl(OH_NativePointer thisPtr) {}
+void TestBuffer_BufferGenerator_callHolderImpl(OH_NativePointer thisPtr) {}
+
+class RefCounter {
+public:
+    RefCounter() {}
+    void hold(const void* const ptr) {
+        ++counters_[ptr];
+    }
+    size_t release(const void* const ptr) {
+        auto it = counters_.find(ptr);
+        if (it == counters_.end()) {
+            std::stringstream msg;
+            msg << "Pointer " << ptr << " is not found in reference counter";
+            return 0;
+        }
+        std::size_t& cnt = it->second;
+        if (cnt < 2) {
+            counters_.erase(it);
+            return 0;
+        }
+        --cnt;
+        return cnt;
+    }
+private:
+    std::unordered_map<const void*, std::size_t> counters_;
+};
+
+RefCounter& GetRefCounter() {
+    static RefCounter counter;
+    return counter;
+}
+
+class SomeClass {
+public:
+    OH_Number getValue() {
+        OH_Number n;
+        n.i32 = 5;
+        n.tag = INTEROP_TAG_INT32;
+        return n;
+    }
+};
+
+OH_UNIT_SomeClass GlobalScope_getSomeClassInstanceImpl() {
+    static SomeClass* obj = new SomeClass();
+    return reinterpret_cast<OH_UNIT_SomeClass>(obj);
+}
+
+OH_UNIT_SomeClassHandle SomeClass_constructImpl() {
+    SomeClass* obj = new SomeClass();
+    return reinterpret_cast<OH_UNIT_SomeClassHandle>(obj);
+}
+OH_Number SomeClass_getValueImpl(OH_NativePointer thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    return someClassPtr->getValue();
+}
+
+void SomeClass_callHolderImpl(OH_NativePointer thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    if (someClassPtr) {
+        GetRefCounter().hold(someClassPtr);
+    }
+}
+
+void SomeClass_destructImpl(OH_UNIT_SomeClassHandle thisPtr) {
+    SomeClass* someClassPtr = reinterpret_cast<SomeClass*>(thisPtr);
+    if (someClassPtr) {
+        if (GetRefCounter().release(someClassPtr) == 0) {
+            delete someClassPtr;
+        }
+    }
 }
 
 OH_UNIT_CheckExceptionInterfaceHandle CheckExceptionInterface_constructImpl() {
@@ -1296,4 +1399,9 @@ UNIT_TransformDstCallbackI GlobalScope_checkTransformSrcIToCallbackImpl(const UN
 UNIT_TransformDstCallbackC GlobalScope_checkTransformSrcCToCallbackImpl(const UNIT_TransformDstCallbackC* value, OH_Boolean flag) {
     value->resource.hold(value->resource.resourceId);
     return *value;
+}
+
+OH_UNIT_SomeClassHandle GlobalScope_getSomeClassInstance() {
+    static SomeClass obj;
+    return reinterpret_cast<OH_UNIT_SomeClassHandle>(&obj);
 }

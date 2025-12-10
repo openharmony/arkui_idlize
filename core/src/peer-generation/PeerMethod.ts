@@ -79,6 +79,7 @@ export class PeerMethodSignature {
 
     static get CTOR(): string { return "construct" }
     static get GET_FINALIZER(): string { return "getFinalizer" }
+    static get CALL_HOLDER(): string { return "callHolder" }
     static get DESTROY(): string { return "destroyPeer" }
 }
 

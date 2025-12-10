@@ -1,0 +1,8 @@
+package test_multiple_instances;
+
+[Entity=Class]
+interface SomeClass {
+    number getValue();
+};
+
+SomeClass getSomeClassInstance();

@@ -27,6 +27,10 @@ struct MyFooInt {
 
 struct MyFooFloat {};
 
+void FooInt_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "FooInt_callHolderImpl(thisPtr)" << std::endl;
+}
+
 OH_TEST_MODULES_SIMPLE_FooIntHandle FooInt_constructImpl(const OH_Number* initialValue) {
     std::cout << "FooInt_constructImpl(initialValue)" << std::endl;
     MyFooInt* result = new MyFooInt();

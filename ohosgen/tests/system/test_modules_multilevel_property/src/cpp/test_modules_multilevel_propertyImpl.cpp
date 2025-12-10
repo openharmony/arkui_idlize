@@ -35,6 +35,10 @@ struct MyBazInt {
     MyBarInt bar;
 };
 
+void FooInt_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "FooInt_callHolderImpl(thisPtr)" << std::endl;
+}
+
 OH_TEST_MODULES_MULTILEVEL_PROPERTY_FooIntHandle FooInt_constructImpl(const OH_Number* initialValue) {
     std::cout << "FooInt_constructImpl(initialValue)" << std::endl;
     MyFooInt* result = new MyFooInt();
@@ -68,6 +72,10 @@ void FooInt_setValueImpl(OH_NativePointer thisPtr, const OH_Number* value) {
               << "\n  thisPtr->value = " << DumpOHNumber(obj->value)
               << "\n  offset = " << DumpOHNumber(*value) << std::endl;
     obj->value = *value;
+}
+
+void BarInt_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "BarInt_callHolderImpl(thisPtr)" << std::endl;
 }
 
 OH_TEST_MODULES_MULTILEVEL_PROPERTY_BarIntHandle BarInt_constructImpl(const OH_Number* vx, const OH_Number* vy) {
@@ -114,6 +122,10 @@ void BarInt_setYImpl(OH_NativePointer thisPtr, OH_TEST_MODULES_MULTILEVEL_PROPER
     std::cout << "BarInt_setYImpl(thisPtr, value)" << std::endl;
     auto* obj = reinterpret_cast<MyBarInt*>(thisPtr);
     obj->y = *reinterpret_cast<MyFooInt*>(value);
+}
+
+void BazInt_callHolderImpl(OH_NativePointer thisPtr) {
+    std::cout << "BazInt_callHolderImpl(thisPtr)" << std::endl;
 }
 
 OH_TEST_MODULES_MULTILEVEL_PROPERTY_BazIntHandle BazInt_constructImpl(

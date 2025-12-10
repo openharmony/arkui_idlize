@@ -82,6 +82,7 @@ import { SDKExternalType } from "@external.lib.sdk"
 import { DTSCheckExternalLib, InternalType } from "#compat"
 
 import { BaseGesture, DerivedGesture2, GestureType } from "#compat"
+import { getSomeClassInstance } from "#compat"
 
 import {
     TransformSrcI,
@@ -628,6 +629,21 @@ function checkTransformOnSerialize() {
   assertEQ(false, resultTransformSrcCallbackC.flag)
 }
 
+function checkMultipleInstances() {
+  // getSomeClassInstance returns the same object every time
+  // check that destructing of local wrappers does not destroy
+  // native object while global wrapper exists.
+  // Local wrappers destruction is not guaranteed here since
+  // GC is not called directly
+  const obj = getSomeClassInstance()
+  assertEQ(obj.getValue(), 5)
+  for (let i = 0; i < 10; i++) {
+    const localObj = getSomeClassInstance()
+    assertEQ(localObj.getValue(), 5)
+  }
+  assertEQ(obj.getValue(), 5)
+}
+
 export function run() {
   console.log("Run common unit tests")
 
@@ -657,6 +673,7 @@ export function run() {
   suite.addAsyncTest("checkPromiseRejected", checkPromiseRejected)
   suite.addTest("checkHandwrittenDeserializer", checkHandwrittenDeserializer)
   suite.addTest("checkTransformOnSerialize", checkTransformOnSerialize)
+  suite.addTest("checkMultipleInstances", checkMultipleInstances)
 
   return suite.run()
 }

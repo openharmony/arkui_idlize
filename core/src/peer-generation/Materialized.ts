@@ -83,18 +83,19 @@ export class MaterializedMethod extends PeerMethod {
 
     getPrivateMethod(asProtected: boolean = false) {
         let privateMethod: MaterializedMethod = this
-        if (!privateMethod.method.modifiers?.includes(MethodModifier.PRIVATE)) {
-            privateMethod = copyMaterializedMethod(this, {
-                method: copyMethod(this.method, {
-                    modifiers: (this.method.modifiers ?? [])
-                        .filter(it => it !== MethodModifier.PUBLIC)
-                        .filter(it => it !== MethodModifier.OVERRIDE)
-                        .filter(it => !asProtected || (it !== MethodModifier.PRIVATE))
-                        .concat([asProtected ? MethodModifier.PROTECTED : MethodModifier.PRIVATE])
-                })
-            })
+        const neededModifier = asProtected ? MethodModifier.PROTECTED : MethodModifier.PRIVATE
+        if (privateMethod.method.modifiers?.includes(neededModifier)) {
+            return privateMethod
         }
-        return privateMethod
+        return copyMaterializedMethod(this, {
+            method: copyMethod(this.method, {
+                modifiers: (this.method.modifiers ?? [])
+                    .filter(it => ![
+                        MethodModifier.PUBLIC, MethodModifier.PROTECTED, MethodModifier.PRIVATE].includes(it))
+                    .filter(it => it !== MethodModifier.OVERRIDE)
+                    .concat([neededModifier])
+            })
+        })
     }
 
     withReturnType(returnType: idl.IDLType): MaterializedMethod {
@@ -162,26 +163,26 @@ export function createDestroyPeerMethod(clazz: MaterializedClass): MaterializedM
         return undefined
     }
     return new MaterializedMethod(
-            undefined,
-            new PeerMethodSignature(
-                PeerMethodSignature.DESTROY,
-                '%NEVER_USED$',
-                [],
-                idl.IDLVoidType,
-                clazz.decl,
-            ),
-            idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
-            clazz.getImplementationName(),
-            idl.IDLVoidType,
-            false,
+        undefined,
+        new PeerMethodSignature(
             PeerMethodSignature.DESTROY,
-            new Method(
-                PeerMethodSignature.DESTROY,
-                new NamedMethodSignature(
-                    idl.IDLVoidType,
-                    [idl.createReferenceType(clazz.decl)],
-                    ['peer']
-                )
+            '%NEVER_USED$',
+            [],
+            idl.IDLVoidType,
+            clazz.decl,
+        ),
+        idl.getQualifiedName(clazz.decl, "namespace.name").split('.').join('_'),
+        clazz.getImplementationName(),
+        idl.IDLVoidType,
+        false,
+        PeerMethodSignature.DESTROY,
+        new Method(
+            PeerMethodSignature.DESTROY,
+            new NamedMethodSignature(
+                idl.IDLVoidType,
+                [idl.createReferenceType(clazz.decl)],
+                ['peer']
             )
         )
+    )
 }

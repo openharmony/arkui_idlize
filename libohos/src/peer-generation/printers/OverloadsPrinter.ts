@@ -117,7 +117,8 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             undefined,
             argsModifiers
         ),
-        methods[0].modifiers?.includes(MethodModifier.PRIVATE) ?
+        (methods[0].modifiers?.includes(MethodModifier.PRIVATE) ||
+         methods[0].modifiers?.includes(MethodModifier.PROTECTED)) ?
         methods[0].modifiers :
         [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
         methods[0].generics,
