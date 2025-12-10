@@ -558,9 +558,15 @@ function superPropsWithTypeArgs(decl: idl.IDLInterface, superDecl: idl.IDLInterf
 }
 
 export function collectProperties(decl: idl.IDLInterface, library: LibraryInterface): idl.IDLProperty[] {
-    const superDecl = getSuper(decl, library)
-    const superProps = (superDecl && idl.isInterface(superDecl))
-        ? superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library)) : []
+    const parents = decl.inheritance.flatMap(ref => library.resolveTypeReference(ref) ?? [])
+    const superProps: idl.IDLProperty[] = []
+    parents.forEach(superDecl => {
+        if (idl.isInterface(superDecl)) {
+            superProps.push(
+                ...superPropsWithTypeArgs(decl, superDecl, collectProperties(superDecl, library))
+            )
+        }
+    })
     return [
         ...superProps,
         ...decl.properties,
