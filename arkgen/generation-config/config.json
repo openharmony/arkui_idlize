@@ -21,7 +21,9 @@
         "UIGestureEvent",
         "TouchTestInfo",
         "TouchResult",
-        "SectionOptions"
+        "SectionOptions",
+        "LengthMetrics",
+        "ColorMetrics"
     ],
     "ignoreGenerics": [
         "arkui.component.common.AttributeModifier",
