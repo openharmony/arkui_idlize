@@ -131,6 +131,7 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
         imports.addFeatures(['int32', 'float32'], '@koalaui/common')
         imports.addFeatures(["KStringPtr", "KBoolean"], "@koalaui/interop")
         imports.addFeature(`hook${component.name}AttributeModifier`, "#handwritten")
+        imports.addFeature(`ModifierStateManager`, `./CommonModifier`)
         imports.addFeature(`${component.name}Modifier`, `${component.name}Modifier`)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeModifier')), imports)
         collectDeclItself(this.library, idl.createReferenceType(getReferenceTo('AttributeUpdater')), imports)
@@ -216,7 +217,11 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
                 this.overloadsPrinter(printer).printGroupedComponentOverloads(peer.originalClassName!, grouped)
             // todo stub until we can process AttributeModifier
             writer.writeMethodImplementation(new Method('attributeModifier', generateAttributeModifierSignature(this.library, component), [MethodModifier.PUBLIC]), writer => {
+                writer.print('ModifierStateManager.INSTANCE.scope(() => {')
+                writer.pushIndent()
                 writer.print(`hook${component.name}AttributeModifier(this, value);`)
+                writer.popIndent()
+                writer.print('})')
                 writer.writeStatement(writer.makeReturn(writer.makeThis()))
             })
 
@@ -225,6 +230,18 @@ class TSComponentFileVisitor implements ComponentFileVisitor {
             writer.writeMethodImplementation(new Method(applyAttributesFinish, attributesFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
                 writer.print('// we call this function outside of class, so need to make it public')
                 writer.writeMethodCall('super', applyAttributesFinish, [])
+            })
+            const optionsFinishSignature = new MethodSignature(
+                IDLVoidType,
+                [idl.IDLStringType],
+                undefined,
+                undefined,
+                undefined,
+                ['traceName']
+            )
+            const applyOptionsFinish = 'applyOptionsFinish'
+            writer.writeMethodImplementation(new Method(applyOptionsFinish, optionsFinishSignature, [MethodModifier.PUBLIC]), (writer) => {
+                writer.writeMethodCall('super', applyOptionsFinish, ['traceName'])
             })
         }, parentComponentClassName, [componentToAttributesInterface(peer.originalClassName!)])
 
