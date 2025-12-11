@@ -23,7 +23,7 @@ export interface Idl2PeerConfig {
     target: string
     language: string
     idlPath: string
-    optionsFile?: string
+    optionsFile?: string[]
     trackerStatus?: string
 }
 
@@ -71,6 +71,7 @@ export function idl2peer({
         '--use-memo-m3',
         ['--arkts-extension', '.ets'],
         optionsFile ? [`--options-file`, optionsFile] : [],
+        optionsFile ? ['--ignore-default-config'] : [],
         over(trackerStatus, st => ['--tracker-status', st]),
     ]))
     return {

@@ -14,7 +14,7 @@ test bundle:
     - cd bundle
     - node install.js ./unpacked
     - cd unpacked
-    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../generated --sdk-stage prepared
+    - PANDA_SDK_PATH=../../external/incremental/tools/panda/node_modules/@panda/sdk npx runner m3 ../../sdk-patched-arkts ../../interfaces/interfaces/arkui-extra --output ../generated --sdk-stage prepared --arkgen-options-file ../../arkgen/generation-config/config.json
     - cd ../..
 
 test sdk api compat:

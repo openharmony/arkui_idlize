@@ -36,7 +36,7 @@
     "compile": "npm run compile -C ../etsgen && npm run compile -C ../arkgen && npm run compile -C ../ohosgen && npm run compile:self",
     "prepare:sdk": "rimraf ../sdk-patched-arkts ../sdk-patched ../absolute-sdk-patched-arkts && npm run compile && node . sdk ../interface_sdk-js ../sdk-patched-arkts ../sdk-patched",
     "absolute:sdk": "rimraf ../absolute-sdk-patched-arkts && npm run compile && node . m3-sdk ../sdk-patched-arkts ../absolute-sdk-patched-arkts",
-    "tracker": "npm run compile && node . tracker ../sdk-patched-arkts /dev/null /dev/null ../doc",
+    "tracker": "npm run compile && node . tracker ../sdk-patched-arkts ../interfaces/interfaces/arkui-extra --sdk-status /dev/null --tracker-status /dev/null --output ../doc --options-file ../arkgen/generation-config/config.json",
     "compile:parallel": "npm run compile -C core"
   }
 }
