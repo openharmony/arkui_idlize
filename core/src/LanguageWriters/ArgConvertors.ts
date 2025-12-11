@@ -1183,36 +1183,53 @@ export class ThrowsConvertor extends BaseArgConvertor {
         throw new Error("Method not implemented.");
     }
     convertorSerialize(param: string, value: string, writer: LanguageWriter): LanguageStatement {
-        if (writer.language === Language.CPP) {
-            return writer.makeBlock([
-                writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeBoolean', [writer.makeString(`${value}.hasException`)])),
-                writer.makeCondition(
-                    writer.makeString(`${value}.hasException`),
-                    writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeException', [writer.makeString(`${value}.exception`)])),
-                    !this.convertor ? undefined : writer.makeBlock([
-                        writer.makeAssign(`${value}Value`, undefined, writer.makeString(`${value}.value`), true),
-                        this.convertor?.convertorSerialize(param, `${value}Value`, writer),
-                    ]),
-                )
-            ])
-        } else {
-            throw new Error("Not expected to serialize exceptions in managed, currently they're only one directional from native to managed")
-        }
+        return writer.makeBlock([
+            writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeBoolean', [writer.makeString(`${value}.hasException`)])),
+            writer.makeCondition(
+                writer.makeString(`${value}.hasException`),
+                writer.makeBlock([writer.makeStatement(writer.makeMethodCall(`${param}Serializer`, 'writeException', [
+                    writer.makeUnwrapOptional(writer.makeString(`${value}.exception`))
+                ]))], true, false),
+                !this.convertor ? undefined : writer.makeBlock([
+                    writer.makeAssign(`${value}Value`, undefined, writer.makeUnwrapOptional(writer.makeString(`${value}.value`)), true),
+                    this.convertor?.convertorSerialize(param, `${value}Value`, writer),
+                ], true, false),
+            )
+        ], false)
     }
     convertorDeserialize(bufferName: string, deserializerName: string, assigneer: ExpressionAssigner, writer: LanguageWriter): LanguageStatement {
-        if (writer.language === Language.CPP) {
-            throw new Error("Not expected to deserialize exceptions in CPP, currently they're only one directional from native to managed")
+        const statements: LanguageStatement[] = [
+            writer.makeAssign(`${bufferName}HasException`, idl.IDLBooleanType, writer.makeMethodCall(deserializerName, 'readBoolean', []), true)
+        ]
+        if (writer.language === Language.TS || writer.language === Language.ARKTS) {
+            writer.addFeature(`ThrowsWrapper`, `@koalaui/interop`)
+            statements.push(writer.makeAssign(bufferName, idl.createReferenceType(this.decl), writer.makeString(`{ hasException: ${bufferName}HasException }`), true))
+        } else if (writer.language === Language.CPP) {
+            statements.push(writer.makeAssign(bufferName, idl.createReferenceType(this.decl), writer.makeString(`{ .hasException=${bufferName}HasException }`), true, false))
+        } else if (writer.language === Language.KOTLIN) {
+            const nameConvertor = this.library.createTypeNameConvertor(Language.KOTLIN)
+            let unwrappedType = maybeRestoreThrows(this.decl, this.library)!
+            if (unwrappedType === idl.IDLThisType)
+                unwrappedType = idl.IDLVoidType
+            writer.addFeature(`ThrowsWrapper`, writer.interopModule)
+            // HACK until generics in Kotlin are supported
+            statements.push(new ExpressionStatement(writer.makeString(`val ${bufferName} = ThrowsWrapper<${nameConvertor.convert(unwrappedType)}>(${bufferName}HasException)`)))
         } else {
-            return writer.makeCondition(
-                writer.makeMethodCall(deserializerName, 'readBoolean', []),
-                writer.makeBlock([
-                    writer.makeThrowError(writer.makeMethodCall(deserializerName, 'readException', [])),
-                ]),
-                !this.convertor ? undefined : writer.makeBlock([
-                    this.convertor?.convertorDeserialize(bufferName, deserializerName, assigneer, writer),
-                ]),
-            )
+            throw new Error(`Not implemented for ${writer.language.name}`)
         }
+        statements.push(writer.makeCondition(
+            writer.makeString(`${bufferName}.hasException`),
+            writer.makeBlock([
+                writer.makeAssign(`${bufferName}.exception`, undefined, writer.makeMethodCall(deserializerName, 'readException', []), false),
+            ]),
+            !this.convertor ? undefined : writer.makeBlock([
+                this.convertor?.convertorDeserialize(`${bufferName}Value`, deserializerName, (expression) => {
+                    return writer.makeAssign(`${bufferName}.value`, undefined, expression, false)
+                }, writer),
+            ]),
+        ))
+        statements.push(assigneer(writer.makeString(bufferName)))
+        return writer.makeBlock(statements, false)
     }
     nativeType(): idl.IDLType {
         return idl.createReferenceType(this.decl)
@@ -1427,7 +1444,7 @@ export class CallbackConvertor extends BaseArgConvertor {
             true,
         ))
         const callbackSignature = new NamedMethodSignature(
-            this.decl.returnType,
+            maybeRestoreThrows(this.decl.returnType, this.library) ?? this.decl.returnType,
             this.decl.parameters.map(it => idl.maybeOptional(it.type!, it.isOptional)),
             this.decl.parameters.map(it => it.name),
         )
@@ -1456,6 +1473,30 @@ export class CallbackConvertor extends BaseArgConvertor {
                     writer.writeStatement(continuationConvertor.convertorSerialize(argsSerializer, continuationCallbackName, writer))
                 }),
             ]
+        }
+        const returnStatements: LanguageStatement[] = []
+        if (hasContinuation) {
+            const continuationValueAccess = writer.language == Language.CJ ?
+                writer.makeString(`${continuationValueName}.value`) :
+                writer.makeUnwrapOptional(writer.makeString(continuationValueName))
+            let restoredThrow: idl.IDLType | undefined
+            if (restoredThrow = maybeRestoreThrows(this.decl.returnType, this.library)) {
+                returnStatements.push(writer.makeCondition(
+                    writer.makeString(`${continuationValueAccess.asString()}.hasException`),
+                    writer.makeBlock([
+                        writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`${continuationValueAccess.asString()}.exception`)))
+                    ], true, false),
+                    writer.makeBlock([
+                        writer.makeLambdaReturn(restoredThrow === idl.IDLVoidType
+                            ? undefined
+                            : writer.makeUnwrapOptional(writer.makeString(`${continuationValueAccess.asString()}.value`)))
+                    ], true, false),
+                ))
+            } else {
+                returnStatements.push(writer.makeLambdaReturn(writer.makeCast(continuationValueAccess, this.decl.returnType)))
+            }
+        } else {
+            returnStatements.push(writer.makeLambdaReturn())
         }
         const closure = writer.makeLambda(callbackSignature, [
             writer.makeAssign(`${argsSerializer}Serializer`, idl.createReferenceType('idlize.internal.SerializerBase'), writer.makeMethodCall('SerializerBase', 'hold', []), true),
@@ -1488,13 +1529,7 @@ export class CallbackConvertor extends BaseArgConvertor {
                     ])
             ),
             new ExpressionStatement(writer.makeMethodCall(`${argsSerializer}Serializer`, `release`, [])),
-            writer.makeLambdaReturn(hasContinuation
-                ? writer.makeCast(
-                    writer.language == Language.CJ ?
-                        writer.makeString(`${continuationValueName}.value`) :
-                        writer.makeString(continuationValueName),
-                    this.decl.returnType)
-                : undefined),
+            ...returnStatements,
         ])
         writer.addFeature(idl.createReferenceType('idlize.internal.resourceFinalizerRegister'))
         statements.push(

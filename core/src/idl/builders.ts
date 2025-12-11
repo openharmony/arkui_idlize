@@ -450,7 +450,7 @@ export const IDLCustomObjectType = createPrimitiveType('CustomObject')
 export const IDLInteropReturnBufferType = createPrimitiveType('InteropReturnBuffer')
 
 export const IDLNullTypeName = "idlize.stdlib.Null"
-export const IDLThrowsTypeName = "idlize.stdlib.Throws"
+export const IDLThrowsTypeName = "idlize.stdlib.ThrowsWrapper"
 
 export function isUndefinedType(type: IDLNode): type is IDLPrimitiveType {
     return isPrimitiveType(type) && type.name === IDLUndefinedType.name

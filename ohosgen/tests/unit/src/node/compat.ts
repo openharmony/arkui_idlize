@@ -2,6 +2,8 @@ import { callCallback, InteropNativeModule, registerNativeModuleLibraryName, loa
 import { stdout } from "node:process";
 import { registerUnitApiHandler } from "../../generated/ts";
 
+export { int32 } from "@koalaui/common"
+
 export {
     CONST_BOOLEAN_FALSE,
     CONST_BOOLEAN_TRUE,
@@ -49,7 +51,7 @@ export {
     checkUnionGenericTypeSample,
 } from "../../generated/ts"
 
-export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/ts"
+export { CheckExceptionClass, CheckExceptionInterface, CheckCallbackExceptions } from "../../generated/ts"
 
 export {
     testLength

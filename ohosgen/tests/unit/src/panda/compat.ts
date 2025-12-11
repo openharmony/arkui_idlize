@@ -2,6 +2,8 @@ import { int32 } from "@koalaui/common"
 import { InteropNativeModule, NativeBuffer, DeserializerBase, registerNativeModuleLibraryName, checkEvents, wrapSystemApiHandlerCallback } from "@koalaui/interop";
 import { registerUnitApiHandler, UNITNativeModule } from "../../generated/arkts"
 
+export { int32 } from "@koalaui/common"
+
 export {
     CONST_BOOLEAN_FALSE,
     CONST_BOOLEAN_TRUE,
@@ -50,7 +52,7 @@ export {
     checkUnionGenericTypeSample,
 } from "../../generated/arkts"
 
-export { CheckExceptionClass, CheckExceptionInterface } from "../../generated/arkts"
+export { CheckExceptionClass, CheckExceptionInterface, CheckCallbackExceptions } from "../../generated/arkts"
 
 export { testLength } from "../../generated/arkts"
 

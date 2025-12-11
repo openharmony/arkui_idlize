@@ -183,9 +183,22 @@ typedef struct InteropObject {
     InteropCallbackResource resource;
 } InteropObject;
 
-typedef struct InteropException {
+typedef enum InteropExceptionKind {
+    EXCEPTION_INTERFACE = 0,
+    EXCEPTION_OBJECT = 1,
+} InteropExceptionKind;
+
+typedef struct InteropExceptionInterface {
     InteropInt32 code;
     InteropString message;
+} InteropExceptionInterface;
+
+typedef struct InteropException {
+    InteropExceptionKind kind;
+    union {
+        InteropExceptionInterface interface;
+        InteropObject object;
+    };
 } InteropException;
 
 #endif // _INTEROP_TYPES_H_

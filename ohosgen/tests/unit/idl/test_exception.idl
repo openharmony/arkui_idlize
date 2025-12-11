@@ -5,6 +5,7 @@ interface CheckExceptionInterface {
     [Throws]
     void checkException();
 };
+
 [Entity=Class]
 interface CheckExceptionClass {
     constructor();
@@ -18,4 +19,25 @@ interface CheckExceptionClass {
     sequence<i32> getArray();
     [Throws]
     this getThis();
+};
+
+[Throws]
+callback ThrowableCallbackI32 = i32 ();
+[Throws]
+callback ThrowableCallbackI32_withParameter = i32 (i32 value);
+[Throws]
+callback ThrowableCallbackVoid = void ();
+[Throws]
+callback ThrowableCallbackSequence = sequence<i32> ();
+
+[Entity=Class]
+interface CheckCallbackExceptions {
+    constructor();
+    boolean checkThrowableCallbackI32(ThrowableCallbackI32 value);
+    boolean checkThrowableCallbackI32_withParameter(ThrowableCallbackI32_withParameter value);
+    boolean checkThrowableCallbackVoid(ThrowableCallbackVoid value);
+    boolean ThrowableCallbackSequence(ThrowableCallbackSequence value);
+    [Throws]
+    void checkRethrow(ThrowableCallbackVoid value);
+    ThrowableCallbackVoid checkThrowFromNative();
 };

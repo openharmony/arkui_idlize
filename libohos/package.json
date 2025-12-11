@@ -22,7 +22,7 @@
   "keywords": [],
   "dependencies": {
     "@idlizer/core": "2.1.10+devel",
-    "@koalaui/interop": "1.7.13"
+    "@koalaui/interop": "1.7.14"
   },
   "devDependencies": {
     "@types/node": "^18.19.127"

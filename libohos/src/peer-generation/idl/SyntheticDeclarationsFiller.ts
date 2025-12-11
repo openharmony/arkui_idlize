@@ -41,6 +41,9 @@ function groupSyntheticsTransformer(files: idl.IDLFile[]): idl.IDLFile[] {
                 if (sameNamed = syntheticDeclarations.find(it => it.name === node.name)) {
                     if (!compareNodes(node, sameNamed)) {
                         console.error(`Found two synthetics with same name ${node.name} and different content`)
+                        if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Throws) !== idl.hasExtAttribute(sameNamed, idl.IDLExtendedAttributes.Throws)) {
+                            throw new Error("Two synthetic declarations with same name but different Throws annotation values found")
+                        }
                     }
                 } else {
                     syntheticDeclarations.push(idl.clone(node))

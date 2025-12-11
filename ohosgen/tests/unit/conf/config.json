@@ -105,7 +105,12 @@
         "test_force_context.ForceContext.method_",
         "test_force_context.ForceContext.static_method",
         "test_force_context.NS.ForceContextNS.method_",
-        "test_force_context.NS.ForceContextNS.static_method"
+        "test_force_context.NS.ForceContextNS.static_method",
+        "test_exception.CheckCallbackExceptions.checkThrowableCallbackI32",
+        "test_exception.CheckCallbackExceptions.checkThrowableCallbackI32_withParameter",
+        "test_exception.CheckCallbackExceptions.checkThrowableCallbackVoid",
+        "test_exception.CheckCallbackExceptions.ThrowableCallbackSequence",
+        "test_exception.CheckCallbackExceptions.checkRethrow"
     ],
     "rootComponents": [],
     "standaloneComponents": [],

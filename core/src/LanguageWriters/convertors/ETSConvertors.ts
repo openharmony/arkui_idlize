@@ -97,7 +97,9 @@ export class ETSTypeNameConvertor extends TSTypeNameConvertor {
 
     protected mapCallback(decl: idl.IDLCallback): string {
         const params = decl.parameters.map(it => {
-            return `${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}`
+            // HACK: callbacks can have ThrowsWrapper<T> in argument but not in return type. Maybe there is more beautiful solution?
+            const paramType = LanguageWriter.managedThrowsTypeUnwrapped(false, () => this.convert(it.type!))
+            return `${it.name}${it.isOptional ? "?" : ""}: ${paramType}`
         })
         return `((${params.join(",")}) => ${this.convert(decl.returnType)})`
     }

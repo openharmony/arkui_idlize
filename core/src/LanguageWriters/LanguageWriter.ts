@@ -220,6 +220,45 @@ export class IfStatement implements LanguageStatement {
     }
 }
 
+export class TryCatchStatement implements LanguageStatement {
+    private tryStatement: BlockStatement
+    private catchStatement: BlockStatement | undefined
+    private finallyStatement: BlockStatement | undefined
+    constructor(
+        tryStatement: LanguageStatement,
+        catchStatement: LanguageStatement | undefined,
+        finallyStatement: LanguageStatement | undefined,
+        protected options: { catchName: string }
+    ) {
+        if (catchStatement === undefined && finallyStatement === undefined)
+            throw new Error("Either catch or finally statement must be defined")
+        this.tryStatement = TryCatchStatement.wrapBlockStatement(tryStatement)
+        if (catchStatement)
+            this.catchStatement = TryCatchStatement.wrapBlockStatement(catchStatement)
+        if (finallyStatement)
+            this.finallyStatement = TryCatchStatement.wrapBlockStatement(finallyStatement)
+    }
+
+    write(writer: LanguageWriter): void {
+        writer.print(`try`)
+        this.tryStatement.write(writer)
+        if (this.catchStatement) {
+            writer.printer.appendLastString(` catch (${this.options.catchName}) `)
+            this.catchStatement.write(writer)
+        }
+        if (this.finallyStatement) {
+            writer.printer.appendLastString(` finally `)
+            this.finallyStatement.write(writer)
+        }
+    }
+
+    protected static wrapBlockStatement(statement: LanguageStatement): BlockStatement {
+        if (statement instanceof BlockStatement && statement.inScope)
+            return statement
+        return new BlockStatement([statement], true, false)
+    }
+}
+
 export type BranchStatement = {expr: LanguageExpression, stmt: LanguageStatement}
 
 export class MultiBranchIfStatement implements LanguageStatement {
@@ -678,8 +717,8 @@ export abstract class LanguageWriter {
     makeNativeCall(nativeModule: NativeModuleType, method: string, params: LanguageExpression[], nullable?: boolean): LanguageExpression {
         return new MethodCallExpression(this.nativeReceiver(nativeModule), method, params, nullable)
     }
-    makeBlock(statements: LanguageStatement[], inScope: boolean = true) {
-        return new BlockStatement(statements, inScope)
+    makeBlock(statements: LanguageStatement[], inScope: boolean = true, newLine = true) {
+        return new BlockStatement(statements, inScope, newLine)
     }
     nativeReceiver(nativeModule: NativeModuleType): string {
         return nativeModule.name
@@ -687,6 +726,11 @@ export abstract class LanguageWriter {
     abstract makeDefinedCheck(value: string, type?: idl.IDLOptionalType, isTag?: boolean): LanguageExpression
     makeRuntimeTypeDefinedCheck(runtimeType: string): LanguageExpression {
         return this.makeRuntimeTypeCondition(runtimeType, false, RuntimeType.UNDEFINED)
+    }
+    makeTryCatch(tryStatement: LanguageStatement, catchStatement: LanguageStatement, finallyStatement?: LanguageStatement, options?: { catchName?: string }) {
+        return new TryCatchStatement(tryStatement, catchStatement, finallyStatement, {
+            catchName: options?.catchName ?? "error",
+        })
     }
     makeCondition(condition: LanguageExpression, thenStatement: LanguageStatement, elseStatement?: LanguageStatement, insideIfOp?: () => void, insideElseOp?: () => void): LanguageStatement {
         return new IfStatement(condition, thenStatement, elseStatement, insideIfOp, insideElseOp)
@@ -870,13 +914,23 @@ export abstract class LanguageWriter {
         this.print(`}`)
     }
 
-    public static _isReferenceRelativeToNamespaces: boolean = false
+    private static _isReferenceRelativeToNamespaces: boolean = false
     public static get isReferenceRelativeToNamespaces(): boolean { return this._isReferenceRelativeToNamespaces }
     public static relativeReferences<T>(isRelative: boolean, op: () => T): T {
         const prevIsRelative = this.isReferenceRelativeToNamespaces
         this._isReferenceRelativeToNamespaces = isRelative
         const result = op()
         this._isReferenceRelativeToNamespaces = prevIsRelative
+        return result
+    }
+
+    private static _isManagedThrowsTypeUnwrapped: boolean = true
+    public static get isManagedThrowsTypeUnwrapped(): boolean { return this._isManagedThrowsTypeUnwrapped }
+    public static managedThrowsTypeUnwrapped<T>(isUnwrapped: boolean, op: () => T): T {
+        const prevIsGenerated = this._isManagedThrowsTypeUnwrapped
+        this._isManagedThrowsTypeUnwrapped = isUnwrapped
+        const result = op()
+        this._isManagedThrowsTypeUnwrapped = prevIsGenerated
         return result
     }
 }

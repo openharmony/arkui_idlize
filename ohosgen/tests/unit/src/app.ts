@@ -9,7 +9,8 @@ import {
 } from '#compat'
 
 import {
-  toBigInt
+  toBigInt,
+  int32,
 } from "#compat"
 
 import {
@@ -51,7 +52,7 @@ import {
 } from '#compat'
 import { test_ret_A } from '#compat'
 
-import { CheckExceptionClass, CheckExceptionInterface } from '#compat'
+import { CheckExceptionClass, CheckExceptionInterface, CheckCallbackExceptions } from '#compat'
 
 import {
   testLength
@@ -576,6 +577,44 @@ async function checkThrowException() {
     catchException = true
     console.log(`promise error: ${errObj.message}`)
     assertEQ("(Test passed) Promise for @throw annotated method with `this` return type was rejected", `${errObj.message}`)
+  }
+  assertEQ(true, catchException, "Exception has not been thrown!")
+
+  const checkCallbackExceptions = new CheckCallbackExceptions()
+  assertEQ(true, checkCallbackExceptions.checkThrowableCallbackI32((): int32 => {
+    throw new Error("Test exception")
+  }), "Exception for ThrowableCallbackI32 was not thrown")
+  assertEQ(true, checkCallbackExceptions.checkThrowableCallbackI32_withParameter((value: int32): int32 => {
+    if (value === 1)
+      throw new Error("Test exception")
+    console.error(`expected to have value 1 in parameter, got ${value}`)
+  }), "Exception for ThrowableCallbackI32_withParameter was not thrown")
+  assertEQ(true, checkCallbackExceptions.checkThrowableCallbackVoid((): void => {
+    throw new Error("Test exception")
+  }), "Exception for ThrowableCallbackVoid was not thrown")
+
+  catchException = false
+  try {
+    checkCallbackExceptions.checkRethrow((): void => {
+      throw new Error("Exception thrown from callback and rethrown with method")
+    })
+  } catch (error) {
+    let errObj = error as Error
+    catchException = true
+    console.log(`promise error: ${errObj.message}`)
+    assertEQ("Exception thrown from callback and rethrown with method", `${errObj.message}`)
+  }
+  assertEQ(true, catchException, "Exception has not been thrown!")
+
+  catchException = false
+  try {
+    const lambda = checkCallbackExceptions.checkThrowFromNative();
+    lambda()
+  } catch (error) {
+    let errObj = error as Error
+    catchException = true
+    console.log(`promise error: ${errObj.message}`)
+    assertEQ("Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative", `${errObj.message}`)
   }
   assertEQ(true, catchException, "Exception has not been thrown!")
 }

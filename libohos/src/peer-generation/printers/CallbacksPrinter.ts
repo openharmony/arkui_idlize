@@ -15,7 +15,7 @@
 
 import * as idl from '@idlizer/core/idl'
 import { CppLanguageWriter, NamedMethodSignature } from "../LanguageWriters";
-import { generatorTypePrefix, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
+import { generatorTypePrefix, LanguageExpression, LanguageStatement, LanguageWriter, LayoutNodeRole, maybeRestoreGenerics, maybeRestoreThrows, MethodSignature, PeerLibrary, PrimitiveTypesInstance, snakeCaseToCamelCase } from "@idlizer/core"
 import { peerGeneratorConfiguration } from "../../DefaultConfiguration";
 import { ImportsCollector } from "../ImportsCollector"
 import { Language, LibraryInterface } from  '@idlizer/core'
@@ -131,7 +131,7 @@ class DeserializeCallbacksVisitor {
                 "ResourceHolder", "KInt", "KStringPtr", "wrapSystemCallback",
                 "DeserializerBase", "SerializerBase", "CallbackResource",
                 "InteropNativeModule", "KPointer", "RuntimeType",
-                "KSerializerBuffer", "NativeBuffer",
+                "KSerializerBuffer", "NativeBuffer", "ThrowsWrapper"
             ], "@koalaui/interop")
             if (this.writer.language === Language.TS) {
                 this.imports.addFeatures(["runtimeType"], "@koalaui/interop")
@@ -224,19 +224,23 @@ class DeserializeCallbacksVisitor {
             const argsNames = []
             for (const param of callback.parameters) {
                 const convertor = this.library.typeConvertor(param.name, param.type!, param.isOptional)
-                writer.writeStatement(convertor.convertorDeserialize(`${param.name}TmpBuf`, `thisDeserializer`, (expr) => {
-                    const maybeOptionalType = idl.maybeOptional(param.type!, param.isOptional)
-                    return writer.makeAssign(param.name, maybeOptionalType, expr, true, false)
-                }, writer))
+                LanguageWriter.managedThrowsTypeUnwrapped(false, () => {
+                    writer.writeStatement(convertor.convertorDeserialize(`${param.name}TmpBuf`, `thisDeserializer`, (expr) => {
+                        const maybeOptionalType = idl.maybeOptional(param.type!, param.isOptional)
+                        return writer.makeAssign(param.name, maybeOptionalType, expr, true, false)
+                    }, writer))
+                })
                 argsNames.push(param.name)
             }
             const hasContinuation = !idl.isVoidType(callback.returnType)
             if (hasContinuation) {
                 const continuationReference = this.library.createContinuationCallbackReference(callback.returnType)
                 const convertor = this.library.typeConvertor(`continuation`, continuationReference)
-                writer.writeStatement(convertor.convertorDeserialize(`continuationBuffer`, `thisDeserializer`, (expr) => {
-                    return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
-                }, writer))
+                LanguageWriter.managedThrowsTypeUnwrapped(false, () => {
+                    writer.writeStatement(convertor.convertorDeserialize(`continuationBuffer`, `thisDeserializer`, (expr) => {
+                        return writer.makeAssign(`continuationResult`, continuationReference, expr, true, false)
+                    }, writer))
+                })
             }
             if (writer.language === Language.CPP) {
                 const cppArgsNames = [
@@ -247,20 +251,44 @@ class DeserializeCallbacksVisitor {
                     cppArgsNames.push(`continuationResult`)
                 writer.writeExpressionStatement(writer.makeFunctionCall(callName, cppArgsNames.map(it => writer.makeString(it))))
             } else {
-                let callExpression = writer.makeFunctionCall(
+                const callExpression = writer.makeFunctionCall(
                     callName,
                     argsNames
                         .concat(this.generateMeaninglessCallArguments(callback))
                         .map(it => writer.makeString(writer.escapeKeyword(it))),
                 )
                 if (hasContinuation) {
-                    // TODO: Uses temporary variable `callResultRef` to fix ArkTS error: 'TypeError: Member type must be the same for all union objects.'
-                    // Issue: https://rnd-gitlab-msc.huawei.com/rus-os-team/virtual-machines-and-tools/panda/-/issues/21332
+                    const restoredThrow = maybeRestoreThrows(callback.returnType, this.library)
                     const callResultRef = `${callName}Result`
-                    writer.writeStatement(writer.makeAssign(callResultRef, undefined, callExpression, true, true))
-                    callExpression = writer.makeFunctionCall(`continuationResult`, [writer.makeString(callResultRef)])
+                    if (restoredThrow) {
+                        LanguageWriter.managedThrowsTypeUnwrapped(false, () => {
+                            let noExceptionExpression: LanguageExpression | undefined
+                            let exceptionExpression: LanguageExpression | undefined
+                            if (writer.language === Language.TS || writer.language === Language.ARKTS) {
+                                if (idl.isVoidType(restoredThrow))
+                                    noExceptionExpression = writer.makeString(`{ hasException: false }`)
+                                else
+                                    noExceptionExpression = writer.makeString(`{ hasException: false, value: ${callResultRef} }`)
+                                exceptionExpression = writer.makeString(`{ hasException: true, exception: error }`)
+                            } else {
+                                throw new Error("Not supported language")
+                            }
+                            writer.writeStatement(writer.makeTryCatch(
+                                writer.makeBlock([
+                                    idl.isVoidType(restoredThrow)
+                                        ? writer.makeStatement(callExpression)
+                                        : writer.makeAssign(callResultRef, undefined, callExpression, true),
+                                    writer.makeStatement(writer.makeFunctionCall(`continuationResult`, [noExceptionExpression]))
+                                ], true, false),
+                                writer.makeStatement(writer.makeFunctionCall(`continuationResult`, [exceptionExpression])),
+                            ))
+                        })
+                    } else {
+                        writer.writeExpressionStatement(writer.makeFunctionCall(`continuationResult`, [callExpression]))
+                    }
+                } else {
+                    writer.writeExpressionStatement(callExpression)
                 }
-                writer.writeExpressionStatement(callExpression)
             }
         })
         if (this.writer.language === Language.CPP) {

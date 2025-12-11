@@ -19,6 +19,7 @@ import { LibraryInterface } from '../../LibraryInterface'
 import { isTopLevelConflicted } from '../../peer-generation/ConflictingDeclarations'
 import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/LayoutManager'
 import { maybeRestoreGenerics, maybeRestoreThrows } from '../../transformers/transformUtils'
+import { LanguageWriter } from '../LanguageWriter'
 import { convertNode, convertType, IdlNameConvertor, isInsideInstanceof, NodeConvertor, TypeConvertor, withInsideInstanceof } from '../nameConvertor'
 
 export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConvertor {
@@ -127,7 +128,10 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
 
             let restoredThrow: idl.IDLType | undefined
             if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
-                return this.convert(restoredThrow)
+                if (LanguageWriter.isManagedThrowsTypeUnwrapped)
+                    return this.convert(restoredThrow)
+                if (restoredThrow === idl.IDLThisType)
+                    return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.IDLVoidType]))
             }
 
             // FIXME: isEnumMember is not TYPE!
@@ -236,8 +240,11 @@ export class TSTypeNameConvertor implements NodeConvertor<string>, IdlNameConver
             param.type = type
             return param
         })
-        const params = parameters.map(it =>
-            `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${this.convert(it.type!)}${it.isVariadic ? "[]" : ""}`)
+        const params = parameters.map(it => {
+            // HACK: callbacks can have ThrowsWrapper<T> in argument but not in return type. Maybe there is more beautiful solution?
+            const paramType = LanguageWriter.managedThrowsTypeUnwrapped(false, () => this.convert(it.type!))
+            return `${it.isVariadic ? "..." : ""}${it.name}${it.isOptional ? "?" : ""}: ${paramType}${it.isVariadic ? "[]" : ""}`
+        })
         return `((${params.join(", ")}) => ${this.convert(decl.returnType)})`
     }
     protected productType(decl: idl.IDLInterface, args:idl.IDLType[] | undefined, isTuple: boolean, includeFieldNames: boolean): string {

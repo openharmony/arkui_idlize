@@ -34,6 +34,7 @@ function assertNoThrowsReferences(files: idl.IDLFile[]): void {
 class ThrowsTransformer extends IdlTransformer {
     visit(node: idl.IDLType): idl.IDLType
     visit(node: idl.IDLFile): idl.IDLFile
+    visit(node: idl.IDLParameter): idl.IDLParameter
     visit(node: idl.IDLNode): idl.IDLNode {
         if (idl.isMethod(node)) {
             if (!idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Throws)) {
@@ -56,6 +57,17 @@ class ThrowsTransformer extends IdlTransformer {
                 idl.cloneNodeInitializer(node),
                 node.typeParameters,
             )
+        }
+        if (idl.isCallback(node)) {
+            if (idl.hasExtAttribute(node, idl.IDLExtendedAttributes.Throws)) {
+                return idl.createCallback(
+                    node.name,
+                    node.parameters.map(it => this.visit(it)),
+                    idl.createReferenceType(idl.IDLThrowsTypeName, [node.returnType]),
+                    idl.cloneNodeInitializer(node),
+                    node.typeParameters,
+                )
+            }
         }
         return this.visitEachChild(node)
     }

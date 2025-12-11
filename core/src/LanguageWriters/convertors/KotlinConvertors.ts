@@ -23,6 +23,7 @@ import { isDeclaredInCurrentFile, LayoutNodeRole } from '../../peer-generation/L
 import { Language } from '../../Language'
 import { LibraryInterface } from '../../LibraryInterface'
 import { maybeRestoreThrows } from '../../transformers/transformUtils'
+import { LanguageWriter } from '../LanguageWriter'
 
 const KBoolean = "KBoolean"
 const KByte = "KByte"
@@ -123,7 +124,10 @@ export class KotlinTypeNameConvertor implements NodeConvertor<string>, IdlNameCo
             }
             let restoredThrow: idl.IDLType | undefined
             if (restoredThrow = maybeRestoreThrows(decl, this.library)) {
-                return this.convert(restoredThrow)
+                if (LanguageWriter.isManagedThrowsTypeUnwrapped)
+                    return this.convert(restoredThrow)
+                if (restoredThrow === idl.IDLThisType)
+                    return this.convert(idl.createReferenceType(idl.IDLThrowsTypeName, [idl.IDLVoidType]))
             }
             return this.mangleTopLevel(decl) ?? removePoints(idl.getQualifiedName(decl, 'namespace.name'))
         }

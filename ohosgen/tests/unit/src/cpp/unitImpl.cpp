@@ -939,6 +939,100 @@ OH_UNIT_BaseGesture BaseGesture_createGesture2Impl() {
     BaseGesture* ptr = new DerivedGesture2();
     return reinterpret_cast<OH_UNIT_BaseGesture>(ptr);
 }
+
+class CheckCallbackExceptionsPeer {
+public:
+    static OH_UNIT_CallbackResource resource;
+};
+OH_UNIT_CallbackResource CheckCallbackExceptionsPeer::resource = {
+    .resourceId=0,
+    .hold=[](const OH_Int32 resourceId) -> void {},
+    .release=[](const OH_Int32 resourceId) -> void {}
+};
+void CheckCallbackExceptions_callHolderImpl(OH_NativePointer thisPtr) {
+}
+Throws_void CheckCallbackExceptions_checkRethrowImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackVoid* value) {
+    static Throws_void result;
+    result = {
+        .hasException = false
+    };
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_void value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+            result = value;
+        },
+    });
+    return result;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32_withParameterImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackI32_withParameter* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, 1, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackI32Impl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackI32* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_Int32 value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_Int32 value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+OH_Boolean CheckCallbackExceptions_checkThrowableCallbackVoidImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackVoid* value) {
+    static bool gotException;
+    gotException = false;
+    value->callSync(vmContext, value->resource.resourceId, {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const Throws_void value) -> void {},
+        .callSync = [](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const Throws_void value) -> void {
+            gotException = value.hasException;
+        },
+    });
+    return gotException;
+}
+UNIT_ThrowableCallbackVoid CheckCallbackExceptions_checkThrowFromNativeImpl(OH_NativePointer thisPtr) {
+    return {
+        .resource=CheckCallbackExceptionsPeer::resource,
+        .call=[](const OH_Int32 resourceId, const UNIT_Callback_Throws_Void_Void continuation) {},
+        .callSync=[](OH_UNIT_VMContext vmContext, const OH_Int32 resourceId, const UNIT_Callback_Throws_Void_Void continuation) {
+            auto message = "Exception thrown from callback created in native CheckCallbackExceptions_checkThrowFromNative";
+            continuation.callSync(vmContext, continuation.resource.resourceId, {
+                .hasException=true,
+                .exception={
+                    .kind=EXCEPTION_INTERFACE,
+                    .interface={
+                        .code=1,
+                        .message={
+                            .chars=message,
+                            .length=static_cast<int>(strlen(message)),
+                        }
+                    }
+                }
+            });
+        }
+    };
+}
+OH_UNIT_CheckCallbackExceptionsHandle CheckCallbackExceptions_constructImpl() {
+    const CheckCallbackExceptionsPeer* peer = new CheckCallbackExceptionsPeer();
+    return (OH_UNIT_CheckCallbackExceptionsHandle) peer;
+}
+void CheckCallbackExceptions_destructImpl(OH_UNIT_CheckCallbackExceptionsHandle thisPtr) {
+}
+OH_Boolean CheckCallbackExceptions_ThrowableCallbackSequenceImpl(OH_UNIT_VMContext vmContext, OH_NativePointer thisPtr, const UNIT_ThrowableCallbackSequence* value) {
+    return {};
+}
+
 OH_UNIT_DerivedGesture1Handle DerivedGesture1_constructImpl() {
     return {};
 }
@@ -1069,10 +1163,13 @@ Throws_void CheckExceptionInterface_checkExceptionImpl(OH_NativePointer thisPtr)
     return {
         .hasException=true,
         .exception={
-            .code=1,
-            .message={
-                .chars=message,
-                .length=static_cast<InteropInt32>(strlen(message)),
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
             }
         }
     };
@@ -1090,10 +1187,13 @@ Throws_void CheckExceptionClass_checkExceptionImpl(OH_NativePointer thisPtr) {
     return {
         .hasException=true,
         .exception={
-            .code=1,
-            .message={
-                .chars=message,
-                .length=static_cast<InteropInt32>(strlen(message)),
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
             }
         }
     };
@@ -1128,10 +1228,13 @@ Throws_void CheckExceptionClass_getThisImpl(OH_NativePointer thisPtr) {
     return {
         .hasException=true,
         .exception={
-            .code=1,
-            .message={
-                .chars=message,
-                .length=static_cast<InteropInt32>(strlen(message)),
+            .kind=EXCEPTION_INTERFACE,
+            .interface= {
+                .code=1,
+                .message={
+                    .chars=message,
+                    .length=static_cast<InteropInt32>(strlen(message)),
+                }
             }
         }
     };

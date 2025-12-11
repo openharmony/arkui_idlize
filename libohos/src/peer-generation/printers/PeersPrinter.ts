@@ -28,7 +28,8 @@ import {
     LayoutNodeRole,
     PeerMethodSignature,
     getExtractor,
-    maybeRestoreThrows
+    maybeRestoreThrows,
+    isThrows
 } from '@idlizer/core'
 import { getHookMethod } from '../../DefaultConfiguration'
 import {
@@ -191,7 +192,7 @@ export function writePeerMethod(library: PeerLibrary, printer: LanguageWriter, m
                 }
             }
             for (const stmt of result) {
-                writer.writeStatement(stmt)
+                LanguageWriter.managedThrowsTypeUnwrapped(false, () => writer.writeStatement(stmt))
             }
         }
     })
@@ -212,11 +213,25 @@ function makeDeserializedReturn(library: PeerLibrary, writer: LanguageWriter, re
     )
 
     const returnConvertor = library.typeConvertor(returnValName, returnType)
+    let resultAssigneer: (expr: LanguageExpression) => LanguageStatement = (expr) => writer.makeReturn(expr)
+    if (isThrows(returnType, library)) {
+        const restoredThrow = maybeRestoreThrows(returnType, library)!
+        const needReturn = restoredThrow !== idl.IDLVoidType && restoredThrow !== idl.IDLThisType
+        resultAssigneer = (expr) => {
+            return writer.makeBlock([
+                writer.makeAssign(`exceptionBuffer`, undefined, expr, true),
+                writer.makeCondition(writer.makeString(`exceptionBuffer.hasException`),
+                    writer.makeThrowError(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.exception`))),
+                    needReturn ? writer.makeReturn(writer.makeUnwrapOptional(writer.makeString(`exceptionBuffer.value`))) : undefined
+                )
+            ], false)
+        }
+    }
     return [
         returnConvertor.convertorDeserialize(
             'buffer',
             deserializerName,
-            (expr) => writer.makeReturn(expr),
+            resultAssigneer,
             writer
         ),
     ]

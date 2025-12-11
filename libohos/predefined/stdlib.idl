@@ -12,7 +12,7 @@ interface CallbackResource {};
 interface VMContext {};
 [TSType=Null]
 interface Null {};
-interface <T> Throws {
+interface <T> ThrowsWrapper {
     attribute T value;
 };
 
