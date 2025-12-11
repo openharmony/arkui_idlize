@@ -142,7 +142,7 @@ export class DynamicEmitter {
     private printPeers(idl: IDLFile): void {
         const out = this.printFiles(this.peersPrinter, idl)
         // override index printer
-        this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined, out)
+        this.indexPrinter.print = AllPeersPrinter.printIndexFile.bind(undefined,  out, this.config)
         this.printFile(this.indexPrinter, idl)
         this.printFile(this.factoryPrinter, idl)
     }
