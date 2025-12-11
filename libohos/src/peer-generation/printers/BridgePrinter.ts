@@ -283,9 +283,7 @@ export class BridgeVisitor {
             if (isVMContextMethod(makeInteropMethod(this.library, cName, method)))
                 argDecls.unshift("KVMContext vmContext")
             this.generatedApi.print(`${retType} impl_${cName}(${argDecls.join(", ")}) {`)
-            this.generatedApi.pushIndent()
             this.printNativeBody(context, method)
-            this.generatedApi.popIndent()
             this.generatedApi.print(`}`)
         }
         const macroRetType = this.mapToKTypes(method.returnType) ?? retType

@@ -15,7 +15,7 @@
 
 import * as idl from '../idl'
 import { ArgConvertor } from '../LanguageWriters/ArgConvertors'
-import { copyMethod, Field, FieldModifier, Method, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
+import { copyMethod, Field, FieldModifier, Method, METHOD_ACCESS_MODIFIERS, MethodModifier, NamedMethodSignature } from '../LanguageWriters/LanguageWriter'
 import { getInternalClassName } from './isMaterialized'
 import { PeerClassBase } from './PeerClass'
 import { PeerMethod, PeerMethodSignature } from './PeerMethod'
@@ -90,8 +90,7 @@ export class MaterializedMethod extends PeerMethod {
         return copyMaterializedMethod(this, {
             method: copyMethod(this.method, {
                 modifiers: (this.method.modifiers ?? [])
-                    .filter(it => ![
-                        MethodModifier.PUBLIC, MethodModifier.PROTECTED, MethodModifier.PRIVATE].includes(it))
+                    .filter(it => !METHOD_ACCESS_MODIFIERS.has(it))
                     .filter(it => it !== MethodModifier.OVERRIDE)
                     .concat([neededModifier])
             })

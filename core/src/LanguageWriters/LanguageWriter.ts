@@ -370,6 +370,12 @@ export enum MethodModifier {
     OPEN,
 }
 
+export const METHOD_ACCESS_MODIFIERS = new Set([
+    MethodModifier.PUBLIC,
+    MethodModifier.PRIVATE,
+    MethodModifier.PROTECTED
+])
+
 export enum ClassModifier {
     PUBLIC,
     PRIVATE,
@@ -928,3 +934,8 @@ export type MakeAssignOptions = {
 /////////////////////////////////////////////////////////////////////////////////
 
 export type ExpressionAssigner = (expression: LanguageExpression) => LanguageStatement
+
+export function hasAccessModifier(modifiers: MethodModifier[] | undefined): boolean {
+    const modifier = modifiers?.find(value => METHOD_ACCESS_MODIFIERS.has(value))
+    return modifier !== undefined
+}

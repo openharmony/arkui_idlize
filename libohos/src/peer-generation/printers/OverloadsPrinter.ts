@@ -20,7 +20,8 @@ import {
     MethodModifier,
     NamedMethodSignature
 } from "../LanguageWriters";
-import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, PeerMethodSignature, maybeRestoreThrows, copyMethod } from "@idlizer/core"
+import { LanguageWriter, PeerClassBase, PeerMethod, PeerLibrary, ArgumentModifier, copyMethod, hasAccessModifier,
+    PeerMethodSignature, maybeRestoreThrows } from "@idlizer/core"
 import { isDefined, Language, throwException, collapseTypes } from '@idlizer/core'
 import { UndefinedConvertor } from "@idlizer/core"
 import { UnionRuntimeTypeChecker, zipMany } from "@idlizer/core";
@@ -117,10 +118,9 @@ export function collapseSameNamedMethods(methods: Method[], selectMaxMethodArgs?
             undefined,
             argsModifiers
         ),
-        (methods[0].modifiers?.includes(MethodModifier.PRIVATE) ||
-         methods[0].modifiers?.includes(MethodModifier.PROTECTED)) ?
-        methods[0].modifiers :
-        [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
+        hasAccessModifier(methods[0].modifiers) ?
+            methods[0].modifiers :
+            [MethodModifier.PUBLIC].concat(methods[0].modifiers ?? []),
         methods[0].generics,
     )
 }

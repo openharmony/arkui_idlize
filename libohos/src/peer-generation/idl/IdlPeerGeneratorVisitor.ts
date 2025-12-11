@@ -187,16 +187,43 @@ export class IdlPeerProcessor {
             fullCName, implemenationParentName, idl.IDLPointerType, false,
             "getFinalizer",
             new Method("getFinalizer", new NamedMethodSignature(idl.IDLPointerType, [], [], []), [MethodModifier.STATIC]))
+        
+        const mMethods: MaterializedMethod[] = []
+        if (mFinalizer) {
+            const callHolder = new MaterializedMethod(
+                undefined,
+                new PeerMethodSignature(
+                    PeerMethodSignature.CALL_HOLDER,
+                    idl.getFQName(decl).split('.').concat(PeerMethodSignature.CALL_HOLDER).join('_'),
+                    [],
+                    idl.IDLVoidType,
+                    decl
+                ),
+                fullCName, implemenationParentName, idl.IDLVoidType, false,
+                PeerMethodSignature.CALL_HOLDER,
+                new Method(
+                    PeerMethodSignature.CALL_HOLDER,
+                    new NamedMethodSignature(idl.IDLVoidType, [], [], []),
+                    [MethodModifier.PROTECTED])
+                )
+            mMethods.push(callHolder)
+        }
         const groupedFields = groupBy(propertiesFromInterface.concat(decl.properties), it => it.name)
         const mFields = [...(groupedFields.values())]
             .map(props => this.makeMaterializedField(props))
-        const mMethods = decl.methods
+        mMethods.push(...(decl.methods
             // .concat(...methodsFromInterface) // TODO insert here methods from interfaces
             // TODO: Properly handle methods with return Promise<T> type
             .filter(it => it.name != PeerMethodSignature.GET_FINALIZER)
             .filter(it => it.name != PeerMethodSignature.CALL_HOLDER)
             .map(method => this.makeMaterializedMethod(decl, method, fullCName, implemenationParentName))
-            .filter(it => !idl.isNamedNode(it.method.signature.returnType) || !peerGeneratorConfiguration().materialized.ignoreReturnTypes.includes(it.method.signature.returnType.name))
+            .filter(it =>
+                !idl.isNamedNode(it.method.signature.returnType) ||
+                !peerGeneratorConfiguration().materialized.ignoreReturnTypes.includes(
+                    it.method.signature.returnType.name
+                )
+            )
+        ))
 
         const taggedMethods = decl.methods.filter(m => m.extendedAttributes?.find(it => it.name === idl.IDLExtendedAttributes.DtsTag))
 
@@ -239,25 +266,6 @@ export class IdlPeerProcessor {
                 mMethods.push(setAccessor)
             }
         })
-        if (mFinalizer) {
-            const callHolder = new MaterializedMethod(
-                undefined,
-                new PeerMethodSignature(
-                    PeerMethodSignature.CALL_HOLDER,
-                    idl.getFQName(decl).split('.').concat(PeerMethodSignature.CALL_HOLDER).join('_'),
-                    [],
-                    idl.IDLVoidType,
-                    decl
-                ),
-                fullCName, implemenationParentName, idl.IDLVoidType, false,
-                PeerMethodSignature.CALL_HOLDER,
-                new Method(
-                    PeerMethodSignature.CALL_HOLDER,
-                    new NamedMethodSignature(idl.IDLVoidType, [], [], []),
-                    [MethodModifier.PROTECTED])
-                )
-            mMethods.push(callHolder)
-        }
         this.library.materializedClasses.set(fullCName,
             new MaterializedClass(decl, decl.name, isDeclInterface, isStaticMaterialized, superType, interfaces, decl.typeParameters,
                 mFields, mConstructors, mFinalizer, mMethods, true, taggedMethods, isRefCountedClass))
