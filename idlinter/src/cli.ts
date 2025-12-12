@@ -79,8 +79,9 @@ function validateIdl(paths: string[], options: { load: string[], features: strin
     }
 }
 
-function checkCompatDirs(baseDir: string, commitDir: string) {
-    checkCompat(listIdl(baseDir, "base"), listIdl(commitDir, "commit"))
+function checkCompatDirs(baseDir: string, commitDir: string, options: { load?: string[] }) {
+    const loadFiles = options.load ? listIdl(options.load!, "--load") : new Set<string>()
+    checkCompat(listIdl(baseDir, "base"), listIdl(commitDir, "commit"), loadFiles)
     outputDiagnosticResultsFormatted(DiagnosticMessageGroup.collectedResults)
     if (DiagnosticMessageGroup.collectedResults.hasErrors) {
         process.exit(2)
@@ -95,6 +96,7 @@ export function idlinterMain() {
 
     program.command('compat <dir0> <dir1>')
         .description('check if dir1 is API-wise compatible with dir0')
+        .option("--load <paths...>", "Paths to individual .idl files (or directories recursively containing them) for loading and symbol search\n(these files will not be checked)")
         .action(checkCompatDirs)
 
     program.command('check <paths...>')

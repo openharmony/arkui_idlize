@@ -103,7 +103,7 @@ function processFile(program: arkts.Program, outDir: string, baseDir: string, co
     idlVisitor.visitor(program.ast)
     const idlFile = idlVisitor.toIDLSuperFile()
     const fileRelativePath = path.relative(baseDir, file)
-    const outFile = path.join(outDir, fileRelativePath.replace(".d.ets", ".idl"))
+    const outFile = path.join(outDir, fileRelativePath.replace(/(\.d)?\.e?ts$/, ".idl"))
     const outFileDir = path.dirname(outFile)
     if (!fs.existsSync(outFileDir)) {
         fs.mkdirSync(outFileDir, { recursive: true })
@@ -528,7 +528,7 @@ class IDLVisitor extends arkts.AbstractVisitor {
         protected status: StatusTracker,
     ) {
         super()
-        this.fileName = this.originalFileName.replace(".d.ets", ".idl")
+        this.fileName = this.originalFileName.replace(/(\.d)?\.e?ts$/, ".idl")
         this.packageClause = this.detectPackageNameByPath(this.originalFileName)
     }
     visitor(node: arkts.AstNode): arkts.AstNode {
@@ -1294,7 +1294,8 @@ class IDLVisitor extends arkts.AbstractVisitor {
     serializeClassProperty(property: arkts.ClassProperty): idl.IDLProperty {
         const name = (property.key as arkts.Identifier).name
         return this.contextual.extend(name, false, () => {
-            const prop = idl.createProperty(name, this.serializeType(property.typeAnnotation!))
+            const [type, _] = this.guessTypeAndValue(name, property.typeAnnotation, property.value)
+            const prop = idl.createProperty(name, type)
             prop.extendedAttributes ??= []
             prop.extendedAttributes.push(...this.traceAttrs())
             if (arkts.hasModifierFlag(property, arkts.Es2pandaModifierFlags.MODIFIER_FLAGS_OPTIONAL)) {
@@ -1843,13 +1844,20 @@ class IDLVisitor extends arkts.AbstractVisitor {
     }
 
     private guessTypeAndValue(name: string, type?: arkts.TypeNode, initExpr?: arkts.Expression): [idl.IDLType, string | undefined] {
-        if (type) return [this.serializeType(type), arkts.isStringLiteral(initExpr) ? `"${initExpr.toString}"` : initExpr?.toString]
+        if (type) {
+            const idlType = this.serializeType(type)
+            const value = !idl.isPrimitiveType(idlType) ? undefined
+                : arkts.isStringLiteral(initExpr) ? `"${initExpr.toString}"`
+                : initExpr?.toString
+            return [idlType, value]
+        }
         if (!initExpr) throw new Error(`Constant ${name} neither has type nor the initializer`)
         const value = initExpr.toString
         if (arkts.isBooleanLiteral(initExpr)) return [idl.IDLBooleanType, value]
         if (arkts.isNumberLiteral(initExpr)) return [idl.IDLNumberType, value]
         if (arkts.isStringLiteral(initExpr)) return [idl.IDLStringType, `"${value}"`]
         if (arkts.isBigIntLiteral(initExpr)) return [idl.IDLNumberType, value]
+        if (arkts.isETSNewClassInstanceExpression(initExpr)) return [this.serializeType(initExpr.typeRef), undefined]
         console.error(`Unknown initExpr type for constant: ${name} with value: ${value}`)
         return [idl.IDLAnyType, undefined]
     }

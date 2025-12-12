@@ -16,15 +16,14 @@
 import { convertType, DiagnosticMessageGroup, isDefined, parseIDLFile, stringOrNone, TypeConvertor } from "@idlizer/core"
 import * as idl from "@idlizer/core/idl"
 
-const Errors = new DiagnosticMessageGroup("error", "Compat", "Incompatible API change")
+const errors = new DiagnosticMessageGroup("error", "Compat", "Incompatible API change")
+const typedefs = new Map<string, idl.IDLType>()
 
 function isCompatibleType(base?: idl.IDLType, commit?: idl.IDLType): boolean {
     if (!base || !commit)
         return base === commit
     else if (idl.isPrimitiveType(base) && idl.isPrimitiveType(commit))
         return base === commit
-    else if (idl.isReferenceType(base) && idl.isReferenceType(commit))
-        return base.name === commit.name
     else if (idl.isContainerType(base) && idl.isContainerType(commit))
         return base.containerKind === commit.containerKind &&
             base.elementType.length === commit.elementType.length &&
@@ -36,7 +35,9 @@ function isCompatibleType(base?: idl.IDLType, commit?: idl.IDLType): boolean {
             base.types.every(type => isDefined(commit.types.find(it => isCompatibleType(it, type))))
     else if (idl.isTypeParameterType(base) && idl.isTypeParameterType(commit))
         return true
-    return false
+    return idl.isReferenceType(base) && idl.isReferenceType(commit) && base.name === commit.name
+        || idl.isReferenceType(commit) && isCompatibleType(base, typedefs.get(commit.name))
+        || idl.isReferenceType(base) && isCompatibleType(typedefs.get(base.name), commit)
 }
 
 function checkType(message: string, node: idl.IDLEntry, base?: idl.IDLType, commit?: idl.IDLType) {
@@ -141,7 +142,7 @@ function report(message: string, node?: idl.IDLNode) {
     if (node && idl.isFile(node))
         crumbs.unshift(...node.packageClause)
     const locations = node?.nodeLocation ? [node.nodeLocation] : []
-    Errors.reportDiagnosticMessage(locations, `${message}: ${crumbs.join('.')}${decorator ?? ''}`)
+    errors.reportDiagnosticMessage(locations, `${message}: ${crumbs.join('.')}${decorator ?? ''}`)
 }
 
 function makeDecorator(node?: idl.IDLNode): stringOrNone {
@@ -190,7 +191,10 @@ function typeName(type: idl.IDLType): string {
     return convertType(typeNameConvertor, type)
 }
 
-export function checkCompat(baseFiles: Set<string>, commitFiles: Set<string>) {
+export function checkCompat(baseFiles: Set<string>, commitFiles: Set<string>, loadFiles: Set<string>) {
     const read = (files: Set<string>) => Array.from(files).flatMap(f => parseIDLFile(f).entries)
-    checkEntries(read(baseFiles), read(commitFiles))
+    const [base, commit, load] = [baseFiles, commitFiles, loadFiles].map(read)
+    for (const e of [...base, ...commit, ...load].filter(idl.isTypedef))
+        typedefs.set(e.name, e.type)
+    checkEntries(base, commit)
 }
