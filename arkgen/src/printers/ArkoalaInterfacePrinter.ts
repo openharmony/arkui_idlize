@@ -82,9 +82,9 @@ class ArkoalaTSDeclConvertor extends TSDeclConvertor {
         }
         const applyAttributesFinishSignature = new MethodSignature(idl.IDLVoidType, [])
         if (this.peerLibrary.language === Language.ARKTS) {
-            printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), w => {
-                w.writeStatement(w.makeThrowError(`Unimplemented method applyAttributesFinish`))
-            })
+            if (idlInterface.name === 'CommonMethod') {
+                printer.writeMethodImplementation(new Method('applyAttributesFinish', applyAttributesFinishSignature), () => {})
+            }
         }
         else {
             printer.writeMethodDeclaration('applyAttributesFinish', applyAttributesFinishSignature)
