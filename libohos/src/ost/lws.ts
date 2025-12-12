@@ -39,6 +39,7 @@ export enum LWKind {
   AccessorExpression,
   ConstructorExpression,
   CheckCastExpression,
+  LambdaExpression,
 
   ValueType,
   FunctionalType,
@@ -266,6 +267,16 @@ export interface CheckCastExpression {
   type: LWType
   hints: Hint[]
 }
+export interface LambdaExpression {
+  kind: LWKind.LambdaExpression
+  parameters: {
+    name: string
+    type: LWType
+  }[]
+  body: LWStatement
+  closure?: string[]
+  hints: Hint[]
+}
 export type LWExpression =
     VariableExpression
   | ConstantExpression
@@ -276,6 +287,7 @@ export type LWExpression =
   | AccessorExpression
   | ConstructorExpression
   | CheckCastExpression
+  | LambdaExpression
 
 export interface ValueType {
   kind: LWKind.ValueType

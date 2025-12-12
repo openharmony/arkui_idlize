@@ -19,7 +19,7 @@ import {
     ConstructorExpression, DeclarationStatement, ExpressionStatement, FunctionDeclaration,
     IfStatement, LoopStatement, LWExpression, LWKind, LWStatement, LWType, Modifier,
     StructureDeclaration, Annotation, SimpleAnnotation, DecoratorKind, MacroInvocation,
-    UnaryExpression, CheckCastExpression, FunctionalType, TypedefDeclaration,
+    UnaryExpression, CheckCastExpression, LambdaExpression, FunctionalType, TypedefDeclaration,
     EnumDeclaration, SwitchStatement
 } from "./lws"
 import { Hs, Md, std, Ts } from "./stdlib";
@@ -195,6 +195,34 @@ class CheckCastBuilder<P> {
     }
 }
 
+class LambdaBuilder<P> {
+    constructor(private _cont: (expr: LambdaExpression) => P) {}
+    private _parameters: LambdaExpression['parameters'] = []
+    private _body: LWStatement | undefined
+    private _closure: string[] = []
+    closure(...names: string[]) { this._closure.push(...names); return this }
+    parameters(params: LambdaExpression['parameters']) { this._parameters.push(...params); return this }
+    param(name: string): ParamBuilder<this> {
+        return new ParamBuilder((name, type) => {
+            this._parameters.push({name, type})
+            return this
+        }, name)
+    }
+    body(): StatementBuilder<this> {
+        return new StatementBuilder(saveInto(this, '_body'))
+    }
+    $(): P {
+        check('Lambda', this._body)
+        return this._cont({
+            kind: LWKind.LambdaExpression,
+            parameters: this._parameters,
+            body: this._body!,
+            closure: this._closure,
+            hints: []
+        })
+    }
+}
+
 class ExpressionBuilder<P> {
     constructor(private _cont: (expr: LWExpression) => P) {}
     private _expr?: LWExpression
@@ -220,6 +248,9 @@ class ExpressionBuilder<P> {
     }
     instanceof(type: LWType): CheckCastBuilder<this> {
         return new CheckCastBuilder(saveInto(this, '_expr'), 'instanceof', type)
+    }
+    lambda(): LambdaBuilder<this> {
+        return new LambdaBuilder(saveInto(this, '_expr'))
     }
     $(): P {
         check("Expression", this._expr)
@@ -644,9 +675,10 @@ export class Builders {
     static binary(op: string): BinaryBuilder<BinaryExpression> { return new BinaryBuilder(id, op) }
     static unary(op: string): UnaryBuilder<UnaryExpression> { return new UnaryBuilder(id, op) }
     static call(func?: string | LWExpression): CallBuilder<CallExpression> { return new CallBuilder(id, func) }
+    static ctor(name?: string): ConstructorBuilder<ConstructorExpression> { return new ConstructorBuilder(id, name) }
     static cast(type: LWType): CheckCastBuilder<CheckCastExpression> { return new CheckCastBuilder(id, 'cast', type) }
     static instanceof(type: LWType): CheckCastBuilder<CheckCastExpression> { return new CheckCastBuilder(id, 'instanceof', type) }
-    static ctor(name?: string): ConstructorBuilder<ConstructorExpression> { return new ConstructorBuilder(id, name) }
+    static lambda(): LambdaBuilder<LambdaExpression> { return new LambdaBuilder(id) }
 
     static block(): BlockBuilder<LWStatement> { return new BlockBuilder(S.block) }
     static decl(name: string, type?: LWType): DeclarationBuilder<DeclarationStatement> { return new DeclarationBuilder(id, name, type) }

@@ -15,9 +15,8 @@
 
 import { IndentPrinter } from "../indent";
 import * as lw from "../../lws"
-import { Op, std, Ts } from "../../stdlib";
-import { utils } from "../../builder";
-import { generatorConfiguration } from "@idlizer/core";
+import { Op, std } from "../../stdlib";
+import { S, T, utils } from "../../builder";
 
 const varMapping = new Map([
   [std.names.vars.base, 'base'],
@@ -244,6 +243,29 @@ export class CXXPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.LambdaExpression:
+        if (expression.closure) {
+          this.p.put('[')
+          expression.closure.forEach((name, i) => {
+            if (i > 0) {
+              this.p.put(',', ' ')
+            }
+            this.p.put(name)
+          })
+          this.p.put(']')
+        }
+        this.p.put('(')
+        expression.parameters.forEach((param, i) => {
+          if (i > 0) {
+            this.p.put(',', ' ')
+          }
+          this.printDirectType(param.type, param.name)
+        })
+        this.p.put(')', ' ')
+        const body = expression.body.kind === lw.LWKind.CompoundStatement
+          ? expression.body
+          : S.block([expression.body])
+        this.printStatement(body)
     }
   }
   printStatement(statement: lw.LWStatement) {

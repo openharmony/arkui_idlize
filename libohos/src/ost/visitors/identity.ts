@@ -255,6 +255,18 @@ export class IdentityTransformer {
       hints: expr.hints,
     }
   }
+  goLambdaExpression(expr: lw.LambdaExpression): lw.LambdaExpression {
+    return {
+      kind: expr.kind,
+      parameters: expr.parameters.map(({name, type}) => ({
+        name,
+        type: this.goType(type)
+      })),
+      body: this.goStatement(expr.body),
+      closure: expr.closure,
+      hints: expr.hints
+    }
+  }
   goExpression(expr:lw.LWExpression): lw.LWExpression {
     switch (expr.kind) {
       case lw.LWKind.VariableExpression: return this.goVariableExpression(expr)
@@ -266,6 +278,7 @@ export class IdentityTransformer {
       case lw.LWKind.AccessorExpression: return this.goAccessorExpression(expr)
       case lw.LWKind.ConstructorExpression: return this.goConstructorExpression(expr)
       case lw.LWKind.CheckCastExpression: return this.goCastExpression(expr)
+      case lw.LWKind.LambdaExpression: return this.goLambdaExpression(expr)
     }
   }
 

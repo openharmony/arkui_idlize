@@ -272,6 +272,16 @@ export class TSPrinter {
         this.p.put(')')
         break
       }
+      case lw.LWKind.LambdaExpression:
+        this.p.put('(')
+        expression.parameters.forEach((param, i) => {
+          if (i > 0) {
+            this.p.put(',', ' ')
+          }
+          this.p.put(param.name)
+        })
+        this.p.put(')', ' ', '=>', ' ')
+        this.printStatement(expression.body)
     }
   }
   printStatement(statement: lw.LWStatement) {
